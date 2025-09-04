@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -259,7 +260,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 CodeGenerationContext.Default,
                 CSharpCodeGenerationOptions.Default,
                 (CSharpCodeGenerationService)codeGenerationService,
-                LanguageVersionExtensions.CSharpNext);
+                LanguageVersion.CSharp14);
 
             var firstExtensionInfo = group[0];
             var typeParameters = firstExtensionInfo.MethodTypeParameters.CastArray<ITypeParameterSymbol>();

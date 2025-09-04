@@ -112,6 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isLeftOfAssignment)
         {
             Debug.Assert(oldNode is BoundIndexerAccess or BoundObjectInitializerMember);
+            Debug.Assert(arguments.Length != 0);
+            Debug.Assert(rewrittenReceiver is { });
 
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
@@ -157,30 +159,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(getMethod is not null);
 
                 ArrayBuilder<LocalSymbol>? temps = null;
+                bool needSpecialExtensionPropertyReceiverReadOrder = false;
+                ArrayBuilder<BoundExpression>? storesOpt = null;
+
+                if (IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(rewrittenReceiver, indexer))
+                {
+                    // The receiver has location, but extension indexer takes receiver by value.
+                    // This means that we need to ensure that the receiver value is read after
+                    // any side-effecting arguments are evaluated, so that the
+                    // setter receives the last value of the receiver, not the value before the
+                    // arguments were evaluated. Receiver side effects should be evaluated at
+                    // the very beginning, of course.
+
+                    needSpecialExtensionPropertyReceiverReadOrder = true;
+                    storesOpt = ArrayBuilder<BoundExpression>.GetInstance();
+                }
+
+#if DEBUG
+                BoundExpression? rewrittenReceiverBeforePossibleCapture = rewrittenReceiver;
+#endif
                 ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder,
                     arguments,
                     indexer,
                     argsToParamsOpt,
                     argumentRefKindsOpt,
-                    storesOpt: null,
+                    storesOpt,
                     ref temps);
 
-                rewrittenArguments = MakeArguments(
-                    rewrittenArguments,
-                    indexer,
-                    expanded,
-                    argsToParamsOpt,
-                    ref argumentRefKindsOpt,
-                    ref temps);
+                if (needSpecialExtensionPropertyReceiverReadOrder)
+                {
+#if DEBUG
+                    Debug.Assert(rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
+#endif
+                    Debug.Assert(storesOpt is { });
+                    Debug.Assert(storesOpt.Count != 0);
+                    Debug.Assert(temps is not null);
 
+                    // Store everything that is non-trivial into a temporary; record the
+                    // stores in storesToTemps and make the actual argument a reference to the temp.
+                    rewrittenArguments = ExtractSideEffectsFromArguments(rewrittenArguments, indexer, expanded, argsToParamsOpt, ref argumentRefKindsOpt, storesOpt, temps);
+                }
+                else
+                {
+                    rewrittenArguments = MakeArguments(
+                        rewrittenArguments,
+                        indexer,
+                        expanded,
+                        argsToParamsOpt,
+                        ref argumentRefKindsOpt,
+                        ref temps);
+                }
+
+                var sideEffects = storesOpt is null ? [] : storesOpt.ToImmutableAndFree();
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentRefKindsOpt, getMethod);
 
                 Debug.Assert(call.Type is not null);
 
                 if (temps.Count == 0)
                 {
+                    Debug.Assert(sideEffects.IsEmpty);
                     temps.Free();
                     return call;
                 }
@@ -189,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundSequence(
                         syntax,
                         temps.ToImmutableAndFree(),
-                        ImmutableArray<BoundExpression>.Empty,
+                        sideEffects,
                         call,
                         call.Type);
                 }
@@ -458,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
                 node, isLeftOfAssignment,
-                isRegularAssignmentOrRegularCompoundAssignment: isLeftOfAssignment,
+                isRegularAssignment: isLeftOfAssignment,
                 cacheAllArgumentsOnly: false,
                 sideeffects, locals);
 
@@ -471,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetUnderlyingIndexerOrSliceAccess(
             BoundImplicitIndexerAccess node,
             bool isLeftOfAssignment,
-            bool isRegularAssignmentOrRegularCompoundAssignment,
+            bool isRegularAssignment,
             bool cacheAllArgumentsOnly,
             ArrayBuilder<BoundExpression> sideeffects,
             ArrayBuilder<LocalSymbol> locals)
@@ -508,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (receiverLocal.LocalSymbol.IsRef &&
                         CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
                         !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
-                        ((isLeftOfAssignment && !isRegularAssignmentOrRegularCompoundAssignment) ||
+                        ((isLeftOfAssignment && !isRegularAssignment) ||
                          !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
                     {
                         BoundAssignmentOperator? extraRefInitialization;
@@ -573,9 +612,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // callers do the caching instead
                     // Tracked by https://github.com/dotnet/roslyn/issues/71056
                     AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+                    // https://github.com/dotnet/roslyn/issues/78829 - Do we need to do something special for recievers of extension indexers here?
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,
-                        captureReceiverMode: ReceiverCaptureMode.Default,
+                        forceReceiverCapturing: false,
                         indexerAccess.Arguments,
                         indexerAccess.Indexer,
                         indexerAccess.ArgsToParamsOpt,

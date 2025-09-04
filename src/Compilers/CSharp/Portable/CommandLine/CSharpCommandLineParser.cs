@@ -9,8 +9,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool debugPlus = false;
             string? pdbPath = null;
             bool noStdLib = IsScriptCommandLineParser; // don't add mscorlib from sdk dir when running scripts
+            bool noSdkPath = false;
             string? outputDirectory = baseDirectory;
             ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             string? outputFileName = null;
@@ -282,7 +285,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
                     case "attachdebugger":
-                        Debugger.Launch();
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            // Debugger.Launch() only works on Windows.
+                            _ = Debugger.Launch();
+                        }
+                        else
+                        {
+                            var timeout = TimeSpan.FromMinutes(2);
+                            Console.WriteLine($"Compiler started with process ID {Environment.ProcessId}");
+                            Console.WriteLine($"Waiting {timeout:g} for a debugger to attach");
+                            using var timeoutSource = new CancellationTokenSource(timeout);
+                            while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
+                            {
+                                Thread.Sleep(100);
+                            }
+                        }
                         continue;
 #endif
                 }
@@ -535,7 +553,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "nosdkpath":
-                            sdkDirectory = null;
+                            noSdkPath = true;
+
+                            continue;
+
+                        case "sdkpath":
+                            noSdkPath = false;
+
+                            if (valueMemory is not { Length: > 0 })
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<path>", name);
+                                continue;
+                            }
+
+                            sdkDirectory = RemoveQuotesAndSlashes(valueMemory);
 
                             continue;
 
@@ -1397,6 +1428,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!IsScriptCommandLineParser && !sourceFilesSpecified && (outputKind.IsNetModule() || !resourcesOrModulesSpecified))
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.WRN_NoSources);
+            }
+
+            if (noSdkPath)
+            {
+                sdkDirectory = null;
             }
 
             if (!noStdLib && sdkDirectory != null)

@@ -2959,5 +2959,55 @@ End Module
             CompileAndVerify(source, expectedOutput:="pass").VerifyDiagnostics()
         End Sub
 
+        <Fact>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2521944")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79696")>
+        Public Sub DoubleCreateTruncating()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+
+Module Program
+    Sub Main()
+        Dim b As Byte = 10
+        Console.Write(Test1()(b))
+        Console.Write(":")
+        Console.Write(Test2(b))
+    End Sub
+
+    Function Test1() As Func(Of Byte, Double)
+        Return AddressOf Double.CreateTruncating
+    End Function
+
+    Function Test2(b As Byte) As Double
+        Return Double.CreateTruncating(b)
+    End Function
+End Module    </file>
+</compilation>
+
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.Net90, options:=TestOptions.ReleaseExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "10:10", Nothing), verify:=Verification.FailsPEVerify).VerifyDiagnostics()
+            verifier.VerifyIL("Program.Test1", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  ldftn      "Function Double.CreateTruncating(Of Byte)(Byte) As Double"
+  IL_0007:  newobj     "Sub System.Func(Of Byte, Double)..ctor(Object, System.IntPtr)"
+  IL_000c:  ret
+}
+]]>)
+            verifier.VerifyIL("Program.Test2", <![CDATA[
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Double.CreateTruncating(Of Byte)(Byte) As Double"
+  IL_0006:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace

@@ -93,10 +93,7 @@ internal sealed class CaretPreservingEditTransaction : IDisposable
 
         set
         {
-            if (_transaction != null)
-            {
-                _transaction.MergePolicy = value;
-            }
+            _transaction?.MergePolicy = value;
         }
     }
 

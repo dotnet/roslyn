@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         internal const string FileName = "FileName";
 
         private const char ObliviousMarker = '~';
-        private static readonly char[] ObliviousMarkerArray = { ObliviousMarker };
+        private static readonly char[] ObliviousMarkerArray = [ObliviousMarker];
 
         /// <summary>
         /// Boolean option to configure if public API analyzer should bail out silently if public API files are missing.
@@ -273,34 +272,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             optionValue = "";
             try
             {
-                var provider = analyzerOptions.GetType().GetRuntimeProperty("AnalyzerConfigOptionsProvider")?.GetValue(analyzerOptions);
+                var provider = analyzerOptions.AnalyzerConfigOptionsProvider;
                 if (provider == null)
                 {
                     return false;
                 }
 
-                var getOptionsMethod = provider.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "GetOptions");
-                if (getOptionsMethod == null)
-                {
-                    return false;
-                }
-
-                var options = getOptionsMethod.Invoke(provider, new object[] { tree });
-                var tryGetValueMethod = options.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "TryGetValue");
-                if (tryGetValueMethod == null)
-                {
-                    return false;
-                }
+                var options = provider.GetOptions(tree);
 
                 // bool TryGetValue(string key, out string value);
                 var parameters = new object?[] { optionName, null };
-                if (tryGetValueMethod.Invoke(options, parameters) is not bool hasOption ||
-                    !hasOption)
-                {
-                    return false;
-                }
-
-                if (parameters[1] is not string value)
+                if (!options.TryGetValue(optionName, out var value))
                 {
                     return false;
                 }
@@ -334,7 +316,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return false;
             }
 
-            var namespaceStrings = namespacesString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var namespaceStrings = namespacesString.Split([','], StringSplitOptions.RemoveEmptyEntries);
             if (namespaceStrings.Length == 0)
             {
                 return false;

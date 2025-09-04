@@ -11,8 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Basic.CompilerLog.Util;
 using Microsoft.CodeAnalysis.CommandLine;
-using Microsoft.CodeAnalysis.Options;
-using Mono.Options;
 
 var options = ParseOptions(args);
 if (Directory.Exists(options.OutputDirectory))
@@ -107,7 +105,7 @@ static async Task<int> RunAsync(ReplayOptions options)
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
+            await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None).ConfigureAwait(false))
             {
                 Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
             }

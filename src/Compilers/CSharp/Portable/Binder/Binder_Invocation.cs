@@ -265,6 +265,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasErrors = analyzedArguments.HasErrors;
 
+            if (IsInAsyncMethod() && Compilation.IsRuntimeAsyncEnabledIn(ContainingMemberOrLambda))
+            {
+                // Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, node, ContainingMemberOrLambda);
+            }
+
             // We allow names, oddly enough; M(__arglist(x : 123)) is legal. We just ignore them.
             TypeSymbol objType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             for (int i = 0; i < analyzedArguments.Arguments.Count; ++i)
@@ -2069,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var p in properties)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130: Revisit this with new extensions
+                Debug.Assert(!p.GetIsNewExtensionMember());
                 if (p.ParameterCount > 0)
                 {
                     parameterListList.Add(p.Parameters);
@@ -2353,7 +2359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Check that the method group contains something applicable. Otherwise error.
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
+            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None, acceptOnlyMethods: true);
             Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
 
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);

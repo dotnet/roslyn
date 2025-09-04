@@ -680,6 +680,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // First diagnostic request should report a diagnostic since the generator does not produce any source (text does not match).
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        var firstResultId = results.Single().ResultId;
         var diagnostic = AssertEx.Single(results.Single().Diagnostics);
         Assert.Equal("CS0103", diagnostic.Code);
 
@@ -703,7 +704,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         }
 
         await testLspServer.WaitForSourceGeneratorsAsync();
-        results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: firstResultId);
+        var secondResultId = results.Single().ResultId;
 
         if (executionPreference == SourceGeneratorExecutionPreference.Automatic)
         {
@@ -712,15 +714,18 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         }
         else
         {
-            // In balanced mode, the diagnostic should remain until there is a manual source generator run that updates the sg text.
-            diagnostic = AssertEx.Single(results.Single().Diagnostics);
-            Assert.Equal("CS0103", diagnostic.Code);
+            // In balanced mode, the diagnostic should be unchanged until there is a manual source generator run that updates the sg text.
+            Assert.Null(results.Single().Diagnostics);
+            Assert.Equal(firstResultId, secondResultId);
 
             testLspServer.TestWorkspace.EnqueueUpdateSourceGeneratorVersion(document.Project.Id, forceRegeneration: false);
             await testLspServer.WaitForSourceGeneratorsAsync();
 
-            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: secondResultId);
+            var thirdResultId = results.Single().ResultId;
+            AssertEx.NotNull(results.Single().Diagnostics);
             Assert.Empty(results.Single().Diagnostics!);
+            Assert.NotEqual(firstResultId, thirdResultId);
         }
     }
 
@@ -933,6 +938,37 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         Assert.Equal("IDE0090", results.Single().Diagnostics!.Single().Code);
         Assert.Equal(LSP.DiagnosticSeverity.Information, results.Single().Diagnostics!.Single().Severity);
+    }
+
+    [ConditionalTheory(typeof(UnixLikeOnly)), CombinatorialData]
+    public async Task TestDocumentDiagnosticsWhenClientRequestsWithDifferentCasing(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var markup = @"class A {";
+
+        var workspaceXml =
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="/Users/ConsoleApp1/Class1.cs">{markup}</Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+        var loweredUri = ProtocolConversions.CreateAbsoluteDocumentUri(document.FilePath!.ToLowerInvariant());
+        await testLspServer.OpenDocumentAsync(loweredUri);
+
+        var results = await RunGetDocumentPullDiagnosticsAsync(
+            testLspServer, loweredUri, useVSDiagnostics);
+
+        // When looking up the document based on a URI, the workspace ignores casing differences and can open the document with different casing.
+        // When diagnostics checks if the document is open, it should also be able to tell that the document is open, even though the URI casing is different from the file path.
+
+        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedUri);
     }
 
     #endregion
@@ -1983,7 +2019,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Get updated workspace diagnostics for the change.
         var previousResults = CreateDiagnosticParamsFromPreviousReports(results);
-        var previousResultIds = previousResults.Select(param => param.resultId).ToImmutableArray();
+        var previousResultIds = previousResults.SelectAsArray(param => param.resultId);
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResults);
 
         // Verify that since no actual changes have been made we report unchanged diagnostics.

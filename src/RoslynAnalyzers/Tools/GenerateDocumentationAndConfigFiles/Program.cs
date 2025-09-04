@@ -212,7 +212,7 @@ namespace GenerateDocumentationAndConfigFiles
                 var configuration = parseResult.GetValue(configurationOption) ?? string.Empty;
                 var tfm = parseResult.GetValue(tfmOption) ?? string.Empty;
                 var assembliesString = parseResult.GetValue(assembliesOption) ?? string.Empty;
-                var assemblyList = assembliesString.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                var assemblyList = assembliesString.Split([';'], StringSplitOptions.RemoveEmptyEntries).ToList();
                 var propsFileDir = parseResult.GetValue(propsFileDirOption) ?? string.Empty;
                 var propsFileName = parseResult.GetValue(propsFileNameOption) ?? string.Empty;
                 var targetsFileDir = parseResult.GetValue(targetsFileDirOption) ?? string.Empty;
@@ -257,7 +257,7 @@ namespace GenerateDocumentationAndConfigFiles
                 return HandleAsync(commandLineArgs, cancellationToken);
             });
 
-            return rootCommand.Parse(args).InvokeAsync(CancellationToken.None);
+            return rootCommand.Parse(args).InvokeAsync(null, CancellationToken.None);
         }
 
         private static async Task<int> HandleAsync(CommandLineArgs args, CancellationToken cancellationToken)
@@ -992,12 +992,12 @@ namespace GenerateDocumentationAndConfigFiles
 
                     foreach (var warnAsError in new[] { true, false })
                     {
-                        foreach (var analysisMode in Enum.GetValues(typeof(AnalysisMode)))
+                        foreach (var analysisMode in Enum.GetValues<AnalysisMode>())
                         {
-                            CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, (AnalysisMode)analysisMode!, warnAsError, releaseTrackingData, category: null);
+                            CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, analysisMode, warnAsError, releaseTrackingData, category: null);
                             foreach (var category in categories!)
                             {
-                                CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, (AnalysisMode)analysisMode!, warnAsError, releaseTrackingData, category);
+                                CreateGlobalConfig(version, isShippedVersion, analysisLevelVersionString, analysisMode, warnAsError, releaseTrackingData, category);
                             }
                         }
                     }

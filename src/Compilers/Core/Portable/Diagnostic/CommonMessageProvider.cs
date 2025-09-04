@@ -228,6 +228,7 @@ namespace Microsoft.CodeAnalysis
 
         // pseudo-custom attributes:
         public abstract int ERR_PermissionSetAttributeFileReadError { get; }
+        public abstract int ERR_MethodImplAttributeAsyncCannotBeUsed { get; }
 
         // PDB writing:
         public abstract int ERR_EncodinglessSyntaxTree { get; }

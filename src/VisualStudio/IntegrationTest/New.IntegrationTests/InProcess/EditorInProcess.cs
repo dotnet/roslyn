@@ -27,11 +27,9 @@ using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -417,11 +415,32 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
     {
         if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
         {
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, cancellationToken);
-            if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
+            await UpdateUseSuggestionModeAsync();
+            var useSuggestionMode = await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken);
+            if (useSuggestionMode != value)
             {
-                throw new InvalidOperationException($"{nameof(WellKnownCommands.Edit)}.{nameof(WellKnownCommands.Edit.ToggleCompletionMode)} did not leave the editor in the expected state.");
+                throw new InvalidOperationException($"Failed to update suggestion mode to {value} (current: {useSuggestionMode})");
             }
+        }
+
+        async Task UpdateUseSuggestionModeAsync()
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
+            var options = editorOptionsFactory.GlobalOptions;
+
+            EditorOptionKey<bool> optionKey;
+            if (forDebuggerTextView)
+            {
+                optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
+            }
+            else
+            {
+                optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
+            }
+
+            options.SetOptionValue<bool>(optionKey, value);
         }
     }
 
@@ -1065,15 +1084,11 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATSELECTION, cancellationToken);
     }
 
-    private async Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
-    }
+    private Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
 
-    private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-    }
+    private Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
 
     public async Task AddWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
     {

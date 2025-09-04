@@ -369,7 +369,7 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
                 });
             }
 
-            return unnamedArguments.Concat(namedAndUnnamedArguments);
+            return [.. unnamedArguments, .. namedAndUnnamedArguments];
         }
 
         ImmutableArray<TExpressionSyntax> ExpandArgumentExpressions(ImmutableArray<TArgumentSyntax> argumentsAfterPlaceholder)

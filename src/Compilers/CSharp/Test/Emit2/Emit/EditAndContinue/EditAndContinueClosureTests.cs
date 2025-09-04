@@ -4965,6 +4965,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -5071,6 +5072,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -5218,6 +5220,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -5582,6 +5585,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class B(Func<int> f);
@@ -5681,6 +5685,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     <N:0>
                     using System;
@@ -5808,6 +5813,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -5945,6 +5951,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -6048,6 +6055,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C(int x)
@@ -6157,6 +6165,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C(int x)
@@ -6691,6 +6700,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -7022,6 +7032,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -7431,6 +7442,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     
@@ -7631,6 +7643,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     
@@ -7779,6 +7792,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
 
@@ -7973,6 +7987,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     
@@ -8101,6 +8116,7 @@ class C
                             "C.<>c__DisplayClass1_1: {z, CS$<>8__locals1, <F>b__1}");
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     
@@ -8532,6 +8548,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -8738,6 +8755,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -8907,6 +8925,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9115,6 +9134,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9364,6 +9384,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9584,6 +9605,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9720,6 +9742,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9947,6 +9970,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -10071,6 +10095,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -10138,6 +10163,65 @@ class C
                           .maxstack  8
                           IL_0000:  ldc.r8     1
                           IL_0009:  ret
+                        }
+                        """);
+                    })
+                .AddGeneration(
+                    // 2
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            _ = new Func<byte>(<N:1>() => (byte)1</N:1>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true, rudeEdits: _ => new RuntimeRudeEdit("Return type changed", 0x123)),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C: {<>c}",
+                            "C.<>c: {<>9__0_0#2, <F>b__0_0#2, <>9__0_0#1, <F>b__0_0#1}");
+
+                        g.VerifyMethodDefNames(
+                            "F", "<F>b__0_0#1", "<F>b__0_0#2");
+
+                        g.VerifyIL(
+                        """
+                        F
+                        {
+                          // Code size       30 (0x1e)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  ldsfld     0x04000005
+                          IL_0006:  brtrue.s   IL_001d
+                          IL_0008:  ldsfld     0x04000001
+                          IL_000d:  ldftn      0x06000008
+                          IL_0013:  newobj     0x0A00000B
+                          IL_0018:  stsfld     0x04000005
+                          IL_001d:  ret
+                        }
+                        <F>b__0_0#1
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x7000010D
+                          IL_0005:  ldc.i4     0x123
+                          IL_000a:  newobj     0x06000006
+                          IL_000f:  throw
+                        }
+                        <F>b__0_0#2
+                        {
+                          // Code size        2 (0x2)
+                          .maxstack  8
+                          IL_0000:  ldc.i4.1
+                          IL_0001:  ret
                         }
                         """);
                     })

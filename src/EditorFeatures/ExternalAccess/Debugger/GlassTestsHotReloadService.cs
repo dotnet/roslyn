@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
 internal sealed class GlassTestsHotReloadService
 {
     private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
-       (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+       (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
     private readonly IManagedHotReloadService _debuggerService;
 
@@ -84,7 +84,7 @@ internal sealed class GlassTestsHotReloadService
 
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
     {
-        var results = (await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
-        return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates.FromContract(), results.GetAllDiagnostics().FromContract(), [], []);
+        var results = (await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
+        return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates.FromContract(), results.GetAllDiagnostics().FromContract(), projectInstancesToRebuild: [], projectInstancesToRestart: []);
     }
 }

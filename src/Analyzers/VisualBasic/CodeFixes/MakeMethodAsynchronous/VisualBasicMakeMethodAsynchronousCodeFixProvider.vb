@@ -57,12 +57,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return knownTypes.IsTaskLike(type)
         End Function
 
-        Protected Overrides Function AddAsyncTokenAndFixReturnType(
+        Protected Overrides Function FixMethodSignature(
+                addAsyncModifier As Boolean,
                 keepVoid As Boolean,
                 methodSymbolOpt As IMethodSymbol,
                 node As SyntaxNode,
-                knownTypes As KnownTaskTypes,
-                cancellationToken As CancellationToken) As SyntaxNode
+                knownTypes As KnownTaskTypes) As SyntaxNode
+
+            ' This flag can only be false when updating partial definition method signature.
+            ' Since partial methods cannot be async in VB, it cannot be false here
+            Debug.Assert(addAsyncModifier)
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then

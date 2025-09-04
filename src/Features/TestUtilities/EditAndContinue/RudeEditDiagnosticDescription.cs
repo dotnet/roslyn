@@ -54,10 +54,16 @@ internal readonly struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiag
         var formattedSquiggle = _squiggle is null
             ? "null"
             : _squiggle.IndexOfAny(['\r', '\n']) >= 0
-            ? $"\"\"\"{Environment.NewLine}{_squiggle}{Environment.NewLine}\"\"\""
-            : $"\"{_squiggle}\"";
+            ? $""""
+            """{Environment.NewLine}{_squiggle}{Environment.NewLine}"""
+            """"
+            : $"""
+            "{_squiggle}"
+            """;
 
-        string[] arguments = [formattedSquiggle, .. _arguments.Select(a => tryGetResource?.Invoke(a) is { } ? $"GetResource(\"{a}\")" : $"\"{a}\"")];
+        string[] arguments = [formattedSquiggle, .. _arguments.Select(a => tryGetResource?.Invoke(a) is { } ? $"GetResource(\"{a}\")" : $"""
+        "{a}"
+        """)];
         var withLine = (FirstLine != null) ? $".WithFirstLine(\"{FirstLine}\")" : null;
 
         return $"Diagnostic(RudeEditKind.{RudeEditKind}, {string.Join(", ", arguments)}){withLine}";

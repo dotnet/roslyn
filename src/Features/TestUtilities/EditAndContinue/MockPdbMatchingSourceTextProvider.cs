@@ -16,5 +16,5 @@ internal sealed class MockPdbMatchingSourceTextProvider : IPdbMatchingSourceText
     public Func<string, ImmutableArray<byte>, SourceHashAlgorithm, string?>? TryGetMatchingSourceTextImpl { get; set; }
 
     public ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(TryGetMatchingSourceTextImpl?.Invoke(filePath, requiredChecksum, checksumAlgorithm));
+        => ValueTask.FromResult(TryGetMatchingSourceTextImpl?.Invoke(filePath, requiredChecksum, checksumAlgorithm));
 }

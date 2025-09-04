@@ -32,6 +32,12 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
     protected override CodeActionRequestPriority ComputeRequestPriority()
         => CodeActionRequestPriority.Low;
 
+    /// <summary>
+    /// This refactoring provider touches syntax only.  So we can speed up fix all by having it only clean syntax
+    /// and not semantics.
+    /// </summary>
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+
     private static async Task<(SyntaxNode oldRoot, SyntaxNode newRoot)> RemoveImportsAsync(
         Document document, CancellationToken cancellationToken)
     {

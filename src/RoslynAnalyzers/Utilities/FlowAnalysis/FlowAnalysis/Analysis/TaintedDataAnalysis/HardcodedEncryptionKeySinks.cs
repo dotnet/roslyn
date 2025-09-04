@@ -28,7 +28,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: new[] {
                     ( "CreateEncryptor", new[] { "rgbKey" }),
-                    ( "CreateDecryptor", new[] { "rgbKey" }),
+                    ( "CreateDecryptor", ["rgbKey"]),
                 });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemSecurityCryptographyAesGcm,

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Search.Data;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 

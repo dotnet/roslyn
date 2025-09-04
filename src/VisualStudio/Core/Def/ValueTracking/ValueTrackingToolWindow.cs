@@ -23,13 +23,12 @@ internal sealed class ValueTrackingToolWindow : ToolWindowPane
 
     private IThreadingContext? _threadingContext;
 
-    private ValueTrackingTreeViewModel? _viewModel;
     public ValueTrackingTreeViewModel? ViewModel
     {
-        get => _viewModel;
+        get;
         private set
         {
-            if (_viewModel is not null)
+            if (field is not null)
             {
                 throw new InvalidOperationException();
             }
@@ -39,8 +38,8 @@ internal sealed class ValueTrackingToolWindow : ToolWindowPane
                 throw new ArgumentNullException(nameof(value));
             }
 
-            _viewModel = value;
-            _root.SetChild(new ValueTrackingTree(_viewModel));
+            field = value;
+            _root.SetChild(new ValueTrackingTree(field));
         }
     }
 

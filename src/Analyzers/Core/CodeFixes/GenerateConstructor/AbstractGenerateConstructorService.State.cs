@@ -123,7 +123,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         private async Task InitializeNonDelegatedConstructorAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
-            var typeParametersNames = TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
+            var typeParametersNames = TypeToGenerateIn.GetAllTypeParameters().SelectAsArray(t => t.Name);
             var parameterNames = GetParameterNames(_arguments, typeParametersNames, cancellationToken);
 
             (_parameters, _parameterToExistingMemberMap, ParameterToNewFieldMap, ParameterToNewPropertyMap) =

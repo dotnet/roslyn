@@ -47,6 +47,7 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string GenerateConstructorFromMembers = "Generate Constructor From Members Code Action Provider";
     public const string GenerateEqualsAndGetHashCodeFromMembers = "Generate Equals and GetHashCode Code Action Provider";
     public const string GenerateOverrides = "Generate Overrides Code Action Provider";
+    public const string ImplementInterface = nameof(ImplementInterface);
     public const string ImplementInterfaceExplicitly = nameof(ImplementInterfaceExplicitly);
     public const string ImplementInterfaceImplicitly = nameof(ImplementInterfaceImplicitly);
     public const string InitializeMemberFromParameter = nameof(InitializeMemberFromParameter);

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
 internal interface IGeneratedCodeRecognitionService : ILanguageService
 {
-#if !CODE_STYLE
+#if WORKSPACE
     bool IsGeneratedCode(Document document, CancellationToken cancellationToken);
 #endif
 

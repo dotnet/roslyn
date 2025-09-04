@@ -236,8 +236,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         var filteredList = matchResultsBuilder
             .Take(completionListMaxSize)
             .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => match.CompletionItem.Rules.MatchPriority == MatchPriority.Preselect))
-            .Select(matchResult => matchResult.CompletionItem)
-            .ToImmutableArray();
+            .SelectAsArray(matchResult => matchResult.CompletionItem);
         var newCompletionList = completionList.WithItemsList(filteredList);
 
         // Per the LSP spec, the completion list should be marked with isIncomplete = false when further insertions will

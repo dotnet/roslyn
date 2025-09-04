@@ -41,10 +41,8 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
         return result;
     }
 
-    internal async Task ExecuteNotificationAsync(string methodName, CancellationToken _)
-    {
-        await _clientRpc.NotifyAsync(methodName);
-    }
+    internal Task ExecuteNotificationAsync(string methodName, CancellationToken _)
+        => _clientRpc.NotifyAsync(methodName);
 
     protected override ILifeCycleManager GetLifeCycleManager()
     {
@@ -143,10 +141,8 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
         return server;
     }
 
-    internal async Task ShutdownServerAsync()
-    {
-        await ExecuteNotificationAsync(Methods.ShutdownName, CancellationToken.None);
-    }
+    internal Task ShutdownServerAsync()
+        => ExecuteNotificationAsync(Methods.ShutdownName, CancellationToken.None);
 
     internal async Task<InitializeResult> InitializeServerAsync()
     {

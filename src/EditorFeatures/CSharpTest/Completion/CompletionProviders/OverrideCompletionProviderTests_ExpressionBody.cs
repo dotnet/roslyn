@@ -32,9 +32,8 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
         };
 
     [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-    public async Task CommitProducesExpressionBodyProperties()
-    {
-        var markupBeforeCommit = """
+    public Task CommitProducesExpressionBodyProperties()
+        => VerifyCustomCommitProviderAsync("""
             class B
             {
                 public virtual int A { get; set; }
@@ -43,9 +42,7 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                     override A$$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "A", """
             class B
             {
                 public virtual int A { get; set; }
@@ -54,15 +51,11 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                     public override int A { get => [|base.A|]; set => base.A = value; }
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-    public async Task CommitProducesExpressionBodyGetterOnlyProperty()
-    {
-        var markupBeforeCommit = """
+    public Task CommitProducesExpressionBodyGetterOnlyProperty()
+        => VerifyCustomCommitProviderAsync("""
             class B
             {
                 public virtual int A { get; }
@@ -71,9 +64,7 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                     override A$$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "A", """
             class B
             {
                 public virtual int A { get; }
@@ -82,15 +73,11 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                     public override int A => [|base.A|];
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
-    }
+            """);
 
     [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-    public async Task CommitProducesExpressionBodyMethod()
-    {
-        var markupBeforeCommit = """
+    public Task CommitProducesExpressionBodyMethod()
+        => VerifyCustomCommitProviderAsync("""
             class B
             {
                 public virtual int A() => 2;
@@ -99,9 +86,7 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                     override A$$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "A()", """
             class B
             {
                 public virtual int A() => 2;
@@ -110,8 +95,5 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                     public override int A() => [|base.A()|];
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A()", expectedCodeAfterCommit);
-    }
+            """);
 }

@@ -21,411 +21,309 @@ public sealed class ScopedKeywordRecommenderTests : RecommenderTests
     }
 
     [Fact]
-    public async Task TestAtRoot_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAfterClass_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalStatement()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotAfterStackAlloc()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterStackAlloc()
+        => VerifyAbsenceAsync(
             """
             class C {
                  int* goo = stackalloc $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInFixedStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInFixedStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"fixed ($$"));
-    }
 
     [Fact]
-    public async Task TestNotInDelegateReturnType()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInDelegateReturnType()
+        => VerifyAbsenceAsync(
 @"public delegate $$");
-    }
 
     [Fact]
-    public async Task TestPossibleLambda()
-    {
-        // Could be `var x = ((scoped ref int x) => x);`
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestPossibleLambda()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var x = (($$"));
-    }
 
     [Fact]
-    public async Task TestEmptyStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestEmptyStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestBeforeStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestBeforeStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             $$
             return true;
             """));
-    }
 
     [Fact]
-    public async Task TestAfterStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             return true;
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotInClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInClass()
+        => VerifyAbsenceAsync("""
             class C
             {
               $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInFor()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInFor()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for ($$"));
-    }
 
     [Fact]
-    public async Task TestInFor2()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInFor2()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for ($$;"));
-    }
 
     [Fact]
-    public async Task TestInFor3()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInFor3()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"for ($$;;"));
-    }
 
     [Fact]
-    public async Task TestNotInFor()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInFor()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"for (var $$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterVar()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterVar()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var $$"));
-    }
 
     [Fact]
-    public async Task TestInForEach()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInForEach()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"foreach ($$"));
-    }
 
     [Fact]
-    public async Task TestNotInForEach()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForEach()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (var $$"));
-    }
 
     [Fact]
-    public async Task TestInAwaitForEach()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInAwaitForEach()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"await foreach ($$"));
-    }
 
     [Fact]
-    public async Task TestNotInAwaitForEach()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInAwaitForEach()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"await foreach (var $$"));
-    }
 
     [Fact]
-    public async Task TestNotInForEachRefLoop0()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForEachRefLoop0()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (ref $$"));
-    }
 
     [Fact]
-    public async Task TestNotInForEachRefLoop1()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForEachRefLoop1()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (ref $$ x"));
-    }
 
     [Fact]
-    public async Task TestNotInForEachRefLoop2()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForEachRefLoop2()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (ref s$$ x"));
-    }
 
     [Fact]
-    public async Task TestNotInForEachRefReadonlyLoop0()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForEachRefReadonlyLoop0()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (ref readonly $$ x"));
-    }
 
     [Fact]
-    public async Task TestNotInForRefLoop0()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForRefLoop0()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"for (ref $$"));
-    }
 
     [Fact]
-    public async Task TestNotInForRefLoop1()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForRefLoop1()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"for (ref s$$"));
-    }
 
     [Fact]
-    public async Task TestNotInForRefReadonlyLoop0()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForRefReadonlyLoop0()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"for (ref readonly $$"));
-    }
 
     [Fact]
-    public async Task TestNotInForRefReadonlyLoop1()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInForRefReadonlyLoop1()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"for (ref readonly s$$"));
-    }
 
     [Fact]
-    public async Task TestNotInUsing()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInUsing()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"using ($$"));
-    }
 
     [Fact]
-    public async Task TestNotInUsing2()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInUsing2()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"using (var $$"));
-    }
 
     [Fact]
-    public async Task TestNotInAwaitUsing()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInAwaitUsing()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"await using ($$"));
-    }
 
     [Fact]
-    public async Task TestNotInAwaitUsing2()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInAwaitUsing2()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"await using (var $$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterConstLocal()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterConstLocal()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"const $$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterConstField()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterConstField()
+        => VerifyAbsenceAsync(
             """
             class C {
                 const $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterOutKeywordInArgument()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterOutKeywordInArgument()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"M(out $$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterRefInMemberContext()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterRefInMemberContext()
+        => VerifyAbsenceAsync(
             """
             class C {
                 ref $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterRefReadonlyInMemberContext()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterRefReadonlyInMemberContext()
+        => VerifyAbsenceAsync(
             """
             class C {
                 ref readonly $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterRefInStatementContext()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterRefInStatementContext()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"ref $$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterRefReadonlyInStatementContext()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterRefReadonlyInStatementContext()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"ref readonly $$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterRefLocalDeclaration()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterRefLocalDeclaration()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"ref $$ int local;"));
-    }
 
     [Fact]
-    public async Task TestNotAfterRefReadonlyLocalDeclaration()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterRefReadonlyLocalDeclaration()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"ref readonly $$ int local;"));
-    }
 
     [Fact]
-    public async Task TestNotAfterRefExpression()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterRefExpression()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"ref int x = ref $$"));
-    }
 
     [Fact]
-    public async Task TestInParameter1()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInParameter1()
+        => VerifyKeywordAsync("""
             class C
             {
                 public void M($$)
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInParameter2()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInParameter2()
+        => VerifyKeywordAsync("""
             class C
             {
                 public void M($$ ref)
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInParameter3()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInParameter3()
+        => VerifyKeywordAsync("""
             class C
             {
                 public void M($$ ref int i)
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInParameter4()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInParameter4()
+        => VerifyKeywordAsync("""
             class C
             {
                 public void M($$ ref int i)
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInOperatorParameter()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInOperatorParameter()
+        => VerifyKeywordAsync("""
             class C
             {
                 public static C operator +($$ in C c)
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInAnonymousMethodParameter()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInAnonymousMethodParameter()
+        => VerifyKeywordAsync("""
             class C
             {
                 void M()
@@ -434,16 +332,13 @@ public sealed class ScopedKeywordRecommenderTests : RecommenderTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInParameterAfterThisScoped()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInParameterAfterThisScoped()
+        => VerifyKeywordAsync("""
             static class C
             {
                 static void M(this $$)
             }
             """);
-    }
 }

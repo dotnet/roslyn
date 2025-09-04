@@ -221,7 +221,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             Private Shared Function GetConditionalCompilationSymbols(kind As OutputKind, str As String) As ImmutableArray(Of KeyValuePair(Of String, Object))
                 Debug.Assert(str IsNot Nothing)
-                Dim key = KeyValuePairUtil.Create(str, kind)
+                Dim key = KeyValuePair.Create(str, kind)
 
                 Dim result As ImmutableArray(Of KeyValuePair(Of String, Object)) = Nothing
                 If s_conditionalCompilationSymbolsCache.TryGetValue(key, result) Then

@@ -16,23 +16,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
 /// </summary>
 internal sealed class WrappingViewModel : AbstractOptionPreviewViewModel
 {
-    private const string s_blockPreview = @"
-class C
-{
-//[
-    public int Goo { get; set; }
-//]    
-}";
+    private const string s_blockPreview = """
+        class C
+        {
+        //[
+            public int Goo { get; set; }
+        //]    
+        }
+        """;
 
-    private const string s_declarationPreview = @"
-class C{
-    void goo()
-    {
-//[
-        int i = 0; string name = ""John"";
-//]
-    }
-}";
+    private const string s_declarationPreview = """
+        class C{
+            void goo()
+            {
+        //[
+                int i = 0; string name = "John";
+        //]
+            }
+        }
+        """;
 
     public WrappingViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
     {

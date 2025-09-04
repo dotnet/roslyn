@@ -177,6 +177,11 @@
         <target state="translated">建議使用 'null' 檢查而非鍵入檢查</target>
         <note />
       </trans-unit>
+      <trans-unit id="Property_accessor_can_be_simplified">
+        <source>Property accessor can be simplified</source>
+        <target state="new">Property accessor can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_pattern_can_be_simplified">
         <source>Property pattern can be simplified</source>
         <target state="translated">可簡化屬性模式</target>
@@ -220,6 +225,11 @@
       <trans-unit id="Simplify_delegate_invocation">
         <source>Simplify delegate invocation</source>
         <target state="translated">簡化委派引動</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_accessor">
+        <source>Simplify property accessor</source>
+        <target state="new">Simplify property accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">

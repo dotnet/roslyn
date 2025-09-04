@@ -28,11 +28,12 @@ public sealed class AnalyzersTests : TestBase
     public void RuleSet_GeneralOption()
     {
         var ruleSetFile = Temp.CreateFile().WriteAllText(
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Error"" />
-</RuleSet>
-");
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Error" />
+            </RuleSet>
+            """);
         using var environment = new TestEnvironment();
         var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
@@ -65,11 +66,12 @@ public sealed class AnalyzersTests : TestBase
     public void RuleSet_ProjectSettingOverridesGeneralOption()
     {
         var ruleSetFile = Temp.CreateFile().WriteAllText(
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Warning"" />
-</RuleSet>
-");
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Warning" />
+            </RuleSet>
+            """);
 
         using var environment = new TestEnvironment();
         var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
@@ -93,14 +95,15 @@ public sealed class AnalyzersTests : TestBase
     public void RuleSet_SpecificOptions()
     {
         var ruleSetFile = Temp.CreateFile().WriteAllText(
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Warning"" />
-  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
-    <Rule Id=""CA1012"" Action=""Error"" />
-  </Rules>
-</RuleSet>
-");
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Warning" />
+              <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                <Rule Id="CA1012" Action="Error" />
+              </Rules>
+            </RuleSet>
+            """);
 
         using var environment = new TestEnvironment();
         var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
@@ -117,14 +120,15 @@ public sealed class AnalyzersTests : TestBase
     public void RuleSet_ProjectSettingsOverrideSpecificOptions()
     {
         var ruleSetFile = Temp.CreateFile().WriteAllText(
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Warning"" />
-  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
-    <Rule Id=""CS1014"" Action=""None"" />
-  </Rules>
-</RuleSet>
-");
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Warning" />
+              <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                <Rule Id="CS1014" Action="None" />
+              </Rules>
+            </RuleSet>
+            """);
         using var environment = new TestEnvironment();
         var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
@@ -159,14 +163,15 @@ public sealed class AnalyzersTests : TestBase
     public void RuleSet_ProjectSettingsOverrideSpecificOptionsAndRestore()
     {
         var ruleSetFile = Temp.CreateFile().WriteAllText(
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Warning"" />
-  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
-    <Rule Id=""CS1014"" Action=""None"" />
-  </Rules>
-</RuleSet>
-");
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Warning" />
+              <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                <Rule Id="CS1014" Action="None" />
+              </Rules>
+            </RuleSet>
+            """);
 
         using var environment = new TestEnvironment();
         var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
@@ -194,14 +199,15 @@ public sealed class AnalyzersTests : TestBase
     public void RuleSet_ProjectNoWarnOverridesOtherSettings()
     {
         var ruleSetFile = Temp.CreateFile().WriteAllText(
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Warning"" />
-  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
-    <Rule Id=""CS1014"" Action=""Info"" />
-  </Rules>
-</RuleSet>
-");
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Warning" />
+              <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                <Rule Id="CS1014" Action="Info" />
+              </Rules>
+            </RuleSet>
+            """);
 
         using var environment = new TestEnvironment();
         var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
@@ -223,17 +229,20 @@ public sealed class AnalyzersTests : TestBase
     public async Task RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
     {
         var ruleSetSource =
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Error"" />
-</RuleSet>
-";
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Error" />
+            </RuleSet>
+            """;
 
         var ruleSetFile = Temp.CreateFile().WriteAllText(ruleSetSource);
         using var environment = new TestEnvironment();
         if (useCpsProject)
         {
-            await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: @"C:\test.dll", $"/ruleset:\"{ruleSetFile.Path}\"");
+            await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: @"C:\test.dll", $"""
+                /ruleset:"{ruleSetFile.Path}"
+                """);
         }
         else
         {

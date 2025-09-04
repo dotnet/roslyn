@@ -3,8 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection
-Imports Roslyn.Test.Utilities.SharedResourceHelpers
+Imports Microsoft.CodeAnalysis.Collections
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests

@@ -104,7 +104,7 @@ internal static class TestUtils
 
             foreach (var checksum in checksums)
             {
-                items.Add(KeyValuePairUtil.Create(checksum, await assetService.GetAssetAsync<object>(
+                items.Add(KeyValuePair.Create(checksum, await assetService.GetAssetAsync<object>(
                     AssetPath.FullLookupForTesting, checksum, CancellationToken.None).ConfigureAwait(false)));
             }
 

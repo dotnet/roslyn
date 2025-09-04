@@ -10,12 +10,13 @@ Imports System.Windows.Controls
 Imports System.Windows.Media
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.CodeLens
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -31,7 +32,6 @@ Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.Editor.Host
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
@@ -137,7 +137,7 @@ class {|Definition:C1|}
 
             Using workspace = EditorTestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
-                Dim codelensService = New RemoteCodeLensReferencesService(workspace.GlobalOptions)
+                Dim codelensService = workspace.Services.GetRequiredService(Of ICodeLensReferencesService)()
 
                 Dim originalDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Original"))
 
@@ -146,8 +146,9 @@ class {|Definition:C1|}
 
                 Dim root = Await startDocument.GetSyntaxRootAsync()
                 Dim node = root.FindNode(originalDocument.AnnotatedSpans("Original").First()).AncestorsAndSelf().OfType(Of ClassDeclarationSyntax).First()
-                Dim results = Await codelensService.FindReferenceLocationsAsync(workspace.CurrentSolution, startDocument.Id, node, CancellationToken.None)
-                Assert.True(results.HasValue)
+                Dim unmappedResults = Await codelensService.FindReferenceLocationsAsync(workspace.CurrentSolution, startDocument.Id, node, CancellationToken.None)
+                Assert.True(unmappedResults.HasValue)
+                Dim results = Await codelensService.MapReferenceLocationsAsync(workspace.CurrentSolution, unmappedResults.Value, ClassificationOptions.Default, CancellationToken.None)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -159,7 +160,7 @@ class {|Definition:C1|}
 
                 Dim actual = New List(Of (String, LinePosition, String))
 
-                For Each result In results.Value
+                For Each result In results
                     actual.Add((result.FilePath, New LinePosition(result.LineNumber, result.ColumnNumber), result.ReferenceLineText))
                 Next
 
@@ -239,8 +240,8 @@ class { }
 
                 ' confirm that IDE doesn't report the diagnostics
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    document.Project, documentId:=document.Id, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                    document.Project, ImmutableArray.Create(document.Id), diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
+                    includeLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.False(diagnostics.Any())
             End Using
         End Function

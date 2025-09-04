@@ -8,6 +8,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
+    
+    <!-- Avoid dependency on System.Threading.Channels (unnecessary 32-bit NGEN'd binary) -->
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_THREADING_NO_CHANNELS</DefineConstants>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

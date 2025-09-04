@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
             Select Case diagnosticId
                 Case BC30512, BC42016
-                    Dim argument = spanNode.GetAncestors(Of ArgumentSyntax).FirstOrDefault()
+                    Dim argument = spanNode.GetAncestor(Of ArgumentSyntax)
                     If argument IsNot Nothing AndAlso argument.GetExpression.Equals(spanNode) Then
                         ' spanNode is an argument expression
                         Dim argumentList = DirectCast(argument.Parent, ArgumentListSyntax)

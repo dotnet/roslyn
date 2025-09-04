@@ -788,7 +788,7 @@ internal sealed partial class CSharpExtractMethodService
                 var declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(), cancellationToken);
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements);
 
-                return declStatements.Concat(statements);
+                return [.. declStatements, .. statements];
             }
 
             protected override bool LastStatementOrHasReturnStatementInReturnableConstruct()

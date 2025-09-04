@@ -50,56 +50,43 @@ public sealed class CommentStructureTests : AbstractSyntaxStructureProviderTests
     }
 
     [Fact]
-    public async Task TestSimpleComment1()
-    {
-        var code = """
+    public Task TestSimpleComment1()
+        => VerifyBlockSpansAsync("""
                 {|span:// Hello
                 // $$C#|}
                 class C
                 {
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Hello ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestSimpleComment2()
-    {
-        var code = """
+    public Task TestSimpleComment2()
+        => VerifyBlockSpansAsync("""
                 {|span:// Hello
                 //
                 // $$C#!|}
                 class C
                 {
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Hello ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestSimpleComment3()
-    {
-        var code = """
+    public Task TestSimpleComment3()
+        => VerifyBlockSpansAsync("""
                 {|span:// Hello
 
                 // $$C#!|}
                 class C
                 {
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Hello ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
-    {
-        var code = """
+    public Task TestSingleLineCommentGroupFollowedByDocumentationComment()
+        => VerifyBlockSpansAsync("""
                 {|span:// Hello
 
                 // $$C#!|}
@@ -107,9 +94,6 @@ public sealed class CommentStructureTests : AbstractSyntaxStructureProviderTests
                 class C
                 {
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Hello ...", autoCollapse: true));
-    }
 }

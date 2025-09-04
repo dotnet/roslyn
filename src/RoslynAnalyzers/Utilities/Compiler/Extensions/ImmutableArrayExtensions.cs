@@ -7,14 +7,6 @@ namespace System.Collections.Immutable
     internal static class ImmutableArrayExtensions
     {
         /// <summary>
-        /// Returns the number of elements in a sequence.
-        /// </summary>
-        /// <typeparam name="TSource">he type of the elements of <paramref name="source"/>.</typeparam>
-        /// <param name="source">A sequence that contains elements to be counted.</param>
-        /// <returns>The number of elements in the input sequence.</returns>
-        public static int Count<TSource>(this ImmutableArray<TSource> source) => source.Length;
-
-        /// <summary>
         /// Determines whether a sequence contains, exactly, <paramref name="count"/> elements.
         /// </summary>
         /// <typeparam name="TSource">The type of the elements of source.</typeparam>

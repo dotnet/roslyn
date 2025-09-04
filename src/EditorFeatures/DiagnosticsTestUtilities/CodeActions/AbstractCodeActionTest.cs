@@ -166,10 +166,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
     internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
     {
         var option = options.FirstOrDefault(o => o.Id == id);
-        if (option != null)
-        {
-            option.Value = true;
-        }
+        option?.Value = true;
     }
 
     internal Task TestWithPickMembersDialogAsync(
@@ -182,7 +179,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
     {
         var ps = parameters ?? TestParameters.Default;
         var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
-        return TestInRegularAndScript1Async(
+        return TestInRegularAndScriptAsync(
             initialMarkup, expectedMarkup,
             index,
             ps.WithFixProviderData(pickMembersService));

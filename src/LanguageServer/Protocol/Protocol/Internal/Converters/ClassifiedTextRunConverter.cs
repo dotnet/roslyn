@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using Roslyn.Text.Adornments;
 
 namespace Roslyn.LanguageServer.Protocol;
+
 internal sealed class ClassifiedTextRunConverter : JsonConverter<ClassifiedTextRun>
 {
     public static readonly ClassifiedTextRunConverter Instance = new();

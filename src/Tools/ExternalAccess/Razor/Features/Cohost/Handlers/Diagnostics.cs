@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -24,9 +25,22 @@ internal static class Diagnostics
         var diagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
             document, range: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
+        return GetLspDiagnostics(document, supportsVisualStudioExtensions, globalOptionsService, diagnostics);
+    }
+
+    public static async Task<ImmutableArray<LSP.Diagnostic>> GetTaskListAsync(Document document, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
+    {
+        var solutionServices = document.Project.Solution.Services;
+        var globalOptionsService = solutionServices.ExportProvider.GetService<IGlobalOptionService>();
+
+        var items = await TaskListDiagnosticSource.GetTaskListItemsAsync(document, globalOptionsService, cancellationToken).ConfigureAwait(false);
+
+        return GetLspDiagnostics(document, supportsVisualStudioExtensions, globalOptionsService, items);
+    }
+
+    private static ImmutableArray<LSP.Diagnostic> GetLspDiagnostics(Document document, bool supportsVisualStudioExtensions, IGlobalOptionService globalOptionsService, ImmutableArray<DiagnosticData> diagnostics)
+    {
         var project = document.Project;
-        // isLiveSource means build might override a diagnostics, but this method is only used by tooling, so builds aren't relevant
-        const bool IsLiveSource = false;
         // Potential duplicate is only set for workspace diagnostics
         const bool PotentialDuplicate = false;
 
@@ -34,7 +48,7 @@ internal static class Diagnostics
         foreach (var diagnostic in diagnostics)
         {
             if (!diagnostic.IsSuppressed)
-                result.AddRange(ProtocolConversions.ConvertDiagnostic(diagnostic, supportsVisualStudioExtensions, project, IsLiveSource, PotentialDuplicate, globalOptionsService));
+                result.AddRange(ProtocolConversions.ConvertDiagnostic(diagnostic, supportsVisualStudioExtensions, project, PotentialDuplicate, globalOptionsService));
         }
 
         return result.ToImmutableAndFree();

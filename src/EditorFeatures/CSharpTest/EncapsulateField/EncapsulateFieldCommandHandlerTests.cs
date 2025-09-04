@@ -34,7 +34,8 @@ public sealed class EncapsulateFieldCommandHandlerTests
                 }
             }
             """;
-        var expected = """
+        using var state = EncapsulateFieldTestState.Create(text);
+        await state.AssertEncapsulateAsAsync("""
             class C
             {
                 private int field;
@@ -57,10 +58,7 @@ public sealed class EncapsulateFieldCommandHandlerTests
                     Field = 3;
                 }
             }
-            """;
-
-        using var state = EncapsulateFieldTestState.Create(text);
-        await state.AssertEncapsulateAsAsync(expected);
+            """);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -77,7 +75,8 @@ public sealed class EncapsulateFieldCommandHandlerTests
                 }
             }
             """;
-        var expected = """
+        using var state = EncapsulateFieldTestState.Create(text);
+        await state.AssertEncapsulateAsAsync("""
             class C
             {
                 private int field;
@@ -100,10 +99,7 @@ public sealed class EncapsulateFieldCommandHandlerTests
                     Field = 3;
                 }
             }
-            """;
-
-        using var state = EncapsulateFieldTestState.Create(text);
-        await state.AssertEncapsulateAsAsync(expected);
+            """);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -142,7 +138,8 @@ public sealed class EncapsulateFieldCommandHandlerTests
                 }
             }
             """;
-        var expected = """
+        using var state = EncapsulateFieldTestState.Create(text);
+        await state.AssertEncapsulateAsAsync("""
             class Program
             {
                 static int A = 1;
@@ -180,10 +177,7 @@ public sealed class EncapsulateFieldCommandHandlerTests
                     System.Console.WriteLine(B1);
                 }
             }
-            """;
-
-        using var state = EncapsulateFieldTestState.Create(text);
-        await state.AssertEncapsulateAsAsync(expected);
+            """);
     }
 
     [WpfFact]

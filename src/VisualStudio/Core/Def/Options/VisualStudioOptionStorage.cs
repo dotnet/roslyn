@@ -218,6 +218,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_range_operator", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferRangeOperator")},
         {"csharp_style_prefer_readonly_struct", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferReadOnlyStruct")},
         {"csharp_style_prefer_readonly_struct_member", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferReadOnlyStructMember")},
+        {"csharp_style_prefer_simple_property_accessors", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimplePropertyAccessors")},
         {"csharp_style_prefer_switch_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSwitchExpression")},
         {"csharp_style_prefer_top_level_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTopLevelStatements")},
         {"csharp_style_prefer_tuple_swap", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTupleSwap")},
@@ -340,7 +341,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_collapse_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameUI")},
         {"dotnet_preview_inline_rename_changes", new RoamingProfileStorage("TextEditor.Specific.PreviewRename")},
         {"dotnet_collapse_suggestions_in_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameSuggestionsUI")},
-        {"dotnet_commit_rename_asynchronously", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetCommitRenameAsynchronously")},
         {"dotnet_rename_get_suggestions_automatically", new FeatureFlagStorage(@"Editor.AutoSmartRenameSuggestions")},
         // Option is deprecated, don't use the same RoamingProfileStorage key
         {"dotnet_rename_file", new RoamingProfileStorage("TextEditor.Specific.RenameFile")},
@@ -420,5 +420,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
         {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
+        {"razor_use_cohosting", new FeatureFlagStorage("Razor.LSP.UseRazorCohostServer")},
     };
 }

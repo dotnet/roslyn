@@ -13,15 +13,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTestGenerator.Api;
 
-[Export]
-[Shared]
+#pragma warning disable CA1822 // Mark members as static. Existing binary api with UnitTestGenerator.
+
+[Export, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor()
 {
-#pragma warning disable CA1822 // Mark members as static
     internal async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-#pragma warning restore CA1822
     {
         var service = document.Project.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
@@ -29,18 +28,14 @@ internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor()
         return await service.AddMissingImportsAsync(document, textSpan, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
     }
 
-#pragma warning disable CA1822 // Mark members as static
     internal async Task<WrappedMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-#pragma warning restore CA1822
     {
         var service = document.Project.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-        var result = await service.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        var result = await service.AnalyzeAsync(document, textSpan, cleanupDocument: true, cancellationToken).ConfigureAwait(false);
         return new WrappedMissingImportsAnalysisResult(result.SelectAsArray(data => new WrappedAddImportFixData(data)));
     }
 
-#pragma warning disable CA1822 // Mark members as static
     internal async Task<Document> AddMissingImportsAsync(Document document, WrappedMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
-#pragma warning restore CA1822
     {
         var service = document.Project.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
         var unwrappedResult = analysisResult.AddImportFixDatas.SelectAsArray(result => result.Underlying);

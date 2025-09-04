@@ -5,7 +5,6 @@
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <Trait(Traits.Feature, Traits.Features.Simplification)>

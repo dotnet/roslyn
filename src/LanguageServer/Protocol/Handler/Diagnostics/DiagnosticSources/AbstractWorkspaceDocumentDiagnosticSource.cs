@@ -32,12 +32,6 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
         /// </summary>
         private static readonly ConditionalWeakTable<Project, AsyncLazy<ILookup<DocumentId, DiagnosticData>>> s_projectToDiagnostics = new();
 
-        /// <summary>
-        /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
-        /// </summary>
-        public override bool IsLiveSource()
-            => true;
-
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
@@ -73,13 +67,14 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             {
                 return s_projectToDiagnostics.GetValue(
                     Document.Project,
-                    _ => AsyncLazy.Create(
+                    project => AsyncLazy.Create(
                         async cancellationToken =>
                         {
                             var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                            var filter = service.GetDefaultAnalyzerFilter(
+                                project, diagnosticIds: null, shouldIncludeAnalyzer);
                             var allDiagnostics = await service.GetDiagnosticsForIdsAsync(
-                                Document.Project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer,
-                                includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                                project, documentIds: default, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                             // TODO(cyrusn): Should we be filtering out suppressed diagnostics here? This is how the
                             // code has always worked, but it isn't clear if that is correct.
@@ -92,19 +87,17 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
     private sealed class CodeAnalysisDiagnosticSource(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
-        /// <summary>
-        /// This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
-        /// user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
-        /// that has been produced.
-        /// </summary>
-        public override bool IsLiveSource()
-            => false;
-
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(codeAnalysisService.GetLastComputedDocumentDiagnostics(Document.Id));
+            var diagnostics = codeAnalysisService.GetLastComputedDocumentDiagnostics(Document.Id);
+
+            // This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
+            // user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
+            // that has been produced.
+            diagnostics = ProtocolConversions.AddBuildTagIfNotPresent(diagnostics);
+            return Task.FromResult(diagnostics);
         }
     }
 }

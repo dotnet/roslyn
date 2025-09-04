@@ -11,14 +11,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -930,7 +929,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     internal override bool IsPrimaryConstructorDeclaration(SyntaxNode declaration)
-        => declaration.Parent is TypeDeclarationSyntax { ParameterList: var parameterList } && parameterList == declaration;
+        => declaration.Parent is TypeDeclarationSyntax { ParameterList: var parameterList } and not ExtensionBlockDeclarationSyntax && parameterList == declaration;
 
     internal override bool IsConstructorWithMemberInitializers(ISymbol symbol, CancellationToken cancellationToken)
     {
@@ -1644,6 +1643,10 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
                 return GetDiagnosticSpan(typeDeclaration.Modifiers, typeDeclaration.Keyword,
                     typeDeclaration.TypeParameterList ?? (SyntaxNodeOrToken)typeDeclaration.Identifier);
 
+            case SyntaxKind.ExtensionBlockDeclaration:
+                var extensionBlockDeclaration = (ExtensionBlockDeclarationSyntax)node;
+                return extensionBlockDeclaration.Keyword.Span;
+
             case SyntaxKind.BaseList:
                 var baseList = (BaseListSyntax)node;
                 return baseList.Types.Span;
@@ -2249,6 +2252,9 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
 
                 return CSharpFeaturesResources.local_variable_declaration;
 
+            case SyntaxKind.ExtensionBlockDeclaration:
+                return FeaturesResources.extension_block;
+
             default:
                 return null;
         }
@@ -2396,6 +2402,11 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
         {
             switch (node.Kind())
             {
+                case SyntaxKind.ExtensionBlockDeclaration:
+                    // https://github.com/dotnet/roslyn/issues/78959 Disallowed for now
+                    ReportError(RudeEditKind.Insert);
+                    return;
+
                 case SyntaxKind.ExternAliasDirective:
                     ReportError(RudeEditKind.Insert);
                     return;
@@ -2423,6 +2434,11 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
                 case SyntaxKind.ExternAliasDirective:
                     // To allow removal of declarations we would need to update method bodies that 
                     // were previously binding to them but now are binding to another symbol that was previously hidden.
+                    ReportError(RudeEditKind.Delete);
+                    return;
+
+                case SyntaxKind.ExtensionBlockDeclaration:
+                    // https://github.com/dotnet/roslyn/issues/78959 Disallowed for now
                     ReportError(RudeEditKind.Delete);
                     return;
 
@@ -2678,14 +2694,14 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
                 tryStatement = (TryStatementSyntax)node;
                 coversAllChildren = false;
 
-                if (tryStatement.Catches.Count == 0)
+                if (tryStatement.Catches is not [var firstCatch, ..])
                 {
                     RoslynDebug.Assert(tryStatement.Finally != null);
                     return tryStatement.Finally.Span;
                 }
 
                 return TextSpan.FromBounds(
-                    tryStatement.Catches.First().SpanStart,
+                    firstCatch.SpanStart,
                     (tryStatement.Finally != null)
                         ? tryStatement.Finally.Span.End
                         : tryStatement.Catches.Last().Span.End);
@@ -3075,4 +3091,29 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     #endregion
+
+    protected override IEnumerable<Diagnostic> GetParseOptionsRudeEdits(ParseOptions oldOptions, ParseOptions newOptions)
+    {
+        foreach (var rudeEdit in base.GetParseOptionsRudeEdits(oldOptions, newOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        var oldCSharpOptions = (CSharpParseOptions)oldOptions;
+        var newCSharpOptions = (CSharpParseOptions)newOptions;
+
+        if (oldCSharpOptions.LanguageVersion != newCSharpOptions.LanguageVersion)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.LangVersion,
+                oldCSharpOptions.SpecifiedLanguageVersion.ToDisplayString(),
+                newCSharpOptions.SpecifiedLanguageVersion.ToDisplayString());
+        }
+
+        if (!oldCSharpOptions.PreprocessorSymbolNames.SequenceEqual(newCSharpOptions.PreprocessorSymbolNames, StringComparer.Ordinal))
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.DefineConstants,
+                string.Join(",", oldCSharpOptions.PreprocessorSymbolNames),
+                string.Join(",", newCSharpOptions.PreprocessorSymbolNames));
+        }
+    }
 }

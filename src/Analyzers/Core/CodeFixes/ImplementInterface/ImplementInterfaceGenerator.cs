@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 using static ImplementHelpers;
 
-internal abstract partial class AbstractImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax>
 {
     private sealed partial class ImplementInterfaceGenerator
     {
         private readonly Document Document;
-        private readonly AbstractImplementInterfaceService Service;
+        private readonly AbstractImplementInterfaceService<TTypeDeclarationSyntax> Service;
 
         private readonly ImplementInterfaceInfo State;
         private readonly ImplementTypeOptions Options;
@@ -40,7 +40,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private ISymbol? ThroughMember => Configuration.ThroughMember;
 
         internal ImplementInterfaceGenerator(
-            AbstractImplementInterfaceService service,
+            AbstractImplementInterfaceService<TTypeDeclarationSyntax> service,
             Document document,
             ImplementInterfaceInfo state,
             ImplementTypeOptions options,
@@ -93,7 +93,7 @@ internal abstract partial class AbstractImplementInterfaceService
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers)),
                 State.ClassOrStructType,
-                memberDefinitions.Concat(extraMembers),
+                [.. memberDefinitions, .. extraMembers],
                 cancellationToken).ConfigureAwait(false);
         }
 

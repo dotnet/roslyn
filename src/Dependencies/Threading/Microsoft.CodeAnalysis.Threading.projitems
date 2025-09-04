@@ -10,19 +10,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Threading</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AsyncBatchingWorkQueue`0.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)AsyncBatchingWorkQueue`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)AsyncBatchingWorkQueue`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CancellationSeries.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConfiguredYieldAwaitable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TaskExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ValueTaskExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VoidResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsyncToken.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IExpeditableDelaySource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsynchronousOperationListenerProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsynchronousOperationListener.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)YieldAwaitableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

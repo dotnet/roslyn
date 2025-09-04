@@ -18,9 +18,8 @@ public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNo
         => new InitializerExpressionStructureProvider();
 
     [Fact]
-    public async Task TestOuterInitializer()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestOuterInitializer()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -34,12 +33,10 @@ public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestInnerInitializer()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestInnerInitializer()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -55,5 +52,4 @@ public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

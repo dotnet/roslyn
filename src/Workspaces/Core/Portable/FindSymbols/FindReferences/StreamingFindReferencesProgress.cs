@@ -58,7 +58,7 @@ internal sealed class StreamingFindReferencesProgressAdapter : IStreamingFindRef
         foreach (var (_, symbol, location) in references)
             _progress.OnReferenceFound(symbol, location);
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask OnStartedAsync(CancellationToken cancellationToken)

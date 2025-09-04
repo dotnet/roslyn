@@ -34,14 +34,16 @@ public class BasicArgumentProvider : AbstractEditorTest
     [IdeFact]
     public async Task SimpleTabTabCompletion()
     {
-        await SetUpEditorAsync(@"
-Public Class Test
-    Private f As Object
+        await SetUpEditorAsync("""
 
-    Public Sub Method()$$
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+            Public Class Test
+                Private f As Object
+
+                Public Sub Method()$$
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("f.ToSt", HangMitigatingCancellationToken);
@@ -60,13 +62,15 @@ End Class
     [IdeFact]
     public async Task TabTabCompleteObjectEquals()
     {
-        await SetUpEditorAsync(@"
-Public Class Test
-    Public Sub Method()
-        $$
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Public Class Test
+                Public Sub Method()
+                    $$
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("Object.Equ", HangMitigatingCancellationToken);
 
@@ -81,13 +85,15 @@ End Class
     [IdeFact]
     public async Task TabTabCompleteNewObject()
     {
-        await SetUpEditorAsync(@"
-Public Class Test
-    Public Sub Method()
-        Dim value = $$
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Public Class Test
+                Public Sub Method()
+                    Dim value = $$
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("New Obje", HangMitigatingCancellationToken);
 
@@ -105,15 +111,17 @@ End Class
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63043")]
     public async Task TabTabCompletionWithArguments()
     {
-        await SetUpEditorAsync(@"
-Imports System
-Public Class Test
-    Private f As Integer
+        await SetUpEditorAsync("""
 
-    Public Sub Method(provider As IFormatProvider)$$
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+            Imports System
+            Public Class Test
+                Private f As Integer
+
+                Public Sub Method(provider As IFormatProvider)$$
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("f.ToSt", HangMitigatingCancellationToken);
@@ -134,7 +142,9 @@ End Class
         await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString(Nothing$$, provider)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
-        await TestServices.Input.SendAsync("\"format\"", HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync("""
+            "format"
+            """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString(\"format\"$$, provider)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
@@ -153,22 +163,24 @@ End Class
     [IdeFact]
     public async Task FullCycle()
     {
-        await SetUpEditorAsync(@"
-Imports System
-Public Class TestClass
-    Public Sub Method()$$
-    End Sub
+        await SetUpEditorAsync("""
 
-    Sub Test()
-    End Sub
+            Imports System
+            Public Class TestClass
+                Public Sub Method()$$
+                End Sub
 
-    Sub Test(x As Integer)
-    End Sub
+                Sub Test()
+                End Sub
 
-    Sub Test(x As Integer, y As Integer)
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+                Sub Test(x As Integer)
+                End Sub
+
+                Sub Test(x As Integer, y As Integer)
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("Tes", HangMitigatingCancellationToken);
@@ -199,22 +211,24 @@ End Class
     [IdeFact]
     public async Task ImplicitArgumentSwitching()
     {
-        await SetUpEditorAsync(@"
-Imports System
-Public Class TestClass
-    Public Sub Method()$$
-    End Sub
+        await SetUpEditorAsync("""
 
-    Sub Test()
-    End Sub
+            Imports System
+            Public Class TestClass
+                Public Sub Method()$$
+                End Sub
 
-    Sub Test(x As Integer)
-    End Sub
+                Sub Test()
+                End Sub
 
-    Sub Test(x As Integer, y As Integer)
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+                Sub Test(x As Integer)
+                End Sub
+
+                Sub Test(x As Integer, y As Integer)
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("Tes", HangMitigatingCancellationToken);
@@ -236,14 +250,16 @@ End Class
     [IdeFact]
     public async Task SmartBreakLineWithTabTabCompletion()
     {
-        await SetUpEditorAsync(@"
-Public Class Test
-    Private f As Object
+        await SetUpEditorAsync("""
 
-    Public Sub Method()$$
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+            Public Class Test
+                Private f As Object
+
+                Public Sub Method()$$
+                End Sub
+            End Class
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("f.ToSt", HangMitigatingCancellationToken);
@@ -256,15 +272,17 @@ End Class
         await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Public Class Test
-    Private f As Object
+        await TestServices.EditorVerifier.TextContainsAsync("""
 
-    Public Sub Method()
-        f.ToString()
-$$
-    End Sub
-End Class
-", assertCaretPosition: true, HangMitigatingCancellationToken);
+            Public Class Test
+                Private f As Object
+
+                Public Sub Method()
+                    f.ToString()
+            $$
+                End Sub
+            End Class
+
+            """, assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 }

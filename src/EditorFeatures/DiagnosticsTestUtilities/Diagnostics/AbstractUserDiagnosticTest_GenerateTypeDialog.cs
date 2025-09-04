@@ -59,7 +59,7 @@ public abstract partial class AbstractUserDiagnosticTest
               ? EditorTestWorkspace.CreateCSharp(initial, composition: s_composition)
               : EditorTestWorkspace.CreateVisualBasic(initial, composition: s_composition);
 
-        var testOptions = new TestParameters();
+        var testOptions = TestParameters.Default;
         var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);
 
         var testState = new GenerateTypeTestState(workspace, projectToBeModified: projectName, typeName, existingFilename);

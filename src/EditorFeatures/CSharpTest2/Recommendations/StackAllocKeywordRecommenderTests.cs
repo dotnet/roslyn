@@ -13,123 +13,92 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class StackAllocKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestAtRoot_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAfterClass_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalStatement()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestInEmptyStatement()
-    {
-        // e.g. this is a valid statement
-        // stackalloc[] { 1, 2, 3 }.IndexOf(1);
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInEmptyStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestInEmptySpaceAfterAssignment()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInEmptySpaceAfterAssignment()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var v = $$"));
-    }
 
     [Fact]
-    public async Task TestInUnsafeEmptySpace()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInUnsafeEmptySpace()
+        => VerifyKeywordAsync(
             """
             unsafe class C {
                 void Goo() {
                   var v = $$
             """);
-    }
 
     [Fact]
-    public async Task TestInUnsafeEmptySpace_AfterNonPointer()
-    {
-        // There can be an implicit conversion to int
-        await VerifyKeywordAsync(
+    public Task TestInUnsafeEmptySpace_AfterNonPointer()
+        => VerifyKeywordAsync(
             """
             unsafe class C {
                 void Goo() {
                   int v = $$
             """);
-    }
 
     [Fact]
-    public async Task TestInUnsafeEmptySpace_AfterPointer()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInUnsafeEmptySpace_AfterPointer()
+        => VerifyKeywordAsync(
             """
             unsafe class C {
                 void Goo() {
                   int* v = $$
             """);
-    }
 
     [Fact]
-    public async Task TestInField()
-    {
-        // While assigning stackalloc'd value to a field is invalid,
-        // using one in the initializer is OK. e.g.
-        // int _f = stackalloc[] { 1, 2, 3 }.IndexOf(1);
-        await VerifyKeywordAsync(
+    public Task TestInField()
+        => VerifyKeywordAsync(
             """
             class C {
                 int v = $$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
-    public async Task TestInsideForStatementVarDecl1()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInsideForStatementVarDecl1()
+        => VerifyKeywordAsync(
             """
             class C
             {
@@ -137,12 +106,10 @@ public sealed class StackAllocKeywordRecommenderTests : KeywordRecommenderTests
                 {
                     for (var i = $$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
-    public async Task TestInsideForStatementVarDecl2()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInsideForStatementVarDecl2()
+        => VerifyKeywordAsync(
             """
             class C
             {
@@ -150,12 +117,10 @@ public sealed class StackAllocKeywordRecommenderTests : KeywordRecommenderTests
                 {
                     for (int* i = $$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
-    public async Task TestInsideForStatementVarDecl3()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInsideForStatementVarDecl3()
+        => VerifyKeywordAsync(
             """
             class C
             {
@@ -163,29 +128,22 @@ public sealed class StackAllocKeywordRecommenderTests : KeywordRecommenderTests
                 {
                     for (string i = $$
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
-    public async Task TestOnRHSOfAssignment_Span()
-    {
-        await VerifyKeywordAsync(AddInsideMethod("""
+    public Task TestOnRHSOfAssignment_Span()
+        => VerifyKeywordAsync(AddInsideMethod("""
             Span<int> s = $$
             """));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
-    public async Task TestOnRHSOfAssignment_Pointer()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestOnRHSOfAssignment_Pointer()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"int* v = $$"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
-    public async Task TestOnRHSOfAssignment_ReAssignment()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestOnRHSOfAssignment_ReAssignment()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"v = $$"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23584")]
     public async Task TestOnRHSWithCast()
@@ -332,131 +290,109 @@ public sealed class StackAllocKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41736")]
-    public async Task TestNotInConstFieldInitializer()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotInConstFieldInitializer()
+        => VerifyAbsenceAsync("""
             class Program
             {
                 private const int _f = $$
             }
             """);
-    }
 
     #region Collection expressions
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_BeforeFirstElementToVar()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInCollectionExpressions_BeforeFirstElementToVar()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var x = [$$
             """));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_BeforeFirstElementToReturn()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCollectionExpressions_BeforeFirstElementToReturn()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 IEnumerable<string> M() => [$$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_AfterFirstElementToVar()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInCollectionExpressions_AfterFirstElementToVar()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var x = [new object(), $$
             """));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_AfterFirstElementToReturn()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCollectionExpressions_AfterFirstElementToReturn()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 IEnumerable<string> M() => [string.Empty, $$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_SpreadBeforeFirstElementToReturn()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCollectionExpressions_SpreadBeforeFirstElementToReturn()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 IEnumerable<string> M() => [.. $$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_SpreadAfterFirstElementToReturn()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCollectionExpressions_SpreadAfterFirstElementToReturn()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 IEnumerable<string> M() => [string.Empty, .. $$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_ParenAtFirstElementToReturn()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCollectionExpressions_ParenAtFirstElementToReturn()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 IEnumerable<string> M() => [($$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_ParenAfterFirstElementToReturn()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCollectionExpressions_ParenAfterFirstElementToReturn()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 IEnumerable<string> M() => [string.Empty, ($$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_ParenSpreadAtFirstElementToReturn()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCollectionExpressions_ParenSpreadAtFirstElementToReturn()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 IEnumerable<string> M() => [.. ($$
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
-    public async Task TestInCollectionExpressions_ParenSpreadAfterFirstElementToReturn()
-    {
-        await VerifyKeywordAsync(
+    public Task TestInCollectionExpressions_ParenSpreadAfterFirstElementToReturn()
+        => VerifyKeywordAsync(
             """
             class C
             {
                 IEnumerable<string> M() => [string.Empty, .. ($$
             }
             """);
-    }
 
     #endregion
 }

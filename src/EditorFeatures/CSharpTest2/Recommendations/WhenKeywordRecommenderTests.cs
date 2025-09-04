@@ -13,60 +13,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestForCatchClause_AfterCatch()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestForCatchClause_AfterCatch()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"try {} catch $$"));
-    }
 
     [Fact]
-    public async Task TestForCatchClause_AfterCatchDeclaration1()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestForCatchClause_AfterCatchDeclaration1()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"try {} catch (Exception) $$"));
-    }
 
     [Fact]
-    public async Task TestForCatchClause_AfterCatchDeclaration2()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestForCatchClause_AfterCatchDeclaration2()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"try {} catch (Exception e) $$"));
-    }
 
     [Fact]
-    public async Task TestForCatchClause_AfterCatchDeclarationEmpty()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestForCatchClause_AfterCatchDeclarationEmpty()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"try {} catch () $$"));
-    }
 
     [Fact]
-    public async Task TestForCatchClause_NotAfterTryBlock()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestForCatchClause_NotAfterTryBlock()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} $$"));
-    }
 
     [Fact]
-    public async Task TestForCatchClause_NotAfterFilter1()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestForCatchClause_NotAfterFilter1()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) when $$"));
-    }
 
     [Fact]
-    public async Task TestForCatchClause_NotAfterFilter2()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestForCatchClause_NotAfterFilter2()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) when ($$"));
-    }
 
     [Fact]
-    public async Task TestForCatchClause_NotAfterFilter3()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestForCatchClause_NotAfterFilter3()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) when (true) $$"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24113")]
     public async Task TestForSwitchCase_AfterDeclarationPattern()
@@ -445,40 +429,34 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
-    public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar()
+        => VerifyAbsenceAsync("""
             using var = System.String;
             class C
             {
                 void M() { switch (new object()) { case var $$ } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeBreak()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeBreak()
+        => VerifyAbsenceAsync("""
             using var = System.String;
             class C
             {
                 void M() { switch (new object()) { case var $$ break; } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeWhen()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeWhen()
+        => VerifyAbsenceAsync("""
             using var = System.String;
             class C
             {
                 void M() { switch (new object()) { case var $$ when } }
             }
             """);
-    }
 
     [Fact]
     public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstantVar()
@@ -523,9 +501,8 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
     """);
 
     [Fact]
-    public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar()
+        => VerifyAbsenceAsync("""
             using var = System.String;
             class C
             {
@@ -533,12 +510,10 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
                 void M() { switch (new object()) { case var $$ } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeBreak()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeBreak()
+        => VerifyAbsenceAsync("""
             using var = System.String;
             class C
             {
@@ -546,12 +521,10 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
                 void M() { switch (new object()) { case var $$ break; } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeWhen()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeWhen()
+        => VerifyAbsenceAsync("""
             using var = System.String;
             class C
             {
@@ -559,12 +532,10 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
                 void M() { switch (new object()) { case var $$ when } }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
-    public async Task TestAfterSwitchExpressionPattern1()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestAfterSwitchExpressionPattern1()
+        => VerifyKeywordAsync("""
             using var = System.String;
             class C
             {
@@ -577,12 +548,10 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
-    public async Task TestAfterSwitchExpressionPattern2()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestAfterSwitchExpressionPattern2()
+        => VerifyKeywordAsync("""
             using var = System.String;
             class C
             {
@@ -595,12 +564,10 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
-    public async Task TestAfterSwitchExpressionPattern3()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestAfterSwitchExpressionPattern3()
+        => VerifyKeywordAsync("""
             using var = System.String;
             class C
             {
@@ -613,12 +580,10 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44480")]
-    public async Task TestAfterSwitchExpressionPattern4()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestAfterSwitchExpressionPattern4()
+        => VerifyKeywordAsync("""
             using var = System.String;
             class C
             {
@@ -631,5 +596,4 @@ public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 }

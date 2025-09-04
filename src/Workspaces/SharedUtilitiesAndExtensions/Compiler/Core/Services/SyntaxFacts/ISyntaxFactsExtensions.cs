@@ -159,9 +159,9 @@ internal static class ISyntaxFactsExtensions
     public static bool ContainsInterleavedDirective(
         this ISyntaxFacts syntaxFacts, ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken)
     {
-        if (nodes.Length > 0)
+        if (nodes is [var firstNode, ..] and [.., var lastNode])
         {
-            var span = TextSpan.FromBounds(nodes.First().Span.Start, nodes.Last().Span.End);
+            var span = TextSpan.FromBounds(firstNode.Span.Start, lastNode.Span.End);
 
             foreach (var node in nodes)
             {
@@ -577,6 +577,12 @@ internal static class ISyntaxFactsExtensions
     {
         syntaxFacts.GetPartsOfMemberAccessExpression(node, out _, out var name);
         return name;
+    }
+
+    public static SyntaxNode GetOperandOfPostfixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+    {
+        syntaxFacts.GetPartsOfPostfixUnaryExpression(node, out var operand, out _);
+        return operand;
     }
 
     public static SyntaxNode GetOperandOfPrefixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)

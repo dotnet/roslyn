@@ -210,10 +210,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Internal helper for <see cref="VisualBasicSyntaxNode"/> class to create a new syntax tree rooted at the given root node.
         ''' This method does not create a clone of the given root, but instead preserves its reference identity.
         ''' </para>
-        ''' <para>NOTE: This method is only intended to be used from <see cref="SyntaxNode.SyntaxTree"/> property.</para>
+        ''' <para>NOTE: This method is only intended to be used from <see cref="SyntaxNode.SyntaxTree"/> property and <c>SyntaxFactory.Parse*</c> methods.</para>
         ''' <para>NOTE: Do not use this method elsewhere, instead use <see cref="Create"/> method for creating a syntax tree.</para>
         ''' </summary>
-        Friend Shared Function CreateWithoutClone(root As VisualBasicSyntaxNode) As SyntaxTree
+        Friend Shared Function CreateWithoutClone(root As VisualBasicSyntaxNode, options As VisualBasicParseOptions) As SyntaxTree
             Debug.Assert(root IsNot Nothing)
 
             Return New ParsedSyntaxTree(
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 path:="",
                 encodingOpt:=Nothing,
                 checksumAlgorithm:=SourceHashAlgorithm.Sha1,
-                options:=VisualBasicParseOptions.Default,
+                options:=options,
                 syntaxRoot:=root,
                 isMyTemplate:=False,
                 diagnosticOptions:=Nothing,

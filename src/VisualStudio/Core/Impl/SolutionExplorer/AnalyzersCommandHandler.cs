@@ -185,10 +185,7 @@ internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpd
 
     private void UpdateAnalyzerContextMenu()
     {
-        if (_removeMenuItem != null)
-        {
-            _removeMenuItem.Enabled = _allowProjectSystemOperations;
-        }
+        _removeMenuItem?.Enabled = _allowProjectSystemOperations;
     }
 
     public IContextMenuController DiagnosticContextMenuController
@@ -557,10 +554,7 @@ internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpd
             {
                 var codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
 
-                if (codeAnalysisRuleSetFileProperty != null)
-                {
-                    codeAnalysisRuleSetFileProperty.Value = fileName;
-                }
+                codeAnalysisRuleSetFileProperty?.Value = fileName;
             }
             catch (ArgumentException)
             {

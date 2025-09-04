@@ -36,12 +36,7 @@ public abstract class AbstractSemanticQuickInfoSourceTests
         => null;
 
     internal static Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
-    {
-        return qi =>
-        {
-            Assert.Contains(expectedGlyph, qi.Tags.GetGlyphs());
-        };
-    }
+        => qi => Assert.Contains(expectedGlyph, qi.Tags.GetGlyphs());
 
     internal static Action<QuickInfoItem> WarningGlyph(Glyph expectedGlyph)
         => SymbolGlyph(expectedGlyph);

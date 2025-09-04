@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 var code = "#load \"a.csx\"";
                 var resolver = TestSourceReferenceResolver.Create(
-                    KeyValuePairUtil.Create("a.csx", @"
+                    KeyValuePair.Create("a.csx", @"
                     #load ""b.csx""
                     asdf();"));
                 var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
@@ -73,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var code = "#load \"b.csx\"";
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00, 0x00 }),
-                KeyValuePairUtil.Create<string, object>("b.csx", "#load \"a.csx\""));
+                KeyValuePair.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00, 0x00 }),
+                KeyValuePair.Create<string, object>("b.csx", "#load \"a.csx\""));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib461(code, sourceFileName: "external1.csx", options: options, parseOptions: TestOptions.Script);
             var external1 = compilation.SyntaxTrees.Last();
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Cycles()
         {
             var code = "#load \"a.csx\"";
-            var resolver = TestSourceReferenceResolver.Create(KeyValuePairUtil.Create("a.csx", code));
+            var resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", code));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib461(code, options: options, parseOptions: TestOptions.Script);
 
@@ -171,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilation.VerifyDiagnostics();
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "#load \"b.csx\""),
-                KeyValuePairUtil.Create("b.csx", code));
+                KeyValuePair.Create("a.csx", "#load \"b.csx\""),
+                KeyValuePair.Create("b.csx", code));
             options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             compilation = CreateCompilationWithMscorlib461(code, options: options, parseOptions: TestOptions.Script);
 

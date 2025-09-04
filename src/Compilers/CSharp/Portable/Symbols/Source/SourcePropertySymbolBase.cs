@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1065,6 +1066,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.GetIsNewExtensionMember())
             {
                 ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
+
+                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
         }
 
@@ -1424,6 +1427,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref attributes,
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
+
+            if (this.GetIsNewExtensionMember())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).ExtensionMarkerName));
+            }
         }
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
@@ -1561,7 +1569,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 | ReservedAttributes.TupleElementNamesAttribute
                 | ReservedAttributes.NullableAttribute
                 | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.DisallowNullAttribute))

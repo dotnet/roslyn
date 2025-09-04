@@ -8,13 +8,13 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 #Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
 

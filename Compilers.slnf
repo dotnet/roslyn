@@ -53,6 +53,7 @@
       "src\\ExpressionEvaluator\\Core\\Source\\ExpressionCompiler\\Microsoft.CodeAnalysis.ExpressionCompiler.csproj",
       "src\\ExpressionEvaluator\\VisualBasic\\Source\\ExpressionCompiler\\Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler.vbproj",
       "src\\Interactive\\csi\\csi.csproj",
+      "src\\NuGet\\Microsoft.CodeAnalysis.BuildClient.Package\\Microsoft.CodeAnalysis.BuildClient.Package.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Compilers.Package\\Microsoft.CodeAnalysis.Compilers.Package.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Package\\Microsoft.CodeAnalysis.Package.csproj",
       "src\\NuGet\\Microsoft.Net.Compilers.Toolset\\AnyCpu\\Microsoft.Net.Compilers.Toolset.Package.csproj",

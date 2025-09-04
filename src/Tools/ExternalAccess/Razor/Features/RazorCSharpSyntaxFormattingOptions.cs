@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 
@@ -11,17 +12,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
     /// <summary>
     /// Wrapper for CSharpSyntaxFormattingOptions for Razor external access.
     /// </summary>
+    [DataContract]
     internal sealed record class RazorCSharpSyntaxFormattingOptions(
-        RazorSpacePlacement Spacing,
-        RazorBinaryOperatorSpacingOptions SpacingAroundBinaryOperator,
-        RazorNewLinePlacement NewLines,
-        RazorLabelPositionOptions LabelPositioning,
-        RazorIndentationPlacement Indentation,
-        bool WrappingKeepStatementsOnSingleLine,
-        bool WrappingPreserveSingleLine,
-        RazorNamespaceDeclarationPreference NamespaceDeclarations,
-        bool PreferTopLevelStatements,
-        int CollectionExpressionWrappingLength)
+        [property: DataMember] RazorSpacePlacement Spacing,
+        [property: DataMember] RazorBinaryOperatorSpacingOptions SpacingAroundBinaryOperator,
+        [property: DataMember] RazorNewLinePlacement NewLines,
+        [property: DataMember] RazorLabelPositionOptions LabelPositioning,
+        [property: DataMember] RazorIndentationPlacement Indentation,
+        [property: DataMember] bool WrappingKeepStatementsOnSingleLine,
+        [property: DataMember] bool WrappingPreserveSingleLine,
+        [property: DataMember] RazorNamespaceDeclarationPreference NamespaceDeclarations,
+        [property: DataMember] bool PreferTopLevelStatements,
+        [property: DataMember] int CollectionExpressionWrappingLength)
     {
         public static readonly RazorCSharpSyntaxFormattingOptions Default = new();
 
@@ -49,9 +51,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
             => new()
             {
                 Spacing = (SpacePlacement)Spacing,
-                SpacingAroundBinaryOperator = (BinaryOperatorSpacingOptions)SpacingAroundBinaryOperator,
+                SpacingAroundBinaryOperator = (BinaryOperatorSpacingOptionsInternal)SpacingAroundBinaryOperator,
                 NewLines = (NewLinePlacement)NewLines,
-                LabelPositioning = (LabelPositionOptions)LabelPositioning,
+                LabelPositioning = (LabelPositionOptionsInternal)LabelPositioning,
                 Indentation = (IndentationPlacement)Indentation,
                 WrappingKeepStatementsOnSingleLine = WrappingKeepStatementsOnSingleLine,
                 WrappingPreserveSingleLine = WrappingPreserveSingleLine,

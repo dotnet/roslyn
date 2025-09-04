@@ -234,6 +234,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncVoidMethodBuilder,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder,
         System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T,
+
+        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
         System_Runtime_CompilerServices_AsyncStateMachineAttribute,
         System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
@@ -246,12 +249,9 @@ namespace Microsoft.CodeAnalysis
 
         CSharp7Sentinel = System_Runtime_GCLatencyMode, // all types that were known before CSharp7 should remain above this sentinel
 
-        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
-
         System_ValueTuple,
 
         System_ValueTuple_T1,
-
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
@@ -333,9 +333,11 @@ namespace Microsoft.CodeAnalysis
         System_IndexOutOfRangeException,
 
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+        System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute,
         System_Runtime_CompilerServices_Unsafe,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute,
+        System_Runtime_CompilerServices_ExtensionMarkerAttribute,
 
         System_Linq_Expressions_BinaryExpression,
         System_Linq_Expressions_MethodCallExpression,
@@ -587,6 +589,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.AsyncVoidMethodBuilder",
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
             "System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1",
+
+            "", // WellKnownType.ExtSentinel extension marker
+
             "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
             "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
@@ -597,11 +602,9 @@ namespace Microsoft.CodeAnalysis
 
             "System.Runtime.GCLatencyMode",
 
-            "", // WellKnownType.ExtSentinel extension marker
-
             "System.ValueTuple",
-            "System.ValueTuple`1",
 
+            "System.ValueTuple`1",
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
@@ -679,9 +682,11 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.HotReloadException",
             "System.IndexOutOfRangeException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
+            "System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute",
             "System.Runtime.CompilerServices.Unsafe",
 
             "System.Runtime.CompilerServices.ParamCollectionAttribute",
+            "System.Runtime.CompilerServices.ExtensionMarkerAttribute",
 
             "System.Linq.Expressions.BinaryExpression",
             "System.Linq.Expressions.MethodCallExpression",
@@ -764,8 +769,9 @@ namespace Microsoft.CodeAnalysis
             // Some compile time asserts
             {
                 // We should not add new types to CSharp7 set
-                _ = new int[(int)WellKnownType.CSharp7Sentinel - 254];
-                _ = new int[254 - (int)WellKnownType.CSharp7Sentinel];
+                const int ExpectedCSharp7SentinelValue = 200 + (int)InternalSpecialType.NextAvailable + 1 /* Placeholder for ExtSentinel */;
+                _ = new int[(int)WellKnownType.CSharp7Sentinel - ExpectedCSharp7SentinelValue];
+                _ = new int[ExpectedCSharp7SentinelValue - (int)WellKnownType.CSharp7Sentinel];
 
                 // The WellKnownType.ExtSentinel value must be 255
                 _ = new int[(int)WellKnownType.ExtSentinel - 255];

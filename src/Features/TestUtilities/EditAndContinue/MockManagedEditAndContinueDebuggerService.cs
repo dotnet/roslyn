@@ -20,26 +20,26 @@ internal sealed class MockManagedEditAndContinueDebuggerService : IManagedHotRel
     public Func<ImmutableArray<string>>? GetCapabilitiesImpl;
 
     public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetActiveStatementsImpl?.Invoke() ?? []);
+        => ValueTask.FromResult(GetActiveStatementsImpl?.Invoke() ?? []);
 
     public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
     {
         if (IsEditAndContinueAvailable != null)
         {
-            return ValueTaskFactory.FromResult(IsEditAndContinueAvailable(mvid));
+            return ValueTask.FromResult(IsEditAndContinueAvailable(mvid));
         }
 
         if (LoadedModules != null)
         {
-            return ValueTaskFactory.FromResult(LoadedModules.TryGetValue(mvid, out var result) ? result : new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.ModuleNotLoaded));
+            return ValueTask.FromResult(LoadedModules.TryGetValue(mvid, out var result) ? result : new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.ModuleNotLoaded));
         }
 
         throw new NotImplementedException();
     }
 
     public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-        => ValueTaskFactory.FromResult(GetCapabilitiesImpl?.Invoke() ?? ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        => ValueTask.FromResult(GetCapabilitiesImpl?.Invoke() ?? ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
     public ValueTask PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
-        => ValueTaskFactory.CompletedTask;
+        => ValueTask.CompletedTask;
 }

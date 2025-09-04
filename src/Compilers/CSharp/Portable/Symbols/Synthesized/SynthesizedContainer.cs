@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(name != null);
             Name = name;
             _constructedFromTypeParameters = typeParametersToAlphaRename;
-            TypeMap = TypeMap.Empty.WithAlphaRename(typeParametersToAlphaRename, this, out _typeParameters);
+            TypeMap = TypeMap.Empty.WithAlphaRename(typeParametersToAlphaRename, this, propagateAttributes: false, out _typeParameters);
         }
 
         protected SynthesizedContainer(string name)
@@ -149,7 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsRefLikeType => false;
 
-        internal override string ExtensionName
+        internal override string ExtensionGroupingName
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override string ExtensionMarkerName
             => throw ExceptionUtilities.Unreachable();
 
         public sealed override bool IsReadOnly => false;

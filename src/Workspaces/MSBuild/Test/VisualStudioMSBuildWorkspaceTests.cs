@@ -364,11 +364,13 @@ public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
                 ProjectName("Project1"),
                 Sign,
                 Document(string.Format(
-@"using System.Runtime.CompilerServices;
-[assembly:InternalsVisibleTo(""Project2, PublicKey={0}"")]
-class C1
-{{
-}}", PublicKey))),
+                    """
+                    using System.Runtime.CompilerServices;
+                    [assembly:InternalsVisibleTo("Project2, PublicKey={0}")]
+                    class C1
+                    {{
+                    }}
+                    """, PublicKey))),
             Project(
                 ProjectName("Project2"),
                 Sign,
@@ -2849,8 +2851,10 @@ class C1
     public async Task MSBuildWorkspacePreservesEncoding()
     {
         var encoding = Encoding.BigEndianUnicode;
-        var fileContent = @"//“
-class C { }";
+        var fileContent = """
+            //“
+            class C { }
+            """;
         var files = new FileSet(
             ("Encoding.csproj", Resources.ProjectFiles.CSharp.Encoding.Replace("<CodePage>ReplaceMe</CodePage>", string.Empty)),
             ("class1.cs", encoding.GetBytesWithPreamble(fileContent)));

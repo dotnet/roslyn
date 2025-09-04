@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -155,23 +156,23 @@ internal static class AddImportDiagnosticIds
         [CS0103, CS0234, CS0246, CS0305, CS0308, CS0122, CS0307, CS0616, CS1580, CS1581, CS8129, IDEDiagnosticIds.UnboundIdentifierId];
 
     public static ImmutableArray<string> FixableDiagnosticIds =
-        FixableTypeIds.Concat([
-                CS1061,
-                CS1935,
-                CS1501,
-                CS1503,
-                CS1574,
-                CS1584,
-                CS1929,
-                CS1955,
-                CS0428,
-                CS7036,
-                CS0281,
-                CS4036,
-                CS1579,
-                CS8414,
-                CS8411,
-                CS8415]);
+        [.. FixableTypeIds,
+            CS1061,
+            CS1935,
+            CS1501,
+            CS1503,
+            CS1574,
+            CS1584,
+            CS1929,
+            CS1955,
+            CS0428,
+            CS7036,
+            CS0281,
+            CS4036,
+            CS1579,
+            CS8414,
+            CS8411,
+            CS8415];
 }
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]

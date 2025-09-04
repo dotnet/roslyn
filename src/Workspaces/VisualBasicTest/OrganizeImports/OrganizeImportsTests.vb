@@ -3,17 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.OrganizeImports
+Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.UnitTests
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Microsoft.CodeAnalysis.[Shared].Extensions
-Imports Microsoft.CodeAnalysis.OrganizeImports
-Imports Microsoft.CodeAnalysis.UnitTests
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>

@@ -94,7 +94,7 @@ internal class RemoteWorkspaceManager
         var (solution, _) = await workspace.RunWithSolutionAsync(
             assetProvider,
             solutionChecksum,
-            static _ => ValueTaskFactory.FromResult(false),
+            static _ => ValueTask.FromResult(false),
             cancellationToken).ConfigureAwait(false);
 
         return solution;

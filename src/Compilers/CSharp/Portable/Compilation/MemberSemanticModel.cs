@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
@@ -930,6 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol.GetPublicSymbol(),
                 isCompleted: awaitableInfo.IsCompleted.GetPublicSymbol(),
                 getResult: awaitableInfo.GetResult.GetPublicSymbol(),
+                runtimeAwaitMethod: awaitableInfo.RuntimeAsyncAwaitCall?.Method.GetPublicSymbol(),
                 isDynamic: awaitableInfo.IsDynamic);
         }
 

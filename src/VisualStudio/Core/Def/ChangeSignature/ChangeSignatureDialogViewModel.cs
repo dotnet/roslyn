@@ -224,9 +224,9 @@ internal sealed partial class ChangeSignatureDialogViewModel : AbstractNotifyPro
 
     internal void Remove()
     {
-        if (AllParameters[_selectedIndex!.Value] is AddedParameterViewModel)
+        if (AllParameters[SelectedIndex!.Value] is AddedParameterViewModel)
         {
-            var parameterToRemove = AllParameters[_selectedIndex!.Value];
+            var parameterToRemove = AllParameters[SelectedIndex!.Value];
 
             if (!_parametersWithoutDefaultValues.Remove(parameterToRemove))
             {
@@ -235,7 +235,7 @@ internal sealed partial class ChangeSignatureDialogViewModel : AbstractNotifyPro
         }
         else
         {
-            AllParameters[_selectedIndex!.Value].IsRemoved = true;
+            AllParameters[SelectedIndex!.Value].IsRemoved = true;
         }
 
         UpdateNameConflictMarkers();
@@ -244,7 +244,7 @@ internal sealed partial class ChangeSignatureDialogViewModel : AbstractNotifyPro
 
     internal void Restore()
     {
-        AllParameters[_selectedIndex!.Value].IsRemoved = false;
+        AllParameters[SelectedIndex!.Value].IsRemoved = false;
         UpdateNameConflictMarkers();
         RemoveRestoreNotifyPropertyChanged();
     }
@@ -506,23 +506,19 @@ internal sealed partial class ChangeSignatureDialogViewModel : AbstractNotifyPro
         return _disabledParameters.Contains(parameterViewModel);
     }
 
-    private int? _selectedIndex;
     public int? SelectedIndex
     {
-        get
-        {
-            return _selectedIndex;
-        }
+        get;
 
         set
         {
             var newSelectedIndex = value == -1 ? null : value;
-            if (newSelectedIndex == _selectedIndex)
+            if (newSelectedIndex == field)
             {
                 return;
             }
 
-            _selectedIndex = newSelectedIndex;
+            field = newSelectedIndex;
 
             NotifyPropertyChanged(nameof(CanMoveUp));
             NotifyPropertyChanged(nameof(MoveUpAutomationText));

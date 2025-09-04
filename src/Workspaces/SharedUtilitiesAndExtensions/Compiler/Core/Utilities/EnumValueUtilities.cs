@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
@@ -137,5 +138,15 @@ internal static class EnumValueUtilities
         }
 
         return false;
+    }
+
+    public static TToEnum ConvertEnum<TFromEnum, TToEnum>(TFromEnum value)
+        where TFromEnum : struct, Enum
+        where TToEnum : struct, Enum
+    {
+        // Ensure that this is only called for enums that are actually compatible with each other.
+        Contract.ThrowIfTrue(typeof(TFromEnum).GetEnumUnderlyingType() != typeof(TToEnum).GetEnumUnderlyingType());
+
+        return Unsafe.As<TFromEnum, TToEnum>(ref value);
     }
 }

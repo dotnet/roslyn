@@ -5,15 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
-using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -766,7 +762,7 @@ $@"{LogoAndHelpPrompt}
             var runner = CreateRunner(["/langversion:?"]);
             Assert.Equal(0, runner.RunInteractive());
 
-            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
+            var expected = Enum.GetValues<LanguageVersion>()
                 .Select(v => v.ToDisplayString());
 
             var actual = runner.Console.Out.ToString();

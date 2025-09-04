@@ -76,6 +76,17 @@ internal readonly struct SemanticTokensSchema
             classificationTypeName => IDictionaryExtensions.GetValueOrDefault(s_pureLspDirectTypeMap, classificationTypeName) ?? CustomLspSemanticTokenNames.ClassificationTypeNameToCustomTokenName[classificationTypeName]));
 
     /// <summary>
+    /// Mapping from additive classification type names to LSP token modifiers.
+    /// </summary>
+    public static readonly ImmutableDictionary<string, TokenModifiers> AdditiveClassificationTypeToTokenModifier = new Dictionary<string, TokenModifiers>()
+    {
+        [ClassificationTypeNames.StaticSymbol] = SemanticTokens.TokenModifiers.Static,
+        [ClassificationTypeNames.ReassignedVariable] = SemanticTokens.TokenModifiers.ReassignedVariable,
+        [ClassificationTypeNames.ObsoleteSymbol] = SemanticTokens.TokenModifiers.Deprecated,
+        [ClassificationTypeNames.TestCode] = SemanticTokens.TokenModifiers.None,
+    }.ToImmutableDictionary();
+
+    /// <summary>
     /// Mapping from roslyn <see cref="ClassificationTypeNames"/> to the LSP token name.  This is either a standard
     /// <see cref="SemanticTokenTypes"/> or a custom token name.
     /// </summary>

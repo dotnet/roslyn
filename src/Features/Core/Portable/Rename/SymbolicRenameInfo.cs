@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -221,7 +222,7 @@ internal sealed class SymbolicRenameInfo
                 var solution = document.Project.Solution;
                 var sourceDocument = solution.GetRequiredDocument(location.SourceTree);
 
-                if (sourceDocument is SourceGeneratedDocument)
+                if (sourceDocument is SourceGeneratedDocument && !sourceDocument.IsRazorSourceGeneratedDocument())
                 {
                     // The file is generated so doesn't count towards valid spans 
                     // we can edit.

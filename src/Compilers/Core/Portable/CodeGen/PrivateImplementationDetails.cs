@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
         private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
 
-        private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
+        private readonly Cci.ICustomAttribute? _compilerGeneratedAttribute;
 
         private readonly string _name;
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference systemInt16Type,
             Cci.ITypeReference systemInt32Type,
             Cci.ITypeReference systemInt64Type,
-            Cci.ICustomAttribute compilerGeneratedAttribute)
+            Cci.ICustomAttribute? compilerGeneratedAttribute)
         {
             RoslynDebug.Assert(systemObject != null);
             RoslynDebug.Assert(systemValueType != null);
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return HashToHex(hash.AsSpan());
         }
 
-        private static string HashToHex(ReadOnlySpan<byte> hash)
+        public static string HashToHex(ReadOnlySpan<byte> hash)
         {
 #if NET9_0_OR_GREATER
             return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
@@ -1013,6 +1013,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
 
         public sealed override Cci.INestedTypeReference AsNestedTypeReference => this;
+
+        bool Cci.INestedTypeReference.InheritsEnclosingTypeTypeParameters => true;
     }
 
     /// <summary>

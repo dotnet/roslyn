@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -81,40 +82,32 @@ public abstract class AbstractClassifierTests
         }
     }
 
-    protected async Task TestAsync(
+    protected Task TestAsync(
        string code,
        TestHost testHost,
        ParseOptions[] parseOptionsSet,
        params FormattedClassification[] expected)
-    {
-        await TestAsync(code, code, testHost, parseOptionsSet, expected);
-    }
+        => TestAsync(code, code, testHost, parseOptionsSet, expected);
 
-    protected async Task TestAsync(
+    protected Task TestAsync(
         string code,
         TestHost testHost,
         params FormattedClassification[] expected)
-    {
-        await DefaultTestAsync(code, code, testHost, expected);
-    }
+        => DefaultTestAsync(code, code, testHost, expected);
 
-    protected async Task TestAsync(
+    protected Task TestAsync(
         string code,
         TestHost testHost,
         ParseOptions? parseOptions,
         params FormattedClassification[] expected)
-    {
-        await TestAsync(code, code, testHost, parseOptions, expected);
-    }
+        => TestAsync(code, code, testHost, parseOptions, expected);
 
-    protected async Task TestAsync(
+    protected Task TestAsync(
         string code,
         string allCode,
         TestHost testHost,
         params FormattedClassification[] expected)
-    {
-        await DefaultTestAsync(code, allCode, testHost, expected);
-    }
+        => DefaultTestAsync(code, allCode, testHost, expected);
 
     protected async Task TestInClassAsync(
         string className,

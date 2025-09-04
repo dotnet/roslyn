@@ -1544,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OutAttrOnInParam = 8355,
         #endregion diagnostics introduced for `ref readonly`, `ref conditional` and `ref-like` features in C# 7.2
 
-        ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
+        ERR_PredefinedTypeAmbiguous = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
         ERR_AttributeCtorInParameter = 8358,
 
@@ -1815,7 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 8801,
         ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 8802,
         ERR_TopLevelStatementAfterNamespaceOrType = 8803,
-        ERR_SimpleProgramDisallowsMainType = 8804,
+        // ERR_SimpleProgramDisallowsMainType = 8804,
         ERR_SimpleProgramNotAnExecutable = 8805,
 
         ERR_UnsupportedCallingConvention = 8806,
@@ -2411,8 +2411,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TooManyUserStrings_RestartRequired = 9315,
         ERR_NameofExtensionMember = 9316,
 
-        ERR_StructLayoutAndExtendedLayout = 9317,
-        ERR_InvalidExtendedLayoutAttribute = 9318,
+        ERR_BadExtensionUnaryOperatorSignature = 9317,
+        ERR_BadExtensionIncDecSignature = 9318,
+        ERR_BadExtensionBinaryOperatorSignature = 9319,
+        ERR_BadExtensionShiftOperatorSignature = 9320,
+        ERR_OperatorInExtensionOfStaticClass = 9321,
+        ERR_InstanceOperatorStructExtensionWrongReceiverRefKind = 9322,
+        ERR_InstanceOperatorExtensionWrongReceiverType = 9323,
+        ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator = 9324,
+        ERR_InterpolatedStringHandlerArgumentDisallowed = 9325,
+        ERR_MemberNameSameAsExtendedType = 9326,
+        ERR_FeatureNotAvailableInVersion14 = 9327,
+        ERR_UnsupportedFeatureInRuntimeAsync = 9328,
+        ERR_ExtensionBlockCollision = 9329,
+        ERR_MethodImplAttributeAsyncCannotBeUsed = 9330,
+
+        ERR_StructLayoutAndExtendedLayout = 9331,
+        ERR_InvalidExtendedLayoutAttribute = 9332,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

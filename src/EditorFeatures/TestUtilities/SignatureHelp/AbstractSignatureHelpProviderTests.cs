@@ -281,19 +281,20 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
     public Task TestSignatureHelpWithMetadataReferenceHelperAsync(string sourceCode, string referencedCode, IEnumerable<SignatureHelpTestItem> expectedOrderedItems,
                                                               string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"">
-            <Document FilePath=""ReferencedDocument"">
-{3}
-            </Document>
-        </MetadataReferenceFromSource>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode),
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true">
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                    <MetadataReferenceFromSource Language="{2}" CommonReferences="true">
+                        <Document FilePath="ReferencedDocument">
+            {3}
+                        </Document>
+                    </MetadataReferenceFromSource>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(sourceCode),
            referencedLanguage, SecurityElement.Escape(referencedCode));
 
         return VerifyItemWithReferenceWorkerAsync(xmlString, expectedOrderedItems, hideAdvancedMembers);
@@ -302,21 +303,22 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
     public async Task TestSignatureHelpWithProjectReferenceHelperAsync(string sourceCode, string referencedCode, IEnumerable<SignatureHelpTestItem> expectedOrderedItems,
                                                              string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <ProjectReference>ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-    </Project>
-    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"">
-        <Document FilePath=""ReferencedDocument"">
-{3}
-        </Document>
-    </Project>
-    
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode),
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true">
+                    <ProjectReference>ReferencedProject</ProjectReference>
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                </Project>
+                <Project Language="{2}" CommonReferences="true" AssemblyName="ReferencedProject">
+                    <Document FilePath="ReferencedDocument">
+            {3}
+                    </Document>
+                </Project>
+
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(sourceCode),
            referencedLanguage, SecurityElement.Escape(referencedCode));
 
         await VerifyItemWithReferenceWorkerAsync(xmlString, expectedOrderedItems, hideAdvancedMembers);
@@ -325,17 +327,18 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
     private async Task TestSignatureHelpInSameProjectHelperAsync(string sourceCode, string referencedCode, IEnumerable<SignatureHelpTestItem> expectedOrderedItems,
                                                       string sourceLanguage, bool hideAdvancedMembers)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-        <Document FilePath=""ReferencedDocument"">
-{2}
-        </Document>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode));
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true">
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                    <Document FilePath="ReferencedDocument">
+            {2}
+                    </Document>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode));
 
         await VerifyItemWithReferenceWorkerAsync(xmlString, expectedOrderedItems, hideAdvancedMembers);
     }
@@ -452,14 +455,15 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
         IEnumerable<SignatureHelpTestItem> expectedOrderedItems,
         string sourceLanguage)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferencesNet45=""true"">
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup));
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferencesNet45="true">
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(markup));
 
         using var testWorkspace = EditorTestWorkspace.Create(xmlString);
 

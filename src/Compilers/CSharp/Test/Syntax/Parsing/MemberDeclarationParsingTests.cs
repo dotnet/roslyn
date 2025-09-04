@@ -12391,7 +12391,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_01(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "(C x) => x;", options);
 
@@ -12444,7 +12444,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_02(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator checked " + op + "(C x) => x;", options);
 
@@ -12498,7 +12498,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_03(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C I.operator " + op + "(C x) => x;", options);
 
@@ -12559,7 +12559,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_04(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C I.operator checked " + op + "(C x) => x;", options);
 
@@ -12610,7 +12610,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_05()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > >=(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -12695,7 +12695,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_06()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator >> =(C x) => x;", options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -12780,7 +12780,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_07()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > > =(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -12865,7 +12865,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_08()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > >>=(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -12950,7 +12950,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_09()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > > >=(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -13035,7 +13035,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_10()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > > > =(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -13120,7 +13120,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_11()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator >> >=(C x) => x;", options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -13205,7 +13205,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_12()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator >> > =(C x) => x;", options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -13290,7 +13290,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_13()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator >>> =(C x) => x;", options,
                     // (1,16): error CS1003: Syntax error, '(' expected
@@ -13384,7 +13384,7 @@ public class Class
         [InlineData("<<", SyntaxKind.LessThanLessThanToken)]
         public void CompoundAssignmentDeclaration_14(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + " =(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -13480,7 +13480,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_15(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "(C x1, C x2) => x;", options,
                     // (1,12): error CS1020: Overloadable binary operator expected
@@ -13546,7 +13546,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_16(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "(C x1, C x2, C x3) => x;", options,
                     // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
@@ -13621,7 +13621,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_17(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "() => x;", options,
                     // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
@@ -13670,7 +13670,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_18(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator unchecked " + op + "(C x) => x;", options,
                     // (1,12): error CS9027: Unexpected keyword 'unchecked'
@@ -13727,7 +13727,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_19_Partial(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("partial C operator " + op + "(C x) => x;", options,
                     // (1,11): error CS1003: Syntax error, '.' expected
@@ -13782,7 +13782,7 @@ public class Class
         [CombinatorialData]
         public void CompoundAssignmentDeclaration_20_Partial([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("partial void operator " + op + "(C x) {}", options,
                     // (1,1): error CS1073: Unexpected token 'void'
@@ -13809,7 +13809,7 @@ public class Class
         [InlineData("--", SyntaxKind.MinusMinusToken)]
         public void IncrementDeclaration_01_Partial(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("partial C operator " + op + "() => x;", options,
                     // (1,11): error CS1003: Syntax error, '.' expected
@@ -13856,7 +13856,7 @@ public class Class
         [CombinatorialData]
         public void IncrementDeclaration_02_Partial([CombinatorialValues("++", "--")] string op)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("partial void operator " + op + "() {}", options,
                     // (1,1): error CS1073: Unexpected token 'void'

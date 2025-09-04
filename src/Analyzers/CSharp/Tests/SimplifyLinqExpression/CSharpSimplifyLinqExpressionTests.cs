@@ -20,7 +20,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class CSharpSimplifyLinqExpressionTests
 {
     [Theory, CombinatorialData]
-    public static async Task TestAllowedMethodTypes(
+    public static Task TestAllowedMethodTypes(
         [CombinatorialValues(
             "x => x==1",
             "(x) => x==1",
@@ -37,8 +37,7 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             "FirstOrDefault",
             "LastOrDefault")]
         string methodName)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -79,10 +78,9 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData]
-    public static async Task TestWhereWithIndexMethodTypes(
+    public static Task TestWhereWithIndexMethodTypes(
         [CombinatorialValues(
             "(x, index) => x==index",
             "(x, index) => { return x==index; }")]
@@ -97,8 +95,7 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             "FirstOrDefault",
             "LastOrDefault")]
         string methodName)
-    {
-        var testCode = $$"""
+        => VerifyCS.VerifyAnalyzerAsync($$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -116,12 +113,10 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                     var test = Data().Where({{lambda}}).{{methodName}}();
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(testCode);
-    }
+            """);
 
     [Theory, CombinatorialData]
-    public async Task TestQueryComprehensionSyntax(
+    public Task TestQueryComprehensionSyntax(
         [CombinatorialValues(
             "x => x==1",
             "x => { return x==1; }")]
@@ -136,8 +131,7 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             "FirstOrDefault",
             "LastOrDefault")]
         string methodName)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System.Linq;
@@ -162,7 +156,6 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("First")]
@@ -173,9 +166,8 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault")]
     [InlineData("FirstOrDefault")]
     [InlineData("LastOrDefault")]
-    public async Task TestMultiLineLambda(string methodName)
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLineLambda(string methodName)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -224,7 +216,6 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("First", "string")]
@@ -235,9 +226,8 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault", "string")]
     [InlineData("FirstOrDefault", "string")]
     [InlineData("LastOrDefault", "string")]
-    public async Task TestOutsideFunctionCallLambda(string methodName, string returnType)
-    {
-        await new VerifyCS.Test
+    public Task TestOutsideFunctionCallLambda(string methodName, string returnType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -272,7 +262,6 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("First")]
@@ -283,9 +272,8 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault")]
     [InlineData("FirstOrDefault")]
     [InlineData("LastOrDefault")]
-    public async Task TestQueryableIsNotConsidered(string methodName)
-    {
-        var source = $$"""
+    public Task TestQueryableIsNotConsidered(string methodName)
+        => VerifyCS.VerifyAnalyzerAsync($$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -301,12 +289,10 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Theory, CombinatorialData]
-    public async Task TestNestedLambda(
+    public Task TestNestedLambda(
         [CombinatorialValues(
             "First",
             "Last",
@@ -327,8 +313,8 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             "FirstOrDefault",
             "LastOrDefault")]
         string secondMethod)
-    {
-        var testCode = $$"""
+        => VerifyCS.VerifyCodeFixAsync(
+            $$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -341,8 +327,8 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                     var test5 = [|test.Where(a => [|a.Where(s => s.Equals("hello")).{{secondMethod}}()|].Equals("hello")).{{firstMethod}}()|];
                 }
             }
-            """;
-        var fixedCode = $$"""
+            """,
+            $$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -355,11 +341,7 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                     var test5 = test.{{firstMethod}}(a => a.{{secondMethod}}(s => s.Equals("hello")).Equals("hello"));
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(
-            testCode,
-            fixedCode);
-    }
+            """);
 
     [Theory]
     [InlineData("First")]
@@ -370,9 +352,8 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault")]
     [InlineData("FirstOrDefault")]
     [InlineData("LastOrDefault")]
-    public async Task TestExplicitEnumerableCall(string methodName)
-    {
-        await new VerifyCS.Test
+    public Task TestExplicitEnumerableCall(string methodName)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -405,12 +386,10 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUserDefinedWhere()
-    {
-        var source = """
+    public Task TestUserDefinedWhere()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -440,9 +419,7 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Theory]
     [InlineData("First")]
@@ -453,9 +430,8 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault")]
     [InlineData("FirstOrDefault")]
     [InlineData("LastOrDefault")]
-    public async Task TestArgumentsInSecondCall(string methodName)
-    {
-        var source = $$"""
+    public Task TestArgumentsInSecondCall(string methodName)
+        => VerifyCS.VerifyAnalyzerAsync($$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -468,14 +444,11 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                     var test2 = test1.Where(x => x == "!").{{methodName}}(x => x.Length == 1);
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task TestUnsupportedMethod()
-    {
-        var source = """
+    public Task TestUnsupportedMethod()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Linq;
             using System.Collections;
@@ -492,14 +465,11 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                     int test2 = new Test().Where(x => x > 0).Count();
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task TestExpressionTreeInput()
-    {
-        var source = """
+    public Task TestExpressionTreeInput()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -529,14 +499,11 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                     string result = queryableData.Where(Expression.Lambda<Func<string, bool>>(predicateBody, new ParameterExpression[] { pe })).First();
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52283")]
-    public static async Task TestTrivia1()
-    {
-        await new VerifyCS.Test
+    public static Task TestTrivia1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -567,12 +534,10 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71293")]
-    public static async Task TestOffOfObjectCreation()
-    {
-        await new VerifyCS.Test
+    public static Task TestOffOfObjectCreation()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -601,12 +566,10 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71293")]
-    public static async Task TestOffOfFieldReference()
-    {
-        await new VerifyCS.Test
+    public static Task TestOffOfFieldReference()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -639,12 +602,10 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                 }
                 """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75845")]
-    public static async Task TestSelectSum()
-    {
-        await new VerifyCS.Test
+    public static Task TestSelectSum()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -673,5 +634,4 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                 }
                 """
         }.RunAsync();
-    }
 }

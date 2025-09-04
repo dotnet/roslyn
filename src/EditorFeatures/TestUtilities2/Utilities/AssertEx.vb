@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     Public NotInheritable Class AssertEx

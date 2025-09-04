@@ -17,33 +17,35 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
 public sealed class FileCodeNamespaceTests : AbstractFileCodeElementTests
 {
     public FileCodeNamespaceTests()
-        : base(@"using System;
+        : base("""
+            using System;
 
-namespace Goo
-{
-    public class Alpha
-    {
-    }
+            namespace Goo
+            {
+                public class Alpha
+                {
+                }
 
-    public class Beta
-    {
-    }
+                public class Beta
+                {
+                }
 
-    namespace Bar
-    {
-    }
-}
+                namespace Bar
+                {
+                }
+            }
 
-namespace A.B
-{
-    public class Alpha
-    {
-    }
+            namespace A.B
+            {
+                public class Alpha
+                {
+                }
 
-    public class Beta
-    {
-    }
-}")
+                public class Beta
+                {
+                }
+            }
+            """)
     {
     }
 

@@ -7,15 +7,12 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
@@ -34,9 +31,7 @@ using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup;
@@ -110,12 +105,6 @@ internal sealed class RoslynPackage : AbstractPackage
             var colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
             colorSchemeApplier.RegisterInitializationWork(afterPackageLoadedTasks);
 
-            // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
-            var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
-
-            _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
-            TrackBulkFileOperations(globalNotificationService);
-
             return Task.CompletedTask;
         }
 
@@ -135,23 +124,17 @@ internal sealed class RoslynPackage : AbstractPackage
 
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
-            (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+            (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
 
         // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
+            (_, _, _, _) => ValueTask.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
     {
         await TaskScheduler.Default;
-
-        await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(false);
-        await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
 
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
@@ -223,12 +206,11 @@ internal sealed class RoslynPackage : AbstractPackage
         base.Dispose(disposing);
     }
 
-    private void ReportSessionWideTelemetry()
+    private static void ReportSessionWideTelemetry()
     {
         AsyncCompletionLogger.ReportTelemetry();
         InheritanceMarginLogger.ReportTelemetry();
         FeaturesSessionTelemetry.Report();
-        ComponentModel.GetService<VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory>().ReportOtherWorkspaceTelemetry();
     }
 
     private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)
@@ -249,54 +231,6 @@ internal sealed class RoslynPackage : AbstractPackage
         {
             _ruleSetEventHandler.Unregister();
             _ruleSetEventHandler = null;
-        }
-    }
-
-    private static void TrackBulkFileOperations(IGlobalOperationNotificationService globalNotificationService)
-    {
-        // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
-        // such as solution crawler, preemptive remote host synchronization and etc. any background work users
-        // didn't explicitly asked for.
-        //
-        // this should give all resources to BulkFileOperation. we do same for things like build, debugging, wait
-        // dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
-        Contract.ThrowIfNull(globalNotificationService);
-
-        // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
-        // so we only need simple tracking.
-        var gate = new object();
-        IDisposable? localRegistration = null;
-
-        BulkFileOperation.Begin += (s, a) => StartBulkFileOperationNotification();
-        BulkFileOperation.End += (s, a) => StopBulkFileOperationNotification();
-
-        return;
-
-        void StartBulkFileOperationNotification()
-        {
-            lock (gate)
-            {
-                // this shouldn't happen, but we are using external component
-                // so guarding us from them
-                if (localRegistration != null)
-                {
-                    FatalError.ReportAndCatch(new InvalidOperationException("BulkFileOperation already exist"), ErrorSeverity.General);
-                    return;
-                }
-
-                localRegistration = globalNotificationService.Start("BulkFileOperation");
-            }
-        }
-
-        void StopBulkFileOperationNotification()
-        {
-            lock (gate)
-            {
-                // localRegistration may be null if BulkFileOperation was already in the middle of running.  So we
-                // explicitly do not assert that is is non-null here.
-                localRegistration?.Dispose();
-                localRegistration = null;
-            }
         }
     }
 }

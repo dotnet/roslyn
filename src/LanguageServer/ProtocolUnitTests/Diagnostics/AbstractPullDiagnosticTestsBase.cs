@@ -227,7 +227,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         await testLspServer.InsertTextAsync(document.GetURI(), (lineInfo.Start.Line, lineInfo.Start.Character, text));
     }
 
-    private protected static Task OpenDocumentAsync(TestLspServer testLspServer, Document document) => testLspServer.OpenDocumentAsync(document.GetURI());
+    private protected static Task OpenDocumentAsync(TestLspServer testLspServer, TextDocument document) => testLspServer.OpenDocumentAsync(document.GetURI());
 
     private protected static Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
         TestLspServer testLspServer,

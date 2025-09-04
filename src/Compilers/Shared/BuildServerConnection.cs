@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string workingDirectory,
             string? tempDirectory,
             string? keepAlive,
-            string? libDirectory)
+            string? libDirectory,
+            string? compilerHash = null)
         {
             Debug.Assert(workingDirectory is object);
 
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 arguments,
                 workingDirectory: workingDirectory,
                 tempDirectory: tempDirectory,
-                compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                compilerHash: compilerHash ?? BuildProtocolConstants.GetCommitHash() ?? "",
                 requestId: requestId,
                 keepAlive: keepAlive,
                 libDirectory: libDirectory);
@@ -177,12 +180,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CancellationToken cancellationToken)
         {
             Debug.Assert(pipeName is object);
-
-            // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
-            if (string.IsNullOrWhiteSpace(BuildProtocolConstants.GetCommitHash()))
-            {
-                return new IncorrectHashBuildResponse();
-            }
 
             using var pipe = await tryConnectToServerAsync(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
             if (pipe is null)
@@ -435,15 +432,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName)
         {
-            var processFilePath = Path.Combine(clientDir, "VBCSCompiler.exe");
+            var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
-            if (!File.Exists(processFilePath))
-            {
-                // This is a .NET Core deployment
-                commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
-                processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault();
-            }
-
             return (processFilePath, commandLineArgs);
         }
 
@@ -463,81 +453,96 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-            if (PlatformInformation.IsWindows)
+            logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
+
+            string? previousDotNetRoot = Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName);
+            if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
             {
-                // As far as I can tell, there isn't a way to use the Process class to
-                // create a process with no stdin/stdout/stderr, so we use P/Invoke.
-                // This code was taken from MSBuild task starting code.
+                logger.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+                Environment.SetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+            }
 
-                STARTUPINFO startInfo = new STARTUPINFO();
-                startInfo.cb = Marshal.SizeOf(startInfo);
-                startInfo.hStdError = InvalidIntPtr;
-                startInfo.hStdInput = InvalidIntPtr;
-                startInfo.hStdOutput = InvalidIntPtr;
-                startInfo.dwFlags = STARTF_USESTDHANDLES;
-                uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
-
-                PROCESS_INFORMATION processInfo;
-
-                logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
-
-                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
-
-                bool success = CreateProcess(
-                    lpApplicationName: null,
-                    lpCommandLine: builder,
-                    lpProcessAttributes: NullPtr,
-                    lpThreadAttributes: NullPtr,
-                    bInheritHandles: false,
-                    dwCreationFlags: dwCreationFlags,
-                    lpEnvironment: NullPtr, // Inherit environment
-                    lpCurrentDirectory: clientDirectory,
-                    lpStartupInfo: ref startInfo,
-                    lpProcessInformation: out processInfo);
-
-                if (success)
+            try
+            {
+                if (PlatformInformation.IsWindows)
                 {
-                    logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
-                    CloseHandle(processInfo.hProcess);
-                    CloseHandle(processInfo.hThread);
-                    processId = processInfo.dwProcessId;
+                    // As far as I can tell, there isn't a way to use the Process class to
+                    // create a process with no stdin/stdout/stderr, so we use P/Invoke.
+                    // This code was taken from MSBuild task starting code.
+
+                    STARTUPINFO startInfo = new STARTUPINFO();
+                    startInfo.cb = Marshal.SizeOf(startInfo);
+                    startInfo.hStdError = InvalidIntPtr;
+                    startInfo.hStdInput = InvalidIntPtr;
+                    startInfo.hStdOutput = InvalidIntPtr;
+                    startInfo.dwFlags = STARTF_USESTDHANDLES;
+                    uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
+
+                    PROCESS_INFORMATION processInfo;
+
+                    var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
+
+                    bool success = CreateProcess(
+                        lpApplicationName: null,
+                        lpCommandLine: builder,
+                        lpProcessAttributes: NullPtr,
+                        lpThreadAttributes: NullPtr,
+                        bInheritHandles: false,
+                        dwCreationFlags: dwCreationFlags,
+                        lpEnvironment: NullPtr, // Inherit environment
+                        lpCurrentDirectory: clientDirectory,
+                        lpStartupInfo: ref startInfo,
+                        lpProcessInformation: out processInfo);
+
+                    if (success)
+                    {
+                        logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                        CloseHandle(processInfo.hProcess);
+                        CloseHandle(processInfo.hThread);
+                        processId = processInfo.dwProcessId;
+                    }
+                    else
+                    {
+                        logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                    }
+                    return success;
                 }
                 else
                 {
-                    logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
-                }
-                return success;
-            }
-            else
-            {
-                try
-                {
-                    var startInfo = new ProcessStartInfo()
+                    try
                     {
-                        FileName = serverInfo.processFilePath,
-                        Arguments = serverInfo.commandLineArguments,
-                        UseShellExecute = false,
-                        WorkingDirectory = clientDirectory,
-                        RedirectStandardInput = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
+                        var startInfo = new ProcessStartInfo()
+                        {
+                            FileName = serverInfo.processFilePath,
+                            Arguments = serverInfo.commandLineArguments,
+                            UseShellExecute = false,
+                            WorkingDirectory = clientDirectory,
+                            RedirectStandardInput = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            CreateNoWindow = true
+                        };
 
-                    if (Process.Start(startInfo) is { } process)
-                    {
-                        processId = process.Id;
-                        return true;
+                        if (Process.Start(startInfo) is { } process)
+                        {
+                            processId = process.Id;
+                            logger.Log("Successfully created process with process id {0}", processId);
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
-                    else
+                    catch
                     {
                         return false;
                     }
                 }
-                catch
-                {
-                    return false;
-                }
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName, previousDotNetRoot);
             }
         }
 

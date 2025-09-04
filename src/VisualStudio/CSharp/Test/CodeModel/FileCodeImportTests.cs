@@ -18,8 +18,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
 public sealed class FileCodeImportTests : AbstractFileCodeElementTests
 {
     public FileCodeImportTests()
-        : base(@"using System;
-using Goo = System.Data;")
+        : base("""
+            using System;
+            using Goo = System.Data;
+            """)
     {
     }
 

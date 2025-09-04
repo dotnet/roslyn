@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -32,6 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static DeclarationModifiers GetDeclarationModifiers() => DeclarationModifiers.Private | DeclarationModifiers.Static;
+
+        public override TypeMemberVisibility MetadataVisibility
+        {
+            get
+            {
+                return ((SourceMemberContainerTypeSymbol)ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerMethodVisibility(this);
+            }
+        }
 
         internal override bool HasSpecialName => true;
 

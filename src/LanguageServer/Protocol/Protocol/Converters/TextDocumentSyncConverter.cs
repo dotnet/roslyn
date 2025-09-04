@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Roslyn.LanguageServer.Protocol;
+
 internal sealed class TextDocumentSyncConverter : JsonConverter<TextDocumentSyncOptions>
 {
     public override TextDocumentSyncOptions Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

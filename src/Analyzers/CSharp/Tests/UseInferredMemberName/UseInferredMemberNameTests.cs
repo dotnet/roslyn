@@ -30,9 +30,8 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
         CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
 
     [Fact]
-    public async Task TestInferredTupleName()
-    {
-        await TestAsync(
+    public Task TestInferredTupleName()
+        => TestAsync(
             """
             class C
             {
@@ -52,13 +51,11 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                     var t = (a, 2);
                 }
             }
-            """, parseOptions: s_parseOptions);
-    }
+            """, new(parseOptions: s_parseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")]
-    public async Task TestInferredTupleName_WithAmbiguity()
-    {
-        await TestMissingAsync(
+    public Task TestInferredTupleName_WithAmbiguity()
+        => TestMissingAsync(
             """
             class C
             {
@@ -69,12 +66,10 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(parseOptions: s_parseOptions));
-    }
 
     [Fact]
-    public async Task TestInferredTupleNameAfterCommaWithCSharp6()
-    {
-        await TestActionCountAsync(
+    public Task TestInferredTupleNameAfterCommaWithCSharp6()
+        => TestActionCountAsync(
             """
             class C
             {
@@ -85,12 +80,10 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, count: 0, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task TestInferredTupleNameAfterCommaWithCSharp7()
-    {
-        await TestActionCountAsync(
+    public Task TestInferredTupleNameAfterCommaWithCSharp7()
+        => TestActionCountAsync(
             """
             class C
             {
@@ -101,12 +94,10 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, count: 0, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
-    }
 
     [Fact]
-    public async Task TestFixAllInferredTupleNameWithTrivia()
-    {
-        await TestAsync(
+    public Task TestFixAllInferredTupleNameWithTrivia()
+        => TestAsync(
             """
             class C
             {
@@ -128,13 +119,11 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                     var t = ( /*before*/  /*middle*/ a /*after*/, /*before*/  /*middle*/ b /*after*/);
                 }
             }
-            """, parseOptions: s_parseOptions);
-    }
+            """, new(parseOptions: s_parseOptions));
 
     [Fact]
-    public async Task TestInferredAnonymousTypeMemberName()
-    {
-        await TestAsync(
+    public Task TestInferredAnonymousTypeMemberName()
+        => TestAsync(
             """
             class C
             {
@@ -154,13 +143,11 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                     var t = new { a, 2 };
                 }
             }
-            """, parseOptions: s_parseOptions);
-    }
+            """, new(parseOptions: s_parseOptions));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")]
-    public async Task TestInferredAnonymousTypeMemberName_WithAmbiguity()
-    {
-        await TestMissingAsync(
+    public Task TestInferredAnonymousTypeMemberName_WithAmbiguity()
+        => TestMissingAsync(
             """
             class C
             {
@@ -171,12 +158,10 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                 }
             }
             """, parameters: new TestParameters(parseOptions: s_parseOptions));
-    }
 
     [Fact]
-    public async Task TestFixAllInferredAnonymousTypeMemberNameWithTrivia()
-    {
-        await TestAsync(
+    public Task TestFixAllInferredAnonymousTypeMemberNameWithTrivia()
+        => TestAsync(
             """
             class C
             {
@@ -198,6 +183,5 @@ public sealed class UseInferredMemberNameTests : AbstractCSharpDiagnosticProvide
                     var t = new { /*before*/  /*middle*/ a /*after*/, /*before*/  /*middle*/ b /*after*/ };
                 }
             }
-            """, parseOptions: s_parseOptions);
-    }
+            """, new(parseOptions: s_parseOptions));
 }

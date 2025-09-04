@@ -25,18 +25,20 @@ public sealed class DocumentHighlightTests : AbstractLanguageServerProtocolTests
     public async Task TestGetDocumentHighlightAsync(bool lspMutatingWorkspace)
     {
         var markup =
-@"class B
-{
-}
-class A
-{
-    B {|text:classB|};
-    void M()
-    {
-        var someVar = {|read:classB|};
-        {|caret:|}{|write:classB|} = new B();
-    }
-}";
+            """
+            class B
+            {
+            }
+            class A
+            {
+                B {|text:classB|};
+                void M()
+                {
+                    var someVar = {|read:classB|};
+                    {|caret:|}{|write:classB|} = new B();
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
         var expected = new LSP.DocumentHighlight[]
         {
@@ -53,15 +55,17 @@ class A
     public async Task TestGetDocumentHighlightAsync_Keywords(bool lspMutatingWorkspace)
     {
         var markup =
-@"using System.Threading.Tasks;
-class A
-{
-    {|text:async|} Task MAsync()
-    {
-        {|text:await|} Task.Delay(100);
-        {|caret:|}{|text:await|} Task.Delay(100);
-    }
-}";
+            """
+            using System.Threading.Tasks;
+            class A
+            {
+                {|text:async|} Task MAsync()
+                {
+                    {|text:await|} Task.Delay(100);
+                    {|caret:|}{|text:await|} Task.Delay(100);
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
 
         var expectedLocations = testLspServer.GetLocations("text");
@@ -79,13 +83,15 @@ class A
     public async Task TestGetDocumentHighlightAsync_InvalidLocation(bool lspMutatingWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
 
         var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());

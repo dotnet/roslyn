@@ -650,15 +650,7 @@ namespace Microsoft.CodeAnalysis.Text
                         {
                             var shortSpan = MemoryMarshal.Cast<char, short>(charSpan);
 
-#if NET8_0_OR_GREATER
-                            // Defer to the platform to do the reversal.  It ships with a vectorized
-                            // implementation for this on .NET 8 and above.
-                            BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
-#else
-                            // Otherwise, fallback to the simple approach of reversing each pair of bytes.
-                            for (var i = 0; i < shortSpan.Length; i++)
-                                shortSpan[i] = BinaryPrimitives.ReverseEndianness(shortSpan[i]);
-#endif
+                            ReverseEndianness(shortSpan);
                         }
 
                         hash.Append(MemoryMarshal.AsBytes(charSpan));
@@ -678,6 +670,19 @@ namespace Microsoft.CodeAnalysis.Text
                     s_contentHashPool.Free(hash);
                 }
             }
+        }
+
+        internal static void ReverseEndianness(Span<short> shortSpan)
+        {
+#if NET8_0_OR_GREATER
+            // Defer to the platform to do the reversal.  It ships with a vectorized
+            // implementation for this on .NET 8 and above.
+            BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
+#else
+            // Otherwise, fallback to the simple approach of reversing each pair of bytes.
+            for (var i = 0; i < shortSpan.Length; i++)
+                shortSpan[i] = BinaryPrimitives.ReverseEndianness(shortSpan[i]);
+#endif
         }
 
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)

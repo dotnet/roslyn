@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -22,13 +21,11 @@ public sealed class TestDiagnosticAnalyzerDriver
 {
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
     private readonly bool _includeSuppressedDiagnostics;
-    private readonly bool _includeNonLocalDocumentDiagnostics;
 
-    public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false, bool includeNonLocalDocumentDiagnostics = false)
+    public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false)
     {
         _diagnosticAnalyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
-        _includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
     }
 
     private async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
@@ -45,8 +42,8 @@ public sealed class TestDiagnosticAnalyzerDriver
         {
             var text = await document.GetTextAsync().ConfigureAwait(false);
             var dxs = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                project, document.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
-                includeLocalDocumentDiagnostics: true, _includeNonLocalDocumentDiagnostics, CancellationToken.None);
+                project, [document.Id], diagnosticIds: null, shouldIncludeAnalyzer: null,
+                includeLocalDocumentDiagnostics: true, CancellationToken.None);
             dxs = dxs.WhereAsArray(d => _includeSuppressedDiagnostics || !d.IsSuppressed);
             documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(
                 filterSpan is null
@@ -59,8 +56,8 @@ public sealed class TestDiagnosticAnalyzerDriver
         if (getProjectDiagnostics)
         {
             var dxs = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
-                includeLocalDocumentDiagnostics: true, _includeNonLocalDocumentDiagnostics, CancellationToken.None);
+                project, documentIds: default, diagnosticIds: null, shouldIncludeAnalyzer: null,
+                includeLocalDocumentDiagnostics: true, CancellationToken.None);
             dxs = dxs.WhereAsArray(d => _includeSuppressedDiagnostics || !d.IsSuppressed);
             projectDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.DocumentId is null), project, CancellationToken.None);
         }

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(NetRoslynSourceBuild)</TargetFrameworks>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <IsSourcePackage>true</IsSourcePackage>
+    <PackageId>Microsoft.CodeAnalysis.BuildClient</PackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageDescription>
+      Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") build client API. For internal use only.
+      Relying on APIs from this package is explicitly not supported, they can and will break on a regular basis.
+    </PackageDescription>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)Microsoft.CodeAnalysis.BuildClient.targets" />
+
+</Project>

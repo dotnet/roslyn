@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -118,12 +117,13 @@ internal sealed class RenameTrackingTestState : IDisposable
 
     private static EditorTestWorkspace CreateTestWorkspace(string code, string languageName)
     {
-        return CreateTestWorkspace(string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document>{1}</Document>
-    </Project>
-</Workspace>", languageName, code));
+        return CreateTestWorkspace(string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true">
+                    <Document>{1}</Document>
+                </Project>
+            </Workspace>
+            """, languageName, code));
     }
 
     private static EditorTestWorkspace CreateTestWorkspace(string xml)

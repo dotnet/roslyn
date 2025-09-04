@@ -1549,6 +1549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_LockTypeUnsupported,
                      ERRID.WRN_ConvertingLock,
                      ERRID.ERR_EmbeddedAttributeMustFollowPattern,
+                     ERRID.ERR_MethodImplAttributeAsyncCannotBeUsed,
                      ERRID.ERR_StructLayoutAndExtendedLayout,
                      ERRID.ERR_InvalidExtendedLayoutAttribute
 

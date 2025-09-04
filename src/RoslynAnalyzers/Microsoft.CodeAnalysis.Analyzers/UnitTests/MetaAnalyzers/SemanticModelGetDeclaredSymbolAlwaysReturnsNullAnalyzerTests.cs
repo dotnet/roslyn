@@ -23,46 +23,40 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [InlineData("ParameterListSyntax")]
         [InlineData("LockStatementSyntax")]
         public Task Diagnostic(string type)
-        {
-            var code = $@"
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public class Test {{
-    public void M(SemanticModel semanticModel, {type} syntax) {{
-        var x = {{|#0:semanticModel.GetDeclaredSymbol(syntax)|}};
-    }}
-}}";
-
-            return new VerifyCS.Test
+            => new VerifyCS.Test
             {
-                TestCode = code,
+                TestCode = $$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+                public class Test {
+                    public void M(SemanticModel semanticModel, {{type}} syntax) {
+                        var x = {|#0:semanticModel.GetDeclaredSymbol(syntax)|};
+                    }
+                }
+                """,
                 ExpectedDiagnostics = { new DiagnosticResult(CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer.DiagnosticDescriptor).WithLocation(0).WithArguments(type) }
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("BaseFieldDeclarationSyntax")]
         [InlineData("FieldDeclarationSyntax")]
         [InlineData("EventFieldDeclarationSyntax")]
         public Task Field_Diagnostic(string type)
-        {
-            var code = $@"
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public class Test {{
-    public void M(SemanticModel semanticModel, {type} syntax) {{
-        var x = {{|#0:semanticModel.GetDeclaredSymbol(syntax)|}};
-    }}
-}}";
-
-            return new VerifyCS.Test
+            => new VerifyCS.Test
             {
-                TestCode = code,
+                TestCode = $$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+                public class Test {
+                    public void M(SemanticModel semanticModel, {{type}} syntax) {
+                        var x = {|#0:semanticModel.GetDeclaredSymbol(syntax)|};
+                    }
+                }
+                """,
                 ExpectedDiagnostics = { new DiagnosticResult(CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer.FieldDiagnosticDescriptor).WithLocation(0).WithArguments(type) }
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("SyntaxNode")]
@@ -71,40 +65,33 @@ public class Test {{
         [InlineData("EnumMemberDeclarationSyntax")]
         [InlineData("NamespaceDeclarationSyntax")]
         public Task NoDiagnostic(string type)
-        {
-            var code = $@"
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+            => VerifyCS.VerifyAnalyzerAsync($$"""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-public class Test {{
-    public void M(SemanticModel semanticModel, {type} syntax) {{
-        var x = semanticModel.GetDeclaredSymbol(syntax);
-    }}
-}}";
-
-            return VerifyCS.VerifyAnalyzerAsync(code);
-        }
+                public class Test {
+                    public void M(SemanticModel semanticModel, {{type}} syntax) {
+                        var x = semanticModel.GetDeclaredSymbol(syntax);
+                    }
+                }
+                """);
 
         [Fact]
         public Task NoDiagnosticForCompilationError()
-        {
-            const string code = @"
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+            => VerifyCS.VerifyAnalyzerAsync("""
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-public class Test {
-    public void M(SemanticModel semanticModel) {
-        var x = semanticModel.{|CS7036:GetDeclaredSymbol|}();
-    }
-}";
-
-            return VerifyCS.VerifyAnalyzerAsync(code);
-        }
+                public class Test {
+                    public void M(SemanticModel semanticModel) {
+                        var x = semanticModel.{|CS7036:GetDeclaredSymbol|}();
+                    }
+                }
+                """);
 
         [Fact, WorkItem(7061, "https://github.com/dotnet/roslyn-analyzers/issues/7061")]
         public Task LocalFunctionStatement_NoDiagnostic()
-        {
-            const string code = """
+            => VerifyCS.VerifyAnalyzerAsync("""
                        using Microsoft.CodeAnalysis;
                        using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -115,9 +102,6 @@ public class Test {
                                var x = semanticModel.GetDeclaredSymbol(syntax);
                            }
                        }
-                       """;
-
-            return VerifyCS.VerifyAnalyzerAsync(code);
-        }
+                       """);
     }
 }
