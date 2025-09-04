@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Cache of analyzer to analyzer specific options.  If <see langword="null"/> there are no specific
-        /// options, and the shared options should be used for all analyzers.
+        /// options, and the shared options should be used for all analyzers.  Note: this map is generated 
+        /// at construction time, and is unchanging after that point.  So it can be safely read from multiple
+        /// threads without need for locks.
         /// </summary>
         private readonly Dictionary<DiagnosticAnalyzer, AnalyzerOptions>? _analyzerToCachedOptions;
 
