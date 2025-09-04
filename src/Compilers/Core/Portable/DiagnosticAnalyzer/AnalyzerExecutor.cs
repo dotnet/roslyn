@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
-            Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory,
+            Func<DiagnosticAnalyzer, AnalyzerOptions>? analyzerSpecificOptionsFactory,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
-            Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory,
+            Func<DiagnosticAnalyzer, AnalyzerOptions>? analyzerSpecificOptionsFactory,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
@@ -187,17 +187,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var hasDifferentOptions = false;
                 var map = new Dictionary<DiagnosticAnalyzer, AnalyzerOptions>();
 
-                // In practice, even if different analyzers have specific options providers, they will often share
-                // the same instance.  In that case, ensure we use the same analyzer options instance in that case
-                // as well.
-                var optionsProviderToOptions = new Dictionary<AnalyzerConfigOptionsProvider, AnalyzerOptions>();
-
                 foreach (var analyzer in diagnosticAnalyzers)
                 {
-                    var optionsProvider = analyzerSpecificOptionsFactory(analyzer);
-                    var specificOptions = optionsProviderToOptions.GetOrAdd(
-                        optionsProvider, () => analyzerOptions.WithAnalyzerConfigOptionsProvider(optionsProvider));
-
+                    var specificOptions = analyzerSpecificOptionsFactory(analyzer);
                     map[analyzer] = specificOptions;
 
                     if (specificOptions != analyzerOptions)

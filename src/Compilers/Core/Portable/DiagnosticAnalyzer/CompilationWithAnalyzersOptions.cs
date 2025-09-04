@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed class CompilationWithAnalyzersOptions
     {
         private readonly AnalyzerOptions? _options;
-        private readonly Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? _analyzerSpecificOptionsFactory;
+        private readonly Func<DiagnosticAnalyzer, AnalyzerOptions>? _analyzerSpecificOptionsFactory;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic>? _onAnalyzerException;
         private readonly Func<Exception, bool>? _analyzerExceptionFilter;
         private readonly bool _concurrentAnalysis;
@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool ReportSuppressedDiagnostics => _reportSuppressedDiagnostics;
 
         /// <summary>
-        /// Callback to allow individual analyzers to have their own <see cref="AnalyzerConfigOptionsProvider"/> distinct
+        /// Callback to allow individual analyzers to have their own <see cref="AnalyzerOptions"/> distinct
         /// from the shared instance provided in <see cref="Options"/>.  If <see langword="null"/> then <see cref="Options"/>
         /// will be used for all analyzers.
         /// </summary>
-        public Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? AnalyzerSpecificOptionsFactory
+        public Func<DiagnosticAnalyzer, AnalyzerOptions>? AnalyzerSpecificOptionsFactory
             => _analyzerSpecificOptionsFactory;
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            bool logAnalyzerExecutionTime,
            bool reportSuppressedDiagnostics,
            Func<Exception, bool>? analyzerExceptionFilter,
-           Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory)
+           Func<DiagnosticAnalyzer, AnalyzerOptions>? analyzerSpecificOptionsFactory)
         {
             _options = options;
             _onAnalyzerException = onAnalyzerException;

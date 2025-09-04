@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -128,7 +127,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 analyzerExceptionFilter: exceptionFilter,
                 analyzerSpecificOptionsFactory));
 
-            (AnalyzerOptions sharedOptions, Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory) GetOptions()
+            (AnalyzerOptions sharedOptions, Func<DiagnosticAnalyzer, AnalyzerOptions>? analyzerSpecificOptionsFactory) GetOptions()
             {
                 // Checked above before this is called.
                 Contract.ThrowIfTrue(hostAnalyzers.IsEmpty && projectAnalyzers.IsEmpty);
@@ -152,8 +151,8 @@ internal sealed partial class DiagnosticAnalyzerService
                 return (
                     project.State.HostAnalyzerOptions,
                     analyzer => projectAnalyzers.Contains(analyzer)
-                        ? project.State.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider
-                        : project.State.HostAnalyzerOptions.AnalyzerConfigOptionsProvider);
+                        ? project.State.ProjectAnalyzerOptions
+                        : project.State.HostAnalyzerOptions);
             }
         }
     }
