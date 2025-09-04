@@ -80,5 +80,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return Hash.CombineValues(this.AdditionalFiles);
         }
+
+        internal AnalyzerOptions WithAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider optionsProvider)
+            => this.AnalyzerConfigOptionsProvider == optionsProvider
+                ? this
+                : new(this.AdditionalFiles, optionsProvider);
     }
 }

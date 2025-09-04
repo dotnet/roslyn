@@ -672,6 +672,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return valueProvider.TryGetValue(key, out value);
         }
+
+        internal CompilationAnalysisContext WithOptions(AnalyzerOptions options)
+            => this.Options == options
+                ? this
+                : new(this.Compilation, options, _reportDiagnostic, _isSupportedDiagnostic, _compilationAnalysisValueProviderFactoryOpt, this.CancellationToken);
     }
 
     /// <summary>
@@ -755,6 +760,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+
+        internal SemanticModelAnalysisContext WithOptions(AnalyzerOptions options)
+            => this.Options == options
+                ? this
+                : new(this.SemanticModel, options, _reportDiagnostic, _isSupportedDiagnostic, this.FilterSpan, this.IsGeneratedCode, this.CancellationToken);
     }
 
     /// <summary>
@@ -853,6 +863,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+
+        internal SymbolAnalysisContext WithOptions(AnalyzerOptions options)
+            => this.Options == options
+                ? this
+                : new(this.Symbol, this.Compilation, options, _reportDiagnostic, _isSupportedDiagnostic, this.IsGeneratedCode, this.FilterTree, this.FilterSpan, this.CancellationToken);
     }
 
     /// <summary>
@@ -1580,6 +1595,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+
+        internal SyntaxTreeAnalysisContext WithOptions(AnalyzerOptions options)
+            => this.Options == options
+                ? this
+                : new(this.Tree, options, _reportDiagnostic, _isSupportedDiagnostic, this.Compilation, this.FilterSpan, this.IsGeneratedCode, this.CancellationToken);
     }
 
     /// <summary>
@@ -1649,6 +1669,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+
+        internal AdditionalFileAnalysisContext WithOptions(AnalyzerOptions options)
+            => this.Options == options
+                ? this
+                : new(AdditionalFile, options, _reportDiagnostic, _isSupportedDiagnostic, this.Compilation, this.FilterSpan, this.CancellationToken);
     }
 
     /// <summary>
