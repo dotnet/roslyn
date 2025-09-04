@@ -34811,6 +34811,7 @@ static class E2
     [Fact]
     public void MethodInvocation_RemoveWorseMembers_05()
     {
+        // by-value vs. in, instance method
         var src = """
 42.M();
 
@@ -34838,9 +34839,10 @@ static class E2
         AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
     public void MethodInvocation_RemoveWorseMembers_06()
     {
+        // by-value vs. in, static method
         var src = """
 int.M();
 
@@ -34860,12 +34862,15 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M()' and 'E2.extension(in int).M()'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M()", "E2.extension(in int).M()").WithLocation(1, 5));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
-        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [Fact]
@@ -34927,6 +34932,73 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
         AssertEx.Equal("void E2.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
+    public void MethodInvocation_RemoveWorseMembers_09()
+    {
+        // by-value vs. in, static method, instance receiver
+        var src = """
+42.M();
+
+static class E1
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+static class E2
+{
+    extension(in int i)
+    {
+        public static void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0176: Member 'E1.extension(int).M()' cannot be accessed with an instance reference; qualify it with a type name instead
+            // 42.M();
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "42.M").WithArguments("E1.extension(int).M()").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
+    public void MethodInvocation_RemoveWorseMembers_10()
+    {
+        var src = """
+int.M();
+
+static class E1
+{
+    extension(int)
+    {
+        public static void M() => throw null;
+    }
+}
+static class E2
+{
+    extension(params int[])
+    {
+        public static void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (12,15): error CS1670: params is not valid in this context
+            //     extension(params int[])
+            Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(12, 15));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
+        AssertEx.Equal("void E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -36159,7 +36231,7 @@ static class E
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
     public void PropertyAccess_RemoveWorseMembers_05()
     {
         var src = """
@@ -36213,13 +36285,20 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we'll want to describe what went wrong in a useful way
+        comp.VerifyEmitDiagnostics(
+            // (1,22): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // System.Console.Write(int.P);
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "int.P").WithArguments("int", "P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
-        AssertEx.Equal("System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        AssertEx.Equal([
+            "System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }",
+            "System.Int32 E2.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }"
+            ], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -36252,6 +36331,142 @@ static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
         AssertEx.Equal("System.Int32 E1.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveWorseMembers_08()
+    {
+        // In COM import scenarios, better conversion from expression considers ref kind,
+        // but we can't cause such a difference with static extension members
+        string src = @"
+using System;
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+struct S { }
+
+static class E1
+{
+    extension(in S s)
+    {
+        public static int P => 42;
+    }
+}
+
+static class E2
+{
+    extension(S)
+    {
+        public static int P => throw null;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (5,2): error CS0592: Attribute 'ComImport' is not valid on this declaration type. It is only valid on 'class, interface' declarations.
+            // [ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ComImport").WithArguments("ComImport", "class, interface").WithLocation(5, 2));
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveWorseMembers_09()
+    {
+        // In COM import scenarios, better conversion from expression considers ref kind,
+        // but we can't cause such a difference with static extension members
+        string src = @"
+using System;
+using System.Runtime.InteropServices;
+
+class C
+{
+    void M<T>() where T : struct, I
+    {
+        _ = T.P;
+    }
+}
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+interface I { }
+
+static class E1
+{
+    extension<T>(ref T t) where T : struct, I
+    {
+        public static int P => 42;
+    }
+}
+
+static class E2
+{
+    extension<T>(T t) where T : struct, I
+    {
+        public static int P => throw null;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (9,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         _ = T.P;
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(9, 13));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.P");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PropertyAccess_RemoveWorseMembers_10()
+    {
+        // In COM import scenarios, better conversion from expression considers ref kind,
+        // but we can't cause such a difference with static extension members
+        string src = @"
+using System;
+using System.Runtime.InteropServices;
+
+class C
+{
+    void M<T>(T t) where T : struct, I
+    {
+        _ = t.P; // Note: T is not COM import type...
+    }
+}
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+interface I { }
+
+static class E1
+{
+    extension<T>(ref T t) where T : struct, I
+    {
+        public static int P => 42;
+    }
+}
+
+static class E2
+{
+    extension<T>(T t) where T : struct, I
+    {
+        public static int P => throw null;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (9,13): error CS9286: 'T' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'T' could be found (are you missing a using directive or an assembly reference?)
+            //         _ = t.P; // Note: T is not COM import type...
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "t.P").WithArguments("T", "P").WithLocation(9, 13));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.P");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([
+            "System.Int32 E1.<G>$650CAC53424D6B2378EC6C39C3E99C6C<T>.P { get; }",
+            "System.Int32 E2.<G>$650CAC53424D6B2378EC6C39C3E99C6C<T>.P { get; }"
+            ], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -48650,11 +48865,10 @@ static class E
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
-        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property { set; }",
+        AssertEx.Equal("System.Int32 E.extension<System.Object!>(System.Object!).Property { set; }",
             model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
@@ -48679,18 +48893,139 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (4,31): warning CS8601: Possible null reference assignment.
+            // _ = new object() { Property = oNull };
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for object initializer scenario with extension property
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNull");
-        AssertEx.Equal("System.Object E.extension<System.Object>(System.Object).Property { set; }",
+        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).Property { set; }",
             model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
 
         assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNotNull");
-        AssertEx.Equal("System.Object E.extension<System.Object>(System.Object).Property { set; }",
+        AssertEx.Equal("System.Object! E.extension<System.Object!>(System.Object!).Property { set; }",
             model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_04()
+    {
+        var src = """
+#nullable enable
+
+var s = "a";
+Use(s, (new(s) { Property = null })/*T:C<string!>!*/); // 1
+Use(s, (new(s) { Property = "a" })/*T:C<string!>!*/);
+
+Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 2
+Use("a", (new(s) { Property = "a" })/*T:C<string!>!*/);
+
+Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 3
+Use(s, (new("a") { Property = "a" })/*T:C<string!>!*/);
+
+Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 4
+Use("a", (new("a") { Property = "a" })/*T:C<string!>!*/);
+
+if (s != null)
+    return;
+
+Use(s, (new(s) { Property = null })/*T:C<string?>!*/);
+Use(s, (new(s) { Property = "a" })/*T:C<string?>!*/);
+
+Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 5, 6
+Use("a", (new(s) { Property = "a" })/*T:C<string!>!*/);
+
+Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 7
+Use(s, (new("a") { Property = "a" })/*T:C<string!>!*/);
+
+Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 8
+Use("a", (new("a") { Property = "a" })/*T:C<string!>!*/);
+
+void Use<T>(T value, C<T> c) => throw null!;
+
+record C<T>(T Value) { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, IsExternalInitTypeDefinition]);
+        comp.VerifyTypes(comp.SyntaxTrees[0]);
+        comp.VerifyEmitDiagnostics(
+            // (4,29): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use(s, (new(s) { Property = null })/*T:C<string!>!*/); // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 29),
+            // (7,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 31),
+            // (10,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 3
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 31),
+            // (13,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 4
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 33),
+            // (22,15): warning CS8604: Possible null reference argument for parameter 'Value' in 'C<string>.C(string Value)'.
+            // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 5, 6
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("Value", "C<string>.C(string Value)").WithLocation(22, 15),
+            // (22,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new(s) { Property = null })/*T:C<string!>!*/); // 5, 6
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 31),
+            // (25,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use(s, (new("a") { Property = null })/*T:C<string!>!*/); // 7
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(25, 31),
+            // (28,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Use("a", (new("a") { Property = null })/*T:C<string!>!*/); // 8
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(28, 33));
+
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_05()
+    {
+        var src = """
+#nullable enable
+
+var s = "a";
+
+Create(s).Use(new() { Property = null }); // 1
+Create(s).Use(new() { Property = "a" });
+
+if (s != null)
+    return;
+
+Create(s).Use(new() { Property = null });
+Create(s).Use(new() { Property = "a" });
+
+Consumer<T> Create<T>(T value) => throw null!;
+
+class Consumer<T>
+{
+    public void Use(C<T> c) => throw null!;
+}
+
+record C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, IsExternalInitTypeDefinition]);
+        comp.VerifyEmitDiagnostics(
+            // (5,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // Create(s).Use(new() { Property = null }); // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 34));
     }
 
     [Fact]
@@ -48776,7 +49111,6 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for with-expression with extension property (unexpected warning)
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
@@ -48806,7 +49140,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : unexpected nullability warning
+
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
@@ -48842,6 +49176,79 @@ static class E
             // (4,5): warning CS8602: Dereference of a possibly null reference.
             // _ = cNull with { Property = 42 };
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_With_06()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = null };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = null };
+
+record C { }
+
+static class E
+{
+    extension(object? o)
+    {
+        public string Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = null };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5),
+            // (4,29): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = cNull with { Property = null };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 29),
+            // (7,32): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // _ = cNotNull with { Property = null };
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 32));
+    }
+
+    [Fact]
+    public void Nullability_With_07()
+    {
+        var src = """
+#nullable enable
+
+var s = "a";
+var c1 = Create(s);
+c1 = c1 with { Property = null }; // 1
+c1 = c1 with { Property = "a" };
+
+if (s != null)
+    return;
+
+var c2 = Create(s);
+c2 = c2 with { Property = null }; // ok
+c2 = c2 with { Property = "a" };
+C<T> Create<T>(T value) => throw null!;
+
+record C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // c1 = c1 with { Property = null }; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 27));
     }
 
     [Fact]
