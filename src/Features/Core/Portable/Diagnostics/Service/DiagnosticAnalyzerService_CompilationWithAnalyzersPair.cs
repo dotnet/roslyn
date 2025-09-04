@@ -149,13 +149,11 @@ internal sealed partial class DiagnosticAnalyzerService
                 // they don't accidentally pick up options users set for their VS instance for other solutions.
                 // instead, they'll only get what is in editorconfig for the project, which is what the command
                 // line will do as well.
-                return (project.State.HostAnalyzerOptions, analyzer =>
-                {
-                    return projectAnalyzers.Contains(analyzer)
+                return (
+                    project.State.HostAnalyzerOptions,
+                    analyzer => projectAnalyzers.Contains(analyzer)
                         ? project.State.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider
-                        : project.State.HostAnalyzerOptions.AnalyzerConfigOptionsProvider;
-                }
-                );
+                        : project.State.HostAnalyzerOptions.AnalyzerConfigOptionsProvider);
             }
         }
     }
