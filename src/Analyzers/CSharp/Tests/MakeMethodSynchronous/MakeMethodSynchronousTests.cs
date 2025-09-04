@@ -17,6 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeMethodSynchronousCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+[Trait(Traits.Feature, Traits.Features.Skip)]  // CS1998 warning removed entirely - https://github.com/dotnet/roslyn/issues/77001
 public sealed class MakeMethodSynchronousTests
 {
     [Fact]

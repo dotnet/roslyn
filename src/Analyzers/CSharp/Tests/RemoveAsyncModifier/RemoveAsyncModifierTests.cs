@@ -18,6 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveAsyncModifierCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
+[Trait(Traits.Feature, Traits.Features.Skip)]  // CS1998 warning removed entirely - https://github.com/dotnet/roslyn/issues/77001
 public sealed class RemoveAsyncModifierTests
 {
     [Fact]

@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
-                case ErrorCode.WRN_AsyncLacksAwaits:
+                // case ErrorCode.WRN_AsyncLacksAwaits: // Removed as per https://github.com/dotnet/roslyn/issues/77001
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadAwaitInQuery
                 or ErrorCode.ERR_BadAwaitInLock
                 or ErrorCode.ERR_TaskRetNoObjectRequired
-                or ErrorCode.WRN_AsyncLacksAwaits
+                // or ErrorCode.WRN_AsyncLacksAwaits // Removed as per https://github.com/dotnet/roslyn/issues/77001
                 or ErrorCode.ERR_FileNotFound
                 or ErrorCode.WRN_FileAlreadyIncluded
                 or ErrorCode.ERR_NoFileSpec
