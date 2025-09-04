@@ -22,8 +22,8 @@ internal sealed partial class VisualStudioGlobalOperationNotificationService : A
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioGlobalOperationNotificationService(
-    IThreadingContext threadingContext,
-    IAsynchronousOperationListenerProvider listenerProvider) : base(listenerProvider, threadingContext.DisposalToken)
+        IThreadingContext threadingContext,
+        IAsynchronousOperationListenerProvider listenerProvider) : base(listenerProvider, threadingContext.DisposalToken)
     {
         _solutionEventMonitor = new SolutionEventMonitor(this);
 
