@@ -1056,13 +1056,49 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42936")]
-    public Task ToStringSimplificationIsNotOfferedOnRefStruct()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnRefStructIfInterpolatedStringHandlersUnavailavable()
         => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 string M(RefStruct someValue) => $"Test: {someValue[||].ToString()}";
+            }
+
+            ref struct RefStruct
+            {
+                public override string ToString() => "A";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsOfferedOnRefStructIfInterpolatedStringHandlersAvailavable()
+        => TestInRegularAndScriptAsync(
+            """
+            namespace System.Runtime.CompilerServices
+            {
+                public ref struct DefaultInterpolatedStringHandler { }
+            }
+
+            class C
+            {
+                string M(RefStruct someValue) => $"Test: {someValue[||].ToString()}";
+            }
+
+            ref struct RefStruct
+            {
+                public override string ToString() => "A";
+            }
+            """,
+            """
+            namespace System.Runtime.CompilerServices
+            {
+                public ref struct DefaultInterpolatedStringHandler { }
+            }
+            
+            class C
+            {
+                string M(RefStruct someValue) => $"Test: {someValue}";
             }
 
             ref struct RefStruct

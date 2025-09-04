@@ -53,6 +53,7 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
         var helpers = this.Helpers;
 
         var knownToStringFormats = helpers.BuildKnownToStringFormatsLookupTable(semanticModel.Compilation);
+        var handlersAvailable = semanticModel.Compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler") != null;
 
         foreach (var diagnostic in diagnostics)
         {
@@ -64,7 +65,7 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
                 helpers.UnwrapInterpolation(
                     document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
                     document.GetRequiredLanguageService<ISyntaxFactsService>(),
-                    interpolation, knownToStringFormats, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
+                    interpolation, knownToStringFormats, handlersAvailable, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
 
                 if (unwrapped == null)
                     continue;

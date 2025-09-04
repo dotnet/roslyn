@@ -36,13 +36,16 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
             {
                 var compilation = context.Compilation;
                 var knownToStringFormats = Helpers.BuildKnownToStringFormatsLookupTable(compilation);
-                context.RegisterOperationAction(context => AnalyzeInterpolation(context, compilation.FormattableStringType(), knownToStringFormats), OperationKind.Interpolation);
+                var handlersAvailable = context.Compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler") != null;
+
+                context.RegisterOperationAction(context => AnalyzeInterpolation(context, compilation.FormattableStringType(), knownToStringFormats, handlersAvailable), OperationKind.Interpolation);
             });
 
     private void AnalyzeInterpolation(
         OperationAnalysisContext context,
         INamedTypeSymbol? formattableStringType,
-        ImmutableDictionary<IMethodSymbol, string> knownToStringFormats)
+        ImmutableDictionary<IMethodSymbol, string> knownToStringFormats,
+        bool handlersAvailable)
     {
         var option = context.GetAnalyzerOptions().PreferSimplifiedInterpolation;
 
@@ -68,7 +71,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         }
 
         this.Helpers.UnwrapInterpolation(
-            this.VirtualCharService, this.SyntaxFacts, interpolation, knownToStringFormats, out _, out var alignment, out _,
+            this.VirtualCharService, this.SyntaxFacts, interpolation, knownToStringFormats, handlersAvailable, out _, out var alignment, out _,
             out var formatString, out var unnecessaryLocations);
 
         if (alignment == null && formatString == null)
