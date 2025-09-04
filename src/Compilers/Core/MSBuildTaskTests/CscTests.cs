@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -484,14 +485,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            // StartsWith because it can be csc.exe or csc.dll
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
         }
 
         [Fact]
