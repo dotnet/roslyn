@@ -84,7 +84,20 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Is this a symbol for an extension declaration.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
         bool IsExtension { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the grouping type.
+        /// Returns null otherwise.
+        /// </summary>
+        string? ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// Returns null otherwise.
+        /// </summary>
+        string? ExtensionMarkerName { get; }
 
         /// <summary>
         /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).

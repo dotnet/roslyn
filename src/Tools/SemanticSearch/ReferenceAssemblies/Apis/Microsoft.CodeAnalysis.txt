@@ -1472,6 +1472,8 @@ Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.ITypeSymbol.WithNullableAnnotation(Microsoft.CodeAnalysis.NullableAnnotation)
 Microsoft.CodeAnalysis.ITypeSymbol.get_AllInterfaces
 Microsoft.CodeAnalysis.ITypeSymbol.get_BaseType
+Microsoft.CodeAnalysis.ITypeSymbol.get_ExtensionGroupingName
+Microsoft.CodeAnalysis.ITypeSymbol.get_ExtensionMarkerName
 Microsoft.CodeAnalysis.ITypeSymbol.get_ExtensionParameter
 Microsoft.CodeAnalysis.ITypeSymbol.get_Interfaces
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsAnonymousType

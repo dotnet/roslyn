@@ -108,6 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
 
         internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 

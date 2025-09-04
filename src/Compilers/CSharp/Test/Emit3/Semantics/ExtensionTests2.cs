@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -31454,6 +31453,112 @@ public class CAttribute : System.Attribute { }
     } // end of method E::'<M>g__local|1_0'
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
+    public void DocumentationCommentId_01()
+    {
+        var src = """
+public static class E
+{
+    extension(int i1)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        validate(comp);
+
+        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
+        validate(comp2);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var e = comp.GlobalNamespace.GetTypeMember("E");
+            Assert.False(e.IsExtension);
+            Assert.Null(e.ExtensionGroupingName);
+            Assert.Null(e.ExtensionMarkerName);
+
+            // extension
+            var extension = e.GetTypeMembers().Single().GetPublicSymbol();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("", DocumentationCommentId.CreateReferenceId(extension));
+            AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", DocumentationCommentId.CreateDeclarationId(extension));
+            Assert.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ExtensionGroupingName);
+            Assert.Equal("<M>$531E7AC45D443AE2243E7FFAB9455D60", extension.ExtensionMarkerName);
+            AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", extension.GetDocumentationCommentId());
+
+            // extension member
+            var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+            Assert.Equal("", DocumentationCommentId.CreateReferenceId(m));
+            Assert.Equal("M:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M", m.GetDocumentationCommentId());
+
+            var declarationId = DocumentationCommentId.CreateDeclarationId(m);
+            AssertEx.Equal("M:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M", declarationId);
+            AssertEx.Equal("void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+
+            // implementation method
+            var mImplementation = e.GetMember<MethodSymbol>("M").GetPublicSymbol();
+            declarationId = DocumentationCommentId.CreateDeclarationId(mImplementation);
+            AssertEx.Equal("M:E.M(System.Int32)", declarationId);
+            AssertEx.Equal("void E.M(this System.Int32 i1)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.M(this System.Int32 i1)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
+    public void DocumentationCommentId_02()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i1)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        validate(comp);
+
+        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
+        validate(comp2);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var e = comp.GlobalNamespace.GetTypeMember("E");
+            Assert.False(e.IsExtension);
+            Assert.Null(e.ExtensionGroupingName);
+            Assert.Null(e.ExtensionMarkerName);
+
+            // extension
+            var extension = e.GetTypeMembers().Single().GetPublicSymbol();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("", DocumentationCommentId.CreateReferenceId(extension));
+            AssertEx.Equal("T:E.<G>$B8D310208B4544F25EEBACB9990FC73B.<M>$4F043C3369CC5922051EC35190062B5C", DocumentationCommentId.CreateDeclarationId(extension));
+            Assert.Equal("<G>$B8D310208B4544F25EEBACB9990FC73B", extension.ExtensionGroupingName);
+            Assert.Equal("<M>$4F043C3369CC5922051EC35190062B5C", extension.ExtensionMarkerName);
+            AssertEx.Equal("T:E.<G>$B8D310208B4544F25EEBACB9990FC73B.<M>$4F043C3369CC5922051EC35190062B5C", extension.GetDocumentationCommentId());
+
+            // extension member
+            var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+            Assert.Equal("", DocumentationCommentId.CreateReferenceId(m));
+            Assert.Equal("M:E.<G>$B8D310208B4544F25EEBACB9990FC73B.M", m.GetDocumentationCommentId());
+
+            var declarationId = DocumentationCommentId.CreateDeclarationId(m);
+            AssertEx.Equal("M:E.<G>$B8D310208B4544F25EEBACB9990FC73B.M", declarationId);
+            AssertEx.Equal("void E.<G>$B8D310208B4544F25EEBACB9990FC73B<T>.M()", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.<G>$B8D310208B4544F25EEBACB9990FC73B<T>.M()"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+
+            // implementation method
+            var mImplementation = e.GetMember<MethodSymbol>("M").GetPublicSymbol();
+            declarationId = DocumentationCommentId.CreateDeclarationId(mImplementation);
+            AssertEx.Equal("M:E.M``1(System.Int32)", declarationId);
+            AssertEx.Equal("void E.M<T>(this System.Int32 i1)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.M<T>(this System.Int32 i1)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+        }
     }
 }
 

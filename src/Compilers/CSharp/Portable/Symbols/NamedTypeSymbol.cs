@@ -521,17 +521,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
-
-        /// <summary>
-        /// For extensions, returns the synthesized identifier for the grouping type.
-        /// </summary>
-        internal abstract string ExtensionGroupingName { get; }
-
-        /// <summary>
-        /// For extensions, returns the synthesized identifier for the marker type.
-        /// </summary>
-        internal abstract string ExtensionMarkerName { get; }
-
 #nullable disable
 
         /// <summary>

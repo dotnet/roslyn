@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -157,7 +158,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
 
 #nullable enable
-        bool ITypeSymbol.IsExtension => UnderlyingTypeSymbol.IsExtension;
+        bool ITypeSymbol.IsExtension
+        {
+            get
+            {
+                bool isExtension = UnderlyingTypeSymbol.IsExtension;
+
+                Debug.Assert(!isExtension
+                    || (!string.IsNullOrEmpty(UnderlyingTypeSymbol.ExtensionGroupingName) && !string.IsNullOrEmpty(UnderlyingTypeSymbol.ExtensionMarkerName)));
+
+                return isExtension;
+            }
+        }
+
+        string? ITypeSymbol.ExtensionGroupingName => UnderlyingTypeSymbol.ExtensionGroupingName;
+        string? ITypeSymbol.ExtensionMarkerName => UnderlyingTypeSymbol.ExtensionMarkerName;
 
         IParameterSymbol? ITypeSymbol.ExtensionParameter => UnderlyingTypeSymbol.ExtensionParameter?.GetPublicSymbol();
 #nullable disable

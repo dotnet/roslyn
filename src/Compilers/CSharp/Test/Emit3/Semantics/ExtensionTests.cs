@@ -70,6 +70,8 @@ public partial class ExtensionTests : CompilingTestBase
         // Verify things that are common for all extension types
         Assert.Equal(TypeKind.Extension, symbol.TypeKind);
         Assert.True(symbol.IsExtension);
+        Assert.False(string.IsNullOrEmpty(symbol.ExtensionGroupingName));
+        Assert.False(string.IsNullOrEmpty(symbol.ExtensionMarkerName));
         Assert.Null(symbol.BaseType);
         Assert.Empty(symbol.Interfaces);
         Assert.Empty(symbol.AllInterfaces);
@@ -4811,6 +4813,18 @@ unsafe static class E
             // (8,32): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
             //     public static void M2(this int* i) { }
             Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(8, 32));
+
+        NamedTypeSymbol e = comp.GlobalNamespace.GetTypeMember("E");
+        Assert.IsType<SourceNamedTypeSymbol>(e);
+        Assert.False(e.IsExtension);
+        Assert.Null(e.ExtensionGroupingName);
+        Assert.Null(e.ExtensionMarkerName);
+
+        var pointerType = e.GetTypeMembers().Single().ExtensionParameter.Type;
+        Assert.IsType<PointerTypeSymbol>(pointerType);
+        Assert.False(pointerType.IsExtension);
+        Assert.Null(pointerType.ExtensionGroupingName);
+        Assert.Null(pointerType.ExtensionMarkerName);
     }
 
     [Fact]

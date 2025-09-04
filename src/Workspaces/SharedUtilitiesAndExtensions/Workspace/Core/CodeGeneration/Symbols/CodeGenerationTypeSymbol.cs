@@ -45,6 +45,9 @@ internal abstract class CodeGenerationTypeSymbol(
 #if !ROSLYN_4_12_OR_LOWER
     public bool IsExtension => false;
 
+    public string ExtensionGroupingName => null;
+    public string ExtensionMarkerName => null;
+
     public IParameterSymbol ExtensionParameter => null;
 #endif
 

@@ -382,6 +382,12 @@ namespace Microsoft.CodeAnalysis
             {
                 _builder.Append("T:");
                 _generator.Visit(symbol);
+
+                if (symbol.IsExtension)
+                {
+                    _builder.Append('.');
+                    _builder.Append(symbol.ExtensionMarkerName);
+                }
             }
 
             private sealed class DeclarationGenerator : SymbolVisitor<bool>
@@ -525,9 +531,9 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append('.');
                     }
 
-                    _builder.Append(EncodeName(symbol.Name));
+                    _builder.Append(EncodeName(symbol.IsExtension ? symbol.ExtensionGroupingName : symbol.Name));
 
-                    if (symbol.TypeParameters.Length > 0)
+                    if (symbol.TypeParameters.Length > 0 && !symbol.IsExtension)
                     {
                         _builder.Append('`');
                         _builder.Append(symbol.TypeParameters.Length);
@@ -582,6 +588,11 @@ namespace Microsoft.CodeAnalysis
 
             public override bool VisitNamedType(INamedTypeSymbol symbol)
             {
+                if (symbol.IsExtension)
+                {
+                    return false;
+                }
+
                 this.BuildDottedName(symbol);
 
                 if (symbol.IsGenericType)
@@ -1175,6 +1186,8 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+
+                GetMatchingExtensions(container, memberName, results);
             }
 
             private static void GetMatchingNamespaceOrTypes(List<INamespaceOrTypeSymbol> containers, string memberName, List<ISymbol> results)
@@ -1194,6 +1207,20 @@ namespace Microsoft.CodeAnalysis
                     if (symbol.Kind == SymbolKind.Namespace || (symbol.Kind == SymbolKind.NamedType && ((INamedTypeSymbol)symbol).Arity == 0))
                     {
                         results.Add(symbol);
+                    }
+                }
+
+                GetMatchingExtensions(container, memberName, results); // Note: the arity is already in the content-based extension grouping name
+            }
+
+            private static void GetMatchingExtensions(INamespaceOrTypeSymbol container, string memberName, List<ISymbol> results)
+            {
+                ImmutableArray<INamedTypeSymbol> unnamedNamedTypes = container.GetTypeMembers("");
+                foreach (var namedType in unnamedNamedTypes)
+                {
+                    if (namedType.IsExtension && namedType.ExtensionGroupingName == memberName)
+                    {
+                        results.Add(namedType);
                     }
                 }
             }

@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                var sourceNamedType = (SourceNamedTypeSymbol)type;
-                var groupingMetadataName = sourceNamedType.ExtensionGroupingName;
+                string groupingMetadataName = type.ExtensionGroupingName;
 
                 MultiDictionary<string, SourceNamedTypeSymbol>? markerMap;
 
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     groupingMap.Add(groupingMetadataName, markerMap);
                 }
 
-                markerMap.Add(sourceNamedType.ExtensionMarkerName, sourceNamedType);
+                markerMap.Add(type.ExtensionMarkerName, (SourceNamedTypeSymbol)type);
             }
 
             var builder = ArrayBuilder<ExtensionGroupingType>.GetInstance(groupingMap.Count);

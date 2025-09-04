@@ -794,5 +794,17 @@ Done:
                 Return Nothing
             End Get
         End Property
+
+        Public ReadOnly Property ExtensionGroupingName As String Implements ITypeSymbol.ExtensionGroupingName
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property ExtensionMarkerName As String Implements ITypeSymbol.ExtensionMarkerName
+            Get
+                Return Nothing
+            End Get
+        End Property
     End Class
 End Namespace
