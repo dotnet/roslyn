@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -4457,34 +4458,67 @@ partial class B
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_descriptor];
 
+            public bool RegisterAdditionalFileActionInvoked { get; private set; }
+            public bool RegisterCodeBlockActionInvoked { get; private set; }
+            public bool RegisterCodeBlockStartActionInvoked { get; private set; }
+            public bool RegisterCompilationActionInvoked { get; private set; }
+            public bool RegisterOperationActionInvoked { get; private set; }
+            public bool RegisterOperationBlockActionInvoked { get; private set; }
+            public bool RegisterOperationBlockStartInvoked { get; private set; }
+            public bool RegisterSemanticModelInvoked { get; private set; }
+            public bool RegisterSymbolActionInvoked { get; private set; }
+            public bool RegisterSyntaxNodeActionInvoked { get; private set; }
+            public bool RegisterSyntaxTreeActionInvoked { get; private set; }
+
+            public bool RegisterOperationBlockStartActionInvoked { get; private set; }
+            public bool RegisterOperationBlockEndActionInvoked { get; private set; }
+            public bool RegisterCompilationStartActionInvoked { get; private set; }
+            public bool RegisterCompilationEndActionInvoked { get; private set; }
+            public bool RegisterSymbolStartActionInvoked { get; private set; }
+            public bool RegisterSymbolEndActionInvoked { get; private set; }
+
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterAdditionalFileAction(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterCodeBlockAction(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterCodeBlockStartAction<SyntaxKind>(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterCompilationAction(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterOperationAction(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterOperationBlockAction(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterOperationBlockStartAction(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterSemanticModelAction(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterSymbolAction(context => Assert.Same(_customOptions, context.Options));
-                context.RegisterSyntaxNodeAction(context => Assert.Same(_customOptions, context.Options), SyntaxKind.ClassDeclaration);
-                context.RegisterSyntaxTreeAction(context => Assert.Same(_customOptions, context.Options));
+                context.RegisterAdditionalFileAction(context => { Assert.Same(_customOptions, context.Options); RegisterAdditionalFileActionInvoked = true; });
+                context.RegisterCodeBlockAction(context => { Assert.Same(_customOptions, context.Options); RegisterCodeBlockActionInvoked = true; });
+                context.RegisterCodeBlockStartAction<SyntaxKind>(context => { Assert.Same(_customOptions, context.Options); RegisterCodeBlockStartActionInvoked = true; });
+                context.RegisterCompilationAction(context => { Assert.Same(_customOptions, context.Options); RegisterCompilationActionInvoked = true; });
+                context.RegisterOperationAction(context => { Assert.Same(_customOptions, context.Options); RegisterOperationActionInvoked = true; }, OperationKind.Block);
+                context.RegisterOperationBlockAction(context => { Assert.Same(_customOptions, context.Options); RegisterOperationBlockActionInvoked = true; });
+                context.RegisterSemanticModelAction(context => { Assert.Same(_customOptions, context.Options); RegisterSemanticModelInvoked = true; });
+                context.RegisterSymbolAction(context => { Assert.Same(_customOptions, context.Options); RegisterSymbolActionInvoked = true; }, SymbolKind.NamedType);
+                context.RegisterSyntaxNodeAction(context => { Assert.Same(_customOptions, context.Options); RegisterSyntaxNodeActionInvoked = true; }, SyntaxKind.ClassDeclaration);
+                context.RegisterSyntaxTreeAction(context => { Assert.Same(_customOptions, context.Options); RegisterSyntaxTreeActionInvoked = true; });
+
+                context.RegisterOperationBlockStartAction(context =>
+                {
+                    Assert.Same(_customOptions, context.Options);
+                    RegisterOperationBlockStartActionInvoked = true;
+                    context.RegisterOperationBlockEndAction(context =>
+                    {
+                        Assert.Same(_customOptions, context.Options);
+                        RegisterOperationBlockEndActionInvoked = true;
+                    });
+                });
 
                 context.RegisterCompilationStartAction(context =>
                 {
                     Assert.Same(_customOptions, context.Options);
+                    RegisterCompilationStartActionInvoked = true;
                     context.RegisterCompilationEndAction(context =>
                     {
                         Assert.Same(_customOptions, context.Options);
+                        RegisterCompilationEndActionInvoked = true;
                     });
                 });
                 context.RegisterSymbolStartAction(context =>
                 {
                     Assert.Same(_customOptions, context.Options);
+                    RegisterSymbolStartActionInvoked = true;
                     context.RegisterSymbolEndAction(context =>
                     {
                         Assert.Same(_customOptions, context.Options);
+                        RegisterSymbolEndActionInvoked = true;
                     });
                 }, SymbolKind.NamedType);
             }
@@ -4511,17 +4545,42 @@ partial class B
                 //         int x = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(5, 13));
 
-            var sharedOptions = new AnalyzerOptions([]);
-            var customOptions = new AnalyzerOptions([]);
+            var additionalText = new InMemoryAdditionalText("path", "content");
+            var sharedOptions = new AnalyzerOptions([additionalText]);
+            var customOptions = new AnalyzerOptions([additionalText]);
+
+            var analyzer = new OptionsOverrideDiagnosticAnalyzer(customOptions);
+
             var compWithAnalyzers = new CompilationWithAnalyzers(
                 compilation,
-                [new OptionsOverrideDiagnosticAnalyzer(customOptions)],
+                [analyzer],
                 new CompilationWithAnalyzersOptions(
                     sharedOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false, analyzerExceptionFilter: null,
                     _ => customOptions));
 
             var diagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
             Assert.Empty(diagnostics);
+
+            Assert.True(analyzer.RegisterAdditionalFileActionInvoked);
+
+            Assert.True(analyzer.RegisterAdditionalFileActionInvoked);
+            Assert.True(analyzer.RegisterCodeBlockActionInvoked);
+            Assert.True(analyzer.RegisterCodeBlockStartActionInvoked);
+            Assert.True(analyzer.RegisterCompilationActionInvoked);
+            Assert.True(analyzer.RegisterOperationActionInvoked);
+            Assert.True(analyzer.RegisterOperationBlockActionInvoked);
+            Assert.True(analyzer.RegisterOperationBlockStartInvoked);
+            Assert.True(analyzer.RegisterSemanticModelInvoked);
+            Assert.True(analyzer.RegisterSymbolActionInvoked);
+            Assert.True(analyzer.RegisterSyntaxNodeActionInvoked);
+            Assert.True(analyzer.RegisterSyntaxTreeActionInvoked);
+
+            Assert.True(analyzer.RegisterOperationBlockStartActionInvoked);
+            Assert.True(analyzer.RegisterOperationBlockEndActionInvoked);
+            Assert.True(analyzer.RegisterCompilationStartActionInvoked);
+            Assert.True(analyzer.RegisterCompilationEndActionInvoked);
+            Assert.True(analyzer.RegisterSymbolStartActionInvoked);
+            Assert.True(analyzer.RegisterSymbolEndActionInvoked);
         }
     }
 }
