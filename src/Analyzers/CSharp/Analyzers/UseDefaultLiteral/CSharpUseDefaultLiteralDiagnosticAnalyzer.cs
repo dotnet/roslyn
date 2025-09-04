@@ -32,7 +32,7 @@ internal sealed class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltI
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        var preference = context.GetCSharpAnalyzerOptions().PreferSimpleDefaultExpression;
+        var preference = context.GetCSharpAnalyzerOptions(this).PreferSimpleDefaultExpression;
         if (ShouldSkipAnalysis(context, preference.Notification))
             return;
 
@@ -48,6 +48,7 @@ internal sealed class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltI
         // Create a normal diagnostic that covers the entire default expression.
         context.ReportDiagnostic(
             DiagnosticHelper.CreateWithLocationTags(
+                this,
                 Descriptor,
                 defaultExpression.GetLocation(),
                 preference.Notification,

@@ -38,7 +38,7 @@ internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractUs
 
         var syntaxTree = context.Node.SyntaxTree;
         var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-        var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
+        var preference = context.GetAnalyzerOptions(this).PreferInferredTupleNames;
         if (!preference.Value
             || ShouldSkipAnalysis(context, preference.Notification)
             || !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
@@ -50,6 +50,7 @@ internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractUs
         var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
         context.ReportDiagnostic(
             DiagnosticHelper.CreateWithLocationTags(
+                this,
                 Descriptor,
                 nameColon.GetLocation(),
                 preference.Notification,
@@ -65,7 +66,7 @@ internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractUs
             return;
         }
 
-        var preference = context.GetAnalyzerOptions().PreferInferredAnonymousTypeMemberNames;
+        var preference = context.GetAnalyzerOptions(this).PreferInferredAnonymousTypeMemberNames;
         if (!preference.Value ||
             !CSharpInferredMemberNameSimplifier.CanSimplifyAnonymousTypeMemberName(anonCtor))
         {
@@ -76,6 +77,7 @@ internal sealed class CSharpUseInferredMemberNameDiagnosticAnalyzer : AbstractUs
         var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);
         context.ReportDiagnostic(
             DiagnosticHelper.CreateWithLocationTags(
+                this,
                 Descriptor,
                 nameEquals.GetLocation(),
                 preference.Notification,

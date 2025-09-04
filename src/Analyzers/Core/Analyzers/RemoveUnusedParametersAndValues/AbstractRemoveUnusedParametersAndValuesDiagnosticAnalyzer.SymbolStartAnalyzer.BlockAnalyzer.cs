@@ -212,12 +212,14 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 }
 
                 var properties = s_propertiesMap[(_options.UnusedValueExpressionStatementPreference, isUnusedLocalAssignment: false, isRemovableAssignment: false)];
-                var diagnostic = DiagnosticHelper.Create(s_expressionValueIsUnusedRule,
-                                                         value.Syntax.GetLocation(),
-                                                         _options.UnusedValueExpressionStatementNotification,
-                                                         context.Options,
-                                                         additionalLocations: null,
-                                                         properties);
+                var diagnostic = DiagnosticHelper.Create(
+                    _symbolStartAnalyzer._compilationAnalyzer,
+                    s_expressionValueIsUnusedRule,
+                    value.Syntax.GetLocation(),
+                    _options.UnusedValueExpressionStatementNotification,
+                    context.Options,
+                    additionalLocations: null,
+                    properties);
                 context.ReportDiagnostic(diagnostic);
             }
 
@@ -570,13 +572,15 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
 
                         if (ShouldReportUnusedValueDiagnostic(symbol, unreadWriteOperation, symbolUsageResult, out var properties))
                         {
-                            var diagnostic = DiagnosticHelper.Create(s_valueAssignedIsUnusedRule,
-                                                                     _symbolStartAnalyzer._compilationAnalyzer.GetDefinitionLocationToFade(unreadWriteOperation),
-                                                                     _options.UnusedValueAssignmentSeverity,
-                                                                     context.Options,
-                                                                     additionalLocations: null,
-                                                                     properties,
-                                                                     symbol.Name);
+                            var diagnostic = DiagnosticHelper.Create(
+                                _symbolStartAnalyzer._compilationAnalyzer,
+                                s_valueAssignedIsUnusedRule,
+                                _symbolStartAnalyzer._compilationAnalyzer.GetDefinitionLocationToFade(unreadWriteOperation),
+                                _options.UnusedValueAssignmentSeverity,
+                                context.Options,
+                                additionalLocations: null,
+                                properties,
+                                symbol.Name);
                             context.ReportDiagnostic(diagnostic);
                         }
                     }

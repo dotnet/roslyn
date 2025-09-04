@@ -44,7 +44,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         INamedTypeSymbol? formattableStringType,
         ImmutableDictionary<IMethodSymbol, string> knownToStringFormats)
     {
-        var option = context.GetAnalyzerOptions().PreferSimplifiedInterpolation;
+        var option = context.GetAnalyzerOptions(this).PreferSimplifiedInterpolation;
 
         // No point in analyzing if the option is off.
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
@@ -80,6 +80,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         var remainingUnnecessaryLocations = unnecessaryLocations.RemoveAt(0);
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             Descriptor,
             firstUnnecessaryLocation,
             option.Notification,

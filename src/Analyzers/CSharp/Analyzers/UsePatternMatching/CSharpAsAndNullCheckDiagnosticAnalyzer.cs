@@ -61,7 +61,7 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
         if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
             return;
 
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverAsWithNullCheck;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions(this).PreferPatternMatchingOverAsWithNullCheck;
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
         {
             // Bail immediately if the user has disabled this feature.
@@ -257,6 +257,7 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
 
         // Put a diagnostic with the appropriate severity on the declaration-statement itself.
         syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             localStatement.GetLocation(),
             styleOption.Notification,

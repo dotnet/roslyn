@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
             End If
 
             ' Bail immediately if the user has disabled this feature.
-            Dim styleOption = syntaxContext.GetVisualBasicAnalyzerOptions().PreferIsNotExpression
+            Dim styleOption = syntaxContext.GetVisualBasicAnalyzerOptions(Me).PreferIsNotExpression
             If Not styleOption.Value OrElse ShouldSkipAnalysis(syntaxContext, styleOption.Notification) Then
                 Return
             End If
@@ -69,6 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
 
             ' Put a diagnostic with the appropriate severity on `is` keyword.
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Me,
                 Descriptor,
                 isKeyword.GetLocation(),
                 styleOption.Notification,

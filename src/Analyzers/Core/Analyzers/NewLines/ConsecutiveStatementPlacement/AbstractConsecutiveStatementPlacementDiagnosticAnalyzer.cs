@@ -39,7 +39,7 @@ internal abstract class AbstractConsecutiveStatementPlacementDiagnosticAnalyzer<
 
     private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        var option = context.GetAnalyzerOptions().AllowStatementImmediatelyAfterBlock;
+        var option = context.GetAnalyzerOptions(this).AllowStatementImmediatelyAfterBlock;
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 
@@ -104,6 +104,7 @@ internal abstract class AbstractConsecutiveStatementPlacementDiagnosticAnalyzer<
         }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             GetDiagnosticLocation(block),
             notificationOption,

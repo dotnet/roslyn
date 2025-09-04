@@ -96,7 +96,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         var semanticModel = context.SemanticModel;
         var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
         var language = objectCreationExpression.Language;
-        var option = context.GetAnalyzerOptions().PreferObjectInitializer;
+        var option = context.GetAnalyzerOptions(this).PreferObjectInitializer;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             // not point in analyzing if the option is off.
@@ -126,6 +126,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         var unnecessaryLocations = FadeOutCode(context, matches);
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             option.Notification,

@@ -55,7 +55,7 @@ internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         var semanticModel = context.SemanticModel;
         var cancellationToken = context.CancellationToken;
 
-        var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+        var options = context.GetCSharpAnalyzerOptions(this).GetSimplifierOptions();
         if (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(options), cancellationToken))
             return [];
 
@@ -66,7 +66,7 @@ internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
 
     protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanMutableIntervalTree? codeBlockIntervalTree)
     {
-        var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+        var options = context.GetCSharpAnalyzerOptions(this).GetSimplifierOptions();
         if (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(options), context.CancellationToken))
             return [];
 

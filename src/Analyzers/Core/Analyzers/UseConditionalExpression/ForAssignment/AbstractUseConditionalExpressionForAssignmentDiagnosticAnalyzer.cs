@@ -19,7 +19,7 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentDiagnosticA
     where TIfStatementSyntax : SyntaxNode
 {
     protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
-        => context.GetAnalyzerOptions().PreferConditionalExpressionOverAssignment;
+        => context.GetAnalyzerOptions(this).PreferConditionalExpressionOverAssignment;
 
     protected override (bool matched, bool canSimplify) TryMatchPattern(
         IConditionalOperation ifOperation, ISymbol containingSymbol, CancellationToken cancellationToken)

@@ -82,7 +82,7 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
                 break;
         }
 
-        var options = context.GetAnalyzerOptions();
+        var options = context.GetAnalyzerOptions(this);
         var preference = ParenthesesDiagnosticAnalyzersHelper.GetLanguageOption(options, precedence);
 
         if (ShouldSkipAnalysis(context, preference.Notification))
@@ -111,6 +111,7 @@ internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
             parenthesizedExpression.GetLastToken().GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             Descriptor,
             AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<TLanguageKindEnum, TParenthesizedExpressionSyntax>.GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
             preference.Notification,

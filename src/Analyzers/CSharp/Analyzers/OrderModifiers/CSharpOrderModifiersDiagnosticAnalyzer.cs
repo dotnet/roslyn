@@ -23,7 +23,7 @@ internal sealed class CSharpOrderModifiersDiagnosticAnalyzer : AbstractOrderModi
     }
 
     protected override CodeStyleOption2<string> GetPreferredOrderStyle(SyntaxTreeAnalysisContext context)
-        => context.GetCSharpAnalyzerOptions().PreferredModifierOrder;
+        => context.GetCSharpAnalyzerOptions(this).PreferredModifierOrder;
 
     protected override void Recurse(
         SyntaxTreeAnalysisContext context,

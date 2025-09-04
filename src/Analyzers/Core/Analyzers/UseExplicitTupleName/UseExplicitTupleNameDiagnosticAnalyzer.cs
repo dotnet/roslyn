@@ -33,7 +33,7 @@ internal sealed class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCo
     private void AnalyzeOperation(OperationAnalysisContext context)
     {
         // We only create a diagnostic if the option's value is set to true.
-        var option = context.GetAnalyzerOptions().PreferExplicitTupleNames;
+        var option = context.GetAnalyzerOptions(this).PreferExplicitTupleNames;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             return;
@@ -61,6 +61,7 @@ internal sealed class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCo
                         var properties = ImmutableDictionary<string, string?>.Empty.Add(
                             nameof(ElementName), namedField.Name);
                         context.ReportDiagnostic(DiagnosticHelper.Create(
+                            this,
                             Descriptor,
                             nameNode.GetLocation(),
                             option.Notification,

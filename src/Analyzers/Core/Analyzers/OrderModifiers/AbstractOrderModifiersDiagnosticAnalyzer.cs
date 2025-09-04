@@ -78,6 +78,7 @@ internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuilt
                 // user can bring up the fix anywhere in the modifier list.
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
+                        this,
                         Descriptor,
                         context.Tree.GetLocation(TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().Span.End)),
                         notificationOption,
@@ -90,7 +91,7 @@ internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuilt
                 // If the Severity is not hidden, then just put the user visible portion on the
                 // first token.  That way we don't 
                 context.ReportDiagnostic(
-                    DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), notificationOption, context.Options, additionalLocations: null, properties: null));
+                    DiagnosticHelper.Create(this, Descriptor, modifiers.First().GetLocation(), notificationOption, context.Options, additionalLocations: null, properties: null));
             }
         }
     }

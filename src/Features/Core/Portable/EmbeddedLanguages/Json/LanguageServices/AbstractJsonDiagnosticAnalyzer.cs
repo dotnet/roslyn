@@ -37,7 +37,7 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
 
     public void Analyze(SemanticModelAnalysisContext context)
     {
-        if (!context.GetAnalyzerOptions().GetOption(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns) ||
+        if (!context.GetAnalyzerOptions(this).GetOption(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns) ||
             ShouldSkipAnalysis(context, notification: null))
         {
             return;
@@ -75,6 +75,7 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
                         foreach (var diag in tree.Diagnostics)
                         {
                             context.ReportDiagnostic(DiagnosticHelper.Create(
+                                this,
                                 this.Descriptor,
                                 Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
                                 NotificationOption2.Warning,

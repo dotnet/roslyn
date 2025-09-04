@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer_Core.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CombinedAnalyzerConfigOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HashCodeAnalyzer\HashCodeAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HashCodeAnalyzer\HashCodeAnalyzer.OperationDeconstructor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ParenthesesDiagnosticAnalyzersHelper.cs" />

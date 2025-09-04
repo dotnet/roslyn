@@ -31,7 +31,7 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
 
     private void AnalyzePropertyDeclaration(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().PreferSimplePropertyAccessors;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferSimplePropertyAccessors;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -90,6 +90,7 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
             }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 accessorDeclaration.GetLocation(),
                 option.Notification,

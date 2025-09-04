@@ -37,6 +37,7 @@ internal static class DiagnosticHelper
     /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
     /// <returns>The <see cref="Diagnostic"/> instance.</returns>
     public static Diagnostic Create(
+        DiagnosticAnalyzer diagnosticAnalyzer,
         DiagnosticDescriptor descriptor,
         Location location,
         NotificationOption2 notificationOption,
@@ -49,7 +50,8 @@ internal static class DiagnosticHelper
             throw new ArgumentNullException(nameof(descriptor));
 
         var message = CreateMessage(descriptor, messageArgs);
-        return CreateWithMessage(descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
+        return CreateWithMessage(
+            diagnosticAnalyzer, descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
     }
 
     private static LocalizableString CreateMessage(DiagnosticDescriptor descriptor, object[] messageArgs)
@@ -85,6 +87,7 @@ internal static class DiagnosticHelper
     /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
     /// <returns>The <see cref="Diagnostic"/> instance.</returns>
     public static Diagnostic CreateWithLocationTags(
+        DiagnosticAnalyzer diagnosticAnalyzer,
         DiagnosticDescriptor descriptor,
         Location location,
         NotificationOption2 notificationOption,
@@ -94,6 +97,7 @@ internal static class DiagnosticHelper
         params object[] messageArgs)
     {
         return CreateWithLocationTags(
+            diagnosticAnalyzer,
             descriptor,
             location,
             notificationOption,
@@ -104,6 +108,7 @@ internal static class DiagnosticHelper
     }
 
     private static Diagnostic CreateWithLocationTags(
+        DiagnosticAnalyzer diagnosticAnalyzer,
         DiagnosticDescriptor descriptor,
         Location location,
         NotificationOption2 notificationOption,
@@ -113,11 +118,15 @@ internal static class DiagnosticHelper
         ImmutableArray<Location> additionalUnnecessaryLocations)
     {
         if (additionalUnnecessaryLocations.IsEmpty)
-            return CreateWithMessage(descriptor, location, notificationOption, analyzerOptions, additionalLocations, ImmutableDictionary<string, string?>.Empty, message);
+        {
+            return CreateWithMessage(
+                diagnosticAnalyzer, descriptor, location, notificationOption, analyzerOptions, additionalLocations, ImmutableDictionary<string, string?>.Empty, message);
+        }
 
         var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
             .Add(WellKnownDiagnosticTags.Unnecessary, Enumerable.Range(additionalLocations.Length, additionalUnnecessaryLocations.Length));
         return CreateWithLocationTags(
+            diagnosticAnalyzer,
             descriptor,
             location,
             notificationOption,
@@ -153,6 +162,7 @@ internal static class DiagnosticHelper
     /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
     /// <returns>The <see cref="Diagnostic"/> instance.</returns>
     public static Diagnostic CreateWithLocationTags(
+        DiagnosticAnalyzer diagnosticAnalyzer,
         DiagnosticDescriptor descriptor,
         Location location,
         NotificationOption2 notificationOption,
@@ -163,6 +173,7 @@ internal static class DiagnosticHelper
         params object[] messageArgs)
     {
         return CreateWithLocationTags(
+            diagnosticAnalyzer,
             descriptor,
             location,
             notificationOption,
@@ -174,6 +185,7 @@ internal static class DiagnosticHelper
     }
 
     public static Diagnostic CreateWithLocationTags(
+        DiagnosticAnalyzer diagnosticAnalyzer,
         DiagnosticDescriptor descriptor,
         Location location,
         NotificationOption2 notificationOption,
@@ -184,11 +196,12 @@ internal static class DiagnosticHelper
         ImmutableDictionary<string, string?>? properties)
     {
         if (additionalUnnecessaryLocations.IsEmpty)
-            return CreateWithMessage(descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
+            return CreateWithMessage(diagnosticAnalyzer, descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
 
         var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
             .Add(WellKnownDiagnosticTags.Unnecessary, Enumerable.Range(additionalLocations.Length, additionalUnnecessaryLocations.Length));
         return CreateWithLocationTags(
+            diagnosticAnalyzer,
             descriptor,
             location,
             notificationOption,
@@ -200,6 +213,7 @@ internal static class DiagnosticHelper
     }
 
     private static Diagnostic CreateWithLocationTags(
+        DiagnosticAnalyzer diagnosticAnalyzer,
         DiagnosticDescriptor descriptor,
         Location location,
         NotificationOption2 notificationOption,
@@ -215,7 +229,7 @@ internal static class DiagnosticHelper
         properties ??= ImmutableDictionary<string, string?>.Empty;
         properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string?>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
 
-        return CreateWithMessage(descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
+        return CreateWithMessage(diagnosticAnalyzer, descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
 
         static string EncodeIndices(IEnumerable<int> indices, int additionalLocationsLength)
         {
@@ -252,6 +266,7 @@ internal static class DiagnosticHelper
     /// <param name="message">Localizable message for the diagnostic.</param>
     /// <returns>The <see cref="Diagnostic"/> instance.</returns>
     public static Diagnostic CreateWithMessage(
+        DiagnosticAnalyzer diagnosticAnalyzer,
         DiagnosticDescriptor descriptor,
         Location location,
         NotificationOption2 notificationOption,
@@ -264,6 +279,8 @@ internal static class DiagnosticHelper
         {
             throw new ArgumentNullException(nameof(descriptor));
         }
+
+        analyzerOptions = AnalyzerOptionsUtilities.GetSpecificOptions(analyzerOptions, diagnosticAnalyzer);
 
         var effectiveSeverity = notificationOption.Severity;
         return Diagnostic.Create(

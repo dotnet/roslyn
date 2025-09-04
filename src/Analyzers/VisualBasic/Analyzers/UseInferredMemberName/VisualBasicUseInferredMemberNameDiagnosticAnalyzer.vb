@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
             Dim syntaxTree = context.Node.SyntaxTree
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
-            Dim preference = context.GetAnalyzerOptions().PreferInferredTupleNames
+            Dim preference = context.GetAnalyzerOptions(Me).PreferInferredTupleNames
             If Not preference.Value OrElse
                ShouldSkipAnalysis(context, preference.Notification) OrElse
                Not CanSimplifyTupleName(argument, DirectCast(syntaxTree.Options, VisualBasicParseOptions)) Then
@@ -52,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim fadeSpan = TextSpan.FromBounds(nameColonEquals.Name.SpanStart, nameColonEquals.ColonEqualsToken.Span.End)
             context.ReportDiagnostic(
                 DiagnosticHelper.CreateWithLocationTags(
+                    Me,
                     Descriptor,
                     nameColonEquals.GetLocation(),
                     preference.Notification,
@@ -65,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Return
             End If
 
-            Dim preference = context.GetAnalyzerOptions().PreferInferredAnonymousTypeMemberNames
+            Dim preference = context.GetAnalyzerOptions(Me).PreferInferredAnonymousTypeMemberNames
             If Not preference.Value OrElse Not CanSimplifyNamedFieldInitializer(fieldInitializer) Then
                 Return
             End If
@@ -76,6 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim syntaxTree = context.Node.SyntaxTree
             context.ReportDiagnostic(
                 DiagnosticHelper.CreateWithLocationTags(
+                    Me,
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
                     preference.Notification,

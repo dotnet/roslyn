@@ -61,7 +61,7 @@ internal sealed class UseUtf8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCo
         var arrayCreationOperation = (IArrayCreationOperation)context.Operation;
 
         // Don't offer if the user doesn't want it
-        var option = context.GetCSharpAnalyzerOptions().PreferUtf8StringLiterals;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferUtf8StringLiterals;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -143,7 +143,7 @@ internal sealed class UseUtf8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCo
         var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(ArrayCreationOperationLocation), operationLocation.ToString());
 
         context.ReportDiagnostic(
-            DiagnosticHelper.Create(Descriptor, location, notificationOption, context.Options, additionalLocations, properties));
+            DiagnosticHelper.Create(this, Descriptor, location, notificationOption, context.Options, additionalLocations, properties));
     }
 
     internal static bool TryConvertToUtf8String(StringBuilder? builder, ImmutableArray<IOperation> arrayCreationElements)

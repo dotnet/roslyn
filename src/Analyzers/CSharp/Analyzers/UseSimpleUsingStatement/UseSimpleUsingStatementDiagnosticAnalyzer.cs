@@ -77,7 +77,7 @@ internal sealed class UseSimpleUsingStatementDiagnosticAnalyzer()
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().PreferSimpleUsingStatement;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferSimpleUsingStatement;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -121,6 +121,7 @@ internal sealed class UseSimpleUsingStatementDiagnosticAnalyzer()
 
         // Good to go!
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             outermostUsing.UsingKeyword.GetLocation(),
             option.Notification,

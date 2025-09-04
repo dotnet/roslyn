@@ -46,7 +46,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
-        var option = context.GetAnalyzerOptions().PreferCollectionExpression;
+        var option = context.GetAnalyzerOptions(this).PreferCollectionExpression;
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -59,6 +59,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         var locations = ImmutableArray.Create(expression.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             option.Notification,
@@ -72,6 +73,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                 expression.CloseBracketToken.Span.End)));
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
@@ -88,7 +90,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
-        var option = context.GetAnalyzerOptions().PreferCollectionExpression;
+        var option = context.GetAnalyzerOptions(this).PreferCollectionExpression;
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -99,6 +101,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         var locations = ImmutableArray.Create(expression.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             option.Notification,
@@ -112,6 +115,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
                 expression.Type.Span.End)));
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),

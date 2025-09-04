@@ -60,7 +60,7 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer() :
             return;
 
         var cancellationToken = context.CancellationToken;
-        var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatching;
+        var styleOption = context.GetCSharpAnalyzerOptions(this).PreferPatternMatching;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
             return;
 
@@ -92,6 +92,7 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer() :
         var isSafe = pattern.Target.UnwrapImplicitConversion() is not Operations.IInvocationOperation;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             descriptor: isSafe ? this.Descriptor : s_unsafeDescriptor,
             expression.GetLocation(),
             styleOption.Notification,

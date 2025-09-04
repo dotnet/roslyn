@@ -176,7 +176,7 @@ internal sealed partial class CSharpUseIndexOperatorDiagnosticAnalyzer : Abstrac
             return;
 
         // Don't bother analyzing if the user doesn't like using Index/Range operators.
-        var option = context.GetCSharpAnalyzerOptions().PreferIndexOperator;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferIndexOperator;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -203,6 +203,7 @@ internal sealed partial class CSharpUseIndexOperatorDiagnosticAnalyzer : Abstrac
         // Everything looks good.  We can update this to use the System.Index member instead.
         context.ReportDiagnostic(
             DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 binaryExpression.GetLocation(),
                 option.Notification,

@@ -36,7 +36,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
 
     private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
     {
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferConditionalDelegateCall;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions(this).PreferConditionalDelegateCall;
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
         {
             // Bail if the user has disabled this feature.
@@ -182,6 +182,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
         // Fade out the code up to the expression statement.
         var fadeLocation = Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End));
         syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             Descriptor,
             fadeLocation,
             NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
@@ -192,6 +193,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
 
         // Put a diagnostic with the appropriate severity on the expression-statement itself.
         syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             expressionStatement.GetLocation(),
             notificationOption,
@@ -203,6 +205,7 @@ internal sealed class InvokeDelegateWithConditionalAccessAnalyzer()
         {
             fadeLocation = Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End));
             syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                this,
                 Descriptor,
                 fadeLocation,
                 NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),

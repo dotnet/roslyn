@@ -71,7 +71,7 @@ internal sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
         if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
             return;
 
-        var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
+        var styleOption = context.GetCSharpAnalyzerOptions(this).PreferPatternMatchingOverIsWithCastCheck;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
             // User has disabled this feature.
@@ -95,7 +95,7 @@ internal sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
 
         context.ReportDiagnostic(
             DiagnosticHelper.Create(
-                Descriptor, isExpression.GetLocation(),
+                this, Descriptor, isExpression.GetLocation(),
                 styleOption.Notification,
                 context.Options,
                 additionalLocations: [],

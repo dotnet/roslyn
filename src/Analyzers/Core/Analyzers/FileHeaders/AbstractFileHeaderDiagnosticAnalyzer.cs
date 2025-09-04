@@ -53,7 +53,7 @@ internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCo
             return;
         }
 
-        var fileHeaderTemplate = context.GetAnalyzerOptions().FileHeaderTemplate;
+        var fileHeaderTemplate = context.GetAnalyzerOptions(this).FileHeaderTemplate;
         if (string.IsNullOrEmpty(fileHeaderTemplate))
         {
             return;

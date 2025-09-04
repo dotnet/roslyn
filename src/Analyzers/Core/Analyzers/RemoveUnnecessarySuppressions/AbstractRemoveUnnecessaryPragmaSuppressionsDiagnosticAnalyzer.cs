@@ -111,7 +111,7 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
         }
 
         // Bail out if analyzer has been turned off through options.
-        var option = compilationWithAnalyzers.AnalysisOptions.Options?.GetAnalyzerOptions(tree).RemoveUnnecessarySuppressionExclusions.Trim();
+        var option = compilationWithAnalyzers.AnalysisOptions.Options?.GetAnalyzerOptions(tree, this).RemoveUnnecessarySuppressionExclusions.Trim();
         var (userIdExclusions, userCategoryExclusions, analyzerDisabled) = ParseUserExclusions(option);
         if (analyzerDisabled)
         {

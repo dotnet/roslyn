@@ -132,7 +132,7 @@ internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
             expressionStatement.Syntax.GetLocation());
 
         context.ReportDiagnostic(
-            DiagnosticHelper.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification, context.Options, additionalLocations: allLocations, properties: null));
+            DiagnosticHelper.Create(this, Descriptor, throwStatementSyntax.GetLocation(), option.Notification, context.Options, additionalLocations: allLocations, properties: null));
     }
 
     private static bool ValueIsAccessed(SemanticModel semanticModel, IConditionalOperation ifOperation, IBlockOperation containingBlock, ISymbol localOrParameter, IExpressionStatementOperation expressionStatement, IAssignmentOperation assignmentExpression)

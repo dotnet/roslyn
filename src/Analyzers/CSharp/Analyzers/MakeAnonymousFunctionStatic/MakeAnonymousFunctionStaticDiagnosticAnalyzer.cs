@@ -38,7 +38,7 @@ internal sealed class MakeAnonymousFunctionStaticDiagnosticAnalyzer : AbstractBu
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().PreferStaticAnonymousFunction;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferStaticAnonymousFunction;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 

@@ -41,7 +41,7 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
 
     private void AnalyzeNode(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().PreferDeconstructedVariableDeclaration;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferDeconstructedVariableDeclaration;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -63,6 +63,7 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             variableDeclaration.Variables[0].Identifier.GetLocation(),
             notificationOption,
@@ -78,6 +79,7 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             forEachStatement.Identifier.GetLocation(),
             notificationOption,

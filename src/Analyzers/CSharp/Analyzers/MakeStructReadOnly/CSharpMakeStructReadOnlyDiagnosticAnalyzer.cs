@@ -57,6 +57,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
                         return;
 
                     context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this,
                         Descriptor,
                         location,
                         option.Notification,
@@ -91,7 +92,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
         if (typeReference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax typeDeclaration)
             return false;
 
-        var options = context.GetCSharpAnalyzerOptions(typeDeclaration.SyntaxTree);
+        var options = context.GetCSharpAnalyzerOptions(typeDeclaration.SyntaxTree, this);
         option = options.PreferReadOnlyStruct;
         if (!option.Value || ShouldSkipAnalysis(typeDeclaration.SyntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
             return false;

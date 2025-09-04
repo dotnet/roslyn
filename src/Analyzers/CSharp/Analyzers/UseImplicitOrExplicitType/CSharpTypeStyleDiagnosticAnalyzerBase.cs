@@ -39,7 +39,7 @@ internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase(
         if (declaredType == null)
             return;
 
-        var simplifierOptions = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+        var simplifierOptions = context.GetCSharpAnalyzerOptions(this).GetSimplifierOptions();
 
         var typeStyle = Helper.AnalyzeTypeName(
             declaredType, semanticModel, simplifierOptions, cancellationToken);
@@ -55,6 +55,6 @@ internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase(
         context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Notification, context.Options));
     }
 
-    private static Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, NotificationOption2 notificationOption, AnalyzerOptions analyzerOptions)
-        => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), notificationOption, analyzerOptions, additionalLocations: null, properties: null);
+    private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, NotificationOption2 notificationOption, AnalyzerOptions analyzerOptions)
+        => DiagnosticHelper.Create(this, descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), notificationOption, analyzerOptions, additionalLocations: null, properties: null);
 }

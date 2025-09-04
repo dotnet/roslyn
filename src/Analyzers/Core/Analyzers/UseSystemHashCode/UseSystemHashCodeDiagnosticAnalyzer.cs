@@ -69,7 +69,7 @@ internal sealed class UseSystemHashCodeDiagnosticAnalyzer : AbstractBuiltInCodeS
         // We've got multiple members to hash, or multiple statements that can be reduced at this point.
         Debug.Assert(elementCount >= 2 || statements.Length >= 2);
 
-        var option = context.Options.GetAnalyzerOptions(operation.Syntax.SyntaxTree).PreferSystemHashCode;
+        var option = context.Options.GetAnalyzerOptions(operation.Syntax.SyntaxTree, this).PreferSystemHashCode;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -77,6 +77,7 @@ internal sealed class UseSystemHashCodeDiagnosticAnalyzer : AbstractBuiltInCodeS
         var operationLocation = operation.Syntax.GetLocation();
         var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             diagnosticLocation,
             option.Notification,

@@ -110,7 +110,7 @@ internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
             _ => throw ExceptionUtilities.UnexpectedValue(operation),
         };
 
-        var simplifierOptions = context.GetAnalyzerOptions().GetSimplifierOptions(Simplification);
+        var simplifierOptions = context.GetAnalyzerOptions(this).GetSimplifierOptions(Simplification);
         if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolKind, out var optionValue))
             return;
 
@@ -123,6 +123,7 @@ internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
         if (!IsAlreadyQualifiedMemberAccess(simpleName))
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 GetLocation(operation),
                 optionValue.Notification,

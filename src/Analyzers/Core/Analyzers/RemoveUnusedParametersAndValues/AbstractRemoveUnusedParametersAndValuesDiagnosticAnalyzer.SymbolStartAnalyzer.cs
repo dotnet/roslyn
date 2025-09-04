@@ -130,7 +130,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             }
 
             var location = parameter.Locations[0];
-            var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree!).UnusedParameters;
+            var option = analyzerOptions.GetAnalyzerOptions(location.SourceTree!, _compilationAnalyzer).UnusedParameters;
             if (option.Notification.Severity == ReportDiagnostic.Suppress ||
                 !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))
             {
@@ -143,8 +143,8 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 isPublicApiParameter: parameter.ContainingSymbol.HasPublicResultantVisibility(),
                 isLocalFunctionParameter: parameter.ContainingSymbol.IsLocalFunction());
 
-            var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule, location,
-                option.Notification, analyzerOptions, additionalLocations: null, properties: null, message);
+            var diagnostic = DiagnosticHelper.CreateWithMessage(
+                _compilationAnalyzer, s_unusedParameterRule, location, option.Notification, analyzerOptions, additionalLocations: null, properties: null, message);
             reportDiagnostic(diagnostic);
         }
 

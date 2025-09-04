@@ -34,7 +34,7 @@ internal abstract class AbstractMultipleBlankLinesDiagnosticAnalyzer : AbstractB
 
     private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        var option = context.GetAnalyzerOptions().AllowMultipleBlankLines;
+        var option = context.GetAnalyzerOptions(this).AllowMultipleBlankLines;
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 
@@ -74,6 +74,7 @@ internal abstract class AbstractMultipleBlankLinesDiagnosticAnalyzer : AbstractB
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             Location.Create(badTrivia.SyntaxTree!, new TextSpan(badTrivia.SpanStart, 0)),
             notificationOption,

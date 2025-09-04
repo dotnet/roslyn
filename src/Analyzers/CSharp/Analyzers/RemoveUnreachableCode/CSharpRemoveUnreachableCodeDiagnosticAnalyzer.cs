@@ -120,6 +120,7 @@ internal sealed class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBu
         var additionalLocations = ImmutableArray.Create(firstStatementLocation);
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             Descriptor,
             firstStatementLocation,
             NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
@@ -139,6 +140,7 @@ internal sealed class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBu
             var additionalUnnecessaryLocations = ImmutableArray.Create(location);
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                this,
                 Descriptor,
                 location,
                 NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),

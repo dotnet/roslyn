@@ -124,6 +124,7 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
                         {
                             var option = GetCodeStyleOption(field, symbolEndContext.Options, out var location);
                             var diagnostic = DiagnosticHelper.Create(
+                                this,
                                 Descriptor,
                                 location,
                                 option.Notification,
@@ -305,9 +306,9 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
         return false;
     }
 
-    private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, out Location diagnosticLocation)
+    private CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, out Location diagnosticLocation)
     {
         diagnosticLocation = GetDiagnosticLocation(field);
-        return options.GetAnalyzerOptions(diagnosticLocation.SourceTree!).PreferReadonly;
+        return options.GetAnalyzerOptions(diagnosticLocation.SourceTree!, this).PreferReadonly;
     }
 }

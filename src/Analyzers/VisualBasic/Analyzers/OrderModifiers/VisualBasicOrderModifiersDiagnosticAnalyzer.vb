@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         End Sub
 
         Protected Overrides Function GetPreferredOrderStyle(context As SyntaxTreeAnalysisContext) As CodeStyleOption2(Of String)
-            Return context.GetVisualBasicAnalyzerOptions().PreferredModifierOrder
+            Return context.GetVisualBasicAnalyzerOptions(Me).PreferredModifierOrder
         End Function
 
         Protected Overrides Sub Recurse(

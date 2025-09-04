@@ -39,7 +39,7 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        var styleOption = context.GetCSharpAnalyzerOptions().PreferSwitchExpression;
+        var styleOption = context.GetCSharpAnalyzerOptions(this).PreferSwitchExpression;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
             // User has disabled this feature.
@@ -65,7 +65,8 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
         additionalLocations.Add(switchStatement.GetLocation());
         additionalLocations.AddIfNotNull(declaratorToRemoveOpt?.GetLocation());
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            this, Descriptor,
             // Report the diagnostic on the "switch" keyword.
             location: switchStatement.GetFirstToken().GetLocation(),
             notificationOption: styleOption.Notification,

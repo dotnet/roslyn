@@ -42,7 +42,7 @@ internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeSty
         var semanticModel = context.SemanticModel;
         var cancellationToken = context.CancellationToken;
 
-        var option = context.GetAnalyzerOptions().GetOption(RegexOptionsStorage.ReportInvalidRegexPatterns);
+        var option = context.GetAnalyzerOptions(this).GetOption(RegexOptionsStorage.ReportInvalidRegexPatterns);
         if (!option || ShouldSkipAnalysis(context, notification: null))
             return;
 
@@ -88,6 +88,7 @@ internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeSty
                 foreach (var diag in tree.Diagnostics)
                 {
                     context.ReportDiagnostic(DiagnosticHelper.Create(
+                        this,
                         Descriptor,
                         Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
                         NotificationOption2.Warning,

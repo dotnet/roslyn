@@ -52,7 +52,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
         var ifStatement = (TIfStatementSyntax)context.Node;
         var semanticModel = context.SemanticModel;
 
-        var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
+        var option = context.GetAnalyzerOptions(this).PreferCoalesceExpression;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -110,6 +110,7 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
         }
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,

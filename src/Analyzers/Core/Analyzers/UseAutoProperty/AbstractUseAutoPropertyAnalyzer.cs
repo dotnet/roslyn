@@ -186,7 +186,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                 // on, and the diagnostic is not suppressed.
                 if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
                 {
-                    var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
+                    var preferAutoProps = context.Options.GetAnalyzerOptions(tree, this).PreferAutoProperties;
                     return preferAutoProps.Value && !ShouldSkipAnalysis(tree, context.Options, context.Compilation.Options, preferAutoProps.Notification, context.CancellationToken);
                 }))
                 {
@@ -370,7 +370,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (!CanExplicitInterfaceImplementationsBeFixed && property.ExplicitInterfaceImplementations.Length != 0)
             return;
 
-        var preferAutoProps = context.GetAnalyzerOptions().PreferAutoProperties;
+        var preferAutoProps = context.GetAnalyzerOptions(this).PreferAutoProperties;
         if (!preferAutoProps.Value)
             return;
 
@@ -658,6 +658,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
             // Place the appropriate marker on the field depending on the user option.
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 Descriptor,
                 fieldNode.GetLocation(),
                 result.Notification,

@@ -56,7 +56,7 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
 
     private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
+        var option = context.GetCSharpAnalyzerOptions(this).UsingDirectivePlacement;
         if (option.Value == AddImportPlacement.InsideNamespace
             || ShouldSkipAnalysis(context, option.Notification))
         {
@@ -77,7 +77,7 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
 
     private void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
+        var option = context.GetCSharpAnalyzerOptions(this).UsingDirectivePlacement;
         var compilationUnit = (CompilationUnitSyntax)context.Node;
 
         if (option.Value != AddImportPlacement.InsideNamespace
@@ -103,13 +103,14 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
             t => t.Kind() is not (SyntaxKind.UsingDirective or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration));
     }
 
-    private static void ReportDiagnostics(
+    private void ReportDiagnostics(
        SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor,
        IEnumerable<UsingDirectiveSyntax> usingDirectives, CodeStyleOption2<AddImportPlacement> option)
     {
         foreach (var usingDirective in usingDirectives)
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(
+                this,
                 descriptor,
                 usingDirective.GetLocation(),
                 option.Notification,

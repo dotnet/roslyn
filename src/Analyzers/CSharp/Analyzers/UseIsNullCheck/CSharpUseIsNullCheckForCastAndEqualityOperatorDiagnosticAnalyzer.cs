@@ -43,7 +43,7 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAn
 
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
-        var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
+        var option = context.GetAnalyzerOptions(this).PreferIsNullCheckOverReferenceEqualityMethod;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             return;
@@ -63,7 +63,7 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAn
             : s_NegatedProperties;
         context.ReportDiagnostic(
             DiagnosticHelper.Create(
-                Descriptor, binaryExpression.GetLocation(), option.Notification, context.Options, additionalLocations: null, properties));
+                this, Descriptor, binaryExpression.GetLocation(), option.Notification, context.Options, additionalLocations: null, properties));
     }
 
     private static bool IsObjectCastAndNullCheck(

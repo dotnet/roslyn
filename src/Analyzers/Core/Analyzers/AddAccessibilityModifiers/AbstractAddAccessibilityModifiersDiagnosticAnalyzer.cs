@@ -42,7 +42,7 @@ internal abstract class AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnaly
 
     private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
+        var option = context.GetAnalyzerOptions(this).RequireAccessibilityModifiers;
         if (option.Value == AccessibilityModifiersRequired.Never
             || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
         {
@@ -66,7 +66,7 @@ internal abstract class AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnaly
         // Have an issue to flag, either add or remove. Report issue to user.
         var additionalLocations = ImmutableArray.Create(member.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
-            modifiersAdded ? Descriptor : ModifierRemovedDescriptor,
+            this, modifiersAdded ? Descriptor : ModifierRemovedDescriptor,
             name.GetLocation(),
             option.Notification,
             context.Options,

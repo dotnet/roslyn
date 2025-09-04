@@ -96,7 +96,7 @@ internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKi
             return;
         }
 
-        if (!context.GetAnalyzerOptions().GetOption(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls))
+        if (!context.GetAnalyzerOptions(this).GetOption(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls))
         {
             return;
         }

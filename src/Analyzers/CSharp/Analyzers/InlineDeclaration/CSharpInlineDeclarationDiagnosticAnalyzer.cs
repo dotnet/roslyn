@@ -70,7 +70,7 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
             return;
         }
 
-        var option = context.GetCSharpAnalyzerOptions().PreferInlinedVariableDeclaration;
+        var option = context.GetCSharpAnalyzerOptions(this).PreferInlinedVariableDeclaration;
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
             // Don't bother doing any work if the user doesn't even have this preference set.
@@ -238,6 +238,7 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
             : localDeclarator;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             reportNode.GetLocation(),
             option.Notification,

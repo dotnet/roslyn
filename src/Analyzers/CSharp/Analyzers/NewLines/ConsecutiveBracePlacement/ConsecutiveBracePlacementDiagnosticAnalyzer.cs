@@ -33,7 +33,7 @@ internal sealed class ConsecutiveBracePlacementDiagnosticAnalyzer : AbstractBuil
 
     private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        var option = context.GetCSharpAnalyzerOptions().AllowBlankLinesBetweenConsecutiveBraces;
+        var option = context.GetCSharpAnalyzerOptions(this).AllowBlankLinesBetweenConsecutiveBraces;
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 
@@ -80,6 +80,7 @@ internal sealed class ConsecutiveBracePlacementDiagnosticAnalyzer : AbstractBuil
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             this.Descriptor,
             secondBrace.GetLocation(),
             notificationOption,

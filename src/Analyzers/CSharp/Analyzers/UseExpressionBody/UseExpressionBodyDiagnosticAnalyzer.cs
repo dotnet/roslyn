@@ -48,7 +48,7 @@ internal sealed class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeS
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
         var cancellationToken = context.CancellationToken;
-        var options = context.GetCSharpAnalyzerOptions().GetCodeGenerationOptions();
+        var options = context.GetCSharpAnalyzerOptions(this).GetCodeGenerationOptions();
 
         var nodeKind = context.Node.Kind();
 
@@ -104,6 +104,7 @@ internal sealed class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeS
             var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
             var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(UseExpressionBody), "");
             return DiagnosticHelper.Create(
+                this,
                 CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
                 location, preference.Notification, context.Options, additionalLocations: additionalLocations, properties: properties);
         }
@@ -122,6 +123,7 @@ internal sealed class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeS
 
             var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
             return DiagnosticHelper.Create(
+                this,
                 CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
                 location, preference.Notification, context.Options, additionalLocations: additionalLocations, properties: properties);
         }

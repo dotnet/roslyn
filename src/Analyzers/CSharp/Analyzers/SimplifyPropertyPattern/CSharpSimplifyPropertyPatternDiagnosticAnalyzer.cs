@@ -51,7 +51,7 @@ internal sealed class CSharpSimplifyPropertyPatternDiagnosticAnalyzer : Abstract
     private void AnalyzeSubpattern(SyntaxNodeAnalysisContext syntaxContext)
     {
         // Bail immediately if the user has disabled this feature.
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferExtendedPropertyPattern;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions(this).PreferExtendedPropertyPattern;
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             return;
 
@@ -62,6 +62,7 @@ internal sealed class CSharpSimplifyPropertyPatternDiagnosticAnalyzer : Abstract
         // If the diagnostic is not hidden, then just place the user visible part
         // on the local being initialized with the lambda.
         syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             expressionColon.GetLocation(),
             styleOption.Notification,

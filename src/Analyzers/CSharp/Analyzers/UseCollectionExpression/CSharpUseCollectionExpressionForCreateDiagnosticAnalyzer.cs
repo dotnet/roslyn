@@ -29,7 +29,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         var cancellationToken = context.CancellationToken;
 
         // no point in analyzing if the option is off.
-        var option = context.GetAnalyzerOptions().PreferCollectionExpression;
+        var option = context.GetAnalyzerOptions(this).PreferCollectionExpression;
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
@@ -49,6 +49,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         var properties = GetDiagnosticProperties(unwrapArgument, useSpread, changesSemantics);
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
+            this,
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
@@ -63,6 +64,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             invocationExpression.ArgumentList.CloseParenToken.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            this,
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),

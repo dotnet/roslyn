@@ -616,6 +616,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     // Most of the members should have a single location, except for partial methods.
                     // We report the diagnostic on the first location of the member.
                     symbolEndContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        _analyzer,
                         rule,
                         diagnosticLocation,
                         NotificationOption2.ForSeverity(rule.DefaultSeverity),
