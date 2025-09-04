@@ -10,7 +10,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Roslyn.LanguageServer.Protocol;
 
@@ -60,8 +59,7 @@ internal sealed class SumConverter : JsonConverterFactory
                 var declaredConstructor = typeInfo.GetConstructor([parameterType]) ??
                     throw new ArgumentException(nameof(sumTypeType), "All constructor parameter types must be represented in the generic type arguments of the SumType");
 
-                var kindAttribute = parameterType.GetCustomAttribute<KindAttribute>();
-                var unionTypeInfo = new UnionTypeInfo(parameterType, declaredConstructor, kindAttribute);
+                var unionTypeInfo = new UnionTypeInfo(parameterType, declaredConstructor);
                 allUnionTypeInfosSet.Add(unionTypeInfo);
 
                 if (parameterTypeInfo.IsPrimitive ||
@@ -88,16 +86,7 @@ internal sealed class SumConverter : JsonConverterFactory
             this.allUnionTypeInfos = allUnionTypeInfosSet;
             this.primitiveUnionTypeInfos = primitiveUnionTypeInfosSet ?? EmptyUnionInfos;
             this.arrayUnionTypeInfos = arrayUnionTypeInfosSet ?? EmptyUnionInfos;
-            if ((objectUnionTypeInfosSet?.Count ?? 0) > 1)
-            {
-                // If some types are tagged with a KindAttribute, make sure they are first in the list in order to avoid the wrong type being deserialized
-                this.objectUnionTypeInfos = objectUnionTypeInfosSet.Where(t => t.KindAttribute is not null).Concat(
-                                            objectUnionTypeInfosSet.Where(t => t.KindAttribute is null)).ToList();
-            }
-            else
-            {
-                this.objectUnionTypeInfos = objectUnionTypeInfosSet ?? EmptyUnionInfos;
-            }
+            this.objectUnionTypeInfos = objectUnionTypeInfosSet ?? EmptyUnionInfos;
         }
 
         public IReadOnlyList<UnionTypeInfo> GetApplicableInfos(JsonTokenType startingTokenType)
@@ -116,6 +105,23 @@ internal sealed class SumConverter : JsonConverterFactory
                 _ => this.allUnionTypeInfos,
             };
         }
+
+        public int GetApplicableInfoIndex(Type t)
+        {
+            for (var i = 0; i < this.allUnionTypeInfos.Count; i++)
+            {
+                var unionTypeInfo = this.allUnionTypeInfos[i];
+                if (unionTypeInfo.Type.IsAssignableFrom(t))
+                {
+                    return i;
+                }
+            }
+
+            throw new System.Text.Json.JsonException($"No sum type match for {t.FullName}");
+        }
+
+        public UnionTypeInfo? TryGetTypeInfoFromIndex(int index)
+            => index >= 0 && index < this.allUnionTypeInfos.Count ? this.allUnionTypeInfos[index] : null;
 
         private static Type NormalizeToNonNullable(Type sumTypeType)
         {
@@ -149,11 +155,10 @@ internal sealed class SumConverter : JsonConverterFactory
                                 .SequenceEqual(jsonSerializerDeserializeMethodTypes))
                 .Single();
 
-            public UnionTypeInfo(Type type, ConstructorInfo constructor, KindAttribute? kindAttribute)
+            public UnionTypeInfo(Type type, ConstructorInfo constructor)
             {
                 this.Type = type ?? throw new ArgumentNullException(nameof(type));
                 this.Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
-                this.KindAttribute = kindAttribute;
 
                 var param1 = Expression.Parameter(typeof(Utf8JsonReader).MakeByRefType(), "reader");
                 var param2 = Expression.Parameter(typeof(JsonSerializerOptions), "options");
@@ -171,8 +176,6 @@ internal sealed class SumConverter : JsonConverterFactory
             public Type Type { get; }
 
             public ConstructorInfo Constructor { get; }
-
-            public KindAttribute? KindAttribute { get; }
 
             public object StjReaderFunction { get; }
         }
@@ -197,62 +200,85 @@ internal sealed class SumConverter<T> : JsonConverter<T>
         // This method works by attempting to deserialize the json into each of the type parameters to a SumType and stops at the first success.
         var sumTypeInfoCache = SumTypeCache.GetOrAdd(objectType, (t) => new SumConverter.SumTypeInfoCache(t));
 
-        var applicableUnionTypeInfos = sumTypeInfoCache.GetApplicableInfos(reader.TokenType);
-        if (applicableUnionTypeInfos.Count > 0)
+        var backupReader = reader;
+        if (reader.TokenType == JsonTokenType.StartObject)
         {
-            var backupReader = reader;
-            if (applicableUnionTypeInfos[0].KindAttribute is { } kindAttribute)
+            // Peek ahead to see if we have there is a discriminator hint to aid in deserialization
+            if (reader.Read()
+                && reader.TokenType == JsonTokenType.PropertyName
+                && GetStringAndCompare(ref reader, "_vs_discriminatorIndex")
+                && reader.Read()
+                && reader.TokenType == JsonTokenType.Number
+                && reader.GetInt16() is short index
+                && reader.Read()
+                && reader.TokenType == JsonTokenType.PropertyName
+                && GetStringAndCompare(ref reader, "_vs_value")
+                && sumTypeInfoCache.TryGetTypeInfoFromIndex(index) is SumConverter.SumTypeInfoCache.UnionTypeInfo unionTypeInfo
+                && reader.Read())
             {
-                using var document = JsonDocument.ParseValue(ref reader);
-                reader = backupReader;
-                if (document.RootElement.TryGetProperty(kindAttribute.KindPropertyName, out var value))
+                if (TryInvokeCtor(ref reader, unionTypeInfo, options) is T result)
                 {
-                    var kind = value.GetString();
-                    for (var i = 0; i < applicableUnionTypeInfos.Count; i++)
-                    {
-                        var unionTypeInfo = applicableUnionTypeInfos[i];
-                        if (unionTypeInfo.KindAttribute == null)
-                        {
-                            throw new JsonException(LanguageServerProtocolResources.NoSumTypeMatch);
-                        }
-
-                        if (unionTypeInfo.KindAttribute.Kind == kind)
-                        {
-                            var result = ((SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<T>)unionTypeInfo.StjReaderFunction).Invoke(ref reader, options);
-                            return result;
-                        }
-                    }
-                }
-            }
-
-            for (var i = 0; i < applicableUnionTypeInfos.Count; i++)
-            {
-                var unionTypeInfo = applicableUnionTypeInfos[i];
-
-                if (!IsTokenCompatibleWithType(ref reader, unionTypeInfo))
-                {
-                    continue;
-                }
-
-                if (unionTypeInfo.KindAttribute != null)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    var result = ((SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<T>)unionTypeInfo.StjReaderFunction).Invoke(ref reader, options);
+                    reader.Read();
                     return result;
                 }
-                catch
-                {
-                    reader = backupReader;
-                    continue;
-                }
             }
+
+            reader = backupReader;
+        }
+
+        var applicableUnionTypeInfos = sumTypeInfoCache.GetApplicableInfos(reader.TokenType);
+        for (var i = 0; i < applicableUnionTypeInfos.Count; i++)
+        {
+            var unionTypeInfo = applicableUnionTypeInfos[i];
+
+            if (TryInvokeCtor(ref reader, unionTypeInfo, options) is T result)
+            {
+                return result;
+            }
+
+            reader = backupReader;
         }
 
         throw new JsonException($"No sum type match for {objectType}");
+
+        static T? TryInvokeCtor(ref Utf8JsonReader reader, SumConverter.SumTypeInfoCache.UnionTypeInfo unionTypeInfo, JsonSerializerOptions options)
+        {
+            if (!IsTokenCompatibleWithType(reader.TokenType, unionTypeInfo.Type))
+            {
+                return null;
+            }
+
+            try
+            {
+                var stjReader = (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<T>)unionTypeInfo.StjReaderFunction;
+                return stjReader.Invoke(ref reader, options);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+
+    private static bool GetStringAndCompare(ref readonly Utf8JsonReader reader, string toCompare)
+    {
+        var valueLength = reader.HasValueSequence ? reader.ValueSequence.Length : reader.ValueSpan.Length;
+        const int MaxStackAllocLen = 64;
+
+        if (valueLength <= MaxStackAllocLen)
+        {
+            Span<char> scratchChars = stackalloc char[(int)valueLength];
+
+            // If the value fits into the scratch buffer, copy it there.
+            var actualLength = reader.CopyString(scratchChars);
+
+            return scratchChars.Slice(0, actualLength).SequenceEqual(toCompare.AsSpan());
+        }
+        else
+        {
+            // Otherwise, ask the reader to allocate a string.
+            return reader.GetString() == toCompare;
+        }
     }
 
     /// <inheritdoc/>
@@ -262,53 +288,75 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
         var sumValue = value.Value;
 
-        // behavior from DocumentUriConverter
-        if (sumValue is DocumentUri documentUri)
+        if (sumValue is null)
         {
-            writer.WriteStringValue(documentUri.UriString);
-            return;
-        }
-        else if (sumValue is Uri)
-        {
-            writer.WriteStringValue(sumValue.ToString());
             return;
         }
 
-        if (sumValue != null)
+        var sumTypeInfoCache = SumTypeCache.GetOrAdd(typeof(T), (t) => new SumConverter.SumTypeInfoCache(t));
+        var discriminatorIndex = sumTypeInfoCache.GetApplicableInfoIndex(sumValue.GetType());
+
+        // Don't bother with the discriminator persistence if it's the first type
+        if (discriminatorIndex == 0)
         {
-            JsonSerializer.Serialize(writer, sumValue, options);
+            SerializeValue(writer, options, sumValue);
+        }
+        else
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("_vs_discriminatorIndex");
+            writer.WriteNumberValue(discriminatorIndex);
+            writer.WritePropertyName("_vs_value");
+
+            SerializeValue(writer, options, sumValue);
+
+            writer.WriteEndObject();
+        }
+
+        static void SerializeValue(Utf8JsonWriter writer, JsonSerializerOptions options, object sumValue)
+        {
+            // behavior from DocumentUriConverter
+            if (sumValue is DocumentUri documentUri)
+            {
+                writer.WriteStringValue(documentUri.UriString);
+            }
+            else if (sumValue is Uri)
+            {
+                writer.WriteStringValue(sumValue.ToString());
+            }
+            else if (sumValue != null)
+            {
+                JsonSerializer.Serialize(writer, sumValue, options);
+            }
         }
     }
 
-    private static bool IsTokenCompatibleWithType(ref Utf8JsonReader reader, SumConverter.SumTypeInfoCache.UnionTypeInfo unionTypeInfo)
+    private static bool IsTokenCompatibleWithType(JsonTokenType tokenType, Type type)
     {
-        var isCompatible = true;
-        switch (reader.TokenType)
+        if (tokenType == JsonTokenType.Number && type.IsEnum)
         {
-            case JsonTokenType.True:
-            case JsonTokenType.False:
-                isCompatible = unionTypeInfo.Type == typeof(bool);
-                break;
-            case JsonTokenType.Number:
-                isCompatible = unionTypeInfo.Type == typeof(int) ||
-                               unionTypeInfo.Type == typeof(uint) ||
-                               unionTypeInfo.Type == typeof(long) ||
-                               unionTypeInfo.Type == typeof(ulong) ||
-                               unionTypeInfo.Type == typeof(short) ||
-                               unionTypeInfo.Type == typeof(ushort) ||
-                               unionTypeInfo.Type == typeof(byte) ||
-                               unionTypeInfo.Type == typeof(sbyte) ||
-                               unionTypeInfo.Type == typeof(double) ||
-                               unionTypeInfo.Type == typeof(float);
-                break;
-            case JsonTokenType.String:
-                isCompatible = unionTypeInfo.Type == typeof(string) ||
-                               unionTypeInfo.Type == typeof(Uri) ||
-                               unionTypeInfo.Type == typeof(DocumentUri) ||
-                               typeof(IStringEnum).IsAssignableFrom(unionTypeInfo.Type);
-                break;
+            System.Diagnostics.Debug.Assert(false);
         }
 
-        return isCompatible;
+        return tokenType switch
+        {
+            JsonTokenType.True or JsonTokenType.False
+                => type == typeof(bool),
+            JsonTokenType.Number
+                => type == typeof(int) ||
+                   type == typeof(uint) ||
+                   type == typeof(long) ||
+                   type == typeof(ulong) ||
+                   type == typeof(short) ||
+                   type == typeof(ushort) ||
+                   type == typeof(byte) ||
+                   type == typeof(sbyte) ||
+                   type == typeof(double) ||
+                   type == typeof(float),
+            JsonTokenType.String
+                => type == typeof(string) ||
+                   typeof(IStringEnum).IsAssignableFrom(type),
+            _ => true
+        };
     }
 }

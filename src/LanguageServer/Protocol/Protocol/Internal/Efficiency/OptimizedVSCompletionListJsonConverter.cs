@@ -116,25 +116,20 @@ internal sealed class OptimizedVSCompletionListJsonConverter : JsonConverter<Opt
                 JsonSerializer.Serialize(writer, vsCompletionItem.Description, options);
             }
 
-            if (vsCompletionItem.VsCommitCharacters?.Value is string[] basicCommitCharacters
-                && basicCommitCharacters.Length > 0)
+            var vsCommitChars = vsCompletionItem.VsCommitCharacters?.Value;
+            object? key = vsCommitChars switch
             {
-                if (!itemRawJsonCache.TryGetValue(basicCommitCharacters, out var jsonString))
-                {
-                    jsonString = JsonSerializer.Serialize(basicCommitCharacters, options);
-                    itemRawJsonCache.Add(basicCommitCharacters, jsonString);
-                }
+                string[] { Length: > 0 } => vsCommitChars,
+                VSInternalCommitCharacter[] { Length: > 0 } => vsCommitChars,
+                _ => null
+            };
 
-                writer.WritePropertyName(VSInternalCompletionItem.VsCommitCharactersSerializedName);
-                writer.WriteRawValue(jsonString);
-            }
-            else if (vsCompletionItem.VsCommitCharacters?.Value is VSInternalCommitCharacter[] augmentedCommitCharacters
-                && augmentedCommitCharacters.Length > 0)
+            if (key is not null)
             {
-                if (!itemRawJsonCache.TryGetValue(augmentedCommitCharacters, out var jsonString))
+                if (!itemRawJsonCache.TryGetValue(key, out var jsonString))
                 {
-                    jsonString = JsonSerializer.Serialize(augmentedCommitCharacters, options);
-                    itemRawJsonCache.Add(augmentedCommitCharacters, jsonString);
+                    jsonString = JsonSerializer.Serialize(vsCompletionItem.VsCommitCharacters, options);
+                    itemRawJsonCache.Add(key, jsonString);
                 }
 
                 writer.WritePropertyName(VSInternalCompletionItem.VsCommitCharactersSerializedName);

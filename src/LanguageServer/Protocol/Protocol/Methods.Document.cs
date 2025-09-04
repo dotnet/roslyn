@@ -145,7 +145,7 @@ partial class Methods
     /// Strongly typed message object for 'textDocument/documentSymbol'.
     /// </summary>
 #pragma warning disable CS0618 // SymbolInformation is obsolete but this property is not
-    public static readonly LspRequest<DocumentSymbolParams, SumType<SymbolInformation[], DocumentSymbol[]>?> TextDocumentDocumentSymbol = new(TextDocumentDocumentSymbolName);
+    public static readonly LspRequest<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?> TextDocumentDocumentSymbol = new(TextDocumentDocumentSymbolName);
 #pragma warning restore CS0618
 
     /// <summary>
