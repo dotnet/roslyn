@@ -120,6 +120,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 throw new Exception($"BuildHost process exited immediately with {process.ExitCode}");
             }
 
+            await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_globalMSBuildProperties, _binaryLogPathProvider?.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
+
             if (buildHostKind != BuildHostProcessKind.NetCore
                 || projectOrSolutionFilePath is null
                 || dotnetPath is not null)
@@ -164,7 +166,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 #endif
     }
 
-    internal ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind, string pipeName, string? dotnetPath)
+    internal static ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind, string pipeName, string? dotnetPath)
     {
         return buildHostKind switch
         {
@@ -219,7 +221,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             await process.DisposeAsync().ConfigureAwait(false);
     }
 
-    private ProcessStartInfo CreateDotNetCoreBuildHostStartInfo(string pipeName, string? dotnetPath)
+    private static ProcessStartInfo CreateDotNetCoreBuildHostStartInfo(string pipeName, string? dotnetPath)
     {
         var processStartInfo = new ProcessStartInfo()
         {
@@ -236,7 +238,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AddArgument(processStartInfo, netCoreBuildHostPath);
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -246,7 +248,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return GetBuildHostPath("BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
     }
 
-    private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo(string pipeName)
+    private static ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo(string pipeName)
     {
         var netFrameworkBuildHost = GetDotNetFrameworkBuildHostPath();
         var processStartInfo = new ProcessStartInfo()
@@ -254,12 +256,12 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             FileName = netFrameworkBuildHost,
         };
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
 
-    private ProcessStartInfo CreateMonoBuildHostStartInfo(string pipeName)
+    private static ProcessStartInfo CreateMonoBuildHostStartInfo(string pipeName)
     {
         var processStartInfo = new ProcessStartInfo
         {
@@ -268,7 +270,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         AddArgument(processStartInfo, GetDotNetFrameworkBuildHostPath());
 
-        AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo, pipeName);
+        AppendBuildHostCommandLineArgumentsAndConfigureProcess(processStartInfo, pipeName);
 
         return processStartInfo;
     }
@@ -305,22 +307,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         return buildHostPath;
     }
 
-    private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
+    private static void AppendBuildHostCommandLineArgumentsAndConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
     {
         AddArgument(processStartInfo, "--pipe");
         AddArgument(processStartInfo, pipeName);
-
-        foreach (var globalMSBuildProperty in _globalMSBuildProperties)
-        {
-            AddArgument(processStartInfo, "--property");
-            AddArgument(processStartInfo, globalMSBuildProperty.Key + '=' + globalMSBuildProperty.Value);
-        }
-
-        if (_binaryLogPathProvider?.GetNewLogPath() is string binaryLogPath)
-        {
-            AddArgument(processStartInfo, "--binlog");
-            AddArgument(processStartInfo, binaryLogPath);
-        }
 
         AddArgument(processStartInfo, "--locale");
         AddArgument(processStartInfo, System.Globalization.CultureInfo.CurrentUICulture.Name);
