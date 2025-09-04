@@ -4464,8 +4464,7 @@ partial class B
             public bool RegisterCompilationActionInvoked { get; private set; }
             public bool RegisterOperationActionInvoked { get; private set; }
             public bool RegisterOperationBlockActionInvoked { get; private set; }
-            public bool RegisterOperationBlockStartInvoked { get; private set; }
-            public bool RegisterSemanticModelInvoked { get; private set; }
+            public bool RegisterSemanticModelActionInvoked { get; private set; }
             public bool RegisterSymbolActionInvoked { get; private set; }
             public bool RegisterSyntaxNodeActionInvoked { get; private set; }
             public bool RegisterSyntaxTreeActionInvoked { get; private set; }
@@ -4485,7 +4484,7 @@ partial class B
                 context.RegisterCompilationAction(context => { Assert.Same(_customOptions, context.Options); RegisterCompilationActionInvoked = true; });
                 context.RegisterOperationAction(context => { Assert.Same(_customOptions, context.Options); RegisterOperationActionInvoked = true; }, OperationKind.Block);
                 context.RegisterOperationBlockAction(context => { Assert.Same(_customOptions, context.Options); RegisterOperationBlockActionInvoked = true; });
-                context.RegisterSemanticModelAction(context => { Assert.Same(_customOptions, context.Options); RegisterSemanticModelInvoked = true; });
+                context.RegisterSemanticModelAction(context => { Assert.Same(_customOptions, context.Options); RegisterSemanticModelActionInvoked = true; });
                 context.RegisterSymbolAction(context => { Assert.Same(_customOptions, context.Options); RegisterSymbolActionInvoked = true; }, SymbolKind.NamedType);
                 context.RegisterSyntaxNodeAction(context => { Assert.Same(_customOptions, context.Options); RegisterSyntaxNodeActionInvoked = true; }, SyntaxKind.ClassDeclaration);
                 context.RegisterSyntaxTreeAction(context => { Assert.Same(_customOptions, context.Options); RegisterSyntaxTreeActionInvoked = true; });
@@ -4548,6 +4547,7 @@ partial class B
             var additionalText = new InMemoryAdditionalText("path", "content");
             var sharedOptions = new AnalyzerOptions([additionalText]);
             var customOptions = new AnalyzerOptions([additionalText]);
+            Assert.NotSame(sharedOptions, customOptions);
 
             var analyzer = new OptionsOverrideDiagnosticAnalyzer(customOptions);
 
@@ -4559,7 +4559,7 @@ partial class B
                     _ => customOptions));
 
             var diagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
-            Assert.Empty(diagnostics);
+            Assert.Single(diagnostics);
 
             Assert.True(analyzer.RegisterAdditionalFileActionInvoked);
 
@@ -4569,8 +4569,7 @@ partial class B
             Assert.True(analyzer.RegisterCompilationActionInvoked);
             Assert.True(analyzer.RegisterOperationActionInvoked);
             Assert.True(analyzer.RegisterOperationBlockActionInvoked);
-            Assert.True(analyzer.RegisterOperationBlockStartInvoked);
-            Assert.True(analyzer.RegisterSemanticModelInvoked);
+            Assert.True(analyzer.RegisterSemanticModelActionInvoked);
             Assert.True(analyzer.RegisterSymbolActionInvoked);
             Assert.True(analyzer.RegisterSyntaxNodeActionInvoked);
             Assert.True(analyzer.RegisterSyntaxTreeActionInvoked);
