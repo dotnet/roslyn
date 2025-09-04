@@ -32,7 +32,7 @@ internal abstract class ExportProviderBuilder(
     protected string CacheDirectory { get; } = cacheDirectory;
     protected string CatalogPrefix { get; } = catalogPrefix;
 
-    protected abstract void LogError(string message);
+    protected abstract void LogError(string message, Exception exception);
     protected abstract void LogTrace(string message);
 
     protected virtual async Task<ExportProvider> CreateExportProviderAsync(CancellationToken cancellationToken)
@@ -69,7 +69,7 @@ internal abstract class ExportProviderBuilder(
         catch (Exception ex)
         {
             // Log the error, and move on to recover by recreating the MEF composition.
-            LogError($"Loading cached MEF composition failed: {ex}");
+            LogError("Loading cached MEF composition failed", ex);
         }
 
         LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", AssemblyPaths)}.");
@@ -165,7 +165,7 @@ internal abstract class ExportProviderBuilder(
         }
         catch (Exception ex)
         {
-            LogError($"Failed to save MEF cache: {ex}");
+            LogError("Failed to save MEF cache", ex);
         }
     }
 
@@ -191,11 +191,11 @@ internal abstract class ExportProviderBuilder(
         foreach (var exception in catalog.DiscoveredParts.DiscoveryErrors)
         {
             hasErrors = true;
-            LogError($"Encountered exception in the MEF composition: {exception.Message}");
+            LogError("Encountered exception in the MEF composition", exception);
         }
 
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
-        var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? [];
+        var erroredParts = configuration.CompositionErrors.SelectMany(c => c).SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name);
 
         if (ContainsUnexpectedErrors(erroredParts))
         {
@@ -208,7 +208,7 @@ internal abstract class ExportProviderBuilder(
             catch (CompositionFailedException ex)
             {
                 // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-                LogError($"Encountered errors in the MEF composition: {ex.Message}{Environment.NewLine}{ex.ErrorsAsString}");
+                LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}", ex);
             }
         }
 

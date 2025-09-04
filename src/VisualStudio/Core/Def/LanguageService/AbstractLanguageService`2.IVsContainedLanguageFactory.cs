@@ -61,7 +61,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             return null;
         }
 
-        return this.Workspace.GetProjectWithHierarchyAndName(hierarchy, projectName);
+        return this.Workspace.Value.GetProjectWithHierarchyAndName(hierarchy, projectName);
     }
 
     public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, out IVsContainedLanguage language)
