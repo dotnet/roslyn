@@ -1070,7 +1070,7 @@ partial struct C
                 """;
 
             CreateCompilation([source, ExtendedLayoutAttribute]).VerifyDiagnostics(
-                // (2,2): error CS9318: The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.
+                // (2,2): error CS9332: The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.
                 // [ExtendedLayout(ExtendedLayoutKind.CStruct)]
                 Diagnostic(ErrorCode.ERR_InvalidExtendedLayoutAttribute, "ExtendedLayout").WithLocation(2, 2));
         }
