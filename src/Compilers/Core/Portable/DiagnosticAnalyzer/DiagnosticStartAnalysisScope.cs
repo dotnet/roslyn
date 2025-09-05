@@ -215,6 +215,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
             return compilationAnalysisValueProvider.TryGetValue(key, out value);
         }
+
+        public AnalyzerCompilationStartAnalysisContext WithOptions(AnalyzerOptions options)
+            => this.Options == options
+                ? this
+                : new(_scope, this.Compilation, options, _compilationAnalysisValueProviderFactory, this.CancellationToken);
     }
 
     /// <summary>
@@ -279,6 +284,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
             _scope.RegisterOperationAction(action, operationKinds);
         }
+
+        public AnalyzerSymbolStartAnalysisContext WithOptions(AnalyzerOptions analyzerOptions)
+            => this.Options == analyzerOptions
+                ? this
+                : new(_scope, this.Symbol, this.Compilation, analyzerOptions, this.IsGeneratedCode, this.FilterTree, this.FilterSpan, this.CancellationToken);
     }
 
     /// <summary>

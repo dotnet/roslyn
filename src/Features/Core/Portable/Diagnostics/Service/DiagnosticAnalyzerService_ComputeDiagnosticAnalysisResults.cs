@@ -23,7 +23,7 @@ internal sealed partial class DiagnosticAnalyzerService
     /// from cache or by calculating them.
     /// </summary>
     private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsInProcessAsync(
-        CompilationWithAnalyzersPair? compilationWithAnalyzers,
+        CompilationWithAnalyzers? compilationWithAnalyzers,
         Project project,
         ImmutableArray<DocumentDiagnosticAnalyzer> analyzers,
         CancellationToken cancellationToken)
@@ -93,8 +93,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 var result = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
 
                 // can be null if given project doesn't support compilation.
-                if (compilationWithAnalyzers?.ProjectAnalyzers.Length > 0
-                    || compilationWithAnalyzers?.HostAnalyzers.Length > 0)
+                if (compilationWithAnalyzers?.Analyzers.Length > 0)
                 {
                     // calculate regular diagnostic analyzers diagnostics
                     var resultMap = await this.AnalyzeInProcessAsync(
@@ -121,7 +120,7 @@ internal sealed partial class DiagnosticAnalyzerService
         {
             try
             {
-                var compilation = compilationWithAnalyzers?.HostCompilation;
+                var compilation = compilationWithAnalyzers?.Compilation;
 
                 foreach (var documentAnalyzer in ideAnalyzers)
                 {

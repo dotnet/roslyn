@@ -51,6 +51,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? _analyzerExecutionTimeMap;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
 
+        /// <summary>
+        /// Cache of analyzer to analyzer specific options.  If <see langword="null"/> there are no specific
+        /// options, and the shared options should be used for all analyzers.  This is the common case, which
+        /// means we don't pay for the extra indirection of a dictionary lookup normally.
+        /// <para/>
+        /// Note: this map is generated 
+        /// at construction time, and is unchanging after that point.  So it can be safely read from multiple
+        /// threads without need for locks.
+        /// </summary>
+        private readonly Dictionary<DiagnosticAnalyzer, AnalyzerOptions>? _analyzerToCachedOptions;
+
         private Func<IOperation, ControlFlowGraph>? _lazyGetControlFlowGraph;
 
         private ConcurrentDictionary<IOperation, ControlFlowGraph>? _lazyControlFlowGraphMap;
@@ -79,6 +90,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         /// <param name="isCompilerAnalyzer">Delegate to determine if the given analyzer is compiler analyzer. 
         /// We need to special case the compiler analyzer at few places for performance reasons.</param>
+        /// <param name="analyzerSpecificOptionsFactory">Optional callback to allow individual configuration options
+        /// on a per analyzer basis.</param>
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
         /// <param name="getAnalyzerGate">
         /// Delegate to fetch the gate object to guard all callbacks into the analyzer.
@@ -102,6 +115,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
+            Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
@@ -122,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerExecutionTimeMap = logExecutionTime ? new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>() : null;
 
             return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnostic, onAnalyzerException, analyzerExceptionFilter,
-                isCompilerAnalyzer, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
+                isCompilerAnalyzer, diagnosticAnalyzers, analyzerSpecificOptionsFactory, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
                 isAnalyzerSuppressedForTree, getAnalyzerGate, getSemanticModel, severityFilter, analyzerExecutionTimeMap, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic,
                 addSuppression);
         }
@@ -134,6 +149,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
+            Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
@@ -167,6 +184,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _addSuppression = addSuppression;
 
             _compilationAnalysisValueProviderFactory = new CompilationAnalysisValueProviderFactory();
+
+            if (analyzerSpecificOptionsFactory != null)
+            {
+                var hasDifferentOptions = false;
+
+                var map = new Dictionary<DiagnosticAnalyzer, AnalyzerOptions>(ReferenceEqualityComparer.Instance);
+
+                // Deduping map for the distinct AnalyzerConfigOptionsProvider we get back from analyzerSpecificOptionsFactory
+                var optionsProviderToOptions = new Dictionary<AnalyzerConfigOptionsProvider, AnalyzerOptions>(ReferenceEqualityComparer.Instance);
+
+                foreach (var analyzer in diagnosticAnalyzers)
+                {
+                    var specificOptionsProvider = analyzerSpecificOptionsFactory(analyzer);
+                    var specificOptions = optionsProviderToOptions.GetOrAdd(
+                        specificOptionsProvider, () => analyzerOptions.WithAnalyzerConfigOptionsProvider(specificOptionsProvider));
+                    map[analyzer] = specificOptions;
+
+                    if (specificOptions != analyzerOptions)
+                        hasDifferentOptions = true;
+                }
+
+                // Only if there is at least one analyzer with specific options, we need to maintain the map.
+                // Otherwise, we can just toss it and use the shared options for all analyzers.
+                if (hasDifferentOptions)
+                    _analyzerToCachedOptions = map;
+            }
         }
 
         internal Compilation Compilation { get; }
@@ -218,13 +261,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ExecuteCompilationStartActions(ImmutableArray<CompilationStartAnalyzerAction> actions, HostCompilationStartAnalysisScope compilationScope, CancellationToken cancellationToken)
         {
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions.
+            // can use the same instance across all actions as long as the same options are picked for each analyzer.
             var context = new AnalyzerCompilationStartAnalysisContext(compilationScope,
                 Compilation, AnalyzerOptions, _compilationAnalysisValueProviderFactory, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation);
 
             foreach (var startAction in actions)
             {
+                // See if we need to use an analyzer specific options instance.
+                context = WithAnalyzerSpecificOptions(
+                    context, startAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
                     static data => data.startAction.Action(data.context),
@@ -233,6 +280,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     cancellationToken);
             }
         }
+
+        private TAnalysisContext WithAnalyzerSpecificOptions<TAnalysisContext>(
+            TAnalysisContext context,
+            DiagnosticAnalyzer analyzer,
+            Func<TAnalysisContext, AnalyzerOptions, TAnalysisContext> withOptions)
+        {
+            // No specific options factory.  Can use the shared context.
+            if (_analyzerToCachedOptions is null)
+                return context;
+
+            return withOptions(context, GetAnalyzerSpecificOptions(analyzer));
+        }
+
+        /// <summary>
+        /// Given an analyzer, returns any specific options for it, or the shared options if none.
+        /// </summary>
+        private AnalyzerOptions GetAnalyzerSpecificOptions(DiagnosticAnalyzer analyzer)
+            => _analyzerToCachedOptions?[analyzer] ?? AnalyzerOptions;
 
         /// <summary>
         /// Executes the symbol start actions.
@@ -258,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions.
+            // can use the same instance across all actions (as long as the options stay the same per analyzer).
             var context = new AnalyzerSymbolStartAnalysisContext(symbolScope,
                 symbol, Compilation, AnalyzerOptions, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation, symbol);
@@ -266,6 +331,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var startAction in actions)
             {
                 Debug.Assert(startAction.Analyzer == symbolScope.Analyzer);
+
+                // See if we need to use an analyzer specific options instance.
+                context = WithAnalyzerSpecificOptions(
+                    context, startAction.Analyzer, static (context, options) => context.WithOptions(options));
 
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
@@ -300,7 +369,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 supportedSuppressions,
                 out Func<SuppressionDescriptor, bool> isSupportedSuppression);
 
-            var context = new SuppressionAnalysisContext(Compilation, AnalyzerOptions,
+            var options = GetAnalyzerSpecificOptions(suppressor);
+            var context = new SuppressionAnalysisContext(Compilation, options,
                 reportedDiagnostics, _addSuppression, isSupportedSuppression, _getSemanticModel, cancellationToken);
 
             ExecuteAndCatchIfThrows(
@@ -334,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions.
+            // can use the same instance across all actions, as long as the options stay the same per analyzer.
             var context = new CompilationAnalysisContext(
                 Compilation, AnalyzerOptions, addDiagnostic,
                 isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, cancellationToken);
@@ -342,6 +412,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var endAction in compilationActions)
             {
+                // See if we need to use an analyzer specific options instance.
+                context = WithAnalyzerSpecificOptions(
+                    context, endAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                 ExecuteAndCatchIfThrows(
                     endAction.Analyzer,
                     static data => data.endAction.Action(data.context),
@@ -388,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions.
+            // can use the same instance across all actions, unless the options change per analyzer.
             var context = new SymbolAnalysisContext(
                 symbol, Compilation, AnalyzerOptions, addDiagnostic,
                 isSupportedDiagnostic, isGeneratedCodeSymbol, filterTree,
@@ -401,6 +475,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (symbolAction.Kinds.Contains(symbol.Kind))
                 {
+                    context = WithAnalyzerSpecificOptions(
+                        context, symbolAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                     ExecuteAndCatchIfThrows(
                         symbolAction.Analyzer,
                         static data => data.symbolAction.Action(data.context),
@@ -498,13 +575,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions.
+            // can use the same instance across all actions, as long as the options stay the same.
             var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
                 isSupportedDiagnostic, isGeneratedCode, filterTree, filterSpan, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
             foreach (var symbolAction in symbolEndActions)
             {
+                context = WithAnalyzerSpecificOptions(
+                    context, symbolAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                 ExecuteAndCatchIfThrows(
                     symbolAction.Analyzer,
                     static data => data.symbolAction.Action(data.context),
@@ -547,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions.
+            // can use the same instance across all actions, unless the options change per analyzer.
             var context = new SemanticModelAnalysisContext(
                 semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
                 isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
@@ -555,6 +635,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var semanticModelAction in semanticModelActions)
             {
+                context = WithAnalyzerSpecificOptions(
+                    context, semanticModelAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                 ExecuteAndCatchIfThrows(
                     semanticModelAction.Analyzer,
                     static data => data.semanticModelAction.Action(data.context),
@@ -600,7 +683,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions.
+            // can use the same instance across all actions, unless the options change per analyzer.
             var context = new SyntaxTreeAnalysisContext(
                 tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
                 Compilation, filterSpan, isGeneratedCode, cancellationToken);
@@ -608,6 +691,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var syntaxTreeAction in syntaxTreeActions)
             {
+                context = WithAnalyzerSpecificOptions(
+                    context, syntaxTreeAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                 ExecuteAndCatchIfThrows(
                     syntaxTreeAction.Analyzer,
                     static data => data.syntaxTreeAction.Action(data.context),
@@ -645,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions.
+            // can use the same instance across all actions, unless the options change per analyzer.
             var context = new AdditionalFileAnalysisContext(
                 additionalFile, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
                 Compilation, filterSpan, cancellationToken);
@@ -653,6 +739,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var additionalFileAction in additionalFileActions)
             {
+                context = WithAnalyzerSpecificOptions(
+                    context, additionalFileAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                 ExecuteAndCatchIfThrows(
                     additionalFileAction.Analyzer,
                     static data => data.additionalFileAction.Action(data.context),
@@ -676,8 +765,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!executionData.IsGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(syntaxNodeAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(syntaxNodeAction.Analyzer, node.SyntaxTree, cancellationToken));
 
+            var options = GetAnalyzerSpecificOptions(syntaxNodeAction.Analyzer);
             var syntaxNodeContext = new SyntaxNodeAnalysisContext(
-                node, executionData.DeclaredSymbol, executionData.SemanticModel, AnalyzerOptions, addDiagnostic,
+                node, executionData.DeclaredSymbol, executionData.SemanticModel, options, addDiagnostic,
                 isSupportedDiagnostic, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
             ExecuteAndCatchIfThrows(
@@ -699,9 +789,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!executionData.IsGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(operationAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(operationAction.Analyzer, executionData.SemanticModel.SyntaxTree, cancellationToken));
 
+            var options = GetAnalyzerSpecificOptions(operationAction.Analyzer);
             var operationContext = new OperationAnalysisContext(
                 operation, executionData.DeclaredSymbol, executionData.SemanticModel.Compilation,
-                AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph,
+                options, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph,
                 executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
             ExecuteAndCatchIfThrows(
@@ -759,9 +850,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var (@this, startActions, executableCodeBlocks, declaredNode, getKind, ephemeralActions) = args;
 
                     var scope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>(startAction.Analyzer);
+                    var options = @this.GetAnalyzerSpecificOptions(startAction.Analyzer);
                     var startContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(
                         scope, declaredNode, executionData.DeclaredSymbol, executionData.SemanticModel,
-                        @this.AnalyzerOptions, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
+                        options, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
                     // Catch Exception from the start action.
                     @this.ExecuteAndCatchIfThrows(
@@ -816,6 +908,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     foreach (var blockAction in blockActions)
                     {
+                        context = @this.WithAnalyzerSpecificOptions(
+                            context, blockAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                         @this.ExecuteAndCatchIfThrows(
                             blockAction.Analyzer,
                             static data => data.blockAction.Action(data.context),
@@ -850,6 +945,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // The actions we discover in 'addActions' and then execute in 'executeActions'.
             var ephemeralActions = ArrayBuilder<OperationAnalyzerAction>.GetInstance();
+
             ExecuteBlockActionsCore(
                 startActions,
                 actions,
@@ -860,8 +956,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var (@this, startActions, declaredNode, operationBlocks, operations, ephemeralActions) = args;
                     var scope = new HostOperationBlockStartAnalysisScope(startAction.Analyzer);
+                    var options = @this.GetAnalyzerSpecificOptions(startAction.Analyzer);
                     var startContext = new AnalyzerOperationBlockStartAnalysisContext(
-                        scope, operationBlocks, executionData.DeclaredSymbol, executionData.SemanticModel.Compilation, @this.AnalyzerOptions,
+                        scope, operationBlocks, executionData.DeclaredSymbol, executionData.SemanticModel.Compilation, options,
                         @this.GetControlFlowGraph, declaredNode.SyntaxTree, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
                     // Catch Exception from the start action.
@@ -897,6 +994,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     foreach (var blockAction in blockActions)
                     {
+                        context = @this.WithAnalyzerSpecificOptions(
+                            context, blockAction.Analyzer, static (context, options) => context.WithOptions(options));
+
                         @this.ExecuteAndCatchIfThrows(
                             blockAction.Analyzer,
                             static data => data.blockAction.Action(data.context),
