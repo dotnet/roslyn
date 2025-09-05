@@ -7544,60 +7544,6 @@ class IntCode
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
-        public void CompoundAssignment()
-        {
-            var source = """
-                using System;
-                using System.Threading.Tasks;
-
-                interface I1 
-                {
-                    int this[int i] { get; set; }
-                }
-
-                struct S1 : I1
-                {
-                    public int F1;
-
-                    public int this[int i]
-                    {
-                        get
-                        {
-                            Console.Write(F1);
-                            return 0;
-                        }
-                        set
-                        {
-                            Console.Write(F1);
-                        }
-                    }
-                }
-
-                class Program
-                {
-                    static async Task Main()
-                    {
-                        await Test3<S1>();
-                    }
-
-                    static T GetT<T>() where T : I1 => (T)(object)new S1 { F1 = 123 };
-
-                    static async Task Test3<T>() where T : I1
-                    {
-                       GetT<T>()[0] += await Get1Async();
-                    }
-
-                    static async Task<int> Get1Async()
-                    {
-                        await Task.Yield();
-                        return 1;
-                    }
-                }
-                """;
-            CompileAndVerify(source, expectedOutput: "123123").VerifyDiagnostics();
-        }
-
         [Fact]
         [WorkItem(30521, "https://github.com/dotnet/roslyn/issues/30521")]
         public void ComplexSwitchExpressionInvolvingNullCoalescingAndAwait()

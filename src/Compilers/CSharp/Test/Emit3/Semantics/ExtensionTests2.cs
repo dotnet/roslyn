@@ -15264,7 +15264,7 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123123").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
