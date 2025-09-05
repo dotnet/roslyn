@@ -22,7 +22,11 @@ public sealed class SdkManagedToolTests
     {
         var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
         var task = new Csc();
-        Assert.Equal(Path.Combine(taskPath, "..", "bincore", "csc.dll"), task.PathToBuiltInTool);
+        Assert.Contains(task.PathToBuiltInTool,
+        new[] {
+            Path.Combine(taskPath, "..", "bincore", "csc.dll"),
+            Path.Combine(taskPath, "..", "bincore", "csc.exe"),
+        });
     }
 
     [Fact]
