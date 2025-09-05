@@ -1253,6 +1253,51 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnReadOnlySpanIfTargetsFormattableStringAndInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                FormattableString M(ReadOnlySpan<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnSpanIfTargetsFormattableStringAndInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+            
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                FormattableString M(Span<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42936")]
     public Task PadLeftSimplificationIsStillOfferedOnRefStruct()
         => TestInRegularAndScriptAsync(
