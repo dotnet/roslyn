@@ -6880,7 +6880,10 @@ static class E
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(7, 9),
             // (9,28): warning CS1574: XML comment has cref attribute 'extension{U}(int).M(U)' that could not be resolved
             //             /// <see cref="extension{U}(int).M(U)"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension{U}(int).M(U)").WithArguments("extension{U}(int).M(U)").WithLocation(9, 28));
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension{U}(int).M(U)").WithArguments("extension{U}(int).M(U)").WithLocation(9, 28),
+            // (10,28): warning CS1574: XML comment has cref attribute 'extension(object).M1()' that could not be resolved
+            //             /// <see cref="extension(object).M1()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(object).M1()").WithArguments("extension(object).M1()").WithLocation(10, 28));
     }
 
     [Fact]
@@ -6932,6 +6935,63 @@ class E
             // (4,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension<T>(int)
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Cref_66()
+    {
+        var src = """
+static class E
+{
+    /// <see cref="extension(int).M{U}(U)"/>
+    extension(int)
+    {
+        /// <see cref="extension(int).M{U}(U)"/>
+        public static void M<T>(T t) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(extension(int).M{U}(U), void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M<U>(U t))",
+            "(extension(int).M{U}(U), void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M<U>(U t))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_67()
+    {
+        var src = """
+static class E
+{
+    extension(int)
+    {
+        public static void M() => throw null!;
+
+        /// <see cref="extension(int).M()"/>
+        class Nested
+        {
+            /// <see cref="extension(int).M()"/>
+            public static void Method() => throw null!;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (7,24): warning CS1574: XML comment has cref attribute 'extension(int).M()' that could not be resolved
+            //         /// <see cref="extension(int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M()").WithArguments("extension(int).M()").WithLocation(7, 24),
+            // (8,15): error CS9282: This member is not allowed in an extension block
+            //         class Nested
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(8, 15),
+            // (10,28): warning CS1574: XML comment has cref attribute 'extension(int).M()' that could not be resolved
+            //             /// <see cref="extension(int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M()").WithArguments("extension(int).M()").WithLocation(10, 28));
     }
 
     [Fact]

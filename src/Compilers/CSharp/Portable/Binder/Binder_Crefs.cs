@@ -290,14 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 ArrayBuilder<Symbol>? sortedSymbolsBuilder = null;
 
-                IEnumerable<NamedTypeSymbol> candidateTypes = containerOpt switch
-                {
-                    null => enumerateCandidateTypes(containerOpt, syntax, diagnostics),
-                    NamedTypeSymbol container => container.GetTypeMembers(""),
-                    _ => []
-                };
-
-                foreach (var nested in candidateTypes)
+                foreach (var nested in candidateTypes(containerOpt))
                 {
                     if (!nested.IsExtension
                         || nested.Arity != extensionArity
@@ -369,36 +362,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return sortedSymbolsBuilder.ToImmutableAndFree();
-            }
 
-            IEnumerable<NamedTypeSymbol> enumerateCandidateTypes(NamespaceOrTypeSymbol? container, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
-            {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                LookupResult result = LookupResult.GetInstance();
-                this.LookupSymbolsOrMembersInternal(
-                    result,
-                    container,
-                    name: "",
-                    arity: 0,
-                    basesBeingResolved: null,
-                    options: LookupOptions.AllNamedTypesOnArityZero | LookupOptions.NamespacesOrTypesOnly,
-                    diagnose: false,
-                    useSiteInfo: ref useSiteInfo);
-
-                diagnostics.Add(syntax, useSiteInfo);
-
-                if (result.IsMultiViable)
+                ImmutableArray<NamedTypeSymbol> candidateTypes(NamespaceOrTypeSymbol? containerOpt)
                 {
-                    foreach (var symbol in result.Symbols)
+                    if (containerOpt is NamedTypeSymbol namedType)
                     {
-                        if (symbol is NamedTypeSymbol namedType)
-                        {
-                            yield return namedType;
-                        }
+                        return namedType.GetTypeMembers("");
                     }
-                }
 
-                result.Free();
+                    NamedTypeSymbol? containingType = ContainingType;
+                    if (containingType is null)
+                    {
+                        return [];
+                    }
+
+                    NamedTypeSymbol? enclosingType = containingType.IsExtension ? containingType.ContainingType : containingType;
+                    return enclosingType?.GetTypeMembers("") ?? [];
+                }
             }
         }
 
