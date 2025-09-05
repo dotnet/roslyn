@@ -7,6 +7,11 @@
         <target state="translated">Solo un inicializador de miembro de objeto puede asignar la propiedad de solo inicio "{0}", o bien en "Me", "MyClass" o "MyBase" en un constructor de instancia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
         <target state="translated">No se puede tener acceso a un miembro de interfaz virtual o abstracto compartido.</target>

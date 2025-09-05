@@ -7,6 +7,11 @@
         <target state="translated">Свойство "{0}", доступное только для инициализации, можно назначать только c помощью инициализатора элемента объекта или для "Me", "MyClass" или "MyBase" в конструкторе экземпляра.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
         <target state="translated">Нет доступа к общему абстрактному или виртуальному элементу интерфейса.</target>
