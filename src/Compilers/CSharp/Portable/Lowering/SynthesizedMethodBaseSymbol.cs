@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
             var parameters = this.BaseMethodParameters;
             var inheritAttributes = InheritsBaseMethodAttributes;
+            var inheritParams = InheritsParams;
             foreach (var p in parameters)
             {
                 builder.Add(SynthesizedParameterSymbol.Create(
@@ -129,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.ExplicitDefaultConstantValue,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
-                    baseParameterForAttributes: inheritAttributes ? p : null));
+                    baseParameterForAttributes: inheritAttributes ? p : null,
+                    isParams: inheritParams && p.IsParams));
             }
 
             var extraSynthed = ExtraSynthesizedRefParameters;
@@ -148,6 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Indicates that this method inherits attributes from the base method, its parameters, return type, and type parameters.
         /// </summary>
         internal virtual bool InheritsBaseMethodAttributes => false;
+
+        protected abstract bool InheritsParams { get; }
 
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {

@@ -19463,6 +19463,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 			int32[] ys
                 		) cil managed 
                 	{
+                		.param [2]
+                			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
+                				01 00 00 00
+                			)
                 		// Method begins at RVA 0x20b0
                 		// Code size 1 (0x1)
                 		.maxstack 8
@@ -19520,6 +19524,10 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 		.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 			01 00 00 00
                 		)
+                		.param [2]
+                			.custom instance void [{{s_libPrefix}}]System.ParamArrayAttribute::.ctor() = (
+                				01 00 00 00
+                			)
                 		// Method begins at RVA 0x2067
                 		// Code size 1 (0x1)
                 		.maxstack 8
