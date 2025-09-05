@@ -81,6 +81,8 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 
     protected override void LogError(string message, Exception exception)
     {
+        Debugger.Launch();
+
         // We'll log just the message to _errorMessages (since that gets displayed to the user in a gold bar), but we'll log the
         // full exception to the logger.
         _errorMessages ??= new StringBuilder();
