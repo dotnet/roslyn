@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
@@ -47,6 +48,8 @@ internal abstract class ExportProviderBuilder(
         return exportProvider;
     }
 
+    private readonly List<Exception> _firstChanceExceptions = new List<Exception>();
+
     private async Task<IExportProviderFactory> GetCompositionConfigurationAsync(CancellationToken cancellationToken)
     {
         // Determine the path to the MEF composition cache file for the given assembly paths.
@@ -74,12 +77,20 @@ internal abstract class ExportProviderBuilder(
 
         LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", AssemblyPaths)}.");
 
+        AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+
         var discovery = PartDiscovery.Combine(
             Resolver,
             new AttributedPartDiscovery(Resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
             new AttributedPartDiscoveryV1(Resolver));
 
         var parts = await discovery.CreatePartsAsync(AssemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
+
+        if (parts.Parts.Count < 900)
+        {
+            System.Diagnostics.Debugger.Launch();
+        }
+
         var catalog = ComposableCatalog.Create(Resolver)
             .AddParts(parts)
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
@@ -96,7 +107,34 @@ internal abstract class ExportProviderBuilder(
         }
 
         // Prepare an ExportProvider factory based on this graph.
-        return config.CreateExportProviderFactory();
+        var exportProviderFactory2 = config.CreateExportProviderFactory();
+
+        AppDomain.CurrentDomain.FirstChanceException -= CurrentDomain_FirstChanceException;
+
+        var exportProvider = exportProviderFactory2.CreateExportProvider();
+
+        try
+        {
+            new AdhocWorkspace(VisualStudioMefHostServices.Create(exportProvider));
+        }
+        catch
+        {
+            System.Diagnostics.Debugger.Launch();
+        }
+
+        GC.KeepAlive(parts);
+        GC.KeepAlive(catalog);
+        GC.KeepAlive(config);
+
+        return exportProviderFactory2;
+    }
+
+    private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    {
+        lock (_firstChanceExceptions)
+        {
+            _firstChanceExceptions.Add(e.Exception);
+        }
     }
 
     /// <summary>
