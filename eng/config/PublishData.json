@@ -188,22 +188,20 @@
       "insertionCreateDraftPR": false
     },
     "community": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
       "vsBranch": "main",
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Validation]"
     },
     "main": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
       "vsBranch": "main",
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[dNext]"
+    },
+    "dev/dibarbet/vs_packages": {
+      "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]",
+      "feed": "vs"
     }
   }
 }
