@@ -5036,6 +5036,86 @@ class Driver
             //     """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
+        public void CompoundAssignment()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                interface I1 
+                {
+                    int this[int i] { get; set; }
+                }
+
+                struct S1 : I1
+                {
+                    public int F1;
+
+                    public int this[int i]
+                    {
+                        get
+                        {
+                            Console.Write(" g" + i);
+                            return 0;
+                        }
+                        set
+                        {
+                            Console.Write(" s" + i + value);
+                        }
+                    }
+                }
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Test3<S1>();
+                    }
+
+                    static T GetT<T>() where T : I1
+                    {
+                        Console.Write(" t");
+                        return (T)(object)new S1 { F1 = 123 };
+                    }
+
+                    static async Task Test3<T>() where T : I1
+                    {
+                        GetT<T>()[Index()] += await Get1Async();
+                    }
+
+                    static async Task<int> Get1Async()
+                    {
+                        Console.Write(" v");
+                        await Task.Yield();
+                        return 1;
+                    }
+
+                    static int Index()
+                    {
+                        Console.Write(" i");
+                        return 2;
+                    }
+                }
+                """;
+            var expectedOutput = "t i g2 v s21";
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (42,31): error CS9328: Method 'Program.Test3<T>()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         GetT<T>()[Index()] += await Get1Async();
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await Get1Async()").WithArguments("Program.Test3<T>()").WithLocation(42, 31),
+                // (42,31): error CS9328: Method 'Program.Test3<T>()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                //         GetT<T>()[Index()] += await Get1Async();
+                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await Get1Async()").WithArguments("Program.Test3<T>()").WithLocation(42, 31));
+
+            // https://github.com/dotnet/roslyn/issues/79763
+            //CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true))
+            //    .VerifyDiagnostics()
+            //    .VerifyIL("Program.Test3", "");
+        }
+
         [Fact]
         public void SpillArrayInitializers1()
         {

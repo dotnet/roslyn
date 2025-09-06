@@ -646,8 +646,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (refKind != RefKind.None && refKind != RefKind.In)
                     {
                         Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.Out);
-                        Debug.Assert(call.Method.RefKind != RefKind.None);
-                        F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
+
+                        if (call.Method.RefKind != RefKind.None)
+                        {
+                            F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
+                        }
                     }
                     // method call is not referentially transparent, we can only spill the result value.
                     refKind = RefKind.None;
