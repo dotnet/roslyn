@@ -14,6 +14,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests_StructLayout
         Inherits BasicTestBase
 
+        Private Const ExtendedLayoutAttribute = "
+            namespace System.Runtime.InteropServices;
+
+            [AttributeUsage(AttributeTargets.Struct)]
+            #pragma warning disable CS9113
+            public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute;
+            #pragma warning restore CS9113
+
+            public enum ExtendedLayoutKind
+            {
+                CStruct,
+                CUnion
+            }
+            "
+
+        Private Const StructLayoutAttributes = "
+            namespace System.Runtime.InteropServices;
+            #pragma warning disable CS9113
+
+            [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
+            public sealed class StructLayoutAttribute(LayoutKind kind): Attribute
+            {
+                public StructLayoutAttribute(ushort kind) : this((LayoutKind)kind){}
+            }
+
+            public enum LayoutKind
+            {
+                Sequential = 0,
+                Extended = 1,
+                Explicit = 2, 
+                Auto = 3
+            }
+
+            [AttributeUsage(AttributeTargets.Field)]
+            public sealed class FieldOffsetAttribute(int offset): Attribute;
+            "
+
         <Fact>
         Public Sub Pack()
             Dim source =
@@ -873,5 +910,161 @@ Structure S
 End Structure
 ]]></file></compilation>, hasInstanceFields:=True)
         End Sub
+
+        <Fact>
+        Public Sub ExtendedLayoutAttribute_ImpliesExtendedLayout()
+            Dim source = <compilation><file><![CDATA[
+                             Imports System.Runtime.InteropServices
+
+                             <ExtendedLayout(ExtendedLayoutKind.CStruct)>
+                                Structure StructureWithExtendedLayout
+                                    Dim f As Integer
+                                End Structure
+]]></file></compilation>
+
+            Dim comp = CreateCompilation(
+                source,
+                New List(Of MetadataReference) From {
+                MinimalCoreLibBuilder.Create(New String() {ExtendedLayoutAttribute}).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
+                },
+                targetFramework:=TargetFramework.Empty)
+            comp.VerifyDiagnostics()
+
+            Dim type = comp.GetTypeByMetadataName("StructureWithExtendedLayout")
+
+            Dim expectedLayout = New TypeLayout(MetadataHelpers.LayoutKindExtended, 0, 0)
+
+            Assert.Equal(expectedLayout, type.Layout)
+        End Sub
+
+        <Fact>
+        Public Sub ExtendedLayoutAttribute_Emit()
+            Dim source = <compilation><file><![CDATA[
+                             Imports System.Runtime.InteropServices
+
+                             <ExtendedLayout(ExtendedLayoutKind.CStruct)>
+                                Structure StructureWithExtendedLayout
+                                    Dim f As Integer
+                                End Structure
+]]></file></compilation>
+
+            CompileAndVerify(
+                source,
+                allReferences:=New List(Of MetadataReference) From {
+                    MinimalCoreLibBuilder.Create(New String() {ExtendedLayoutAttribute}).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
+                },
+                emitOptions:=New CodeAnalysis.Emit.EmitOptions(debugInformationFormat:=CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion:="v4.0.3100.0"),
+                verify:=Verification.Skipped,
+                validator:=
+                Sub(assembly)
+                    Dim reader = assembly.GetMetadataReader()
+                    Dim type = reader.TypeDefinitions _
+                        .Select(Function(handle) reader.GetTypeDefinition(handle)) _
+                        .Where(Function(typeDef) reader.GetString(typeDef.Name) = "StructureWithExtendedLayout") _
+                        .Single()
+                    Assert.Equal(MetadataHelpers.TypeAttributesExtendedLayout, type.Attributes And TypeAttributes.LayoutMask)
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub Explicitly_Specified_LayoutKind_Extended_Errors()
+            Dim source = <compilation><file><![CDATA[
+Imports System.Runtime.InteropServices
+                             
+<StructLayout(DirectCast(1, LayoutKind))>
+Structure C
+Dim f As Integer
+End Structure
+                                
+<StructLayout(DirectCast(1, LayoutKind))>
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure D
+Dim f As Integer
+End Structure
+]]></file></compilation>
+
+            CreateCompilation(
+                source,
+                New List(Of MetadataReference) From {
+                    MinimalCoreLibBuilder.Create(
+                        New String() {ExtendedLayoutAttribute, StructLayoutAttributes}).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
+                },
+                targetFramework:=TargetFramework.Empty).AssertTheseDiagnostics(<![CDATA[
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
+<StructLayout(DirectCast(1, LayoutKind))>
+              ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
+<StructLayout(DirectCast(1, LayoutKind))>
+              ~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ExtendedLayout_OtherLayoutKind_Errors()
+            Dim source = <compilation><file><![CDATA[
+Imports System.Runtime.InteropServices
+                             
+<StructLayout(LayoutKind.Sequential)>
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure C
+Dim f As Integer
+End Structure
+                                
+<StructLayout(LayoutKind.Explicit)>
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure D
+End Structure
+]]></file></compilation>
+
+            CreateCompilation(
+                source,
+                New List(Of MetadataReference) From {
+                MinimalCoreLibBuilder.Create(
+                    New String() {ExtendedLayoutAttribute, StructLayoutAttributes}).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
+                },
+                targetFramework:=TargetFramework.Empty).AssertTheseDiagnostics(<![CDATA[
+BC31220: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+<StructLayout(LayoutKind.Sequential)>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31220: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+<StructLayout(LayoutKind.Explicit)>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ExtendedLayoutAttribute_DefinedInOtherAssembly_Errors()
+            Dim source = <compilation><file><![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    <AttributeUsage(AttributeTargets.Struct, AllowMultiple:=False)>
+    Public NotInheritable Class ExtendedLayoutAttribute
+        Inherits Attribute
+        Public Sub New(layoutKind As ExtendedLayoutKind)
+        End Sub
+    End Class
+
+    Public Enum ExtendedLayoutKind
+        CStruct = 0
+        CUnion = 1
+    End Enum
+
+End Namespace
+                             
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure C
+Dim f As Integer
+End Structure
+
+]]></file></compilation>
+
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
+BC31221: The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
     End Class
 End Namespace
