@@ -54,7 +54,7 @@ namespace $safeprojectname$
             var optionSet = originalSolution.Workspace.Options;
             var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
 
-            // Return the new solution with the now-uppercase type name.
+            // Return the new solution with the now-reversed type name.
             return newSolution;
         }
     }
