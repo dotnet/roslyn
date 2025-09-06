@@ -1009,9 +1009,6 @@ public sealed class FileModifierParsingTests : ParsingTests
             // (3,21): error CS0106: The modifier 'file' is not valid for this item
             //     async file void M() { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("file").WithLocation(3, 21),
-            // (3,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //     async file void M() { }
-            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(3, 21)
         });
         N(SyntaxKind.CompilationUnit);
         {
