@@ -6,6 +6,7 @@
 
 using System;
 using System.IO;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -55,5 +56,44 @@ namespace Microsoft.CodeAnalysis
 
             return null;
         }
+
+        /// <summary>
+        /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
+        /// in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
+        /// this will return simply "dotnet".
+        /// </summary>
+        internal static string GetDotNetPathOrDefault()
+        {
+            if (GetDotNetHostPath() is { } pathToDotNet)
+            {
+                return pathToDotNet;
+            }
+
+            var (fileName, sep) = PlatformInformation.IsWindows
+                ? ("dotnet.exe", new char[] { ';' })
+                : ("dotnet", new char[] { ':' });
+
+            var path = Environment.GetEnvironmentVariable("PATH") ?? "";
+            foreach (var item in path.Split(sep, StringSplitOptions.RemoveEmptyEntries))
+            {
+                try
+                {
+                    var filePath = Path.Combine(item, fileName);
+                    if (File.Exists(filePath))
+                    {
+                        return filePath;
+                    }
+                }
+                catch
+                {
+                    // If we can't read a directory for any reason just skip it
+                }
+            }
+
+            return fileName;
+        }
+
+        internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>
+            $@"exec ""{toolFilePath}"" {commandLineArguments}";
     }
 }
