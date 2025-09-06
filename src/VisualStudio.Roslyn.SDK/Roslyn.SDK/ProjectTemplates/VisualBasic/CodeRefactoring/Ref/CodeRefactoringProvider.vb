@@ -50,7 +50,7 @@ Friend Class $saferootidentifiername$CodeRefactoringProvider
         Dim optionSet = originalSolution.Workspace.Options
         Dim newSolution = Await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken).ConfigureAwait(False)
 
-        ' Return the new solution with the now-uppercase type name.
+        ' Return the new solution with the now-reversed type name.
         Return newSolution
     End Function
 End Class
