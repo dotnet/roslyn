@@ -304,5 +304,11 @@ namespace Microsoft.CodeAnalysis
         /// Returns <see langword="true"/> if this method is a source method implemented as an iterator (either sync or async)
         /// </summary>
         bool IsIterator { get; }
+
+        /// <summary>
+        /// For a method definition in an extension block, returns the corresponding implementation method if one exists.
+        /// Returns null otherwise.
+        /// </summary>
+        IMethodSymbol? TryGetCorrespondingExtensionImplementationMethod();
     }
 }

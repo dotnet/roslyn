@@ -4,6 +4,7 @@
 
 Imports System.Globalization
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -2473,6 +2474,22 @@ End Class"))
 
             VerifySyntax(Of FieldDeclarationSyntax)(Generator.Declaration(field),
                 "Public Const MaxValue As System.UInt32 = 4294967295UI")
+        End Sub
+
+        <Fact>
+        Public Sub TestExtensionBlock_01()
+            Dim code = "
+static class E
+{
+    extension(int)
+    {
+        public void M() { }
+    }
+}
+"
+            Dim compilation = CSharpCompilation.Create("test").AddReferences(NetFramework.mscorlib).AddSyntaxTrees(CSharp.SyntaxFactory.ParseSyntaxTree(code))
+            Dim e = compilation.GlobalNamespace.GetTypeMembers("E").Single()
+            Assert.Throws(Of NotSupportedException)(Sub() Generator.Declaration(e))
         End Sub
 
 #End Region

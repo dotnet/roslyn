@@ -115,4 +115,7 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
 
     public DllImportData GetDllImportData()
         => null;
+
+    public IMethodSymbol TryGetCorrespondingExtensionImplementationMethod()
+        => null;
 }
