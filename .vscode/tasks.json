@@ -37,6 +37,42 @@
     "args": [
       "test"
     ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build current project",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+          "pwsh",
+          "-noprofile",
+          "${workspaceFolder}/scripts/vscode-build.ps1",
+          "-filePath",
+          "${file}",
+          "-msbuildEngine",
+          "dotnet"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build toolset",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+          "build",
+          "-p:InnerTargets=CopyFilesForDebugging",
+          "-p:GenerateFullPaths=true",
+          "${workspaceFolder}/src/NuGet/Microsoft.Net.Compilers.Toolset/AnyCpu/Microsoft.Net.Compilers.Toolset.Package.csproj"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "msbuild current project",
+        "type": "shell",
+        "command": "echo 'Task not supported on this OS'",
     "windows": {
       "command": "powershell",
       "args": [
@@ -70,6 +106,30 @@
         },
         "problemMatcher": "$msCompile",
         "group": "build"
+    },
+    {
+      "label": "build language server",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "-c",
+        "Debug",
+        "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "launch vscode with language server",
+      "command": "${execPath}",
+      "type": "process",
+      "options": {
+        "env": {
+          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net9.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+        }
+      },
+      "dependsOn": [ "build language server" ]
     }
   ]
 }

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -237,7 +238,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
             var modifiers = declarationInfo.Modifiers;
             foreach (var rule in rules)
             {
-                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers, declarationInfo.DeclaredAccessibility))
+                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers.Modifiers, declarationInfo.DeclaredAccessibility))
                 {
                     foreach (var baseName in baseNames)
                     {

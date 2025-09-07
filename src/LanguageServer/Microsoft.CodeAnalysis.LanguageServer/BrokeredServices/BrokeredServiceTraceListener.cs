@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [Export, Shared]
-internal class BrokeredServiceTraceListener : TraceListener
+internal sealed class BrokeredServiceTraceListener : TraceListener
 {
     private readonly ILogger _logger;
 

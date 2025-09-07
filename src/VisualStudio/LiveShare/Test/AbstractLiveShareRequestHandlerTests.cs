@@ -26,7 +26,7 @@ public abstract class AbstractLiveShareRequestHandlerTests(ITestOutputHelper tes
         .AddParts(typeof(TestWorkspaceRegistrationService))
         .AddParts(typeof(TestWorkspaceConfigurationService));
 
-    private class MockHostProtocolConverter : IHostProtocolConverter
+    private sealed class MockHostProtocolConverter : IHostProtocolConverter
     {
         private readonly Func<Uri, Uri> _uriConversionFunction;
 

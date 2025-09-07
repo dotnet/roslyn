@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-internal class YieldStatementHighlighter : AbstractKeywordHighlighter<YieldStatementSyntax>
+internal sealed class YieldStatementHighlighter : AbstractKeywordHighlighter<YieldStatementSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

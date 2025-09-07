@@ -16,7 +16,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class DebuggerInProcess
+internal sealed partial class DebuggerInProcess
 {
     /// <summary>
     /// HResult for "Operation Not Supported" when raising commands. 
@@ -83,16 +83,14 @@ internal partial class DebuggerInProcess
         debugger.Go(waitForBreakMode);
     }
 
-    public async Task StepOverAsync(bool waitForBreakOrEnd, CancellationToken cancellationToken)
-    {
-        await WaitForRaiseDebuggerDteCommandAsync(
+    public Task StepOverAsync(bool waitForBreakOrEnd, CancellationToken cancellationToken)
+        => WaitForRaiseDebuggerDteCommandAsync(
             async cancellationToken =>
             {
                 var debugger = await GetDebuggerAsync(cancellationToken);
                 debugger.StepOver(waitForBreakOrEnd);
             },
             cancellationToken);
-    }
 
     public async Task StopAsync(bool waitForDesignMode, CancellationToken cancellationToken)
     {
@@ -151,10 +149,8 @@ internal partial class DebuggerInProcess
     /// Polls for the specified delegate to return true for the given timeout.
     /// </summary>
     /// <param name="predicate">Delegate to invoke.</param>
-    public static async Task TryWaitForAsync(Func<CancellationToken, Task<bool>> predicate, CancellationToken cancellationToken)
-    {
-        await TryWaitForAsync(DefaultPollingInterCallSleep, predicate, cancellationToken);
-    }
+    public static Task TryWaitForAsync(Func<CancellationToken, Task<bool>> predicate, CancellationToken cancellationToken)
+        => TryWaitForAsync(DefaultPollingInterCallSleep, predicate, cancellationToken);
 
     /// <summary>
     /// Polls for the specified delegate to return true for the given timeout.

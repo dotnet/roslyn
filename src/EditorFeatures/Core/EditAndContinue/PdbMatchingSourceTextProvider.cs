@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,14 +31,22 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
     private bool _isActive;
     private int _baselineSolutionVersion;
     private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = [];
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
     public void StartListening(Workspace workspace)
-        => workspace.WorkspaceChanged += WorkspaceChanged;
+    {
+        Debug.Assert(_workspaceChangedDisposer == null);
+
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(WorkspaceChanged);
+    }
 
     public void StopListening(Workspace workspace)
-        => workspace.WorkspaceChanged -= WorkspaceChanged;
+    {
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
+    }
 
-    private void WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void WorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         if (!_isActive)
         {

@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration;
 
 [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
+public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
 {
     [Fact]
     public void TestAddMultiplyPrecedence1()

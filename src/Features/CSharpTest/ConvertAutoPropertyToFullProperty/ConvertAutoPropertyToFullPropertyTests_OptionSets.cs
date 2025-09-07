@@ -140,7 +140,7 @@ public partial class ConvertAutoPropertyToFullPropertyTests
             "Name",
             [new SymbolKindOrTypeKind(SymbolKind.Field)],
             accessibilityList: default,
-            [new ModifierKind(DeclarationModifiers.Static)]);
+            [new ModifierKind(Modifiers.Static)]);
 
         var namingStyle = new NamingStyle(
             Guid.NewGuid(),

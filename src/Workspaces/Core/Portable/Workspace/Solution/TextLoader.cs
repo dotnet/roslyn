@@ -157,26 +157,11 @@ public abstract class TextLoader
 
     private TextAndVersion CreateFailedText(string message)
     {
-        Location location;
-        string display;
-
-        var filePath = FilePath;
-
-        if (filePath == null)
-        {
-            location = Location.None;
-            display = "<no path>";
-        }
-        else
-        {
-            location = Location.Create(filePath, textSpan: default, lineSpan: default);
-            display = filePath;
-        }
-
         return TextAndVersion.Create(
             SourceText.From(string.Empty, Encoding.UTF8),
             VersionStamp.Default,
-            Diagnostic.Create(WorkspaceDiagnosticDescriptors.ErrorReadingFileContent, location, new[] { display, message }));
+            this.FilePath,
+            message);
     }
 
     /// <summary>

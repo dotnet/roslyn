@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [Export, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class TestRunner(ILoggerFactory loggerFactory)
+internal sealed partial class TestRunner(ILoggerFactory loggerFactory)
 {
     /// <summary>
     /// A default value for run settings.  While the vstest console included with newer SDKs does

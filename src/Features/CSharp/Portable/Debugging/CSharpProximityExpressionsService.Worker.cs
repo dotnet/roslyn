@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging;
 
 internal sealed partial class CSharpProximityExpressionsService
 {
-    internal class Worker(SyntaxTree syntaxTree, int position)
+    internal sealed class Worker(SyntaxTree syntaxTree, int position)
     {
         private readonly SyntaxTree _syntaxTree = syntaxTree;
         private readonly int _position = position;

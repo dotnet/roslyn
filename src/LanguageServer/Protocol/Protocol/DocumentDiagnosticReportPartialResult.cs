@@ -15,7 +15,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class DocumentDiagnosticReportPartialResult
+internal sealed class DocumentDiagnosticReportPartialResult
 {
     /// <summary>
     /// Gets or sets the map of related document diagnostic reports.

@@ -4,17 +4,16 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions
+namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+
+/// <summary>
+/// Similar to ISuggestedAction, but in a location that can be used by both local Roslyn and LSP.
+/// </summary>
+internal interface IUnifiedSuggestedAction
 {
-    /// <summary>
-    /// Similar to ISuggestedAction, but in a location that can be used by both local Roslyn and LSP.
-    /// </summary>
-    internal interface IUnifiedSuggestedAction
-    {
-        Workspace Workspace { get; }
+    Workspace Workspace { get; }
 
-        CodeAction OriginalCodeAction { get; }
+    CodeAction OriginalCodeAction { get; }
 
-        CodeActionPriority CodeActionPriority { get; }
-    }
+    CodeActionPriority CodeActionPriority { get; }
 }

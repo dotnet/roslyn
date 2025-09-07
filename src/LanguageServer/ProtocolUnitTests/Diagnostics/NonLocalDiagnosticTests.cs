@@ -15,97 +15,96 @@ using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
+
+public sealed class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
 {
-    public class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
+    public NonLocalDiagnosticTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        public NonLocalDiagnosticTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/5634")]
+    internal async Task TestNonLocalDocumentDiagnosticsAreReportedWhenFSAEnabled(bool mutatingLspWorkspace, bool fsaEnabled)
+    {
+        var markup1 = @"class A { }";
+        var markup2 = @"class B { }";
+        var scope = fsaEnabled ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+             [markup1, markup2], mutatingLspWorkspace, scope, useVSDiagnostics: false);
+
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
+
+        // Non-local document diagnostics are reported only for open documents by DocumentPullDiagnosticsHandler.
+        // For closed documents, non-local document diagnostics are reported by the WorkspacePullDiagnosticsHandler
+        // and not reported here.
+        await OpenDocumentAsync(testLspServer, document);
+
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
+        if (fsaEnabled)
         {
+            Assert.Equal(1, results.Length);
+            Assert.Equal(2, results[0].Diagnostics?.Length);
+            var orderedDiagnostics = results[0].Diagnostics!.OrderBy(d => d.Code!.Value.Value).ToList();
+            Assert.Equal(NonLocalDiagnosticsAnalyzer.NonLocalDescriptor.Id, orderedDiagnostics[0].Code);
+            Assert.Equal(NonLocalDiagnosticsAnalyzer.CompilationEndDescriptor.Id, orderedDiagnostics[1].Code);
+            Assert.Equal(document.GetURI(), results[0].Uri);
+
+            // Asking again should give us back unchanged diagnostics.
+            var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, previousResultId: results.Single().ResultId, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
+            Assert.Null(results2[0].Diagnostics);
+            Assert.Equal(results[0].ResultId, results2[0].ResultId);
         }
-
-        [Theory, CombinatorialData]
-        [WorkItem("https://github.com/dotnet/vscode-csharp/issues/5634")]
-        internal async Task TestNonLocalDocumentDiagnosticsAreReportedWhenFSAEnabled(bool mutatingLspWorkspace, bool fsaEnabled)
+        else
         {
-            var markup1 = @"class A { }";
-            var markup2 = @"class B { }";
-            var scope = fsaEnabled ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
-            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                 [markup1, markup2], mutatingLspWorkspace, scope, useVSDiagnostics: false);
+            Assert.Empty(results);
 
-            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
-
-            // Non-local document diagnostics are reported only for open documents by DocumentPullDiagnosticsHandler.
-            // For closed documents, non-local document diagnostics are reported by the WorkspacePullDiagnosticsHandler
-            // and not reported here.
-            await OpenDocumentAsync(testLspServer, document);
-
-            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
-            if (fsaEnabled)
-            {
-                Assert.Equal(1, results.Length);
-                Assert.Equal(2, results[0].Diagnostics?.Length);
-                var orderedDiagnostics = results[0].Diagnostics!.OrderBy(d => d.Code!.Value.Value).ToList();
-                Assert.Equal(NonLocalDiagnosticsAnalyzer.NonLocalDescriptor.Id, orderedDiagnostics[0].Code);
-                Assert.Equal(NonLocalDiagnosticsAnalyzer.CompilationEndDescriptor.Id, orderedDiagnostics[1].Code);
-                Assert.Equal(document.GetURI(), results[0].Uri);
-
-                // Asking again should give us back unchanged diagnostics.
-                var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, previousResultId: results.Single().ResultId, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
-                Assert.Null(results2[0].Diagnostics);
-                Assert.Equal(results[0].ResultId, results2[0].ResultId);
-            }
-            else
-            {
-                Assert.Empty(results);
-
-                // Asking again should give us back unchanged diagnostics.
-                var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
-                Assert.Empty(results2);
-            }
+            // Asking again should give us back unchanged diagnostics.
+            var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
+            Assert.Empty(results2);
         }
+    }
 
-        protected override TestComposition Composition => base.Composition.AddParts(typeof(NonLocalDiagnosticsAnalyzer));
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(NonLocalDiagnosticsAnalyzer));
 
-        private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
-            => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new NonLocalDiagnosticsAnalyzer()]));
+    private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
+        => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new NonLocalDiagnosticsAnalyzer()]));
 
-        [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private sealed class NonLocalDiagnosticsAnalyzer : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    private sealed class NonLocalDiagnosticsAnalyzer : DiagnosticAnalyzer
+    {
+        public static readonly DiagnosticDescriptor NonLocalDescriptor = new("NonLocal0001", "Title1", "NonLocal0001", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        public static readonly DiagnosticDescriptor CompilationEndDescriptor = new("NonLocal0002", "Title2", "NonLocal0002", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: [WellKnownDiagnosticTags.CompilationEnd]);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [NonLocalDescriptor, CompilationEndDescriptor];
+
+        public override void Initialize(AnalysisContext context)
         {
-            public static readonly DiagnosticDescriptor NonLocalDescriptor = new("NonLocal0001", "Title1", "NonLocal0001", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-            public static readonly DiagnosticDescriptor CompilationEndDescriptor = new("NonLocal0002", "Title2", "NonLocal0002", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: [WellKnownDiagnosticTags.CompilationEnd]);
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [NonLocalDescriptor, CompilationEndDescriptor];
-
-            public override void Initialize(AnalysisContext context)
+            context.RegisterCompilationStartAction(context =>
             {
-                context.RegisterCompilationStartAction(context =>
+                var compilation = context.Compilation;
+                context.RegisterSyntaxTreeAction(context =>
                 {
-                    var compilation = context.Compilation;
-                    context.RegisterSyntaxTreeAction(context =>
+                    foreach (var tree in compilation.SyntaxTrees)
                     {
-                        foreach (var tree in compilation.SyntaxTrees)
-                        {
-                            if (tree != context.Tree)
-                            {
-                                var root = tree.GetRoot();
-                                var diagnostic = Diagnostic.Create(NonLocalDescriptor, root.GetFirstToken().GetLocation());
-                                context.ReportDiagnostic(diagnostic);
-                            }
-                        }
-                    });
-
-                    context.RegisterCompilationEndAction(context =>
-                    {
-                        foreach (var tree in compilation.SyntaxTrees)
+                        if (tree != context.Tree)
                         {
                             var root = tree.GetRoot();
-                            var diagnostic = Diagnostic.Create(CompilationEndDescriptor, root.GetFirstToken().GetLocation());
+                            var diagnostic = Diagnostic.Create(NonLocalDescriptor, root.GetFirstToken().GetLocation());
                             context.ReportDiagnostic(diagnostic);
                         }
-                    });
+                    }
                 });
-            }
+
+                context.RegisterCompilationEndAction(context =>
+                {
+                    foreach (var tree in compilation.SyntaxTrees)
+                    {
+                        var root = tree.GetRoot();
+                        var diagnostic = Diagnostic.Create(CompilationEndDescriptor, root.GetFirstToken().GetLocation());
+                        context.ReportDiagnostic(diagnostic);
+                    }
+                });
+            });
         }
     }
 }

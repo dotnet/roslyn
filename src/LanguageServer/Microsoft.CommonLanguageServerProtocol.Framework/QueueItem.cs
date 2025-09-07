@@ -21,7 +21,7 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
+internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
@@ -223,7 +223,7 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         {
             // Record logs + metrics on cancellation.
             _requestTelemetryScope?.RecordCancellation();
-            _logger.LogInformation($"Request was cancelled.");
+            _logger.LogDebug($"Request was cancelled.");
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }

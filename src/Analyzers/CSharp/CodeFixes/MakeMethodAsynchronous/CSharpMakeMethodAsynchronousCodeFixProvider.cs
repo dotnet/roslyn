@@ -131,13 +131,13 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
             if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
             {
                 newReturnType = knownTypes.IAsyncEnumerableOfTType is null
-                    ? MakeGenericType(nameof(IAsyncEnumerable<int>), methodSymbol.ReturnType)
+                    ? MakeGenericType(nameof(IAsyncEnumerable<>), methodSymbol.ReturnType)
                     : knownTypes.IAsyncEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
             else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
             {
                 newReturnType = knownTypes.IAsyncEnumeratorOfTType is null
-                    ? MakeGenericType(nameof(IAsyncEnumerator<int>), methodSymbol.ReturnType)
+                    ? MakeGenericType(nameof(IAsyncEnumerator<>), methodSymbol.ReturnType)
                     : knownTypes.IAsyncEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
             else if (IsIAsyncEnumerableOrEnumerator(returnType, knownTypes))

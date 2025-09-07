@@ -359,7 +359,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract class NonCopyableWalker : OperationWalker
         {
             private readonly OperationBlockAnalysisContext _context;
-            private readonly HashSet<IOperation> _handledOperations = new();
+            private readonly HashSet<IOperation> _handledOperations = [];
 
             protected NonCopyableWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
             {
@@ -1439,7 +1439,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     case OperationKind.Throw:
                         return RefKind.None;
 
-                    case OperationKindEx.CollectionExpression:
+                    case OperationKind.CollectionExpression:
                         return RefKind.None;
 
                     default:

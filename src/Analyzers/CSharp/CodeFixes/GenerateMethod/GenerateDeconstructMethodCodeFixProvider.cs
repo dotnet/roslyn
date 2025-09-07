@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -20,23 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateDeconstructMethod), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
-internal class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class GenerateDeconstructMethodCodeFixProvider() : CodeFixProvider
 {
     private const string CS8129 = nameof(CS8129); // No suitable Deconstruct instance or extension method was found...
 
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public GenerateDeconstructMethodCodeFixProvider()
-    {
-    }
+    public override FixAllProvider? GetFixAllProvider() => base.GetFixAllProvider();
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [CS8129];
-
-    public override FixAllProvider GetFixAllProvider()
-    {
-        // Fix All is not supported by this code fix
-        return null;
-    }
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -48,7 +38,7 @@ internal class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
 
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var span = context.Span;
         var token = root.FindToken(span.Start);
 
@@ -61,10 +51,10 @@ internal class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
             return;
         }
 
-        var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         DeconstructionInfo info;
-        ITypeSymbol type;
+        ITypeSymbol? type;
         SyntaxNode target;
         switch (deconstruction)
         {
@@ -80,7 +70,7 @@ internal class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
                 break;
             case PositionalPatternClauseSyntax positionalPattern:
                 info = default;
-                type = model.GetTypeInfo(deconstruction.Parent).Type;
+                type = model.GetTypeInfo(deconstruction.GetRequiredParent()).Type;
                 target = deconstruction;
                 break;
             default:
@@ -105,7 +95,7 @@ internal class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
             return;
         }
 
-        var service = document.GetLanguageService<IGenerateDeconstructMemberService>();
+        var service = document.GetRequiredLanguageService<IGenerateDeconstructMemberService>();
         var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, cancellationToken).ConfigureAwait(false);
 
         Debug.Assert(!codeActions.IsDefault);

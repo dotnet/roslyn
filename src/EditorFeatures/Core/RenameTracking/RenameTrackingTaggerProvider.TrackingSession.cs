@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
@@ -35,7 +36,7 @@ internal sealed partial class RenameTrackingTaggerProvider
     /// <summary>
     /// Determines whether the original token was a renameable identifier on a background thread
     /// </summary>
-    private class TrackingSession
+    private sealed class TrackingSession
     {
         private static readonly Task<TriggerIdentifierKind> s_notRenamableTask = Task.FromResult(TriggerIdentifierKind.NotRenamable);
         private readonly Task<TriggerIdentifierKind> _isRenamableIdentifierTask;

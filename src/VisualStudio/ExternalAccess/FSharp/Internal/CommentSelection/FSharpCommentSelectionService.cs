@@ -9,24 +9,23 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection
-{
-    [Shared]
-    [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp)]
-    internal class FSharpCommentSelectionService : ICommentSelectionService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpCommentSelectionService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection;
 
-        public CommentSelectionInfo GetInfo()
-            => new(
-                supportsSingleLineComment: true,
-                supportsBlockComment: true,
-                singleLineCommentString: "//",
-                blockCommentStartString: "(*",
-                blockCommentEndString: "*)");
+[Shared]
+[ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp)]
+internal class FSharpCommentSelectionService : ICommentSelectionService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpCommentSelectionService()
+    {
     }
+
+    public CommentSelectionInfo GetInfo()
+        => new(
+            supportsSingleLineComment: true,
+            supportsBlockComment: true,
+            singleLineCommentString: "//",
+            blockCommentStartString: "(*",
+            blockCommentEndString: "*)");
 }

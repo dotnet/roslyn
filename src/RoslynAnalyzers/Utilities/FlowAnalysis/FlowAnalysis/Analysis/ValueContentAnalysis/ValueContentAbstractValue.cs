@@ -10,8 +10,8 @@ using System.Globalization;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 throw new ArgumentNullException(nameof(otherState));
             }
 
-            ImmutableHashSet<object?> mergedLiteralValues = LiteralValues.AddRange(otherState.LiteralValues);
+            ImmutableHashSet<object?> mergedLiteralValues = ImmutableHashSetExtensions.AddRange(LiteralValues, otherState.LiteralValues);
             if (mergedLiteralValues.Count > LiteralsBound)
             {
                 return MayBeContainsNonLiteralState;

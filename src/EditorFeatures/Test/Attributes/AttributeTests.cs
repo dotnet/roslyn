@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Attributes;
 
-public class AttributeTests
+public sealed class AttributeTests
 {
 #if false
     [WpfFact]

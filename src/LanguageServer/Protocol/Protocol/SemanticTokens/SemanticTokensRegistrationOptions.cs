@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class SemanticTokensRegistrationOptions : SemanticTokensOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+internal sealed class SemanticTokensRegistrationOptions : SemanticTokensOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// A document selector to identify the scope of the registration. If set to

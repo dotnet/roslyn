@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -174,7 +174,7 @@ internal sealed class EditAndContinueLanguageService(
                 // We start the operation but do not wait for it to complete.
                 // The tracking session is cancelled when we exit the break state.
 
-                Debug.Assert(solution != null);
+                Contract.ThrowIfNull(solution);
                 GetActiveStatementTrackingService().StartTracking(solution, session);
             }
         }
@@ -375,13 +375,19 @@ internal sealed class EditAndContinueLanguageService(
         using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
         runningProjectPaths.AddAll(runningProjects);
 
-        var runningProjectIds = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).Select(static p => p.Id).ToImmutableHashSet();
-        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectIds, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        // TODO: Update once implemented: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2449700
+        var runningProjectInfos = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).ToImmutableDictionary(
+            keySelector: static p => p.Id,
+            elementSelector: static p => new RunningProjectInfo { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+
+        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectInfos, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         switch (result.ModuleUpdates.Status)
         {
-            case ModuleUpdateStatus.Ready:
-                // We have updates to be applied. The debugger will call Commit/Discard on the solution
+            case ModuleUpdateStatus.Ready when result.ProjectsToRebuild.IsEmpty:
+                // We have updates to be applied and no rude edits.
+                //
+                // The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
                 break;
@@ -393,15 +399,33 @@ internal sealed class EditAndContinueLanguageService(
                 break;
         }
 
-        UpdateApplyChangesDiagnostics(result.Diagnostics);
+        ArrayBuilder<DiagnosticData>? applyChangesDiagnostics = null;
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            // Report warnings and errors that are not reported when analyzing documents or are reported for deleted documents.
+
+            if (diagnostic.Severity is not (DiagnosticSeverity.Error or DiagnosticSeverity.Warning))
+            {
+                continue;
+            }
+
+            if ((!EditAndContinueDiagnosticDescriptors.IsRudeEdit(diagnostic.Id)) ||
+                await solution.GetDocumentAsync(diagnostic.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) == null)
+            {
+                applyChangesDiagnostics ??= ArrayBuilder<DiagnosticData>.GetInstance();
+                applyChangesDiagnostics.Add(diagnostic);
+            }
+        }
+
+        UpdateApplyChangesDiagnostics(applyChangesDiagnostics.ToImmutableOrEmptyAndFree());
 
         return new ManagedHotReloadUpdates(
             result.ModuleUpdates.Updates.FromContract(),
             result.GetAllDiagnostics().FromContract(),
             GetProjectPaths(result.ProjectsToRebuild),
-            GetProjectPaths(result.ProjectsToRestart));
+            GetProjectPaths(result.ProjectsToRestart.Keys));
 
-        ImmutableArray<string> GetProjectPaths(ImmutableArray<ProjectId> ids)
-            => ids.SelectAsArray(static (id, solution) => solution.GetRequiredProject(id).FilePath!, solution);
+        ImmutableArray<string> GetProjectPaths(IEnumerable<ProjectId> ids)
+            => ids.SelectAsArray(id => solution.GetRequiredProject(id).FilePath!);
     }
 }

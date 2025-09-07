@@ -26,7 +26,7 @@ internal readonly struct UpdateExpressionState<
 {
     private static readonly ImmutableArray<(string name, bool isLinq)> s_multiAddNames =
     [
-        (nameof(List<int>.AddRange), isLinq: false),
+        (nameof(List<>.AddRange), isLinq: false),
         (nameof(Enumerable.Concat), isLinq: true),
         (nameof(Enumerable.Append), isLinq: true),
     ];
@@ -233,8 +233,7 @@ internal readonly struct UpdateExpressionState<
         // values)`  If the former, we only allow a single argument.  If the latter, we can allow multiple
         // expressions.  The former will be converted to a spread element.  The latter will be added
         // individually.
-        var method = this.SemanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol() as IMethodSymbol;
-        if (method is null)
+        if (this.SemanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol() is not IMethodSymbol method)
             return false;
 
         if (method.Parameters.Length != 1)

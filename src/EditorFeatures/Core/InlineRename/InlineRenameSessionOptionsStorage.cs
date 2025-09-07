@@ -13,10 +13,4 @@ internal static class InlineRenameSessionOptionsStorage
     public static readonly Option2<bool> RenameInComments = new("dotnet_rename_in_comments", defaultValue: false);
     public static readonly Option2<bool> RenameFile = new("dotnet_rename_file", defaultValue: true);
     public static readonly Option2<bool> PreviewChanges = new("dotnet_preview_inline_rename_changes", defaultValue: false);
-
-    public static readonly Option2<bool?> CommitRenameAsynchronously = new("dotnet_commit_rename_asynchronously", defaultValue: null);
-    public static readonly Option2<bool> CommitRenameAsynchronouslyFeatureFlag = new("dotnet_commit_rename_asynchronously_feature_flag", defaultValue: false);
-
-    public static bool ShouldCommitAsynchronously(this IGlobalOptionService globalOptionService)
-        => globalOptionService.GetOption(CommitRenameAsynchronously) ?? globalOptionService.GetOption(CommitRenameAsynchronouslyFeatureFlag);
 }

@@ -7,11 +7,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal interface IDiagnosticAnalyzerService
+internal interface IDiagnosticAnalyzerService : IWorkspaceService
 {
     /// <summary>
     /// Provides and caches analyzer information.
@@ -80,7 +81,6 @@ internal interface IDiagnosticAnalyzerService
         TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic,
         ICodeActionRequestPriorityProvider priorityProvider,
         DiagnosticKind diagnosticKind,
-        bool isExplicit,
         CancellationToken cancellationToken);
 }
 
@@ -99,7 +99,8 @@ internal static class IDiagnosticAnalyzerServiceExtensions
             document, range,
             diagnosticId: null,
             priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-            diagnosticKind, isExplicit: false, cancellationToken);
+            diagnosticKind,
+            cancellationToken);
 
     /// <summary>
     /// Return up to date diagnostics for the given <paramref name="range"/> and parameters for the given <paramref name="document"/>.
@@ -113,11 +114,10 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         TextDocument document, TextSpan? range, string? diagnosticId,
         ICodeActionRequestPriorityProvider priorityProvider,
         DiagnosticKind diagnosticKind,
-        bool isExplicit,
         CancellationToken cancellationToken)
     {
         Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
         return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-            priorityProvider, diagnosticKind, isExplicit, cancellationToken);
+            priorityProvider, diagnosticKind, cancellationToken);
     }
 }

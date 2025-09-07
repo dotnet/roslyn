@@ -14,15 +14,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(AsyncAwaitHighlighter);
 
     [Fact]
-    public async Task TestExample2_2()
-    {
-        await TestAsync(
+    public Task TestExample2_2()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -48,12 +47,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_3()
-    {
-        await TestAsync(
+    public Task TestExample2_3()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -79,12 +76,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_4()
-    {
-        await TestAsync(
+    public Task TestExample2_4()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -110,12 +105,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample3_2()
-    {
-        await TestAsync(
+    public Task TestExample3_2()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -141,12 +134,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
-    public async Task TestNestedAwaits1()
-    {
-        await TestAsync(
+    public Task TestNestedAwaits1()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -177,12 +168,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
-    public async Task TestNestedAwaits2()
-    {
-        await TestAsync(
+    public Task TestNestedAwaits2()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -213,12 +202,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAwaitUsing_OnAsync()
-    {
-        await TestAsync(
+    public Task TestAwaitUsing_OnAsync()
+        => TestAsync(
             """
             using System.Threading.Tasks;
 
@@ -230,12 +217,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAwaitUsing_OnAwait()
-    {
-        await TestAsync(
+    public Task TestAwaitUsing_OnAwait()
+        => TestAsync(
             """
             using System.Threading.Tasks;
 
@@ -247,12 +232,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAwaitUsingDeclaration_OnAsync()
-    {
-        await TestAsync(
+    public Task TestAwaitUsingDeclaration_OnAsync()
+        => TestAsync(
             """
             using System.Threading.Tasks;
 
@@ -264,12 +247,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAwaitUsingDeclaration_OnAwait()
-    {
-        await TestAsync(
+    public Task TestAwaitUsingDeclaration_OnAwait()
+        => TestAsync(
             """
             using System.Threading.Tasks;
 
@@ -281,12 +262,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAwaitForEach_OnAsync()
-    {
-        await TestAsync(
+    public Task TestAwaitForEach_OnAsync()
+        => TestAsync(
             """
             using System.Threading.Tasks;
 
@@ -298,12 +277,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAwaitForEach_OnAwait()
-    {
-        await TestAsync(
+    public Task TestAwaitForEach_OnAwait()
+        => TestAsync(
             """
             using System.Threading.Tasks;
 
@@ -315,12 +292,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForEachVariableAwait_OnAsync()
-    {
-        await TestAsync(
+    public Task TestForEachVariableAwait_OnAsync()
+        => TestAsync(
             """
             using System.Threading.Tasks;
 
@@ -332,12 +307,10 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForEachVariableAwait_OnAwait()
-    {
-        await TestAsync(
+    public Task TestForEachVariableAwait_OnAwait()
+        => TestAsync(
             """
             using System.Threading.Tasks;
 
@@ -349,15 +322,12 @@ public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60400")]
-    public async Task TestTopLevelStatements()
-    {
-        await TestAsync(
+    public Task TestTopLevelStatements()
+        => TestAsync(
             """
             [|await|] Task.Delay(1000);
             {|Cursor:[|await|]|} Task.Run(() => { })
             """);
-    }
 }

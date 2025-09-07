@@ -112,8 +112,7 @@ public abstract class XmlDocumentationProvider : DocumentationProvider
 
         public override bool Equals(object obj)
         {
-            var other = obj as ContentBasedXmlDocumentationProvider;
-            return other != null && EqualsHelper(other);
+            return obj is ContentBasedXmlDocumentationProvider other && EqualsHelper(other);
         }
 
         private bool EqualsHelper(ContentBasedXmlDocumentationProvider other)
@@ -162,8 +161,7 @@ public abstract class XmlDocumentationProvider : DocumentationProvider
 
         public override bool Equals(object obj)
         {
-            var other = obj as FileBasedXmlDocumentationProvider;
-            return other != null && _filePath == other._filePath;
+            return obj is FileBasedXmlDocumentationProvider other && _filePath == other._filePath;
         }
 
         public override int GetHashCode()

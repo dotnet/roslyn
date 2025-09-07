@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class WorkspacePullDiagnosticHandlerFactory(
     LspWorkspaceRegistrationService registrationService,
-    IDiagnosticAnalyzerService analyzerService,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions) : ILspServiceFactory
@@ -24,6 +23,6 @@ internal class WorkspacePullDiagnosticHandlerFactory(
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var workspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        return new WorkspacePullDiagnosticHandler(workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions);
+        return new WorkspacePullDiagnosticHandler(workspaceManager, registrationService, diagnosticSourceManager, diagnosticsRefresher, globalOptions);
     }
 }

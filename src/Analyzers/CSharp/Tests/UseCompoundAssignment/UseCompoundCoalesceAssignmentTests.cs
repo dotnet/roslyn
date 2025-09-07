@@ -18,30 +18,25 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCompoundCoalesceAssignmentCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
-public class UseCompoundCoalesceAssignmentTests
+public sealed class UseCompoundCoalesceAssignmentTests
 {
-    private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestInRegularAndScriptAsync(string testCode, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = fixedCode,
         }.RunAsync();
-    }
-    private static async Task TestMissingAsync(string testCode, LanguageVersion languageVersion = LanguageVersion.CSharp8)
-    {
-        await new VerifyCS.Test
+    private static Task TestMissingAsync(string testCode, LanguageVersion languageVersion = LanguageVersion.CSharp8)
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             LanguageVersion = languageVersion,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestBaseCase()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestBaseCase()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -56,12 +51,10 @@ public class UseCompoundCoalesceAssignmentTests
                 private static string Goo => s_goo ??= new string('c', 42);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44793")]
-    public async Task TestMissingBeforeCSharp8()
-    {
-        await TestMissingAsync(
+    public Task TestMissingBeforeCSharp8()
+        => TestMissingAsync(
             """
             class Program
             {
@@ -69,12 +62,10 @@ public class UseCompoundCoalesceAssignmentTests
                 private static string Goo => s_goo ?? (s_goo = new string('c', 42));
             }
             """, LanguageVersion.CSharp7_3);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestRightMustBeParenthesized()
-    {
-        await TestMissingAsync(
+    public Task TestRightMustBeParenthesized()
+        => TestMissingAsync(
             """
             class Program
             {
@@ -82,12 +73,10 @@ public class UseCompoundCoalesceAssignmentTests
                 private static string Goo => {|CS0131:s_goo ?? s_goo|} = new string('c', 42);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestRightMustBeAssignment()
-    {
-        await TestMissingAsync(
+    public Task TestRightMustBeAssignment()
+        => TestMissingAsync(
             """
             class Program
             {
@@ -95,12 +84,10 @@ public class UseCompoundCoalesceAssignmentTests
                 private static string Goo => {|CS0019:s_goo ?? (s_goo == new string('c', 42))|};
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestRightMustBeSimpleAssignment()
-    {
-        await TestMissingAsync(
+    public Task TestRightMustBeSimpleAssignment()
+        => TestMissingAsync(
             """
             class Program
             {
@@ -108,12 +95,10 @@ public class UseCompoundCoalesceAssignmentTests
                 private static string Goo => s_goo ?? (s_goo ??= new string('c', 42));
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestShapesMustBeTheSame()
-    {
-        await TestMissingAsync(
+    public Task TestShapesMustBeTheSame()
+        => TestMissingAsync(
             """
             class Program
             {
@@ -122,12 +107,10 @@ public class UseCompoundCoalesceAssignmentTests
                 private static string Goo => s_goo ?? (s_goo2 = new string('c', 42));
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestNoSideEffects1()
-    {
-        await TestMissingAsync(
+    public Task TestNoSideEffects1()
+        => TestMissingAsync(
             """
             class Program
             {
@@ -135,12 +118,10 @@ public class UseCompoundCoalesceAssignmentTests
                 private static string Goo => s_goo.GetType() ?? ({|CS0131:s_goo.GetType()|} = new string('c', 42));
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestNoSideEffects2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNoSideEffects2()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -155,12 +136,10 @@ public class UseCompoundCoalesceAssignmentTests
                 private string Goo => this.goo ??= new string('c', 42);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestNullableValueType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableValueType()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -181,12 +160,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestCastIfWouldAffectSemantics()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCastIfWouldAffectSemantics()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -215,12 +192,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38059")]
-    public async Task TestDoNotCastIfNotNecessary()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDoNotCastIfNotNecessary()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -247,12 +222,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -276,12 +249,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_NotBeforeCSharp8()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_NotBeforeCSharp8()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -295,12 +266,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp7_3);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_NotWithElseClause()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_NotWithElseClause()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -318,12 +287,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatementWithoutBlock()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -345,12 +312,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_WithEmptyBlock()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_WithEmptyBlock()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -363,12 +328,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_WithMultipleStatements()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_WithMultipleStatements()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -383,12 +346,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_EqualsEqualsCheck()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_EqualsEqualsCheck()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -412,12 +373,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_ReferenceEqualsCheck1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_ReferenceEqualsCheck1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -441,12 +400,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_ReferenceEqualsCheck2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_ReferenceEqualsCheck2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -470,12 +427,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_ReferenceEqualsCheck3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_ReferenceEqualsCheck3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -499,12 +454,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_ReferenceEqualsCheck4()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_ReferenceEqualsCheck4()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -518,12 +471,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_NotSimpleAssignment()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_NotSimpleAssignment()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -537,12 +488,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_OverloadedEquals_OkForString()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_OverloadedEquals_OkForString()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -566,12 +515,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_OverloadedEquals()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_OverloadedEquals()
+        => TestMissingAsync(
             """
             using System;
 
@@ -592,12 +539,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_AssignmentToDifferentValue()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_AssignmentToDifferentValue()
+        => TestMissingAsync(
             """
             using System;
 
@@ -612,12 +557,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_SideEffects1()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatement_SideEffects1()
+        => TestMissingAsync(
             """
             using System;
 
@@ -634,12 +577,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_SideEffects2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_SideEffects2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -663,12 +604,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_Trivia1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_Trivia1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -694,12 +633,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_Trivia2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_Trivia2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -725,12 +662,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32985")]
-    public async Task TestIfStatement_Trivia3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIfStatement_Trivia3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -758,12 +693,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
-    public async Task TestIfStatementWithPreprocessorBlock1()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatementWithPreprocessorBlock1()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -779,12 +712,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
-    public async Task TestIfStatementWithPreprocessorBlock2()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatementWithPreprocessorBlock2()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -801,12 +732,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
-    public async Task TestIfStatementWithPreprocessorBlock3()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatementWithPreprocessorBlock3()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -824,12 +753,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
-    public async Task TestIfStatementWithPreprocessorBlock4()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatementWithPreprocessorBlock4()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -847,12 +774,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
-    public async Task TestIfStatementWithPreprocessorBlock5()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatementWithPreprocessorBlock5()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -870,12 +795,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
-    public async Task TestIfStatementWithPreprocessorBlock6()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatementWithPreprocessorBlock6()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -893,12 +816,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
-    public async Task TestIfStatementWithPreprocessorBlock7()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatementWithPreprocessorBlock7()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -912,12 +833,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
-    public async Task TestIfStatementWithPreprocessorBlock8()
-    {
-        await TestMissingAsync(
+    public Task TestIfStatementWithPreprocessorBlock8()
+        => TestMissingAsync(
             """
             using System;
             class C
@@ -933,17 +852,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62473")]
-    public async Task TestPointerCannotUseCoalesceAssignment()
-    {
-        // The purpose of this test is to keep track of whether the language
-        // allows ??= for pointers in future. It should be kept in 'Preview'.
-        // If the test failed because language added support and this is no longer
-        // an error. The behavior for test 'TestPointer' below should be updated as well to suggest ??=
-        // Note that, when ??= is supported for pointers, the analyzer should check the language version which supports it.
-        await TestMissingAsync("""
+    public Task TestPointerCannotUseCoalesceAssignment()
+        => TestMissingAsync("""
             unsafe class Program
             {
                 private static void Main()
@@ -955,12 +867,10 @@ public class UseCompoundCoalesceAssignmentTests
                 static byte* Get() => null;
             }
             """, LanguageVersion.CSharp12);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62473")]
-    public async Task TestPointer()
-    {
-        await TestMissingAsync("""
+    public Task TestPointer()
+        => TestMissingAsync("""
             unsafe class Program
             {
                 private static void Main()
@@ -975,12 +885,10 @@ public class UseCompoundCoalesceAssignmentTests
                 static byte* Get() => null;
             }
             """, LanguageVersion.CSharp12);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63551")]
-    public async Task TestFunctionPointer()
-    {
-        await TestMissingAsync("""
+    public Task TestFunctionPointer()
+        => TestMissingAsync("""
             using System.Runtime.InteropServices;
             public unsafe class C {
                 [DllImport("A")]
@@ -998,12 +906,10 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp12);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76633")]
-    public async Task TestFieldKeyword1()
-    {
-        await new VerifyCS.Test
+    public Task TestFieldKeyword1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1040,5 +946,4 @@ public class UseCompoundCoalesceAssignmentTests
                 """,
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
-    }
 }

@@ -4,5 +4,5 @@
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 {
-    internal sealed record LspLoggingScope(string Context);
+    internal sealed record LspLoggingScope(string? Context, string? Language);
 }

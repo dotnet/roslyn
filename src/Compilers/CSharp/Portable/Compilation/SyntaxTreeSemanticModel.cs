@@ -1381,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarationSyntax != null);
 
-            if (declarationSyntax is ExtensionDeclarationSyntax extensionDeclaration)
+            if (declarationSyntax is ExtensionBlockDeclarationSyntax extensionDeclaration)
             {
                 return GetDeclaredExtension(extensionDeclaration);
             }
@@ -1390,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetDeclaredNamedType(declarationSyntax, name);
         }
 
-        private NamedTypeSymbol GetDeclaredExtension(ExtensionDeclarationSyntax extensionDeclaration)
+        private NamedTypeSymbol GetDeclaredExtension(ExtensionBlockDeclarationSyntax extensionDeclaration)
         {
             Debug.Assert(extensionDeclaration != null);
 
@@ -2033,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(parameter != null);
 
-            if (parameter.Parent is not ParameterListSyntax { Parent: ExtensionDeclarationSyntax extensionDecl })
+            if (parameter.Parent is not ParameterListSyntax { Parent: ExtensionBlockDeclarationSyntax extensionDecl })
             {
                 return null;
             }

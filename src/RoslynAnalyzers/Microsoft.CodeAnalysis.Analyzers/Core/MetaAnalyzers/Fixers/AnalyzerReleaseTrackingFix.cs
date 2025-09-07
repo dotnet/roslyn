@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     public sealed partial class AnalyzerReleaseTrackingFix() : CodeFixProvider
     {
         private const string EntryFieldSeparator = "|";
-        private static readonly string[] s_entryFieldSeparators = new[] { EntryFieldSeparator };
+        private static readonly string[] s_entryFieldSeparators = [EntryFieldSeparator];
 
         internal const string ShippedAnalyzerReleaseTrackingFileDefaultContent = @"; Shipped analyzer releases
 " + CommonAnalyzerReleaseTrackingContent;
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 return project.Solution;
             }
 
-            var newText = await AddEntriesToUnshippedFileAsync(unshippedDataDocument, new SortedSet<string>() { entryToAdd }, cancellationToken).ConfigureAwait(false);
+            var newText = await AddEntriesToUnshippedFileAsync(unshippedDataDocument, [entryToAdd], cancellationToken).ConfigureAwait(false);
             return project.Solution.WithAdditionalDocumentText(unshippedDataDocument.Id, newText);
         }
 
@@ -226,13 +227,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     {
                         case 3:
                         case 4:
-                            newRuleEntriesToAdd ??= new SortedSet<string>();
+                            newRuleEntriesToAdd ??= [];
                             newRuleEntriesToAdd.Add(entry);
                             break;
 
                         case 5:
                         case 6:
-                            changedRuleEntriesToAdd ??= new SortedSet<string>();
+                            changedRuleEntriesToAdd ??= [];
                             changedRuleEntriesToAdd.Add(entry);
                             break;
 

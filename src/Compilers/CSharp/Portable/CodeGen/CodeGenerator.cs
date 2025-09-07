@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitTypeReferenceToken(Cci.ITypeReference symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(symbol, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(symbol, syntaxNode);
         }
 
         // <Metalama> - added needDeclaration, needed by Ldtoken
@@ -353,19 +353,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false, bool needDeclaration = false)
         {
             var methodRef = _module.Translate(method, syntaxNode, _diagnostics.DiagnosticBag, optArgList, needDeclaration: needDeclaration || encodeAsRawDefinitionToken);
-            _builder.EmitToken(methodRef, syntaxNode, _diagnostics.DiagnosticBag, encodeAsRawDefinitionToken ? Cci.MetadataWriter.RawTokenEncoding.RowId : 0);
+            _builder.EmitToken(methodRef, syntaxNode, encodeAsRawDefinitionToken ? Cci.MetadataWriter.RawTokenEncoding.RowId : 0);
         }
 
         private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode, bool needDeclaration = false)
         {
             var fieldRef = _module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag, needDeclaration);
-            _builder.EmitToken(fieldRef, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(fieldRef, syntaxNode);
         }
         // </Metalama>
 
         private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)
@@ -459,10 +459,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
         {
-            EmitStepThroughSequencePoint(node.Syntax.SyntaxTree, node.Span);
+            EmitStepThroughSequencePoint(node.Syntax, node.Span);
         }
 
-        private void EmitStepThroughSequencePoint(SyntaxTree syntaxTree, TextSpan span)
+        private void EmitStepThroughSequencePoint(SyntaxNode syntaxNode, TextSpan span)
         {
             if (!_emitPdbSequencePoints)
                 return;
@@ -470,9 +470,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var label = new object();
             // The IL builder is eager to discard unreachable code, so
             // we fool it by branching on a condition that is always true at runtime.
-            _builder.EmitConstantValue(ConstantValue.Create(true));
+            _builder.EmitConstantValue(ConstantValue.Create(true), syntaxNode);
             _builder.EmitBranch(ILOpCode.Brtrue, label);
-            EmitSequencePoint(syntaxTree, span);
+            EmitSequencePoint(syntaxNode.SyntaxTree, span);
             _builder.EmitOpCode(ILOpCode.Nop);
             _builder.MarkLabel(label);
             EmitHiddenSequencePoint();

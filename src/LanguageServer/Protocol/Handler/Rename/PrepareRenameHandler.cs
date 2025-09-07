@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(LSP.Methods.TextDocumentPrepareRenameName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<LSP.PrepareRenameParams, LSP.Range?>
+internal sealed class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<LSP.PrepareRenameParams, LSP.Range?>
 {
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
@@ -33,7 +33,7 @@ internal class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<LSP.Pr
         var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
         var symbolicRenameInfo = await SymbolicRenameInfo.GetRenameInfoAsync(
-            document, position, cancellationToken).ConfigureAwait(false);
+            document, position, includeSourceGenerated: false, cancellationToken).ConfigureAwait(false);
         if (symbolicRenameInfo.IsError)
             return null;
 

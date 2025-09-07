@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       // no arguments per se we cons up some fake arguments.
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             Extensions extensions = null,
+            // Map of TypeParameterSymbol to ordinal for new extension methods
             Dictionary<TypeParameterSymbol, int> ordinals = null)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
@@ -651,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (IsUnfixedTypeParameter(target) && !target.NullableAnnotation.IsAnnotated() && kind is ExactOrBoundsKind.LowerBound)
                 {
-                    var ordinal = GetOrdinal((TypeParameterSymbol)target.Type); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test nullability scenario where the override of ordinals matters
+                    var ordinal = GetOrdinal((TypeParameterSymbol)target.Type);
                     _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(argumentType.NullableAnnotation);
                 }
             }

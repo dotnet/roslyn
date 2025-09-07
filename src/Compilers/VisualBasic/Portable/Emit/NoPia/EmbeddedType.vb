@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 #If Not DEBUG Then
 Imports NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol

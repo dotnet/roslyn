@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -30,7 +31,15 @@ internal abstract class MemberBody : DeclarationBody
     /// <summary>
     /// All tokens of the body that may be part of an active statement.
     /// </summary>
-    public abstract IEnumerable<SyntaxToken>? GetActiveTokens();
+    public abstract IEnumerable<SyntaxToken>? GetActiveTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens);
+
+    public IEnumerable<SyntaxToken>? GetActiveTokens()
+        => GetActiveTokens(static node => node.DescendantTokens());
+
+    /// <summary>
+    /// All tokens of the body representing user code. This may be empty sequence if the entire body is synthesized.
+    /// </summary>
+    public abstract IEnumerable<SyntaxToken> GetUserCodeTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens);
 
     /// <summary>
     /// Finds an active statement at given span within this body and the corresponding partner statement in 

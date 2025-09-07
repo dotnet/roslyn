@@ -18,12 +18,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCompoundAssignmentCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
-public class UseCompoundAssignmentTests
+public sealed class UseCompoundAssignmentTests
 {
     [Fact]
-    public async Task TestAddExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestAddExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -40,12 +39,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSubtractExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSubtractExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -62,12 +59,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiplyExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestMultiplyExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -84,12 +79,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDivideExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestDivideExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -106,12 +99,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestModuloExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestModuloExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -128,12 +119,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestBitwiseAndExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestBitwiseAndExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -150,12 +139,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExclusiveOrExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestExclusiveOrExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -172,12 +159,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestBitwiseOrExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestBitwiseOrExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -194,12 +179,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLeftShiftExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestLeftShiftExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -216,12 +199,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRightShiftExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestRightShiftExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -238,12 +219,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCoalesceExpressionCSharp8OrGreater()
-    {
-        await new VerifyCS.Test()
+    public Task TestCoalesceExpressionCSharp8OrGreater()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 public class C
@@ -265,12 +244,12 @@ public class UseCompoundAssignmentTests
                 """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCoalesceExpressionCSharp7()
-    {
-        var code = """
+    public Task TestCoalesceExpressionCSharp7()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             public class C
             {
                 void M(int? a)
@@ -278,19 +257,15 @@ public class UseCompoundAssignmentTests
                     a = a ?? 10;
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_3
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36467")]
-    public async Task TestNotSuggestedWhenRightHandIsThrowExpression()
-    {
-        var code = """
+    public Task TestNotSuggestedWhenRightHandIsThrowExpression()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
             using System;
             public class C
             {
@@ -299,19 +274,13 @@ public class UseCompoundAssignmentTests
                     a = a ?? throw new Exception();
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestField()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestField()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 int a;
@@ -332,12 +301,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFieldWithThis()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFieldWithThis()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 int a;
@@ -358,12 +325,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTriviaInsensitive()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestTriviaInsensitive()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 int a;
@@ -384,12 +349,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStaticFieldThroughType()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestStaticFieldThroughType()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 static int a;
@@ -410,12 +373,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStaticFieldThroughNamespaceAndType()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestStaticFieldThroughNamespaceAndType()
+        => VerifyCS.VerifyCodeFixAsync("""
             namespace NS
             {
                 public class C
@@ -442,12 +403,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParenthesized()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParenthesized()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 int a;
@@ -468,12 +427,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestThroughBase()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestThroughBase()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public int a;
@@ -500,12 +457,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiAccess()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestMultiAccess()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public int a;
@@ -536,12 +491,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnTopLevelProp1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestOnTopLevelProp1()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 int a { get; set; }
@@ -562,12 +515,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnTopLevelProp2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestOnTopLevelProp2()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 int a { get; set; }
@@ -588,12 +539,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnTopLevelProp3()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestOnTopLevelProp3()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 int a { get; set; }
@@ -614,7 +563,6 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestNotOnTopLevelRefProp()
@@ -757,9 +705,8 @@ public class UseCompoundAssignmentTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35870")]
-    public async Task TestRightExpressionOnNextLine()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestRightExpressionOnNextLine()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -777,12 +724,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35870")]
-    public async Task TestRightExpressionSeparatedWithSeveralLines()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestRightExpressionSeparatedWithSeveralLines()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -801,12 +746,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestTrivia()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -825,12 +768,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestTrivia2()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -847,12 +788,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a, int b)
@@ -871,12 +810,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedAssignment()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestNestedAssignment()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a, int b)
@@ -893,7 +830,6 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33382")]
     public async Task TestNotOnObjectInitializer()
@@ -938,9 +874,10 @@ public class UseCompoundAssignmentTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49294")]
-    public async Task TestNotOnRecord()
-    {
-        var code = """
+    public Task TestNotOnRecord()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             record InsertionPoint(int level)
             {
                 InsertionPoint Up()
@@ -951,20 +888,14 @@ public class UseCompoundAssignmentTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38137")]
-    public async Task TestParenthesizedExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestParenthesizedExpression()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -981,12 +912,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestIncrement()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrement()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -1003,12 +932,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestDecrement()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestDecrement()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -1025,12 +952,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestMinusIncrement()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestMinusIncrement()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int a)
@@ -1047,12 +972,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestIncrementDouble()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementDouble()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(double a)
@@ -1069,12 +992,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestIncrementNotOnString()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementNotOnString()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(string a)
@@ -1091,12 +1012,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestIncrementChar()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementChar()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(char a)
@@ -1113,12 +1032,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestIncrementEnum()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementEnum()
+        => VerifyCS.VerifyCodeFixAsync("""
             public enum E {}
             public class C
             {
@@ -1137,12 +1054,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestIncrementDecimal()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementDecimal()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(decimal a)
@@ -1159,7 +1074,6 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
     [InlineData("byte")]
@@ -1167,9 +1081,8 @@ public class UseCompoundAssignmentTests
     [InlineData("long")]
     [InlineData("float")]
     [InlineData("decimal")]
-    public async Task TestIncrementLiteralConversion(string typeName)
-    {
-        await new VerifyCS.Test()
+    public Task TestIncrementLiteralConversion(string typeName)
+        => new VerifyCS.Test()
         {
             TestCode = $$"""
                 public class C
@@ -1191,7 +1104,6 @@ public class UseCompoundAssignmentTests
                 """,
             CompilerDiagnostics = CompilerDiagnostics.None
         }.RunAsync();
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
     [InlineData("byte")]
@@ -1199,9 +1111,8 @@ public class UseCompoundAssignmentTests
     [InlineData("long")]
     [InlineData("float")]
     [InlineData("decimal")]
-    public async Task TestIncrementImplicitLiteralConversion(string typeName)
-    {
-        await new VerifyCS.Test()
+    public Task TestIncrementImplicitLiteralConversion(string typeName)
+        => new VerifyCS.Test()
         {
             TestCode = $$"""
                 public class C
@@ -1223,12 +1134,10 @@ public class UseCompoundAssignmentTests
                 """,
             CompilerDiagnostics = CompilerDiagnostics.None
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38054")]
-    public async Task TestIncrementLoopVariable()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementLoopVariable()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M()
@@ -1249,12 +1158,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53969")]
-    public async Task TestIncrementInExpressionContext()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementInExpressionContext()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 void M(int i)
@@ -1271,7 +1178,6 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53969")]
     [InlineData("switch($$) { }")]
@@ -1338,9 +1244,8 @@ public class UseCompoundAssignmentTests
     [InlineData(
         "M( /* Before */ i [|=|] i - 1 /* After */ );",
         "M( /* Before */ --i /* After */ );")]
-    public async Task TestTriviaPreserved(string before, string after)
-    {
-        await VerifyCS.VerifyCodeFixAsync($$"""
+    public Task TestTriviaPreserved(string before, string after)
+        => VerifyCS.VerifyCodeFixAsync($$"""
             public class C
             {
                 void M(int i)
@@ -1357,12 +1262,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70651")]
-    public async Task TestIncrementWithUserDefinedOperators_IncrementOperatorNotDefined()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementWithUserDefinedOperators_IncrementOperatorNotDefined()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int data;
@@ -1405,12 +1308,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70651")]
-    public async Task TestIncrementWithUserDefinedOperators_IncrementOperatorDefined()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIncrementWithUserDefinedOperators_IncrementOperatorDefined()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int data;
@@ -1463,12 +1364,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70651")]
-    public async Task TestDecrementWithUserDefinedOperators_DecrementOperatorNotDefined()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestDecrementWithUserDefinedOperators_DecrementOperatorNotDefined()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int data;
@@ -1511,12 +1410,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70651")]
-    public async Task TestDecrementWithUserDefinedOperators_DecrementOperatorDefined()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestDecrementWithUserDefinedOperators_DecrementOperatorDefined()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 int data;
@@ -1569,12 +1466,10 @@ public class UseCompoundAssignmentTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76633")]
-    public async Task TestFieldKeyword1()
-    {
-        await new VerifyCS.Test
+    public Task TestFieldKeyword1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class C
@@ -1604,5 +1499,4 @@ public class UseCompoundAssignmentTests
                 """,
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
-    }
 }

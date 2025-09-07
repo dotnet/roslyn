@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics;
 
 [ExportLanguageService(typeof(IDiagnosticPropertiesService), LanguageNames.CSharp), Shared]
-internal class CSharpDiagnosticPropertiesService : AbstractDiagnosticPropertiesService
+internal sealed class CSharpDiagnosticPropertiesService : AbstractDiagnosticPropertiesService
 {
     private static readonly Compilation s_compilation = CSharpCompilation.Create("empty");
 

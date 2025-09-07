@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 
-internal class ProjectListItem : ObjectListItem
+internal sealed class ProjectListItem : ObjectListItem
 {
     private readonly string _displayText;
 

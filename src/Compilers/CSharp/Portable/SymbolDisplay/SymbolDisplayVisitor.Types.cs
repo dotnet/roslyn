@@ -204,8 +204,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) ||
-                (symbol.IsNativeIntegerType && !Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType)))
+            if (symbol.IsNativeIntegerType)
+            {
+                if (!Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType) &&
+                    AddSpecialTypeKeyword(symbol))
+                {
+                    //if we're using special type keywords and this is a special type, then no other work is required
+                    return;
+                }
+            }
+            else if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes))
             {
                 if (AddSpecialTypeKeyword(symbol))
                 {
@@ -337,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                 {
-                    var extensionIdentifier = underlyingTypeSymbol!.ExtensionName; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : use public API once it's available
+                    var extensionIdentifier = underlyingTypeSymbol!.ExtensionName; // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, use public API once it's available
                     Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, extensionIdentifier));
                 }
                 else

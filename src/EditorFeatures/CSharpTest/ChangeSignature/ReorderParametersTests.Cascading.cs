@@ -12,12 +12,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact]
     public async Task ReorderParameters_Cascade_ToImplementedMethod()
     {
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             interface I
             {
                 void M(int x, string y);
@@ -28,9 +29,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 $$public void M(int x, string y)
                 { }
             }
-            """;
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             interface I
             {
                 void M(string y, int x);
@@ -41,15 +40,14 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public void M(string y, int x)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task ReorderParameters_Cascade_ToImplementedMethod_WithTuples()
     {
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             interface I
             {
                 void M((int, int) x, (string a, string b) y);
@@ -60,9 +58,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 $$public void M((int, int) x, (string a, string b) y)
                 { }
             }
-            """;
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             interface I
             {
                 void M((string a, string b) y, (int, int) x);
@@ -73,15 +69,14 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public void M((string a, string b) y, (int, int) x)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task ReorderParameters_Cascade_ToImplementingMethod()
     {
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             interface I
             {
                 $$void M(int x, string y);
@@ -92,9 +87,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public void M(int x, string y)
                 { }
             }
-            """;
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             interface I
             {
                 void M(string y, int x);
@@ -105,15 +98,14 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public void M(string y, int x)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task ReorderParameters_Cascade_ToOverriddenMethod()
     {
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class B
             {
                 public virtual void M(int x, string y)
@@ -125,9 +117,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 $$public override void M(int x, string y)
                 { }
             }
-            """;
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class B
             {
                 public virtual void M(string y, int x)
@@ -139,15 +129,14 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public override void M(string y, int x)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task ReorderParameters_Cascade_ToOverridingMethod()
     {
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class B
             {
                 $$public virtual void M(int x, string y)
@@ -159,9 +148,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public override void M(int x, string y)
                 { }
             }
-            """;
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class B
             {
                 public virtual void M(string y, int x)
@@ -173,15 +160,14 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public override void M(string y, int x)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task ReorderParameters_Cascade_ToOverriddenMethod_Transitive()
     {
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class B
             {
                 public virtual void M(int x, string y)
@@ -199,9 +185,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 $$public override void M(int x, string y)
                 { }
             }
-            """;
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class B
             {
                 public virtual void M(string y, int x)
@@ -219,15 +203,14 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public override void M(string y, int x)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task ReorderParameters_Cascade_ToOverridingMethod_Transitive()
     {
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class B
             {
                 $$public virtual void M(int x, string y)
@@ -245,9 +228,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public override void M(int x, string y)
                 { }
             }
-            """;
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class B
             {
                 public virtual void M(string y, int x)
@@ -265,9 +246,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 public override void M(string y, int x)
                 { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
@@ -279,7 +258,8 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
         ////      / \   \
         ////   $$D2  D3  C
 
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class B { public virtual void M(int x, string y) { } }
             class D : B, I { public override void M(int x, string y) { } }
             class D2 : D { public override void $$M(int x, string y) { } }
@@ -288,10 +268,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             interface I2 { void M(int x, string y); }
             interface I3 : I, I2 { }
             class C : I3 { public void M(int x, string y) { } }
-            """;
-
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             class B { public virtual void M(string y, int x) { } }
             class D : B, I { public override void M(string y, int x) { } }
             class D2 : D { public override void M(string y, int x) { } }
@@ -300,15 +277,14 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             interface I2 { void M(string y, int x); }
             interface I3 : I, I2 { }
             class C : I3 { public void M(string y, int x) { } }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 
     [Fact]
     public async Task ReorderParameters_Cascade_ToMethods_WithDifferentParameterNames()
     {
-        var markup = """
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             public class B
             {
                 /// <param name="x"></param>
@@ -346,9 +322,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     return 1;
                 }
             }
-            """;
-        var permutation = new[] { 1, 0 };
-        var updatedCode = """
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
             public class B
             {
                 /// <param name="y"></param>
@@ -386,7 +360,6 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     return 1;
                 }
             }
-            """;
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+            """);
     }
 }

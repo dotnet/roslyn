@@ -7,22 +7,21 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Xaml
-{
-    public static class XamlStaticTypeDefinitions
-    {
-        /// <summary>
-        /// Definition of the XAML content type.
-        /// </summary>
-        [Export]
-        [Name(ContentTypeNames.XamlContentType)]
-        [BaseDefinition("code")]
-        internal static readonly ContentTypeDefinition XamlContentType;
+namespace Microsoft.CodeAnalysis.Editor.Xaml;
 
-        // Associate .xaml as the Xaml content type.
-        [Export]
-        [FileExtension(StringConstants.XamlFileExtension)]
-        [ContentType(ContentTypeNames.XamlContentType)]
-        internal static readonly FileExtensionToContentTypeDefinition XamlFileExtension;
-    }
+public static class XamlStaticTypeDefinitions
+{
+    /// <summary>
+    /// Definition of the XAML content type.
+    /// </summary>
+    [Export]
+    [Name(ContentTypeNames.XamlContentType)]
+    [BaseDefinition("code")]
+    internal static readonly ContentTypeDefinition XamlContentType;
+
+    // Associate .xaml as the Xaml content type.
+    [Export]
+    [FileExtension(StringConstants.XamlFileExtension)]
+    [ContentType(ContentTypeNames.XamlContentType)]
+    internal static readonly FileExtensionToContentTypeDefinition XamlFileExtension;
 }

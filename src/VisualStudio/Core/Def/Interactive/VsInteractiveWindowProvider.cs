@@ -134,16 +134,17 @@ internal abstract class VsInteractiveWindowProvider
     }
 
     protected void LogSession(string key, string value)
-        => Logger.Log(InteractiveWindowFunctionId, KeyValueLogMessage.Create(m => m.Add(key, value)));
+        => Logger.Log(InteractiveWindowFunctionId, KeyValueLogMessage.Create(
+            static (m, args) => m.Add(args.key, args.value), (key, value)));
 
     private void LogCloseSession(int languageBufferCount)
     {
         Logger.Log(InteractiveWindowFunctionId,
-            KeyValueLogMessage.Create(m =>
+            KeyValueLogMessage.Create(static (m, languageBufferCount) =>
             {
                 m.Add(LogMessage.Window, LogMessage.Close);
                 m.Add(LogMessage.LanguageBufferCount, languageBufferCount);
-            }));
+            }, languageBufferCount));
     }
 
     private static ImmutableArray<IInteractiveWindowCommand> GetApplicableCommands(IInteractiveWindowCommand[] commands, string coreContentType, string specializedContentType)

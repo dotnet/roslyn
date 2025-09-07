@@ -157,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
+        internal sealed override ScopedKind DeclaredScope => _underlyingParameter.DeclaredScope;
+
         internal sealed override ScopedKind EffectiveScope => _underlyingParameter.EffectiveScope;
 
         internal sealed override bool HasUnscopedRefAttribute => _underlyingParameter.HasUnscopedRefAttribute;

@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#notebookDocumentFilter">Language Server Protocol specification</see> for additional information.
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentFilter
+internal sealed class NotebookDocumentFilter
 {
     /// <summary>
     /// The type of the enclosing notebook. */

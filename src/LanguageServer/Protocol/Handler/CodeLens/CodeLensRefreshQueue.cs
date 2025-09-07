@@ -6,49 +6,48 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
+
+internal sealed class CodeLensRefreshQueue : AbstractRefreshQueue
 {
-    internal class CodeLensRefreshQueue : AbstractRefreshQueue
+    private readonly IGlobalOptionService _globalOptionService;
+
+    public CodeLensRefreshQueue(
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        LspWorkspaceManager lspWorkspaceManager,
+        IClientLanguageServerManager notificationManager,
+        IGlobalOptionService globalOptionService)
+        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
     {
-        private readonly IGlobalOptionService _globalOptionService;
+        _globalOptionService = globalOptionService;
+        _globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);
+    }
 
-        public CodeLensRefreshQueue(
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            LspWorkspaceManager lspWorkspaceManager,
-            IClientLanguageServerManager notificationManager,
-            IGlobalOptionService globalOptionService)
-            : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
+    protected override string GetFeatureAttribute()
+        => FeatureAttribute.CodeLens;
+
+    protected override bool? GetRefreshSupport(ClientCapabilities clientCapabilities)
+    {
+        return clientCapabilities.Workspace?.CodeLens?.RefreshSupport;
+    }
+
+    protected override string GetWorkspaceRefreshName()
+    {
+        return Methods.WorkspaceCodeLensRefreshName;
+    }
+
+    private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
+    {
+        if (e.HasOption(static option => option.Equals(LspOptionsStorage.LspEnableReferencesCodeLens) || option.Equals(LspOptionsStorage.LspEnableTestsCodeLens)))
         {
-            _globalOptionService = globalOptionService;
-            _globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);
+            EnqueueRefreshNotification(documentUri: null);
         }
+    }
 
-        protected override string GetFeatureAttribute()
-            => FeatureAttribute.CodeLens;
-
-        protected override bool? GetRefreshSupport(ClientCapabilities clientCapabilities)
-        {
-            return clientCapabilities.Workspace?.CodeLens?.RefreshSupport;
-        }
-
-        protected override string GetWorkspaceRefreshName()
-        {
-            return Methods.WorkspaceCodeLensRefreshName;
-        }
-
-        private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
-        {
-            if (e.HasOption(static option => option.Equals(LspOptionsStorage.LspEnableReferencesCodeLens) || option.Equals(LspOptionsStorage.LspEnableTestsCodeLens)))
-            {
-                EnqueueRefreshNotification(documentUri: null);
-            }
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
-            _globalOptionService.RemoveOptionChangedHandler(this, OnOptionChanged);
-        }
+    public override void Dispose()
+    {
+        base.Dispose();
+        _globalOptionService.RemoveOptionChangedHandler(this, OnOptionChanged);
     }
 }

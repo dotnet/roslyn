@@ -11,23 +11,16 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(LspWorkspaceManager)), Shared]
-internal class LspWorkspaceManagerFactory : ILspServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class LspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory
 {
-    private readonly LspWorkspaceRegistrationService _workspaceRegistrationService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-    {
-        _workspaceRegistrationService = lspWorkspaceRegistrationService;
-    }
-
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var logger = lspServices.GetRequiredService<AbstractLspLogger>();
-        var miscFilesWorkspace = lspServices.GetService<LspMiscellaneousFilesWorkspace>();
+        var miscFilesWorkspace = lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>();
         var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
         var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
-        return new LspWorkspaceManager(logger, miscFilesWorkspace, _workspaceRegistrationService, languageInfoProvider, telemetryLogger);
+        return new LspWorkspaceManager(logger, miscFilesWorkspace, lspWorkspaceRegistrationService, languageInfoProvider, telemetryLogger);
     }
 }

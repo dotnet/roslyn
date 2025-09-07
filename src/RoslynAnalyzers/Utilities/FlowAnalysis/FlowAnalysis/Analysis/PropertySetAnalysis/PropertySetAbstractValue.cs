@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -163,7 +163,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 newLength = this.KnownPropertyAbstractValues.Length;
             }
 
-            using ArrayBuilder<PropertySetAbstractValueKind> kinds = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(newLength);
+            using var _ = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(newLength, out var kinds);
             kinds.AddRange(this.KnownPropertyAbstractValues);
 
             while (kinds.Count < newLength)

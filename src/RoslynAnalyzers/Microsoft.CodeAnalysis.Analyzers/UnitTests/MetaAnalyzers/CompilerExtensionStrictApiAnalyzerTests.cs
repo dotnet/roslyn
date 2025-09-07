@@ -44,15 +44,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         [Theory]
         [CombinatorialData]
-        public async Task CSharpFeatureDefinedWithCommonReference(CompilerFeature feature, SupportedLanguage supportedLanguage)
-        {
-            await new VerifyCS.Test
+        public Task CSharpFeatureDefinedWithCommonReference(CompilerFeature feature, SupportedLanguage supportedLanguage)
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20.AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Common", CompilerReferenceVersion))),
                 TestCode = DefineFeature(ImplementationLanguage.CSharp, feature, supportedLanguage),
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]
@@ -128,15 +126,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         [Theory]
         [CombinatorialData]
-        public async Task VisualBasicFeatureDefinedWithCommonReference(CompilerFeature feature, SupportedLanguage supportedLanguage)
-        {
-            await new VerifyVB.Test
+        public Task VisualBasicFeatureDefinedWithCommonReference(CompilerFeature feature, SupportedLanguage supportedLanguage)
+            => new VerifyVB.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20.AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis.Common", CompilerReferenceVersion))),
                 TestCode = DefineFeature(ImplementationLanguage.VisualBasic, feature, supportedLanguage),
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]

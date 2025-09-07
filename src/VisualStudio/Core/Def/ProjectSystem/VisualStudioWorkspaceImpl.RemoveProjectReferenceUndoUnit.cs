@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal partial class VisualStudioWorkspaceImpl
 {
-    private class RemoveProjectReferenceUndoUnit : AbstractAddRemoveUndoUnit
+    private sealed class RemoveProjectReferenceUndoUnit : AbstractAddRemoveUndoUnit
     {
         private readonly ProjectId _toProjectId;
 

@@ -507,7 +507,7 @@ internal static partial class RoslynParallel
                 // Store the exception.
                 lock (this)
                 {
-                    (_exceptions ??= new List<Exception>()).Add(e);
+                    (_exceptions ??= []).Add(e);
                 }
 
                 // Trigger cancellation of all workers.  If cancellation has already been triggered

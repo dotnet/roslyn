@@ -37,12 +37,6 @@ public static partial class SymbolFinder
         if (searchSymbol == null || symbolToMatch == null)
             return false;
 
-        // Avoid the expensive checks if we can fast path when the compiler just says these are equal. Also, for the
-        // purposes of symbol finding nullability of symbols doesn't affect things, so just use the default
-        // comparison.
-        if (searchSymbol.Equals(symbolToMatch))
-            return true;
-
         if (OriginalSymbolsMatchCore(solution, searchSymbol, symbolToMatch))
             return true;
 

@@ -14,9 +14,8 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
     protected override string SnippetIdentifier => "enum";
 
     [Fact]
-    public async Task InsertEnumSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumSnippetInBlockNamespaceTest()
+        => VerifySnippetAsync("""
             namespace Namespace
             {
                 $$
@@ -30,12 +29,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertEnumSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumSnippetInFileScopedNamespaceTest()
+        => VerifySnippetAsync("""
             namespace Namespace;
             
             $$
@@ -47,12 +44,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertEnumSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumSnippetTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             enum {|0:MyEnum|}
@@ -60,12 +55,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertEnumTopLevelSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumTopLevelSnippetTest()
+        => VerifySnippetAsync("""
             System.Console.WriteLine();
             $$
             """, """
@@ -75,12 +68,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertEnumSnippetInClassTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumSnippetInClassTest()
+        => VerifySnippetAsync("""
             class MyClass
             {
                 $$
@@ -94,12 +85,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertEnumSnippetInRecordTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumSnippetInRecordTest()
+        => VerifySnippetAsync("""
             record MyRecord
             {
                 $$
@@ -113,12 +102,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertEnumSnippetInStructTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumSnippetInStructTest()
+        => VerifySnippetAsync("""
             struct MyStruct
             {
                 $$
@@ -132,12 +119,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertEnumSnippetInInterfaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumSnippetInInterfaceTest()
+        => VerifySnippetAsync("""
             interface MyInterface
             {
                 $$
@@ -151,12 +136,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertEnumSnippetWithModifiersTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertEnumSnippetWithModifiersTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             public enum {|0:MyEnum|}
@@ -170,23 +153,19 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact]
-    public async Task NoEnumSnippetInEnumTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoEnumSnippetInEnumTest()
+        => VerifySnippetIsAbsentAsync("""
             enum MyEnum
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoEnumSnippetInMethodTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoEnumSnippetInMethodTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -195,12 +174,10 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoEnumSnippetInConstructorTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoEnumSnippetInConstructorTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public Program()
@@ -209,13 +186,11 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertEnumSnippetAfterAccessibilityModifier(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertEnumSnippetAfterAccessibilityModifier(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
             {{modifier}} enum {|0:MyEnum|}
@@ -223,13 +198,11 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
                 $$
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertEnumSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertEnumSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
             {{modifier}} enum {|0:MyEnum|}
@@ -243,7 +216,6 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Theory]
     [InlineData("abstract")]
@@ -253,10 +225,8 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
     [InlineData("ref")]
     [InlineData("readonly")]
     [InlineData("unsafe")]
-    public async Task NoEnumSnippetAfterInvalidModifiersTest(string modifier)
-    {
-        await VerifySnippetIsAbsentAsync($"""
+    public Task NoEnumSnippetAfterInvalidModifiersTest(string modifier)
+        => VerifySnippetIsAbsentAsync($"""
             {modifier} $$
             """);
-    }
 }

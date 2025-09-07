@@ -109,13 +109,13 @@ internal abstract class AbstractEncapsulateFieldCommandHandler(
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             finalSolution = previewService.PreviewChanges(
-                string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
+                 string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
                  "vs.csharp.refactoring.preview",
-                EditorFeaturesResources.Encapsulate_Field_colon,
-                result.Name,
-                result.Glyph,
-                finalSolution,
-                solution);
+                 EditorFeaturesResources.Encapsulate_Field_colon,
+                 result.Name,
+                 result.Glyph,
+                 finalSolution,
+                 solution);
         }
 
         if (finalSolution == null)

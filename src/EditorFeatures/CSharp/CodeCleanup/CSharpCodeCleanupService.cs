@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup;
 [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService) : AbstractCodeCleanupService(codeFixService, diagnosticAnalyzerService)
+internal sealed class CSharpCodeCleanupService(ICodeFixService codeFixService)
+    : AbstractCodeCleanupService(codeFixService)
 {
     /// <summary>
     /// Maps format document code cleanup options to DiagnosticId[]

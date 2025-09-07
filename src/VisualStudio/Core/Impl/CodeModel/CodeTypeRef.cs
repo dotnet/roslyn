@@ -22,129 +22,128 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+
+[ComVisible(true)]
+[ComDefaultInterface(typeof(EnvDTE.CodeTypeRef))]
+public sealed class CodeTypeRef : AbstractCodeModelObject, EnvDTE.CodeTypeRef, EnvDTE80.CodeTypeRef2
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeTypeRef))]
-    public sealed class CodeTypeRef : AbstractCodeModelObject, EnvDTE.CodeTypeRef, EnvDTE80.CodeTypeRef2
+    internal static EnvDTE.CodeTypeRef Create(CodeModelState state, object parent, ProjectId projectId, ITypeSymbol typeSymbol)
     {
-        internal static EnvDTE.CodeTypeRef Create(CodeModelState state, object parent, ProjectId projectId, ITypeSymbol typeSymbol)
+        var newElement = new CodeTypeRef(state, parent, projectId, typeSymbol);
+        return (EnvDTE.CodeTypeRef)ComAggregate.CreateAggregatedObject(newElement);
+    }
+
+    private readonly ParentHandle<object> _parentHandle;
+    private readonly ProjectId _projectId;
+    private readonly SymbolKey _symbolId;
+
+    private CodeTypeRef(CodeModelState state, object parent, ProjectId projectId, ITypeSymbol typeSymbol)
+        : base(state)
+    {
+        _parentHandle = new ParentHandle<object>(parent);
+        _projectId = projectId;
+        _symbolId = typeSymbol.GetSymbolKey();
+    }
+
+    internal ITypeSymbol LookupTypeSymbol()
+    {
+        if (CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) is not ITypeSymbol typeSymbol)
         {
-            var newElement = new CodeTypeRef(state, parent, projectId, typeSymbol);
-            return (EnvDTE.CodeTypeRef)ComAggregate.CreateAggregatedObject(newElement);
+            throw Exceptions.ThrowEFail();
         }
 
-        private readonly ParentHandle<object> _parentHandle;
-        private readonly ProjectId _projectId;
-        private readonly SymbolKey _symbolId;
+        return typeSymbol;
+    }
 
-        private CodeTypeRef(CodeModelState state, object parent, ProjectId projectId, ITypeSymbol typeSymbol)
-            : base(state)
+    public string AsFullName
+    {
+        get { return CodeModelService.GetAsFullNameForCodeTypeRef(LookupTypeSymbol()); }
+    }
+
+    public string AsString
+    {
+        get { return CodeModelService.GetAsStringForCodeTypeRef(LookupTypeSymbol()); }
+    }
+
+    public EnvDTE.CodeType CodeType
+    {
+        get { return (EnvDTE.CodeType)CodeModelService.CreateCodeType(this.State, _projectId, LookupTypeSymbol()); }
+        set { throw Exceptions.ThrowENotImpl(); }
+    }
+
+    public EnvDTE.CodeTypeRef CreateArrayType(int rank)
+    {
+        var project = Workspace.CurrentSolution.GetProject(_projectId);
+        if (project == null)
         {
-            _parentHandle = new ParentHandle<object>(parent);
-            _projectId = projectId;
-            _symbolId = typeSymbol.GetSymbolKey();
+            throw Exceptions.ThrowEFail();
         }
 
-        internal ITypeSymbol LookupTypeSymbol()
+        var arrayType = project.GetCompilationAsync().Result.CreateArrayTypeSymbol(LookupTypeSymbol(), rank);
+        return CodeTypeRef.Create(this.State, null, _projectId, arrayType);
+    }
+
+    public EnvDTE.CodeTypeRef ElementType
+    {
+        get
         {
-            if (CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) is not ITypeSymbol typeSymbol)
+            var typeSymbol = LookupTypeSymbol();
+            if (typeSymbol.TypeKind == Microsoft.CodeAnalysis.TypeKind.Array)
+            {
+                return CodeTypeRef.Create(this.State, this, _projectId, ((IArrayTypeSymbol)typeSymbol).ElementType);
+            }
+            else if (typeSymbol.TypeKind == Microsoft.CodeAnalysis.TypeKind.Pointer)
+            {
+                return CodeTypeRef.Create(this.State, this, _projectId, ((IPointerTypeSymbol)typeSymbol).PointedAtType);
+            }
+            else
             {
                 throw Exceptions.ThrowEFail();
             }
-
-            return typeSymbol;
         }
 
-        public string AsFullName
+        set
         {
-            get { return CodeModelService.GetAsFullNameForCodeTypeRef(LookupTypeSymbol()); }
+            throw Exceptions.ThrowENotImpl();
         }
+    }
 
-        public string AsString
+    public bool IsGeneric
+    {
+        get
         {
-            get { return CodeModelService.GetAsStringForCodeTypeRef(LookupTypeSymbol()); }
+            return LookupTypeSymbol() is INamedTypeSymbol namedTypeSymbol
+                && namedTypeSymbol.GetAllTypeArguments().Any();
         }
+    }
 
-        public EnvDTE.CodeType CodeType
-        {
-            get { return (EnvDTE.CodeType)CodeModelService.CreateCodeType(this.State, _projectId, LookupTypeSymbol()); }
-            set { throw Exceptions.ThrowENotImpl(); }
-        }
+    public object Parent
+    {
+        get { return _parentHandle.Value; }
+    }
 
-        public EnvDTE.CodeTypeRef CreateArrayType(int rank)
+    public int Rank
+    {
+        get
         {
-            var project = Workspace.CurrentSolution.GetProject(_projectId);
-            if (project == null)
+            var typeSymbol = LookupTypeSymbol();
+            if (typeSymbol.TypeKind == Microsoft.CodeAnalysis.TypeKind.Array)
             {
-                throw Exceptions.ThrowEFail();
+                return ((IArrayTypeSymbol)typeSymbol).Rank;
             }
 
-            var arrayType = project.GetCompilationAsync().Result.CreateArrayTypeSymbol(LookupTypeSymbol(), rank);
-            return CodeTypeRef.Create(this.State, null, _projectId, arrayType);
+            throw Exceptions.ThrowEFail();
         }
 
-        public EnvDTE.CodeTypeRef ElementType
+        set
         {
-            get
-            {
-                var typeSymbol = LookupTypeSymbol();
-                if (typeSymbol.TypeKind == Microsoft.CodeAnalysis.TypeKind.Array)
-                {
-                    return CodeTypeRef.Create(this.State, this, _projectId, ((IArrayTypeSymbol)typeSymbol).ElementType);
-                }
-                else if (typeSymbol.TypeKind == Microsoft.CodeAnalysis.TypeKind.Pointer)
-                {
-                    return CodeTypeRef.Create(this.State, this, _projectId, ((IPointerTypeSymbol)typeSymbol).PointedAtType);
-                }
-                else
-                {
-                    throw Exceptions.ThrowEFail();
-                }
-            }
-
-            set
-            {
-                throw Exceptions.ThrowENotImpl();
-            }
+            throw new NotImplementedException();
         }
+    }
 
-        public bool IsGeneric
-        {
-            get
-            {
-                return LookupTypeSymbol() is INamedTypeSymbol namedTypeSymbol
-                    && namedTypeSymbol.GetAllTypeArguments().Any();
-            }
-        }
-
-        public object Parent
-        {
-            get { return _parentHandle.Value; }
-        }
-
-        public int Rank
-        {
-            get
-            {
-                var typeSymbol = LookupTypeSymbol();
-                if (typeSymbol.TypeKind == Microsoft.CodeAnalysis.TypeKind.Array)
-                {
-                    return ((IArrayTypeSymbol)typeSymbol).Rank;
-                }
-
-                throw Exceptions.ThrowEFail();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public EnvDTE.vsCMTypeRef TypeKind
-        {
-            get { return CodeModelService.GetTypeKindForCodeTypeRef(LookupTypeSymbol()); }
-        }
+    public EnvDTE.vsCMTypeRef TypeKind
+    {
+        get { return CodeModelService.GetTypeKindForCodeTypeRef(LookupTypeSymbol()); }
     }
 }

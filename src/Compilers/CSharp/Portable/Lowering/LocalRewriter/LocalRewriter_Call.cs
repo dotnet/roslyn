@@ -149,6 +149,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (interceptor.GetIsNewExtensionMember())
+            {
+                if (interceptor.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
+                {
+                    interceptor = implementationMethod;
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
+
             Debug.Assert(nameSyntax != null);
             Debug.Assert(interceptor.IsDefinition);
             Debug.Assert(!interceptor.ContainingType.IsGenericType);
@@ -230,9 +242,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
             }
 
-            method.TryGetThisParameter(out var methodThisParameter);
-            var interceptorThisParameterForCompare = needToReduce ? interceptor.Parameters[0] :
+            ParameterSymbol? methodThisParameter;
+            _ = method.TryGetInstanceExtensionParameter(out methodThisParameter) || method.TryGetThisParameter(out methodThisParameter);
+
+            ParameterSymbol? interceptorThisParameterForCompare = needToReduce ? interceptor.Parameters[0] :
                 interceptor.TryGetThisParameter(out var interceptorThisParameter) ? interceptorThisParameter : null;
+
             switch (methodThisParameter, interceptorThisParameterForCompare)
             {
                 case (not null, null):
@@ -932,6 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             switch (argIndex)
                             {
                                 case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                                case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                                     Debug.Assert(usesReceiver(argument));
                                     Debug.Assert(requiresInstanceReceiver);
                                     Debug.Assert(receiverTemp is object);
@@ -989,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (var placeholder in interpolationData.ArgumentPlaceholders)
                         {
-                            if (placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter)
+                            if (placeholder.ArgumentIndex is BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver)
                             {
                                 return true;
                             }

@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class TypeContextTests : AbstractContextTests
+public sealed class TypeContextTests : AbstractContextTests
 {
     protected override void CheckResult(bool validLocation, int position, SyntaxTree syntaxTree)
         => Assert.Equal(validLocation, syntaxTree.IsTypeContext(position, CancellationToken.None));

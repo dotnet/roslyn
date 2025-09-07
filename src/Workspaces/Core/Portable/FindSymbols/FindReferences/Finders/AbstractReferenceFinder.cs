@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -607,7 +608,17 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         while (syntaxFacts.IsQualifiedName(topNameNode.Parent))
             topNameNode = topNameNode.Parent;
 
-        var isInNamespaceNameContext = syntaxFacts.IsBaseNamespaceDeclaration(topNameNode.Parent);
+        var parent = topNameNode?.Parent;
+
+        // typeof/sizeof are a special case where we don't want to return a TypeOrNamespaceUsageInfo, but rather a ValueUsageInfo.Name.
+        // This brings it in line with nameof(...), making all those operators appear in a similar fashion.
+        if (parent?.RawKind == syntaxFacts.SyntaxKinds.TypeOfExpression ||
+            parent?.RawKind == syntaxFacts.SyntaxKinds.SizeOfExpression)
+        {
+            return new(ValueUsageInfo.Name, typeOrNamespaceUsageInfoOpt: null);
+        }
+
+        var isInNamespaceNameContext = syntaxFacts.IsBaseNamespaceDeclaration(parent);
         return syntaxFacts.IsInNamespaceOrTypeContext(topNameNode)
             ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
             : GetSymbolUsageInfoCommon();
@@ -676,18 +687,12 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                 if (operation is IObjectCreationOperation)
                     return SymbolUsageInfo.Create(TypeOrNamespaceUsageInfo.ObjectCreation);
 
-                switch (operation?.Parent)
-                {
-                    case INameOfOperation:
-                    case ITypeOfOperation:
-                    case ISizeOfOperation:
-                        return SymbolUsageInfo.Create(ValueUsageInfo.Name);
-                }
+                // Note: sizeof/typeof also return 'name', but are handled above in GetSymbolUsageInfo.
+                if (operation?.Parent is INameOfOperation)
+                    return SymbolUsageInfo.Create(ValueUsageInfo.Name);
 
                 if (node.IsPartOfStructuredTrivia())
-                {
                     return SymbolUsageInfo.Create(ValueUsageInfo.Name);
-                }
 
                 var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
                 if (symbolInfo.Symbol != null)

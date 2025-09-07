@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static DeclarationModifiers GetDeclarationModifiers() => DeclarationModifiers.Private | DeclarationModifiers.Static;
 
-        internal override bool HasSpecialName => true; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : reconcile with spec
+        internal override bool HasSpecialName => true;
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
@@ -77,7 +78,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (parameter is { })
                 {
-                    checkUnderspecifiedGenericExtension(parameter, ContainingType.TypeParameters, diagnostics);
+                    TypeSymbol parameterType = parameter.TypeWithAnnotations.Type;
+                    RefKind parameterRefKind = parameter.RefKind;
+                    SyntaxNode? parameterTypeSyntax = parameterList.Parameters[0].Type;
+                    Debug.Assert(parameterTypeSyntax is not null);
+
+                    // Note: SourceOrdinaryMethodSymbol.ExtensionMethodChecks has similar checks, which should be kept in sync.
+                    if (!parameterType.IsValidExtensionParameterType())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadTypeforThis, parameterTypeSyntax, parameterType);
+                    }
+                    else if (parameterRefKind == RefKind.Ref && !parameterType.IsValueType)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, parameterTypeSyntax);
+                    }
+                    else if (parameterRefKind is RefKind.In or RefKind.RefReadOnlyParameter && parameterType.TypeKind != TypeKind.Struct)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_InExtensionParameterMustBeValueType, parameterTypeSyntax);
+                    }
+
+                    if (parameter.Name is "" && parameterRefKind != RefKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ModifierOnUnnamedReceiverParameter, parameterTypeSyntax);
+                    }
                 }
 
                 if (parameter is { Name: var name } && name != "" &&
@@ -88,34 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return parameter;
             }
-
-            static void checkUnderspecifiedGenericExtension(ParameterSymbol parameter, ImmutableArray<TypeParameterSymbol> typeParameters, BindingDiagnosticBag diagnostics)
-            {
-                var underlyingType = parameter.Type;
-                var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-                underlyingType.VisitType(collectTypeParameters, arg: usedTypeParameters);
-
-                foreach (var typeParameter in typeParameters)
-                {
-                    if (!usedTypeParameters.Contains(typeParameter))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, parameter.GetFirstLocation(), underlyingType, typeParameter);
-                    }
-                }
-
-                usedTypeParameters.Free();
-            }
-
-            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
-            {
-                if (type is TypeParameterSymbol typeParameter)
-                {
-                    typeParameters.Add(typeParameter);
-                }
-
-                return false;
-            }
-
         }
     }
 }

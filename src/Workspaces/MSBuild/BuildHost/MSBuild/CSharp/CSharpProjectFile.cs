@@ -6,19 +6,18 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+internal sealed class CSharpProjectFile : ProjectFile
 {
-    internal class CSharpProjectFile : ProjectFile
+    public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
+        : base(loader, project, buildManager, log)
     {
-        public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
-            : base(loader, project, buildManager, log)
-        {
-        }
-
-        protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
-            => executedProject.GetItems(ItemNames.CscCommandLineArgs);
-
-        protected override ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project)
-            => CSharpCommandLineArgumentReader.Read(project);
     }
+
+    protected override IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject)
+        => executedProject.GetItems(ItemNames.CscCommandLineArgs);
+
+    protected override ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project)
+        => CSharpCommandLineArgumentReader.Read(project);
 }

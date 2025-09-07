@@ -50,14 +50,14 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             foreach (var collection in snapshotSpans)
             {
-                if (collection.Count == 0)
+                if (collection is not ([var firstSpan, ..] and [.., var lastSpan]))
                     continue;
 
-                var snapshot = collection.First().Snapshot;
+                var snapshot = firstSpan.Snapshot;
 
                 // Coalesce the spans if there are a lot of them.
                 var coalesced = collection.Count > CoalesceDifferenceCount
-                    ? new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(collection.First().Start, collection.Last().End))
+                    ? new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(firstSpan.Start, lastSpan.End))
                     : collection;
 
                 _dataSource.BeforeTagsChanged(snapshot);

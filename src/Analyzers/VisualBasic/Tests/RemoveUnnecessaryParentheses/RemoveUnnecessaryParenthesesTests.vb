@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
@@ -16,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
     ''' whose current option is set to something other than 'Ignore'.
     ''' </summary>
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-    Partial Public Class RemoveUnnecessaryParenthesesTests
+    Partial Public NotInheritable Class RemoveUnnecessaryParenthesesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Private Shared ReadOnly CheckOverflow As CompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, checkOverflow:=True)
@@ -652,7 +651,16 @@ end class"
 
                 Assert.Equal("[1,2]", diagnostic.Properties.Item(WellKnownDiagnosticTags.Unnecessary))
             End Using
+        End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78187")>
+        Public Async Function TestWithNullMemberAccess() As Task
+            Await TestMissingAsync(
+"class C
+    sub M()
+        RoundTime($$(d.EndDate - d.StartDate)?.TotalMinutes / 60)
+    end sub
+end class", New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
     End Class
 End Namespace

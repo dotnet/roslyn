@@ -28,7 +28,7 @@ internal sealed class DiagnosticData(
     int warningLevel,
     ImmutableArray<string> customTags,
     ImmutableDictionary<string, string?> properties,
-    ProjectId? projectId,
+    ProjectId projectId,
     DiagnosticDataLocation location,
     ImmutableArray<DiagnosticDataLocation> additionalLocations = default,
     string? language = null,
@@ -65,7 +65,7 @@ internal sealed class DiagnosticData(
     public readonly ImmutableDictionary<string, string?> Properties = properties;
 
     [DataMember(Order = 9)]
-    public readonly ProjectId? ProjectId = projectId;
+    public readonly ProjectId ProjectId = projectId;
 
     [DataMember(Order = 10)]
     public readonly DiagnosticDataLocation DataLocation = location;
@@ -197,9 +197,9 @@ internal sealed class DiagnosticData(
         }
     }
 
-    public static DiagnosticData Create(Solution solution, Diagnostic diagnostic, Project? project)
-        => Create(diagnostic, project?.Id, project?.Language,
-            location: new DiagnosticDataLocation(new FileLinePositionSpan(project?.FilePath ?? solution.FilePath ?? "", span: default)),
+    public static DiagnosticData Create(Diagnostic diagnostic, Project project)
+        => Create(diagnostic, project.Id, project.Language,
+            location: new DiagnosticDataLocation(new FileLinePositionSpan(project.FilePath ?? project.Solution.FilePath ?? "", span: default)),
             additionalLocations: default, additionalProperties: null);
 
     public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
@@ -230,7 +230,7 @@ internal sealed class DiagnosticData(
 
     private static DiagnosticData Create(
         Diagnostic diagnostic,
-        ProjectId? projectId,
+        ProjectId projectId,
         string? language,
         DiagnosticDataLocation location,
         ImmutableArray<DiagnosticDataLocation> additionalLocations,
@@ -325,7 +325,7 @@ internal sealed class DiagnosticData(
         }
 
         var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
-        diagnosticData = Create(project.Solution, diagnostic, project);
+        diagnosticData = Create(diagnostic, project);
         return true;
     }
 

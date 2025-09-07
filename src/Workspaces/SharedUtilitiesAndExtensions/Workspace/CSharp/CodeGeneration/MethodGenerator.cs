@@ -319,8 +319,11 @@ internal static class MethodGenerator
         return TypeParameterGenerator.GenerateTypeParameterList(method.TypeParameters, info);
     }
 
-    private static SyntaxTokenList GenerateModifiers(
-        IMethodSymbol method, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
+    public static SyntaxTokenList GenerateModifiers(
+        IMethodSymbol method,
+        CodeGenerationDestination destination,
+        CSharpCodeGenerationContextInfo info,
+        bool includeAccessibility = true)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
@@ -350,7 +353,8 @@ internal static class MethodGenerator
             else if (destination is not CodeGenerationDestination.CompilationUnit and
                 not CodeGenerationDestination.Namespace)
             {
-                AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                if (includeAccessibility)
+                    AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (method.IsStatic)
                     tokens.Add(StaticKeyword);

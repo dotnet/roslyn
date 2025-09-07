@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
                 node, isLeftOfAssignment,
-                isRegularAssignmentOrRegularCompoundAssignment: isLeftOfAssignment,
+                isRegularAssignment: isLeftOfAssignment,
                 cacheAllArgumentsOnly: false,
                 sideeffects, locals);
 
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetUnderlyingIndexerOrSliceAccess(
             BoundImplicitIndexerAccess node,
             bool isLeftOfAssignment,
-            bool isRegularAssignmentOrRegularCompoundAssignment,
+            bool isRegularAssignment,
             bool cacheAllArgumentsOnly,
             ArrayBuilder<BoundExpression> sideeffects,
             ArrayBuilder<LocalSymbol> locals)
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (receiverLocal.LocalSymbol.IsRef &&
                         CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
                         !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
-                        ((isLeftOfAssignment && !isRegularAssignmentOrRegularCompoundAssignment) ||
+                        ((isLeftOfAssignment && !isRegularAssignment) ||
                          !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
                     {
                         BoundAssignmentOperator? extraRefInitialization;

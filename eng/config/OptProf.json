@@ -39,10 +39,6 @@
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
-              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" , "WinForms.OptProfTests.winforms_largeform_cs"]
-            },
-            {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
@@ -112,10 +108,6 @@
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
             {
-              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
-              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
-            },
-            {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
@@ -179,10 +171,6 @@
             {
               "filename": "/Microsoft.CodeAnalysis.VisualBasic.dll",
               "testCases":[ "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
-              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",

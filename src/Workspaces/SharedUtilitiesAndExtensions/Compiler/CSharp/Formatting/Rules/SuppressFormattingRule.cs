@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class SuppressFormattingRule : BaseFormattingRule
+internal sealed class SuppressFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Suppress Formatting Rule";
 
@@ -220,9 +220,9 @@ internal class SuppressFormattingRule : BaseFormattingRule
 
         if (node is ParameterSyntax parameterNode)
         {
-            if (parameterNode.AttributeLists.Count != 0)
+            if (parameterNode.AttributeLists is [var firstAttribute, ..])
             {
-                var anchorToken = parameterNode.AttributeLists.First().OpenBracketToken;
+                var anchorToken = firstAttribute.OpenBracketToken;
                 AddSuppressAllOperationIfOnMultipleLine(list, anchorToken, parameterNode.GetLastToken());
             }
         }

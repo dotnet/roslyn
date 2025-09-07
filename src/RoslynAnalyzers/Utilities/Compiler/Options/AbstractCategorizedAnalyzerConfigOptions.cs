@@ -34,7 +34,7 @@ namespace Analyzer.Utilities
                 optionName,
                 kind,
                 rule,
-                static (string s, TryParseValue<T> tryParseValue, [MaybeNullWhen(returnValue: false)] out T parsedValue) => tryParseValue(s, out parsedValue),
+                static (s, tryParseValue, [MaybeNullWhen(returnValue: false)] out parsedValue) => tryParseValue(s, out parsedValue),
                 tryParseValue,
                 defaultValue,
                 out var value))

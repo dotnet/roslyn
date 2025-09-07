@@ -202,31 +202,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
             // 1. Collect new extension members
-            if (this.Compilation.LanguageVersion.AllowNewExtensions())
+            var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
+
+            foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
             {
-                var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
-
-                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
+                if (extensionDeclaration.ExtensionParameter is null)
                 {
-                    var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
-
-                    foreach (var candidate in candidates)
-                    {
-                        SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                        result.Add(resultOfThisMember);
-
-                        if (candidate is MethodSymbol { IsStatic: false } shadows &&
-                            shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
-                        {
-                            implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
-                            implementationsToShadow.Add(toShadow);
-                        }
-                    }
+                    continue;
                 }
 
-                extensionDeclarations.Free();
+                var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
+
+                foreach (var candidate in candidates)
+                {
+                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                    result.Add(resultOfThisMember);
+
+                    if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                        shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                    {
+                        implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                        implementationsToShadow.Add(toShadow);
+                    }
+                }
             }
+
+            extensionDeclarations.Free();
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -1485,6 +1487,10 @@ symIsHidden:;
             {
                 return LookupResult.Empty();
             }
+            else if ((options & LookupOptions.MustBeOperator) != 0 && unwrappedSymbol is not MethodSymbol { MethodKind: MethodKind.UserDefinedOperator })
+            {
+                return LookupResult.Empty();
+            }
             else if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
@@ -1503,7 +1509,7 @@ symIsHidden:;
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }
-            else if (!InCref && !unwrappedSymbol.CanBeReferencedByNameIgnoringIllegalCharacters)
+            else if (!InCref && !unwrappedSymbol.CanBeReferencedByNameIgnoringIllegalCharacters && (options & LookupOptions.MustBeOperator) == 0)
             {
                 // Strictly speaking, this test should actually check CanBeReferencedByName.
                 // However, we don't want to pay that cost in cases where the lookup is based

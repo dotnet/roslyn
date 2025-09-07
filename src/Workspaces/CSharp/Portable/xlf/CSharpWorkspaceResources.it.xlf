@@ -17,11 +17,6 @@
         <target state="translated">Ri&amp;muovi e ordina using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="translated">Or&amp;dina using</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
         <target state="translated">È possibile rendere espliciti solo attributi, inizializzatori di costruttore, espressioni o istruzioni</target>
@@ -30,6 +25,16 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">Implementa l'interfaccia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>Sort Usings</source>
+        <target state="new">Sort Usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings_with_accelerator">
+        <source>&amp;Sort Usings</source>
+        <target state="new">&amp;Sort Usings</target>
         <note />
       </trans-unit>
     </body>

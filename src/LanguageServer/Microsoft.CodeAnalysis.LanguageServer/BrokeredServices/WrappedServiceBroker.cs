@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 [Export(typeof(WrappedServiceBroker))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class WrappedServiceBroker() : IServiceBroker
+internal sealed class WrappedServiceBroker() : IServiceBroker
 {
     private readonly TaskCompletionSource<IServiceBroker> _serviceBrokerTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
 

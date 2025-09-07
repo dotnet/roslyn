@@ -16,57 +16,65 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
     public class PartsExportedWithMEFv2MustBeMarkedAsSharedTests
     {
-        private const string CSharpWellKnownAttributesDefinition = @"
-namespace System.Composition
-{
-    public class ExportAttribute : System.Attribute
-    {
-        public ExportAttribute(System.Type contractType){ }
-    }
+        private const string CSharpWellKnownAttributesDefinition = """
 
-    public class SharedAttribute : System.Attribute
-    {
-    }
-}
-";
-        private const string BasicWellKnownAttributesDefinition = @"
-Namespace System.Composition
-	Public Class ExportAttribute
-		Inherits System.Attribute
-		Public Sub New(contractType As System.Type)
-		End Sub
-	End Class
+            namespace System.Composition
+            {
+                public class ExportAttribute : System.Attribute
+                {
+                    public ExportAttribute(System.Type contractType){ }
+                }
 
-	Public Class SharedAttribute
-		Inherits System.Attribute
-	End Class
-End Namespace
+                public class SharedAttribute : System.Attribute
+                {
+                }
+            }
 
-";
+            """;
+        private const string BasicWellKnownAttributesDefinition = """
+
+            Namespace System.Composition
+            	Public Class ExportAttribute
+            		Inherits System.Attribute
+            		Public Sub New(contractType As System.Type)
+            		End Sub
+            	End Class
+
+            	Public Class SharedAttribute
+            		Inherits System.Attribute
+            	End Class
+            End Namespace
+
+
+            """;
 
         #region No Diagnostic Tests
 
         [Fact]
         public async Task NoDiagnosticCases_ResolvedTypesAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-using System.Composition;
+            await VerifyCS.VerifyAnalyzerAsync("""
 
-[Export(typeof(C)), Shared]
-public class C
-{
-}
-" + CSharpWellKnownAttributesDefinition);
+                using System;
+                using System.Composition;
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
-Imports System
-Imports System.Composition
+                [Export(typeof(C)), Shared]
+                public class C
+                {
+                }
 
-<Export(GetType(C)), [Shared]> _
-Public Class C
-End Class
-" + BasicWellKnownAttributesDefinition);
+                """ + CSharpWellKnownAttributesDefinition);
+
+            await VerifyVB.VerifyAnalyzerAsync("""
+
+                Imports System
+                Imports System.Composition
+
+                <Export(GetType(C)), [Shared]> _
+                Public Class C
+                End Class
+
+                """ + BasicWellKnownAttributesDefinition);
         }
 
         [Fact]
@@ -78,15 +86,17 @@ End Class
                 {
                     Sources =
                     {
-                        @"
-using System;
-using System.{|CS0234:Composition|};
+                        """
 
-[{|CS0246:{|CS0246:Export|}|}(typeof(C)), {|CS0246:{|CS0246:Shared|}|}]
-public class C
-{
-}
-",
+                        using System;
+                        using System.{|CS0234:Composition|};
+
+                        [{|CS0246:{|CS0246:Export|}|}(typeof(C)), {|CS0246:{|CS0246:Shared|}|}]
+                        public class C
+                        {
+                        }
+
+                        """,
                     },
                 },
                 ReferenceAssemblies = ReferenceAssemblies.Default,
@@ -98,14 +108,16 @@ public class C
                 {
                     Sources =
                     {
-                        @"
-Imports System
-Imports System.Composition
+                        """
 
-<{|BC30002:Export|}(GetType(C)), {|BC30002:[Shared]|}> _
-Public Class C
-End Class
-"
+                        Imports System
+                        Imports System.Composition
+
+                        <{|BC30002:Export|}(GetType(C)), {|BC30002:[Shared]|}> _
+                        Public Class C
+                        End Class
+
+                        """
                     },
                 },
                 ReferenceAssemblies = ReferenceAssemblies.Default,
@@ -119,93 +131,109 @@ End Class
         [Fact]
         public async Task DiagnosticCases_NoSharedAttributeAsync()
         {
-            await VerifyCS.VerifyCodeFixAsync(@"
-using System;
-using System.Composition;
+            await VerifyCS.VerifyCodeFixAsync("""
 
-[[|Export(typeof(C))|]]
-public class C
-{
-}
-" + CSharpWellKnownAttributesDefinition, @"
-using System;
-using System.Composition;
+                using System;
+                using System.Composition;
 
-[Export(typeof(C))]
-[Shared]
-public class C
-{
-}
-" + CSharpWellKnownAttributesDefinition);
+                [[|Export(typeof(C))|]]
+                public class C
+                {
+                }
 
-            await VerifyVB.VerifyCodeFixAsync(@"
-Imports System
-Imports System.Composition
+                """ + CSharpWellKnownAttributesDefinition, """
 
-<[|Export(GetType(C))|]> _
-Public Class C
-End Class
-" + BasicWellKnownAttributesDefinition, @"
-Imports System
-Imports System.Composition
+                using System;
+                using System.Composition;
 
-<Export(GetType(C))> _
-<[Shared]>
-Public Class C
-End Class
-" + BasicWellKnownAttributesDefinition);
+                [Export(typeof(C))]
+                [Shared]
+                public class C
+                {
+                }
+
+                """ + CSharpWellKnownAttributesDefinition);
+
+            await VerifyVB.VerifyCodeFixAsync("""
+
+                Imports System
+                Imports System.Composition
+
+                <[|Export(GetType(C))|]> _
+                Public Class C
+                End Class
+
+                """ + BasicWellKnownAttributesDefinition, """
+
+                Imports System
+                Imports System.Composition
+
+                <Export(GetType(C))> _
+                <[Shared]>
+                Public Class C
+                End Class
+
+                """ + BasicWellKnownAttributesDefinition);
         }
 
         [Fact]
         public async Task DiagnosticCases_DifferentSharedAttributeAsync()
         {
-            await VerifyCS.VerifyCodeFixAsync(@"
-using System;
+            await VerifyCS.VerifyCodeFixAsync("""
 
-[[|System.Composition.Export(typeof(C))|], Shared]
-public class C
-{
-}
+                using System;
 
-public class SharedAttribute: Attribute
-{
-}
-" + CSharpWellKnownAttributesDefinition, @"
-using System;
+                [[|System.Composition.Export(typeof(C))|], Shared]
+                public class C
+                {
+                }
 
-[System.Composition.Export(typeof(C)), Shared]
-[System.Composition.Shared]
-public class C
-{
-}
+                public class SharedAttribute: Attribute
+                {
+                }
 
-public class SharedAttribute: Attribute
-{
-}
-" + CSharpWellKnownAttributesDefinition);
+                """ + CSharpWellKnownAttributesDefinition, """
 
-            await VerifyVB.VerifyCodeFixAsync(@"
-Imports System
+                using System;
 
-<[|System.Composition.Export(GetType(C))|], [Shared]> _
-Public Class C
-End Class
+                [System.Composition.Export(typeof(C)), Shared]
+                [System.Composition.Shared]
+                public class C
+                {
+                }
 
-Public Class SharedAttribute
-    Inherits Attribute
-End Class
-" + BasicWellKnownAttributesDefinition, @"
-Imports System
+                public class SharedAttribute: Attribute
+                {
+                }
 
-<System.Composition.Export(GetType(C)), [Shared]> _
-<Composition.Shared>
-Public Class C
-End Class
+                """ + CSharpWellKnownAttributesDefinition);
 
-Public Class SharedAttribute
-    Inherits Attribute
-End Class
-" + BasicWellKnownAttributesDefinition);
+            await VerifyVB.VerifyCodeFixAsync("""
+
+                Imports System
+
+                <[|System.Composition.Export(GetType(C))|], [Shared]> _
+                Public Class C
+                End Class
+
+                Public Class SharedAttribute
+                    Inherits Attribute
+                End Class
+
+                """ + BasicWellKnownAttributesDefinition, """
+
+                Imports System
+
+                <System.Composition.Export(GetType(C)), [Shared]> _
+                <Composition.Shared>
+                Public Class C
+                End Class
+
+                Public Class SharedAttribute
+                    Inherits Attribute
+                End Class
+
+                """ + BasicWellKnownAttributesDefinition);
         }
 
         #endregion

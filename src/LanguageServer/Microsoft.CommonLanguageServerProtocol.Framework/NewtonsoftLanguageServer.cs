@@ -56,7 +56,7 @@ internal abstract class NewtonsoftLanguageServer<TRequestContext>(
         return new NewtonsoftDelegatingEntryPoint(method, this);
     }
 
-    private class NewtonsoftDelegatingEntryPoint(
+    private sealed class NewtonsoftDelegatingEntryPoint(
         string method,
         NewtonsoftLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method)
     {

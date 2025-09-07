@@ -28,12 +28,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Dim visitor = New VisualBasicEntryPointFinder(compilation, findFormsOnly)
             Dim symbol = compilation.SourceModule.GlobalNamespace
 
-            ' Attempt to only search source symbols
-            ' Some callers will give a symbol that is not part of a compilation
-            If symbol.ContainingCompilation IsNot Nothing Then
-                symbol = symbol.ContainingCompilation.SourceModule.GlobalNamespace
-            End If
-
             visitor.Visit(symbol)
             Return visitor.EntryPoints
         End Function

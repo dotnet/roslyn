@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 /// <summary>
 /// Various tests often need a source text container to simulate workspace OnDocumentOpened calls.
 /// </summary>
-internal class TestStaticSourceTextContainer(SourceText text) : SourceTextContainer
+internal sealed class TestStaticSourceTextContainer(SourceText text) : SourceTextContainer
 {
     public override SourceText CurrentText => text;
 

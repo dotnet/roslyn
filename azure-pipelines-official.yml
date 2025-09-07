@@ -44,6 +44,12 @@ parameters:
   type: boolean
   default: true
 
+# An optional VS commit SHA that will be automatically cherry-picked
+# to the insertion PR created by this build.
+- name: VisualStudioCherryPickSHA
+  type: string
+  default: '(default)'
+
 schedules:
   - cron: "0 8 23-29 * 0"
     displayName: "Monthly smoke test"
@@ -394,6 +400,7 @@ extends:
             publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
             publishDataAccessToken: "$(System.AccessToken)"
             dropPath: '$(Pipeline.Workspace)\VSSetup'
+            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
 
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self

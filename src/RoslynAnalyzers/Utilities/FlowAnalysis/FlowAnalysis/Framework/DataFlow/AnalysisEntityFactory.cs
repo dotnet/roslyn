@@ -10,10 +10,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -63,12 +64,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _interproceduralGetAnalysisEntityForFlowCapture = interproceduralGetAnalysisEntityForFlowCapture;
             _getInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
 
-            _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity?>();
-            _tupleElementEntitiesMap = new Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>>();
-            _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
-            _captureIdCopyValueMap = new Dictionary<CaptureId, CopyAbstractValue>();
+            _analysisEntityMap = [];
+            _tupleElementEntitiesMap = [];
+            _captureIdEntityMap = [];
+            _captureIdCopyValueMap = [];
 
-            _instanceLocationsForSymbols = new Dictionary<ISymbol, PointsToAbstractValue>();
+            _instanceLocationsForSymbols = [];
             if (interproceduralCapturedVariablesMap != null)
             {
                 _instanceLocationsForSymbols.AddRange(interproceduralCapturedVariablesMap);
@@ -370,7 +371,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
 
-                using var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
+                using var _ = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length, out var builder);
                 foreach (var field in tupleType.TupleElements)
                 {
                     var tupleFieldName = field.CorrespondingTupleField!.Name;

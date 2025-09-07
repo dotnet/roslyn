@@ -18,7 +18,7 @@ using Roslyn.Test.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class MoveToNamespaceDialogInProcess
+internal sealed partial class MoveToNamespaceDialogInProcess
 {
     private async Task<MoveToNamespaceDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {

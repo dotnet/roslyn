@@ -57,8 +57,6 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
 
   Stop-Processes
 
-  $restoreUseStaticGraphEvaluation = $true
-
   Write-Host "Building $solution using $bootstrapDir"
   MSBuild $toolsetBuildProj `
      /p:Projects=$solution `
@@ -73,7 +71,6 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:DeterministicSourcePaths=true `
      /p:RunAnalyzers=false `
      /p:RunAnalyzersDuringBuild=false `
-     /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
      /bl:$logFilePath
 
   Stop-Processes

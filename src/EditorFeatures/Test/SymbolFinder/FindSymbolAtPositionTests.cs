@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 [UseExportProvider]
-public class FindSymbolAtPositionTests
+public sealed class FindSymbolAtPositionTests
 {
     private static Task<ISymbol> FindSymbolAtPositionAsync(TestWorkspace workspace)
     {
@@ -26,16 +26,18 @@ public class FindSymbolAtPositionTests
     public async Task PositionOnLeadingTrivia()
     {
         using var workspace = TestWorkspace.CreateCSharp(
-            @"using System;
-                class Program
-                {
-                    static void Main()
-                    {
-                        $$#pragma warning disable 612
-                        Goo();
-                        #pragma warning restore 612
-                    }
-                }");
+            """
+            using System;
+                            class Program
+                            {
+                                static void Main()
+                                {
+                                    $$#pragma warning disable 612
+                                    Goo();
+                                    #pragma warning restore 612
+                                }
+                            }
+            """);
         var symbol = await FindSymbolAtPositionAsync(workspace);
         Assert.Null(symbol);
     }
@@ -44,19 +46,21 @@ public class FindSymbolAtPositionTests
     public async Task PositionInCaseLabel()
     {
         using var workspace = TestWorkspace.CreateCSharp(
-            @"using System;
-                enum E { A, B }
-                class Program
-                {
-                    static void Main()
-                    {
-                        E e = default;
-                        switch (e)
-                        {
-                            case E.$$A: break;
-                        }
-                    }
-                }");
+            """
+            using System;
+                            enum E { A, B }
+                            class Program
+                            {
+                                static void Main()
+                                {
+                                    E e = default;
+                                    switch (e)
+                                    {
+                                        case E.$$A: break;
+                                    }
+                                }
+                            }
+            """);
 
         var fieldSymbol = Assert.IsAssignableFrom<IFieldSymbol>(await FindSymbolAtPositionAsync(workspace));
         Assert.Equal(TypeKind.Enum, fieldSymbol.ContainingType.TypeKind);

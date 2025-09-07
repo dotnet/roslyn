@@ -17,6 +17,7 @@ internal sealed class CSharpEditAndContinueTestVerifier(Action<SyntaxNode>? faul
     public override string ProjectFileExtension => ".csproj";
     public override TreeComparer<SyntaxNode> TopSyntaxComparer => SyntaxComparer.TopLevel;
     public override string? TryGetResource(string keyword) => EditingTestBase.TryGetResource(keyword);
+    public override ParseOptions ParseOptions => CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
     public override ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method)
     {

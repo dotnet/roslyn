@@ -11,24 +11,23 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace;
+
+[ExportLanguageServiceFactory(typeof(ILanguageSettingsProviderFactory<Setting>), LanguageNames.CSharp), Shared]
+internal sealed class CSharpWhitespaceSettingsLanguageServiceFactory : ILanguageServiceFactory
 {
-    [ExportLanguageServiceFactory(typeof(ILanguageSettingsProviderFactory<Setting>), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpWhitespaceSettingsLanguageServiceFactory : ILanguageServiceFactory
+    private readonly IGlobalOptionService _globalOptions;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpWhitespaceSettingsLanguageServiceFactory(IGlobalOptionService globalOptions)
     {
-        private readonly IGlobalOptionService _globalOptions;
+        _globalOptions = globalOptions;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpWhitespaceSettingsLanguageServiceFactory(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
-
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            var workspace = languageServices.WorkspaceServices.Workspace;
-            return new CSharpWhitespaceSettingsProviderFactory(workspace, _globalOptions);
-        }
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+    {
+        var workspace = languageServices.WorkspaceServices.Workspace;
+        return new CSharpWhitespaceSettingsProviderFactory(workspace, _globalOptions);
     }
 }

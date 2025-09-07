@@ -4,13 +4,10 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities;
 
@@ -57,51 +54,6 @@ internal static partial class TaskExtensions
         }
 
         return task.Result;
-    }
-
-    internal static void ReportNonFatalError(Task task, object? continuationFunction)
-    {
-        task.ContinueWith(ReportNonFatalErrorWorker, continuationFunction,
-           CancellationToken.None,
-           TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-           TaskScheduler.Default);
-    }
-
-    [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
-    private static void ReportNonFatalErrorWorker(Task task, object? continuationFunction)
-    {
-        var exception = task.Exception!;
-        var methodInfo = ((Delegate)continuationFunction!).GetMethodInfo();
-        exception.Data["ContinuationFunction"] = (methodInfo?.DeclaringType?.FullName ?? "?") + "::" + (methodInfo?.Name ?? "?");
-
-        // In case of a crash with ExecutionEngineException w/o call stack it might be possible to get the stack trace using WinDbg:
-        // > !threads // find thread with System.ExecutionEngineException
-        //   ...
-        //   67   65 4760 692b5d60   1029220 Preemptive  CD9AE70C:FFFFFFFF 012ad0f8 0     MTA (Threadpool Worker) System.ExecutionEngineException 03c51108 
-        //   ...
-        // > ~67s     // switch to thread 67
-        // > !dso     // dump stack objects
-        FatalError.ReportAndCatch(exception);
-    }
-
-    public static Task ReportNonFatalErrorAsync(this Task task)
-    {
-        task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!),
-            CancellationToken.None,
-            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-            TaskScheduler.Default);
-
-        return task;
-    }
-
-    public static Task ReportNonFatalErrorUnlessCancelledAsync(this Task task, CancellationToken cancellationToken)
-    {
-        task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!, cancellationToken),
-            CancellationToken.None,
-            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-            TaskScheduler.Default);
-
-        return task;
     }
 
     /// <summary>

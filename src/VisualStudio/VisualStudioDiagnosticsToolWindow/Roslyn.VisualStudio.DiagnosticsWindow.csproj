@@ -15,6 +15,7 @@
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <UseCodebase>true</UseCodebase>
+    <DeployExtension>true</DeployExtension>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"

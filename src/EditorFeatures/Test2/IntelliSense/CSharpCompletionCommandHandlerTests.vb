@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
@@ -12994,6 +12995,38 @@ public class Class1
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("EM", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78284")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestOverrideInstanceAssignmentOperator(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+abstract class C1
+{
+    virtual public void operator ++() { }
+
+    virtual public void operator -=(int i) { }
+}
+
+
+class C2 : C1
+{
+    override$$
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.SendTypeChars(" ")
+                Await state.AssertCompletionItemsContainAll(
+                    "operator ++()",
+                    "operator -=(int i)")
+                state.SendTypeChars("operator")
+                state.SendTab()
+                Assert.Contains("public override void operator ++()
+    {
+        throw new System.NotImplementedException();
+    }", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Function
     End Class

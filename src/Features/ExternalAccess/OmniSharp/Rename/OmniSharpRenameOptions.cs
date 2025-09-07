@@ -4,18 +4,17 @@
 
 using Microsoft.CodeAnalysis.Rename;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp;
+
+internal readonly record struct OmniSharpRenameOptions(
+    bool RenameInComments,
+    bool RenameInStrings,
+    bool RenameOverloads)
 {
-    internal readonly record struct OmniSharpRenameOptions(
-        bool RenameInComments,
-        bool RenameInStrings,
-        bool RenameOverloads)
-    {
-        internal SymbolRenameOptions ToRenameOptions()
-            => new(
-                RenameOverloads: RenameOverloads,
-                RenameInStrings: RenameInStrings,
-                RenameInComments: RenameInComments,
-                RenameFile: false);
-    }
+    internal SymbolRenameOptions ToRenameOptions()
+        => new(
+            RenameOverloads: RenameOverloads,
+            RenameInStrings: RenameInStrings,
+            RenameInComments: RenameInComments,
+            RenameFile: false);
 }

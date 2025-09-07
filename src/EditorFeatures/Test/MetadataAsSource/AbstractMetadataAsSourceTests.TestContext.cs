@@ -28,7 +28,7 @@ public abstract partial class AbstractMetadataAsSourceTests
     public const string DefaultMetadataSource = "public class C {}";
     public const string DefaultSymbolMetadataName = "C";
 
-    internal class TestContext : IDisposable
+    internal sealed class TestContext : IDisposable
     {
         public readonly EditorTestWorkspace Workspace;
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
@@ -311,7 +311,7 @@ public abstract partial class AbstractMetadataAsSourceTests
 
         internal async Task<ISymbol> GetNavigationSymbolAsync()
         {
-            var testDocument = Workspace.Documents.Single(d => d.FilePath == "SourceDocument");
+            var testDocument = Workspace.Documents.Single(d => d.Name == "SourceDocument");
             var document = Workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
 
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);

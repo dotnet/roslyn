@@ -350,7 +350,7 @@ internal static class DiagnosticHelper
         private readonly LocalizableString _messageFormat;
         private readonly string[] _formatArguments;
 
-        public LocalizableStringWithArguments(LocalizableString messageFormat, params object[] formatArguments)
+        public LocalizableStringWithArguments(LocalizableString messageFormat, params ReadOnlySpan<object> formatArguments)
         {
             if (messageFormat == null)
             {
@@ -365,9 +365,7 @@ internal static class DiagnosticHelper
             _messageFormat = messageFormat;
             _formatArguments = new string[formatArguments.Length];
             for (var i = 0; i < formatArguments.Length; i++)
-            {
                 _formatArguments[i] = $"{formatArguments[i]}";
-            }
         }
 
         protected override string GetText(IFormatProvider? formatProvider)

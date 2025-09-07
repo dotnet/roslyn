@@ -7,44 +7,43 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
+namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest;
+
+public sealed class FormattingRangeHelperTests
 {
-    public class FormattingRangeHelperTests
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
+    public void TestAreTwoTokensOnSameLineTrue()
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
-        public void TestAreTwoTokensOnSameLineTrue()
-        {
-            var root = SyntaxFactory.ParseSyntaxTree("{Foo();}").GetRoot();
-            var token1 = root.GetFirstToken();
-            var token2 = root.GetLastToken();
+        var root = SyntaxFactory.ParseSyntaxTree("{Foo();}").GetRoot();
+        var token1 = root.GetFirstToken();
+        var token2 = root.GetLastToken();
 
-            Assert.True(FormattingRangeHelper.AreTwoTokensOnSameLine(token1, token2));
-        }
+        Assert.True(FormattingRangeHelper.AreTwoTokensOnSameLine(token1, token2));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
-        public void TestAreTwoTokensOnSameLineFalse()
-        {
-            var root = SyntaxFactory.ParseSyntaxTree("{Fizz();\nBuzz();}").GetRoot();
-            var token1 = root.GetFirstToken();
-            var token2 = root.GetLastToken();
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
+    public void TestAreTwoTokensOnSameLineFalse()
+    {
+        var root = SyntaxFactory.ParseSyntaxTree("{Fizz();\nBuzz();}").GetRoot();
+        var token1 = root.GetFirstToken();
+        var token2 = root.GetLastToken();
 
-            Assert.False(FormattingRangeHelper.AreTwoTokensOnSameLine(token1, token2));
-        }
+        Assert.False(FormattingRangeHelper.AreTwoTokensOnSameLine(token1, token2));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
-        public void TestAreTwoTokensOnSameLineWithEqualTokens()
-        {
-            var token = SyntaxFactory.ParseSyntaxTree("else\nFoo();").GetRoot().GetFirstToken();
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
+    public void TestAreTwoTokensOnSameLineWithEqualTokens()
+    {
+        var token = SyntaxFactory.ParseSyntaxTree("else\nFoo();").GetRoot().GetFirstToken();
 
-            Assert.True(FormattingRangeHelper.AreTwoTokensOnSameLine(token, token));
-        }
+        Assert.True(FormattingRangeHelper.AreTwoTokensOnSameLine(token, token));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
-        public void TestAreTwoTokensOnSameLineWithEqualTokensWithoutSyntaxTree()
-        {
-            var token = SyntaxFactory.ParseToken("else");
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
+    public void TestAreTwoTokensOnSameLineWithEqualTokensWithoutSyntaxTree()
+    {
+        var token = SyntaxFactory.ParseToken("else");
 
-            Assert.True(FormattingRangeHelper.AreTwoTokensOnSameLine(token, token));
-        }
+        Assert.True(FormattingRangeHelper.AreTwoTokensOnSameLine(token, token));
     }
 }

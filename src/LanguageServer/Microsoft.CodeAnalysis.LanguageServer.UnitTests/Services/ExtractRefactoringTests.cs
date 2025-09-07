@@ -10,7 +10,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Services;
 
-public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
+public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
     [Theory]
     [CombinatorialData]
@@ -25,8 +25,10 @@ public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : Abstr
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+
+        await TestCodeActionAsync(testLspServer, caretLocation, "Extract base class...", """
             internal class NewBaseType
             {
                 public void M()
@@ -37,12 +39,7 @@ public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : Abstr
             class A : NewBaseType
             {
             }
-            """;
-
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
-        var caretLocation = testLspServer.GetLocations("caret").Single();
-
-        await TestCodeActionAsync(testLspServer, caretLocation, "Extract base class...", expected);
+            """);
     }
 
     [Theory]
@@ -58,8 +55,10 @@ public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : Abstr
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+
+        await TestCodeActionAsync(testLspServer, caretLocation, "Extract interface...", """
             interface IA
             {
                 void M();
@@ -71,12 +70,7 @@ public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : Abstr
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
-        var caretLocation = testLspServer.GetLocations("caret").Single();
-
-        await TestCodeActionAsync(testLspServer, caretLocation, "Extract interface...", expected);
+            """);
     }
 
     private static async Task TestCodeActionAsync(
@@ -93,7 +87,7 @@ public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : Abstr
 
         testLspClient.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
 
-        var updatedCode = testLspClient.GetDocumentText(caretLocation.Uri);
+        var updatedCode = testLspClient.GetDocumentText(caretLocation.DocumentUri);
 
         AssertEx.Equal(expected, updatedCode);
     }

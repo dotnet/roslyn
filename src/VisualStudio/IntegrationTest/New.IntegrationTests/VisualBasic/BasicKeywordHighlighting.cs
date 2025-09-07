@@ -28,14 +28,16 @@ public class BasicKeywordHighlighting : AbstractEditorTest
     [IdeFact, Trait(Traits.Feature, Traits.Features.Classification)]
     public async Task NavigationBetweenKeywords()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Class C
-    Sub Main()
-        For a = 0 To 1 Step 1
-            For b = 0 To 2
-        Next b, a
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            Class C
+                Sub Main()
+                    For a = 0 To 1 Step 1
+                        For b = 0 To 2
+                    Next b, a
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await VerifyAsync("To", 4, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ReferenceHighlighting, HangMitigatingCancellationToken);

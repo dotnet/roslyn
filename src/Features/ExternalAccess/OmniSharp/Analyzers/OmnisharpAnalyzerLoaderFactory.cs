@@ -4,14 +4,13 @@
 
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers;
+
+internal static class OmnisharpAnalyzerAssemblyLoaderFactory
 {
-    internal static class OmnisharpAnalyzerAssemblyLoaderFactory
+    public static IAnalyzerAssemblyLoader CreateShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
     {
-        public static IAnalyzerAssemblyLoader CreateShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
-        {
-            baseDirectory ??= Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerShadowCopies");
-            return AnalyzerAssemblyLoader.CreateNonLockingLoader(baseDirectory);
-        }
+        baseDirectory ??= Path.Combine(Path.GetTempPath(), "CodeAnalysis", "OmnisharpAnalyzerShadowCopies");
+        return AnalyzerAssemblyLoader.CreateNonLockingLoader(baseDirectory);
     }
 }

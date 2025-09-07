@@ -12,14 +12,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<PropertyDeclarationSyntax>
+public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<PropertyDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new PropertyDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestProperty1()
-    {
-        var code = """
+    public Task TestProperty1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -28,16 +27,12 @@ public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         set { }
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty2()
-    {
-        var code = """
+    public Task TestProperty2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -51,16 +46,12 @@ public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         set { }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty3()
-    {
-        var code = """
+    public Task TestProperty3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -75,16 +66,12 @@ public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         set { }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty4()
-    {
-        var code = """
+    public Task TestProperty4()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -99,16 +86,12 @@ public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         set { }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty5()
-    {
-        var code = """
+    public Task TestProperty5()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -119,16 +102,12 @@ public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
 
                     public event EventHandler Event;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty6()
-    {
-        var code = """
+    public Task TestProperty6()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -143,16 +122,12 @@ public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         remove { }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyWithLeadingComments()
-    {
-        var code = """
+    public Task TestPropertyWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -163,33 +138,25 @@ public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         set { }
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyWithWithExpressionBodyAndComments()
-    {
-        var code = """
+    public Task TestPropertyWithWithExpressionBodyAndComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
                     // Bar|}
                     $$public int Goo => 0;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Goo ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyWithSpaceAfterIdentifier()
-    {
-        var code = """
+    public Task TestPropertyWithSpaceAfterIdentifier()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo    {|textspan:
@@ -198,9 +165,6 @@ public class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         set { }
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

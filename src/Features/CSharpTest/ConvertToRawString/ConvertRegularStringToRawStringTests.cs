@@ -16,11 +16,10 @@ using VerifyCS = CSharpCodeRefactoringVerifier<
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
-public class ConvertRegularStringToRawStringTests
+public sealed class ConvertRegularStringToRawStringTests
 {
-    private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
-    {
-        await new VerifyCS.Test
+    private static Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = fixedCode,
@@ -31,7 +30,6 @@ public class ConvertRegularStringToRawStringTests
                 OutputKind = outputKind,
             },
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestNotInDirective()
@@ -108,9 +106,8 @@ public class ConvertRegularStringToRawStringTests
     }
 
     [Fact]
-    public async Task TestOnCombinedSurrogate()
-    {
-        await VerifyRefactoringAsync(
+    public Task TestOnCombinedSurrogate()
+        => VerifyRefactoringAsync(
             """
             public class C
             {
@@ -129,7 +126,6 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
     public async Task TestNotOnNullChar()
@@ -164,9 +160,8 @@ public class ConvertRegularStringToRawStringTests
     }
 
     [Fact]
-    public async Task TestSimpleString()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestSimpleString()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -183,12 +178,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestVerbatimSimpleString()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestVerbatimSimpleString()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -205,22 +198,18 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestSimpleStringTopLevel()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestSimpleStringTopLevel()
+        => VerifyRefactoringAsync("""
             var v = [||]"a";
             """, """"
             var v = """a""";
             """", outputKind: OutputKind.ConsoleApplication);
-    }
 
     [Fact]
-    public async Task TestStringWithQuoteInMiddle()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestStringWithQuoteInMiddle()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -237,12 +226,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestVerbatimStringWithQuoteInMiddle()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestVerbatimStringWithQuoteInMiddle()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -259,12 +246,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestStringWithQuoteAtStart()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestStringWithQuoteAtStart()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -283,12 +268,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestVerbatimStringWithQuoteAtStart()
-    {
-        await VerifyRefactoringAsync(""""
+    public Task TestVerbatimStringWithQuoteAtStart()
+        => VerifyRefactoringAsync(""""
             public class C
             {
                 void M()
@@ -307,12 +290,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestStringWithQuoteAtEnd()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestStringWithQuoteAtEnd()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -331,12 +312,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestVerbatimStringWithQuoteAtEnd()
-    {
-        await VerifyRefactoringAsync(""""
+    public Task TestVerbatimStringWithQuoteAtEnd()
+        => VerifyRefactoringAsync(""""
             public class C
             {
                 void M()
@@ -355,12 +334,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestStringWithNewLine()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestStringWithNewLine()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -380,12 +357,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestVerbatimStringWithNewLine()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestVerbatimStringWithNewLine()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -406,12 +381,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestStringWithNewLineAtStartAndEnd()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestStringWithNewLineAtStartAndEnd()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -432,12 +405,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestVerbatimStringWithNewLineAtStartAndEnd()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestVerbatimStringWithNewLineAtStartAndEnd()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -460,12 +431,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestNoIndentVerbatimStringWithNewLineAtStartAndEnd()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestNoIndentVerbatimStringWithNewLineAtStartAndEnd()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -486,12 +455,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task TestIndentedString()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestIndentedString()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -511,12 +478,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithoutLeadingWhitespace1()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestWithoutLeadingWhitespace1()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -540,12 +505,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task TestIndentedStringTopLevel()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestIndentedStringTopLevel()
+        => VerifyRefactoringAsync("""
             var v = [||]"goo\r\nbar";
             """, """"
             var v = """
@@ -553,12 +516,10 @@ public class ConvertRegularStringToRawStringTests
                 bar
                 """;
             """", outputKind: OutputKind.ConsoleApplication);
-    }
 
     [Fact]
-    public async Task TestWithoutLeadingWhitespaceTopLevel()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestWithoutLeadingWhitespaceTopLevel()
+        => VerifyRefactoringAsync("""
             var v = [||]@"
             from x in y
             where x > 0
@@ -570,12 +531,10 @@ public class ConvertRegularStringToRawStringTests
                 select x
                 """;
             """", index: 1, outputKind: OutputKind.ConsoleApplication);
-    }
 
     [Fact]
-    public async Task TestVerbatimIndentedString()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestVerbatimIndentedString()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -596,12 +555,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestIndentedStringOnOwnLine()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestIndentedStringOnOwnLine()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -623,12 +580,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestVerbatimIndentedStringOnOwnLine()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestVerbatimIndentedStringOnOwnLine()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -651,12 +606,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """");
-    }
 
     [Fact]
-    public async Task TestWithoutLeadingWhitespace2()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestWithoutLeadingWhitespace2()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -680,12 +633,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task TestWithoutLeadingWhitespace3()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestWithoutLeadingWhitespace3()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -710,12 +661,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task TestWithoutLeadingWhitespace4()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestWithoutLeadingWhitespace4()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -740,12 +689,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task TestWithoutLeadingWhitespace5()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestWithoutLeadingWhitespace5()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -770,12 +717,10 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """", index: 1);
-    }
 
     [Fact]
-    public async Task TestWithoutLeadingWhitespace6()
-    {
-        await VerifyRefactoringAsync("""
+    public Task TestWithoutLeadingWhitespace6()
+        => VerifyRefactoringAsync("""
             public class C
             {
                 void M()
@@ -804,5 +749,4 @@ public class ConvertRegularStringToRawStringTests
                 }
             }
             """", index: 1);
-    }
 }

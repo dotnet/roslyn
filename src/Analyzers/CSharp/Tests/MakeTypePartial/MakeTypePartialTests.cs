@@ -31,9 +31,8 @@ public sealed class MakeTypePartialTests
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
-    public async Task OutsideNamespace(string declarationType)
-    {
-        await new VerifyCS.Test
+    public Task OutsideNamespace(string declarationType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 partial {{declarationType}} Declaration
@@ -55,13 +54,11 @@ public sealed class MakeTypePartialTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
-    public async Task InsideOneFileScopedNamespace(string declarationType)
-    {
-        await new VerifyCS.Test
+    public Task InsideOneFileScopedNamespace(string declarationType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 namespace TestNamespace;
@@ -87,13 +84,11 @@ public sealed class MakeTypePartialTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
-    public async Task InsideOneBlockScopedNamespace(string declarationType)
-    {
-        await new VerifyCS.Test
+    public Task InsideOneBlockScopedNamespace(string declarationType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 namespace TestNamespace
@@ -121,13 +116,11 @@ public sealed class MakeTypePartialTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
-    public async Task InsideTwoEqualBlockScopedNamespaces(string declarationType)
-    {
-        await new VerifyCS.Test
+    public Task InsideTwoEqualBlockScopedNamespaces(string declarationType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 namespace TestNamespace
@@ -161,7 +154,6 @@ public sealed class MakeTypePartialTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
@@ -201,9 +193,8 @@ public sealed class MakeTypePartialTests
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
-    public async Task WithOtherModifiers(string declarationType)
-    {
-        await new VerifyCS.Test
+    public Task WithOtherModifiers(string declarationType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 public partial {{declarationType}} Declaration
@@ -225,13 +216,11 @@ public sealed class MakeTypePartialTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
-    public async Task NestedType1(string declarationType)
-    {
-        await new VerifyCS.Test
+    public Task NestedType1(string declarationType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 class Test
@@ -259,13 +248,11 @@ public sealed class MakeTypePartialTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
-    public async Task NestedType2(string declarationType)
-    {
-        await new VerifyCS.Test
+    public Task NestedType2(string declarationType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 partial {{declarationType}} Test
@@ -301,7 +288,6 @@ public sealed class MakeTypePartialTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
@@ -355,9 +341,10 @@ public sealed class MakeTypePartialTests
 
     [Theory]
     [MemberData(nameof(AllValidDeclarationTypes))]
-    public async Task NotInDifferentNamespaces(string declarationType)
-    {
-        var markup = $$"""
+    public Task NotInDifferentNamespaces(string declarationType)
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
             namespace TestNamespace1
             {
                 partial {{declarationType}} Declaration
@@ -371,12 +358,7 @@ public sealed class MakeTypePartialTests
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = markup,
+            """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 }

@@ -55,7 +55,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
 {
     private static readonly MethodInfo s_processQueueCoreAsync = typeof(RequestExecutionQueue<TRequestContext>)
-        .GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ProcessQueueCoreAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
+        .GetMethod(nameof(RequestExecutionQueue<>.ProcessQueueCoreAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
     protected readonly ILspLogger _logger;
     protected readonly AbstractHandlerProvider _handlerProvider;
@@ -247,6 +247,8 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // Since didOpen notifications are marked as mutating, the queue will not advance to the next request until the server has finished processing
                     // the didOpen, ensuring that this line will only run once all prior didOpens have completed.
                     var didGetLanguage = _languageServer.TryGetLanguageForRequest(work.MethodName, work.SerializedRequest, out var language);
+
+                    using var languageScope = _logger.CreateLanguageContext(language);
 
                     // Now that we know the actual language, we can deserialize the request and start creating the request context.
                     var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);

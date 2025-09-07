@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddFileBanner;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -157,10 +158,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
             // add an empty document to solution, so that we'll have options from the right context.
             var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
-                newDocumentId, FileName, text: string.Empty, folders: document.Folders);
-
-            // update the text for the new document
-            solutionWithNewDocument = solutionWithNewDocument.WithDocumentSyntaxRoot(newDocumentId, modifiedRoot, PreservationMode.PreserveIdentity);
+                newDocumentId, FileName, modifiedRoot, document.Folders, filePath: GetTargetDocumentFilePath());
 
             // get the updated document, give it the minimal set of imports that the type
             // inside it needs.

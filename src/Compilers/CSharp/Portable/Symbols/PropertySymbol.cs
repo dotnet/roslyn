@@ -356,7 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract int TryGetOverloadResolutionPriority();
 
-        internal bool CanHaveOverloadResolutionPriority => !IsOverride && !IsExplicitInterfaceImplementation && (IsIndexer || IsIndexedProperty);
+        internal bool CanHaveOverloadResolutionPriority
+            => !IsOverride && !IsExplicitInterfaceImplementation && (IsIndexer || IsIndexedProperty || this.GetIsNewExtensionMember());
 
         /// <summary>
         /// Implements visitor pattern.

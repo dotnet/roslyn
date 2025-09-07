@@ -177,27 +177,27 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     {
         var allReferences = new ConcurrentQueue<Reference>();
 
-        // First search the current project to see if any symbols (source or metadata) match the 
-        // search string.
-        await FindResultsInAllSymbolsInStartingProjectAsync(
-            allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+        // First search the current project to see if any symbols (source or metadata) match the search string.
+        var searchOptions = finder.Options.SearchOptions;
+        if (searchOptions.SearchReferencedProjectSymbols)
+            await FindResultsInAllSymbolsInStartingProjectAsync(allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
-        // Only bother doing this for host workspaces.  We don't want this for 
-        // things like the Interactive workspace as we can't even add project
-        // references to the interactive window.  We could consider adding metadata
-        // references with #r in the future.
+        // Only bother doing this for host workspaces.  We don't want this for things like the Interactive workspace as
+        // we can't even add project references to the interactive window.  We could consider adding metadata references
+        // with #r in the future.
         if (IsHostOrRemoteWorkspace(project))
         {
-            // Now search unreferenced projects, and see if they have any source symbols that match
-            // the search string.
-            await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
+            // Now search unreferenced projects, and see if they have any source symbols that match the search string.
+            if (searchOptions.SearchUnreferencedProjectSourceSymbols)
+                await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // Finally, check and see if we have any metadata symbols that match the search string.
-            await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
+            // Next, check and see if we have any metadata symbols that match the search string.
+            if (searchOptions.SearchUnreferencedMetadataSymbols)
+                await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // We only support searching NuGet in an exact manner currently. 
-            if (exact)
-                await finder.FindNugetOrReferenceAssemblyReferencesAsync(allReferences, cancellationToken).ConfigureAwait(false);
+            // Finally, search for nuget or reference assembly symbols that match the search string.
+            if (searchOptions.SearchNuGetPackages || searchOptions.SearchReferenceAssemblies)
+                await finder.FindNugetOrReferenceAssemblyReferencesAsync(allReferences, exact, cancellationToken).ConfigureAwait(false);
         }
 
         return [.. allReferences];

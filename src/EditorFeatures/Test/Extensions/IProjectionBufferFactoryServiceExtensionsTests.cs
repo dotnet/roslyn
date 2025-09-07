@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 [UseExportProvider]
-public class IProjectionBufferFactoryServiceExtensionsTests
+public sealed class IProjectionBufferFactoryServiceExtensionsTests
 {
     [Fact]
     public void TestCreateElisionBufferWithoutIndentation()
@@ -27,9 +27,11 @@ public class IProjectionBufferFactoryServiceExtensionsTests
         var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
         var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
         var textBuffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(
-@"  line 1
-  line 2
-  line 3", contentTypeRegistryService.GetContentType("text"));
+            """
+              line 1
+              line 2
+              line 3
+            """, contentTypeRegistryService.GetContentType("text"));
 
         var elisionBuffer = IProjectionBufferFactoryServiceExtensions.CreateProjectionBufferWithoutIndentation(
             exportProvider.GetExportedValue<IProjectionBufferFactoryService>(),
@@ -53,10 +55,12 @@ public class IProjectionBufferFactoryServiceExtensionsTests
         var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
         var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
         var textBuffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(
-@"  line 1
-  line 2
-  line 3
-  line 4", contentTypeRegistryService.GetContentType("text"));
+            """
+              line 1
+              line 2
+              line 3
+              line 4
+            """, contentTypeRegistryService.GetContentType("text"));
 
         var projectionBuffer = IProjectionBufferFactoryServiceExtensions.CreateProjectionBuffer(
             exportProvider.GetExportedValue<IProjectionBufferFactoryService>(),
@@ -83,10 +87,12 @@ public class IProjectionBufferFactoryServiceExtensionsTests
         var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
         var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
         var textBuffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(
-@"  line 1
-  line 2
-  line 3
-    line 4", contentTypeRegistryService.GetContentType("text"));
+            """
+              line 1
+              line 2
+              line 3
+                line 4
+            """, contentTypeRegistryService.GetContentType("text"));
 
         var projectionBuffer = IProjectionBufferFactoryServiceExtensions.CreateProjectionBufferWithoutIndentation(
             exportProvider.GetExportedValue<IProjectionBufferFactoryService>(),

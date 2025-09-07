@@ -59,7 +59,11 @@ internal static class NamedTypeGenerator
         CancellationToken cancellationToken)
     {
         var declaration = GenerateNamedTypeDeclaration(service, namedType, CodeGenerationDestination.CompilationUnit, info, cancellationToken);
-        var members = Insert(destination.Members, declaration, info, availableIndices);
+        var members = Insert(
+            destination.Members, declaration, info, availableIndices,
+            // We're adding a named type to a compilation unit.  If there are any global statements, we must place it after them.
+            after: static members => members.LastOrDefault(m => m is GlobalStatementSyntax),
+            canPlaceAtIndex: static (members, index) => index >= members.Count || members[index] is not GlobalStatementSyntax);
         return destination.WithMembers(members);
     }
 

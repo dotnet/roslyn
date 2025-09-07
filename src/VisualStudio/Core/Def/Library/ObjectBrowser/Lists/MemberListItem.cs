@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 
-internal class MemberListItem : SymbolListItem<ISymbol>
+internal sealed class MemberListItem : SymbolListItem<ISymbol>
 {
     internal MemberListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden, bool isInherited)
         : base(projectId, symbol, displayText, fullNameText, searchText, isHidden)

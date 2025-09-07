@@ -4,7 +4,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 
-internal class NamespaceItem
+internal sealed class NamespaceItem
 {
     public string Namespace { get; }
     public bool IsFromHistory { get; }

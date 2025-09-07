@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class CompletionServiceTests
+public sealed class CompletionServiceTests
 {
     [Fact]
     public void AcquireCompletionService()

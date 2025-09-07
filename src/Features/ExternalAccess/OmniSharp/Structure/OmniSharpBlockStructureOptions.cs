@@ -4,17 +4,16 @@
 
 using Microsoft.CodeAnalysis.Structure;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure;
+
+internal readonly record struct OmniSharpBlockStructureOptions(
+    bool ShowBlockStructureGuidesForCommentsAndPreprocessorRegions,
+    bool ShowOutliningForCommentsAndPreprocessorRegions)
 {
-    internal readonly record struct OmniSharpBlockStructureOptions(
-        bool ShowBlockStructureGuidesForCommentsAndPreprocessorRegions,
-        bool ShowOutliningForCommentsAndPreprocessorRegions)
-    {
-        internal BlockStructureOptions ToBlockStructureOptions()
-            => BlockStructureOptions.Default with
-            {
-                ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = ShowBlockStructureGuidesForCommentsAndPreprocessorRegions,
-                ShowOutliningForCommentsAndPreprocessorRegions = ShowOutliningForCommentsAndPreprocessorRegions,
-            };
-    }
+    internal BlockStructureOptions ToBlockStructureOptions()
+        => BlockStructureOptions.Default with
+        {
+            ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = ShowBlockStructureGuidesForCommentsAndPreprocessorRegions,
+            ShowOutliningForCommentsAndPreprocessorRegions = ShowOutliningForCommentsAndPreprocessorRegions,
+        };
 }

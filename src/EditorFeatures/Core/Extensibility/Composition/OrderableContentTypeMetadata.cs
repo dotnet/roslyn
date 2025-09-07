@@ -5,10 +5,9 @@
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal class OrderableContentTypeMetadata(IDictionary<string, object> data) : OrderableMetadata(data), IContentTypeMetadata
 {
-    internal class OrderableContentTypeMetadata(IDictionary<string, object> data) : OrderableMetadata(data), IContentTypeMetadata
-    {
-        public IEnumerable<string> ContentTypes { get; } = (IEnumerable<string>?)data.GetValueOrDefault("ContentTypes") ?? [];
-    }
+    public IEnumerable<string> ContentTypes { get; } = (IEnumerable<string>?)data.GetValueOrDefault("ContentTypes") ?? [];
 }

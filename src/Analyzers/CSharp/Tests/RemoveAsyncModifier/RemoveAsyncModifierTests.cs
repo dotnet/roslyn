@@ -21,9 +21,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class RemoveAsyncModifierTests
 {
     [Fact]
-    public async Task Method_Task_MultipleAndNested()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_MultipleAndNested()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -136,12 +135,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_EmptyBlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_EmptyBlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -161,12 +158,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -197,12 +192,13 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_ValueTask_BlockBody()
-    {
-        var source = """
+    public Task Method_ValueTask_BlockBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
@@ -215,9 +211,8 @@ public sealed class RemoveAsyncModifierTests
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -232,20 +227,15 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask();
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Method_ValueTaskOfT_BlockBody()
-    {
-        var source = """
+    public Task Method_ValueTaskOfT_BlockBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
@@ -260,8 +250,8 @@ public sealed class RemoveAsyncModifierTests
                     return 3;
                 }
             }
-            """;
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -276,29 +266,23 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask<int>(3);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Method_ValueTask_ExpressionBody()
-    {
-        var source = """
+    public Task Method_ValueTask_ExpressionBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
             {
                 async ValueTask {|CS1998:Goo|}() => System.Console.WriteLine(1);
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -309,49 +293,35 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask();
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Method_ValueTaskOfT_ExpressionBody()
-    {
-        var source = """
+    public Task Method_ValueTaskOfT_ExpressionBody()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
             {
                 async ValueTask<int> {|CS1998:Goo|}() => 3;
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
             {
                 ValueTask<int> Goo() => new ValueTask<int>(3);
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody_Throws()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody_Throws()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -384,12 +354,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody_WithLocalFunction()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody_WithLocalFunction()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -430,12 +398,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody_WithLambda()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody_WithLambda()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -475,12 +441,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -513,12 +477,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_TaskOfT_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -535,12 +497,10 @@ public sealed class RemoveAsyncModifierTests
                 Task<int> Goo() => Task.FromResult(2);
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -563,12 +523,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task LocalFunction_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -605,12 +563,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_Task_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task LocalFunction_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -635,12 +591,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task LocalFunction_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -669,12 +623,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_TaskOfT_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task LocalFunction_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -697,12 +649,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AnonymousFunction_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task AnonymousFunction_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -740,12 +690,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AnonymousFunction_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task AnonymousFunction_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -776,12 +724,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleLambda_TaskOfT_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleLambda_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -806,12 +752,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleLambda_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleLambda_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -841,12 +785,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleLambda_Task_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleLambda_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -871,12 +813,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimpleLambda_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleLambda_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -915,12 +855,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesizedLambda_TaskOfT_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizedLambda_TaskOfT_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -945,12 +883,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesizedLambda_TaskOfT_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizedLambda_TaskOfT_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -980,12 +916,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesizedLambda_Task_ExpressionBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizedLambda_Task_ExpressionBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1010,12 +944,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ParenthesizedLambda_Task_BlockBody()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizedLambda_Task_BlockBody()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1054,12 +986,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_Task_BlockBody_FullyQualified()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_Task_BlockBody_FullyQualified()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -1086,12 +1016,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Method_TaskOfT_BlockBody_FullyQualified()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Method_TaskOfT_BlockBody_FullyQualified()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -1120,12 +1048,10 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65536")]
-    public async Task Method_TaskOfT_BlockBody_QualifyTaskFromResultType()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task Method_TaskOfT_BlockBody_QualifyTaskFromResultType()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
@@ -1148,7 +1074,6 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task IAsyncEnumerable_Missing()
@@ -1265,9 +1190,8 @@ public sealed class RemoveAsyncModifierTests
         }.RunAsync();
     }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65380")]
-    public async Task TestCloseBraceTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCloseBraceTrivia()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1297,5 +1221,4 @@ public sealed class RemoveAsyncModifierTests
                 }
             }
             """);
-    }
 }

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
 internal abstract partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
-    protected class MethodSignatureInfo(
+    protected sealed class MethodSignatureInfo(
         SemanticDocument document,
         State state,
         IMethodSymbol methodSymbol,
