@@ -54,17 +54,13 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
     {
         // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower noise.
         // It is not exposed to the user.
-        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
     }
 
     public void StopListening(Workspace workspace)
     {
-        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-        {
-            _workspaceChangedDisposer?.Dispose();
-            _workspaceChangedDisposer = null;
-        }
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
     }
 
     private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
