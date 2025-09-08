@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -28,17 +29,13 @@ namespace Microsoft.CodeAnalysis.Host;
 internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
 {
     [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), [WorkspaceKind.Host]), Shared]
-    private sealed class Factory : IWorkspaceServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class Factory(IGlobalOptionService globalOptions) : IWorkspaceServiceFactory
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public Factory()
-        {
-        }
-
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new CompileTimeSolutionProvider(workspaceServices.Workspace);
+            => new CompileTimeSolutionProvider(workspaceServices.Workspace, globalOptions);
     }
 
     private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
@@ -51,6 +48,8 @@ internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
     ];
     private static readonly ImmutableArray<string> s_razorSourceGeneratorFileNamePrefixes = s_razorSourceGeneratorAssemblyNames
         .SelectAsArray(static assemblyName => Path.Combine(assemblyName, RazorSourceGeneratorTypeName));
+
+    private readonly bool _useCohosting;
 
     private readonly object _gate = new();
 
@@ -65,8 +64,9 @@ internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
 
     private Solution? _lastCompileTimeSolution;
 
-    public CompileTimeSolutionProvider(Workspace workspace)
+    public CompileTimeSolutionProvider(Workspace workspace, IGlobalOptionService globalOptions)
     {
+        _useCohosting = globalOptions.GetOption(LegacyRazorOptions.UseCohosting);
         _ = workspace.RegisterWorkspaceChangedHandler((e) =>
         {
             if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
@@ -89,6 +89,12 @@ internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
 
     public Solution GetCompileTimeSolution(Solution designTimeSolution)
     {
+        if (_useCohosting)
+        {
+            // when cohosting is on, the design time and runtime solutions are the same
+            return designTimeSolution;
+        }
+
         lock (_gate)
         {
             _designTimeToCompileTimeSolution.TryGetValue(designTimeSolution, out var cachedCompileTimeSolution);

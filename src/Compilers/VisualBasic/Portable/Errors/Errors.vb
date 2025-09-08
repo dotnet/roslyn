@@ -1789,7 +1789,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_EmbeddedAttributeMustFollowPattern = 37335
         ERR_TooManyUserStrings_RestartRequired = 37336
 
-        ERR_NextAvailable = 37337
+        ERR_MethodImplAttributeAsyncCannotBeUsed = 37337
+
+        ERR_NextAvailable = 37338
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

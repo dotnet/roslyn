@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
     internal abstract class TypeSymbol : NamespaceOrTypeSymbol, ISymbol, ITypeSymbol
     {
+        private ImmutableArray<INamedTypeSymbol> _allInterfaces = default;
+
         protected TypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
             NullableAnnotation = nullableAnnotation;
@@ -108,7 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return UnderlyingTypeSymbol.AllInterfacesNoUseSiteDiagnostics.GetPublicSymbols();
+                if (_allInterfaces.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _allInterfaces, UnderlyingTypeSymbol.AllInterfacesNoUseSiteDiagnostics.GetPublicSymbols());
+                }
+
+                return _allInterfaces;
             }
         }
 

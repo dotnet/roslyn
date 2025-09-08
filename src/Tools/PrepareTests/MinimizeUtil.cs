@@ -16,6 +16,11 @@ internal static class MinimizeUtil
 {
     internal record FilePathInfo(string RelativeDirectory, string Directory, string RelativePath, string FullPath);
 
+    /// <summary>
+    /// Special group for collecting files which need <c>chmod +x</c>.
+    /// </summary>
+    private static readonly Guid s_executablesGroup = new Guid("2665eb42-0a7d-4ea2-bb92-e4251d48df44");
+
     internal static void Run(string sourceDirectory, string destinationDirectory, bool isUnix)
     {
         const string duplicateDirectoryName = ".duplicate";
@@ -35,13 +40,13 @@ internal static class MinimizeUtil
             CreateHardLink(outputPath, Path.Combine(sourceDirectory, individualFile));
         }
 
-        // Map of all PE files MVID to the path information
+        // Map of all PE files MVID (or s_executablesGroup) to the path information
         var idToFilePathMap = initialWalk();
         resolveDuplicates();
         writeHydrateFile();
 
         // The goal of initial walk is to
-        //  1. Record any PE files as they are eligable for de-dup
+        //  1. Record any PE files as they are eligible for de-dup
         //  2. Hard link all other files into destination directory
         Dictionary<Guid, List<FilePathInfo>> initialWalk()
         {
@@ -66,7 +71,7 @@ internal static class MinimizeUtil
             return idToFilePathMap;
         }
 
-        static IEnumerable<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath, string sourceDirectory, string destinationDirectory)
+        IEnumerable<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath, string sourceDirectory, string destinationDirectory)
         {
             Console.WriteLine($"Walking {unitDirPath}");
             string? lastOutputDirectory = null;
@@ -95,6 +100,15 @@ internal static class MinimizeUtil
                 {
                     var destFilePath = Path.Combine(currentOutputDirectory, fileName);
                     CreateHardLink(destFilePath, sourceFilePath);
+
+                    if (isUnix && !OperatingSystem.IsWindows() && File.GetUnixFileMode(sourceFilePath).HasFlag(UnixFileMode.UserExecute))
+                    {
+                        yield return (s_executablesGroup, new FilePathInfo(
+                            RelativeDirectory: currentRelativeDirectory,
+                            Directory: currentDirName,
+                            RelativePath: Path.Combine(currentRelativeDirectory, fileName),
+                            FullPath: sourceFilePath));
+                    }
                 }
             }
         }
@@ -104,6 +118,11 @@ internal static class MinimizeUtil
         {
             foreach (var pair in idToFilePathMap)
             {
+                if (pair.Key == s_executablesGroup)
+                {
+                    continue;
+                }
+
                 if (pair.Value.Count > 1)
                 {
                     CreateHardLink(getPeFilePath(pair.Key), pair.Value[0].FullPath);
@@ -185,6 +204,11 @@ internal static class MinimizeUtil
                 var count = 0;
                 foreach (var tuple in group)
                 {
+                    if (tuple.Id == s_executablesGroup)
+                    {
+                        continue;
+                    }
+
                     var source = getPeFileName(tuple.Id);
                     var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
                     if (Path.GetDirectoryName(destFileName) is { Length: not 0 } directory)
@@ -231,8 +255,24 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
                 var count = 0;
                 foreach (var tuple in group)
                 {
-                    var source = getPeFileName(tuple.Id);
+                    if (string.IsNullOrEmpty(group.Key) && tuple.Id == s_executablesGroup)
+                    {
+                        Console.WriteLine($"Skipping executable: {tuple.FilePath.FullPath}");
+                        continue;
+                    }
+
                     var destFilePath = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+
+                    // Working around an AzDo file permissions bug. The uploaded and re-downloaded artifacts don't preserve execute file mode.
+                    if (tuple.Id == s_executablesGroup)
+                    {
+                        builder.AppendLine($"""
+                            chmod 755 "$scriptroot/{destFilePath}"
+                            """);
+                        continue;
+                    }
+
+                    var source = getPeFileName(tuple.Id);
                     if (Path.GetDirectoryName(destFilePath) is { Length: not 0 } directory)
                     {
                         builder.AppendLine($@"mkdir -p ""$scriptroot/{directory}""");
@@ -246,10 +286,7 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
                     }
                 }
 
-                // Working around an AzDo file permissions bug.
-                // We want this to happen at the end so we can be agnostic about whether ilasm was already in the directory, or was linked in from the .duplicate directory.
                 builder.AppendLine();
-                builder.AppendLine(@"find $scriptroot -name ilasm -exec chmod 755 {} +");
             }
 
             static string getGroupDirectory(string relativePath)

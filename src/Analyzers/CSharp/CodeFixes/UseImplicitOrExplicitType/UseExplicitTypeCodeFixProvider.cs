@@ -95,7 +95,7 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
             var tupleTypeSymbol = GetConvertedType(semanticModel, typeSyntax.Parent, cancellationToken);
 
             var leadingTrivia = declarationExpression.GetLeadingTrivia()
-                .Concat(variableDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
+                .Concat(variableDesignation.GetAllPrecedingTriviaToPreviousToken().SelectAsArray(t => !t.IsWhitespace(), t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
 
             var tupleDeclaration = GenerateTupleDeclaration(
                 semanticModel, tupleTypeSymbol, variableDesignation, cancellationToken).WithLeadingTrivia(leadingTrivia);

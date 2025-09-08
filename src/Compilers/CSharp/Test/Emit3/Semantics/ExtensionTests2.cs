@@ -6510,10 +6510,10 @@ static class E
         AssertEx.SequenceEqual(["(E.extension(int).@M, void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M())"], PrintXmlCrefSymbols(tree, model));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78967")]
     public void Cref_52()
     {
-        // unqualified reference
+        // unqualified extension block
         var src = """
 /// <see cref="extension(int).Method"/>
 /// <see cref="extension(int).Property"/>
@@ -6535,50 +6535,25 @@ static class E
     {
     }
 
-    /// <see cref="extension(int).M2"/>
+    /// <see cref="extension(int).Method"/>
     /// <see cref="extension(int).Property"/>
     public static void M2() { }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78967 : cref, such unqualified references in CREF should work within context of enclosing static type
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
-        comp.VerifyEmitDiagnostics(
-            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
-            // /// <see cref="extension(int).Method"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(1, 16),
-            // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
-            // /// <see cref="extension(int).Property"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(2, 16),
-            // (7,24): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
-            //         /// <see cref="extension(int).Method"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(7, 24),
-            // (8,24): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
-            //         /// <see cref="extension(int).Property"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(8, 24),
-            // (15,20): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
-            //     /// <see cref="extension(int).Method"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(15, 20),
-            // (16,20): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
-            //     /// <see cref="extension(int).Property"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(16, 20),
-            // (21,20): warning CS1574: XML comment has cref attribute 'extension(int).M2' that could not be resolved
-            //     /// <see cref="extension(int).M2"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M2").WithArguments("extension(int).M2").WithLocation(21, 20),
-            // (22,20): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
-            //     /// <see cref="extension(int).Property"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(22, 20));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
-            "(extension(int).Method, null)",
-            "(extension(int).Property, null)",
-            "(extension(int).Method, null)",
-            "(extension(int).Property, null)",
-            "(extension(int).Method, null)",
-            "(extension(int).Property, null)",
-            "(extension(int).M2, null)",
-            "(extension(int).Property, null)"],
+            "(extension(int).Method, void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Method())",
+            "(extension(int).Property, System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { get; })",
+            "(extension(int).Method, void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Method())",
+            "(extension(int).Property, System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { get; })",
+            "(extension(int).Method, void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Method())",
+            "(extension(int).Property, System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { get; })",
+            "(extension(int).Method, void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Method())",
+            "(extension(int).Property, System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { get; })"],
             PrintXmlCrefSymbols(tree, model));
 
         src = """
@@ -6692,6 +6667,331 @@ static class E
             // (1,16): warning CS1574: XML comment has cref attribute 'M(string)' that could not be resolved
             // /// <see cref="E.M(string)"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E.M(string)").WithArguments("M(string)").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void Cref_56()
+    {
+        var src = """
+/// <see cref="E.extension(int).M()"/>
+static class E
+{
+    extension(ref int i)
+    {
+        public static void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).M()' that could not be resolved
+            // /// <see cref="E.extension(int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).M()").WithArguments("extension(int).M()").WithLocation(1, 16));
+
+        var src2 = """
+/// <see cref="E.extension(ref int).M()"/>
+static class E
+{
+    extension(int i)
+    {
+        public static void M() => throw null!;
+    }
+}
+""";
+        var comp2 = CreateCompilation(src2, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp2.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(ref int).M()' that could not be resolved
+            // /// <see cref="E.extension(ref int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(ref int).M()").WithArguments("extension(ref int).M()").WithLocation(1, 16));
+
+        var extension = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        var extension2 = comp2.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        Assert.True(extension.ExtensionGroupingName == extension2.ExtensionGroupingName);
+    }
+
+    [Fact]
+    public void Cref_57()
+    {
+        var src = """
+/// <see cref="E.extension(int)"/>
+static class E
+{
+    extension(int)
+    {
+        public static void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int)' that could not be resolved
+            // /// <see cref="E.extension(int)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int)").WithArguments("extension(int)").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void Cref_58()
+    {
+        var src = """
+static class E
+{
+    extension(int)
+    {
+        /// <see cref="extension(int).M()"/>
+        public static void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(extension(int).M(), void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M())"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_59()
+    {
+        var src = """
+static class E
+{
+    /// <see cref="extension{U}(U).M()"/>
+    extension<T>(T)
+    {
+        /// <see cref="extension{V}(V).M()"/>
+        public static void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(extension{U}(U).M(), void E.<G>$8048A6C8BE30A622530249B904B537EB<U>.M())",
+            "(extension{V}(V).M(), void E.<G>$8048A6C8BE30A622530249B904B537EB<V>.M())"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_60()
+    {
+        var src = """
+static class E
+{
+    /// <see cref="extension{U}(int).M(U)"/>
+    extension<T>(int)
+    {
+        /// <see cref="extension{V}(int).M(V)"/>
+        public static void M(T t) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(extension{U}(int).M(U), void E.<G>$B8D310208B4544F25EEBACB9990FC73B<U>.M(U t))",
+            "(extension{V}(int).M(V), void E.<G>$B8D310208B4544F25EEBACB9990FC73B<V>.M(V t))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_61()
+    {
+        // in namespace
+        var src = """
+namespace E
+{
+    extension<T>(int)
+    {
+        /// <see cref="extension{U}(int).M(U)"/>
+        public static void M(T t) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T>(int)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
+            // (3,5): warning CS1591: Missing XML comment for publicly visible type or member 'extension<T>(int)'
+            //     extension<T>(int)
+            Diagnostic(ErrorCode.WRN_MissingXMLComment, "extension").WithArguments("E.extension<T>(int)").WithLocation(3, 5),
+            // (5,24): warning CS1574: XML comment has cref attribute 'extension{U}(int).M(U)' that could not be resolved
+            //         /// <see cref="extension{U}(int).M(U)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension{U}(int).M(U)").WithArguments("extension{U}(int).M(U)").WithLocation(5, 24));
+    }
+
+    [Fact]
+    public void Cref_62()
+    {
+        // top-level extension block
+        var src = """
+/// <see cref="extension{U}(int).M(U)"/>
+extension<T>(int)
+{
+    /// <see cref="extension{U}(int).M(U)"/>
+    public static void M(T t) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension{U}(int).M(U)' that could not be resolved
+            // /// <see cref="extension{U}(int).M(U)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension{U}(int).M(U)").WithArguments("extension{U}(int).M(U)").WithLocation(1, 16),
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(int)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1),
+            // (4,20): warning CS1574: XML comment has cref attribute 'extension{U}(int).M(U)' that could not be resolved
+            //     /// <see cref="extension{U}(int).M(U)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension{U}(int).M(U)").WithArguments("extension{U}(int).M(U)").WithLocation(4, 20));
+    }
+
+    [Fact]
+    public void Cref_63()
+    {
+        var src = """
+static class E
+{
+    extension(object)
+    {
+        public static void M1() => throw null!;
+
+        extension<T>(int)
+        {
+            /// <see cref="extension{U}(int).M(U)"/>
+            /// <see cref="extension(object).M1()"/>
+            public static void M2(T t) => throw null!;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (7,9): error CS9282: This member is not allowed in an extension block
+            //         extension<T>(int)
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(7, 9),
+            // (9,28): warning CS1574: XML comment has cref attribute 'extension{U}(int).M(U)' that could not be resolved
+            //             /// <see cref="extension{U}(int).M(U)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension{U}(int).M(U)").WithArguments("extension{U}(int).M(U)").WithLocation(9, 28),
+            // (10,28): warning CS1574: XML comment has cref attribute 'extension(object).M1()' that could not be resolved
+            //             /// <see cref="extension(object).M1()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(object).M1()").WithArguments("extension(object).M1()").WithLocation(10, 28));
+    }
+
+    [Fact]
+    public void Cref_64()
+    {
+        // generic static enclosing class
+        var src = """
+static class E<T0>
+{
+    /// <see cref="extension{U}(int).M(U)"/>
+    extension<T>(int)
+    {
+        /// <see cref="extension{U}(int).M(U)"/>
+        public static void M(T t) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T>(int)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(4, 5));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(extension{U}(int).M(U), void E<T0>.<G>$B8D310208B4544F25EEBACB9990FC73B<U>.M(U t))",
+            "(extension{U}(int).M(U), void E<T0>.<G>$B8D310208B4544F25EEBACB9990FC73B<U>.M(U t))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_65()
+    {
+        // non-static enclosing class
+        var src = """
+class E
+{
+    /// <see cref="extension{U}(int).M(U)"/>
+    extension<T>(int)
+    {
+        /// <see cref="extension{U}(int).M(U)"/>
+        public static void M(T t) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T>(int)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Cref_66()
+    {
+        var src = """
+static class E
+{
+    /// <see cref="extension(int).M{U}(U)"/>
+    extension(int)
+    {
+        /// <see cref="extension(int).M{U}(U)"/>
+        public static void M<T>(T t) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(extension(int).M{U}(U), void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M<U>(U t))",
+            "(extension(int).M{U}(U), void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M<U>(U t))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_67()
+    {
+        var src = """
+static class E
+{
+    extension(int)
+    {
+        public static void M() => throw null!;
+
+        /// <see cref="extension(int).M()"/>
+        class Nested
+        {
+            /// <see cref="extension(int).M()"/>
+            public static void Method() => throw null!;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (7,24): warning CS1574: XML comment has cref attribute 'extension(int).M()' that could not be resolved
+            //         /// <see cref="extension(int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M()").WithArguments("extension(int).M()").WithLocation(7, 24),
+            // (8,15): error CS9282: This member is not allowed in an extension block
+            //         class Nested
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(8, 15),
+            // (10,28): warning CS1574: XML comment has cref attribute 'extension(int).M()' that could not be resolved
+            //             /// <see cref="extension(int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M()").WithArguments("extension(int).M()").WithLocation(10, 28));
     }
 
     [Fact]
@@ -29647,6 +29947,1513 @@ public class C : System.Collections.IEnumerable
             // (3,12): error CS9227: 'C' does not contain a definition for a suitable instance 'Add' method
             // void local(params C c)
             Diagnostic(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, "params C c").WithArguments("C").WithLocation(3, 12));
+    }
+
+    [Fact]
+    public void Using_01()
+    {
+        // non-extension static members are brought in scope
+        var src = """
+using static E;
+
+M();
+System.Console.Write(get_P());
+set_P(43);
+_ = op_Addition(0, 0);
+_ = new object() + new object();
+
+static class E
+{
+    extension(object)
+    {
+        public static void M() { System.Console.Write("M "); }
+        public static int P { get => 42; set { System.Console.Write($" {value}"); } }
+        public static object operator +(object o1, object o2) { System.Console.Write(" +"); return o1; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "M 42 43 + +").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_02()
+    {
+        var src = """
+using static E;
+
+_ = P;
+P = 43;
+
+static class E
+{
+    extension(object)
+    {
+        public static int P { get => throw null; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS0103: The name 'P' does not exist in the current context
+            // _ = P;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(3, 5),
+            // (4,1): error CS0103: The name 'P' does not exist in the current context
+            // P = 43;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Using_03()
+    {
+        // non-extension static members are brought in scope
+        var src = """
+using static E;
+
+System.Console.Write(get_P(2));
+set_P(3, 43);
+
+static class E
+{
+    extension(int i)
+    {
+        public int P { get { System.Console.Write($"get({i}) "); return 42; } set { System.Console.Write($" set({i}, {value})"); } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "get(2) 42 set(3, 43)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_04()
+    {
+        // using static to import an extension method, used as static method
+        var src = """
+using static E;
+
+M(1);
+
+static class E
+{
+    extension(int i)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): error CS0103: The name 'M' does not exist in the current context
+            // M(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(3, 1));
+
+        src = """
+using static E;
+
+M(1);
+
+static class E
+{
+    public static void M(this int i) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): error CS0103: The name 'M' does not exist in the current context
+            // M(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(3, 1));
+
+        src = """
+using static E;
+
+M(1);
+
+static class E
+{
+    public static void M(int i) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Using_05()
+    {
+        // using static to import an extension method, used as extension
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public void M() { System.Console.WriteLine($"M({i})"); }
+        }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            42.M();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "M(42)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_06()
+    {
+        // using static to import an extension method, used as static method
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public void M() { }
+        }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            M(1);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (20,13): error CS0103: The name 'M' does not exist in the current context
+            //             M(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(20, 13));
+
+        src = """
+namespace N1 
+{
+    static class E
+    {
+        public static void M(this int i) { }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            M(1);
+        }
+    }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (17,13): error CS0103: The name 'M' does not exist in the current context
+            //             M(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(17, 13));
+    }
+
+    [Fact]
+    public void Using_07()
+    {
+        // using static to import an extension property, used as extension
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public int P => 42;
+        }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            System.Console.Write(0.P);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_08()
+    {
+        // using static to import an extension operator, used as extension
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("+"); return c1; }
+        }
+    }
+}
+
+namespace N2
+{
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            _ = new C() + new C();
+        }
+    }
+}
+
+public class C { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "+").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_09()
+    {
+        // importing with both using static and using, extension method
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public void M() { System.Console.WriteLine($"M({i})"); }
+        }
+    }
+}
+
+namespace N2
+{
+    using N1;
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            42.M();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "M(42)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_10()
+    {
+        // importing with both using static and using, extension property
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(int i)
+        {
+            public int P => 42;
+        }
+    }
+}
+
+namespace N2
+{
+    using N1;
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            System.Console.Write(0.P);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_11()
+    {
+        // importing with both using static and using, extension operator
+        var src = """
+namespace N1 
+{
+    static class E
+    {
+        extension(C)
+        {
+            public static C operator +(C c1, C c2) { System.Console.Write("+"); return c1; }
+        }
+    }
+}
+
+namespace N2
+{
+    using N1;
+    using static N1.E;
+
+    public static class B
+    {
+        public static void Main()
+        {
+            _ = new C() + new C();
+        }
+    }
+}
+
+public class C { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "+").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_12()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+new object().M1();
+
+namespace N1 
+{
+    static class E1
+    {
+        public static void M1(this object o) { }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        public static void M2(this object o) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+
+        src = """
+using N1;
+using N2;
+
+new object().M1();
+
+namespace N1 
+{
+    static class E1
+    {
+        public static void M1(this object o) { }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public void M2() { }
+        }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining used imports logic
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_01(bool useCompilationReference, bool withPreserve)
+    {
+        // attribute on extension type parameter (with and without CompilerLoweringPreserve attribute)
+        var libSrc = $$"""
+public static class E
+{
+    extension<[A] T>(int i)
+    {
+        public void M() { }
+    }
+}
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class AAttribute : System.Attribute { }
+""" + CompilerLoweringPreserveAttributeDefinition;
+
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        CompileAndVerify(libComp).VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$B8D310208B4544F25EEBACB9990FC73B'<$T0>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$73F5560BE55A0A0B23905153DB511F4E'<T>
+            extends [mscorlib]System.Object
+        {
+            .param type T
+                .custom instance void AAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$73F5560BE55A0A0B23905153DB511F4E'::'<Extension>$'
+        } // end of class <M>$73F5560BE55A0A0B23905153DB511F4E
+        // Methods
+        .method public hidebysig 
+            instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 46 35 35 36 30 42 45
+                35 35 41 30 41 30 42 32 33 39 30 35 31 35 33 44
+                42 35 31 31 46 34 45 00 00
+            )
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<G>$B8D310208B4544F25EEBACB9990FC73B'::M
+    } // end of class <G>$B8D310208B4544F25EEBACB9990FC73B
+    // Methods
+    .method public hidebysig static 
+        void M<T> (
+            int32 i
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param type T
+            .custom instance void AAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x2067
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::M
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.TypeParameters.Single().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("M");
+            Assert.True(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.TypeParameters.Single().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_02(bool useCompilationReference)
+    {
+        // attribute on method type parameter
+        var libSrc = """
+public static class E
+{
+    extension(int)
+    {
+        public static void M<[A] T>() { }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionMethod = extension.GetMember<MethodSymbol>("M");
+            Assert.Equal("AAttribute", extensionMethod.TypeParameters.Single().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("M");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.TypeParameters.Single().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_03(bool useCompilationReference)
+    {
+        // attribute on extension parameter
+        var libSrc = """
+public static class E
+{
+    extension([A] int i)
+    {
+        public void M() { }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.ExtensionParameter.GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("M");
+            Assert.True(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.Parameters.Single().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_04(bool useCompilationReference)
+    {
+        // attribute on method parameter
+        var libSrc = """
+public static class E
+{
+    extension(int i1)
+    {
+        public void M([A] int i2) { }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionMethod = extension.GetMember<MethodSymbol>("M");
+            Assert.Equal("AAttribute", extensionMethod.Parameters.Last().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("M");
+            Assert.True(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.Parameters.Last().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_05(bool useCompilationReference)
+    {
+        // attribute on method
+        var libSrc = """
+public static class E
+{
+    extension(int)
+    {
+        [A]
+        public static void M() { }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionMethod = extension.GetMember<MethodSymbol>("M");
+            Assert.Equal("AAttribute", extensionMethod.GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("M");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_06(bool useCompilationReference)
+    {
+        // attribute on property
+        var libSrc = """
+public static class E
+{
+    extension(int)
+    {
+        [A]
+        public static int P => 0;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionProperty = extension.GetMember<PropertySymbol>("P");
+            Assert.Equal("AAttribute", extensionProperty.GetAttributes().Single().ToString());
+
+            var getterImplementation = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("get_P");
+            Assert.False(getterImplementation.IsExtensionMethod);
+            Assert.Empty(getterImplementation.GetAttributes());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_07(bool useCompilationReference)
+    {
+        // attribute on extension type parameter for property
+        var libSrc = """
+public static class E
+{
+    extension<[A] T>(T t)
+    {
+        public int P => 0;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.TypeParameters.Single().GetAttributes().Single().ToString());
+
+            var getterImplementation = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("get_P");
+            Assert.False(getterImplementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", getterImplementation.TypeParameters.Single().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_08(bool useCompilationReference)
+    {
+        // attribute on accessor
+        var libSrc = """
+public static class E
+{
+    extension(int)
+    {
+        public static int P
+        {
+            [A]
+            get => 0;
+        }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionProperty = extension.GetMember<PropertySymbol>("P");
+            Assert.Empty(extensionProperty.GetAttributes());
+            var extensionAccessor = extension.GetMember<MethodSymbol>("get_P");
+            Assert.Equal("AAttribute", extensionAccessor.GetAttributes().Single().ToString());
+
+            var getterImplementation = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("get_P");
+            Assert.False(getterImplementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", getterImplementation.GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_09(bool useCompilationReference)
+    {
+        // attribute on extension type parameter for operator
+        var libSrc = """
+public static class E
+{
+    extension<[A] T>(T)
+    {
+        public static T operator +(T t1, T t2) => throw null;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.TypeParameters.Single().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("op_Addition");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.TypeParameters.Single().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_10(bool useCompilationReference)
+    {
+        // attribute on extension parameter for operator
+        var libSrc = """
+public static class E
+{
+    extension([A] C)
+    {
+        public static C operator +(C c1, C c2) => throw null;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+public class C { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.ExtensionParameter.GetAttributes().Single().ToString());
+
+            var extensionOperator = extension.GetMember<MethodSymbol>("op_Addition");
+            foreach (var implementationParameter in extensionOperator.Parameters)
+            {
+                Assert.Empty(implementationParameter.GetAttributes());
+            }
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("op_Addition");
+            Assert.False(implementation.IsExtensionMethod);
+            foreach (var implementationParameter in implementation.Parameters)
+            {
+                Assert.Empty(implementationParameter.GetAttributes());
+            }
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_11(bool useCompilationReference)
+    {
+        // attribute on extension operator
+        var libSrc = """
+public static class E
+{
+    extension(C)
+    {
+        [A]
+        public static C operator +(C c1, C c2) => throw null;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+public class C { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionOperator = extension.GetMember<MethodSymbol>("op_Addition");
+            Assert.Equal("AAttribute", extensionOperator.GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("op_Addition");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_12(bool useCompilationReference)
+    {
+        // attribute on extension operator parameter
+        var libSrc = """
+public static class E
+{
+    extension(C)
+    {
+        public static C operator +([A] C c1, [B] C c2) => throw null;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+public class BAttribute : System.Attribute { }
+public class C { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionOperator = extension.GetMember<MethodSymbol>("op_Addition");
+            Assert.Equal("AAttribute", extensionOperator.Parameters.First().GetAttributes().Single().ToString());
+            Assert.Equal("BAttribute", extensionOperator.Parameters.Last().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("op_Addition");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.Parameters.First().GetAttributes().Single().ToString());
+            Assert.Equal("BAttribute", implementation.Parameters.Last().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void PropagateAttributes_13(bool useCompilationReference)
+    {
+        // unmanaged constraint on extension type parameter
+        var libSrc = """
+public static class E
+{
+    extension<T>(int i) where T : unmanaged
+    {
+        public void M() { }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        CompileAndVerify(libComp).VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$8A1E908054B5C3DCE56554F1F294FA98'<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) $T0>
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param type $T0
+            .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A888E0AEEFB4AB1872CCB8E7D5472CC8'<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>
+            extends [mscorlib]System.Object
+        {
+            .param type T
+                .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2067
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A888E0AEEFB4AB1872CCB8E7D5472CC8'::'<Extension>$'
+        } // end of class <M>$A888E0AEEFB4AB1872CCB8E7D5472CC8
+        // Methods
+        .method public hidebysig 
+            instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 38 38 38 45 30 41 45 45
+                46 42 34 41 42 31 38 37 32 43 43 42 38 45 37 44
+                35 34 37 32 43 43 38 00 00
+            )
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<G>$8A1E908054B5C3DCE56554F1F294FA98'::M
+    } // end of class <G>$8A1E908054B5C3DCE56554F1F294FA98
+    // Methods
+    .method public hidebysig static 
+        void M<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T> (
+            int32 i
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param type T
+            .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x2067
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::M
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.True(extension.TypeParameters.Single().HasUnmanagedTypeConstraint);
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("M");
+            Assert.True(implementation.IsExtensionMethod);
+            Assert.True(implementation.TypeParameters.Single().HasUnmanagedTypeConstraint);
+        }
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    public void PropagateAttributes_14(bool useCompilationReference)
+    {
+        // attribute on extension indexer
+        var libSrc = """
+public static class E
+{
+    extension(int i1)
+    {
+        [A]
+        public this[int i2] => 0;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionIndexer = extension.GetMember<PropertySymbol>("Item");
+            Assert.Equal("AAttribute", extensionIndexer.GetAttributes().Single().ToString());
+            var extensionGetter = extension.GetMember<MethodSymbol>("get_Item");
+            Assert.Empty(extensionGetter.GetAttributes());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_Item");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Empty(implementation.GetAttributes());
+        }
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    public void PropagateAttributes_15(bool useCompilationReference)
+    {
+        // attribute on parameters for extension indexer
+        var libSrc = """
+public static class E
+{
+    extension([A] int i1)
+    {
+        public this[[B] int i2] => 0;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+public class BAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.ExtensionParameter.GetAttributes().Single().ToString());
+
+            var extensionIndexer = extension.GetMember<PropertySymbol>("Item");
+            Assert.Empty(extensionIndexer.GetAttributes());
+            Assert.Equal("BAttribute", extensionIndexer.Parameters.Single().GetAttributes().Single().ToString());
+
+            var extensionGetter = extension.GetMember<MethodSymbol>("get_Item");
+            Assert.Equal("BAttribute", extensionGetter.Parameters.Single().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_Item");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.Parameters.First().GetAttributes().Single().ToString());
+            Assert.Equal("BAttribute", implementation.Parameters.Last().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    public void PropagateAttributes_16(bool useCompilationReference)
+    {
+        // attribute on type parameters for extension indexer
+        var libSrc = """
+public static class E
+{
+    extension<[A] T>(T t)
+    {
+        public this[int i] => 0;
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("AAttribute", extension.TypeParameters.Single().GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_Item");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.TypeParameters.Single().GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    public void PropagateAttributes_17(bool useCompilationReference)
+    {
+        // attribute on accessor for extension indexer
+        var libSrc = """
+public static class E
+{
+    extension(int i1)
+    {
+        public this[int i2]
+        {
+            [A]
+            get => 0;
+        }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+
+            var extensionGetter = extension.GetMember<MethodSymbol>("get_Item");
+            Assert.Equal("AAttribute", extensionGetter.GetAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_Item");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.GetAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
+    public void PropagateAttributes_18(bool useCompilationReference)
+    {
+        // return attribute on property
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        public int P
+        {
+            [return: A]
+            get => 0;
+        }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        CompileAndVerify(libComp).VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static
+                void '<Extension>$' (
+                    int32 i
+                ) cil managed
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206d
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
+        // Methods
+        .method public hidebysig specialname
+            instance int32 get_P () cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            .param [0]
+                .custom instance void AAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Method begins at RVA 0x206a
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
+        // Properties
+        .property instance int32 P()
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            .get instance int32 E/'<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P()
+        }
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static
+        int32 get_P (
+            int32 i
+        ) cil managed
+    {
+        .param [0]
+            .custom instance void AAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x2067
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    } // end of method E::get_P
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionProperty = extension.GetMember<PropertySymbol>("P");
+            Assert.Empty(extensionProperty.GetAttributes());
+            var extensionGetter = extensionProperty.GetMethod;
+            Assert.Equal("AAttribute", extensionGetter.GetReturnTypeAttributes().Single().ToString());
+
+            var implementation = (MethodSymbol)comp.GlobalNamespace.GetTypeMember("E").GetMember("get_P");
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.GetReturnTypeAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
+    public void PropagateAttributes_19(bool useCompilationReference)
+    {
+        // return attribute on method
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        [return: A]
+        public void M() { }
+    }
+}
+
+public class AAttribute : System.Attribute { }
+""";
+
+        var libComp = CreateCompilation(libSrc);
+        validate(libComp);
+
+        var comp = CreateCompilation("", references: [AsReference(libComp, useCompilationReference)]);
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+            Assert.True(extension.IsExtension);
+            var extensionMethod = extension.GetMember<MethodSymbol>("M");
+            Assert.Equal("AAttribute", extensionMethod.GetReturnTypeAttributes().Single().ToString());
+
+            var implementation = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M");
+            Assert.True(implementation.IsExtensionMethod);
+            Assert.Equal("AAttribute", implementation.GetReturnTypeAttributes().Single().ToString());
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
+    public void PropagateAttributes_20(bool withPreserve)
+    {
+        // attributes on local function in extension
+        var src = $$"""
+public static class E
+{
+    extension(int i1)
+    {
+        public void M()
+        {
+            local(0);
+
+            [return: A]
+            [B]
+            void local([C] int i2) { }
+        }
+    }
+}
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class AAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class BAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class CAttribute : System.Attribute { }
+""";
+
+        var verifier = CompileAndVerify([src, CompilerLoweringPreserveAttributeDefinition]).VerifyDiagnostics();
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$531E7AC45D443AE2243E7FFAB9455D60'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i1
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206f
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$531E7AC45D443AE2243E7FFAB9455D60'::'<Extension>$'
+        } // end of class <M>$531E7AC45D443AE2243E7FFAB9455D60
+        // Methods
+        .method public hidebysig 
+            instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 35 33 31 45 37 41 43 34 35
+                44 34 34 33 41 45 32 32 34 33 45 37 46 46 41 42
+                39 34 35 35 44 36 30 00 00
+            )
+            // Method begins at RVA 0x2071
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static 
+        void M (
+            int32 i1
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldc.i4.0
+        IL_0001: call void E::'<M>g__local|1_0'(int32)
+        IL_0006: ret
+    } // end of method E::M
+    .method assembly hidebysig static 
+        void '<M>g__local|1_0' (
+            int32 i2
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void BAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [0]
+            .custom instance void AAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .param [1]
+            .custom instance void CAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::'<M>g__local|1_0'
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 }
 

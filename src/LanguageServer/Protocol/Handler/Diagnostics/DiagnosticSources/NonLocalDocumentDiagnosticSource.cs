@@ -14,8 +14,6 @@ internal sealed class NonLocalDocumentDiagnosticSource(
     TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
     : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
-    private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
-
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         RequestContext context,
         CancellationToken cancellationToken)
@@ -24,9 +22,10 @@ internal sealed class NonLocalDocumentDiagnosticSource(
         // document including those reported as a compilation end diagnostic.  These are not included in document pull
         // (uses GetDiagnosticsForSpan) due to cost.
         var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var filter = service.GetDefaultAnalyzerFilter(Document.Project, diagnosticIds: null, shouldIncludeAnalyzer);
+
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
-            Document.Project, Document.Id, diagnosticIds: null, _shouldIncludeAnalyzer,
-            includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+            Document.Project, [Document.Id], diagnosticIds: null, filter, includeLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
         // TODO(cyrusn): In the future we could consider reporting these, but with a flag on the diagnostic mentioning
         // that it is suppressed and should be hidden from the task list by default.

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
@@ -1059,8 +1060,8 @@ public sealed class CodeFixServiceTests
             : root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
 
         await analyzerService.GetDiagnosticsForIdsAsync(
-            sourceDocument.Project, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
-            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            sourceDocument.Project, [sourceDocument.Id], diagnosticIds: null, shouldIncludeAnalyzer: null,
+            includeLocalDocumentDiagnostics: true, CancellationToken.None);
         // await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
         var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();

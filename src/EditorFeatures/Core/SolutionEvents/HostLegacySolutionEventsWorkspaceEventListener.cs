@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener
 {
-    private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
     private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
 
@@ -37,11 +36,9 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HostLegacySolutionEventsWorkspaceEventListener(
-        IGlobalOptionService globalOptions,
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
-        _globalOptions = globalOptions;
         _threadingContext = threadingContext;
         _eventQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
             DelayTimeSpan.Short,
@@ -54,17 +51,13 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
     {
         // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower noise.
         // It is not exposed to the user.
-        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
     }
 
     public void StopListening(Workspace workspace)
     {
-        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-        {
-            _workspaceChangedDisposer?.Dispose();
-            _workspaceChangedDisposer = null;
-        }
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
     }
 
     private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)

@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get { return _metadataName; }
         }
-
-        internal sealed override Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor)
+#nullable enable
+        internal sealed override Cci.ICustomAttribute? SynthesizeAttribute(WellKnownMember attributeConstructor)
         {
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
-
+#nullable disable
         public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly)
         {
             return SourceModule.ContainingSourceAssembly
@@ -507,16 +507,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal virtual MethodInstrumentation GetMethodBodyInstrumentations(MethodSymbol method)
             => new MethodInstrumentation { Kinds = EmitOptions.InstrumentationKinds };
-
-        internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
-        {
-            return ImmutableArray<AnonymousTypeKey>.Empty;
-        }
-
-        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
-        {
-            return ImmutableArray<SynthesizedDelegateKey>.Empty;
-        }
 
         internal virtual int GetNextAnonymousTypeIndex()
         {

@@ -97,6 +97,7 @@ static class MyAwaitableExtension
                 "System.Boolean System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.IsCompleted { get; }",
                 info.IsCompletedProperty.ToTestDisplayString()
             );
+            Assert.Null(info.RuntimeAwaitMethod);
         }
 
         [Fact]
@@ -251,6 +252,61 @@ public class C {
             Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+            Assert.Null(info.RuntimeAwaitMethod);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79818")]
+        public void TestAwaitInfo3()
+        {
+            var text =
+                """
+                using System;
+                using System.Threading.Tasks;
+                public class C {
+                    public C(Task<int> t) {
+                        Func<Task> f = async() => await t;
+                    }
+                }
+                """;
+            var comp = CreateRuntimeAsyncCompilation(text);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var treeModel = comp.GetSemanticModel(tree);
+            var info = treeModel.GetAwaitExpressionInfo(syntaxNode);
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.GetResultMethod);
+            Assert.Null(info.IsCompletedProperty);
+            AssertEx.Equal("System.Int32 System.Runtime.CompilerServices.AsyncHelpers.Await<System.Int32>(System.Threading.Tasks.Task<System.Int32> task)", info.RuntimeAwaitMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79818")]
+        public void TestAwaitInfo4()
+        {
+            var text =
+                """
+                using System;
+                using System.Threading.Tasks;
+                public class C {
+                    public C() {
+                        Func<Task> f = async() => await Task.Yield();
+                    }
+                }
+                """;
+            var comp = CreateRuntimeAsyncCompilation(text);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var treeModel = comp.GetSemanticModel(tree);
+            var info = treeModel.GetAwaitExpressionInfo(syntaxNode);
+            AssertEx.Equal("System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+            AssertEx.Equal("void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()", info.GetResultMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+            AssertEx.Equal(
+                "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter awaiter)",
+                info.RuntimeAwaitMethod.ToTestDisplayString());
         }
 
         [Fact]
@@ -261,6 +317,7 @@ public class C {
             Assert.Null(info.GetAwaiterMethod);
             Assert.Null(info.GetResultMethod);
             Assert.Null(info.IsCompletedProperty);
+            Assert.Null(info.RuntimeAwaitMethod);
             Assert.False(info.IsDynamic);
             Assert.Equal(0, info.GetHashCode());
         }

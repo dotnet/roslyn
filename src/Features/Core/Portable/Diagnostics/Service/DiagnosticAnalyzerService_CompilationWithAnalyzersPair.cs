@@ -17,32 +17,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    private sealed class ChecksumAndAnalyzersEqualityComparer
-        : IEqualityComparer<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers)>
-    {
-        public static readonly ChecksumAndAnalyzersEqualityComparer Instance = new();
-
-        public bool Equals((Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) x, (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) y)
-        {
-            if (x.checksum != y.checksum)
-                return false;
-
-            // Fast path for when the analyzers are the same reference.
-            return x.analyzers == y.analyzers || x.analyzers.SetEquals(y.analyzers);
-        }
-
-        public int GetHashCode((Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) obj)
-        {
-            var hashCode = obj.checksum.GetHashCode();
-
-            // Use addition so that we're resilient to any order for the analyzers.
-            foreach (var analyzer in obj.analyzers)
-                hashCode += analyzer.GetHashCode();
-
-            return hashCode;
-        }
-    }
-
     /// <summary>
     /// Cached data from a <see cref="ProjectState"/> to the <see cref="CompilationWithAnalyzersPair"/>s
     /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
@@ -142,30 +116,30 @@ internal sealed partial class DiagnosticAnalyzerService
                 return true;
             };
 
-            // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
-            // async being used with synchronous blocking concurrency.
-            var projectCompilation = !filteredProjectAnalyzers.Any()
-                ? null
-                : compilation.WithAnalyzers(filteredProjectAnalyzers, new CompilationWithAnalyzersOptions(
-                    options: project.State.ProjectAnalyzerOptions,
-                    onAnalyzerException: null,
-                    analyzerExceptionFilter: exceptionFilter,
-                    concurrentAnalysis: false,
-                    logAnalyzerExecutionTime: true,
-                    reportSuppressedDiagnostics: true));
-
-            var hostCompilation = !filteredHostAnalyzers.Any()
-                ? null
-                : compilation.WithAnalyzers(filteredHostAnalyzers, new CompilationWithAnalyzersOptions(
-                    options: project.HostAnalyzerOptions,
-                    onAnalyzerException: null,
-                    analyzerExceptionFilter: exceptionFilter,
-                    concurrentAnalysis: false,
-                    logAnalyzerExecutionTime: true,
-                    reportSuppressedDiagnostics: true));
-
             // Create driver that holds onto compilation and associated analyzers
-            return new CompilationWithAnalyzersPair(projectCompilation, hostCompilation);
+            return new(
+                CreateCompilationWithAnalyzers(compilation, filteredProjectAnalyzers, project.State.ProjectAnalyzerOptions, exceptionFilter),
+                CreateCompilationWithAnalyzers(compilation, filteredHostAnalyzers, project.HostAnalyzerOptions, exceptionFilter));
+        }
+
+        static CompilationWithAnalyzers? CreateCompilationWithAnalyzers(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalyzerOptions? options,
+            Func<Exception, bool> exceptionFilter)
+        {
+            if (analyzers.Length == 0)
+                return null;
+
+            return compilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(
+                options: options,
+                onAnalyzerException: null,
+                analyzerExceptionFilter: exceptionFilter,
+                // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
+                // async being used with synchronous blocking concurrency.
+                concurrentAnalysis: false,
+                logAnalyzerExecutionTime: true,
+                reportSuppressedDiagnostics: true));
         }
     }
 }
