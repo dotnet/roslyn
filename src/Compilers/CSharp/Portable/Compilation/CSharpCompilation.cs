@@ -1327,6 +1327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int length = referenceManager.ReferencedAssemblies.Length;
 
+            assemblies.EnsureCapacity(assemblies.Count + length);
+
             for (int i = 0; i < length; i++)
             {
                 if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
