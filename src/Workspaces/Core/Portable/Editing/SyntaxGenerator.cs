@@ -765,7 +765,7 @@ public abstract class SyntaxGenerator : ILanguageService
                         modifiers: DeclarationModifiers.From(type),
                         baseType: type.BaseType != null ? TypeExpression(type.BaseType) : null,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(CanBeDeclared, Declaration)),
                     TypeKind.Struct => StructDeclaration(
                         type.IsRecord,
                         type.Name,
@@ -773,20 +773,20 @@ public abstract class SyntaxGenerator : ILanguageService
                         accessibility: type.DeclaredAccessibility,
                         modifiers: DeclarationModifiers.From(type),
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(CanBeDeclared, Declaration)),
                     TypeKind.Interface => InterfaceDeclaration(
                         type.Name,
                         type.TypeParameters.Select(TypeParameter),
                         accessibility: type.DeclaredAccessibility,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(CanBeDeclared, Declaration)),
                     TypeKind.Enum => EnumDeclaration(
                         type.Name,
                         underlyingType: type.EnumUnderlyingType is null or { SpecialType: SpecialType.System_Int32 }
                             ? null
                             : TypeExpression(type.EnumUnderlyingType.SpecialType),
                         accessibility: type.DeclaredAccessibility,
-                        members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(s => s.Kind == SymbolKind.Field, Declaration)),
                     TypeKind.Delegate => type.GetMembers(WellKnownMemberNames.DelegateInvokeName) is [IMethodSymbol invoke, ..]
                         ? DelegateDeclaration(
                             type.Name,

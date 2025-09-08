@@ -256,7 +256,7 @@ public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logge
         else
         {
             var diagnostics = await GetDiagnosticsAsync(workspace, ps);
-            actualTextSpans = diagnostics.Where(d => d.Id == diagnosticId).Select(d => d.Location.SourceSpan).ToSet();
+            actualTextSpans = diagnostics.SelectAsArray(d => d.Id == diagnosticId, d => d.Location.SourceSpan).ToSet();
         }
 
         Assert.True(expectedTextSpans.SetEquals(actualTextSpans));
