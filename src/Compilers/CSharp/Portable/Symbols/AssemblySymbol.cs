@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         // separate pool for assembly symbols as these collections commonly exceed ArrayBuilder's size threshold
-        private static readonly ObjectPool<List<AssemblySymbol>> s_symbolPool = new ObjectPool<List<AssemblySymbol>>(() => new List<AssemblySymbol>());
+        private static readonly ObjectPool<ArrayBuilder<AssemblySymbol>> s_symbolPool = new ObjectPool<ArrayBuilder<AssemblySymbol>>(() => new ArrayBuilder<AssemblySymbol>());
 
         /// <summary>
         /// The system assembly, which provides primitive types like Object, String, etc., e.g. mscorlib.dll. 
@@ -1014,7 +1014,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             assemblies.Clear();
+
+            // Do not call assemblies.Free, as the ArrayBuilder isn't associated with our pool and even if it were, we don't
+            // want the default freeing behavior of limiting pooled array size to ArrayBuilder.PooledArrayLengthLimitExclusive.
+            // Instead, we need to explicitly add this item back to our pool.
             s_symbolPool.Free(assemblies);
+
             Debug.Assert(result?.IsErrorType() != true);
             return result;
 
