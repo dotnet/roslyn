@@ -792,7 +792,7 @@ public sealed class CSharpMoveStaticMembersTests
             """, "Class1Helpers.cs", selectedMembers, "Class1Helpers").ConfigureAwait(false);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79806")]
     public async Task TestMoveStaticMethodWithStaticMembers()
     {
         var selectedMembers = ImmutableArray.Create("StaticMethod");

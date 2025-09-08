@@ -410,7 +410,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var members = memberNodes
             .Select(node => root.GetCurrentNode(node))
             .WhereNotNull();
-        var nodesToUpdate = new List<(SyntaxNode original, SyntaxNode replacement)>();
+        var nodesToUpdate = new Dictionary<SyntaxNode, SyntaxNode>();
 
         foreach (var memberNode in members)
         {
@@ -424,9 +424,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
                 var selectedMemberNames = selectedMembers.Select(m => m.Name).ToImmutableHashSet();
 
                 // Check if it's a static member from the original class that isn't being moved
-                if (symbol != null &&
-                    symbol.IsStatic &&
-                    symbol.ContainingType != null &&
+                if (symbol is { IsStatic: true, ContainingType: { } containingType } &&
                     symbol.ContainingType.Name == originalType.Name &&
                     !selectedMembers.Contains(symbol) &&
                     !selectedMemberNames.Contains(symbol.Name))
@@ -435,16 +433,15 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
                         generator.TypeExpression(originalType),
                         identifierNode);
 
-                    nodesToUpdate.Add((identifierNode, qualified));
+                    nodesToUpdate.Add(identifierNode, qualified);
                 }
             }
         }
 
         if (nodesToUpdate.Count > 0)
         {
-            root = root.ReplaceNodes(
-                nodesToUpdate.Select(t => t.original),
-                (original, _) => nodesToUpdate.First(t => t.original == original).replacement);
+            root = root.ReplaceNodes(nodesToUpdate.Keys,
+                (original, _) => nodesToUpdate[original]);
 
             solution = solution.WithDocumentSyntaxRoot(sourceDocId, root);
         }
