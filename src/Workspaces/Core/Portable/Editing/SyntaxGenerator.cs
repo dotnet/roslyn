@@ -774,7 +774,7 @@ public abstract class SyntaxGenerator : ILanguageService
                         modifiers: DeclarationModifiers.From(type),
                         baseType: type.BaseType != null ? TypeExpression(type.BaseType) : null,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: getMembers(type).Where(CanBeDeclared).Select(Declaration)),
+                        members: GetMembersMinusExtensionImplementations(type).Where(CanBeDeclared).Select(Declaration)),
                     TypeKind.Struct => StructDeclaration(
                         type.IsRecord,
                         type.Name,
@@ -820,10 +820,10 @@ public abstract class SyntaxGenerator : ILanguageService
 
         throw new ArgumentException("Symbol cannot be converted to a declaration");
 
-        static IEnumerable<ISymbol> getMembers(INamedTypeSymbol type)
+        static IEnumerable<ISymbol> GetMembersMinusExtensionImplementations(INamedTypeSymbol type)
         {
             var members = type.GetMembers();
-            PooledHashSet<IMethodSymbol>? implementationsToHide = null;
+            using var _ = PooledHashSet<IMethodSymbol>.GetInstance(out var implementationsToHide);
             foreach (var nested in type.GetTypeMembers(""))
             {
                 if (nested.IsExtension)
@@ -833,7 +833,6 @@ public abstract class SyntaxGenerator : ILanguageService
                         if (extensionMember is IMethodSymbol shadows &&
                             shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
                         {
-                            implementationsToHide ??= PooledHashSet<IMethodSymbol>.GetInstance();
                             implementationsToHide.Add(toShadow);
                         }
                     }
@@ -845,13 +844,13 @@ public abstract class SyntaxGenerator : ILanguageService
                 return members;
             }
 
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var member in members)
             {
                 if (member is IMethodSymbol method)
                 {
                     // Hide implementation methods
-                    if (!implementationsToHide.Remove(method.OriginalDefinition))
+                    if (!implementationsToHide.Contains(method.OriginalDefinition))
                     {
                         result.Add(member);
                     }
@@ -862,8 +861,7 @@ public abstract class SyntaxGenerator : ILanguageService
                 }
             }
 
-            implementationsToHide.Free();
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
     }
 
