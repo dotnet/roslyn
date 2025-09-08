@@ -793,6 +793,53 @@ public sealed class CSharpMoveStaticMembersTests
     }
 
     [Fact]
+    public async Task TestMoveStaticMethodWithStaticMembers()
+    {
+        var selectedMembers = ImmutableArray.Create("StaticMethod");
+
+        await TestMovementNewFileAsync("""
+            using System;
+
+            namespace TestNs1
+            {
+                internal class ClassWithStaticMembers
+                {
+                    public static int StaticInt { get; set; }
+                    public static string StaticString { get; set; }
+                    public static void Static[||]Method()
+                    {
+                        Console.WriteLine(StaticString + StaticInt);
+                    }
+                }
+            }
+            """, """
+            using System;
+            
+            namespace TestNs1
+            {
+                internal class ClassWithStaticMembers
+                {
+                    public static int StaticInt { get; set; }
+                    public static string StaticString { get; set; }
+                }
+            }
+            """, """
+            using System;
+            
+            namespace TestNs1
+            {
+                internal static class ClassWithStaticMembersHelpers
+                {
+                    public static void StaticMethod()
+                    {
+                        Console.WriteLine(ClassWithStaticMembers.StaticString + ClassWithStaticMembers.StaticInt);
+                    }
+                }
+            }
+            """, "ClassWithStaticMembersHelpers.cs", selectedMembers, "ClassWithStaticMembersHelpers").ConfigureAwait(false);
+    }
+
+    [Fact]
     public async Task TestMoveMethodAndRefactorUsageWithTrivia()
     {
         var selectedMembers = ImmutableArray.Create("TestMethod");

@@ -119,6 +119,14 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
         var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
+        // Qualify static member references in the moved members
+        solutionWithFixedReferences = await QualifyStaticMemberReferencesAsync(
+            solutionWithFixedReferences,
+            sourceDoc.Id,
+            memberNodes,
+            _selectedType,
+            moveOptions.SelectedMembers,
+            cancellationToken).ConfigureAwait(false);
         sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDoc.Id);
 
         // get back nodes from our changes
@@ -194,6 +202,15 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
         var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, oldSolution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
+        // Qualify static member references in the moved members
+        var originalType = selectedMembers.First().ContainingType;
+        solutionWithFixedReferences = await QualifyStaticMemberReferencesAsync(
+            solutionWithFixedReferences,
+            sourceDocId,
+            oldMemberNodes,
+            originalType,
+            selectedMembers,
+            cancellationToken).ConfigureAwait(false);
         var sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDocId);
 
         // get back tracked nodes from our changes
@@ -370,5 +387,68 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
                 .Where(loc => !loc.IsCandidateLocation && !loc.IsImplicit)
                 .Select(loc => (loc, refSymbol.Definition.IsExtensionMethod())))
             .ToImmutableArrayOrEmpty();
+    }
+
+    /// <summary>
+    /// Process the bodies of members being moved to qualify references to static members
+    /// that remain in the original class.
+    /// </summary>
+    private static async Task<Solution> QualifyStaticMemberReferencesAsync(
+        Solution solution,
+        DocumentId sourceDocId,
+        ImmutableArray<SyntaxNode> memberNodes,
+        INamedTypeSymbol originalType,
+        ImmutableArray<ISymbol> selectedMembers,
+        CancellationToken cancellationToken)
+    {
+        var sourceDoc = solution.GetRequiredDocument(sourceDocId);
+        var root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = sourceDoc.GetRequiredLanguageService<ISyntaxFactsService>();
+        var generator = SyntaxGenerator.GetGenerator(sourceDoc);
+
+        var members = memberNodes
+            .Select(node => root.GetCurrentNode(node))
+            .WhereNotNull();
+        var nodesToUpdate = new List<(SyntaxNode original, SyntaxNode replacement)>();
+
+        foreach (var memberNode in members)
+        {
+            foreach (var identifierNode in memberNode.DescendantNodes().Where(
+                n => syntaxFacts.IsIdentifierName(n) &&
+                    !syntaxFacts.IsNameOfAnyMemberAccessExpression(n)))
+            {
+                var symbolInfo = semanticModel.GetSymbolInfo(identifierNode, cancellationToken);
+                var symbol = symbolInfo.Symbol;
+
+                var selectedMemberNames = selectedMembers.Select(m => m.Name).ToImmutableHashSet();
+
+                // Check if it's a static member from the original class that isn't being moved
+                if (symbol != null &&
+                    symbol.IsStatic &&
+                    symbol.ContainingType != null &&
+                    symbol.ContainingType.Name == originalType.Name &&
+                    !selectedMembers.Contains(symbol) &&
+                    !selectedMemberNames.Contains(symbol.Name))
+                {
+                    var qualified = generator.MemberAccessExpression(
+                        generator.TypeExpression(originalType),
+                        identifierNode);
+
+                    nodesToUpdate.Add((identifierNode, qualified));
+                }
+            }
+        }
+
+        if (nodesToUpdate.Count > 0)
+        {
+            root = root.ReplaceNodes(
+                nodesToUpdate.Select(t => t.original),
+                (original, _) => nodesToUpdate.First(t => t.original == original).replacement);
+
+            solution = solution.WithDocumentSyntaxRoot(sourceDocId, root);
+        }
+
+        return solution;
     }
 }
