@@ -135,14 +135,14 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
             if (targetMethod.Name == nameof(ToString))
             {
                 // If type of instance is not ref-like type or is {ReadOnly}Span<char> that is allowed in interpolated strings in .NET 6+
-                if (instance.Type?.IsRefLikeType == false || IsRefLikeTypeAllowed(instance.Type))
+                if (instance.Type is { IsRefLikeType: false } || IsRefLikeTypeAllowed(instance.Type))
                 {
                     if (invocation.Arguments.Length == 1
                         || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
                     {
                         if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
                             FindType<IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
-                            instance.Type?.Implements(systemIFormattable) == true)
+                            instance.Type.Implements(systemIFormattable) == true)
                         {
                             unwrapped = instance;
                             formatString = value;
@@ -184,7 +184,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         unwrapped = expression;
         formatString = null;
 
-        bool IsRefLikeTypeAllowed(ITypeSymbol? type)
+        bool IsRefLikeTypeAllowed([NotNullWhen(true)] ITypeSymbol? type)
         {
             var compilation = expression.SemanticModel.Compilation;
             // {ReadOnly}Span<char> is allowed if interpolated string handlers are available in the compilation (.NET 6+)
