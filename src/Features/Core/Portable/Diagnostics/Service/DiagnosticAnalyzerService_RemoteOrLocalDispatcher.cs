@@ -181,19 +181,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             includeCompilerAnalyzer,
             includeLocalDocumentDiagnostics,
             cancellationToken).ConfigureAwait(false);
-        /*
-        return ProduceProjectDiagnosticsAsync(
-            project, diagnosticIds,
-            // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
-            // project if no specific document id was requested.
-            documentIds.IsDefault ? [.. project.DocumentIds, .. project.AdditionalDocumentIds] : documentIds,
-            includeCompilerAnalyzer,
-            includeLocalDocumentDiagnostics,
-            includeNonLocalDocumentDiagnostics: true,
-            // return diagnostics specific to one project or document
-            includeProjectNonLocalResult: documentIds.IsDefault,
-            cancellationToken);
-        */
     }
 
     public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
@@ -215,51 +202,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
         return await GetProjectDiagnosticsForIdsInProcessAsync(
             project, diagnosticIds, includeCompilerAnalyzer, cancellationToken).ConfigureAwait(false);
-        /*
-        return ProduceProjectDiagnosticsAsync(
-            project, diagnosticIds, documentIds: [],
-            includeCompilerAnalyzer,
-            includeLocalDocumentDiagnostics: false,
-            includeNonLocalDocumentDiagnostics: false,
-            includeProjectNonLocalResult: true,
-            cancellationToken);
-        */
-    }
-
-    internal async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
-        Project project,
-        ImmutableHashSet<string>? diagnosticIds,
-        ImmutableArray<DocumentId> documentIds,
-        bool includeCompilerAnalyzer,
-        bool includeLocalDocumentDiagnostics,
-        bool includeNonLocalDocumentDiagnostics,
-        bool includeProjectNonLocalResult,
-        CancellationToken cancellationToken)
-    {
-        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-        if (client is not null)
-        {
-            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
-                project,
-                (service, solution, cancellationToken) => service.ProduceProjectDiagnosticsAsync(
-                    solution, project.Id, diagnosticIds, documentIds, includeCompilerAnalyzer,
-                    includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, includeProjectNonLocalResult,
-                    cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-            if (!result.HasValue)
-                return [];
-
-            return result.Value;
-        }
-
-        // Fallback to proccessing in proc.
-        return await ProduceProjectDiagnosticsInProcessAsync(
-            project, diagnosticIds, documentIds,
-            includeCompilerAnalyzer,
-            includeLocalDocumentDiagnostics,
-            includeNonLocalDocumentDiagnostics,
-            includeProjectNonLocalResult,
-            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
