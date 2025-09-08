@@ -423,9 +423,14 @@ internal readonly struct EmbeddedLanguageDetector(
 
         // if we're inside some collection-like initializer, find the instance actually being created. 
         if (syntaxFacts.IsAnyInitializerExpression(node.Parent, out var instance))
+        {
             node = syntaxFacts.WalkUpParentheses(instance);
-
-        return node;
+        }
+        else if (syntaxFacts.IsExpressionElement(node.Parent))
+        {
+            node = syntaxFacts.WalkUpParentheses(node.Parent.GetRequiredParent());
+        }
+            return node;
     }
 
     private bool IsAttributeArgumentWithMatchingStringSyntaxAttribute(
