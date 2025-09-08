@@ -32,6 +32,10 @@
     <VersionPrefix>$(MetalamaCompilerVersionPrefix)</VersionPrefix>
     <VersionSuffix>$(MetalamaCompilerVersionSuffix)</VersionSuffix>
     <PatchVersion>$(MetalamaCompilerVersionPatchNumber)</PatchVersion>
+
+    <!-- MetricsVersionPrefix sometimes overrides VersionPrefix but it's not defined in this repo, so we define it here. Not sure that it does. -->
+    <MetricsVersionPrefix>$(VersionPrefix)</MetricsVersionPrefix>
+    
     <!-- RoslynVersion is the version of the vanilla Roslyn nuget packages -->
     <DotNetFinalVersionKind>metalama</DotNetFinalVersionKind>
     <!--

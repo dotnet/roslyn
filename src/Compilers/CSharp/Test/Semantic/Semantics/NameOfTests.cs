@@ -16,7 +16,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public sealed class NameofTests : CSharpTestBase
+    // <Metalama>
+    //  public sealed class NameofTests : CSharpTestBase
+    public class NameofTests : CSharpTestBase
+    // </Metalama>
     {
         [Fact]
         public void TestGoodNameofInstances()
