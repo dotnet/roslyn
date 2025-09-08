@@ -24,7 +24,7 @@ RUN Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet
 RUN $env:PATH
 
 # Add to PATH
-ENV CUSTOM_PATH="C:\\Program Files\\PowerShell\\7;C:\\git\\cmd;C:\\git\\bin;C:\\git\\usr\\bin"
+ENV CUSTOM_PATH="C:\\Program Files\\PowerShell\\7;C:\\git\\cmd;C:\\git\\bin;C:\\git\\usr\\bin;C:\Program Files\dotnet"
 RUN cmd /c "setx PATH \"$env:CUSTOM_PATH;$env:PATH\" /M"
 
 # Prepare PostSharp environment
