@@ -89,7 +89,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
             Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
-            var diagnostics = await _diagnosticAnalyzerService.ForceCodeAnalysisDiagnosticsAsync(
+            var diagnostics = await _diagnosticAnalyzerService.ForceRunCodeAnalysisDiagnosticsAsync(
                 project, cancellationToken).ConfigureAwait(false);
 
             // Add the given project to the analyzed projects list **after** analysis has completed.

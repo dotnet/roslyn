@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    public async ValueTask<ImmutableArray<DiagnosticData>> ForceCodeAnalysisDiagnosticsInProcessAsync(
+    public async ValueTask<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsInProcessAsync(
         Project project, CancellationToken cancellationToken)
     {
         // We are being asked to explicitly analyze this project.  As such we do *not* want to use the

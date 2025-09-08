@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IRemoteDiagnosticAnalyzerService
 {
-    ValueTask<ImmutableArray<DiagnosticData>> ForceCodeAnalysisDiagnosticsAsync(
+    ValueTask<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
     /// <summary>

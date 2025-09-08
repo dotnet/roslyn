@@ -30,7 +30,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// where all diagnostic descriptors are currently hidden will not run, as they would not produce any actual
     /// diagnostics.
     /// </summary>
-    Task<ImmutableArray<DiagnosticData>> ForceCodeAnalysisDiagnosticsAsync(
+    Task<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
         Project project, CancellationToken cancellationToken);
 
     /// <summary>
