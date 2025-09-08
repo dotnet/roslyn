@@ -117,6 +117,7 @@
     <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.23.39-alpha" />
+    <PackageVersion Include="MessagePack" Version="2.5.198" />
 
     <!--
       VS Debugger
@@ -290,7 +291,7 @@
     <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
-    <PackageVersion Include="Basic.CompilerLog.Util" Version="0.9.17" />
+    <PackageVersion Include="Basic.CompilerLog.Util" Version="0.6.1" />
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net20" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net40" Version="$(_BasicReferenceAssembliesVersion)" />
