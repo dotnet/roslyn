@@ -24,7 +24,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_CommentCharacter(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("/", """
+        => VerifyCSharpMarkupAndExpected("/", """
             class A
             {
                 ///{|type:|}
@@ -46,7 +46,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_CommentCharacter_WithComment(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("/", """
+        => VerifyCSharpMarkupAndExpected("/", """
             class A
             {
                 ///{|type:|} This is an existing comment
@@ -68,7 +68,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_CommentCharacter_WithComment_NoSpace(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("/", """
+        => VerifyCSharpMarkupAndExpected("/", """
             class A
             {
                 ///{|type:|}This is an existing comment
@@ -90,7 +90,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_CommentCharacter_VB(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("'", """
+        => VerifyCSharpMarkupAndExpected("'", """
             Class A
                 '''{|type:|}
                 Sub M()
@@ -108,7 +108,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_ParametersAndReturns(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("/", """
+        => VerifyCSharpMarkupAndExpected("/", """
             class A
             {
                 ///{|type:|}
@@ -157,7 +157,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_EnterKey(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 /// <summary>
@@ -183,7 +183,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_EnterKey2(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 /// <summary>
@@ -209,7 +209,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 ///
@@ -235,7 +235,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormatting(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 void M() {{|type:|}
@@ -253,7 +253,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormattingWithTabs(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 void M() {{|type:|}
@@ -271,7 +271,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormattingInsideMethod(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 void M()
@@ -333,7 +333,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormattingOnNewLine(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 void M() {{|type:|}
@@ -362,7 +362,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormattingForRazorVS(bool mutatingLspWorkspace, bool useVSCapabilities)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 void M() {{|type:|}
@@ -378,7 +378,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
             }
             """, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer, useVSCapabilities: useVSCapabilities);
 
-    private async Task VerifyMarkupAndExpected(
+    private async Task VerifyCSharpMarkupAndExpected(
         string characterTyped,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
