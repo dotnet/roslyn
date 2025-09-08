@@ -103,8 +103,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         // The progress object we will stream reports to.
         using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
 
-        // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower
-        // noise.  It is not exposed to the user.
         Contract.ThrowIfNull(context.Solution);
 
         var clientCapabilities = context.GetRequiredClientCapabilities();
