@@ -424,6 +424,9 @@ internal readonly struct EmbeddedLanguageDetector(
         // if we're inside some collection-like initializer, find the instance actually being created. 
         if (syntaxFacts.IsAnyInitializerExpression(node.Parent, out var instance))
             node = syntaxFacts.WalkUpParentheses(instance);
+        // if we're inside a collection expression, find the collection expression itself
+        else if (syntaxFacts.IsCollectionExpressionElement(node.Parent, out var collection))
+            node = syntaxFacts.WalkUpParentheses(collection);
 
         return node;
     }
