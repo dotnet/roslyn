@@ -12449,8 +12449,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine2">
-        <source>Copyright (c) SharpCrafters s.r.o. and contributors.</source>
-        <target state="translated">Copyright (C) Microsoft Corporation. Wszelkie prawa zastrzeżone.</target>
+        <source>Copyright (c) SharpCrafters s.r.o. All rights reserved.</source>
+        <target state="needs-review-translation">Copyright (C) Microsoft Corporation. Wszelkie prawa zastrzeżone.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LangVersions">
