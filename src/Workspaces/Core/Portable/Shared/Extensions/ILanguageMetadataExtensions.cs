@@ -20,10 +20,10 @@ internal static class ILanguageMetadataExtensions
         return services.Where(s => s.Metadata.Language == languageName).Select(s => s.Value).FirstOrDefault();
     }
 
-    public static IEnumerable<TInterface> FilterToSpecificLanguage<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services, string languageName)
+    public static ImmutableArray<TInterface> FilterToSpecificLanguage<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services, string languageName)
         where TMetadata : ILanguageMetadata
     {
-        return services.Where(s => s.Metadata.Language == languageName).Select(s => s.Value);
+        return services.SelectAsArray(s => s.Metadata.Language == languageName, s => s.Value);
     }
 
     public static ImmutableDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMap<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)

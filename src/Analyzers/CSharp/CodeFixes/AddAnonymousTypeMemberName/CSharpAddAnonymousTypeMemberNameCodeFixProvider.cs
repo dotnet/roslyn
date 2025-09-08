@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.AddAnonymousTypeMemberName;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName;
 
@@ -39,5 +40,5 @@ internal sealed class CSharpAddAnonymousTypeMemberNameCodeFixProvider()
                 SyntaxFactory.IdentifierName(name)));
 
     protected override IEnumerable<string> GetAnonymousObjectMemberNames(AnonymousObjectCreationExpressionSyntax initializer)
-        => initializer.Initializers.Where(i => i.NameEquals != null).Select(i => i.NameEquals!.Name.Identifier.ValueText);
+        => initializer.Initializers.SelectAsArray(i => i.NameEquals != null, i => i.NameEquals!.Name.Identifier.ValueText);
 }
