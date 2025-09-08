@@ -164,9 +164,9 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
     internal async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
         Project project,
-        ImmutableArray<DiagnosticAnalyzer> analyzers,
         ImmutableHashSet<string>? diagnosticIds,
         ImmutableArray<DocumentId> documentIds,
+        bool includeCompilerAnalyzer,
         bool includeLocalDocumentDiagnostics,
         bool includeNonLocalDocumentDiagnostics,
         bool includeProjectNonLocalResult,
@@ -175,11 +175,10 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
-            var analyzerIds = analyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
                 project,
                 (service, solution, cancellationToken) => service.ProduceProjectDiagnosticsAsync(
-                    solution, project.Id, analyzerIds, diagnosticIds, documentIds,
+                    solution, project.Id, diagnosticIds, documentIds, includeCompilerAnalyzer,
                     includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, includeProjectNonLocalResult,
                     cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -191,7 +190,8 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
         // Fallback to proccessing in proc.
         return await ProduceProjectDiagnosticsInProcessAsync(
-            project, analyzers, diagnosticIds, documentIds,
+            project, diagnosticIds, documentIds,
+            includeCompilerAnalyzer,
             includeLocalDocumentDiagnostics,
             includeNonLocalDocumentDiagnostics,
             includeProjectNonLocalResult,

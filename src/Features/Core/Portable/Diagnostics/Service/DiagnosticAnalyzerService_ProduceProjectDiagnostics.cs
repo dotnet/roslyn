@@ -10,17 +10,51 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    public async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsInProcessAsync(
+    public Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsInProcessAsync(
         Project project,
-        ImmutableArray<DiagnosticAnalyzer> analyzers,
         ImmutableHashSet<string>? diagnosticIds,
         ImmutableArray<DocumentId> documentIds,
+        bool includeCompilerAnalyzer,
+        bool includeLocalDocumentDiagnostics,
+        bool includeNonLocalDocumentDiagnostics,
+        bool includeProjectNonLocalResult,
+        CancellationToken cancellationToken)
+    {
+        var analyzers = GetProjectAnalyzers(project);
+        var filteredAnalyzers = analyzers.WhereAsArray(ShouldIncludeAnalyzer);
+
+        return ProduceProjectDiagnosticsInProcessAsync(
+            project, diagnosticIds, documentIds, filteredAnalyzers,
+            includeLocalDocumentDiagnostics,
+            includeNonLocalDocumentDiagnostics,
+            includeProjectNonLocalResult,
+            cancellationToken);
+
+        bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            if (!includeCompilerAnalyzer && analyzer.IsCompilerAnalyzer())
+                return false;
+
+            if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this._globalOptions))
+                return false;
+
+            if (diagnosticIds != null && _analyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
+                return false;
+
+            return true;
+        }
+    }
+
+    private async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsInProcessAsync(
+        Project project,
+        ImmutableHashSet<string>? diagnosticIds,
+        ImmutableArray<DocumentId> documentIds,
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
         bool includeLocalDocumentDiagnostics,
         bool includeNonLocalDocumentDiagnostics,
         bool includeProjectNonLocalResult,

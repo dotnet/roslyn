@@ -40,9 +40,9 @@ internal interface IRemoteDiagnosticAnalyzerService
 
     ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
         Checksum solutionChecksum, ProjectId projectId,
-        ImmutableHashSet<string> analyzerIds,
         ImmutableHashSet<string>? diagnosticIds,
         ImmutableArray<DocumentId> documentIds,
+        bool includeCompilerAnalyzer,
         bool includeLocalDocumentDiagnostics,
         bool includeNonLocalDocumentDiagnostics,
         bool includeProjectNonLocalResult,
