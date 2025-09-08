@@ -319,6 +319,12 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         Assert.True(sessionState.IsSessionActive);
 
+#pragma warning disable CS0612 // Type or member is obsolete
+        // validate that obsolete overload does not throw for empty array:
+        _ = await localService.GetUpdatesAsync(runningProjects: ImmutableArray<string>.Empty, CancellationToken.None);
+        Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
+#pragma warning restore
+
         if (commitChanges)
         {
             // CommitUpdatesAsync
