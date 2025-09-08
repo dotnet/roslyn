@@ -677,9 +677,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
-        Public Function IsCollectionExpressionElement(node As SyntaxNode, ByRef collectionExpression As SyntaxNode) As Boolean Implements ISyntaxFacts.IsCollectionExpressionElement
+        Public Function IsExpressionElement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExpressionElement
             ' Collection expressions are not supported in Visual Basic
-            collectionExpression = Nothing
             Return False
         End Function
 

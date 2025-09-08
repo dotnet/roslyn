@@ -679,16 +679,9 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         return false;
     }
 
-    public bool IsCollectionExpressionElement([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? collectionExpression)
+    public bool IsExpressionElement([NotNullWhen(true)] SyntaxNode? node)
     {
-        if (node is ExpressionElementSyntax { Parent: CollectionExpressionSyntax collection })
-        {
-            collectionExpression = collection;
-            return true;
-        }
-
-        collectionExpression = null;
-        return false;
+        return node is ExpressionElementSyntax;
     }
 
     public bool IsElementAccessExpression(SyntaxNode? node)
