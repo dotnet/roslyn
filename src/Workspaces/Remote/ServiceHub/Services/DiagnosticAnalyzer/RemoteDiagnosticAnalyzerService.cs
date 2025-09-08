@@ -43,7 +43,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
         Checksum solutionChecksum, ProjectId projectId,
         ImmutableArray<DocumentId> documentIds,
         ImmutableHashSet<string>? diagnosticIds,
-        bool includeCompilerAnalyzer,
+        AnalyzerFilter analyzerFilter,
         bool includeLocalDocumentDiagnostics,
         CancellationToken cancellationToken)
     {
@@ -55,7 +55,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
                 return await service.GetDiagnosticsForIdsAsync(
-                    project, documentIds, diagnosticIds, includeCompilerAnalyzer,
+                    project, documentIds, diagnosticIds, analyzerFilter,
                     includeLocalDocumentDiagnostics, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
@@ -64,7 +64,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
     public ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
         Checksum solutionChecksum, ProjectId projectId,
         ImmutableHashSet<string>? diagnosticIds,
-        bool includeCompilerAnalyzer,
+        AnalyzerFilter analyzerFilter,
         CancellationToken cancellationToken)
     {
         return RunWithSolutionAsync(
@@ -75,7 +75,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
                 return await service.GetProjectDiagnosticsForIdsAsync(
-                    project, diagnosticIds, includeCompilerAnalyzer, cancellationToken).ConfigureAwait(false);
+                    project, diagnosticIds, analyzerFilter, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }

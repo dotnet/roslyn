@@ -48,7 +48,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <param name="documentIds">Optional documents to scope the returned diagnostics.  If <see langword="default"/>,
     /// then diagnostics will be returned for <see cref="Project.DocumentIds"/> and <see cref="Project.AdditionalDocumentIds"/>.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="includeCompilerAnalyzer">Whether the compiler diagnostic analyzer should be run or not.</param>
+    /// <param name="analyzerFilter">Which analyzers to run.</param>
     /// <param name="includeLocalDocumentDiagnostics">
     /// Indicates if local document diagnostics must be returned.
     /// Local diagnostics are the ones that are reported by analyzers on the same file for which the callback was received
@@ -60,7 +60,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </remarks>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, bool includeCompilerAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
+        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
@@ -70,9 +70,9 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     /// <param name="project">Project to fetch the diagnostics for.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="includeCompilerAnalyzer">Whether the compiler diagnostic analyzer should be run or not.</param>
+    /// <param name="analyzerFilter">Which analyzers to run.</param>
     Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-        Project project, ImmutableHashSet<string>? diagnosticIds, bool includeCompilerAnalyzer, CancellationToken cancellationToken);
+        Project project, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, CancellationToken cancellationToken);
 
     /// <summary>
     /// Return up to date diagnostics for the given span for the document

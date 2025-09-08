@@ -42,14 +42,14 @@ internal interface IRemoteDiagnosticAnalyzerService
         Checksum solutionChecksum, ProjectId projectId,
         ImmutableArray<DocumentId> documentIds,
         ImmutableHashSet<string>? diagnosticIds,
-        bool includeCompilerAnalyzer,
+        AnalyzerFilter analyzerFilter,
         bool includeLocalDocumentDiagnostics,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
         Checksum solutionChecksum, ProjectId projectId,
         ImmutableHashSet<string>? diagnosticIds,
-        bool includeCompilerAnalyzer,
+        AnalyzerFilter analyzerFilter,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);

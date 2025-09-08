@@ -163,7 +163,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     }
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, bool includeCompilerAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
@@ -171,14 +171,14 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
                 project,
                 (service, solution, cancellationToken) => service.GetDiagnosticsForIdsAsync(
-                    solution, project.Id, documentIds, diagnosticIds, includeCompilerAnalyzer, includeLocalDocumentDiagnostics, cancellationToken),
+                    solution, project.Id, documentIds, diagnosticIds, analyzerFilter, includeLocalDocumentDiagnostics, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return result.HasValue ? result.Value : [];
         }
 
         return await GetDiagnosticsForIdsInProcessAsync(
             project, documentIds, diagnosticIds,
-            includeCompilerAnalyzer,
+            analyzerFilter,
             includeLocalDocumentDiagnostics,
             cancellationToken).ConfigureAwait(false);
     }
@@ -186,7 +186,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
     public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
         Project project,
         ImmutableHashSet<string>? diagnosticIds,
-        bool includeCompilerAnalyzer,
+        AnalyzerFilter analyzerFilter,
         CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
@@ -195,13 +195,13 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
                 project,
                 (service, solution, cancellationToken) => service.GetProjectDiagnosticsForIdsAsync(
-                    solution, project.Id, diagnosticIds, includeCompilerAnalyzer, cancellationToken),
+                    solution, project.Id, diagnosticIds, analyzerFilter, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return result.HasValue ? result.Value : [];
         }
 
         return await GetProjectDiagnosticsForIdsInProcessAsync(
-            project, diagnosticIds, includeCompilerAnalyzer, cancellationToken).ConfigureAwait(false);
+            project, diagnosticIds, analyzerFilter, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(

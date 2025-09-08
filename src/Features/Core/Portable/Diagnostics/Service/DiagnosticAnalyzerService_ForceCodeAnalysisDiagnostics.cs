@@ -27,11 +27,12 @@ internal sealed partial class DiagnosticAnalyzerService
 
         // Compute document and project diagnostics in parallel.
 
+        // Compute all the diagnostics for all the documents in the project.
         var documentDiagnosticsTask = GetDiagnosticsForIdsAsync();
 
         // Then all the non-document diagnostics for that project as well.
-        var projectDiagnosticsTask = this.GetProjectDiagnosticsForIdsAsync(
-            project, diagnosticIds: null, filter, cancellationToken);
+        var projectDiagnosticsTask = this.GetProjectDiagnosticsForIdsInProcessAsync(
+            project, diagnosticIds: null, filteredAnalyzers, cancellationToken);
 
         await Task.WhenAll(documentDiagnosticsTask, projectDiagnosticsTask).ConfigureAwait(false);
 
@@ -39,15 +40,14 @@ internal sealed partial class DiagnosticAnalyzerService
 
         async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync()
         {
-            // Compute all the diagnostics for all the documents in the project.
-            //
+
             // Note: in this case we want diagnostics for source generated documents as well.  So ensure those are 
             // generated and included in the results.
             var sourceGeneratorDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-            return await this.GetDiagnosticsForIdsAsync(
+            return await this.GetDiagnosticsForIdsInProcessAsync(
                 project, [.. project.DocumentIds, .. project.AdditionalDocumentIds, .. sourceGeneratorDocuments.Select(d => d.Id)],
-                diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                diagnosticIds: null, filteredAnalyzers, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
         }
 
         bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)

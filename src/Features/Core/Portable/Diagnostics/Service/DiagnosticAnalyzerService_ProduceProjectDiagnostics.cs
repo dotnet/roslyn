@@ -19,15 +19,23 @@ internal sealed partial class DiagnosticAnalyzerService
     private ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(
        Project project,
        ImmutableHashSet<string>? diagnosticIds,
-       bool includeCompilerAnalyzer)
+       AnalyzerFilter analyzerFilter)
     {
         var analyzersForProject = GetProjectAnalyzers(project);
         return analyzersForProject.WhereAsArray(ShouldIncludeAnalyzer);
 
         bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
         {
-            if (!includeCompilerAnalyzer && analyzer.IsCompilerAnalyzer())
-                return false;
+            if (analyzer.IsCompilerAnalyzer())
+            {
+                if ((analyzerFilter & AnalyzerFilter.CompilerAnalyzer) == 0)
+                    return false;
+            }
+            else
+            {
+                if ((analyzerFilter & AnalyzerFilter.NonCompilerAnalyzer) == 0)
+                    return false;
+            }
 
             if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this._globalOptions))
                 return false;
@@ -43,12 +51,12 @@ internal sealed partial class DiagnosticAnalyzerService
         Project project,
         ImmutableArray<DocumentId> documentIds,
         ImmutableHashSet<string>? diagnosticIds,
-        bool includeCompilerAnalyzer,
+        AnalyzerFilter analyzerFilter,
         bool includeLocalDocumentDiagnostics,
         CancellationToken cancellationToken)
     {
         return GetDiagnosticsForIdsInProcessAsync(
-            project, documentIds, diagnosticIds, GetDiagnosticAnalyzers(project, diagnosticIds, includeCompilerAnalyzer), includeLocalDocumentDiagnostics, cancellationToken);
+            project, documentIds, diagnosticIds, GetDiagnosticAnalyzers(project, diagnosticIds, analyzerFilter), includeLocalDocumentDiagnostics, cancellationToken);
     }
 
     private Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsInProcessAsync(
@@ -75,11 +83,11 @@ internal sealed partial class DiagnosticAnalyzerService
     private Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsInProcessAsync(
         Project project,
         ImmutableHashSet<string>? diagnosticIds,
-        bool includeCompilerAnalyzer,
+        AnalyzerFilter analyzerFilter,
         CancellationToken cancellationToken)
     {
         return GetProjectDiagnosticsForIdsInProcessAsync(
-            project, diagnosticIds, GetDiagnosticAnalyzers(project, diagnosticIds, includeCompilerAnalyzer), cancellationToken);
+            project, diagnosticIds, GetDiagnosticAnalyzers(project, diagnosticIds, analyzerFilter), cancellationToken);
     }
 
     private Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsInProcessAsync(
