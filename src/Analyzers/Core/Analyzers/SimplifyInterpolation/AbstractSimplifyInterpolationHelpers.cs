@@ -134,9 +134,8 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         {
             if (targetMethod.Name == nameof(ToString))
             {
-                var compilation = expression.SemanticModel.Compilation;
-
-                if (instance.Type?.IsRefLikeType == false || (handlersAvailable && compilation.HasImplicitConversion(instance.Type, readOnlySpanOfCharType)))
+                // If type of instance is not ref-like type or is {ReadOnly}Span<char> that is allowed in interpolated strings in .NET 6+
+                if (instance.Type?.IsRefLikeType == false || IsRefLikeTypeAllowed(instance.Type))
                 {
                     if (invocation.Arguments.Length == 1
                         || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
@@ -184,6 +183,13 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
 
         unwrapped = expression;
         formatString = null;
+
+        bool IsRefLikeTypeAllowed(ITypeSymbol? type)
+        {
+            var compilation = expression.SemanticModel.Compilation;
+            // {ReadOnly}Span<char> is allowed if interpolated string handlers are available in the compilation (.NET 6+)
+            return handlersAvailable && compilation.HasImplicitConversion(type, readOnlySpanOfCharType);
+        }
     }
 
     private static bool IsObjectToStringOverride(IMethodSymbol method)
