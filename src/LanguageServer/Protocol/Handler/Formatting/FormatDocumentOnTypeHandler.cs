@@ -60,9 +60,9 @@ internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHa
 
         // The formatting service expects that the position is inside the token span associated with the typed character, but
         // in VSCode this is not always the case - the position the client gives us is not necessarily the position of the typed character.
-        // For example typing , the client may automatically
-        //   1.  '\n' - the client inserts indentation (to get '\n    ')
-        //   2.  '{' - the client inserts '}' (to get '{}')
+        // For example when typing characters, the client may automatically
+        //   1.  for '\n' - the client inserts indentation (to get '\n    ')
+        //   2.  for '{' - the client inserts '}' (to get '{}')
         //
         // When the formatter calls root.FindToken, it may return a token different from what triggered the on type formatting, which causes us
         // to format way more than we want, depending on exactly where the position ends up.
