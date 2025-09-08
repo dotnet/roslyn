@@ -15,16 +15,15 @@ RUN Invoke-WebRequest -Uri https://github.com/PowerShell/PowerShell/releases/dow
     Start-Process msiexec.exe -Wait -ArgumentList '/I PowerShell.msi /quiet'; `
     Remove-Item PowerShell.msi
 
-# Install .NET SDK 9.0.100 - Must match global.json
-# Intentionally last so we can reuse more layers between PostSharp branches.
+# Install .NET SDK 10.0.100-preview.6.25358.103 - Must match global.json
 RUN Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1; `
-    powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 9.0.100 -InstallDir 'C:\Program Files\dotnet' -NoPath; `
+    powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 10.0.100-preview.6.25358.103 -InstallDir 'C:\Program Files\dotnet'`
     Remove-Item C:\\dotnet-install.ps1
 
 RUN $env:PATH
 
 # Add to PATH
-ENV CUSTOM_PATH="C:\\Program Files\\PowerShell\\7;C:\\git\\cmd;C:\\git\\bin;C:\\git\\usr\\bin;C:\Program Files\dotnet"
+ENV CUSTOM_PATH="C:\\Program Files\\PowerShell\\7;C:\\git\\cmd;C:\\git\\bin;C:\\git\\usr\\bin"
 RUN cmd /c "setx PATH \"$env:CUSTOM_PATH;$env:PATH\" /M"
 
 # Prepare PostSharp environment
