@@ -2142,7 +2142,7 @@ class MyClass
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Get cached project diagnostics.
-                Dim diagnostics = Await diagnosticService.ForceAnalyzeProjectAsync(
+                Dim diagnostics = Await diagnosticService.ForceRunCodeAnalysisDiagnosticsAsync(
                     project, CancellationToken.None)
 
                 ' in v2, solution crawler never creates non-local hidden diagnostics.

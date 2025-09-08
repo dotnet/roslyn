@@ -19,6 +19,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
 {
+    public async Task<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
+        Project project, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var descriptors = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                project,
+                (service, solution, cancellationToken) => service.ForceRunCodeAnalysisDiagnosticsAsync(
+                    solution, project.Id, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            return descriptors.HasValue ? descriptors.Value : [];
+        }
+
+        // Otherwise, fallback to computing in proc.
+        return await ForceRunCodeAnalysisDiagnosticsInProcessAsync(project, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
     {
