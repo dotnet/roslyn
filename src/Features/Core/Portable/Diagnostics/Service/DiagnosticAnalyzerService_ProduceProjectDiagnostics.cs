@@ -16,7 +16,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    private ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(
+    /// <summary>
+    /// Should only be called from other "InProcess" methods as this loads and realizes the DiagnosticAnalyzers.
+    /// </summary>
+    private ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzersInProcess(
        Project project,
        ImmutableHashSet<string>? diagnosticIds,
        AnalyzerFilter analyzerFilter)
@@ -56,7 +59,9 @@ internal sealed partial class DiagnosticAnalyzerService
         CancellationToken cancellationToken)
     {
         return GetDiagnosticsForIdsInProcessAsync(
-            project, documentIds, diagnosticIds, GetDiagnosticAnalyzers(project, diagnosticIds, analyzerFilter), includeLocalDocumentDiagnostics, cancellationToken);
+            project, documentIds, diagnosticIds,
+            GetDiagnosticAnalyzersInProcess(project, diagnosticIds, analyzerFilter),
+            includeLocalDocumentDiagnostics, cancellationToken);
     }
 
     private Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsInProcessAsync(
@@ -87,7 +92,9 @@ internal sealed partial class DiagnosticAnalyzerService
         CancellationToken cancellationToken)
     {
         return GetProjectDiagnosticsForIdsInProcessAsync(
-            project, diagnosticIds, GetDiagnosticAnalyzers(project, diagnosticIds, analyzerFilter), cancellationToken);
+            project, diagnosticIds,
+            GetDiagnosticAnalyzersInProcess(project, diagnosticIds, analyzerFilter),
+            cancellationToken);
     }
 
     private Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsInProcessAsync(
