@@ -308,6 +308,19 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// For a method definition in an extension block, returns the corresponding implementation method if one exists.
         /// Returns null otherwise.
+        /// 
+        /// For exampe, considering:
+        /// ```
+        /// static class E
+        /// {
+        ///     extension(int i)
+        ///     {
+        ///         public void M() { }
+        ///     }
+        /// }
+        /// ```
+        /// When given the method symbol for `E.extension(int i).M()`,
+        /// it will return the corresponding static implementation method `E.M(this int i)`.
         /// </summary>
         IMethodSymbol? TryGetCorrespondingExtensionImplementationMethod();
     }

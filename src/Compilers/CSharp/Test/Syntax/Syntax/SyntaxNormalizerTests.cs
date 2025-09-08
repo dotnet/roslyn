@@ -6218,5 +6218,25 @@ static class E
 }
 """);
         }
+
+        [Fact]
+        public void TestNormalizeExtension_02()
+        {
+            TestNormalizeDeclaration("""
+static class E
+{
+extension ( int  )
+{
+}
+}
+""", """
+static class E
+{
+  extension(int)
+  {
+  }
+}
+""");
+        }
     }
 }
