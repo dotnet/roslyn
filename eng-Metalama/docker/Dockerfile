@@ -19,7 +19,7 @@ RUN Invoke-WebRequest -Uri https://github.com/PowerShell/PowerShell/releases/dow
 RUN Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1; 
 
 # Install .NET Runtime 9 for PostSharp.Engineering
-RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Runtime -Version 9.0 -InstallDir 'C:\Program Files\dotnet'; 
+RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Runtime dotnet -Version 9.0.8 -InstallDir 'C:\Program Files\dotnet'; 
 
 # Install .NET SDK 10.0.100-preview.6.25358.103 - Must match global.json
 RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 10.0.100-preview.6.25358.103 -InstallDir 'C:\Program Files\dotnet'; 
