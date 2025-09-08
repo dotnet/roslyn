@@ -112,6 +112,20 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
             cancellationToken);
     }
 
+    public ValueTask<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
+        Checksum solutionChecksum, CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                return await service.GetCompilationEndDiagnosticDescriptorIdsAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
+            },
+            cancellationToken);
+    }
+
     public ValueTask<ImmutableArray<DiagnosticDescriptorData>> GetDiagnosticDescriptorsAsync(
         Checksum solutionChecksum,
         ProjectId projectId,
