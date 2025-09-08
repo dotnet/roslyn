@@ -63,10 +63,4 @@ internal sealed class TestCSharpCompilationFactoryServiceWithIncrementalGenerato
         return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider, new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true, baseDirectory: TempRoot.Root));
     }
 
-        // <Metalama>
-        Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? ICompilationFactoryService.GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
-        {
-            return null;
-        }
-        // </Metalama>
 }

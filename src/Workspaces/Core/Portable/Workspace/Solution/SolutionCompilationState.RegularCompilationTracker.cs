@@ -626,23 +626,6 @@ internal sealed partial class SolutionCompilationState
                         creationPolicy = creationPolicy with { SkeletonReferenceCreationPolicy = SkeletonReferenceCreationPolicy.CreateIfAbsent };
                 }
 
-                    // <Metalama> This code is used by Try.Metalama.
-                    ImmutableArray<Diagnostic> transformerDiagnostics = default;
-
-                    if (!compilationWithGeneratedDocuments.GetParseDiagnostics(cancellationToken).HasAnyErrors())
-                    {
-                        var transformers = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetTransformers()).ToImmutableArray();
-
-                        var loader = this.ProjectState.LanguageServices.SolutionServices.GetRequiredService<IAnalyzerService>().GetLoader();
-
-                        var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
-
-                        var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, this.ProjectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
-                        if (runTransformers != null)
-                            (compilationWithGeneratedDocuments, transformerDiagnostics) = runTransformers(compilationWithGeneratedDocuments);
-                    }
-                    // </Metalama>
-
                 var finalState = FinalCompilationTrackerState.Create(
                     creationPolicy,
                     generatedDocumentsUpToDate,
@@ -651,11 +634,7 @@ internal sealed partial class SolutionCompilationState
                     hasSuccessfullyLoaded,
                     nextGeneratorInfo,
                     this.ProjectState.Id,
-                        metadataReferenceToProjectId,
-                        // <Metalama> This code is used by Try.Metalama.
-                        transformerDiagnostics
-                        // </Metalama>
-                        );
+                        metadataReferenceToProjectId);
 
                 this.WriteState(finalState);
 
