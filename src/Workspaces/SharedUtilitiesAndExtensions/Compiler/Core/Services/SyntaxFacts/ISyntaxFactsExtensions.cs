@@ -408,6 +408,9 @@ internal static class ISyntaxFactsExtensions
         => syntaxFacts.IsAnonymousFunctionExpression(node) ||
            syntaxFacts.IsLocalFunctionStatement(node);
 
+    public static bool IsExpressionElement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node != null && syntaxFacts.SyntaxKinds.ExpressionElement.HasValue && node.RawKind == syntaxFacts.SyntaxKinds.ExpressionElement.Value;
+
     public static SyntaxNode? GetExpressionOfElementAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
     {
         syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out _);

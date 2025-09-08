@@ -679,11 +679,6 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         return false;
     }
 
-    public bool IsExpressionElement([NotNullWhen(true)] SyntaxNode? node)
-    {
-        return node is ExpressionElementSyntax;
-    }
-
     public bool IsElementAccessExpression(SyntaxNode? node)
         => node.IsKind(SyntaxKind.ElementAccessExpression);
 
