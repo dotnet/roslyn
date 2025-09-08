@@ -142,7 +142,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
                     {
                         if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
                             FindType<IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
-                            instance.Type.Implements(systemIFormattable) == true)
+                            instance.Type.Implements(systemIFormattable))
                         {
                             unwrapped = instance;
                             formatString = value;
