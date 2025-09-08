@@ -31457,7 +31457,7 @@ public class CAttribute : System.Attribute { }
     }
 
     [Fact]
-    public void TryGetCorrespondingExtensionImplementationMethod_01()
+    public void AssociatedExtensionImplementation_01()
     {
         var src = """
 public static class E
@@ -31471,11 +31471,11 @@ public static class E
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         var extensionMethod = comp.GlobalNamespace.GetTypeMember("E").GetTypeMember("").GetMember<MethodSymbol>("M").GetPublicSymbol();
-        Assert.Equal("void E.M(this System.Int32 i)", extensionMethod.TryGetCorrespondingExtensionImplementationMethod().ToTestDisplayString());
+        Assert.Equal("void E.M(this System.Int32 i)", extensionMethod.AssociatedExtensionImplementation.ToTestDisplayString());
     }
 
     [Fact]
-    public void TryGetCorrespondingExtensionImplementationMethod_02()
+    public void AssociatedExtensionImplementation_02()
     {
         // not a definition
         var src = """
@@ -31496,11 +31496,11 @@ public static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
         var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
-        Assert.Null(method.TryGetCorrespondingExtensionImplementationMethod());
+        Assert.Null(method.AssociatedExtensionImplementation);
     }
 
     [Fact]
-    public void TryGetCorrespondingExtensionImplementationMethod_03()
+    public void AssociatedExtensionImplementation_03()
     {
         // not an extension method
         var src = """
@@ -31512,11 +31512,11 @@ public class E
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
         var method = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M").GetPublicSymbol();
-        Assert.Null(method.TryGetCorrespondingExtensionImplementationMethod());
+        Assert.Null(method.AssociatedExtensionImplementation);
     }
 
     [Fact]
-    public void TryGetCorrespondingExtensionImplementationMethod_04()
+    public void AssociatedExtensionImplementation_04()
     {
         // missing implementation method in metadata
         var ilSrc = """
@@ -31553,11 +31553,11 @@ public class E
 
         var comp = CreateCompilationWithIL("", ilSrc);
         var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
-        Assert.Null(method.TryGetCorrespondingExtensionImplementationMethod());
+        Assert.Null(method.AssociatedExtensionImplementation);
     }
 
     [Fact]
-    public void TryGetCorrespondingExtensionImplementationMethod_05()
+    public void AssociatedExtensionImplementation_05()
     {
         // incorrect accessibility on implementation method in metadata
         var ilSrc = """
@@ -31598,7 +31598,7 @@ public class E
 
         var comp = CreateCompilationWithIL("", ilSrc);
         var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
-        Assert.Null(method.TryGetCorrespondingExtensionImplementationMethod());
+        Assert.Null(method.AssociatedExtensionImplementation);
     }
 }
 

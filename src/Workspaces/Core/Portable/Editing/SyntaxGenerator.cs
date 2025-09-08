@@ -830,8 +830,7 @@ public abstract class SyntaxGenerator : ILanguageService
                 {
                     foreach (var extensionMember in nested.GetMembers())
                     {
-                        if (extensionMember is IMethodSymbol shadows &&
-                            shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                        if (extensionMember is IMethodSymbol { OriginalDefinition.AssociatedExtensionImplementation: { } toShadow })
                         {
                             implementationsToHide.Add(toShadow);
                         }

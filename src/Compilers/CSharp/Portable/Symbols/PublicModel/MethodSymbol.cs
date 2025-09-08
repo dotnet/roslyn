@@ -333,14 +333,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         DllImportData IMethodSymbol.GetDllImportData() => _underlying.GetDllImportData();
 
 #nullable enable
-        IMethodSymbol? IMethodSymbol.TryGetCorrespondingExtensionImplementationMethod()
+        IMethodSymbol? IMethodSymbol.AssociatedExtensionImplementation
         {
-            if (!_underlying.IsDefinition || !_underlying.GetIsNewExtensionMember())
+            get
             {
-                return null;
-            }
+                if (!_underlying.IsDefinition || !_underlying.GetIsNewExtensionMember())
+                {
+                    return null;
+                }
 
-            return _underlying.TryGetCorrespondingExtensionImplementationMethod().GetPublicSymbol();
+                return _underlying.TryGetCorrespondingExtensionImplementationMethod().GetPublicSymbol();
+            }
         }
 #nullable disable
 

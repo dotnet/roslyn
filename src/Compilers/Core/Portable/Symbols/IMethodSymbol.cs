@@ -322,6 +322,6 @@ namespace Microsoft.CodeAnalysis
         /// When given the method symbol for `E.extension(int i).M()`,
         /// it will return the corresponding static implementation method `E.M(this int i)`.
         /// </summary>
-        IMethodSymbol? TryGetCorrespondingExtensionImplementationMethod();
+        IMethodSymbol? AssociatedExtensionImplementation { get; }
     }
 }

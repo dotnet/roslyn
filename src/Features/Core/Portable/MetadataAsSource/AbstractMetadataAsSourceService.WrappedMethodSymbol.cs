@@ -121,7 +121,7 @@ internal abstract partial class AbstractMetadataAsSourceService
             return _symbol.ReduceExtensionMethod(receiverType);
         }
 
-        public IMethodSymbol TryGetCorrespondingExtensionImplementationMethod() => null;
+        public IMethodSymbol AssociatedExtensionImplementation => null;
 
         public bool IsVararg => _symbol.IsVararg;
 

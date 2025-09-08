@@ -101,6 +101,8 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
 
 #if !ROSLYN_4_12_OR_LOWER
     public bool IsIterator => false;
+
+    public IMethodSymbol AssociatedExtensionImplementation => null;
 #endif
 
     public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
@@ -114,8 +116,5 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
         => new CodeGenerationConstructedMethodSymbol(this, typeArguments);
 
     public DllImportData GetDllImportData()
-        => null;
-
-    public IMethodSymbol TryGetCorrespondingExtensionImplementationMethod()
         => null;
 }

@@ -1236,9 +1236,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitMethod(Me)
         End Function
 
-        Public Function TryGetCorrespondingExtensionImplementationMethod() As IMethodSymbol Implements IMethodSymbol.TryGetCorrespondingExtensionImplementationMethod
-            Return Nothing
-        End Function
+        Public ReadOnly Property AssociatedExtensionImplementation As IMethodSymbol Implements IMethodSymbol.AssociatedExtensionImplementation
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 
