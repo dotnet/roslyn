@@ -4,122 +4,122 @@
     <body>
       <trans-unit id="ClosureCaptureRuleMessage">
         <source>The compiler will emit a class that will hold this as a field to allow capturing of this closure</source>
-        <target state="new">The compiler will emit a class that will hold this as a field to allow capturing of this closure</target>
+        <target state="translated">編譯器會發出類別，其會保留該項目做為欄位以允許擷取此結束</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureCaptureRuleTitle">
         <source>Display class allocation to capture closure</source>
-        <target state="new">Display class allocation to capture closure</target>
+        <target state="translated">顯示類別配置以擷取結束</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureDriverRuleMessage">
         <source>Heap allocation of closure Captures: {0}</source>
-        <target state="new">Heap allocation of closure Captures: {0}</target>
+        <target state="translated">結束擷取的堆積配置: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureDriverRuleTitle">
         <source>Closure Allocation Source</source>
-        <target state="new">Closure Allocation Source</target>
+        <target state="translated">結束配置來源</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleMessage">
         <source>Struct instance method being used for delegate creation, this will result in a boxing instruction</source>
-        <target state="new">Struct instance method being used for delegate creation, this will result in a boxing instruction</target>
+        <target state="translated">用於建立委派的結構執行個體方法，其會產生 Boxing 指示</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleTitle">
         <source>Delegate on struct instance caused a boxing allocation</source>
-        <target state="new">Delegate on struct instance caused a boxing allocation</target>
+        <target state="translated">在結構執行個體上進行委派導致了 Boxing 配置</target>
         <note />
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleMessage">
         <source>Considering moving this out of the generic method</source>
-        <target state="new">Considering moving this out of the generic method</target>
+        <target state="translated">考慮將此移出泛型方法</target>
         <note />
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleTitle">
         <source>Lambda or anonymous method in a generic method allocates a delegate instance</source>
-        <target state="new">Lambda or anonymous method in a generic method allocates a delegate instance</target>
+        <target state="translated">泛型方法中的 Lambda 或匿名方法，配置了委派執行個體</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
-        <target state="new">This will allocate a delegate instance</target>
+        <target state="translated">如此將會配置委派執行個體</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
-        <target state="new">Delegate allocation from a method group</target>
+        <target state="translated">從方法群組委派配置</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
-        <target state="new">This call site is calling into a function with a 'params' parameter. This results in an array allocation.</target>
+        <target state="translated">此呼叫位置正在呼叫具有 'params' 參數的函式。這會產生陣列配置。</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
         <source>Array allocation for params parameter</source>
-        <target state="new">Array allocation for params parameter</target>
+        <target state="translated">params 參數的陣列配置</target>
         <note />
       </trans-unit>
       <trans-unit id="ReadonlyMethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
-        <target state="new">This will allocate a delegate instance</target>
+        <target state="translated">如此將會配置委派執行個體</target>
         <note />
       </trans-unit>
       <trans-unit id="ReadonlyMethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
-        <target state="new">Delegate allocation from a method group</target>
+        <target state="translated">從方法群組委派配置</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceTypeEnumeratorRuleMessage">
         <source>Non-ValueType enumerator may result in a heap allocation</source>
-        <target state="new">Non-ValueType enumerator may result in a heap allocation</target>
+        <target state="translated">在堆積配置中會產生非 ValueType 列舉程式</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceTypeEnumeratorRuleTitle">
         <source>Possible allocation of reference type enumerator</source>
-        <target state="new">Possible allocation of reference type enumerator</target>
+        <target state="translated">參考型別列舉程式的可能配置情況</target>
         <note />
       </trans-unit>
       <trans-unit id="StringConcatenationAllocationRuleMessage">
         <source>Considering using StringBuilder</source>
-        <target state="new">Considering using StringBuilder</target>
+        <target state="translated">考慮使用 StringBuilder</target>
         <note />
       </trans-unit>
       <trans-unit id="StringConcatenationAllocationRuleTitle">
         <source>Implicit string concatenation allocation</source>
-        <target state="new">Implicit string concatenation allocation</target>
+        <target state="translated">隱含字串串連配置</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
         <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
-        <target state="new">Non-overridden virtual method call on a value type adds a boxing or constrained instruction</target>
+        <target state="translated">在實值型別上呼叫非覆寫虛擬方法，會新增 Boxing 或限制指令</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
         <source>Non-overridden virtual method call on value type</source>
-        <target state="new">Non-overridden virtual method call on value type</target>
+        <target state="translated">在實值型別上呼叫非覆寫虛擬方法</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
         <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
-        <target state="new">Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</target>
+        <target state="translated">將實值型別轉換為參考型別，導致在呼叫站台 (此處) 發生 Boxing，而在被呼叫站台則出現 Unboxing。如果可行的話，請考慮使用泛型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
         <source>Value type to reference type conversion causing boxing allocation</source>
-        <target state="new">Value type to reference type conversion causing boxing allocation</target>
+        <target state="translated">將實值型別轉換為參考型別，會導致 Boxing 配置</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
         <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
-        <target state="new">Value type ({0}) is being boxed to a reference type for a string concatenation</target>
+        <target state="translated">實值型別 ({0}) 正 Box 為參考型別，以進行字串串連</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">
         <source>Value type to reference type conversion allocation for string concatenation</source>
-        <target state="new">Value type to reference type conversion allocation for string concatenation</target>
+        <target state="translated">將實值型別轉換為參考型別的配置，以進行字串串連</target>
         <note />
       </trans-unit>
     </body>

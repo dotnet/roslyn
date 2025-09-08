@@ -6051,7 +6051,6 @@ class A                                                               \
             Assert.Equal(Array.Empty<byte>(), assemblyName.GetPublicKeyToken());
         }
 
-        // In 3.11, we've skipped this as "Metalama: does not work, but scripting is not supported anyway."
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55727")]
         public void CsiScript_WithSourceCodeRedirectedViaStandardInput_ExecutesNonInteractively()
         {

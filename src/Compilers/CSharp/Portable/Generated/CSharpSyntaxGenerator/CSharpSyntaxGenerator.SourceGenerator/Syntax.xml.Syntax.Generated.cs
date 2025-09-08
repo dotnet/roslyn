@@ -14960,6 +14960,9 @@ public sealed partial class ExtensionMemberCrefSyntax : MemberCrefSyntax
         {
             var newNode = SyntaxFactory.ExtensionMemberCref(extensionKeyword, typeArgumentList, parameters, dotToken, member);
             var annotations = GetAnnotations();
+            // <Metalama> This change is generated. See Modifications.md for details.
+            Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+            // </Metalama>
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 

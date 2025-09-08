@@ -1439,6 +1439,10 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
+            // <Metalama>
+            var additionalManagedResources = ImmutableArray<ResourceDescription>.Empty;
+            // </Metalama>
+
             if (!analyzers.IsEmpty || !generators.IsEmpty
                                    // <Metalama>
                                    || !transformers.IsEmpty
@@ -1525,6 +1529,7 @@ namespace Microsoft.CodeAnalysis
                         transformersDiagnostics, cancellationToken);
 
                     compilation = transformersResult.TransformedCompilation;
+                    additionalManagedResources = additionalManagedResources.AddRange(transformersResult.AdditionalResources);
 
                     if (HasUnsuppressableErrors(transformersDiagnostics))
                     {
@@ -1832,7 +1837,10 @@ namespace Microsoft.CodeAnalysis
 
                 var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
                     unmappedDiagnostics,
-                    Arguments.ManifestResources,
+                    // <Metalama>
+                    // Arguments.ManifestResources,
+                    Arguments.ManifestResources.AddRange(additionalManagedResources),
+                    // </Metalama>
                     emitOptions,
                     debugEntryPoint: null,
                     sourceLinkStream: sourceLinkStreamDisposerOpt?.Stream,

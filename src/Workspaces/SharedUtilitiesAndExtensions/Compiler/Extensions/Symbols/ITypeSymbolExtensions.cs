@@ -17,8 +17,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-using Microsoft.CodeAnalysis.Shared.Utilities;
-
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ITypeSymbolExtensions

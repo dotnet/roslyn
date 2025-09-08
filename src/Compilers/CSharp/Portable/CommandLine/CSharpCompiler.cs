@@ -431,12 +431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Run transformers.
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
-            var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions,
-                analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);
-
-            Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
-
-            return result;
+            return RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions,
+                analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken); 
         }
 
         internal static TransformersResult RunTransformers(

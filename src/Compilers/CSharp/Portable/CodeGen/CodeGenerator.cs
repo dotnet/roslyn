@@ -453,16 +453,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var location))
                 return;
 
-            EmitStepThroughSequencePoint(location.SourceTree, location.SourceSpan);
+            EmitStepThroughSequencePoint(node.Syntax, location.SourceTree, location.SourceSpan);
             // </Metalama>
         }
 
         private void EmitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
         {
-            EmitStepThroughSequencePoint(node.Syntax, node.Span);
+            // <Metalama>
+            EmitStepThroughSequencePoint(node.Syntax, node.SyntaxTree, node.Span);
+            // EmitStepThroughSequencePoint(node.Syntax, node.Span);
+            // </Metalama>
         }
 
-        private void EmitStepThroughSequencePoint(SyntaxNode syntaxNode, TextSpan span)
+        // <Metalama>
+        private void EmitStepThroughSequencePoint(SyntaxNode syntaxNode, SyntaxTree syntaxTree, TextSpan span)
+        // private void EmitStepThroughSequencePoint(SyntaxNode syntaxNode, TextSpan span)
+        // </Metalama>
         {
             if (!_emitPdbSequencePoints)
                 return;
@@ -472,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // we fool it by branching on a condition that is always true at runtime.
             _builder.EmitConstantValue(ConstantValue.Create(true), syntaxNode);
             _builder.EmitBranch(ILOpCode.Brtrue, label);
-            EmitSequencePoint(syntaxNode.SyntaxTree, span);
+            EmitSequencePoint(syntaxTree, span);
             _builder.EmitOpCode(ILOpCode.Nop);
             _builder.MarkLabel(label);
             EmitHiddenSequencePoint();

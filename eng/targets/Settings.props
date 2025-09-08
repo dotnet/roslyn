@@ -3,7 +3,7 @@
 <Project>
   <PropertyGroup>
     <!-- <Metalama> -->
-    <CopyrightPostSharp>© SharpCrafters s.r.o. All rights reserved.</CopyrightPostSharp>
+    <CopyrightPostSharp>© SharpCrafters s.r.o. and contributors.</CopyrightPostSharp>
     <Copyright>$(CopyrightPostSharp)</Copyright>
     <Authors>PostSharp Technologies</Authors>
     <Company>PostSharp Technologies</Company>

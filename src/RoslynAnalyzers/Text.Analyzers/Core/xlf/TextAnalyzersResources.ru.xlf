@@ -4,137 +4,137 @@
     <body>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
         <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
-        <target state="new">A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</target>
+        <target state="translated">Общее перечисление имеет атрибут System.FlagsAttribute, а его имя не заканчивается на ""s"". Типы, помеченные с помощью FlagsAttribute, имеют имена во множественном числе, так как атрибут указывает, что можно задать несколько значений.</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">У перечислений флагов должны быть имена во множественном числе</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">У перечислений флагов должны быть имена во множественном числе</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
         <source>Error parsing dictionary '{0}': {1}</source>
-        <target state="new">Error parsing dictionary '{0}': {1}</target>
+        <target state="translated">Ошибка при синтаксическом анализе словаря "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageVariable">
         <source>Correct the spelling of '{0}' in variable name '{1}'</source>
-        <target state="new">Correct the spelling of '{0}' in variable name '{1}'</target>
+        <target state="translated">Исправьте написание "{0}" в имени переменной "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyTitle">
         <source>Identifiers should be spelled correctly</source>
-        <target state="new">Identifiers should be spelled correctly</target>
+        <target state="translated">Идентификаторы должны иметь правильное правописание</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyDescription">
         <source>The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</source>
-        <target state="new">The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</target>
+        <target state="translated">Имя видимого извне идентификатора содержит одно или несколько слов, не распознаваемых библиотекой средства проверки орфографии Майкрософт.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssembly">
         <source>Correct the spelling of '{0}' in assembly name '{1}'</source>
-        <target state="new">Correct the spelling of '{0}' in assembly name '{1}'</target>
+        <target state="translated">Исправьте правописание "{0}" в имени сборки {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespace">
         <source>Correct the spelling of '{0}' in namespace name '{1}'</source>
-        <target state="new">Correct the spelling of '{0}' in namespace name '{1}'</target>
+        <target state="translated">Исправьте правописание "{0}" в имени пространства имен "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageType">
         <source>Correct the spelling of '{0}' in type name '{1}'</source>
-        <target state="new">Correct the spelling of '{0}' in type name '{1}'</target>
+        <target state="translated">Исправьте правописание "{0}" в имени типа {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMember">
         <source>Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="new">Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</target>
+        <target state="translated">Исправьте правописание "{0}" в имени элемента {1} или удалите его целиком, если используется венгерская нотация.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameter">
         <source>In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="new">In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</target>
+        <target state="translated">В методе {0} исправьте правописание "{1}" в имени параметра {2} или удалите его целиком, если используется венгерская нотация.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameter">
         <source>In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</source>
-        <target state="new">In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</target>
+        <target state="translated">В делегате {0} исправьте правописание "{1}" в имени параметра {2} или удалите его целиком, если используется венгерская нотация.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameter">
         <source>On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
-        <target state="new">On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</target>
+        <target state="translated">В типе {0} исправьте правописание "{1}" в имени параметра универсального типа {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameter">
         <source>On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</source>
-        <target state="new">On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</target>
+        <target state="translated">В методе {0} исправьте правописание "{1}" в имени параметра универсального типа {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName">
         <source>Consider providing a more meaningful name than assembly name '{0}'</source>
-        <target state="new">Consider providing a more meaningful name than assembly name '{0}'</target>
+        <target state="translated">Подберите более значимое имя для сборки {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespaceMoreMeaningfulName">
         <source>Consider providing a more meaningful name than namespace name '{0}'</source>
-        <target state="new">Consider providing a more meaningful name than namespace name '{0}'</target>
+        <target state="translated">Подберите более значимое имя для пространства имен {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeMoreMeaningfulName">
         <source>Consider providing a more meaningful name than type name '{0}'</source>
-        <target state="new">Consider providing a more meaningful name than type name '{0}'</target>
+        <target state="translated">Подберите более значимое имя для типа {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberMoreMeaningfulName">
         <source>Consider providing a more meaningful name than member name '{0}'</source>
-        <target state="new">Consider providing a more meaningful name than member name '{0}'</target>
+        <target state="translated">Подберите более значимое имя для элемента "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameterMoreMeaningfulName">
         <source>In method '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
-        <target state="new">In method '{0}', consider providing a more meaningful name than parameter name '{1}'</target>
+        <target state="translated">В методе "{0}" подберите более значимое имя для параметра "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameterMoreMeaningfulName">
         <source>In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</source>
-        <target state="new">In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</target>
+        <target state="translated">В делегате "{0}" подберите более значимое имя для параметра "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameterMoreMeaningfulName">
         <source>On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
-        <target state="new">On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</target>
+        <target state="translated">В типе "{0}" подберите более значимое имя для параметра универсального типа "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName">
         <source>On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</source>
-        <target state="new">On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</target>
+        <target state="translated">В методе "{0}" подберите более значимое имя для параметра универсального типа "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="CategoryNaming">
         <source>Naming</source>
-        <target state="new">Naming</target>
+        <target state="translated">Именование</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
         <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
-        <target state="new">Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</target>
+        <target state="translated">По соглашениям об именовании имя перечисления во множественном числе указывает, что одновременно можно задать несколько значений этого перечисления.</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">Только перечисления FlagsAttribute должны иметь имена во множественном числе</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">Только перечисления FlagsAttribute должны иметь имена во множественном числе</target>
         <note />
       </trans-unit>
     </body>

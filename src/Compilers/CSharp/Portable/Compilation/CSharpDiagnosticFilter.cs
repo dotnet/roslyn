@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return d;
             }
-
-            if (d.IsNotConfigurable())
+            else if (d.IsNotConfigurable())
             {
                 if (d.IsEnabledByDefault)
                 {

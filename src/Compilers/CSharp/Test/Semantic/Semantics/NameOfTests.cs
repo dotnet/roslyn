@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class NameofTests : CSharpTestBase
+    public sealed class NameofTests : CSharpTestBase
     {
         [Fact]
         public void TestGoodNameofInstances()

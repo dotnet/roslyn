@@ -34,7 +34,6 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
     private readonly Type _typeIExtensionContent;
 
     private readonly Lazy<ImmutableArray<(AnalyzerFileReference reference, string extensionId)>> _lazyAnalyzerReferences;
-    private readonly Lazy<ImmutableArray<(string path, string extensionId)>> _lazyRazorReferences;
 
     // internal for testing
     internal VisualStudioDiagnosticAnalyzerProvider(object extensionManager, Type typeIExtensionContent)
@@ -49,9 +48,6 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 
     public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions()
         => _lazyAnalyzerReferences.Value;
-
-    public ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions()
-        => _lazyRazorReferences.Value;
 
     private ImmutableArray<(string path, string extensionId)> GetExtensionContent(string contentTypeName)
     {

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp

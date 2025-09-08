@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -755,7 +756,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 var messageProvider = module.CommonCompilation.MessageProvider;
                 int code = module.PreviousGeneration != null ? messageProvider.ERR_TooManyUserStrings_RestartRequired : messageProvider.ERR_TooManyUserStrings;
-                _diagnostics.Add(messageProvider.CreateDiagnostic(code, syntax?.Location ?? Location.None));
+
+                // <Metalama>
+                _diagnostics.Add(messageProvider.CreateDiagnostic(code, syntax != null ? TreeTracker.GetSourceLocation(syntax) ?? Location.None : Location.None));
+                // _diagnostics.Add(messageProvider.CreateDiagnostic(code, syntax?.Location ?? Location.None));
+                // </Metalama>
             }
 
             bool tryEmitLoadString()
