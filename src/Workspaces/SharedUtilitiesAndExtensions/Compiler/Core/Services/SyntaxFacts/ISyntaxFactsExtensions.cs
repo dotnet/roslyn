@@ -408,9 +408,6 @@ internal static class ISyntaxFactsExtensions
         => syntaxFacts.IsAnonymousFunctionExpression(node) ||
            syntaxFacts.IsLocalFunctionStatement(node);
 
-    public static bool IsExpressionElement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-        => node != null && syntaxFacts.SyntaxKinds.ExpressionElement.HasValue && node.RawKind == syntaxFacts.SyntaxKinds.ExpressionElement.Value;
-
     public static SyntaxNode? GetExpressionOfElementAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
     {
         syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out _);
@@ -813,6 +810,9 @@ internal static class ISyntaxFactsExtensions
 
     public static bool IsConditionalAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
+
+    public static bool IsExpressionElement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node?.RawKind == syntaxFacts.SyntaxKinds.ExpressionElement;
 
     public static bool IsFieldExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.FieldExpression;
