@@ -130,7 +130,7 @@ internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateField
             .OfType<FieldDeclarationSyntax>()
             .Where(n => n.Span.IntersectsWith(span));
 
-        var declarations = fields.Where(CanEncapsulate).Select(f => f.Declaration);
+        var declarations = fields.SelectAsArray(CanEncapsulate, f => f.Declaration);
 
         IEnumerable<VariableDeclaratorSyntax> declarators;
         if (span.IsEmpty)
@@ -144,9 +144,10 @@ internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateField
             declarators = declarations.SelectMany(d => d.Variables.Where(v => v.Span.IntersectsWith(span)));
         }
 
-        return [.. declarators.Select(d => semanticModel.GetDeclaredSymbol(d, cancellationToken) as IFieldSymbol)
-                          .WhereNotNull()
-                          .Where(f => f.Name.Length != 0)];
+        return [.. declarators
+            .Select(d => semanticModel.GetDeclaredSymbol(d, cancellationToken) as IFieldSymbol)
+            .WhereNotNull()
+            .Where(f => f.Name.Length != 0)];
     }
 
     private bool CanEncapsulate(FieldDeclarationSyntax field)
