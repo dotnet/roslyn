@@ -1292,6 +1292,7 @@ public partial class SemanticClassifierTests
             testHost);
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80179")]
     public Task TestRegexOnApiWithStringSyntaxAttribute_ParamsReadOnlyCollectionArgument(TestHost testHost)
         => TestAsync(
             """
