@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal string PathToBuiltInTool => Path.Combine(GetToolDirectory(), ToolName);
 
         /// <summary>
-        /// We fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example
-        /// - we currently only distribute the Windows apphosts with the toolset packages for simplicity).
+        /// We fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
         /// </summary>
         private bool UseAppHost => _useAppHost ??= File.Exists(Path.Combine(GetToolDirectory(), AppHostToolName));
 
