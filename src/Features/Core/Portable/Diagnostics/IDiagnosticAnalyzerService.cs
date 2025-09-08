@@ -116,6 +116,13 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Project project, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// For all analyers in the given solution, return the descriptor ids of all compilation end diagnostics.
+    /// Note: this does not include the "built in compiler analyzer".
+    /// </summary>
+    Task<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
+        Solution solution, CancellationToken cancellationToken);
 }
 
 internal static class IDiagnosticAnalyzerServiceExtensions
