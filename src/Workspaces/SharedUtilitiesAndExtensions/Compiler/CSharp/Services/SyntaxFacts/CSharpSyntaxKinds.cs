@@ -176,6 +176,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int ElseClause => (int)SyntaxKind.ElseClause;
     public int EqualsValueClause => (int)SyntaxKind.EqualsValueClause;
 
+    public int? ExpressionElement => (int)SyntaxKind.ExpressionElement;
     public int? ImplicitElementAccess => (int)SyntaxKind.ImplicitElementAccess;
     public int Interpolation => (int)SyntaxKind.Interpolation;
     public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;
