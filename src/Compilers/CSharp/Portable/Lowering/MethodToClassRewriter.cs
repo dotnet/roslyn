@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly());
             }
 
-            //  Method of an anonymous type
+            //  Property of an anonymous type
             var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
             if (ReferenceEquals(newType, property.ContainingType))
             {
