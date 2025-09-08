@@ -115,37 +115,6 @@ internal sealed partial class DiagnosticAnalyzerService
     public void RequestDiagnosticRefresh()
         => _diagnosticsRefresher.RequestWorkspaceRefresh();
 
-    public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, bool includeCompilerAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
-    {
-        return ProduceProjectDiagnosticsAsync(
-            project, diagnosticIds,
-            // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
-            // project if no specific document id was requested.
-            documentIds.IsDefault ? [.. project.DocumentIds, .. project.AdditionalDocumentIds] : documentIds,
-            includeCompilerAnalyzer,
-            includeLocalDocumentDiagnostics,
-            includeNonLocalDocumentDiagnostics: true,
-            // return diagnostics specific to one project or document
-            includeProjectNonLocalResult: documentIds.IsDefault,
-            cancellationToken);
-    }
-
-    public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-        Project project,
-        ImmutableHashSet<string>? diagnosticIds,
-        bool includeCompilerAnalyzer,
-        CancellationToken cancellationToken)
-    {
-        return ProduceProjectDiagnosticsAsync(
-            project, diagnosticIds, documentIds: [],
-            includeCompilerAnalyzer,
-            includeLocalDocumentDiagnostics: false,
-            includeNonLocalDocumentDiagnostics: false,
-            includeProjectNonLocalResult: true,
-            cancellationToken);
-    }
-
     public TestAccessor GetTestAccessor()
         => new(this);
 

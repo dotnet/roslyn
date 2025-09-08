@@ -39,6 +39,47 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
             cancellationToken);
     }
 
+    public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
+        Checksum solutionChecksum, ProjectId projectId,
+        ImmutableArray<DocumentId> documentIds,
+        ImmutableHashSet<string>? diagnosticIds,
+        bool includeCompilerAnalyzer,
+        bool includeLocalDocumentDiagnostics,
+        CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+                return await service.GetDiagnosticsForIdsAsync(
+                    project, documentIds, diagnosticIds, includeCompilerAnalyzer,
+                    includeLocalDocumentDiagnostics, cancellationToken).ConfigureAwait(false);
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
+        Checksum solutionChecksum, ProjectId projectId,
+        ImmutableHashSet<string>? diagnosticIds,
+        bool includeCompilerAnalyzer,
+        CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+                return await service.GetProjectDiagnosticsForIdsAsync(
+                    project, diagnosticIds, includeCompilerAnalyzer, cancellationToken).ConfigureAwait(false);
+            },
+            cancellationToken);
+    }
+
     public ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
         Checksum solutionChecksum, ProjectId projectId,
         ImmutableHashSet<string>? diagnosticIds,

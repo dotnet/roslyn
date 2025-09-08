@@ -38,14 +38,18 @@ internal interface IRemoteDiagnosticAnalyzerService
         bool logPerformanceInfo,
         CancellationToken cancellationToken);
 
-    ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
+    ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
         Checksum solutionChecksum, ProjectId projectId,
-        ImmutableHashSet<string>? diagnosticIds,
         ImmutableArray<DocumentId> documentIds,
+        ImmutableHashSet<string>? diagnosticIds,
         bool includeCompilerAnalyzer,
         bool includeLocalDocumentDiagnostics,
-        bool includeNonLocalDocumentDiagnostics,
-        bool includeProjectNonLocalResult,
+        CancellationToken cancellationToken);
+
+    ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
+        Checksum solutionChecksum, ProjectId projectId,
+        ImmutableHashSet<string>? diagnosticIds,
+        bool includeCompilerAnalyzer,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
