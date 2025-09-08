@@ -1143,6 +1143,7 @@ public partial class SemanticClassifierTests
             Regex.Comment("(?#comment)"));
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80179")]
     public Task TestRegexOnApiWithStringSyntaxAttribute_CollectionExpressionAttribute(TestHost testHost)
         => TestAsync(
             """
