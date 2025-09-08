@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // to the VB version.
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        // separate pool for assembly symbols as these collections commonly exceed ArrayBuilder's size threshold
+        /// <summary>
+        /// Separate pool for assembly symbols as these collections commonly exceed ArrayBuilder's size threshold.
+        /// </summary>
         private static readonly ObjectPool<ArrayBuilder<AssemblySymbol>> s_symbolPool = new ObjectPool<ArrayBuilder<AssemblySymbol>>(() => new ArrayBuilder<AssemblySymbol>());
 
         /// <summary>
