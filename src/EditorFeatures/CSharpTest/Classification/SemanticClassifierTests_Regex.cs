@@ -1143,6 +1143,33 @@ public partial class SemanticClassifierTests
             Regex.Comment("(?#comment)"));
 
     [Theory, CombinatorialData]
+    public Task TestRegexOnApiWithStringSyntaxAttribute_CollectionExpressionAttribute(TestHost testHost)
+        => TestAsync(
+            """
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Text.RegularExpressions;
+
+            [AttributeUsage(AttributeTargets.Field)]
+            class RegexTestAttribute : Attribute
+            {
+                public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string[] value) { }
+            }
+
+            class Program
+            {
+                [|[RegexTest([@"$\a(?#comment)"])]|]
+                private string field;
+            }
+            """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Class("RegexTest"),
+            Regex.Anchor("$"),
+            Regex.OtherEscape("\\"),
+            Regex.OtherEscape("a"),
+            Regex.Comment("(?#comment)"));
+
+    [Theory, CombinatorialData]
     public Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
         => TestAsync(
             """
