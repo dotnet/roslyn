@@ -412,6 +412,8 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
             .WhereNotNull();
         var nodesToUpdate = new Dictionary<SyntaxNode, SyntaxNode>();
 
+        // Only walking into the members being moved since those are the only places where we need to qualify
+        // references to static members from the original class that are not being moved.
         foreach (var memberNode in members)
         {
             foreach (var identifierNode in memberNode.DescendantNodes().Where(
@@ -421,13 +423,10 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
                 var symbolInfo = semanticModel.GetSymbolInfo(identifierNode, cancellationToken);
                 var symbol = symbolInfo.Symbol;
 
-                var selectedMemberNames = selectedMembers.Select(m => m.Name).ToImmutableHashSet();
-
                 // Check if it's a static member from the original class that isn't being moved
                 if (symbol is { IsStatic: true, ContainingType: { } containingType } &&
                     symbol.ContainingType.Name == originalType.Name &&
-                    !selectedMembers.Contains(symbol) &&
-                    !selectedMemberNames.Contains(symbol.Name))
+                    !selectedMembers.Contains(symbol))
                 {
                     var qualified = generator.MemberAccessExpression(
                         generator.TypeExpression(originalType),
