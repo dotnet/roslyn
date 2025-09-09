@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         /// <param name="isCompilerAnalyzer">Delegate to determine if the given analyzer is compiler analyzer. 
         /// We need to special case the compiler analyzer at few places for performance reasons.</param>
-        /// <param name="analyzerSpecificOptionsFactory">Optional callback to allow individual configuration options
+        /// <param name="getAnalyzerConfigOptionsProvider">Optional callback to allow individual configuration options
         /// on a per analyzer basis.</param>
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
         /// <param name="getAnalyzerGate">
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
-            Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory,
+            Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? getAnalyzerConfigOptionsProvider,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerExecutionTimeMap = logExecutionTime ? new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>() : null;
 
             return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnostic, onAnalyzerException, analyzerExceptionFilter,
-                isCompilerAnalyzer, diagnosticAnalyzers, analyzerSpecificOptionsFactory, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
+                isCompilerAnalyzer, diagnosticAnalyzers, getAnalyzerConfigOptionsProvider, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
                 isAnalyzerSuppressedForTree, getAnalyzerGate, getSemanticModel, severityFilter, analyzerExecutionTimeMap, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic,
                 addSuppression);
         }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, bool>? analyzerExceptionFilter,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
-            Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory,
+            Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? getAnalyzerConfigOptionsProvider,
             AnalyzerManager analyzerManager,
             Func<DiagnosticAnalyzer, bool> shouldSkipAnalysisOnGeneratedCode,
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
@@ -185,18 +185,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _compilationAnalysisValueProviderFactory = new CompilationAnalysisValueProviderFactory();
 
-            if (analyzerSpecificOptionsFactory != null)
+            if (getAnalyzerConfigOptionsProvider != null)
             {
                 var hasDifferentOptions = false;
 
                 var map = new Dictionary<DiagnosticAnalyzer, AnalyzerOptions>(ReferenceEqualityComparer.Instance);
 
-                // Deduping map for the distinct AnalyzerConfigOptionsProvider we get back from analyzerSpecificOptionsFactory
+                // Deduping map for the distinct AnalyzerConfigOptionsProvider we get back from getAnalyzerConfigOptionsProvider
                 var optionsProviderToOptions = new Dictionary<AnalyzerConfigOptionsProvider, AnalyzerOptions>(ReferenceEqualityComparer.Instance);
 
                 foreach (var analyzer in diagnosticAnalyzers)
                 {
-                    var specificOptionsProvider = analyzerSpecificOptionsFactory(analyzer);
+                    var specificOptionsProvider = getAnalyzerConfigOptionsProvider(analyzer);
                     var specificOptions = optionsProviderToOptions.GetOrAdd(
                         specificOptionsProvider, () => analyzerOptions.WithAnalyzerConfigOptionsProvider(specificOptionsProvider));
                     map[analyzer] = specificOptions;

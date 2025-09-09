@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 addNonCategorizedDiagnostic: (_, _) => { }, onAnalyzerException, analyzerExceptionFilter: null,
                 isCompilerAnalyzer: _ => false,
                 diagnosticAnalyzers: [analyzer],
-                analyzerSpecificOptionsFactory: null,
+                getAnalyzerConfigOptionsProvider: null,
                 analyzerManager, shouldSkipAnalysisOnGeneratedCode: _ => false,
                 shouldSuppressGeneratedCodeDiagnostic: (_, _, _, _) => false, isGeneratedCodeLocation: (_, _, _) => false,
                 isAnalyzerSuppressedForTree: (_, _, _, _) => false, getAnalyzerGate: _ => null,
