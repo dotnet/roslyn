@@ -92,20 +92,16 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference"/>
+    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Solution solution, ProjectId? projectId, CancellationToken cancellationToken);
+
     /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
     Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache)"/>
-    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Solution solution, CancellationToken cancellationToken);
-
-    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
-    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Project project, CancellationToken cancellationToken);
-
     /// <summary>
-    /// For all analyers in the given solution, return the descriptor ids of all compilation end diagnostics.
+    /// For all analyzers in the given solution, return the descriptor ids of all compilation end diagnostics.
     /// Note: this does not include the "built in compiler analyzer".
     /// </summary>
     Task<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
