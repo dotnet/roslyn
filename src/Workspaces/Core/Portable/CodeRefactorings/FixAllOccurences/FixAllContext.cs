@@ -72,7 +72,14 @@ internal sealed class RefactorAllContext : IFixAllContext
         Optional<FixAllScope> scope,
         Optional<string?> codeActionEquivalenceKey,
         Optional<CancellationToken> cancellationToken)
-        => this.With(documentAndProject, scope, codeActionEquivalenceKey, cancellationToken);
+    {
+        var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
+        var newCancellationToken = cancellationToken.HasValue ? cancellationToken.Value : this.CancellationToken;
+
+        return State == newState && CancellationToken == newCancellationToken
+            ? this
+            : new RefactorAllContext(newState, this.Progress, newCancellationToken);
+    }
     #endregion
 
     internal RefactorAllContext(
@@ -91,20 +98,6 @@ internal sealed class RefactorAllContext : IFixAllContext
     /// </summary>
     public Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
         => State.GetRefactorAllSpansAsync(cancellationToken);
-
-    internal RefactorAllContext With(
-        Optional<(Document? document, Project project)> documentAndProject = default,
-        Optional<FixAllScope> scope = default,
-        Optional<string?> codeActionEquivalenceKey = default,
-        Optional<CancellationToken> cancellationToken = default)
-    {
-        var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-        var newCancellationToken = cancellationToken.HasValue ? cancellationToken.Value : this.CancellationToken;
-
-        return State == newState && CancellationToken == newCancellationToken
-            ? this
-            : new RefactorAllContext(newState, this.Progress, newCancellationToken);
-    }
 
     internal string GetDefaultRefactorAllTitle()
         => FixAllHelper.GetDefaultFixAllTitle(this.Scope.ToFixAllScope(), this.State.CodeActionTitle, this.Document, this.Project);
