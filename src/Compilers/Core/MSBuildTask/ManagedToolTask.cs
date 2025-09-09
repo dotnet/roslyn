@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Resources;
 using System.Text;
@@ -59,7 +60,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// We fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
         /// </summary>
-        private bool UseAppHost => _useAppHost ??= File.Exists(Path.Combine(GetToolDirectory(), AppHostToolName));
+        private bool UseAppHost
+        {
+            get
+            {
+                if (_useAppHost is not { } useAppHost)
+                {
+                    _useAppHost = useAppHost = File.Exists(Path.Combine(GetToolDirectory(), AppHostToolName));
+                    Debug.Assert(IsBuiltinToolRunningOnCoreClr || useAppHost);
+                }
+
+                return useAppHost;
+            }
+        }
 
         protected ManagedToolTask(ResourceManager resourceManager)
             : base(resourceManager)
@@ -87,7 +100,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             var commandLineArguments = GenerateToolArguments();
 
-            if (UsingBuiltinTool && IsBuiltinToolRunningOnCoreClr && !UseAppHost)
+            if (UsingBuiltinTool && !UseAppHost)
             {
                 commandLineArguments = RuntimeHostInfo.GetDotNetExecCommandLine(PathToBuiltInTool, commandLineArguments);
             }
@@ -124,22 +137,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         /// <summary>
         /// This generates the path to the executable that is directly ran.
-        /// This could be the managed assembly itself (on desktop .NET on Windows),
-        /// or a runtime such as dotnet.
+        /// This could be the executable apphost or a runtime such as dotnet.
         /// </summary>
         protected sealed override string GenerateFullPathToTool()
         {
             if (UsingBuiltinTool)
             {
-                if (IsBuiltinToolRunningOnCoreClr && !UseAppHost)
-                {
-                    return RuntimeHostInfo.GetDotNetPathOrDefault();
-                }
-
-                if (UsingBuiltinTool)
-                {
-                    return PathToBuiltInTool;
-                }
+                return UseAppHost ? PathToBuiltInTool : RuntimeHostInfo.GetDotNetPathOrDefault();
             }
 
             return Path.Combine(ToolPath ?? "", ToolExe);
@@ -163,12 +167,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             get
             {
-                if (IsBuiltinToolRunningOnCoreClr && !UseAppHost)
-                {
-                    return $"{ToolNameWithoutExtension}.dll";
-                }
-
-                return AppHostToolName;
+                return UseAppHost ? AppHostToolName : $"{ToolNameWithoutExtension}.dll";
             }
         }
 

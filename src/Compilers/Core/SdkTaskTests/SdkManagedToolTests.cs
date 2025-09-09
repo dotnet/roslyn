@@ -23,7 +23,8 @@ public sealed class SdkManagedToolTests
         var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
         var task = new Csc();
         Assert.Contains(task.PathToBuiltInTool,
-        new[] {
+        new[]
+        {
             Path.Combine(taskPath, "..", "bincore", "csc.dll"),
             Path.Combine(taskPath, "..", "bincore", "csc.exe"),
         });
