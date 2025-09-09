@@ -64,12 +64,10 @@ internal sealed partial class DiagnosticAnalyzerService
         // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
         var incrementalAnalysis = range is null && document is Document { SupportsSyntaxTree: true };
 
-        using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
-
         var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = GetAllAnalyzers();
-        syntaxAnalyzers = FilterAnalyzers(syntaxAnalyzers, AnalysisKind.Syntax, range, deprioritizationCandidates);
-        semanticSpanAnalyzers = FilterAnalyzers(semanticSpanAnalyzers, AnalysisKind.Semantic, range, deprioritizationCandidates);
-        semanticDocumentAnalyzers = FilterAnalyzers(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, deprioritizationCandidates);
+        syntaxAnalyzers = FilterAnalyzers(syntaxAnalyzers, AnalysisKind.Syntax, range);
+        semanticSpanAnalyzers = FilterAnalyzers(semanticSpanAnalyzers, AnalysisKind.Semantic, range);
+        semanticDocumentAnalyzers = FilterAnalyzers(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null);
 
         var allDiagnostics = await this.ComputeDiagnosticsInProcessAsync(
             document, range, analyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
@@ -185,7 +183,7 @@ internal sealed partial class DiagnosticAnalyzerService
         // optimization for lightbulb diagnostic computation, wherein we can reduce the set of analyzers to be executed
         // when computing fixes for a specific <see cref="ICodeActionRequestPriorityProvider.Priority"/>.
         // </summary>
-        bool MatchesPriority(DiagnosticAnalyzer analyzer)
+        async Task<bool> MatchesPriorityAsync(DiagnosticAnalyzer analyzer)
         {
             // If caller isn't asking for prioritized result, then run all analyzers.
             if (priority is null)
@@ -204,7 +202,7 @@ internal sealed partial class DiagnosticAnalyzerService
             // Check if we are computing diagnostics for 'CodeActionRequestPriority.Low' and
             // this analyzer was de-prioritized to low priority bucket.
             if (priority == CodeActionRequestPriority.Low &&
-                provider.IsDeprioritizedAnalyzerWithLowPriority(analyzer))
+                await this.IsDeprioritizedAnalyzerAsync(project, analyzer, cancellationToken).ConfigureAwait(false))
             {
                 return true;
             }
@@ -222,19 +220,16 @@ internal sealed partial class DiagnosticAnalyzerService
         ImmutableArray<DiagnosticAnalyzer> FilterAnalyzers(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalysisKind kind,
-            TextSpan? span,
-            HashSet<DiagnosticAnalyzer> deprioritizationCandidates)
+            TextSpan? span)
         {
             using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
 
             foreach (var analyzer in analyzers)
             {
-                Debug.Assert(priorityProvider.MatchesPriority(analyzer));
-
                 // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
                 // If so, we skip this analyzer from execution in the current priority bucket.
                 // We will subsequently execute this analyzer in the lower priority bucket.
-                if (TryDeprioritizeAnalyzer(analyzer, kind, span, deprioritizationCandidates))
+                if (TryDeprioritizeAnalyzer(analyzer, kind, span))
                     continue;
 
                 filteredAnalyzers.Add(analyzer);
@@ -244,8 +239,7 @@ internal sealed partial class DiagnosticAnalyzerService
         }
 
         bool TryDeprioritizeAnalyzer(
-            DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? span,
-            HashSet<DiagnosticAnalyzer> deprioritizationCandidates)
+            DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? span)
         {
             // PERF: In order to improve lightbulb performance, we perform de-prioritization optimization for certain analyzers
             // that moves the analyzer to a lower priority bucket. However, to ensure that de-prioritization happens for very rare cases,
@@ -268,15 +262,6 @@ internal sealed partial class DiagnosticAnalyzerService
             // Check if this is a candidate analyzer that can be de-prioritized into a lower priority bucket based on registered actions.
             if (!deprioritizationCandidates.Contains(analyzer))
                 return false;
-
-            // 'LightbulbSkipExecutingDeprioritizedAnalyzers' option determines if we want to execute this analyzer
-            // in low priority bucket or skip it completely. If the option is not set, track the de-prioritized
-            // analyzer to be executed in low priority bucket.
-            // Note that 'AddDeprioritizedAnalyzerWithLowPriority' call below mutates the state in the provider to
-            // track this analyzer. This ensures that when the owner of this provider calls us back to execute
-            // the low priority bucket, we can still get back to this analyzer and execute it that time.
-            if (!this._globalOptions.GetOption(DiagnosticOptionsStorage.LightbulbSkipExecutingDeprioritizedAnalyzers))
-                priorityProvider.AddDeprioritizedAnalyzerWithLowPriority(analyzer);
 
             return true;
         }

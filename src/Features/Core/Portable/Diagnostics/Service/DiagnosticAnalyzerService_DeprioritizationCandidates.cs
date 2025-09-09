@@ -25,6 +25,18 @@ internal sealed partial class DiagnosticAnalyzerService
     /// </summary>
     private static readonly ConditionalWeakTable<DiagnosticAnalyzer, ImmutableHashSet<string>?> s_analyzerToDeprioritizedDiagnosticIds = new();
 
+    private async Task<bool> IsDeprioritizedAnalyzerAsync(
+        Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+    {
+        // Populate the CWT if needed.
+        await IsAnyDeprioritizedDiagnosticIdAsync(project, diagnosticIds: [], cancellationToken).ConfigureAwait(false);
+
+        // this can't fail as the above call populates the CWT entries for all analyzers within that project if missing.
+        Contract.ThrowIfFalse(s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var set));
+
+        return set != null;
+    }
+
     public async Task<bool> IsAnyDeprioritizedDiagnosticIdInProcessAsync(
         Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
     {
