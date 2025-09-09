@@ -36,10 +36,10 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
         Document document,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        RefactorAllScope fixAllScope,
+        RefactorAllScope refactorAllScope,
         CodeAction codeAction)
         : this(fixAllProvider, document ?? throw new ArgumentNullException(nameof(document)), document.Project, selectionSpan, codeRefactoringProvider,
-               fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
+               refactorAllScope, codeAction.Title, codeAction.EquivalenceKey)
     {
     }
 
@@ -48,10 +48,10 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
         Project project,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        RefactorAllScope fixAllScope,
+        RefactorAllScope refactorAllScope,
         CodeAction codeAction)
         : this(fixAllProvider, document: null, project ?? throw new ArgumentNullException(nameof(project)), selectionSpan, codeRefactoringProvider,
-               fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
+               refactorAllScope, codeAction.Title, codeAction.EquivalenceKey)
     {
     }
 
@@ -61,10 +61,10 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
         Project project,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        RefactorAllScope fixAllScope,
+        RefactorAllScope refactorAllScope,
         string codeActionTitle,
         string? codeActionEquivalenceKey)
-        : base(fixAllProvider, document, project, codeRefactoringProvider, fixAllScope.ToFixAllScope(), codeActionEquivalenceKey)
+        : base(fixAllProvider, document, project, codeRefactoringProvider, refactorAllScope.ToFixAllScope(), codeActionEquivalenceKey)
     {
         _selectionSpan = selectionSpan;
         this.CodeActionTitle = codeActionTitle;
@@ -84,8 +84,8 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
     }
 
     /// <summary>
-    /// Gets the spans to fix by document for the <see cref="RefactorAllScope"/> for this fix all occurrences fix.
-    /// If no spans are specified, it indicates the entire document needs to be fixed.
+    /// Gets the spans to refactor by document for the <see cref="RefactorAllScope"/> for this refactor all occurrences
+    /// fix. If no spans are specified, it indicates the entire document needs to be refactored.
     /// </summary>
     internal async Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
     {
