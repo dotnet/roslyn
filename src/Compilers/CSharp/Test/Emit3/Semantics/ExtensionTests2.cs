@@ -31496,7 +31496,9 @@ public static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
         var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, add support for constructed symbols
         Assert.Null(method.AssociatedExtensionImplementation);
+        Assert.Equal("void E.M<T>(this T t)", method.OriginalDefinition.AssociatedExtensionImplementation.ToTestDisplayString());
     }
 
     [Fact]

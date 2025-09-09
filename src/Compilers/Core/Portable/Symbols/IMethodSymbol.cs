@@ -305,12 +305,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsIterator { get; }
 
+        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, add support for constructed symbols
         /// <summary>
-        /// For a method definition in an extension block, returns the corresponding implementation method if one exists.
+        /// For a method/accessor/operator in an extension block, returns the corresponding implementation method if one exists.
         /// Returns null otherwise.
         /// 
-        /// For exampe, considering:
-        /// ```
+        /// For example, considering:
+        /// <code>
         /// static class E
         /// {
         ///     extension(int i)
@@ -318,9 +319,9 @@ namespace Microsoft.CodeAnalysis
         ///         public void M() { }
         ///     }
         /// }
-        /// ```
-        /// When given the method symbol for `E.extension(int i).M()`,
-        /// it will return the corresponding static implementation method `E.M(this int i)`.
+        /// </code>
+        /// When given the method symbol for <c>E.extension(int i).M()</c>,
+        /// it will return the corresponding static implementation method <c>E.M(this int i)</c>.
         /// </summary>
         IMethodSymbol? AssociatedExtensionImplementation { get; }
     }

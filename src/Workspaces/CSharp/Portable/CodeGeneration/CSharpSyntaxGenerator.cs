@@ -3743,7 +3743,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         IEnumerable<SyntaxNode>? typeParameters,
         IEnumerable<SyntaxNode> members)
     {
-        SyntaxList<MemberDeclarationSyntax> extensionMembers = [.. members.Select(m => m as MemberDeclarationSyntax).WhereNotNull()];
+        SyntaxList<MemberDeclarationSyntax> extensionMembers = [.. members.OfType<MemberDeclarationSyntax>().WhereNotNull()];
         var typeParameterList = AsTypeParameterList(typeParameters);
 
         return SyntaxFactory.ExtensionBlockDeclaration(attributeLists: default, modifiers: default, ExtensionKeyword,

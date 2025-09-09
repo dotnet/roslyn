@@ -774,7 +774,7 @@ public abstract class SyntaxGenerator : ILanguageService
                         modifiers: DeclarationModifiers.From(type),
                         baseType: type.BaseType != null ? TypeExpression(type.BaseType) : null,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: GetMembersMinusExtensionImplementations(type).Where(CanBeDeclared).Select(Declaration)),
+                        members: GetMembersExceptExtensionImplementations(type).Where(CanBeDeclared).Select(Declaration)),
                     TypeKind.Struct => StructDeclaration(
                         type.IsRecord,
                         type.Name,
@@ -820,7 +820,7 @@ public abstract class SyntaxGenerator : ILanguageService
 
         throw new ArgumentException("Symbol cannot be converted to a declaration");
 
-        static IEnumerable<ISymbol> GetMembersMinusExtensionImplementations(INamedTypeSymbol type)
+        static IEnumerable<ISymbol> GetMembersExceptExtensionImplementations(INamedTypeSymbol type)
         {
             var members = type.GetMembers();
             using var _ = PooledHashSet<IMethodSymbol>.GetInstance(out var implementationsToHide);
