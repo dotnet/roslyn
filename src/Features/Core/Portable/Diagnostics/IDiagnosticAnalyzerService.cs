@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -144,4 +143,13 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
             priorityProvider, diagnosticKind, cancellationToken);
     }
+
+    public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        this IDiagnosticAnalyzerService service, Solution solution, CancellationToken cancellationToken)
+        => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, projectId: null, cancellationToken);
+
+    public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        this IDiagnosticAnalyzerService service, Project project, CancellationToken cancellationToken)
+        => service.GetDiagnosticDescriptorsPerReferenceAsync(project.Solution, project.Id, cancellationToken);
+
 }
