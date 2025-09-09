@@ -196,7 +196,8 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8815: Module initializer method 'M' must be static, and non-virtual, must have no parameters, and must return 'void'
                 //     [ModuleInitializer]
-                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M").WithLocation(7, 6),
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, "ModuleInitializer").WithArguments("M").WithLocation(7, 6)
+            );
         }
 
         [Fact]

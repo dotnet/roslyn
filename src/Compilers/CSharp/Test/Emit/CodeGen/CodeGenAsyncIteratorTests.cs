@@ -2215,7 +2215,7 @@ class C
             comp.VerifyDiagnostics(
                 // (4,62): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async System.Collections.Generic.IEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 62),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 62)
                 );
         }
 
@@ -6630,7 +6630,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15),
                 // (6,22): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         yield return "hello";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(6, 22)
                 );
         }
 

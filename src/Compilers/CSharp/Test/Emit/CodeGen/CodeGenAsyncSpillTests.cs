@@ -1996,7 +1996,7 @@ Not Valid!
             verifier.VerifyDiagnostics(
                 // (23,17): warning CS8073: The result of the expression is always 'true' since a value of type 'Guid' is never equal to 'null' of type 'Guid?'
                 //             if (item.Item2 != null || await IsValid(item.Item2))
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "item.Item2 != null").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(23, 17),
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "item.Item2 != null").WithArguments("true", "System.Guid", "System.Guid?").WithLocation(23, 17)
             );
             verifier.VerifyIL("AsyncConditionalBug.Program.DoSomething(System.Tuple<string, System.Guid>)", """
                 {
@@ -8188,7 +8188,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await GetInt()").WithArguments("S.M(S)").WithLocation(11, 34),
                 // (16,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         M();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "M()").WithLocation(16, 9),
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "M()").WithLocation(16, 9)
             );
             // https://github.com/dotnet/roslyn/issues/79763
             // var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
@@ -8200,7 +8200,11 @@ struct S
             // });
 
             // verifier.VerifyDiagnostics(
-            //     // (14,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //     // (16,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+            //     //         M();
+            //     Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "M()").WithLocation(16, 9)
+            // );
+        }
 
         [Fact]
         public void SpillSacrificialRead()

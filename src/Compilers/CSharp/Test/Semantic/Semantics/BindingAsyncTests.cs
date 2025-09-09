@@ -1720,7 +1720,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (27,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Goo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
         }
 
         [Fact]
@@ -1817,7 +1817,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MethExt()").WithLocation(19, 9),
                 // (20,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo(1);
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo(1)").WithLocation(20, 9),
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo(1)").WithLocation(20, 9));
         }
 
         [Fact]
@@ -1865,7 +1865,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (31,9): warning CS0162: Unreachable code detected
                 //         return null;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return"),
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return"));
         }
 
         [Fact]
@@ -1911,7 +1911,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (28,9): warning CS0162: Unreachable code detected
                 //         Goo();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"),
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"));
         }
 
         [Fact]
@@ -2156,7 +2156,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, @"Meth("""")"),
                 // (36,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Meth((decimal?)2);
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth((decimal?)2)"),
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth((decimal?)2)"));
         }
 
         [Fact]
@@ -2330,7 +2330,8 @@ partial class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, @"Meth("""", null)").WithLocation(19, 9),
                 // (25,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Meth(Task.Run(async () => 1), Meth(1));
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(Task.Run(async () => 1), Meth(1))").WithLocation(25, 9),
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(Task.Run(async () => 1), Meth(1))").WithLocation(25, 9)
+            );
         }
 
         [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
@@ -2468,7 +2469,8 @@ class Test
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test.Prop"),
                 // (48,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         test[1]; //error CS0201
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "test[1]"),
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "test[1]")
+            );
         }
 
         [Fact]
@@ -3226,7 +3228,8 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "tr"),
                 // (8,31): error CS0210: You must provide an initializer in a fixed or using statement declaration
                 //         fixed (TypedReference tr) { }
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "tr"),
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "tr")
+            );
         }
 
         [Fact]
@@ -3396,7 +3399,7 @@ class Program
     {
     }
 }";
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(547079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547079")]
@@ -3432,7 +3435,7 @@ class Test
     {
     }
 }";
-            CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
@@ -3473,7 +3476,8 @@ class Driver
             CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,35): error CS1988: Async methods cannot have ref, in or out parameters
                 //     public async void Goo(ref int x)
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x"),
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x")
+            );
         }
 
         [Fact]
@@ -3635,7 +3639,8 @@ class C
             CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,29): error CS4010: Cannot convert async anonymous method to delegate type 'Func<int>'. An async anonymous method may return void, Task or Task<T>, none of which are convertible to 'Func<int>'.
                 //         Func<int> x = async delegate { throw null; };
-                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "delegate").WithArguments("anonymous method", "System.Func<int>"),
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "delegate").WithArguments("anonymous method", "System.Func<int>")
+            );
         }
 
         [WorkItem(588706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588706")]
@@ -3810,7 +3815,8 @@ public class Program
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "YAsync()"),
                 // (17,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         XAsync(); // warn
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "XAsync()"),
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "XAsync()")
+            );
         }
 
         [Fact()]

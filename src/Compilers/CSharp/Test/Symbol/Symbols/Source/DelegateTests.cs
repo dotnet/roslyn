@@ -714,7 +714,8 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (4,17): error CS1988: Async methods cannot have ref, in or out parameters
                 //     D d = async delegate { };
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate").WithLocation(4, 17)
+            );
         }
 
         [Fact]

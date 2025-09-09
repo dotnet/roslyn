@@ -4540,7 +4540,7 @@ public static class Program
 ";
             var expectedOutput = "correct";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -4571,7 +4571,7 @@ public static class Program
 ";
             var expectedOutput = "correct";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

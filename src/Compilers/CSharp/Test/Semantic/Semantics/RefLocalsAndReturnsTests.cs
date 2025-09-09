@@ -3807,7 +3807,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyEmitDiagnostics();
         }
 
         [Fact]

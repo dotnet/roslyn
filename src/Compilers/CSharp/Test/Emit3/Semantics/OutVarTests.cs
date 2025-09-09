@@ -19578,8 +19578,8 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (11,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     static object Test1(out System.ArgIterator x)
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(11, 25),
-                );
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(11, 25)
+            );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -19630,8 +19630,8 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 9),
                 // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         var x = default(System.ArgIterator);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13)
+            );
 
             compilation = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib461);
 
@@ -19641,8 +19641,8 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(12, 25),
                 // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         var x = default(System.ArgIterator);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13)
+            );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

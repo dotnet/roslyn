@@ -41839,7 +41839,8 @@ unsafe static class E
         comp.VerifyEmitDiagnostics(
             // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
             //     extension(int* i)
-            Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(3, 15),
+            Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(3, 15)
+        );
     }
 
     [Fact]

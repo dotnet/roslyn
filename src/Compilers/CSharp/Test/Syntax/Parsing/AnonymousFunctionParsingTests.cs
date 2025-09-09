@@ -113,7 +113,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (8,26): error CS1004: Duplicate 'async' modifier
                 //         Action v = async async delegate() { };
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(8, 26),
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(8, 26)
+            );
         }
 
         [Fact]
@@ -308,7 +309,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (8,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static async delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20)
+            );
         }
 
         [Fact]
@@ -406,7 +408,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (8,20): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Action v = static async delegate() { };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(8, 20)
+            );
         }
 
         [Fact]
@@ -756,7 +759,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -2566,7 +2569,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = static async async => async;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34)
+            );
         }
 
         [Fact]
@@ -2711,7 +2715,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,40): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = async static async => async;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40)
+            );
         }
 
         [Fact]
@@ -2860,7 +2865,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
                 // (9,47): error CS1004: Duplicate 'async' modifier
                 //         Func<int, Task<int>> v = async static async async => async;
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47),
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47)
+            );
         }
 
         [Fact]
@@ -3116,7 +3122,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -3380,7 +3386,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = static async (async) => async;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 34)
+            );
         }
 
         [Fact]
@@ -3530,7 +3537,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (9,40): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<int, Task<int>> v = async static (async) => async;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40)
+            );
         }
 
         [Fact]
@@ -3684,7 +3692,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(9, 40),
                 // (9,47): error CS1004: Duplicate 'async' modifier
                 //         Func<int, Task<int>> v = async static async (async) => async;
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47),
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47)
+            );
         }
 
         [Fact]
@@ -3958,7 +3967,7 @@ public class C
             }
             EOF();
 
-            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -4240,7 +4249,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (10,29): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<Task<int>> v = static async () => a;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 29),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 29)
+            );
         }
 
         [Fact]
@@ -4399,7 +4409,8 @@ public class C
             CreateCompilation(test, parseOptions: TestOptions.Regular8).GetDiagnostics().Verify(
                 // (10,35): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         Func<Task<int>> v = async static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 35),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 35)
+            );
         }
 
         [Fact]
@@ -4562,7 +4573,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(10, 35),
                 // (10,42): error CS1004: Duplicate 'async' modifier
                 //         Func<Task<int>> v = async static async () => a;
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(10, 42),
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(10, 42)
+            );
         }
     }
 }

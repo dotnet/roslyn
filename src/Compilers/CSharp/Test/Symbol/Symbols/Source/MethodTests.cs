@@ -2111,7 +2111,7 @@ partial class C
     async partial void M() { }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]

@@ -1256,7 +1256,7 @@ partial class C
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
+            comp.VerifyDiagnostics();
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
@@ -1277,7 +1277,7 @@ partial class C
 }
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics(
+            comp.VerifyDiagnostics();
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
@@ -1306,7 +1306,7 @@ partial class C
 }
 ";
             var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, expectedOutput: "1");
-            verifier.VerifyDiagnostics(
+            verifier.VerifyDiagnostics();
 
             var method = (MethodSymbol)verifier.Compilation.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
@@ -2745,7 +2745,7 @@ public partial class C
                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                 options: TestOptions.DebugExe,
                 expectedOutput: "1");
-            verifier.VerifyDiagnostics(
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2791,7 +2791,7 @@ public partial class C
                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
                 options: TestOptions.DebugExe,
                 expectedOutput: "1");
-            verifier.VerifyDiagnostics(
+            verifier.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

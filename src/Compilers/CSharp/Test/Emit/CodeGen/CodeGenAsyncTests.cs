@@ -7488,12 +7488,8 @@ class IntCode
     }
 }
 ";
-            var diags = new[]
-            {
-            };
-
-            CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
+            CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]

@@ -2690,7 +2690,8 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IVsTask").WithArguments("IVsTask").WithLocation(4, 12),
                 // (6,21): error CS1061: 'C' does not contain a definition for 'VsTasksService' and no extension method 'VsTasksService' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         return this.VsTasksService.InvokeAsync(async delegate
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "VsTasksService").WithArguments("C", "VsTasksService").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "VsTasksService").WithArguments("C", "VsTasksService").WithLocation(6, 21)
+            );
         }
 
         [Fact, WorkItem(627123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627123")]
