@@ -58,7 +58,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     }
 
     internal override RefactorAllProvider? GetRefactorAllProvider()
-        => new ConvertToExtensionFixAllProvider();
+        => new ConvertToExtensionRefactorAllProvider();
 
     private static ExtensionMethodInfo? TryGetExtensionMethodInfo(
         SemanticModel semanticModel,

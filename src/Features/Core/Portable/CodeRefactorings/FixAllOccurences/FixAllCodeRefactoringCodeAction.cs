@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <summary>
 /// Fix all code action for a code action registered by a <see cref="CodeRefactoringProvider"/>.
 /// </summary>
-internal sealed class FixAllCodeRefactoringCodeAction(IFixAllState fixAllState) : AbstractFixAllCodeAction(fixAllState, showPreviewChangesDialog: true)
+internal sealed class RefactorAllCodeRefactoringCodeAction(IFixAllState fixAllState) : AbstractFixAllCodeAction(fixAllState, showPreviewChangesDialog: true)
 {
     protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         => new RefactorAllContext((RefactorAllState)fixAllState, progressTracker, cancellationToken);

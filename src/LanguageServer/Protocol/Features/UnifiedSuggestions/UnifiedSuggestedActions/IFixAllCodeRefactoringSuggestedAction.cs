@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 /// <summary>
 /// Common interface used by both local Roslyn and LSP to implement
-/// their specific versions of FixAllCodeRefactoringSuggestedAction.
+/// their specific versions of RefactorAllCodeRefactoringSuggestedAction.
 /// </summary>
-internal interface IFixAllCodeRefactoringSuggestedAction
+internal interface IRefactorAllCodeRefactoringSuggestedAction
 {
     CodeAction OriginalCodeAction { get; }
 
