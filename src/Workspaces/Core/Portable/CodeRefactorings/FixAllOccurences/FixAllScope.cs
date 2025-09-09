@@ -9,40 +9,40 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 /// <summary>
-/// Indicates scope for "Fix all occurrences" code fixes provided by each <see cref="RefactorAllProvider"/>.
+/// Indicates scope for "Refactor all occurrences" code fixes provided by each <see cref="RefactorAllProvider"/>.
 /// </summary>
 internal enum RefactorAllScope
 {
     /// <summary>
-    /// Scope to fix all occurrences of diagnostic(s) in the entire document.
+    /// Scope to refactor all occurrences of diagnostic(s) in the entire document.
     /// </summary>
     Document,
 
     /// <summary>
-    /// Scope to fix all occurrences of diagnostic(s) in the entire project.
+    /// Scope to refactor all occurrences of diagnostic(s) in the entire project.
     /// </summary>
     Project,
 
     /// <summary>
-    /// Scope to fix all occurrences of diagnostic(s) in the entire solution.
+    /// Scope to refactor all occurrences of diagnostic(s) in the entire solution.
     /// </summary>
     Solution,
 
     /// <summary>
-    /// Custom scope to fix all occurrences of diagnostic(s). This scope can
-    /// be used by custom <see cref="RefactorAllProvider"/>s and custom code fix engines.
+    /// Custom scope to refactor all occurrences of diagnostic(s). This scope can be used by custom <see
+    /// cref="RefactorAllProvider"/>s and custom code refactoring engines.
     /// </summary>
     Custom,
 
     /// <summary>
-    /// Scope to fix all occurrences of diagnostic(s) in the containing member
-    /// relative to the trigger span for the original code fix.
+    /// Scope to refactor all occurrences of diagnostic(s) in the containing member relative to the trigger span for the
+    /// original code refactoring.
     /// </summary>
     ContainingMember,
 
     /// <summary>
-    /// Scope to fix all occurrences of diagnostic(s) in the containing type
-    /// relative to the trigger span for the original code fix.
+    /// Scope to refactor all occurrences of diagnostic(s) in the containing type relative to the trigger span for the
+    /// original code refactoring.
     /// </summary>
     ContainingType,
 }
@@ -73,6 +73,18 @@ internal static class RefactorAllScopeExtensions
             RefactorAllScope.Custom => FixAllScope.Custom,
             RefactorAllScope.ContainingMember => FixAllScope.ContainingMember,
             RefactorAllScope.ContainingType => FixAllScope.ContainingType,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
+
+    public static RefactorAllScope ToRefactorAllScope(this FixAllScope scope)
+        => scope switch
+        {
+            FixAllScope.Document => RefactorAllScope.Document,
+            FixAllScope.Project => RefactorAllScope.Project,
+            FixAllScope.Solution => RefactorAllScope.Solution,
+            FixAllScope.Custom => RefactorAllScope.Custom,
+            FixAllScope.ContainingMember => RefactorAllScope.ContainingMember,
+            FixAllScope.ContainingType => RefactorAllScope.ContainingType,
             _ => throw ExceptionUtilities.Unreachable(),
         };
 }

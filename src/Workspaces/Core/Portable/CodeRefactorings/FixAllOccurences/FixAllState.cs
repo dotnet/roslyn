@@ -9,11 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -22,8 +22,8 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
     /// <summary>
     /// Original selection span from which FixAll was invoked.
     /// This is used in <see cref="GetRefactorAllSpansAsync(CancellationToken)"/>
-    /// to compute fix all spans for <see cref="FixAllScope.ContainingMember"/>
-    /// and <see cref="FixAllScope.ContainingType"/> scopes.
+    /// to compute fix all spans for <see cref="RefactorAllScope.ContainingMember"/>
+    /// and <see cref="RefactorAllScope.ContainingType"/> scopes.
     /// </summary>
     private readonly TextSpan _selectionSpan;
 
@@ -36,7 +36,7 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
         Document document,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        FixAllScope fixAllScope,
+        RefactorAllScope fixAllScope,
         CodeAction codeAction)
         : this(fixAllProvider, document ?? throw new ArgumentNullException(nameof(document)), document.Project, selectionSpan, codeRefactoringProvider,
                fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
@@ -48,7 +48,7 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
         Project project,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        FixAllScope fixAllScope,
+        RefactorAllScope fixAllScope,
         CodeAction codeAction)
         : this(fixAllProvider, document: null, project ?? throw new ArgumentNullException(nameof(project)), selectionSpan, codeRefactoringProvider,
                fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
@@ -61,10 +61,10 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
         Project project,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        FixAllScope fixAllScope,
+        RefactorAllScope fixAllScope,
         string codeActionTitle,
         string? codeActionEquivalenceKey)
-        : base(fixAllProvider, document, project, codeRefactoringProvider, fixAllScope, codeActionEquivalenceKey)
+        : base(fixAllProvider, document, project, codeRefactoringProvider, fixAllScope.ToFixAllScope(), codeActionEquivalenceKey)
     {
         _selectionSpan = selectionSpan;
         this.CodeActionTitle = codeActionTitle;
@@ -78,21 +78,21 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
             project,
             _selectionSpan,
             this.Provider,
-            scope,
+            scope.ToRefactorAllScope(),
             this.CodeActionTitle,
             codeActionEquivalenceKey);
     }
 
     /// <summary>
-    /// Gets the spans to fix by document for the <see cref="FixAllScope"/> for this fix all occurrences fix.
+    /// Gets the spans to fix by document for the <see cref="RefactorAllScope"/> for this fix all occurrences fix.
     /// If no spans are specified, it indicates the entire document needs to be fixed.
     /// </summary>
     internal async Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
     {
         IEnumerable<Document>? documentsToFix = null;
-        switch (this.Scope)
+        switch (this.Scope.ToRefactorAllScope())
         {
-            case FixAllScope.ContainingType or FixAllScope.ContainingMember:
+            case RefactorAllScope.ContainingType or RefactorAllScope.ContainingMember:
                 Contract.ThrowIfNull(Document);
                 var spanMappingService = Document.GetLanguageService<IFixAllSpanMappingService>();
                 if (spanMappingService is null)
@@ -103,16 +103,16 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
                 return spansByDocument.Select(kvp => KeyValuePair.Create(kvp.Key, new Optional<ImmutableArray<TextSpan>>(kvp.Value)))
                     .ToImmutableDictionaryOrEmpty();
 
-            case FixAllScope.Document:
+            case RefactorAllScope.Document:
                 Contract.ThrowIfNull(Document);
                 documentsToFix = [Document];
                 break;
 
-            case FixAllScope.Project:
+            case RefactorAllScope.Project:
                 documentsToFix = Project.Documents;
                 break;
 
-            case FixAllScope.Solution:
+            case RefactorAllScope.Solution:
                 documentsToFix = Project.Solution.Projects.SelectMany(p => p.Documents);
                 break;
 

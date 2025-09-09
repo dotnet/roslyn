@@ -67,8 +67,8 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     /// will be considered.
     /// </param>
     /// <param name="supportedRefactorAllScopes">
-    /// Supported <see cref="RefactorAllScope"/>s for the fix all provider.
-    /// Note that <see cref="RefactorAllScope.Custom"/> is not supported by the <see cref="DocumentBasedFixAllProvider"/>
+    /// Supported <see cref="RefactorAllScope"/>s for the refactor all provider.
+    /// Note that <see cref="RefactorAllScope.Custom"/> is not supported by the <see cref="DocumentBasedRefactorAllProvider"/>
     /// and should not be part of the supported scopes.
     /// </param>
     public static RefactorAllProvider Create(
@@ -80,25 +80,25 @@ internal abstract class RefactorAllProvider : IFixAllProvider
 
     internal static RefactorAllProvider Create(
         Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
-        ImmutableArray<RefactorAllScope> supportedFixAllScopes,
+        ImmutableArray<RefactorAllScope> supportedRefactorAllScopes,
         CodeActionCleanup cleanup)
     {
         if (refactorAllAsync is null)
             throw new ArgumentNullException(nameof(refactorAllAsync));
 
-        if (supportedFixAllScopes.IsDefault)
-            throw new ArgumentNullException(nameof(supportedFixAllScopes));
+        if (supportedRefactorAllScopes.IsDefault)
+            throw new ArgumentNullException(nameof(supportedRefactorAllScopes));
 
-        if (supportedFixAllScopes.Contains(RefactorAllScope.Custom))
-            throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
+        if (supportedRefactorAllScopes.Contains(RefactorAllScope.Custom))
+            throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedRefactorAllScopes));
 
-        return new CallbackDocumentBasedRefactorAllProvider(refactorAllAsync, supportedFixAllScopes, cleanup);
+        return new CallbackDocumentBasedRefactorAllProvider(refactorAllAsync, supportedRefactorAllScopes, cleanup);
     }
 
     private sealed class CallbackDocumentBasedRefactorAllProvider(
         Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
-        ImmutableArray<RefactorAllScope> supportedFixAllScopes,
-        CodeActionCleanup cleanup) : DocumentBasedRefactorAllProvider(supportedFixAllScopes)
+        ImmutableArray<RefactorAllScope> supportedRefactorAllScopes,
+        CodeActionCleanup cleanup) : DocumentBasedRefactorAllProvider(supportedRefactorAllScopes)
     {
         public override CodeActionCleanup Cleanup { get; } = cleanup;
 

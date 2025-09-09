@@ -75,9 +75,10 @@ internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<Refactor
             GetRefactoredDocumentsAsync);
 
     /// <summary>
-    /// Attempts to apply fix all operations returning, for each updated document, either the new syntax root for that
-    /// document or its new text.  Syntax roots are returned for documents that support them, and are used to perform a
-    /// final cleanup pass for formatting/simplification/etc.  Text is returned for documents that don't support syntax.
+    /// Attempts to apply refactor all operations. Returning, for each updated document, either the new syntax root for
+    /// that document or its new text.  Syntax roots are returned for documents that support them, and are used to
+    /// perform a final cleanup pass for formatting/simplification/etc.  Text is returned for documents that don't
+    /// support syntax.
     /// </summary>
     private async Task GetRefactoredDocumentsAsync(
         RefactorAllContext refactorAllContext, Func<Document, Document?, ValueTask> onDocumentRefactored)

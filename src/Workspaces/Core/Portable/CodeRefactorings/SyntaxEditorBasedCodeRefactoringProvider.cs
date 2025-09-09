@@ -27,20 +27,20 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
             return null;
 
         return RefactorAllProvider.Create(
-            async (fixAllContext, document, refactorAllSpans) =>
-                await this.RefactorAllAsync(document, refactorAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
+            async (refactorAllContext, document, refactorAllSpans) =>
+                await this.RefactorAllAsync(document, refactorAllSpans, refactorAllContext.CodeActionEquivalenceKey, refactorAllContext.CancellationToken).ConfigureAwait(false),
             SupportedRefactorAllScopes,
             this.Cleanup);
     }
 
     protected Task<Document> RefactorAsync(
         Document document,
-        TextSpan fixAllSpan,
+        TextSpan refactorAllSpan,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
         return RefactorAllWithEditorAsync(document,
-            editor => RefactorAllAsync(document, [fixAllSpan], editor, equivalenceKey, cancellationToken),
+            editor => RefactorAllAsync(document, [refactorAllSpan], editor, equivalenceKey, cancellationToken),
             cancellationToken);
     }
 
