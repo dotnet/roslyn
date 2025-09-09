@@ -55,7 +55,7 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
         }
     }
 
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => AllRefactorAllScopes;
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {

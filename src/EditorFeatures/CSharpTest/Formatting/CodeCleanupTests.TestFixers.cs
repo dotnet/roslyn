@@ -133,7 +133,7 @@ public sealed partial class CodeCleanupTests
 
         private sealed class ModifySolutionFixAll : FixAllProvider
         {
-            public override IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
+            public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             {
                 return new[] { FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom };
             }

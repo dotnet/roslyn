@@ -28,12 +28,12 @@ internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefact
         {
         }
 
-        public override IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
-            => [FixAllScope.Solution];
+        public override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
+            => [RefactorAllScope.Solution];
 
         public override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext fixAllContext)
         {
-            Debug.Assert(fixAllContext.Scope == FixAllScope.Solution);
+            Debug.Assert(fixAllContext.Scope == RefactorAllScope.Solution);
             return Task.FromResult<CodeAction?>(new FixAllCodeAction(EnableNullableReferenceTypesInSolutionAsync));
 
             async Task<Solution> EnableNullableReferenceTypesInSolutionAsync(

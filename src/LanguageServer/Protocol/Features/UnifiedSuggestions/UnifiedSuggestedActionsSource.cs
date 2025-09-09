@@ -604,7 +604,7 @@ internal sealed class UnifiedSuggestedActionsSource
         {
             var fixAllState = new CodeRefactorings.RefactorAllState(
                 (CodeRefactorings.RefactorAllProvider)fixAllProviderInfo.FixAllProvider,
-                document, selection, provider, scope, action);
+                document, selection, provider, scope.ToRefactorAllScope(), action);
 
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
             {

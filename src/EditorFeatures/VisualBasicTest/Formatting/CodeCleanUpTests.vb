@@ -659,7 +659,7 @@ End Class
 
             Private Class ModifySolutionFixAll : Inherits FixAllProvider
 
-                Public Overrides Function GetSupportedRefactorAllScopes() As IEnumerable(Of FixAllScope)
+                Public Overrides Function GetSupportedFixAllScopes() As IEnumerable(Of FixAllScope)
                     Return {FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom}
                 End Function
 

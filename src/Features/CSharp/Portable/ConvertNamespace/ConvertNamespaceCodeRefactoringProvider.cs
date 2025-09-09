@@ -29,8 +29,8 @@ using static ConvertNamespaceTransform;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes
-        => [FixAllScope.Project, FixAllScope.Solution];
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes
+        => [RefactorAllScope.Project, RefactorAllScope.Solution];
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {

@@ -61,7 +61,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
             return (actions, actionToInvoke);
 
         var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
-            refactoring.Provider, document, span, fixAllScope.Value).ConfigureAwait(false);
+            refactoring.Provider, document, span, fixAllScope.Value.ToRefactorAllScope()).ConfigureAwait(false);
         if (fixAllCodeAction == null)
             return ([], null);
 
@@ -73,7 +73,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
         CodeRefactoringProvider provider,
         Document document,
         TextSpan selectionSpan,
-        FixAllScope scope)
+        RefactorAllScope scope)
     {
         var fixAllProvider = provider.GetRefactorAllProvider();
         if (fixAllProvider == null || !fixAllProvider.GetSupportedRefactorAllScopes().Contains(scope))

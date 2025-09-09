@@ -22,10 +22,10 @@ using FixAllScope = CodeAnalysis.CodeFixes.FixAllScope;
 internal sealed partial class ConvertToExtensionCodeRefactoringProvider
 {
     private sealed class ConvertToExtensionFixAllProvider()
-        : DocumentBasedFixAllProvider(
-            [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType])
+        : DocumentBasedRefactorAllProvider(
+            [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution, RefactorAllScope.ContainingType])
     {
-        protected override async Task<Document?> FixAllAsync(
+        protected override async Task<Document?> RefactorAllAsync(
             RefactorAllContext fixAllContext,
             Document document,
             Optional<ImmutableArray<TextSpan>> fixAllSpans)

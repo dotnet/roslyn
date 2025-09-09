@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.OrganizeImports;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => [FixAllScope.Project, FixAllScope.Solution];
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => [RefactorAllScope.Project, RefactorAllScope.Solution];
 
     /// <summary>
     /// Matches 'remove unnecessary imports' code fix.  This way we don't show 'sort imports' above it.

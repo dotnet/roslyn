@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,7 +23,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
@@ -74,7 +74,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor<
             return (actions, actionToInvoke);
 
         var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
-            refactoring.Provider, document, span, fixAllScope.Value).ConfigureAwait(false);
+            refactoring.Provider, document, span, fixAllScope.Value.ToRefactorAllScope()).ConfigureAwait(false);
         if (fixAllCodeAction == null)
             return ([], null);
 
@@ -86,7 +86,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor<
         CodeRefactoringProvider provider,
         Document document,
         TextSpan selectionSpan,
-        FixAllScope scope)
+        RefactorAllScope scope)
     {
         var fixAllProvider = provider.GetRefactorAllProvider();
         if (fixAllProvider == null || !fixAllProvider.GetSupportedRefactorAllScopes().Contains(scope))

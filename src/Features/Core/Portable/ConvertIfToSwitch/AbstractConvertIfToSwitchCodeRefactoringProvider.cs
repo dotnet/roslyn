@@ -29,7 +29,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
     public abstract string GetTitle(bool forSwitchExpression);
     public abstract Analyzer CreateAnalyzer(ISyntaxFacts syntaxFacts, ParseOptions options);
 
-    protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+    protected sealed override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => AllRefactorAllScopes;
 
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
