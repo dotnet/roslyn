@@ -38,7 +38,7 @@ internal sealed class RefactorAllContext : IFixAllContext
     /// <summary>
     /// <see cref="RefactorAllScope"/> to fix all occurrences.
     /// </summary>
-    public RefactorAllScope Scope => State.Scope;
+    public RefactorAllScope Scope => (RefactorAllScope)State.Scope;
 
     /// <summary>
     /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
@@ -67,7 +67,7 @@ internal sealed class RefactorAllContext : IFixAllContext
 
     object IFixAllContext.Provider => this.CodeRefactoringProvider;
 
-    string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultFixAllTitle();
+    string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultRefactorAllTitle();
 
     IFixAllContext IFixAllContext.With(
         Optional<(Document? document, Project project)> documentAndProject,
@@ -108,6 +108,6 @@ internal sealed class RefactorAllContext : IFixAllContext
             : new RefactorAllContext(newState, this.Progress, newCancellationToken);
     }
 
-    internal string GetDefaultFixAllTitle()
-        => FixAllHelper.GetDefaultFixAllTitle(this.Scope, this.State.CodeActionTitle, this.Document, this.Project);
+    internal string GetDefaultRefactorAllTitle()
+        => FixAllHelper.GetDefaultFixAllTitle(this.Scope.ToFixAllScope(), this.State.CodeActionTitle, this.Document, this.Project);
 }

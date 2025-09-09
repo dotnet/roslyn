@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
 internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
 {
-    internal sealed override CodeAnalysis.CodeRefactorings.RefactorAllProvider? GetFixAllProvider()
+    internal sealed override CodeAnalysis.CodeRefactorings.RefactorAllProvider? GetRefactorAllProvider()
         => FixAllProvider.Instance;
 
     private sealed class FixAllProvider : CodeAnalysis.CodeRefactorings.RefactorAllProvider

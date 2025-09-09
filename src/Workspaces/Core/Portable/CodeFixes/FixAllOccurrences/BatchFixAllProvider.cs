@@ -27,7 +27,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
     {
     }
 
-    public override IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
+    public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
     public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)

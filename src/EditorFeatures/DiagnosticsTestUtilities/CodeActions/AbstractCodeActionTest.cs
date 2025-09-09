@@ -75,7 +75,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
         TextSpan selectionSpan,
         FixAllScope scope)
     {
-        var fixAllProvider = provider.GetFixAllProvider();
+        var fixAllProvider = provider.GetRefactorAllProvider();
         if (fixAllProvider == null || !fixAllProvider.GetSupportedRefactorAllScopes().Contains(scope))
             return null;
 

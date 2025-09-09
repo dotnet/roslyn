@@ -57,7 +57,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             => ExtensionMethodEqualityComparer.Instance.GetHashCode(this);
     }
 
-    internal override RefactorAllProvider? GetFixAllProvider()
+    internal override RefactorAllProvider? GetRefactorAllProvider()
         => new ConvertToExtensionFixAllProvider();
 
     private static ExtensionMethodInfo? TryGetExtensionMethodInfo(

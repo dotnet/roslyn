@@ -8,10 +8,8 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using RefactorAllScope = Microsoft.CodeAnalysis.CodeFixes.RefactorAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -21,14 +19,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// </summary>
 /// <remarks>
 /// This type provides suitable logic for fixing large solutions in an efficient manner.  Projects are serially
-/// processed, with all the documents in the project being processed in parallel. 
-/// <see cref="FixAllAsync(RefactorAllContext, Document, Optional{ImmutableArray{TextSpan}})"/> is invoked for each document for implementors to process.
+/// processed, with all the documents in the project being processed in parallel. <see cref="RefactorAllAsync"/> is
+/// invoked for each document for implementors to process.
 ///
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<RefactorAllScope> supportedFixAllScopes) : RefactorAllProvider
+internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<RefactorAllScope> supportedRefactorAllScopes)
+    : RefactorAllProvider
 {
-    private readonly ImmutableArray<RefactorAllScope> _supportedFixAllScopes = supportedFixAllScopes;
+    private readonly ImmutableArray<RefactorAllScope> _supportedRefactorAllScopes = supportedRefactorAllScopes;
 
     protected DocumentBasedRefactorAllProvider()
         : this(DefaultSupportedRefactorAllScopes)
@@ -39,8 +38,8 @@ internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<Refactor
     /// Produce a suitable title for the fix-all <see cref="CodeAction"/> this type creates in <see
     /// cref="GetRefactoringAsync(RefactorAllContext)"/>.  Override this if customizing that title is desired.
     /// </summary>
-    protected virtual string GetFixAllTitle(RefactorAllContext fixAllContext)
-        => fixAllContext.GetDefaultFixAllTitle();
+    protected virtual string GetRefactorAllTitle(RefactorAllContext fixAllContext)
+        => fixAllContext.GetDefaultRefactorAllTitle();
 
     /// <summary>
     /// Apply fix all operation for the code refactoring in the <see cref="RefactorAllContext.Document"/>
@@ -48,29 +47,29 @@ internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<Refactor
     /// (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects of document (like it's properties),
     /// or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at will be considered.
     /// </summary>
-    /// <param name="fixAllContext">The context for the Fix All operation.</param>
-    /// <param name="document">The document to fix.</param>
-    /// <param name="fixAllSpans">The spans to fix in the document. If not specified, entire document needs to be fixedd.</param>
+    /// <param name="fixAllContext">The context for the Refactor All operation.</param>
+    /// <param name="document">The document to refactor.</param>
+    /// <param name="fixAllSpans">The spans to refactor in the document. If not specified, entire document needs to be refactored.</param>
     /// <returns>
-    /// <para>The new <see cref="Document"/> representing the content fixed document.</para>
+    /// <para>The new <see cref="Document"/> representing the content refactored document.</para>
     /// <para>-or-</para>
     /// <para><see langword="null"/>, if no changes were made to the document.</para>
     /// </returns>
-    protected abstract Task<Document?> FixAllAsync(RefactorAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans);
+    protected abstract Task<Document?> RefactorAllAsync(RefactorAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans);
 
     public sealed override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
-        => _supportedFixAllScopes;
+        => _supportedRefactorAllScopes;
 
     public sealed override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext fixAllContext)
         => DefaultFixAllProviderHelpers.GetFixAsync(
-            fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
+            fixAllContext.GetDefaultRefactorAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
     private Task<Solution?> FixAllContextsHelperAsync(RefactorAllContext originalFixAllContext, ImmutableArray<RefactorAllContext> fixAllContexts)
         => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(
             originalFixAllContext,
             fixAllContexts,
             originalFixAllContext.Progress,
-            this.GetFixAllTitle(originalFixAllContext),
+            this.GetRefactorAllTitle(originalFixAllContext),
             GetFixedDocumentsAsync);
 
     /// <summary>
@@ -95,7 +94,7 @@ internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<Refactor
             async (tuple, cancellationToken) =>
             {
                 var (document, spans) = tuple;
-                var newDocument = await this.FixAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
+                var newDocument = await this.RefactorAllAsync(fixAllContext, document, spans).ConfigureAwait(false);
                 await onDocumentFixed(document, newDocument).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }

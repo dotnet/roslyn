@@ -24,10 +24,10 @@ public abstract class CodeRefactoringProvider
 
     /// <summary>
     /// Gets an optional <see cref="RefactorAllProvider"/> that can apply multiple occurrences of code refactoring(s)
-    /// registered by this code refactoring provider across the supported <see cref="CodeFixes.FixAllScope"/>s.
+    /// registered by this code refactoring provider across the supported <see cref="RefactorAllScope"/>s.
     /// Return null if the provider doesn't support fix all operation.
     /// </summary>
-    internal virtual RefactorAllProvider? GetFixAllProvider()
+    internal virtual RefactorAllProvider? GetRefactorAllProvider()
         => null;
 
     /// <summary>

@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -57,7 +56,7 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
     /// </returns>
     protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
-    public sealed override IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
+    public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => _supportedFixAllScopes;
 
     public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)

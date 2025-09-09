@@ -57,7 +57,7 @@ internal abstract class FixAllProviderInfo
         if (diagnosticIds.IsEmpty)
             return null;
 
-        var scopes = fixAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
+        var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
             return null;
 
@@ -69,7 +69,7 @@ internal abstract class FixAllProviderInfo
     /// </summary>
     private static FixAllProviderInfo? CreateWithCodeRefactoring(CodeRefactoringProvider provider)
     {
-        var fixAllProvider = provider.GetFixAllProvider();
+        var fixAllProvider = provider.GetRefactorAllProvider();
         if (fixAllProvider == null)
         {
             return null;
@@ -95,7 +95,7 @@ internal abstract class FixAllProviderInfo
             return null;
         }
 
-        var scopes = fixAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
+        var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
         {
             return null;
@@ -118,7 +118,8 @@ internal abstract class FixAllProviderInfo
     private sealed class SuppressionFixerFixAllProviderInfo(
         IFixAllProvider fixAllProvider,
         IConfigurationFixProvider suppressionFixer,
-        ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
+        ImmutableArray<FixAllScope> supportedScopes)
+        : FixAllProviderInfo(fixAllProvider, supportedScopes)
     {
         private readonly Func<Diagnostic, bool> _canBeSuppressedOrUnsuppressed = suppressionFixer.IsFixableDiagnostic;
 
@@ -128,7 +129,8 @@ internal abstract class FixAllProviderInfo
 
     private sealed class CodeRefactoringFixAllProviderInfo(
         IFixAllProvider fixAllProvider,
-        ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
+        ImmutableArray<RefactorAllScope> supportedScopes)
+        : FixAllProviderInfo(fixAllProvider, supportedScopes.SelectAsArray(s => s.ToFixAllScope()))
     {
         public override bool CanBeFixed(Diagnostic diagnostic)
             => throw ExceptionUtilities.Unreachable();

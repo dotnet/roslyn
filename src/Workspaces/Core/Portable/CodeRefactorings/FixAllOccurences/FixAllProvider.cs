@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
 
@@ -25,6 +27,9 @@ internal abstract class RefactorAllProvider : IFixAllProvider
 
     public virtual IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
         => DefaultSupportedRefactorAllScopes;
+
+    IEnumerable<FixAllScope> IFixAllProvider.GetSupportedFixAllScopes()
+        => GetSupportedRefactorAllScopes().Select(s => s.ToFixAllScope());
 
     public virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
@@ -89,17 +94,17 @@ internal abstract class RefactorAllProvider : IFixAllProvider
         if (supportedFixAllScopes.Contains(RefactorAllScope.Custom))
             throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
 
-        return new CallbackDocumentBasedFixAllProvider(refactorAllAsync, supportedFixAllScopes, cleanup);
+        return new CallbackDocumentBasedRefactorAllProvider(refactorAllAsync, supportedFixAllScopes, cleanup);
     }
 
-    private sealed class CallbackDocumentBasedFixAllProvider(
+    private sealed class CallbackDocumentBasedRefactorAllProvider(
         Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
         ImmutableArray<RefactorAllScope> supportedFixAllScopes,
-        CodeActionCleanup cleanup) : DocumentBasedFixAllProvider(supportedFixAllScopes)
+        CodeActionCleanup cleanup) : DocumentBasedRefactorAllProvider(supportedFixAllScopes)
     {
         public override CodeActionCleanup Cleanup { get; } = cleanup;
 
-        protected override Task<Document?> FixAllAsync(RefactorAllContext context, Document document, Optional<ImmutableArray<TextSpan>> refactorAllSpans)
+        protected override Task<Document?> RefactorAllAsync(RefactorAllContext context, Document document, Optional<ImmutableArray<TextSpan>> refactorAllSpans)
             => refactorAllAsync(context, document, refactorAllSpans);
     }
 }

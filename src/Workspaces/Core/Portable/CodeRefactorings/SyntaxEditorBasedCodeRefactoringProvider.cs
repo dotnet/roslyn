@@ -19,18 +19,18 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
     protected static readonly ImmutableArray<FixAllScope> DefaultFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
     protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember];
 
-    protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
+    protected abstract ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes { get; }
     protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
-    internal sealed override RefactorAllProvider? GetFixAllProvider()
+    internal sealed override RefactorAllProvider? GetRefactorAllProvider()
     {
-        if (SupportedFixAllScopes.IsEmpty)
+        if (SupportedRefactorAllScopes.IsEmpty)
             return null;
 
         return RefactorAllProvider.Create(
             async (fixAllContext, document, fixAllSpans) =>
                 await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
-            SupportedFixAllScopes,
+            SupportedRefactorAllScopes,
             this.Cleanup);
     }
 
