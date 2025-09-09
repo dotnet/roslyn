@@ -38,10 +38,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.4" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.4" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.4" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
@@ -117,6 +117,7 @@
     <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.23.39-alpha" />
+    <PackageVersion Include="MessagePack" Version="2.5.198" />
 
     <!--
       VS Debugger

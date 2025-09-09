@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed class DiagnosticAnalyzerServiceFactory(
     IGlobalOptionService globalOptions,
     IDiagnosticsRefresher diagnosticsRefresher,
-    DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
     [Import(AllowDefault = true)] IAsynchronousOperationListenerProvider? listenerProvider) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -33,7 +32,6 @@ internal sealed class DiagnosticAnalyzerServiceFactory(
         return new DiagnosticAnalyzerService(
             globalOptions,
             diagnosticsRefresher,
-            globalCache,
             listenerProvider,
             workspaceServices.Workspace);
     }
@@ -57,7 +55,7 @@ internal sealed partial class DiagnosticAnalyzerService
     private readonly IGlobalOptionService _globalOptions;
 
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
-    private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+    private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
     private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
     private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
@@ -76,11 +74,9 @@ internal sealed partial class DiagnosticAnalyzerService
     public DiagnosticAnalyzerService(
         IGlobalOptionService globalOptions,
         IDiagnosticsRefresher diagnosticsRefresher,
-        DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
         IAsynchronousOperationListenerProvider? listenerProvider,
         Workspace workspace)
     {
-        _analyzerInfoCache = globalCache.AnalyzerInfoCache;
         _listener = listenerProvider?.GetListener(FeatureAttribute.DiagnosticService) ?? AsynchronousOperationListenerProvider.NullListener;
         _globalOptions = globalOptions;
         _diagnosticsRefresher = diagnosticsRefresher;
@@ -118,67 +114,6 @@ internal sealed partial class DiagnosticAnalyzerService
 
     public void RequestDiagnosticRefresh()
         => _diagnosticsRefresher.RequestWorkspaceRefresh();
-
-    private ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(
-        Project project,
-        ImmutableHashSet<string>? diagnosticIds,
-        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
-    {
-        shouldIncludeAnalyzer ??= GetDefaultAnalyzerFilter(project, diagnosticIds, additionalFilter: null);
-
-        var analyzersForProject = GetProjectAnalyzers(project);
-        return analyzersForProject.WhereAsArray(shouldIncludeAnalyzer);
-    }
-
-    public Func<DiagnosticAnalyzer, bool> GetDefaultAnalyzerFilter(
-        Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? additionalFilter)
-        => analyzer =>
-        {
-            if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this._globalOptions))
-                return false;
-
-            if (additionalFilter != null && !additionalFilter(analyzer))
-                return false;
-
-            if (diagnosticIds != null && _analyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
-                return false;
-
-            return true;
-        };
-
-    public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
-    {
-        var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
-
-        return ProduceProjectDiagnosticsAsync(
-            project, analyzers, diagnosticIds,
-            // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
-            // project if no specific document id was requested.
-            documentIds.IsDefault ? [.. project.DocumentIds, .. project.AdditionalDocumentIds] : documentIds,
-            includeLocalDocumentDiagnostics,
-            includeNonLocalDocumentDiagnostics: true,
-            // return diagnostics specific to one project or document
-            includeProjectNonLocalResult: documentIds.IsDefault,
-            cancellationToken);
-    }
-
-    public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-        Project project,
-        ImmutableHashSet<string>? diagnosticIds,
-        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
-        CancellationToken cancellationToken)
-    {
-        var analyzers = GetDiagnosticAnalyzers(project, diagnosticIds, shouldIncludeAnalyzer);
-
-        return ProduceProjectDiagnosticsAsync(
-            project, analyzers, diagnosticIds,
-            documentIds: [],
-            includeLocalDocumentDiagnostics: false,
-            includeNonLocalDocumentDiagnostics: false,
-            includeProjectNonLocalResult: true,
-            cancellationToken);
-    }
 
     public TestAccessor GetTestAccessor()
         => new(this);

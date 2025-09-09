@@ -24,21 +24,14 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     void RequestDiagnosticRefresh();
 
     /// <summary>
-    /// The default analyzer filter that will be used in functions like <see cref="GetDiagnosticsForIdsAsync"/> if
-    /// no filter is provided.  The default filter has the following rules:
-    /// <list type="number">
-    /// <item>The standard compiler analyzer will not be run if the compiler diagnostic scope is <see cref="CompilerDiagnosticsScope.None"/>.</item>
-    /// <item>A regular analyzer will not be run if <see cref="ProjectState.RunAnalyzers"/> is false.</item>
-    /// <item>A regular analyzer will not be run if if the background analysis scope is <see cref="BackgroundAnalysisScope.None"/>.</item>
-    /// <item>If a set of diagnostic ids are provided, the analyzer will not be run unless it declares at least one
-    /// descriptor in that set.</item>
-    /// <item>Otherwise, the analyzer will be run</item>
-    /// </list>
+    /// Forces analyzers to run on the given project and return all diagnostics, regardless of current environment
+    /// settings (like 'only run analyzers on open files', etc.).  This is meant to be used by explicit invocations
+    /// of features like "Run Code Analysis".  Note: not all analyzers will necessarily run.  For example, analyzers
+    /// where all diagnostic descriptors are currently hidden will not run, as they would not produce any actual
+    /// diagnostics.
     /// </summary>
-    /// <param name="additionalFilter">An additional filter that can accept or reject analyzers that the default
-    /// rules have accepted.</param>
-    Func<DiagnosticAnalyzer, bool> GetDefaultAnalyzerFilter(
-        Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? additionalFilter = null);
+    Task<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
+        Project project, CancellationToken cancellationToken);
 
     /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.GetDeprioritizationCandidatesAsync"/>
     Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
@@ -55,10 +48,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <param name="documentIds">Optional documents to scope the returned diagnostics.  If <see langword="default"/>,
     /// then diagnostics will be returned for <see cref="Project.DocumentIds"/> and <see cref="Project.AdditionalDocumentIds"/>.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="shouldIncludeAnalyzer">Optional callback to filter out analyzers to execute for computing diagnostics.
-    /// If not present, <see cref="GetDefaultAnalyzerFilter"/> will be used.  If present, no default behavior
-    /// is used, and the callback is defered to entirely.  To augment the existing default rules call
-    /// <see cref="GetDefaultAnalyzerFilter"/> explicitly, and pass the result of that into this method.</param>
+    /// <param name="analyzerFilter">Which analyzers to run.</param>
     /// <param name="includeLocalDocumentDiagnostics">
     /// Indicates if local document diagnostics must be returned.
     /// Local diagnostics are the ones that are reported by analyzers on the same file for which the callback was received
@@ -70,7 +60,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </remarks>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
+        Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
@@ -80,12 +70,9 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     /// <param name="project">Project to fetch the diagnostics for.</param>
     /// <param name="diagnosticIds">Optional set of diagnostic IDs to scope the returned diagnostics.</param>
-    /// <param name="shouldIncludeAnalyzer">Optional callback to filter out analyzers to execute for computing diagnostics.
-    /// If not present, <see cref="GetDefaultAnalyzerFilter"/> will be used.  If present, no default behavior
-    /// is used, and the callback is defered to entirely.  To augment the existing default rules call
-    /// <see cref="GetDefaultAnalyzerFilter"/> explicitly, and pass the result of that into this method.</param>
+    /// <param name="analyzerFilter">Which analyzers to run.</param>
     Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-        Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, CancellationToken cancellationToken);
+        Project project, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, CancellationToken cancellationToken);
 
     /// <summary>
     /// Return up to date diagnostics for the given span for the document
@@ -116,6 +103,13 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Project project, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// For all analyers in the given solution, return the descriptor ids of all compilation end diagnostics.
+    /// Note: this does not include the "built in compiler analyzer".
+    /// </summary>
+    Task<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
+        Solution solution, CancellationToken cancellationToken);
 }
 
 internal static class IDiagnosticAnalyzerServiceExtensions

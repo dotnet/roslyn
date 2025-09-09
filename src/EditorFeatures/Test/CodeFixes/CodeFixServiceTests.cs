@@ -1028,7 +1028,7 @@ public sealed class CodeFixServiceTests
         workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
 
         var analyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var diagnostics = await analyzerService.ForceAnalyzeProjectAsync(sourceDocument.Project, CancellationToken.None);
+        var diagnostics = await analyzerService.ForceRunCodeAnalysisDiagnosticsAsync(sourceDocument.Project, CancellationToken.None);
         await VerifyCachedDiagnosticsAsync(
             sourceDocument, expectedCachedDiagnostic: diagnosticOnFixLineInPriorSnapshot, testSpan, diagnostics);
 
@@ -1060,7 +1060,7 @@ public sealed class CodeFixServiceTests
             : root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
 
         await analyzerService.GetDiagnosticsForIdsAsync(
-            sourceDocument.Project, [sourceDocument.Id], diagnosticIds: null, shouldIncludeAnalyzer: null,
+            sourceDocument.Project, [sourceDocument.Id], diagnosticIds: null, AnalyzerFilter.All,
             includeLocalDocumentDiagnostics: true, CancellationToken.None);
         // await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 

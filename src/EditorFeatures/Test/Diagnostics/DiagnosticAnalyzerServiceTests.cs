@@ -65,7 +65,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
-            workspace.CurrentSolution.Projects.Single(), documentIds: default, diagnosticIds: null, shouldIncludeAnalyzer: null,
+            workspace.CurrentSolution.Projects.Single(), documentIds: default, diagnosticIds: null, AnalyzerFilter.All,
             includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
@@ -183,7 +183,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         // open document
         workspace.OpenDocument(document.Id);
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(document.Project, CancellationToken.None);
 
         foreach (var diagnostic in diagnostics)
         {
@@ -217,7 +217,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var syntax = false;
         var semantic = false;
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(document.Project, CancellationToken.None);
 
         (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
 
@@ -257,7 +257,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
 
@@ -340,7 +340,7 @@ public sealed class DiagnosticAnalyzerServiceTests
     {
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         if (expectAnalyzerExecuted)
         {
@@ -389,7 +389,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         var expectedCount = testMultiple ? 4 : 1;
 
@@ -470,7 +470,7 @@ public sealed class DiagnosticAnalyzerServiceTests
                 throw ExceptionUtilities.UnexpectedValue(analysisScope);
         }
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         var diagnostic = diagnostics.SingleOrDefault();
         if (includeAnalyzer)
@@ -592,7 +592,7 @@ public sealed class DiagnosticAnalyzerServiceTests
                 break;
         }
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         diagnostics = [.. diagnostics
             .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
@@ -634,7 +634,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
-            project, documentIds: default, [analyzer1.Descriptor.Id], shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+            project, documentIds: default, [analyzer1.Descriptor.Id], AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.False(analyzer2.ReceivedSymbolCallback);
 
         var diagnostic = Assert.Single(diagnosticsMapResults);
@@ -658,7 +658,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var document = documentAnalysis ? project.Documents.Single() : null;
         var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
-            project, documentIds: default, [analyzer.Descriptor.Id], shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+            project, documentIds: default, [analyzer.Descriptor.Id], AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
         // In this case, since the analyzer identity is identical, we ran it once
         Assert.Single(diagnosticsMapResults);
@@ -691,7 +691,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
             project, documentIds: default, [analyzerProject.Descriptor.Id, analyzerHost.Descriptor.Id],
-            shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+            AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
         // In this case, since the analyzer reference identity is identical, we ran it once
         Assert.Single(diagnosticsMapResults);
@@ -721,7 +721,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
             project, documentIds: default, [analyzerProject.Descriptor.Id, analyzerHost.Descriptor.Id],
-            shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+            AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
         // We should only get one diagnostic as the two analyzers have the same ID and will be deduped.
         Assert.Single(diagnosticsMapResults);
@@ -772,7 +772,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnosticsMapResults = await service.GetDiagnosticsForIdsAsync(
             project, documentIds: default, [analyzer.Descriptor.Id],
-            shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+            AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
         Assert.Single(diagnosticsMapResults);
 
@@ -888,7 +888,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         try
         {
             _ = await service.GetDiagnosticsForIdsAsync(
-                project, [document.Id], diagnosticIds: null, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true,
+                project, [document.Id], diagnosticIds: null, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true,
                 analyzer.CancellationToken);
 
             throw ExceptionUtilities.Unreachable();
@@ -899,7 +899,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
         var diagnosticsMap = await service.GetDiagnosticsForIdsAsync(
-            project, [document.Id], diagnosticIds: null, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, CancellationToken.None);
+            project, [document.Id], diagnosticIds: null, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnosticsMap.Single().Id);
     }
 
@@ -928,7 +928,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         var service = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceRunCodeAnalysisDiagnosticsAsync(project, CancellationToken.None);
 
         Assert.NotEmpty(diagnostics);
     }
