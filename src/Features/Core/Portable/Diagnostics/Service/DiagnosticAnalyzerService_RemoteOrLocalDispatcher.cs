@@ -206,6 +206,24 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             project, diagnosticIds, analyzerFilter, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<bool> IsAnyDeprioritizedDiagnosticIdAsync(
+        Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, bool>(
+                project,
+                (service, solution, cancellationToken) => service.IsAnyDeprioritizedDiagnosticIdAsync(
+                    solution, project.Id, diagnosticIds, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            return result.HasValue && result.Value;
+        }
+
+        return await IsAnyDeprioritizedDiagnosticIdInProcessAsync(
+            project, diagnosticIds, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
         TextDocument document,
         TextSpan? range,

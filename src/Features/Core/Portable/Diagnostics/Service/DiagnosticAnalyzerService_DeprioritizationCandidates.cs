@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,44 +25,49 @@ internal sealed partial class DiagnosticAnalyzerService
     /// </summary>
     private static readonly ConditionalWeakTable<DiagnosticAnalyzer, ImmutableHashSet<string>?> s_analyzerToDeprioritizedDiagnosticIds = new();
 
-    private async Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesInProcessAsync(
-        Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+    public async Task<bool> IsAnyDeprioritizedDiagnosticIdInProcessAsync(
+        Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var builder);
-
-        HostAnalyzerInfo? hostAnalyzerInfo = null;
         CompilationWithAnalyzersPair? compilationWithAnalyzers = null;
 
+        var analyzers = GetProjectAnalyzers(project);
         foreach (var analyzer in analyzers)
         {
-            if (!s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var diagnosticIds))
+            if (!s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var deprioritizedIds))
             {
-                if (hostAnalyzerInfo is null)
+                if (compilationWithAnalyzers is null)
                 {
-                    hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo(project);
                     compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
-                        project, analyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                        project, analyzers, GetOrCreateHostAnalyzerInfo(project), this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 }
 
-                boxedBool = new(await IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(analyzer).ConfigureAwait(false));
+                deprioritizedIds = await ComputeDeprioritizedDiagnosticIdsAsync(analyzer).ConfigureAwait(false);
+
 #if NET
-                s_analyzerToIsDeprioritizationCandidateMap.TryAdd(analyzer, boxedBool);
+                s_analyzerToDeprioritizedDiagnosticIds.TryAdd(analyzer, deprioritizedIds);
 #else
-                lock (s_analyzerToIsDeprioritizationCandidateMap)
+                lock (s_analyzerToDeprioritizedDiagnosticIds)
                 {
-                    if (!s_analyzerToIsDeprioritizationCandidateMap.TryGetValue(analyzer, out var existing))
-                        s_analyzerToIsDeprioritizationCandidateMap.Add(analyzer, boxedBool);
+                    if (!s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var existing))
+                        s_analyzerToDeprioritizedDiagnosticIds.Add(analyzer, deprioritizedIds);
                 }
 #endif
+
             }
 
-            if (boxedBool.Value)
-                builder.Add(analyzer);
+            if (deprioritizedIds != null)
+            {
+                foreach (var id in diagnosticIds)
+                {
+                    if (deprioritizedIds.Contains(id))
+                        return true;
+                }
+            }
         }
 
-        return builder.ToImmutableAndClear();
+        return false;
 
-        async Task<bool> IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(DiagnosticAnalyzer analyzer)
+        async ValueTask<ImmutableHashSet<string>?> ComputeDeprioritizedDiagnosticIdsAsync(DiagnosticAnalyzer analyzer)
         {
             // We deprioritize SymbolStart/End and SemanticModel analyzers from 'Normal' to 'Low' priority bucket,
             // as these are computationally more expensive.
@@ -69,14 +76,17 @@ internal sealed partial class DiagnosticAnalyzerService
                 analyzer.IsWorkspaceDiagnosticAnalyzer() ||
                 analyzer.IsCompilerAnalyzer())
             {
-                return false;
+                return null;
             }
 
             var telemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
             if (telemetryInfo == null)
-                return false;
+                return null;
 
-            return telemetryInfo.SymbolStartActionsCount > 0 || telemetryInfo.SemanticModelActionsCount > 0;
+            if (telemetryInfo.SymbolStartActionsCount == 0 && telemetryInfo.SemanticModelActionsCount == 0)
+                return null;
+
+            return [.. analyzer.SupportedDiagnostics.Select(d => d.Id)];
         }
     }
 }

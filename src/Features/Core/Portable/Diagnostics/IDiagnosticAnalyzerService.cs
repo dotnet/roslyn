@@ -36,7 +36,8 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
         Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken);
 #endif
-    Task<bool> IsAnyDeprioritizedDiagnosticIdAsync(ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
+    Task<bool> IsAnyDeprioritizedDiagnosticIdAsync(
+        Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets document diagnostics of the given diagnostic ids and/or analyzers from the given project.
