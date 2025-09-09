@@ -10,14 +10,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeRefactoringProvider
 {
-    protected static readonly ImmutableArray<FixAllScope> DefaultFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
-    protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember];
+    protected static readonly ImmutableArray<RefactorAllScope> DefaultRefactorAllScopes = [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution];
+    protected static readonly ImmutableArray<RefactorAllScope> AllRefactorAllScopes = [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution, RefactorAllScope.ContainingType, RefactorAllScope.ContainingMember];
 
     protected abstract ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes { get; }
     protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
@@ -29,7 +28,7 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
 
         return RefactorAllProvider.Create(
             async (fixAllContext, document, refactorAllSpans) =>
-                await this.FixAllAsync(document, refactorAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
+                await this.RefactorAllAsync(document, refactorAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
             SupportedRefactorAllScopes,
             this.Cleanup);
     }
@@ -40,21 +39,21 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
-        return FixAllWithEditorAsync(document,
+        return RefactorAllWithEditorAsync(document,
             editor => RefactorAllAsync(document, [fixAllSpan], editor, equivalenceKey, cancellationToken),
             cancellationToken);
     }
 
-    protected Task<Document> FixAllAsync(
+    protected Task<Document> RefactorAllAsync(
         Document document,
         Optional<ImmutableArray<TextSpan>> refactorAllSpans,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
-        return FixAllWithEditorAsync(document, FixAllAsync, cancellationToken);
+        return RefactorAllWithEditorAsync(document, RefactorAllAsync, cancellationToken);
 
         // Local functions
-        Task FixAllAsync(SyntaxEditor editor)
+        Task RefactorAllAsync(SyntaxEditor editor)
         {
             // Fix the entire document if there are no sub-spans to fix.
             var spans = refactorAllSpans.HasValue ? refactorAllSpans.Value : [editor.OriginalRoot.FullSpan];
@@ -62,7 +61,7 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
         }
     }
 
-    internal static async Task<Document> FixAllWithEditorAsync(
+    internal static async Task<Document> RefactorAllWithEditorAsync(
         Document document,
         Func<SyntaxEditor, Task> editAsync,
         CancellationToken cancellationToken)
