@@ -49,6 +49,15 @@ function GetFeedPublishData() {
   return $data.feeds
 }
 
+function GetPackageFeedOverrideData() {
+  $data = GetPublishData
+  if (Get-Member -InputObject $data.packageFeedOverride) {
+    return $data.packageFeedOverride
+  } else {
+    return $null
+  }
+}
+
 function GetReleasePublishData([string]$releaseName) {
   $data = GetPublishData
 

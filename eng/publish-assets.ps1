@@ -13,6 +13,7 @@ Param(
   [string]$branchName = "",
   [string]$releaseName = "",
   [switch]$test,
+  [switch]$prValidation,
 
   # Credentials
   [string]$nugetApiKey = ""
@@ -26,6 +27,7 @@ function Get-PublishKey([string]$uploadUrl) {
   switch ($url.Host) {
     "api.nuget.org" { return $nugetApiKey }
     # For publishing to azure, the API key can be any non-empty string as authentication is done in the pipeline.
+    "devdiv.pkgs.visualstudio.com" { return "DevDivAzureArtifacts" }
     "pkgs.dev.azure.com" { return "AzureArtifacts"}
     default { throw "Cannot determine publish key for $uploadUrl" }
   }
@@ -44,6 +46,8 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       $feedName = $publishData.feed
     }
 
+    $packageOverrideData = GetPackageFeedOverrideData
+
     foreach ($package in Get-ChildItem *.nupkg) {
       Write-Host ""
 
@@ -56,6 +60,24 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       if ($nupkg.EndsWith(".symbols.nupkg")) {
         Write-Host "Skipping symbol package $nupkg"
         continue
+      }
+
+      $nupkgWithoutVersion = $nupkg -replace '(\.\d+){3}-.*.nupkg', ''
+      if ($nupkgWithoutVersion.EndsWith(".Symbols")) {
+        Write-Host "Skipping symbol package $nupkg"
+        continue
+      }
+
+      # Check if the specific package has a feed override.
+      if (Get-Member -InputObject $packageOverrideData -Name $nupkgWithoutVersion) {
+        $feedName = $packageOverrideData.$nupkgWithoutVersion
+        Write-Host "Using package feed override $feedName for $nupkg"
+      }
+
+      # If we're doing PR validation, we always publish to the VS feed as it runs in the DevDiv AzDo instance
+      # and does not have permissions to publish anywhere else.
+      if ($prValidation) {
+        $feedName = "vs"
       }
 
       # Use the feed name to get the source to upload the package to.
