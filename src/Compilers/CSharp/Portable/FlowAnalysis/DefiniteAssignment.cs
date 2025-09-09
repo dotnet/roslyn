@@ -403,17 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pendingReturns;
         }
 
-        protected override ImmutableArray<PendingBranch> RemoveReturns()
-        {
-            var result = base.RemoveReturns();
-
-            // CS1998 (WRN_AsyncLacksAwaits) warning has been removed entirely.
-            // Previously this would warn about async methods that lack 'await' operators,
-            // but this warning is no longer emitted.
-
-            return result;
-        }
-
         // For purpose of definite assignment analysis, awaits create pending branches, so async usings and foreachs do too
         public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
 

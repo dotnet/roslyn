@@ -10183,7 +10183,6 @@ using System;
 using System.Threading.Tasks;
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
 
 public class C
 {
@@ -10207,9 +10206,9 @@ public class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (14,27): error CS0165: Use of unassigned local variable 'a'
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
                 //         Console.WriteLine(a);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(14, 27)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
                 );
         }
 
@@ -10292,8 +10291,6 @@ public class C
 using System;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-
 public class C
 {
     public async Task M()
@@ -10316,9 +10313,9 @@ public class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                // (11,27): error CS0165: Use of unassigned local variable 'a'
                 //         Console.WriteLine(a);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
                 );
         }
 

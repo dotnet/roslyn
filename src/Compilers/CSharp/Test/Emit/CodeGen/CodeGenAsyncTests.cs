@@ -9165,7 +9165,6 @@ class Test1
                         }
                     }
 
-                #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
                     public static async Task<int> Throw(int value) => throw new IntegerException(value);
                 }
 
@@ -9272,7 +9271,6 @@ class Test1
                         }
                     }
 
-                #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
                     public static async Task<int> Throw(int value) => throw new IntegerException(value);
                 }
 

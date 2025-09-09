@@ -595,7 +595,6 @@ class C
     {
     }
 }";
-            // CS1998 warning has been removed - async methods without await no longer produce warnings
             CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
@@ -1591,7 +1590,6 @@ class Test
         Func<Task<int>> f5 = async delegate () { return 1; };
     }
 }";
-            // CS1998 warning has been removed - async methods without await no longer produce warnings
             CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
@@ -3844,10 +3842,8 @@ class C
     static void F<T>(Func<Task<T>> f) { }
     static void M()
     {
-#pragma warning disable CS1998
         F(async () => { });
         F(async () => { return 3; });
-#pragma warning restore CS1998
     }
 }";
             var reference = CompileIL(ilSource);

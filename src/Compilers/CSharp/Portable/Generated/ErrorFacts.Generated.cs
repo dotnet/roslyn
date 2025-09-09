@@ -116,7 +116,6 @@
                 case ErrorCode.WRN_MultipleRuntimeOverrideMatches:
                 case ErrorCode.WRN_DynamicDispatchToConditionalMethod:
                 case ErrorCode.WRN_IsDynamicIsConfusing:
-                // case ErrorCode.WRN_AsyncLacksAwaits: // Removed as per https://github.com/dotnet/roslyn/issues/77001
                 case ErrorCode.WRN_FileAlreadyIncluded:
                 case ErrorCode.WRN_NoSources:
                 case ErrorCode.WRN_NoConfigNotOnCommandLine:
