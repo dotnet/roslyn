@@ -7257,15 +7257,15 @@ object o = null;
 _ = o is not (string and var x0);
 _ = o is not S { Prop1: _, Prop2: var x1 };
 _ = o is not S (42 and not 43, int x2); // 1
-_ = o is not S { Prop1: 42 and not 43, Prop2: _ and var x3 }; // 2, 3
+_ = o is not S { Prop1: 42 and not 43, Prop2: _ and var x3 }; // 2
 
 S s = default;
 _ = s is not (_, int);
 _ = s is not (int, int);
-_ = s is not { Prop1: _ }; // 4
+_ = s is not { Prop1: _ }; // 3
 
-_ = s is not (_, _); // 5
-_ = s is not (var x4, var x5); // 6
+_ = s is not (_, _); // 4
+_ = s is not (var x4, var x5); // 5
 
 public struct S
 {
@@ -7280,16 +7280,16 @@ public struct S
                 // _ = o is not S (42 and not 43, int x2); // 1
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(4, 28),
                 // (5,36): hidden CS9331: The pattern is redundant.
-                // _ = o is not S { Prop1: 42 and not 43, Prop2: _ and var x3 }; // 2, 3
+                // _ = o is not S { Prop1: 42 and not 43, Prop2: _ and var x3 }; // 2
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 36),
                 // (10,5): error CS8518: An expression of type 'S' can never match the provided pattern.
-                // _ = s is not { Prop1: _ }; // 4
+                // _ = s is not { Prop1: _ }; // 3
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is not { Prop1: _ }").WithArguments("S").WithLocation(10, 5),
                 // (12,5): error CS8518: An expression of type 'S' can never match the provided pattern.
-                // _ = s is not (_, _); // 5
+                // _ = s is not (_, _); // 4
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is not (_, _)").WithArguments("S").WithLocation(12, 5),
                 // (13,5): error CS8518: An expression of type 'S' can never match the provided pattern.
-                // _ = s is not (var x4, var x5); // 6
+                // _ = s is not (var x4, var x5); // 5
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is not (var x4, var x5)").WithArguments("S").WithLocation(13, 5));
         }
 
@@ -8817,7 +8817,7 @@ class C
 
         if (s is { P0: 0 } or (({ P2: 2 } or { P1: > 1 }) and { P3: 3 }) or { P2: > -1 }) { }
 
-        if (s is { P0: 0 } or (({ P1: > 1 } or { P2: 2 }) and { P3: 3 }) ) { } // 3
+        if (s is { P0: 0 } or (({ P1: > 1 } or { P2: 2 }) and { P3: 3 }) ) { }
     }
 }
 
@@ -9315,7 +9315,18 @@ switch (i)
                 // (14,20): warning CS9332: The pattern is redundant.
                 //     case not 42 or 43:
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(14, 20));
+        }
 
+        [Fact]
+        public void RedundantPattern_IntOrNotInt()
+        {
+            var source = @"
+int i = 0;
+
+_ = i is 42 or not 43;
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
         }
     }
 }

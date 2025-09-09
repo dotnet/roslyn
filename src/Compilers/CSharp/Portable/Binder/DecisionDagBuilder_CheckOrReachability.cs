@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            LabelSymbol defaultLabel = new GeneratedLabelSymbol("isPatternFailure");
+            LabelSymbol defaultLabel = new GeneratedLabelSymbol("defaultLabel");
             var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
             BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportRedundant(redundantNodes, diagnostics);
 
             redundantNodes.Free();
+            Debug.Assert(noPreviousCases.Count == 0);
             noPreviousCases.Free();
         }
 
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             BindingDiagnosticBag diagnostics)
         {
-            LabelSymbol defaultLabel = new GeneratedLabelSymbol("isPatternFailure");
+            LabelSymbol defaultLabel = new GeneratedLabelSymbol("defaultLabel");
             var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
             BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections,
             BindingDiagnosticBag diagnostics)
         {
-            LabelSymbol defaultLabel = new GeneratedLabelSymbol("isPatternFailure");
+            LabelSymbol defaultLabel = new GeneratedLabelSymbol("defaultLabel");
             var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
             BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
@@ -244,38 +245,17 @@ start:
             // Note: we don't dig into parenthesized patterns as the meaning of `not` is not problematic then
             static bool findNotInBinary(SyntaxNode syntax)
             {
-                if (syntax.Kind() == SyntaxKind.NotPattern)
+                while (syntax is BinaryPatternSyntax binarySyntax)
                 {
-                    return true;
-                }
-
-                if (syntax is BinaryPatternSyntax binarySyntax)
-                {
-                    BinaryPatternSyntax? current = binarySyntax;
-                    while (true)
+                    if (findNotInBinary(binarySyntax.Right))
                     {
-                        if (findNotInBinary(current.Right))
-                        {
-                            return true;
-                        }
-
-                        if (current.Left is BinaryPatternSyntax left)
-                        {
-                            current = left;
-                            continue;
-                        }
-                        else
-                        {
-                            if (findNotInBinary(current.Left))
-                            {
-                                return true;
-                            }
-                            break;
-                        }
+                        return true;
                     }
+
+                    syntax = binarySyntax.Left;
                 }
 
-                return false;
+                return syntax.Kind() == SyntaxKind.NotPattern;
             }
         }
 
@@ -574,7 +554,7 @@ start:
         //
         // When visiting a pattern, the caller indicates:
         // - whether the pattern should be negated,
-        // - whether the evaluations yieled by the visit will be combined in `or` or `and`,
+        // - whether the evaluations yielded by the visit will be combined in `or` or `and`,
         // - how visited patterns should be wrapped before being placed in the eval sequence.
         //
         // A Visit will push single patterns (operands) and binary operations onto the eval sequence.

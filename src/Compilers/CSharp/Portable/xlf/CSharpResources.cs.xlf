@@ -2658,13 +2658,13 @@
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
-        <source>The pattern is too deep to analyze for redundancy.</source>
-        <target state="new">The pattern is too deep to analyze for redundancy.</target>
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
-        <source>The pattern is too deep to analyze for redundancy.</source>
-        <target state="new">The pattern is too deep to analyze for redundancy.</target>
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
         <note />
       </trans-unit>
       <trans-unit id="HDN_RedundantPattern_Title">
