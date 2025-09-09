@@ -83,7 +83,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document, TextSpan? range,
         DiagnosticIdFilter diagnosticIdFilter,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        CodeActionRequestPriority? priority,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
@@ -116,12 +116,12 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
     /// </para>
     /// </summary>
-    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
-        TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
+    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+        this IDiagnosticAnalyzerService service, TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
         => service.GetDiagnosticsForSpanAsync(
             document, range,
             diagnosticId: null,
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+            priority: null,
             diagnosticKind,
             cancellationToken);
 
@@ -135,14 +135,14 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     /// </summary>
     public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
         TextDocument document, TextSpan? range, string? diagnosticId,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        CodeActionRequestPriority? priority,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
         var filter = diagnosticId != null
             ? DiagnosticIdFilter.Include([diagnosticId])
             : DiagnosticIdFilter.All;
-        return service.GetDiagnosticsForSpanAsync(document, range, filter,
-            priorityProvider, diagnosticKind, cancellationToken);
+        return service.GetDiagnosticsForSpanAsync(
+            document, range, filter, priority, diagnosticKind, cancellationToken);
     }
 }

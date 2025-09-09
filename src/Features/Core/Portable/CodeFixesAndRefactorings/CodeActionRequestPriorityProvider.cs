@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if false
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -74,40 +76,6 @@ internal static class ICodeActionRequestPriorityProviderExtensions
 
         return priority == analyzerPriority;
     }
-
-    /// <summary>
-    /// Returns true if the given <paramref name="codeFixProvider"/> should be considered a candidate when computing
-    /// fixes for the given <see cref="ICodeActionRequestPriorityProvider.Priority"/>.
-    /// </summary>
-    public static bool MatchesPriority(this ICodeActionRequestPriorityProvider provider, CodeFixProvider codeFixProvider)
-    {
-        if (provider.Priority == null)
-        {
-            // We are computing fixes for all priorities
-            return true;
-        }
-
-        if (provider.Priority == codeFixProvider.RequestPriority)
-        {
-            return true;
-        }
-
-        if (provider.Priority == CodeActionRequestPriority.Low
-            && provider.HasDeprioritizedAnalyzerSupportingDiagnosticId(codeFixProvider.FixableDiagnosticIds)
-            && codeFixProvider.RequestPriority > CodeActionRequestPriority.Low)
-        {
-            // 'Low' priority can be used for two types of code fixers:
-            //  1. Those which explicitly set their 'RequestPriority' to 'Low' and
-            //  2. Those which can fix diagnostics for expensive analyzers which were de-prioritized
-            //     to 'Low' priority bucket to improve lightbulb population performance.
-            // The first case is handled by the earlier check against matching priorities. For the second
-            // case, we accept fixers with any RequestPriority, as long as they can fix a diagnostic from
-            // an analyzer that was executed in the 'Low' bucket.
-            return true;
-        }
-
-        return false;
-    }
 }
 
 internal sealed class DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority? priority = null) : ICodeActionRequestPriorityProvider
@@ -157,3 +125,5 @@ internal sealed class DefaultCodeActionRequestPriorityProvider(CodeActionRequest
         }
     }
 }
+
+#endif
