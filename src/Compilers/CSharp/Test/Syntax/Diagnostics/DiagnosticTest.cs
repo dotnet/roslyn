@@ -425,7 +425,6 @@ class X
                         case ErrorCode.WRN_FieldIsAmbiguous:
                         case ErrorCode.WRN_UninitializedNonNullableBackingField:
                         case ErrorCode.WRN_AccessorDoesNotUseBackingField:
-                        case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                         case ErrorCode.WRN_RedundantPattern:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
