@@ -6066,7 +6066,7 @@ static class E
             End If
 
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
-            Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
+            Dim extension = e.GetMembers().OfType(Of INamedTypeSymbol).Single()
 
             Assert.True(extension.IsExtension)
             AssertEx.Equal("E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", SymbolDisplay.ToDisplayString(extension, format))
@@ -6121,7 +6121,7 @@ static class E
             End If
 
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
-            Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
+            Dim extension = e.GetMembers().OfType(Of INamedTypeSymbol).Single()
 
             Assert.True(extension.IsExtension)
             AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB(Of T)", SymbolDisplay.ToDisplayString(extension, format))

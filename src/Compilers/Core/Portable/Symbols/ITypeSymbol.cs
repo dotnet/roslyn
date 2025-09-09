@@ -82,30 +82,6 @@ namespace Microsoft.CodeAnalysis
         bool IsNativeIntegerType { get; }
 
         /// <summary>
-        /// Is this a symbol for an extension declaration.
-        /// </summary>
-        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
-        bool IsExtension { get; }
-
-        /// <summary>
-        /// For extensions, returns the synthesized identifier for the grouping type.
-        /// Returns null otherwise.
-        /// </summary>
-        string? ExtensionGroupingName { get; }
-
-        /// <summary>
-        /// For extensions, returns the synthesized identifier for the marker type.
-        /// Returns null otherwise.
-        /// </summary>
-        string? ExtensionMarkerName { get; }
-
-        /// <summary>
-        /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
-        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
-        /// </summary>
-        IParameterSymbol? ExtensionParameter { get; }
-
-        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then <see cref="OriginalDefinition"/> gets the original symbol as it was defined in
         /// source or metadata.

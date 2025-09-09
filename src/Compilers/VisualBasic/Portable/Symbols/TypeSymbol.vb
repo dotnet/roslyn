@@ -782,29 +782,5 @@ Done:
         Private Function ITypeSymbolInternal_GetITypeSymbol() As ITypeSymbol Implements ITypeSymbolInternal.GetITypeSymbol
             Return Me
         End Function
-
-        Public ReadOnly Property IsExtension As Boolean Implements ITypeSymbol.IsExtension
-            Get
-                Return False
-            End Get
-        End Property
-
-        Public ReadOnly Property ExtensionParameter As IParameterSymbol Implements ITypeSymbol.ExtensionParameter
-            Get
-                Return Nothing
-            End Get
-        End Property
-
-        Public ReadOnly Property ExtensionGroupingName As String Implements ITypeSymbol.ExtensionGroupingName
-            Get
-                Return Nothing
-            End Get
-        End Property
-
-        Public ReadOnly Property ExtensionMarkerName As String Implements ITypeSymbol.ExtensionMarkerName
-            Get
-                Return Nothing
-            End Get
-        End Property
     End Class
 End Namespace

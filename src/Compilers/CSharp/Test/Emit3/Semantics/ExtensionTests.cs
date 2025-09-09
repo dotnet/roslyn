@@ -49969,6 +49969,26 @@ static class E
         public int P => 0;
     }
 }
+static class E
+{
+    public class GroupingType<T0> where T0 : ...  // name is a content-based hash of an IL view of the signature
+    {
+        // docs from the extension block
+        public class MarkerType<T> where T : ...  // name is a content-base hash of the C# view of the signature, constraints are full fidelity constraints
+        {
+            private static void MarkerMethod(int i) { } // full fidelity info for extension parameter
+        }
+
+        // members
+        public void M<U>(U u) => throw ...;
+    }
+
+    /// <inheritdoc 
+    public static void M<T, U>(this T t, U u) { ... }
+}
+
+var x = 42.P;  // E.extension<T>(T).P, T => int
+var y = E.get_P(42); // E.get_P<T>(T), T => int
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "Test");
         comp.VerifyEmitDiagnostics();
