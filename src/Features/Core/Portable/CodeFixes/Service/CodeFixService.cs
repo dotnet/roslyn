@@ -616,7 +616,8 @@ internal sealed partial class CodeFixService : ICodeFixService
 
             if (priority == CodeActionRequestPriority.Low &&
                 codeFixProvider.RequestPriority > CodeActionRequestPriority.Low &&
-                await diagnosticAnalyzerService.IsAnyDeprioritizedDiagnosticIdAsync(codeFixProvider.FixableDiagnosticIds, cancellationToken).ConfigureAwait(false))
+                await diagnosticAnalyzerService.IsAnyDeprioritizedDiagnosticIdAsync(
+                    document.Project, codeFixProvider.FixableDiagnosticIds, cancellationToken).ConfigureAwait(false))
             {
                 // 'Low' priority can be used for two types of code fixers:
                 //  1. Those which explicitly set their 'RequestPriority' to 'Low' and
