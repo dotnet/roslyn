@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <summary>
 /// Indicates scope for "Fix all occurrences" code fixes provided by each <see cref="RefactorAllProvider"/>.
 /// </summary>
-public enum RefactorAllScope
+internal enum RefactorAllScope
 {
     /// <summary>
     /// Scope to fix all occurrences of diagnostic(s) in the entire document.

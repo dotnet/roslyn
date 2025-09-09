@@ -33,7 +33,7 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
             this.Cleanup);
     }
 
-    protected Task<Document> FixAsync(
+    protected Task<Document> RefactorAsync(
         Document document,
         TextSpan fixAllSpan,
         string? equivalenceKey,
@@ -55,7 +55,7 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
         // Local functions
         Task RefactorAllAsync(SyntaxEditor editor)
         {
-            // Fix the entire document if there are no sub-spans to fix.
+            // Refactor the entire document if there are no sub-spans to refactor.
             var spans = refactorAllSpans.HasValue ? refactorAllSpans.Value : [editor.OriginalRoot.FullSpan];
             return this.RefactorAllAsync(document, spans, editor, equivalenceKey, cancellationToken);
         }

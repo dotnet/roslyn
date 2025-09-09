@@ -86,11 +86,11 @@ internal sealed class RefactorAllContext : IFixAllContext
     }
 
     /// <summary>
-    /// Gets the spans to fix by document for the <see cref="Scope"/> for this fix all occurrences fix.
-    /// If no spans are specified, it indicates the entire document needs to be fixed.
+    /// Gets the spans to refactor by document for the <see cref="Scope"/> for this refactor all occurrences fix. If no
+    /// spans are specified, it indicates the entire document needs to be refactored.
     /// </summary>
     public Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
-        => State.GetFixAllSpansAsync(cancellationToken);
+        => State.GetRefactorAllSpansAsync(cancellationToken);
 
     internal RefactorAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,

@@ -21,7 +21,7 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
 {
     /// <summary>
     /// Original selection span from which FixAll was invoked.
-    /// This is used in <see cref="GetFixAllSpansAsync(CancellationToken)"/>
+    /// This is used in <see cref="GetRefactorAllSpansAsync(CancellationToken)"/>
     /// to compute fix all spans for <see cref="FixAllScope.ContainingMember"/>
     /// and <see cref="FixAllScope.ContainingType"/> scopes.
     /// </summary>
@@ -87,7 +87,7 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
     /// Gets the spans to fix by document for the <see cref="FixAllScope"/> for this fix all occurrences fix.
     /// If no spans are specified, it indicates the entire document needs to be fixed.
     /// </summary>
-    internal async Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
+    internal async Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
     {
         IEnumerable<Document>? documentsToFix = null;
         switch (this.Scope)

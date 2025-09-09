@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 /// <summary>
-/// Implement this abstract type to provide fix all occurrences support for code refactorings.
+/// Implement this abstract type to provide refactor all occurrences support for code refactorings.
 /// </summary>
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
@@ -44,9 +44,8 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     #endregion
 
     /// <summary>
-    /// Create a <see cref="RefactorAllProvider"/> that fixes documents independently.
-    /// This can be used in the case where refactoring(s) registered by this provider
-    /// only affect a single <see cref="Document"/>.
+    /// Create a <see cref="RefactorAllProvider"/> that refactors documents independently. This can be used in the case
+    /// where refactoring(s) registered by this provider only affect a single <see cref="Document"/>.
     /// </summary>
     /// <param name="refactorAllAsync">
     /// Callback that will apply the refactorings present in the provided document.  The document returned will only be
@@ -58,9 +57,8 @@ internal abstract class RefactorAllProvider : IFixAllProvider
         => Create(refactorAllAsync, DefaultSupportedRefactorAllScopes);
 
     /// <summary>
-    /// Create a <see cref="RefactorAllProvider"/> that fixes documents independently.
-    /// This can be used in the case where refactoring(s) registered by this provider
-    /// only affect a single <see cref="Document"/>.
+    /// Create a <see cref="RefactorAllProvider"/> that refactors documents independently. This can be used in the case
+    /// where refactoring(s) registered by this provider only affect a single <see cref="Document"/>.
     /// </summary>
     /// <param name="refactorAllAsync">
     /// Callback that will apply the refactorings present in the provided document.  The document returned will only be
@@ -68,16 +66,16 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
     /// will be considered.
     /// </param>
-    /// <param name="supportedFixAllScopes">
+    /// <param name="supportedRefactorAllScopes">
     /// Supported <see cref="RefactorAllScope"/>s for the fix all provider.
     /// Note that <see cref="RefactorAllScope.Custom"/> is not supported by the <see cref="DocumentBasedFixAllProvider"/>
     /// and should not be part of the supported scopes.
     /// </param>
     public static RefactorAllProvider Create(
         Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
-        ImmutableArray<RefactorAllScope> supportedFixAllScopes)
+        ImmutableArray<RefactorAllScope> supportedRefactorAllScopes)
     {
-        return Create(refactorAllAsync, supportedFixAllScopes, CodeActionCleanup.Default);
+        return Create(refactorAllAsync, supportedRefactorAllScopes, CodeActionCleanup.Default);
     }
 
     internal static RefactorAllProvider Create(

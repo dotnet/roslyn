@@ -611,7 +611,7 @@ internal sealed class UnifiedSuggestedActionsSource
                 // Skip showing ContainingMember and ContainingType FixAll scopes if the language
                 // does not implement 'IFixAllSpanMappingService' langauge service or
                 // we have no mapped FixAll spans to fix.
-                var documentsAndSpans = await fixAllState.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
+                var documentsAndSpans = await fixAllState.GetRefactorAllSpansAsync(cancellationToken).ConfigureAwait(false);
                 if (documentsAndSpans.IsEmpty)
                     continue;
             }
