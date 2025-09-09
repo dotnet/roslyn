@@ -134,16 +134,18 @@ internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider() : CommonQuickI
     private static async Task<QuickInfoItem?> GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzersAsync(
         Document document, string errorCode, TextSpan location, CancellationToken cancellationToken)
     {
-        var project = document.Project;
-        var solution = project.Solution;
-
-        var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        var hostAnalyzers = document.Project.Solution.SolutionState.Analyzers;
+        var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var groupedDiagnostics = await service.GetDiagnosticDescriptorsPerReferenceAsync(
-            solution, project.Id, cancellationToken).ConfigureAwait(false);
+            document.Project, cancellationToken).ConfigureAwait(false);
         var supportedDiagnostics = groupedDiagnostics.Values.SelectMany(d => d);
-
         var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);
-        return diagnosticDescriptor == null ? null : CreateQuickInfo(location, diagnosticDescriptor);
+        if (diagnosticDescriptor != null)
+        {
+            return CreateQuickInfo(location, diagnosticDescriptor);
+        }
+
+        return null;
     }
 
     private static QuickInfoItem CreateQuickInfo(TextSpan location, DiagnosticDescriptor descriptor,
