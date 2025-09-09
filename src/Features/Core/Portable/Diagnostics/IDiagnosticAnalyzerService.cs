@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -32,10 +31,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     Task<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
         Project project, CancellationToken cancellationToken);
-
-    /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.GetDeprioritizationCandidatesAsync"/>
-    Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
-        Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets document diagnostics of the given diagnostic ids and/or analyzers from the given project.
@@ -92,20 +87,16 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference"/>
+    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Solution solution, ProjectId? projectId, CancellationToken cancellationToken);
+
     /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
     Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache)"/>
-    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Solution solution, CancellationToken cancellationToken);
-
-    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
-    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Project project, CancellationToken cancellationToken);
-
     /// <summary>
-    /// For all analyers in the given solution, return the descriptor ids of all compilation end diagnostics.
+    /// For all analyzers in the given solution, return the descriptor ids of all compilation end diagnostics.
     /// Note: this does not include the "built in compiler analyzer".
     /// </summary>
     Task<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
@@ -148,4 +139,13 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
             priorityProvider, diagnosticKind, cancellationToken);
     }
+
+    public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        this IDiagnosticAnalyzerService service, Solution solution, CancellationToken cancellationToken)
+        => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, projectId: null, cancellationToken);
+
+    public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        this IDiagnosticAnalyzerService service, Project project, CancellationToken cancellationToken)
+        => service.GetDiagnosticDescriptorsPerReferenceAsync(project.Solution, project.Id, cancellationToken);
+
 }
