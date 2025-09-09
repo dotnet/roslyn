@@ -8,8 +8,14 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-/// <param name="IncludedDiagnosticIds">If present, if an analyzer has at least one descriptor in this set, it will be included.</param>
-/// <param name="ExcludedDiagnosticIds">If present, if all of the descriptors an analyzer has is in this set, it will be excluded.</param>
+/// <param name="IncludedDiagnosticIds">
+/// If present, if an analyzer has at least one descriptor in this set, it will be included.
+/// Note: this set can include diagnostic IDs from multiple analyzers in it.
+/// </param>
+/// <param name="ExcludedDiagnosticIds">
+/// If present, if all of the descriptors an analyzer has is in this set, it will be excluded.
+/// Note: this set can include diagnostic IDs from multiple analyzers in it.
+/// </param>
 internal readonly record struct DiagnosticIdFilter(
     ImmutableHashSet<string>? IncludedDiagnosticIds,
     ImmutableHashSet<string>? ExcludedDiagnosticIds)
@@ -22,6 +28,12 @@ internal readonly record struct DiagnosticIdFilter(
     public static DiagnosticIdFilter Exclude(ImmutableHashSet<string> excludedDiagnosticIds)
         => new(IncludedDiagnosticIds: null, excludedDiagnosticIds);
 
+    /// <summary>
+    /// Checks the IDs from a single analyzer's <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> to see if it is
+    /// allowed by this filter.  If this is <see cref="All"/>, this will always return true.  If there are any
+    /// values in <see cref="IncludedDiagnosticIds"/>, at least one of the IDs must be in that set.  If there are any
+    /// values in <see cref="ExcludedDiagnosticIds"/>, not all of the IDs can be in that set.
+    /// </summary>
     public bool Allow(params IEnumerable<string> ids)
     {
         if (this == All)
