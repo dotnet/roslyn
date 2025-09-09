@@ -241,7 +241,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
                 (service, solution, cancellationToken) => service.GetDiagnosticsForSpanAsync(
                     solution, document.Id, range, diagnosticIdFilter, priority, diagnosticKind, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-            return result.HasValue && result.Value;
+            return result.HasValue ? result.Value : [];
         }
 
         return await GetDiagnosticsForSpanInProcessAsync(

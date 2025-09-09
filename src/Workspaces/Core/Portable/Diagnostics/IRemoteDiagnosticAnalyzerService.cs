@@ -17,6 +17,9 @@ internal interface IRemoteDiagnosticAnalyzerService
     ValueTask<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
+    ValueTask<bool> IsAnyDeprioritizedDiagnosticIdAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
+
     ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         Checksum solutionChecksum,
         DocumentId documentId,

@@ -37,7 +37,7 @@ internal sealed class UnifiedSuggestedActionsSource
         ICodeFixService codeFixService,
         TextDocument document,
         TextSpan selection,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        CodeActionRequestPriority? priority,
         CancellationToken cancellationToken)
     {
         var originalSolution = document.Project.Solution;
@@ -48,7 +48,7 @@ internal sealed class UnifiedSuggestedActionsSource
         var fixes = await codeFixService.GetFixesAsync(
             document,
             selection,
-            priorityProvider,
+            priority,
             cancellationToken).ConfigureAwait(false);
 
         var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);

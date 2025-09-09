@@ -28,8 +28,7 @@ internal sealed partial class DiagnosticAnalyzerService
     private async Task<bool> IsDeprioritizedAnalyzerAsync(
         Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
     {
-        // Populate the CWT if needed.
-        await IsAnyDeprioritizedDiagnosticIdAsync(project, diagnosticIds: [], cancellationToken).ConfigureAwait(false);
+        await PopulateDeprioritizedDiagnosticIdMapAsync(project, cancellationToken).ConfigureAwait(false);
 
         // this can't fail as the above call populates the CWT entries for all analyzers within that project if missing.
         Contract.ThrowIfFalse(s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var set));
@@ -37,20 +36,25 @@ internal sealed partial class DiagnosticAnalyzerService
         return set != null;
     }
 
+    private async ValueTask PopulateDeprioritizedDiagnosticIdMapAsync(Project project, CancellationToken cancellationToken)
+    {
+        await IsAnyDeprioritizedDiagnosticIdAsync(project, diagnosticIds: [], cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<bool> IsAnyDeprioritizedDiagnosticIdInProcessAsync(
         Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
     {
         CompilationWithAnalyzersPair? compilationWithAnalyzers = null;
 
-        var analyzers = GetProjectAnalyzers(project);
+        var analyzers = GetProjectAnalyzers_OnlyCallInProcess(project);
         foreach (var analyzer in analyzers)
         {
             if (!s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var deprioritizedIds))
             {
                 if (compilationWithAnalyzers is null)
                 {
-                    compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
-                        project, analyzers, GetOrCreateHostAnalyzerInfo(project), this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzers_OnlyCallInProcessAsync(
+                        project, analyzers, GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project), this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 }
 
                 deprioritizedIds = await ComputeDeprioritizedDiagnosticIdsAsync(analyzer).ConfigureAwait(false);

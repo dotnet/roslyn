@@ -397,8 +397,7 @@ internal static class CodeActionHelpers
 
         var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
             document.Project.Solution.Workspace, codeFixService, document, textSpan,
-            new DefaultCodeActionRequestPriorityProvider(),
-            cancellationToken).ConfigureAwait(false);
+            priority: null, cancellationToken).ConfigureAwait(false);
 
         var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
             document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null,
