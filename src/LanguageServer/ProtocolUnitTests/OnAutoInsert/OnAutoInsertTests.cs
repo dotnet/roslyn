@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_CommentCharacter(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("/", """
+        => VerifyCSharpMarkupAndExpected("/", """
             class A
             {
                 ///{|type:|}
@@ -35,8 +36,8 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
             class A
             {
                 /// <summary>
-            /// $0
-            /// </summary>
+                /// $0
+                /// </summary>
                 void M()
                 {
                 }
@@ -45,7 +46,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_CommentCharacter_WithComment(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("/", """
+        => VerifyCSharpMarkupAndExpected("/", """
             class A
             {
                 ///{|type:|} This is an existing comment
@@ -57,8 +58,8 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
             class A
             {
                 /// <summary>
-            /// $0This is an existing comment
-            /// </summary>
+                /// $0This is an existing comment
+                /// </summary>
                 void M()
                 {
                 }
@@ -67,7 +68,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_CommentCharacter_WithComment_NoSpace(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("/", """
+        => VerifyCSharpMarkupAndExpected("/", """
             class A
             {
                 ///{|type:|}This is an existing comment
@@ -79,8 +80,8 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
             class A
             {
                 /// <summary>
-            /// $0This is an existing comment
-            /// </summary>
+                /// $0This is an existing comment
+                /// </summary>
                 void M()
                 {
                 }
@@ -89,7 +90,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_CommentCharacter_VB(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("'", """
+        => VerifyCSharpMarkupAndExpected("'", """
             Class A
                 '''{|type:|}
                 Sub M()
@@ -98,8 +99,8 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
             """, """
             Class A
                 ''' <summary>
-            ''' $0
-            ''' </summary>
+                ''' $0
+                ''' </summary>
                 Sub M()
                 End Sub
             End Class
@@ -107,7 +108,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_ParametersAndReturns(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("/", """
+        => VerifyCSharpMarkupAndExpected("/", """
             class A
             {
                 ///{|type:|}
@@ -119,11 +120,11 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
             class A
             {
                 /// <summary>
-            /// $0
-            /// </summary>
-            /// <param name="foo"></param>
-            /// <param name="bar"></param>
-            /// <returns></returns>
+                /// $0
+                /// </summary>
+                /// <param name="foo"></param>
+                /// <param name="bar"></param>
+                /// <returns></returns>
                 string M(int foo, bool bar)
                 {
                 }
@@ -156,7 +157,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_EnterKey(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 /// <summary>
@@ -182,7 +183,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_EnterKey2(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 /// <summary>
@@ -208,7 +209,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 ///
@@ -234,7 +235,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormatting(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 void M() {{|type:|}
@@ -248,11 +249,11 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
                     $0
                 }
             }
-            """, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormattingWithTabs(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 void M() {{|type:|}
@@ -266,11 +267,11 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
             		$0
             	}
             }
-            """, mutatingLspWorkspace, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
+            """, mutatingLspWorkspace, insertSpaces: false, tabSize: 4, useVSCapabilities: false);
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormattingInsideMethod(bool mutatingLspWorkspace)
-        => VerifyMarkupAndExpected("\n", """
+        => VerifyCSharpMarkupAndExpected("\n", """
             class A
             {
                 void M()
@@ -290,7 +291,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
                     }
                 }
             }
-            """, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
     [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormattingNoResultInInterpolation(bool mutatingLspWorkspace)
@@ -302,7 +303,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
                     var s = $"Hello {{|type:|}
                     }
             }
-            """, mutatingLspWorkspace);
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
     public Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines(bool mutatingLspWorkspace)
@@ -315,7 +316,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
                     {|type:|}
                 }
             }
-            """, mutatingLspWorkspace);
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
     public Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces(bool mutatingLspWorkspace)
@@ -328,26 +329,75 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
 
                 }
             }
-            """, mutatingLspWorkspace);
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
-    private async Task VerifyMarkupAndExpected(
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_BraceFormattingOnNewLine(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                void M() {{|type:|}
+                    
+                }
+            }
+            """, """
+            class A
+            {
+                void M()
+                {
+                    $0
+                }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: false);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_NoBraceFormattingForVS(bool mutatingLspWorkspace)
+        => VerifyNoResult("\n", """
+            class A
+            {
+                void M() {{|type:|}
+                }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: true);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_BraceFormattingForRazorVS(bool mutatingLspWorkspace, bool useVSCapabilities)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                void M() {{|type:|}
+                }
+            }
+            """, """
+            class A
+            {
+                void M()
+                {
+                    $0
+                }
+            }
+            """, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer, useVSCapabilities: useVSCapabilities);
+
+    private async Task VerifyCSharpMarkupAndExpected(
         string characterTyped,
-        string markup,
-        string expected,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
         bool mutatingLspWorkspace,
         bool insertSpaces = true,
         int tabSize = 4,
         string languageName = LanguageNames.CSharp,
-        WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
+        WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
+        bool useVSCapabilities = true)
     {
+        var capbilities = GetCapabilities(useVSCapabilities);
         Task<TestLspServer> testLspServerTask;
         if (languageName == LanguageNames.CSharp)
         {
-            testLspServerTask = CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions, ServerKind = serverKind });
+            testLspServerTask = CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = capbilities, ServerKind = serverKind });
         }
         else if (languageName == LanguageNames.VisualBasic)
         {
-            testLspServerTask = CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions, ServerKind = serverKind });
+            testLspServerTask = CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = capbilities, ServerKind = serverKind });
         }
         else
         {
@@ -368,9 +418,21 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
         Assert.Equal(expected, actualText);
     }
 
-    private async Task VerifyNoResult(string characterTyped, string markup, bool mutatingLspWorkspace, bool insertSpaces = true, int tabSize = 4)
+    private async Task VerifyNoResult(
+        string characterTyped,
+        string markup,
+        bool mutatingLspWorkspace,
+        bool insertSpaces = true,
+        int tabSize = 4,
+        WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
+        bool useVSCapabilities = true)
     {
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var initilizationOptions = new InitializationOptions
+        {
+            ClientCapabilities = GetCapabilities(useVSCapabilities),
+            ServerKind = serverKind
+        };
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, initilizationOptions);
         var locationTyped = testLspServer.GetLocations("type").Single();
         var documentText = await (await testLspServer.GetDocumentAsync(locationTyped.DocumentUri)).GetTextAsync();
 

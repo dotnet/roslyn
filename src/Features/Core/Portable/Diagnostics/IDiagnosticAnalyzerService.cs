@@ -24,6 +24,16 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     void RequestDiagnosticRefresh();
 
     /// <summary>
+    /// Forces analyzers to run on the given project and return all diagnostics, regardless of current environment
+    /// settings (like 'only run analyzers on open files', etc.).  This is meant to be used by explicit invocations
+    /// of features like "Run Code Analysis".  Note: not all analyzers will necessarily run.  For example, analyzers
+    /// where all diagnostic descriptors are currently hidden will not run, as they would not produce any actual
+    /// diagnostics.
+    /// </summary>
+    Task<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
+        Project project, CancellationToken cancellationToken);
+
+    /// <summary>
     /// The default analyzer filter that will be used in functions like <see cref="GetDiagnosticsForIdsAsync"/> if
     /// no filter is provided.  The default filter has the following rules:
     /// <list type="number">
@@ -116,6 +126,13 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Project project, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// For all analyers in the given solution, return the descriptor ids of all compilation end diagnostics.
+    /// Note: this does not include the "built in compiler analyzer".
+    /// </summary>
+    Task<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
+        Solution solution, CancellationToken cancellationToken);
 }
 
 internal static class IDiagnosticAnalyzerServiceExtensions

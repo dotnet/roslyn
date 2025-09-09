@@ -19,6 +19,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
 {
+    public async Task<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
+        Project project, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var descriptors = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                project,
+                (service, solution, cancellationToken) => service.ForceRunCodeAnalysisDiagnosticsAsync(
+                    solution, project.Id, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            return descriptors.HasValue ? descriptors.Value : [];
+        }
+
+        // Otherwise, fallback to computing in proc.
+        return await ForceRunCodeAnalysisDiagnosticsInProcessAsync(project, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
     {
@@ -41,6 +59,46 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return analyzerReference
             .GetAnalyzers(language)
             .SelectManyAsArray(this._analyzerInfoCache.GetDiagnosticDescriptors);
+    }
+
+    public async Task<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
+        Solution solution, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<string>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetCompilationEndDiagnosticDescriptorIdsAsync(
+                    solution, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            return result.HasValue ? result.Value : [];
+        }
+
+        using var _1 = PooledHashSet<string>.GetInstance(out var builder);
+        using var _2 = PooledHashSet<(object Reference, string Language)>.GetInstance(out var seenAnalyzerReferencesByLanguage);
+
+        foreach (var project in solution.Projects)
+        {
+            var analyzersPerReferenceMap = solution.SolutionState.Analyzers.CreateDiagnosticAnalyzersPerReference(project);
+            foreach (var (analyzerReference, analyzers) in analyzersPerReferenceMap)
+            {
+                if (!seenAnalyzerReferencesByLanguage.Add((analyzerReference, project.Language)))
+                    continue;
+
+                foreach (var analyzer in analyzers)
+                {
+                    if (analyzer.IsCompilerAnalyzer())
+                        continue;
+
+                    foreach (var buildOnlyDescriptor in _analyzerInfoCache.GetCompilationEndDiagnosticDescriptors(analyzer))
+                        builder.Add(buildOnlyDescriptor.Id);
+                }
+            }
+        }
+
+        return builder.ToImmutableArray();
     }
 
     public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Solution solution, CancellationToken cancellationToken)

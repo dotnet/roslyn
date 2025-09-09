@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.10.29" ExcludeAssets="Runtime" />
 
     <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
     <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
