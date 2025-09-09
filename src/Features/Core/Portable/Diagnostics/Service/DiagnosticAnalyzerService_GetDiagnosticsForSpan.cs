@@ -246,15 +246,11 @@ internal sealed partial class DiagnosticAnalyzerService
             if (!deprioritizationCandidates.Contains(analyzer))
                 return false;
 
-            // 'LightbulbSkipExecutingDeprioritizedAnalyzers' option determines if we want to execute this analyzer
-            // in low priority bucket or skip it completely. If the option is not set, track the de-prioritized
-            // analyzer to be executed in low priority bucket.
-            // Note that 'AddDeprioritizedAnalyzerWithLowPriority' call below mutates the state in the provider to
-            // track this analyzer. This ensures that when the owner of this provider calls us back to execute
-            // the low priority bucket, we can still get back to this analyzer and execute it that time.
-            if (!this._globalOptions.GetOption(DiagnosticOptionsStorage.LightbulbSkipExecutingDeprioritizedAnalyzers))
-                priorityProvider.AddDeprioritizedAnalyzerWithLowPriority(analyzer);
-
+            // Track the de-prioritized analyzer to be executed in low priority bucket. Note that
+            // 'AddDeprioritizedAnalyzerWithLowPriority' call below mutates the state in the provider to track this
+            // analyzer. This ensures that when the owner of this provider calls us back to execute the low priority
+            // bucket, we can still get back to this analyzer and execute it that time.
+            priorityProvider.AddDeprioritizedAnalyzerWithLowPriority(analyzer);
             return true;
         }
 
