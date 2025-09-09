@@ -16,11 +16,107 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    public async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsInProcessAsync(
+    /// <summary>
+    /// Should only be called from other "InProcess" methods as this loads and realizes the DiagnosticAnalyzers.
+    /// </summary>
+    private ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzersInProcess(
+       Project project,
+       ImmutableHashSet<string>? diagnosticIds,
+       AnalyzerFilter analyzerFilter)
+    {
+        var analyzersForProject = GetProjectAnalyzers(project);
+        return analyzersForProject.WhereAsArray(ShouldIncludeAnalyzer);
+
+        bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            if (analyzer.IsCompilerAnalyzer())
+            {
+                if ((analyzerFilter & AnalyzerFilter.CompilerAnalyzer) == 0)
+                    return false;
+            }
+            else
+            {
+                if ((analyzerFilter & AnalyzerFilter.NonCompilerAnalyzer) == 0)
+                    return false;
+            }
+
+            if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, this._globalOptions))
+                return false;
+
+            if (diagnosticIds != null && _analyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
+                return false;
+
+            return true;
+        }
+    }
+
+    private Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsInProcessAsync(
         Project project,
+        ImmutableArray<DocumentId> documentIds,
+        ImmutableHashSet<string>? diagnosticIds,
+        AnalyzerFilter analyzerFilter,
+        bool includeLocalDocumentDiagnostics,
+        CancellationToken cancellationToken)
+    {
+        return GetDiagnosticsForIdsInProcessAsync(
+            project, documentIds, diagnosticIds,
+            GetDiagnosticAnalyzersInProcess(project, diagnosticIds, analyzerFilter),
+            includeLocalDocumentDiagnostics, cancellationToken);
+    }
+
+    private Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsInProcessAsync(
+        Project project,
+        ImmutableArray<DocumentId> documentIds,
+        ImmutableHashSet<string>? diagnosticIds,
         ImmutableArray<DiagnosticAnalyzer> analyzers,
+        bool includeLocalDocumentDiagnostics,
+        CancellationToken cancellationToken)
+    {
+        return ProduceProjectDiagnosticsInProcessAsync(
+            project, diagnosticIds,
+            // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
+            // project if no specific document id was requested.
+            documentIds.IsDefault ? [.. project.DocumentIds, .. project.AdditionalDocumentIds] : documentIds,
+            analyzers,
+            includeLocalDocumentDiagnostics,
+            includeNonLocalDocumentDiagnostics: true,
+            // return diagnostics specific to one project or document
+            includeProjectNonLocalResult: documentIds.IsDefault,
+            cancellationToken);
+    }
+
+    private Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsInProcessAsync(
+        Project project,
+        ImmutableHashSet<string>? diagnosticIds,
+        AnalyzerFilter analyzerFilter,
+        CancellationToken cancellationToken)
+    {
+        return GetProjectDiagnosticsForIdsInProcessAsync(
+            project, diagnosticIds,
+            GetDiagnosticAnalyzersInProcess(project, diagnosticIds, analyzerFilter),
+            cancellationToken);
+    }
+
+    private Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsInProcessAsync(
+        Project project,
+        ImmutableHashSet<string>? diagnosticIds,
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
+        CancellationToken cancellationToken)
+    {
+        return ProduceProjectDiagnosticsInProcessAsync(
+            project, diagnosticIds, documentIds: [],
+            analyzers,
+            includeLocalDocumentDiagnostics: false,
+            includeNonLocalDocumentDiagnostics: false,
+            includeProjectNonLocalResult: true,
+            cancellationToken);
+    }
+
+    private async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsInProcessAsync(
+        Project project,
         ImmutableHashSet<string>? diagnosticIds,
         ImmutableArray<DocumentId> documentIds,
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
         bool includeLocalDocumentDiagnostics,
         bool includeNonLocalDocumentDiagnostics,
         bool includeProjectNonLocalResult,

@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument document) : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
-    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
-        => new FullSolutionAnalysisDiagnosticSource(document, shouldIncludeAnalyzer);
+    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, AnalyzerFilter analyzerFilter)
+        => new FullSolutionAnalysisDiagnosticSource(document, analyzerFilter);
 
     public static AbstractWorkspaceDocumentDiagnosticSource CreateForCodeAnalysisDiagnostics(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(document, codeAnalysisService);
 
     private sealed class FullSolutionAnalysisDiagnosticSource(
-        TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+        TextDocument document, AnalyzerFilter analyzerFilter)
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
         /// <summary>
@@ -71,10 +71,8 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
                         async cancellationToken =>
                         {
                             var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                            var filter = service.GetDefaultAnalyzerFilter(
-                                project, diagnosticIds: null, shouldIncludeAnalyzer);
                             var allDiagnostics = await service.GetDiagnosticsForIdsAsync(
-                                project, documentIds: default, diagnosticIds: null, filter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                                project, documentIds: default, diagnosticIds: null, analyzerFilter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                             // TODO(cyrusn): Should we be filtering out suppressed diagnostics here? This is how the
                             // code has always worked, but it isn't clear if that is correct.
