@@ -16,13 +16,16 @@ namespace Microsoft.CodeAnalysis.InlineHints;
 
 internal static class InlineHintHelpers
 {
-    public static Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? GetDescriptionFunction(int position, SymbolKey symbolKey, SymbolDescriptionOptions options)
-        => (document, cancellationToken) => GetDescriptionAsync(document, position, symbolKey, options, cancellationToken);
+    public static Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? GetDescriptionFunction(int position, ISymbol symbol, SymbolDescriptionOptions options)
+    {
+        return (document, cancellationToken) => GetDescriptionAsync(document, position, symbol, options, cancellationToken);
+    }
 
-    private static async Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, int position, SymbolKey symbolKey, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, int position, ISymbol originalSymbol, SymbolDescriptionOptions options, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+        var symbolKey = originalSymbol.GetSymbolKey(cancellationToken);
         var symbol = symbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
         if (symbol != null)
         {

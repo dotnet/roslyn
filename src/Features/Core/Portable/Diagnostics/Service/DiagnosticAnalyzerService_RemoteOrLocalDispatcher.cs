@@ -102,14 +102,16 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return builder.ToImmutableArray();
     }
 
-    public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Solution solution, CancellationToken cancellationToken)
+    public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Solution solution, ProjectId? projectId, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
             var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>>(
                 solution,
-                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, cancellationToken),
+                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsPerReferenceAsync(
+                    solution, projectId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             if (!map.HasValue)
                 return ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>.Empty;
@@ -119,27 +121,8 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
                 kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
         }
 
-        return solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache);
-    }
-
-    public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(Project project, CancellationToken cancellationToken)
-    {
-        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-        if (client is not null)
-        {
-            var map = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>>(
-                project,
-                (service, solution, cancellationToken) => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, project.Id, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-            if (!map.HasValue)
-                return ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>.Empty;
-
-            return map.Value.ToImmutableDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.SelectAsArray(d => d.ToDiagnosticDescriptor()));
-        }
-
-        return project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project);
+        return solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(
+            this._analyzerInfoCache, solution.GetProject(projectId));
     }
 
 #if false

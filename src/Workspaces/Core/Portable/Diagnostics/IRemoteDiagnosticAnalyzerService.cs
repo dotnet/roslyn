@@ -52,10 +52,7 @@ internal interface IRemoteDiagnosticAnalyzerService
         Checksum solutionChecksum, CancellationToken cancellationToken);
 
     ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Checksum solutionChecksum, CancellationToken cancellationToken);
-
-    ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+        Checksum solutionChecksum, ProjectId? projectId, CancellationToken cancellationToken);
 }
 
 [DataContract]
