@@ -24,6 +24,21 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
             => new RemoteDiagnosticAnalyzerService(arguments);
     }
 
+    public ValueTask<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
+        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                return await service.ForceRunCodeAnalysisDiagnosticsAsync(
+                    project, cancellationToken).ConfigureAwait(false);
+            },
+            cancellationToken);
+    }
+
     public ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
         Checksum solutionChecksum, ProjectId projectId,
         ImmutableHashSet<string> analyzerIds,
@@ -108,6 +123,20 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var descriptorData = descriptors.SelectAsArray(DiagnosticDescriptorData.Create);
 
                 return descriptorData;
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
+        Checksum solutionChecksum, CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                return await service.GetCompilationEndDiagnosticDescriptorIdsAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }

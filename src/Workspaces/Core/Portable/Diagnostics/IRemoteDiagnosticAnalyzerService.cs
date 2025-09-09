@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IRemoteDiagnosticAnalyzerService
 {
+    ValueTask<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
+        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+
     /// <summary>
     /// Returns the analyzers that are candidates to be de-prioritized to
     /// <see cref="CodeActionRequestPriority.Low"/> priority for improvement in analyzer
@@ -49,6 +52,9 @@ internal interface IRemoteDiagnosticAnalyzerService
 
     ValueTask<ImmutableArray<DiagnosticDescriptorData>> GetDiagnosticDescriptorsAsync(
         Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, string language, CancellationToken cancellationToken);
+
+    ValueTask<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
+        Checksum solutionChecksum, CancellationToken cancellationToken);
 
     ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Checksum solutionChecksum, CancellationToken cancellationToken);
