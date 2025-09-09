@@ -15,6 +15,16 @@ RUN Invoke-WebRequest -Uri https://github.com/PowerShell/PowerShell/releases/dow
     Start-Process msiexec.exe -Wait -ArgumentList '/I PowerShell.msi /quiet'; `
     Remove-Item PowerShell.msi
 
+# Copy Visual Studio configuration
+COPY docker.vsconfig /docker.vsconfig
+
+# Install Visual Studio Build Tools.
+# This is necessary, otherwise eng/build.ps will attempt to download them, and will fail because it depends on Microsoft's private resources.
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe; `
+    Start-Process -Wait -FilePath vs_buildtools.exe -ArgumentList '--wait', '--quiet', '--config', 'C:\docker.vsconfig', '--norestart', '--locale en-US'; `
+    Remove-Item C:\\vs_buildtools.exe; `
+    Remove-Item C:\\docker.vsconfig
+
 # Download the .NET installer. We will need it several times.
 RUN Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1; 
 
@@ -26,6 +36,9 @@ RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 10.0.10
 
 # Clean up.
 RUN Remove-Item C:\\dotnet-install.ps1
+
+# Enable long path support
+RUN Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1
 
 # Add to PATH
 RUN cmd /c "setx PATH \"$env:PATH;C:\\Program Files\\PowerShell\\7;C:\\git\\cmd;C:\\git\\bin;C:\\git\\usr\\bin;C:\\Program Files\\dotnet\" /M"
