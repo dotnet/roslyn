@@ -84,7 +84,7 @@ internal sealed class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBa
         throw ExceptionUtilities.UnexpectedValue(baseDeclaration.Kind());
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

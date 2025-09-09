@@ -7,56 +7,54 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 /// <summary>
-/// Context for "Fix all occurrences" for code refactorings provided by each <see cref="CodeRefactoringProvider"/>.
+/// Context for "Refactor all occurrences" for code refactorings provided by each <see cref="CodeRefactoringProvider"/>.
 /// </summary>
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
 internal sealed class RefactorAllContext : IFixAllContext
 {
-    internal FixAllState State { get; }
+    internal RefactorAllState State { get; }
 
-    internal RefactorAllProvider FixAllProvider => State.FixAllProvider;
+    internal RefactorAllProvider RefactorAllProvider => State.FixAllProvider;
 
     /// <summary>
-    /// Document within which fix all occurrences was triggered.
+    /// Document within which refactor all occurrences was triggered.
     /// </summary>
     public Document Document => State.Document!;
 
     /// <summary>
-    /// Underlying <see cref="CodeRefactoringProvider"/> which triggered this fix all.
+    /// Underlying <see cref="CodeRefactoringProvider"/> which triggered this refactor all.
     /// </summary>
     public CodeRefactoringProvider CodeRefactoringProvider => State.Provider;
 
     /// <summary>
-    /// <see cref="RefactorAllScope"/> to fix all occurrences.
+    /// <see cref="RefactorAllScope"/> to refactor all occurrences.
     /// </summary>
     public RefactorAllScope Scope => (RefactorAllScope)State.Scope;
 
     /// <summary>
-    /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
+    /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this
+    /// refactor all.
     /// </summary>
     public string? CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
 
     /// <summary>
-    /// CancellationToken for fix all session.
+    /// CancellationToken for refactor all session.
     /// </summary>
     public CancellationToken CancellationToken { get; }
 
     public IProgress<CodeAnalysisProgress> Progress { get; }
 
     /// <summary>
-    /// Project to fix all occurrences.
-    /// Note that this property will always be the containing project of <see cref="Document"/>
-    /// for publicly exposed FixAllContext instance. However, we might create an intermediate FixAllContext
-    /// with null <see cref="Document"/> and non-null Project, so we require this internal property for intermediate computation.
+    /// Project to refactor all occurrences within.
     /// </summary>
     public Project Project => State.Project;
 
@@ -78,7 +76,7 @@ internal sealed class RefactorAllContext : IFixAllContext
     #endregion
 
     internal RefactorAllContext(
-        FixAllState state,
+        RefactorAllState state,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
     {

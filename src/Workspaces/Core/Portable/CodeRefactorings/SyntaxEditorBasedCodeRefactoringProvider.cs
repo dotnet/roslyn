@@ -28,8 +28,8 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
             return null;
 
         return RefactorAllProvider.Create(
-            async (fixAllContext, document, fixAllSpans) =>
-                await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
+            async (fixAllContext, document, refactorAllSpans) =>
+                await this.FixAllAsync(document, refactorAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
             SupportedRefactorAllScopes,
             this.Cleanup);
     }
@@ -41,13 +41,13 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
         CancellationToken cancellationToken)
     {
         return FixAllWithEditorAsync(document,
-            editor => FixAllAsync(document, [fixAllSpan], editor, equivalenceKey, cancellationToken),
+            editor => RefactorAllAsync(document, [fixAllSpan], editor, equivalenceKey, cancellationToken),
             cancellationToken);
     }
 
     protected Task<Document> FixAllAsync(
         Document document,
-        Optional<ImmutableArray<TextSpan>> fixAllSpans,
+        Optional<ImmutableArray<TextSpan>> refactorAllSpans,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
@@ -57,8 +57,8 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
         Task FixAllAsync(SyntaxEditor editor)
         {
             // Fix the entire document if there are no sub-spans to fix.
-            var spans = fixAllSpans.HasValue ? fixAllSpans.Value : [editor.OriginalRoot.FullSpan];
-            return this.FixAllAsync(document, spans, editor, equivalenceKey, cancellationToken);
+            var spans = refactorAllSpans.HasValue ? refactorAllSpans.Value : [editor.OriginalRoot.FullSpan];
+            return this.RefactorAllAsync(document, spans, editor, equivalenceKey, cancellationToken);
         }
     }
 
@@ -76,9 +76,9 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
         return document.WithSyntaxRoot(newRoot);
     }
 
-    protected abstract Task FixAllAsync(
+    protected abstract Task RefactorAllAsync(
         Document document,
-        ImmutableArray<TextSpan> fixAllSpans,
+        ImmutableArray<TextSpan> refactorAllSpans,
         SyntaxEditor editor,
         string? equivalenceKey,
         CancellationToken cancellationToken);

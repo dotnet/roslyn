@@ -145,7 +145,7 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         return bannerService.GetFileBanner(token);
     }
 
-    protected sealed override async Task FixAllAsync(
+    protected sealed override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

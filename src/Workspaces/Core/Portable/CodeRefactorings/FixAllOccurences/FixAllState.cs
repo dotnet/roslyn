@@ -17,7 +17,7 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
-internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, RefactorAllProvider, FixAllState>
+internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvider, RefactorAllProvider, RefactorAllState>
 {
     /// <summary>
     /// Original selection span from which FixAll was invoked.
@@ -31,7 +31,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, R
 
     public string CodeActionTitle { get; }
 
-    public FixAllState(
+    public RefactorAllState(
         RefactorAllProvider fixAllProvider,
         Document document,
         TextSpan selectionSpan,
@@ -43,7 +43,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, R
     {
     }
 
-    public FixAllState(
+    public RefactorAllState(
         RefactorAllProvider fixAllProvider,
         Project project,
         TextSpan selectionSpan,
@@ -55,7 +55,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, R
     {
     }
 
-    private FixAllState(
+    private RefactorAllState(
         RefactorAllProvider fixAllProvider,
         Document? document,
         Project project,
@@ -70,9 +70,9 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, R
         this.CodeActionTitle = codeActionTitle;
     }
 
-    protected override FixAllState With(Document? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey)
+    protected override RefactorAllState With(Document? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey)
     {
-        return new FixAllState(
+        return new RefactorAllState(
             this.FixAllProvider,
             document,
             project,

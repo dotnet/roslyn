@@ -92,7 +92,7 @@ public abstract partial class AbstractCodeActionTest_NoEditor<
         if (fixAllProvider == null || !fixAllProvider.GetSupportedRefactorAllScopes().Contains(scope))
             return null;
 
-        var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
+        var fixAllState = new RefactorAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
         var fixAllContext = new RefactorAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
         return await fixAllProvider.GetRefactoringAsync(fixAllContext).ConfigureAwait(false);
     }

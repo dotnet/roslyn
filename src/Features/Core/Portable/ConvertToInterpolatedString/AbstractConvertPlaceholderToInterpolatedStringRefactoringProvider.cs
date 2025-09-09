@@ -251,7 +251,7 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         }
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

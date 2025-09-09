@@ -602,7 +602,7 @@ internal sealed class UnifiedSuggestedActionsSource
         using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
         foreach (var scope in fixAllProviderInfo.SupportedScopes)
         {
-            var fixAllState = new CodeRefactorings.FixAllState(
+            var fixAllState = new CodeRefactorings.RefactorAllState(
                 (CodeRefactorings.RefactorAllProvider)fixAllProviderInfo.FixAllProvider,
                 document, selection, provider, scope, action);
 

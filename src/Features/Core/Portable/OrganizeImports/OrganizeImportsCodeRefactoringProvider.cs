@@ -51,7 +51,7 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
         return (oldRoot, newRoot);
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document, ImmutableArray<TextSpan> fixAllSpans, SyntaxEditor editor, string? equivalenceKey, CancellationToken cancellationToken)
     {
         var (oldRoot, newRoot) = await RemoveImportsAsync(document, cancellationToken).ConfigureAwait(false);

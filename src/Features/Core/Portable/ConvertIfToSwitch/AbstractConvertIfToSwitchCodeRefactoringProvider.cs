@@ -178,7 +178,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         }
     }
 
-    protected sealed override async Task FixAllAsync(
+    protected sealed override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
