@@ -21,7 +21,7 @@ internal sealed partial class DiagnosticAnalyzerService
     /// We accept that this cache may be inaccurate in such scenarios as they are likely rare, and this only
     /// serves as a simple heuristic to order analyzer execution.  If wrong, it's not a major deal.
     /// </summary>
-    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> s_analyzerToIsDeprioritizationCandidateMap = new();
+    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, ImmutableHashSet<string>?> s_analyzerToDeprioritizedDiagnosticIds = new();
 
     private async Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesInProcessAsync(
         Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
         foreach (var analyzer in analyzers)
         {
-            if (!s_analyzerToIsDeprioritizationCandidateMap.TryGetValue(analyzer, out var boxedBool))
+            if (!s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var diagnosticIds))
             {
                 if (hostAnalyzerInfo is null)
                 {

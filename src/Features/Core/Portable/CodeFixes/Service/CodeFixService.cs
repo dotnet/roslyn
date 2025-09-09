@@ -495,13 +495,15 @@ internal sealed partial class CodeFixService : ICodeFixService
         if (TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
             allFixers = allFixers.Sort(new FixerComparer(allFixers, fixersForLanguage.Value));
 
-        var extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>();
+        var solution = document.Project.Solution;
+        var extensionManager = solution.Services.GetService<IExtensionManager>();
+        var diagnosticAnalyzerService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         // Run each CodeFixProvider to gather individual CodeFixes for reported diagnostics.
         // Ensure that no diagnostic has registered code actions from different code fix providers with same equivalance key.
         // This prevents duplicate registered code actions from NuGet and VSIX code fix providers.
         // See https://github.com/dotnet/roslyn/issues/18818 for details.
-        var uniqueDiagosticToEquivalenceKeysMap = new Dictionary<Diagnostic, PooledHashSet<string?>>();
+        var uniqueDiagnosticToEquivalenceKeysMap = new Dictionary<Diagnostic, PooledHashSet<string?>>();
 
         // NOTE: For backward compatibility, we allow multiple registered code actions from the same code fix provider
         // to have the same equivalence key. See https://github.com/dotnet/roslyn/issues/44553 for details.
@@ -514,7 +516,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!MatchesPriority(fixer, priority))
+                if (!await MatchesPriorityAsync(fixer).ConfigureAwait(false))
                     continue;
 
                 foreach (var (span, diagnostics) in fixerToRangesAndDiagnostics[fixer])
@@ -548,13 +550,13 @@ internal sealed partial class CodeFixService : ICodeFixService
                                 {
                                     var primaryDiagnostic = dxs.First();
                                     return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata,
-                                        [primaryDiagnostic], uniqueDiagosticToEquivalenceKeysMap,
+                                        [primaryDiagnostic], uniqueDiagnosticToEquivalenceKeysMap,
                                         diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                 }
                                 else
                                 {
                                     return GetCodeFixesAsync(document, span, fixer, fixerMetadata, dxs,
-                                        uniqueDiagosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
+                                        uniqueDiagnosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                 }
                             }
                         },
@@ -573,7 +575,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         }
         finally
         {
-            foreach (var pooledSet in uniqueDiagosticToEquivalenceKeysMap.Values)
+            foreach (var pooledSet in uniqueDiagnosticToEquivalenceKeysMap.Values)
             {
                 pooledSet.Free();
             }
@@ -599,7 +601,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         // Returns true if the given <paramref name="codeFixProvider"/> should be considered a candidate when computing
         // fixes for the given <see cref="ICodeActionRequestPriorityProvider.Priority"/>.
         // </summary>
-        static bool MatchesPriority(CodeFixProvider codeFixProvider, CodeActionRequestPriority? priority)
+        async Task<bool> MatchesPriorityAsync(CodeFixProvider codeFixProvider)
         {
             if (priority == null)
             {
@@ -612,9 +614,9 @@ internal sealed partial class CodeFixService : ICodeFixService
                 return true;
             }
 
-            if (priority == CodeActionRequestPriority.Low
-                && provider.HasDeprioritizedAnalyzerSupportingDiagnosticId(codeFixProvider.FixableDiagnosticIds)
-                && codeFixProvider.RequestPriority > CodeActionRequestPriority.Low)
+            if (priority == CodeActionRequestPriority.Low &&
+                codeFixProvider.RequestPriority > CodeActionRequestPriority.Low &&
+                await diagnosticAnalyzerService.IsAnyDeprioritizedDiagnosticIdAsync(codeFixProvider.FixableDiagnosticIds, cancellationToken).ConfigureAwait(false))
             {
                 // 'Low' priority can be used for two types of code fixers:
                 //  1. Those which explicitly set their 'RequestPriority' to 'Low' and

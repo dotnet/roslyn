@@ -141,6 +141,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         return project.Solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(this._analyzerInfoCache, project);
     }
 
+#if false
     public async Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
         Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
     {
@@ -161,6 +162,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
 
         return await GetDeprioritizationCandidatesInProcessAsync(project, analyzers, cancellationToken).ConfigureAwait(false);
     }
+#endif
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
         Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
