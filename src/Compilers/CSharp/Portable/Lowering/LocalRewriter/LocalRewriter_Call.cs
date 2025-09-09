@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static RefKind GetEffectiveRefKind(RefKind paramRefKind, RefKind currentArgRefKind, TypeSymbol paramType, bool comRefKindMismatchPossible)
+        internal static RefKind GetEffectiveRefKind(RefKind paramRefKind, RefKind initialArgRefKind, TypeSymbol paramType, bool comRefKindMismatchPossible)
         {
             // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
             // For the purpose of further analysis we will mark the arguments as -
@@ -1266,9 +1266,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
             if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
             {
-                return currentArgRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
+                Debug.Assert(initialArgRefKind is RefKind.None or RefKind.In or RefKind.Ref);
+                return initialArgRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
             }
-            else if (paramRefKind == RefKind.Ref && currentArgRefKind == RefKind.None)
+            else if (paramRefKind == RefKind.Ref && initialArgRefKind == RefKind.None)
             {
                 // For interpolated string handlers, we allow struct handlers to be passed as ref without a `ref`
                 // keyword
@@ -1284,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return currentArgRefKind;
+            return initialArgRefKind;
         }
 
         // temporariesBuilder will be null when factory is null.
