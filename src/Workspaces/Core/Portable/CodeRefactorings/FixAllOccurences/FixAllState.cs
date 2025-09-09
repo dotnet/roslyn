@@ -89,7 +89,7 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
     /// </summary>
     internal async Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
     {
-        IEnumerable<Document>? documentsToFix = null;
+        IEnumerable<Document>? documentsToRefactor = null;
         switch (this.Scope.ToRefactorAllScope())
         {
             case RefactorAllScope.ContainingType or RefactorAllScope.ContainingMember:
@@ -105,21 +105,21 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
 
             case RefactorAllScope.Document:
                 Contract.ThrowIfNull(Document);
-                documentsToFix = [Document];
+                documentsToRefactor = [Document];
                 break;
 
             case RefactorAllScope.Project:
-                documentsToFix = Project.Documents;
+                documentsToRefactor = Project.Documents;
                 break;
 
             case RefactorAllScope.Solution:
-                documentsToFix = Project.Solution.Projects.SelectMany(p => p.Documents);
+                documentsToRefactor = Project.Solution.Projects.SelectMany(p => p.Documents);
                 break;
 
             default:
                 return ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>.Empty;
         }
 
-        return documentsToFix.ToImmutableDictionary(d => d, _ => default(Optional<ImmutableArray<TextSpan>>));
+        return documentsToRefactor.ToImmutableDictionary(d => d, _ => default(Optional<ImmutableArray<TextSpan>>));
     }
 }
