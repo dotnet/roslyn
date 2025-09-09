@@ -84,7 +84,7 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
 
     /// <summary>
     /// Gets the spans to refactor by document for the <see cref="RefactorAllScope"/> for this refactor all occurrences
-    /// fix. If no spans are specified, it indicates the entire document needs to be refactored.
+    /// action. If no spans are specified, it indicates the entire document needs to be refactored.
     /// </summary>
     internal async Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
     {
