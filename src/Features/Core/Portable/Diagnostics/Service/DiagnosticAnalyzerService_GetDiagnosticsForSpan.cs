@@ -71,7 +71,7 @@ internal sealed partial class DiagnosticAnalyzerService
         semanticSpanAnalyzers = FilterAnalyzers(semanticSpanAnalyzers, AnalysisKind.Semantic, range, deprioritizationCandidates);
         semanticDocumentAnalyzers = FilterAnalyzers(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, deprioritizationCandidates);
 
-        var allDiagnostics = await this.ComputeDiagnosticsAsync(
+        var allDiagnostics = await this.ComputeDiagnosticsInProcessAsync(
             document, range, analyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
             incrementalAnalysis, logPerformanceInfo,
             cancellationToken).ConfigureAwait(false);
@@ -293,7 +293,7 @@ internal sealed partial class DiagnosticAnalyzerService
         }
     }
 
-    public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsInProcessAsync(
+    private async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsInProcessAsync(
         TextDocument document,
         TextSpan? range,
         ImmutableArray<DiagnosticAnalyzer> allAnalyzers,
