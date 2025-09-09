@@ -37,7 +37,7 @@ internal sealed partial class DiagnosticAnalyzerService
         return builder.ToImmutableDictionary();
     }
 
-    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanInProcessAsync(
         TextDocument document,
         TextSpan? range,
         DiagnosticIdFilter diagnosticIdFilter,
@@ -45,13 +45,6 @@ internal sealed partial class DiagnosticAnalyzerService
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
-        // Note: due to the in-memory work that priorityProvider and shouldIncludeDiagnostic need to do,
-        // much of this function runs locally (in process) to determine which analyzers to run, before
-        // finally making a call out to OOP to actually do the work.
-
-        // always make sure that analyzer is called on background thread.
-        await Task.Yield().ConfigureAwait(false);
-
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         var project = document.Project;
@@ -72,9 +65,6 @@ internal sealed partial class DiagnosticAnalyzerService
         var incrementalAnalysis = range is null && document is Document { SupportsSyntaxTree: true };
 
         using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var deprioritizationCandidates);
-
-        deprioritizationCandidates.AddRange(await this.GetDeprioritizationCandidatesAsync(
-            project, analyzers, cancellationToken).ConfigureAwait(false));
 
         var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = GetAllAnalyzers();
         syntaxAnalyzers = FilterAnalyzers(syntaxAnalyzers, AnalysisKind.Syntax, range, deprioritizationCandidates);
@@ -168,7 +158,7 @@ internal sealed partial class DiagnosticAnalyzerService
         bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
         {
             // Skip executing analyzer if its priority does not match the request priority.
-            if (!priorityProvider.MatchesPriority(analyzer))
+            if (!MatchesPriority(analyzer))
                 return false;
 
             // Special case DocumentDiagnosticAnalyzer to never skip these document analyzers based on
@@ -186,6 +176,47 @@ internal sealed partial class DiagnosticAnalyzerService
             }
 
             return true;
+        }
+
+        // <summary>
+        // Returns true if the given <paramref name="analyzer"/> can report diagnostics that can have fixes from a code
+        // fix provider with <see cref="CodeFixProvider.RequestPriority"/> matching <see
+        // cref="ICodeActionRequestPriorityProvider.Priority"/>. This method is useful for performing a performance
+        // optimization for lightbulb diagnostic computation, wherein we can reduce the set of analyzers to be executed
+        // when computing fixes for a specific <see cref="ICodeActionRequestPriorityProvider.Priority"/>.
+        // </summary>
+        bool MatchesPriority(DiagnosticAnalyzer analyzer)
+        {
+            // If caller isn't asking for prioritized result, then run all analyzers.
+            if (priority is null)
+                return true;
+
+            // 'CodeActionRequestPriority.Lowest' is used for suppression/configuration fixes,
+            // which requires all analyzer diagnostics.
+            if (priority == CodeActionRequestPriority.Lowest)
+                return true;
+
+            // The compiler analyzer always counts for any priority.  It's diagnostics may be fixed
+            // by high pri or normal pri fixers.
+            if (analyzer.IsCompilerAnalyzer())
+                return true;
+
+            // Check if we are computing diagnostics for 'CodeActionRequestPriority.Low' and
+            // this analyzer was de-prioritized to low priority bucket.
+            if (priority == CodeActionRequestPriority.Low &&
+                provider.IsDeprioritizedAnalyzerWithLowPriority(analyzer))
+            {
+                return true;
+            }
+
+            // Now compute this analyzer's priority and compare it with the provider's request 'Priority'.
+            // Our internal 'IBuiltInAnalyzer' can specify custom request priority, while all
+            // the third-party analyzers are assigned 'Medium' priority.
+            var analyzerPriority = analyzer is IBuiltInAnalyzer { IsHighPriority: true }
+                ? CodeActionRequestPriority.High
+                : CodeActionRequestPriority.Default;
+
+            return priority == analyzerPriority;
         }
 
         ImmutableArray<DiagnosticAnalyzer> FilterAnalyzers(
@@ -232,8 +263,6 @@ internal sealed partial class DiagnosticAnalyzerService
             {
                 return false;
             }
-
-            Debug.Assert(span.Value.Length < text.Length);
 
             // Condition 3.
             // Check if this is a candidate analyzer that can be de-prioritized into a lower priority bucket based on registered actions.
