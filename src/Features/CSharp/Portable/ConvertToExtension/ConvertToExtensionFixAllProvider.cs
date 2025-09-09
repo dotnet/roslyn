@@ -26,7 +26,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider
             [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType])
     {
         protected override async Task<Document?> FixAllAsync(
-            FixAllContext fixAllContext,
+            RefactorAllContext fixAllContext,
             Document document,
             Optional<ImmutableArray<TextSpan>> fixAllSpans)
         {

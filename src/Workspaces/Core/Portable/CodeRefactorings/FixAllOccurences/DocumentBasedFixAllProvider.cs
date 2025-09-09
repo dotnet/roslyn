@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <remarks>
 /// This type provides suitable logic for fixing large solutions in an efficient manner.  Projects are serially
 /// processed, with all the documents in the project being processed in parallel. 
-/// <see cref="FixAllAsync(FixAllContext, Document, Optional{ImmutableArray{TextSpan}})"/> is invoked for each document for implementors to process.
+/// <see cref="FixAllAsync(RefactorAllContext, Document, Optional{ImmutableArray{TextSpan}})"/> is invoked for each document for implementors to process.
 ///
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
@@ -37,13 +37,13 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
 
     /// <summary>
     /// Produce a suitable title for the fix-all <see cref="CodeAction"/> this type creates in <see
-    /// cref="GetRefactoringAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
+    /// cref="GetRefactoringAsync(RefactorAllContext)"/>.  Override this if customizing that title is desired.
     /// </summary>
-    protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
+    protected virtual string GetFixAllTitle(RefactorAllContext fixAllContext)
         => fixAllContext.GetDefaultFixAllTitle();
 
     /// <summary>
-    /// Apply fix all operation for the code refactoring in the <see cref="FixAllContext.Document"/>
+    /// Apply fix all operation for the code refactoring in the <see cref="RefactorAllContext.Document"/>
     /// for the given <paramref name="fixAllContext"/>.  The document returned will only be examined for its content
     /// (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects of document (like it's properties),
     /// or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at will be considered.
@@ -56,16 +56,16 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
     /// <para>-or-</para>
     /// <para><see langword="null"/>, if no changes were made to the document.</para>
     /// </returns>
-    protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans);
+    protected abstract Task<Document?> FixAllAsync(RefactorAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans);
 
     public sealed override IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
         => _supportedFixAllScopes;
 
-    public sealed override Task<CodeAction?> GetRefactoringAsync(FixAllContext fixAllContext)
+    public sealed override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext fixAllContext)
         => DefaultFixAllProviderHelpers.GetFixAsync(
             fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
-    private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
+    private Task<Solution?> FixAllContextsHelperAsync(RefactorAllContext originalFixAllContext, ImmutableArray<RefactorAllContext> fixAllContexts)
         => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(
             originalFixAllContext,
             fixAllContexts,
@@ -79,7 +79,7 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
     /// final cleanup pass for formatting/simplification/etc.  Text is returned for documents that don't support syntax.
     /// </summary>
     private async Task GetFixedDocumentsAsync(
-        FixAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
+        RefactorAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
     {
         Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
             or FixAllScope.ContainingMember or FixAllScope.ContainingType);
@@ -87,7 +87,7 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
         var cancellationToken = fixAllContext.CancellationToken;
 
         // Process all documents in parallel to get the change for each doc.
-        var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
+        var documentsAndSpansToFix = await fixAllContext.GetRefactorAllSpansAsync(cancellationToken).ConfigureAwait(false);
 
         await Parallel.ForEachAsync(
             source: documentsAndSpansToFix,

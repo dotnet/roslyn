@@ -80,7 +80,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
             return null;
 
         var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
-        var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
+        var fixAllContext = new RefactorAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
         return await fixAllProvider.GetRefactoringAsync(fixAllContext).ConfigureAwait(false);
     }
 

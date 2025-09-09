@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal sealed class FixAllContext : IFixAllContext
+internal sealed class RefactorAllContext : IFixAllContext
 {
     internal FixAllState State { get; }
 
@@ -77,7 +77,7 @@ internal sealed class FixAllContext : IFixAllContext
         => this.With(documentAndProject, scope, codeActionEquivalenceKey, cancellationToken);
     #endregion
 
-    internal FixAllContext(
+    internal RefactorAllContext(
         FixAllState state,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
@@ -88,13 +88,13 @@ internal sealed class FixAllContext : IFixAllContext
     }
 
     /// <summary>
-    /// Gets the spans to fix by document for the <see cref="Scope"/> for this fix all occurences fix.
+    /// Gets the spans to fix by document for the <see cref="Scope"/> for this fix all occurrences fix.
     /// If no spans are specified, it indicates the entire document needs to be fixed.
     /// </summary>
-    public Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
+    public Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
         => State.GetFixAllSpansAsync(cancellationToken);
 
-    internal FixAllContext With(
+    internal RefactorAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
         Optional<string?> codeActionEquivalenceKey = default,
@@ -105,7 +105,7 @@ internal sealed class FixAllContext : IFixAllContext
 
         return State == newState && CancellationToken == newCancellationToken
             ? this
-            : new FixAllContext(newState, this.Progress, newCancellationToken);
+            : new RefactorAllContext(newState, this.Progress, newCancellationToken);
     }
 
     internal string GetDefaultFixAllTitle()

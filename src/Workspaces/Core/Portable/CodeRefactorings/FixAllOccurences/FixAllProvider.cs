@@ -32,11 +32,11 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     /// <summary>
     /// Gets refactor all occurrences for the given <paramref name="refactorAllContext"/>.
     /// </summary>
-    public abstract Task<CodeAction?> GetRefactoringAsync(FixAllContext refactorAllContext);
+    public abstract Task<CodeAction?> GetRefactoringAsync(RefactorAllContext refactorAllContext);
 
     #region IFixAllProvider implementation
     Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext)
-        => this.GetRefactoringAsync((FixAllContext)fixAllContext);
+        => this.GetRefactoringAsync((RefactorAllContext)fixAllContext);
     #endregion
 
     /// <summary>
@@ -44,13 +44,13 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     /// This can be used in the case where refactoring(s) registered by this provider
     /// only affect a single <see cref="Document"/>.
     /// </summary>
-    /// <param name="fixAllAsync">
+    /// <param name="refactorAllAsync">
     /// Callback that will apply the refactorings present in the provided document.  The document returned will only be
     /// examined for its content (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects
     /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
     /// will be considered.
     /// </param>
-    public static RefactorAllProvider Create(Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync)
+    public static RefactorAllProvider Create(Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync)
         => Create(refactorAllAsync, DefaultSupportedRefactorAllScopes);
 
     /// <summary>
@@ -70,14 +70,14 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     /// and should not be part of the supported scopes.
     /// </param>
     public static RefactorAllProvider Create(
-        Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
+        Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes)
     {
         return Create(refactorAllAsync, supportedFixAllScopes, CodeActionCleanup.Default);
     }
 
     internal static RefactorAllProvider Create(
-        Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
+        Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes,
         CodeActionCleanup cleanup)
     {
@@ -94,13 +94,13 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     }
 
     private sealed class CallbackDocumentBasedFixAllProvider(
-        Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
+        Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes,
         CodeActionCleanup cleanup) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
         public override CodeActionCleanup Cleanup { get; } = cleanup;
 
-        protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, Optional<ImmutableArray<TextSpan>> refactorAllSpans)
+        protected override Task<Document?> FixAllAsync(RefactorAllContext context, Document document, Optional<ImmutableArray<TextSpan>> refactorAllSpans)
             => refactorAllAsync(context, document, refactorAllSpans);
     }
 }
