@@ -69,19 +69,19 @@ internal abstract class FixAllProviderInfo
     /// </summary>
     private static FixAllProviderInfo? CreateWithCodeRefactoring(CodeRefactoringProvider provider)
     {
-        var fixAllProvider = provider.GetRefactorAllProvider();
-        if (fixAllProvider == null)
+        var refactorAllProvider = provider.GetRefactorAllProvider();
+        if (refactorAllProvider == null)
         {
             return null;
         }
 
-        var scopes = fixAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
+        var scopes = refactorAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
         {
             return null;
         }
 
-        return new CodeRefactoringFixAllProviderInfo(fixAllProvider, scopes);
+        return new CodeRefactoringFixAllProviderInfo(refactorAllProvider, scopes);
     }
 
     /// <summary>

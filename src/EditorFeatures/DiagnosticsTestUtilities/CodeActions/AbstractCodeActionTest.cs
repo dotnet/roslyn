@@ -75,13 +75,13 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
         TextSpan selectionSpan,
         RefactorAllScope scope)
     {
-        var fixAllProvider = provider.GetRefactorAllProvider();
-        if (fixAllProvider == null || !fixAllProvider.GetSupportedRefactorAllScopes().Contains(scope))
+        var refactorAllProvider = provider.GetRefactorAllProvider();
+        if (refactorAllProvider == null || !refactorAllProvider.GetSupportedRefactorAllScopes().Contains(scope))
             return null;
 
-        var fixAllState = new RefactorAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
-        var fixAllContext = new RefactorAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
-        return await fixAllProvider.GetRefactoringAsync(fixAllContext).ConfigureAwait(false);
+        var refactorAllState = new RefactorAllState(refactorAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
+        var refactorAllContext = new RefactorAllContext(refactorAllState, CodeAnalysisProgress.None, CancellationToken.None);
+        return await refactorAllProvider.GetRefactoringAsync(refactorAllContext).ConfigureAwait(false);
     }
 
     protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(EditorTestWorkspace workspace, TestParameters parameters)
