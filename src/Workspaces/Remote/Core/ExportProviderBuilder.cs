@@ -55,7 +55,11 @@ internal abstract class ExportProviderBuilder(
         // Try to load a cached composition.
         try
         {
-            if (File.Exists(compositionCacheFile))
+            var compositionCacheFileInfo = new FileInfo(compositionCacheFile);
+
+            // We're seeing issues in the wild right now where the cache file is invalid and doesn't contain the parts we expect; those files tend to be around 5 KB in size.
+            // The valid caches are usually a few hundred kilobytes, so toss out the clearly bad ones.
+            if (compositionCacheFileInfo.Exists && compositionCacheFileInfo.Length >= 10 * 1024)
             {
                 LogTrace($"Loading cached MEF catalog: {compositionCacheFile}");
 
