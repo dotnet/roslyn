@@ -70,7 +70,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         _configurationProvidersMap = new(() => GetConfigurationProvidersPerLanguageMap(configurationProviders));
     }
 
-    private Func<string, bool>? GetShouldIncludeDiagnosticPredicate(
+    private DiagnosticIdFilter GetShouldIncludeDiagnosticPredicate(
         TextDocument document,
         ICodeActionRequestPriorityProvider priorityProvider)
     {
@@ -81,18 +81,13 @@ internal sealed partial class CodeFixService : ICodeFixService
         // so we can return a null predicate here to include all diagnostics.
 
         if (!(priorityProvider.Priority is CodeActionRequestPriority.Default or CodeActionRequestPriority.Low))
-            return null;
+            return DiagnosticIdFilter.All;
 
-        var hasWorkspaceFixers = TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
+        TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
+        workspaceFixersMap ??= ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.Empty;
         var projectFixersMap = GetProjectFixers(document);
 
-        return id =>
-        {
-            if (hasWorkspaceFixers && workspaceFixersMap!.ContainsKey(id))
-                return true;
-
-            return projectFixersMap.ContainsKey(id);
-        };
+        return DiagnosticIdFilter.Include([.. workspaceFixersMap.Keys, .. projectFixersMap.Keys]);
     }
 
     public async Task<CodeFixCollection?> GetMostSevereFixAsync(
