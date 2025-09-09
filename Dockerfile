@@ -1,12 +1,43 @@
-# See comment in global.json for why the RC is still necessary
-FROM mcr.microsoft.com/dotnet/sdk:9.0.100-rc.1 AS build
+# escape=`
 
-WORKDIR /src
+FROM mcr.microsoft.com/windows/servercore:ltsc2025
 
-COPY . /src/
+# The initial shell is PowerShell Desktop.
+SHELL ["powershell", "-Command"]
 
-RUN pwsh ./Build.ps1 build
+# Download and install Git for Windows.
+RUN Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.50.0.windows.1/MinGit-2.50.0-64-bit.zip -OutFile MinGit.zip; `
+    Expand-Archive c:\\MinGit.zip -DestinationPath C:\\git; `
+    Remove-Item C:\\MinGit.zip
 
-FROM scratch
+# Install PowerShell Core.
+RUN Invoke-WebRequest -Uri https://github.com/PowerShell/PowerShell/releases/download/v7.5.2/PowerShell-7.5.2-win-x64.msi -OutFile PowerShell.msi; `
+    Start-Process msiexec.exe -Wait -ArgumentList '/I PowerShell.msi /quiet'; `
+    Remove-Item PowerShell.msi
 
-COPY --from=build /src/artifacts /artifacts
+# Download the .NET installer. We will need it several times.
+RUN Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1; 
+
+# Install .NET SDK 9 for PostSharp.Engineering.
+RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 9.0.304 -InstallDir 'C:\Program Files\dotnet'; 
+
+# Install .NET SDK 10.0.100-preview.6.25358.103 - Must match global.json.
+RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 10.0.100-preview.6.25358.103 -InstallDir 'C:\Program Files\dotnet'; 
+
+# Clean up.
+RUN Remove-Item C:\\dotnet-install.ps1
+
+# Add to PATH
+RUN cmd /c "setx PATH \"$env:PATH;C:\\Program Files\\PowerShell\\7;C:\\git\\cmd;C:\\git\\bin;C:\\git\\usr\\bin;C:\\Program Files\\dotnet\" /M"
+
+# Prepare environment
+ENV PSExecutionPolicyPreference=Bypass
+ENV POWERSHELL_UPDATECHECK=FALSE
+
+# Create NuGet cache directory and set environment variable
+RUN New-Item -ItemType Directory -Path C:\nuget -Force | Out-Null
+ENV NUGET_PACKAGES=C:\nuget
+
+# Create source directory and configure git
+RUN New-Item -ItemType Directory -Path C:\src -Force | Out-Null; `
+    git config --global --add safe.directory C:/src/

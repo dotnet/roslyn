@@ -6,7 +6,10 @@
     <TargetFrameworks>$(NetRoslynSourceBuild)</TargetFrameworks>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+
+    <!-- <Metalama> -->
+    <IsPackable>false</IsPackable>
+    <!-- </Metalama> -->
     <IsSourcePackage>true</IsSourcePackage>
     <PackageId>Microsoft.CodeAnalysis.BuildClient</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>

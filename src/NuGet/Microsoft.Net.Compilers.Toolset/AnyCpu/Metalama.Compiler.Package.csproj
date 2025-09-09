@@ -40,8 +40,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj" PrivateAssets="All"/>
+    <!-- <Metalama> --> <!--
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
+    </Metalama> -->
     <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj" PrivateAssets="All"/>
 
@@ -52,9 +54,10 @@
                       Condition="'$(TargetFramework)' != 'net472'"
                       SetTargetFramework="TargetFramework=$(TargetFramework)" />
 
-    <!-- <Metalama> -->
+    <!-- Commented out, not sure what role it plays
+    <ProjectReference Include="..\..\..\Metalama\Metalama.Compiler.Sdk\Metalama.Compiler.Sdk.csproj" PrivateAssets="All"/>
     <None Include="$(ArtifactsBinDir)Metalama.Compiler.Sdk\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" Visible="false" Pack="true" PackagePath="analyzers/dotnet/cs" />
-
+  -->
     <None Include="README.md" Visible="false" Pack="true" PackagePath="" />
   </ItemGroup>
 
@@ -64,7 +67,8 @@
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
-    <Exec Command="dotnet run $(RoslynVersion)" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true">
+
+    <Exec Command="dotnet run -c CFG$([System.IO.Path]::GetRandomFileName()) $(RoslynVersion)" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="NetSdkAnalyzersPath" />
     </Exec>
     <ItemGroup>
