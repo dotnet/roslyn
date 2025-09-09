@@ -29,7 +29,7 @@ internal sealed partial class DiagnosticAnalyzerService
         using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var builder);
 
         HostAnalyzerInfo? hostAnalyzerInfo = null;
-        CompilationWithAnalyzers? compilationWithAnalyzers = null;
+        CompilationWithAnalyzersPair? compilationWithAnalyzers = null;
 
         foreach (var analyzer in analyzers)
         {

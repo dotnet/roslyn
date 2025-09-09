@@ -637,7 +637,8 @@ public sealed class DiagnosticAnalyzerServiceTests
             project, documentIds: default, [analyzer1.Descriptor.Id], AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
         Assert.False(analyzer2.ReceivedSymbolCallback);
 
-        var diagnostic = Assert.Single(diagnosticsMapResults);
+        Assert.Equal(1, diagnosticsMapResults.Length);
+        var diagnostic = diagnosticsMapResults.Single();
         Assert.Equal(analyzer1.Descriptor.Id, diagnostic.Id);
     }
 
@@ -694,6 +695,7 @@ public sealed class DiagnosticAnalyzerServiceTests
             AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
         // In this case, since the analyzer reference identity is identical, we ran it once
+        var analyzerResults = diagnosticsMapResults.Single();
         Assert.Single(diagnosticsMapResults);
     }
 
@@ -724,7 +726,7 @@ public sealed class DiagnosticAnalyzerServiceTests
             AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, CancellationToken.None);
 
         // We should only get one diagnostic as the two analyzers have the same ID and will be deduped.
-        Assert.Single(diagnosticsMapResults);
+        Assert.Equal(1, diagnosticsMapResults.Length);
 
         static AnalyzerReference CreateAnalyzerReferenceWithSameId(DiagnosticAnalyzer analyzer)
         {
