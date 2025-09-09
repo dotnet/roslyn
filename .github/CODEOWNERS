@@ -1,5 +1,6 @@
 # Automatically request reviews when a pull request changes any owned files
-# More information: https://github.com/blog/2392-introducing-code-owners 
+
+# More information: https://github.com/blog/2392-introducing-code-owners
 
 *.yml @dotnet/roslyn-infrastructure
 .github/ @dotnet/roslyn-infrastructure
@@ -8,22 +9,25 @@ docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
 
 eng/ @dotnet/roslyn-infrastructure
-/eng/DotNetBuild.props @dotnet/product-construction
-/eng/SourceBuild* @dotnet/source-build
 scripts/ @dotnet/roslyn-infrastructure
 
 src/Analyzers/ @dotnet/roslyn-ide
 src/CodeStyle/ @dotnet/roslyn-ide
 src/Compilers/ @dotnet/roslyn-compiler
+
 # Both IDE and Compiler traits are in this file, so we don't want to ping each other for changes to just this file.
+
 # Technically this means that if someone changes _just_ this file no reviewers will be tagged, but this isn't likely
+
 # to happen.
+
 src/Compilers/Test/Core/Traits/Traits.cs
 src/EditorFeatures/ @dotnet/roslyn-ide
 src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
 src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
+src/RoslynAnalyzers/ @dotnet/roslyn-ide
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure
 src/Tools/AnalyzerRunner @dotnet/roslyn-ide

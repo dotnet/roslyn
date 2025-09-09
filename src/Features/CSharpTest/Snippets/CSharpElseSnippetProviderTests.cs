@@ -14,9 +14,8 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
     protected override string SnippetIdentifier => "else";
 
     [Fact]
-    public async Task InsertElseSnippetInMethodTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertElseSnippetInMethodTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -42,12 +41,10 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoElseSnippetInMethodWithoutIfStatementTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoElseSnippetInMethodWithoutIfStatementTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -56,12 +53,10 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertElseSnippetGlobalTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertElseSnippetGlobalTest()
+        => VerifySnippetAsync("""
             if (true)
             {
             }
@@ -75,12 +70,10 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoElseSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoElseSnippetInBlockNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 if (true)
@@ -89,24 +82,20 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoElseSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoElseSnippetInFileScopedNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace;
             if (true)
             {
             }
             $$
             """);
-    }
 
     [Fact]
-    public async Task InsertElseSnippetInConstructorTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertElseSnippetInConstructorTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -132,12 +121,10 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertElseSnippetInLocalFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertElseSnippetInLocalFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -173,12 +160,10 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertElseSnippetSingleLineIfWithBlockTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertElseSnippetSingleLineIfWithBlockTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -200,12 +185,10 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertElseSnippetSingleLineIfTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertElseSnippetSingleLineIfTest()
+        => VerifySnippetAsync("""
             using System;
 
             class Program
@@ -231,12 +214,10 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertElseSnippetNestedIfTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertElseSnippetNestedIfTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -268,5 +249,4 @@ public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProvid
                 }
             }
             """);
-    }
 }

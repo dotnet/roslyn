@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -286,7 +287,7 @@ internal abstract partial class AbstractEncapsulateFieldService<
         // edit the files in the current project
         var resolution = await initialLocations
             .Filter((documentId, span) => !linkedProjectIds.Contains(documentId.ProjectId) && filter(documentId, span))
-            .ResolveConflictsAsync(field, finalName, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+            .ResolveConflictsAsync(field, finalName, cancellationToken).ConfigureAwait(false);
 
         Contract.ThrowIfFalse(resolution.IsSuccessful);
 

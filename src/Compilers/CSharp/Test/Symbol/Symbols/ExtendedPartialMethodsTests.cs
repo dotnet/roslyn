@@ -1927,6 +1927,346 @@ partial class C : I
         }
 
         [Fact]
+        public void InInterface()
+        {
+            var source = """
+                partial interface I
+                {
+                    public partial int M();
+                    public partial int M() => 0;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,24): error CS8701: Target runtime doesn't support default interface implementation.
+                //     public partial int M() => 0;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M").WithLocation(4, 24));
+
+            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+
+            CreateCompilation(source, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (3,24): error CS8703: The modifier 'public' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
+                //     public partial int M();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M").WithArguments("public", "7.0", "8.0").WithLocation(3, 24),
+                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
+                //     public partial int M();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M").WithArguments("partial", "7.0", "8.0").WithLocation(3, 24),
+                // (3,24): error CS8107: Feature 'extended partial methods' is not available in C# 7.0. Please use language version 9.0 or greater.
+                //     public partial int M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("extended partial methods", "9.0").WithLocation(3, 24),
+                // (4,24): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     public partial int M() => 0;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(4, 24),
+                // (4,24): error CS8107: Feature 'extended partial methods' is not available in C# 7.0. Please use language version 9.0 or greater.
+                //     public partial int M() => 0;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("extended partial methods", "9.0").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void InInterface_DefinitionOnly()
+        {
+            var source = """
+                partial interface I
+                {
+                    public partial int M();
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,24): error CS8795: Partial method 'I.M()' must have an implementation part because it has accessibility modifiers.
+                //     public partial int M();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("I.M()").WithLocation(3, 24));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+        public void InInterface_Virtual(
+            [CombinatorialValues("", "public", "private", "protected", "internal", "protected internal", "private protected")] string access,
+            [CombinatorialValues("", "virtual", "sealed")] string virt,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion langVersion)
+        {
+            var source1 = $$"""
+                using System;
+
+                partial interface I
+                {
+                    {{access}} {{virt}}
+                    partial void M();
+                    {{access}} {{virt}}
+                    partial void M() { Console.Write(1); }
+                }
+                """;
+
+            var source2 = """
+                using System;
+
+                partial interface I
+                {
+                    static void Main()
+                    {
+                        Helper(new C1());
+                        Helper(new C2());
+                    }
+
+                    static void Helper(I x)
+                    {
+                        x.M();
+                    }
+                }
+
+                class C1 : I;
+
+                class C2 : I
+                {
+                    void I.M() { Console.Write(2); }
+                }
+                """;
+
+            bool expectedPrivate = access is "" or "private";
+
+            var expectedAccessibility = access switch
+            {
+                _ when expectedPrivate => Accessibility.Private,
+                "public" => Accessibility.Public,
+                "protected" => Accessibility.Protected,
+                "internal" => Accessibility.Internal,
+                "protected internal" => Accessibility.ProtectedOrInternal,
+                "private protected" => Accessibility.ProtectedAndFriend,
+                _ => throw ExceptionUtilities.UnexpectedValue(access),
+            };
+
+            bool expectedVirtual = virt == "virtual";
+
+            bool expectedSealed = virt == "sealed";
+
+            bool executable = !expectedPrivate && virt == "virtual";
+
+            DiagnosticDescription[] expectedDiagnostics = [];
+
+            if (access == "" && virt != "")
+            {
+                expectedDiagnostics =
+                [
+                    // (6,18): error CS8798: Partial method 'I.M()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(6, 18),
+                    // (8,18): error CS8798: Partial method 'I.M()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                    //     partial void M() { Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(8, 18)
+                ];
+            }
+            else if (virt == "sealed")
+            {
+                expectedDiagnostics =
+                [
+                    // (6,18): error CS0238: 'I.M()' cannot be sealed because it is not an override
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(6, 18),
+                    // (8,18): error CS0238: 'I.M()' cannot be sealed because it is not an override
+                    //     partial void M() { Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(8, 18)
+                ];
+            }
+            else if (expectedPrivate && virt == "virtual")
+            {
+                expectedDiagnostics =
+                [
+                    // (6,18): error CS0621: 'I.M()': virtual or abstract members cannot be private
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("I.M()").WithLocation(6, 18),
+                    // (8,18): error CS0621: 'I.M()': virtual or abstract members cannot be private
+                    //     partial void M() { Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("I.M()").WithLocation(8, 18)
+                ];
+            }
+
+            var comp = CreateCompilation(executable ? [source1, source2] : source1,
+                options: TestOptions.DebugDll
+                    .WithOutputKind(executable ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary)
+                    .WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
+                targetFramework: TargetFramework.Net60).VerifyDiagnostics(expectedDiagnostics);
+
+            if (expectedDiagnostics.Length == 0)
+            {
+                CompileAndVerify(comp,
+                    sourceSymbolValidator: validate,
+                    symbolValidator: validate,
+                    expectedOutput: executable && ExecutionConditionUtil.IsMonoOrCoreClr ? "12" : null,
+                    verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            }
+            else
+            {
+                validate(comp.SourceModule);
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
+                validateMethod(m);
+
+                if (module is SourceModuleSymbol)
+                {
+                    validateMethod((MethodSymbol)m.GetPartialImplementationPart()!);
+                }
+            }
+
+            void validateMethod(MethodSymbol m)
+            {
+                Assert.False(m.IsAbstract);
+                Assert.Equal(expectedVirtual, m.IsVirtual);
+                Assert.Equal(expectedVirtual, m.IsMetadataVirtual());
+                Assert.Equal(expectedVirtual, m.IsMetadataNewSlot());
+                Assert.Equal(expectedSealed, m.IsSealed);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsExtern);
+                Assert.False(m.IsOverride);
+                Assert.Equal(expectedAccessibility, m.DeclaredAccessibility);
+                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+        public void InInterface_StaticVirtual(
+            [CombinatorialValues("", "public", "private", "protected", "internal", "protected internal", "private protected")] string access,
+            [CombinatorialValues("", "virtual", "sealed")] string virt,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14)] LanguageVersion langVersion)
+        {
+            var source1 = $$"""
+                partial interface I
+                {
+                    {{access}} static {{virt}}
+                    partial void M();
+                    {{access}} static {{virt}}
+                    partial void M() { System.Console.Write(1); }
+                }
+                """;
+
+            var source2 = """
+                partial interface I
+                {
+                    static void Main()
+                    {
+                        Helper<C1>();
+                        Helper<C2>();
+                        Helper<C3>();
+                    }
+
+                    static void Helper<T>() where T : I
+                    {
+                        T.M();
+                    }
+                }
+
+                class C1 : I
+                {
+                    static void M() { System.Console.Write(2); }
+                }
+
+                class C2 : I
+                {
+                    public static void M() { System.Console.Write(3); }
+                }
+
+                class C3 : I
+                {
+                    static void I.M() { System.Console.Write(4); }
+                }
+                """;
+
+            bool expectedPrivate = access is "" or "private";
+
+            var expectedAccessibility = access switch
+            {
+                _ when expectedPrivate => Accessibility.Private,
+                "public" => Accessibility.Public,
+                "protected" => Accessibility.Protected,
+                "internal" => Accessibility.Internal,
+                "protected internal" => Accessibility.ProtectedOrInternal,
+                "private protected" => Accessibility.ProtectedAndFriend,
+                _ => throw ExceptionUtilities.UnexpectedValue(access),
+            };
+
+            bool expectedVirtual = virt == "virtual";
+
+            bool executable = virt == "virtual" && !expectedPrivate;
+
+            DiagnosticDescription[] expectedDiagnostics = [];
+
+            if (access == "" && virt == "virtual")
+            {
+                expectedDiagnostics =
+                [
+                    // (4,18): error CS8798: Partial method 'I.M()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(4, 18),
+                    // (6,18): error CS8798: Partial method 'I.M()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                    //     partial void M() { System.Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M").WithArguments("I.M()").WithLocation(6, 18)
+                ];
+            }
+            else if (access == "private" && virt == "virtual")
+            {
+                expectedDiagnostics =
+                [
+                    // (4,18): error CS0621: 'I.M()': virtual or abstract members cannot be private
+                    //     partial void M();
+                    Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("I.M()").WithLocation(4, 18),
+                    // (6,18): error CS0621: 'I.M()': virtual or abstract members cannot be private
+                    //     partial void M() { System.Console.Write(1); }
+                    Diagnostic(ErrorCode.ERR_VirtualPrivate, "M").WithArguments("I.M()").WithLocation(6, 18)
+                ];
+            }
+
+            var comp = CreateCompilation(executable ? [source1, source2] : source1,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
+                options: TestOptions.DebugDll
+                    .WithOutputKind(executable ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary)
+                    .WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net60).VerifyDiagnostics(expectedDiagnostics);
+
+            if (expectedDiagnostics.Length == 0)
+            {
+                CompileAndVerify(comp,
+                    sourceSymbolValidator: validate,
+                    symbolValidator: validate,
+                    expectedOutput: executable && ExecutionConditionUtil.IsMonoOrCoreClr ? "134" : null,
+                    verify: virt != "virtual" ? Verification.FailsPEVerify : Verification.Fails with
+                    {
+                        ILVerifyMessage = """
+                            [Helper]: Missing callvirt following constrained prefix. { Offset = 0x7 }
+                            """,
+                    }).VerifyDiagnostics();
+            }
+            else
+            {
+                validate(comp.SourceModule);
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
+                validateMethod(m);
+
+                if (module is SourceModuleSymbol)
+                {
+                    validateMethod((MethodSymbol)m.GetPartialImplementationPart()!);
+                }
+            }
+
+            void validateMethod(MethodSymbol m)
+            {
+                Assert.False(m.IsAbstract);
+                Assert.Equal(expectedVirtual, m.IsVirtual);
+                Assert.Equal(expectedVirtual, m.IsMetadataVirtual());
+                Assert.False(m.IsMetadataNewSlot());
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsStatic);
+                Assert.False(m.IsExtern);
+                Assert.False(m.IsOverride);
+                Assert.Equal(expectedAccessibility, m.DeclaredAccessibility);
+                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+            }
+        }
+
+        [Fact]
         public void InsideStruct()
         {
             const string text = @"

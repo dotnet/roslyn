@@ -3193,7 +3193,7 @@ GetA
 
             // Note, the collection is created after the lexically previous argument is evaluated, 
             // but before the lexically following argument is evaluated. This differs from params
-            // array case, which is created right before the target methos is invoked, after all
+            // array case, which is created right before the target method is invoked, after all
             // arguments are evaluated in their lexical order, which can be observed in a unit-test
             // Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTests.NamedParamsOptimizationAndParams002​
             verifier.VerifyIL("Program.Main", @"

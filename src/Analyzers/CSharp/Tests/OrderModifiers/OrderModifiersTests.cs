@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
-public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public OrderModifiersTests(ITestOutputHelper logger)
       : base(logger)
@@ -26,9 +26,8 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
         => (new CSharpOrderModifiersDiagnosticAnalyzer(), new CSharpOrderModifiersCodeFixProvider());
 
     [Fact]
-    public async Task TestClass()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestClass()
+        => TestInRegularAndScriptAsync(
             """
             [|static|] internal class C
             {
@@ -39,12 +38,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStruct()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestStruct()
+        => TestInRegularAndScriptAsync(
             """
             [|unsafe|] public struct C
             {
@@ -55,12 +52,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInterface()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInterface()
+        => TestInRegularAndScriptAsync(
             """
             [|unsafe|] public interface C
             {
@@ -71,12 +66,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEnum()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestEnum()
+        => TestInRegularAndScriptAsync(
             """
             [|internal|] protected enum C
             {
@@ -87,20 +80,16 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDelegate()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDelegate()
+        => TestInRegularAndScriptAsync(
             @"[|unsafe|] public delegate void D();",
             @"public unsafe delegate void D();");
-    }
 
     [Fact]
-    public async Task TestMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMethod()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -113,12 +102,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 public unsafe void M() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestField()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -131,12 +118,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 public unsafe int a;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestConstructor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConstructor()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -149,12 +134,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 public unsafe C() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestProperty()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestProperty()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -167,12 +150,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 public unsafe int P { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAccessor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAccessor()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -185,12 +166,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 int P { protected internal get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertyEvent()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPropertyEvent()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -203,12 +182,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 protected internal event Action P { add { } remove { } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFieldEvent()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFieldEvent()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -221,12 +198,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 protected internal event Action P;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOperator()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOperator()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -239,12 +214,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 public static C operator +(C c1, C c2) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestConversionOperator()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestConversionOperator()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -257,12 +230,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 public static implicit operator bool(C c1) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll1()
+        => TestInRegularAndScriptAsync(
             """
             {|FixAllInDocument:static|} internal class C
             {
@@ -275,12 +246,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 internal static class Nested { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll2()
+        => TestInRegularAndScriptAsync(
             """
             static internal class C
             {
@@ -293,12 +262,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 internal static class Nested { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync(
             """
             /// Doc comment
             [|static|] internal class C
@@ -311,12 +278,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia2()
+        => TestInRegularAndScriptAsync(
             """
             /* start */ [|static|] /* middle */ internal /* end */ class C
             {
@@ -327,12 +292,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia3()
+        => TestInRegularAndScriptAsync(
             """
             #if true
             [|static|] internal class C
@@ -347,76 +310,58 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             }
             #endif
             """);
-    }
 
     [Fact]
-    public async Task PartialAtTheEndClass1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndClass1()
+        => TestInRegularAndScriptAsync(
 @"[|partial|] public class C { }",
 @"public partial class C { }");
-    }
 
     [Fact]
-    public async Task PartialAtTheEndClass2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndClass2()
+        => TestInRegularAndScriptAsync(
             @"[|partial|] abstract class C { }",
             @"abstract partial class C { }");
-    }
 
     [Fact]
-    public async Task PartialAtTheEndClass3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndClass3()
+        => TestInRegularAndScriptAsync(
             @"[|partial|] sealed class C { }",
             @"sealed partial class C { }");
-    }
 
     [Fact]
-    public async Task PartialAtTheEndClass4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndClass4()
+        => TestInRegularAndScriptAsync(
             @"[|partial|] static class C { }",
             @"static partial class C { }");
-    }
 
     [Fact]
-    public async Task PartialAtTheEndClass5()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndClass5()
+        => TestInRegularAndScriptAsync(
             @"[|partial|] unsafe class C { }",
             @"unsafe partial class C { }");
-    }
 
     [Fact]
-    public async Task PartialAtTheEndStruct1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndStruct1()
+        => TestInRegularAndScriptAsync(
             @"[|partial|] public struct S { }",
             @"public partial struct S { }");
-    }
 
     [Fact]
-    public async Task PartialAtTheEndStruct2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndStruct2()
+        => TestInRegularAndScriptAsync(
             @"[|partial|] unsafe struct S { }",
             @"unsafe partial struct S { }");
-    }
 
     [Fact]
-    public async Task PartialAtTheEndInterface()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndInterface()
+        => TestInRegularAndScriptAsync(
             @"[|partial|] public interface I { }",
             @"public partial interface I { }");
-    }
 
     [Fact]
-    public async Task PartialAtTheEndMethod1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndMethod1()
+        => TestInRegularAndScriptAsync(
             """
             partial class C
             {
@@ -429,12 +374,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 static partial void M();
             }
             """);
-    }
 
     [Fact]
-    public async Task PartialAtTheEndMethod2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PartialAtTheEndMethod2()
+        => TestInRegularAndScriptAsync(
             """
             partial class C
             {
@@ -447,13 +390,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 unsafe partial void M();
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/52297")]
-    public async Task TestInLocalFunction()
-    {
-        // Not handled for performance reason.
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInLocalFunction()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -463,12 +403,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInContainingMember_NotApplicable()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestFixAllInContainingMember_NotApplicable()
+        => TestMissingInRegularAndScriptAsync(
             """
             {|FixAllInContainingMember:static|} internal class C
             {
@@ -480,12 +418,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 static internal class Nested { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInContainingType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAllInContainingType()
+        => TestInRegularAndScriptAsync(
             """
             {|FixAllInContainingType:static|} internal class C
             {
@@ -508,12 +444,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 static internal class Nested { }
             }
             """);
-    }
 
     [Fact]
-    public async Task RequiredAfterAllOnProp()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task RequiredAfterAllOnProp()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 [|required|] public virtual unsafe int Prop { get; init; }
@@ -525,12 +459,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 public virtual unsafe required int Prop { get; init; }
             }
             """);
-    }
 
     [Fact]
-    public async Task RequiredAfterAllButVolatileOnField()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task RequiredAfterAllButVolatileOnField()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 [|required|] public unsafe volatile int Field;
@@ -542,12 +474,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
                 public unsafe required volatile int Field;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFileClass()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFileClass()
+        => TestInRegularAndScriptAsync("""
             [|abstract file|] class C
             {
             }
@@ -557,12 +487,10 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7553")]
-    public async Task TestEmptySelection()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestEmptySelection()
+        => TestInRegularAndScriptAsync(
             """
             namespace M;
             [||]static internal class C
@@ -575,5 +503,4 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             {
             }
             """, TestParameters.Default.WithIncludeDiagnosticsOutsideSelection(false));
-    }
 }

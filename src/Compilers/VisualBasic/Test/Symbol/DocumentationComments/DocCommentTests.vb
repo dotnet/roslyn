@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
+Imports System.Text
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports System.Xml.Linq
-Imports System.Text
-Imports System.IO
-Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests
@@ -12129,8 +12130,8 @@ xmlDoc)
                     If preferred Is Nothing Then
                         ensureEnglishUICulture = False
                     Else
-                        saveUICulture = Threading.Thread.CurrentThread.CurrentUICulture
-                        Threading.Thread.CurrentThread.CurrentUICulture = preferred
+                        saveUICulture = Thread.CurrentThread.CurrentUICulture
+                        Thread.CurrentThread.CurrentUICulture = preferred
                     End If
                 End If
 
@@ -12138,7 +12139,7 @@ xmlDoc)
                     diagnostics = compilation.GetDiagnostics(CompilationStage.Compile).ToArray()
                 Finally
                     If ensureEnglishUICulture Then
-                        Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+                        Thread.CurrentThread.CurrentUICulture = saveUICulture
                     End If
                 End Try
 
@@ -12170,8 +12171,8 @@ xmlDoc)
                         If preferred Is Nothing Then
                             ensureEnglishUICulture = False
                         Else
-                            saveUICulture = Threading.Thread.CurrentThread.CurrentUICulture
-                            Threading.Thread.CurrentThread.CurrentUICulture = preferred
+                            saveUICulture = Thread.CurrentThread.CurrentUICulture
+                            Thread.CurrentThread.CurrentUICulture = preferred
                         End If
                     End If
 
@@ -12179,7 +12180,7 @@ xmlDoc)
                         emitResult = compilation.Emit(output, xmlDocumentationStream:=xml)
                     Finally
                         If ensureEnglishUICulture Then
-                            Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+                            Thread.CurrentThread.CurrentUICulture = saveUICulture
                         End If
                     End Try
 

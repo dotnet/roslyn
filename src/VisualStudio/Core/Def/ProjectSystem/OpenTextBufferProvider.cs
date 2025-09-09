@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -38,7 +39,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     /// A simple object for asserting when we're on the UI thread.
     /// </summary>
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-    private readonly IVsRunningDocumentTable4 _runningDocumentTable;
+    private readonly Lazy<IVsRunningDocumentTable4> _runningDocumentTable;
 
     private ImmutableArray<IOpenTextBufferEventListener> _listeners = [];
 
@@ -60,17 +61,22 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         _threadingContext = threadingContext;
         _editorAdaptersFactoryService = editorAdaptersFactoryService;
 
-        // The running document table since 16.0 has limited operations that can be done in a free threaded manner, specifically fetching the service and advising events.
-        // This is specifically guaranteed by the shell that those limited operations are safe and do not cause RPCs, and it's important we don't try to fetch the service
-        // via a helper that will "helpfully" try to jump to the UI thread.
-        var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-        _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
-        runningDocumentTable.AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
+        _runningDocumentTable = new(() =>
+        {
+            // The running document table since 18.0 has limited operations that can be done in a free threaded manner, specifically fetching the service and advising events.
+            // This is specifically guaranteed by the shell that those limited operations are safe and do not cause RPCs, and it's important we don't try to fetch the service
+            // via a helper that will "helpfully" try to jump to the UI thread.
+            var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            runningDocumentTable.AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
+
+            return (IVsRunningDocumentTable4)runningDocumentTable;
+        });
 
         // We also need to check for any documents that might have been open before we subscribed. That we do have to do on the UI thread.
         var listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         var asyncToken = listener.BeginAsyncOperation(nameof(CheckForExistingOpenDocumentsAsync));
-        CheckForExistingOpenDocumentsAsync(threadingContext).CompletesAsyncOperation(asyncToken);
+
+        CheckForExistingOpenDocumentsAsync().CompletesAsyncOperation(asyncToken);
     }
 
     private void RaiseEventForEachListener(Action<IOpenTextBufferEventListener> action)
@@ -91,9 +97,16 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         }
     }
 
-    private async Task CheckForExistingOpenDocumentsAsync(IThreadingContext threadingContext)
+    private async Task CheckForExistingOpenDocumentsAsync()
     {
-        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+        // Yield the thread, so the calling constructor can proceed immediately
+        await Task.Yield().ConfigureAwait(false);
+
+        // Ensure we obtain the RDT before transitioning to the main thread
+        _ = _runningDocumentTable.Value;
+
+        // Now switch to the main thread since document enumeration does require it
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         foreach (var (filePath, textBuffer, hierarchy) in EnumerateDocumentSet())
         {
@@ -118,9 +131,9 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         if (dwReadLocksRemaining + dwEditLocksRemaining == 0)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            if (_runningDocumentTable.IsDocumentInitialized(docCookie))
+            if (_runningDocumentTable.Value.IsDocumentInitialized(docCookie))
             {
-                var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
+                var moniker = _runningDocumentTable.Value.GetDocumentMoniker(docCookie);
                 _monikerToTextBufferMap = _monikerToTextBufferMap.Remove(moniker);
 
                 RaiseEventForEachListener(l => l.OnCloseDocument(moniker));
@@ -132,9 +145,9 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
     public int OnAfterSave(uint docCookie)
     {
-        if (_runningDocumentTable.IsDocumentInitialized(docCookie))
+        if (_runningDocumentTable.Value.IsDocumentInitialized(docCookie))
         {
-            var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
+            var moniker = _runningDocumentTable.Value.GetDocumentMoniker(docCookie);
             RaiseEventForEachListener(l => l.OnSaveDocument(moniker));
         }
 
@@ -150,7 +163,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_MkDocument) != 0)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            if (_runningDocumentTable.IsDocumentInitialized(docCookie))
+            if (_runningDocumentTable.Value.IsDocumentInitialized(docCookie))
             {
                 // We should already have a text buffer for this one
                 if (_monikerToTextBufferMap.TryGetValue(pszMkDocumentOld, out var textBuffer))
@@ -181,10 +194,10 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         if ((grfAttribs & ((uint)__VSRDTATTRIB.RDTA_DocDataReloaded | (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized)) != 0)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBufferFromRunningDocumentTable(docCookie, out var buffer))
+            if (_runningDocumentTable.Value.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBufferFromRunningDocumentTable(docCookie, out var buffer))
             {
                 _monikerToTextBufferMap = _monikerToTextBufferMap.Add(moniker, buffer);
-                _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
+                _runningDocumentTable.Value.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
 
                 RaiseEventForEachListener(l => l.OnOpenDocument(moniker, buffer, hierarchy));
             }
@@ -193,9 +206,9 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker))
+            if (_runningDocumentTable.Value.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker))
             {
-                _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
+                _runningDocumentTable.Value.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
 
                 RaiseEventForEachListener(l => l.OnRefreshDocumentContext(moniker, hierarchy));
             }
@@ -207,13 +220,13 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
     {
         // Doc data reloaded is not triggered for the underlying aspx.cs file when changes are made to the aspx file, so catch it here.
-        if (fFirstShow != 0 && _runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker))
+        if (fFirstShow != 0 && _runningDocumentTable.Value.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker))
         {
             // If we hadn't already raised an event for this, do it now
             if (!_monikerToTextBufferMap.ContainsKey(moniker) && TryGetBufferFromRunningDocumentTable(docCookie, out var buffer))
             {
                 _monikerToTextBufferMap = _monikerToTextBufferMap.Add(moniker, buffer);
-                _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
+                _runningDocumentTable.Value.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
 
                 RaiseEventForEachListener(l => l.OnOpenDocument(moniker, buffer, hierarchy));
             }
@@ -256,13 +269,13 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        if (!_runningDocumentTable.IsFileOpen(filePath))
+        if (!_runningDocumentTable.Value.IsFileOpen(filePath))
         {
             return null;
         }
 
-        var cookie = _runningDocumentTable.GetDocumentCookie(filePath);
-        _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
+        var cookie = _runningDocumentTable.Value.GetDocumentCookie(filePath);
+        _runningDocumentTable.Value.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
         return hierarchy;
     }
 
@@ -278,7 +291,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         {
             if (TryGetMoniker(cookie, out var moniker) && TryGetBufferFromRunningDocumentTable(cookie, out var buffer))
             {
-                _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
+                _runningDocumentTable.Value.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
                 documents.Add((moniker, buffer, hierarchy));
             }
         }
@@ -288,9 +301,9 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
     private IEnumerable<uint> GetInitializedRunningDocumentTableCookies()
     {
-        foreach (var cookie in _runningDocumentTable.GetRunningDocuments())
+        foreach (var cookie in _runningDocumentTable.Value.GetRunningDocuments())
         {
-            if (_runningDocumentTable.IsDocumentInitialized(cookie))
+            if (_runningDocumentTable.Value.IsDocumentInitialized(cookie))
             {
                 yield return cookie;
             }
@@ -299,14 +312,14 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
     private bool TryGetMoniker(uint docCookie, out string moniker)
     {
-        moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
+        moniker = _runningDocumentTable.Value.GetDocumentMoniker(docCookie);
         return !string.IsNullOrEmpty(moniker);
     }
 
     private bool TryGetBufferFromRunningDocumentTable(uint docCookie, [NotNullWhen(true)] out ITextBuffer? textBuffer)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        return _runningDocumentTable.TryGetBuffer(_editorAdaptersFactoryService, docCookie, out textBuffer);
+        return _runningDocumentTable.Value.TryGetBuffer(_editorAdaptersFactoryService, docCookie, out textBuffer);
     }
 
     public void Dispose()
@@ -316,7 +329,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
             return;
         }
 
-        var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
+        var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable.Value;
         runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
         _runningDocumentTableEventsCookie = 0;
 

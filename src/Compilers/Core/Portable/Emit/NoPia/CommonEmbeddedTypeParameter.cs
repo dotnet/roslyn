@@ -4,10 +4,11 @@
 
 #nullable disable
 
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -239,13 +240,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             public sealed override bool Equals(object obj)
             {
                 // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-                throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable();
             }
 
             public sealed override int GetHashCode()
             {
                 // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-                throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

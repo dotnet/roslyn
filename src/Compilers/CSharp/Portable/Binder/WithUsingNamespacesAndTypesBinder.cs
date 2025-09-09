@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensions
         {
             get { return true; }
         }
@@ -129,6 +129,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        {
+            Debug.Assert(extensions.Count == 0);
+
+            // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, test this flag (see TestUnusedExtensionMarksImportsAsUsed)
+            bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
+
+            // We need to avoid collecting multiple candidates for an extension declaration imported both through a namespace and a static class
+            // We will look for duplicates only if both of the following flags are set to true
+            bool seenNamespaceWithExtensions = false;
+            bool seenStaticClassWithExtensions = false;
+
+            foreach (var nsOrType in this.GetUsings(basesBeingResolved: null))
+            {
+                if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
+                {
+                    var count = extensions.Count;
+                    ns.GetExtensionContainers(extensions);
+                    // If we found any extension declarations, then consider this using as used.
+                    // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining this logic
+                    if (extensions.Count != count)
+                    {
+                        MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                        seenNamespaceWithExtensions = true;
+                    }
+                }
+                else if (nsOrType.NamespaceOrType is NamedTypeSymbol namedType)
+                {
+                    var count = extensions.Count;
+                    namedType.GetExtensionContainers(extensions);
+                    // If we found any extension declarations, then consider this using as used.
+                    // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining this logic
+                    if (extensions.Count != count)
+                    {
+                        MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
+                        seenStaticClassWithExtensions = true;
+                    }
+                }
+            }
+
+            if (seenNamespaceWithExtensions && seenStaticClassWithExtensions)
+            {
+                extensions.RemoveDuplicates();
+            }
+        }
+
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -162,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsValidLookupCandidateInUsings(Symbol symbol)
         {
+            Debug.Assert(!symbol.GetIsNewExtensionMember());
             switch (symbol.Kind)
             {
                 // lookup via "using namespace" ignores namespaces inside

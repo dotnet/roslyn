@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-public class InteractiveBraceHighlightingTests
+public sealed class InteractiveBraceHighlightingTests
 {
     private static IEnumerable<T> Enumerable<T>(params T[] array)
         => array;
@@ -151,18 +151,20 @@ public class InteractiveBraceHighlightingTests
     [WpfFact]
     public async Task TestSwitch()
     {
-        var code = @"
-class C
-{
-    void M(int variable)
-    {
-        switch (variable)
-        {
-            case 0:
-                break;
-        }
-    }
-} ";
+        var code = """
+
+            class C
+            {
+                void M(int variable)
+                {
+                    switch (variable)
+                    {
+                        case 0:
+                            break;
+                    }
+                }
+            } 
+            """;
         using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: TestOptions.Script);
         var buffer = workspace.Documents.First().GetTextBuffer();
 

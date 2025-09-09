@@ -205,7 +205,13 @@ internal static class ClassificationHelpers
         }
         else if (token.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.Identifier == token)
         {
-            return IsExtensionMethod(methodDeclaration) ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName;
+            if (methodDeclaration.ParameterList.Parameters is [var parameter, ..] && parameter.Modifiers.Any(SyntaxKind.ThisKeyword))
+                return ClassificationTypeNames.ExtensionMethodName;
+
+            if (methodDeclaration.Parent is ExtensionBlockDeclarationSyntax)
+                return ClassificationTypeNames.ExtensionMethodName;
+
+            return ClassificationTypeNames.MethodName;
         }
         else if (token.Parent is ConstructorDeclarationSyntax constructorDeclaration && constructorDeclaration.Identifier == token)
         {
@@ -327,9 +333,6 @@ internal static class ClassificationHelpers
 
         return parentNode.GetModifiers().Any(SyntaxKind.StaticKeyword);
     }
-
-    private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
-        => methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
 
     private static string? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
         => identifier.Parent!.Kind() switch

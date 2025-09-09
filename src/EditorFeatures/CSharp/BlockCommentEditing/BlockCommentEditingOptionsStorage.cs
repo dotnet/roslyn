@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 
-internal class BlockCommentEditingOptionsStorage
+internal sealed class BlockCommentEditingOptionsStorage
 {
     public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new("csharp_insert_block_comment_start_string", defaultValue: true);
 }

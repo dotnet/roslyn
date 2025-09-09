@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.IntroduceUsingStatement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 
@@ -40,7 +39,7 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider()
         => (tryStatement.Block.Statements, tryStatement.Finally?.Block.Statements ?? default);
 
     protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)
-        => parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
+        => parent is BlockSyntax or SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
 
     protected override SyntaxList<StatementSyntax> GetSurroundingStatements(StatementSyntax statement)
         => statement.GetRequiredParent() switch

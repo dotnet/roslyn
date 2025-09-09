@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractClass;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractClass;
 

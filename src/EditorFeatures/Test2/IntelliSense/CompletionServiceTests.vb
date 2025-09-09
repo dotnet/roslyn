@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
@@ -134,7 +135,7 @@ $$
                 Return Task.CompletedTask
             End Function
 
-            Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As Threading.CancellationToken) As Task(Of CompletionDescription)
+            Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
                 Return Task.FromResult(CompletionDescription.FromText(DescriptionText))
             End Function
         End Class

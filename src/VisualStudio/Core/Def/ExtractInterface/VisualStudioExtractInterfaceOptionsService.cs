@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -26,7 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IUIThreadOperationExecutor uiThreadOperationExecutor) : IExtractInterfaceOptionsService
+internal sealed class VisualStudioExtractInterfaceOptionsService(
+    IGlyphService glyphService,
+    IThreadingContext threadingContext,
+    IUIThreadOperationExecutor uiThreadOperationExecutor) : IExtractInterfaceOptionsService
 {
     private readonly IGlyphService _glyphService = glyphService;
     private readonly IThreadingContext _threadingContext = threadingContext;
@@ -34,12 +36,11 @@ internal sealed class VisualStudioExtractInterfaceOptionsService(IGlyphService g
 
     public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
         Document document,
-        List<ISymbol> extractableMembers,
+        ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> allTypeNames,
+        ImmutableArray<string> allTypeNames,
         string defaultNamespace,
-        string generatedNameTypeParameterSuffix,
-        CancellationToken cancellationToken)
+        string generatedNameTypeParameterSuffix)
     {
         _threadingContext.ThrowIfNotOnUIThread();
         var solution = document.Project.Solution;
@@ -73,7 +74,7 @@ internal sealed class VisualStudioExtractInterfaceOptionsService(IGlyphService g
 
         if (result.HasValue && result.Value)
         {
-            var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
+            var includedMembers = viewModel.MemberContainers.SelectAsArray(c => c.IsChecked, c => c.Symbol);
 
             return new ExtractInterfaceOptionsResult(
                 isCancelled: false,

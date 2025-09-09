@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InlineTemporary;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,6 +24,8 @@ using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
+
+using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InlineTemporary), Shared]
 [method: ImportingConstructor]
@@ -159,11 +162,11 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
 
         // Checks to see if inlining the temporary variable may change the code's meaning. This can only apply if the variable has two or more
         // references. We later use this heuristic to determine whether or not to display a warning message to the user.
-        var mayContainSideEffects = allReferences.Count() > 1 &&
+        var mayContainSideEffects = allReferences.Length > 1 &&
             MayContainSideEffects(declarator.Initializer.Value);
 
         var scope = GetScope(declarator);
-        var newScope = ReferenceRewriter.Visit(scope, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
+        var newScope = RewriteScope(scope);
 
         document = await document.ReplaceNodeAsync(scope, newScope, cancellationToken).ConfigureAwait(false);
 
@@ -209,6 +212,72 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
         }, cancellationToken).ConfigureAwait(false);
 
         return document;
+
+        SyntaxNode RewriteScope(SyntaxNode scope)
+        {
+            var editor = new SyntaxEditor(scope, document.Project.Solution.Services);
+
+            foreach (var identifier in conflictReferences)
+                editor.ReplaceNode(identifier, identifier.WithAdditionalAnnotations(CreateConflictAnnotation()));
+
+            foreach (var identifier in nonConflictReferences)
+            {
+                if (identifier.Parent is AnonymousObjectMemberDeclaratorSyntax { NameEquals: null } anonymousMember)
+                {
+                    // Special case inlining into anonymous types to ensure that we keep property names:
+                    //
+                    // E.g.
+                    //     int x = 42;
+                    //     var a = new { x; };
+                    //
+                    // Should become:
+                    //     var a = new { x = 42; };
+                    editor.ReplaceNode(
+                        anonymousMember,
+                        anonymousMember.Update(NameEquals(identifier), expressionToInline).WithTriviaFrom(anonymousMember));
+                }
+                else if (identifier.Parent is ArgumentSyntax
+                {
+                    Parent: TupleExpressionSyntax tupleExpression,
+                    NameColon: null,
+                } argument &&
+                    !SyntaxFacts.IsReservedTupleElementName(identifier.Identifier.ValueText) &&
+                    tupleExpression.Arguments.Count(a => nonConflictReferences.Contains(a.Expression)) == 1)
+                {
+                    // Special case inlining into tuples to ensure that we keep property names:
+                    //
+                    // E.g.
+                    //     int x = 42;
+                    //     var a = (x, y);
+                    //
+                    // Should become:
+                    //     var a = (x: 42, y);
+                    editor.ReplaceNode(
+                        argument,
+                        argument.Update(NameColon(identifier), argument.RefKindKeyword, expressionToInline).WithTriviaFrom(argument));
+                }
+                else if (identifier.Parent is SpreadElementSyntax spreadElement &&
+                    declarator.Initializer.Value is CollectionExpressionSyntax collectionToInline)
+                {
+                    // Special case inlining a collection into a spread element.  We can just move the original elements
+                    // into the final collection.
+                    var leadingTrivia = spreadElement.GetLeadingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia) space]
+                        ? TriviaList(ElasticMarker, space)
+                        : TriviaList(ElasticMarker);
+
+                    editor.ReplaceNode(
+                        spreadElement,
+                        (_, _) => collectionToInline.Elements.Select(
+                            e => e.WithLeadingTrivia(leadingTrivia)));
+                }
+                else
+                {
+                    editor.ReplaceNode(identifier, expressionToInline.WithTriviaFrom(identifier));
+                }
+            }
+
+            return editor.GetChangedRoot();
+        }
     }
 
     private static bool MayContainSideEffects(SyntaxNode expression)

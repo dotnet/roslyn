@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -345,8 +343,8 @@ class C2
                         </Project>
                     </Workspace>, host:=host, renameTo:="def")
 
-                Dim originalDocument = result.ConflictResolution.OldSolution.Projects.First().Documents.Where(Function(d) d.FilePath = "Test2.cs").Single()
-                Dim newDocument = result.ConflictResolution.NewSolution.Projects.First().Documents.Where(Function(d) d.FilePath = "Test2.cs").Single()
+                Dim originalDocument = result.ConflictResolution.OldSolution.Projects.First().Documents.Where(Function(d) d.Name = "Test2.cs").Single()
+                Dim newDocument = result.ConflictResolution.NewSolution.Projects.First().Documents.Where(Function(d) d.Name = "Test2.cs").Single()
                 Assert.Same(originalDocument.State, newDocument.State)
                 Assert.Equal(1, result.ConflictResolution.NewSolution.GetChangedDocuments(result.ConflictResolution.OldSolution).Count)
             End Using

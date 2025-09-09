@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
@@ -111,6 +110,10 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
                 return false;
             }
         }
+        else if (typeName.Parent is DeclarationExpressionSyntax)
+        {
+            return !ContainsAnonymousType(typeName, semanticModel, cancellationToken);
+        }
 
         return true;
     }
@@ -142,18 +145,21 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
         CSharpSimplifierOptions options,
         CancellationToken cancellationToken)
     {
+        if (ContainsAnonymousType(typeName, semanticModel, cancellationToken))
+            return false;
+
+        // cannot find type if initializer resolves to an ErrorTypeSymbol
+        var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
+        return !initializerTypeInfo.Type.IsErrorType();
+    }
+
+    private static bool ContainsAnonymousType(TypeSyntax typeName, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
         // is or contains an anonymous type
         // cases :
         //        var anon = new { Num = 1 };
         //        var enumerableOfAnons = from prod in products select new { prod.Color, prod.Price };
         var declaredType = semanticModel.GetTypeInfo(typeName.StripRefIfNeeded(), cancellationToken).Type;
-        if (declaredType.ContainsAnonymousType())
-        {
-            return false;
-        }
-
-        // cannot find type if initializer resolves to an ErrorTypeSymbol
-        var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
-        return !initializerTypeInfo.Type.IsErrorType();
+        return declaredType.ContainsAnonymousType();
     }
 }

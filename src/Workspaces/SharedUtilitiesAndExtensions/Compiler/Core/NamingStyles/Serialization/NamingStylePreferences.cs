@@ -23,8 +23,69 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>
 {
     private const int s_serializationVersion = 5;
+    [DataMember(Order = 0)]
+    public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
 
-    private static readonly string _defaultNamingPreferencesString = $@"
+    [DataMember(Order = 1)]
+    public readonly ImmutableArray<NamingStyle> NamingStyles;
+
+    [DataMember(Order = 2)]
+    public ImmutableArray<SerializableNamingRule> SerializableNamingRules
+    {
+        get
+        {
+            if (field.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(
+                    ref field,
+                    Rules.NamingRules.SelectAsArray(static rule => new SerializableNamingRule
+                    {
+                        SymbolSpecificationID = rule.SymbolSpecification.ID,
+                        NamingStyleID = rule.NamingStyle.ID,
+                        EnforcementLevel = rule.EnforcementLevel,
+                    }));
+            }
+
+            return field;
+        }
+    }
+
+    public readonly NamingStyleRules Rules;
+
+    // used for deserialization
+    public NamingStylePreferences(
+        ImmutableArray<SymbolSpecification> symbolSpecifications,
+        ImmutableArray<NamingStyle> namingStyles,
+        ImmutableArray<SerializableNamingRule> serializableRules)
+    {
+        Contract.ThrowIfFalse(serializableRules.IsEmpty == namingStyles.IsEmpty);
+        Contract.ThrowIfFalse(serializableRules.IsEmpty == symbolSpecifications.IsEmpty);
+
+        SymbolSpecifications = symbolSpecifications;
+        NamingStyles = namingStyles;
+        SerializableNamingRules = serializableRules;
+
+        Rules = new NamingStyleRules(
+            serializableRules.SelectAsArray(static (rule, arg) => new NamingRule(
+                arg.symbolSpecifications.Single(static (s, id) => s.ID == id, rule.SymbolSpecificationID),
+                arg.namingStyles.Single(static (s, id) => s.ID == id, rule.NamingStyleID),
+                rule.EnforcementLevel), (symbolSpecifications, namingStyles)));
+    }
+
+    public NamingStylePreferences(
+        ImmutableArray<SymbolSpecification> symbolSpecifications,
+        ImmutableArray<NamingStyle> namingStyles,
+        ImmutableArray<NamingRule> namingRules)
+    {
+        Contract.ThrowIfFalse(namingRules.IsEmpty == namingStyles.IsEmpty);
+        Contract.ThrowIfFalse(namingRules.IsEmpty == symbolSpecifications.IsEmpty);
+
+        SymbolSpecifications = symbolSpecifications;
+        NamingStyles = namingStyles;
+        Rules = new NamingStyleRules(namingRules);
+    }
+
+    public static string DefaultNamingPreferencesString { get; } = $@"
 <NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">
   <SymbolSpecifications>
     <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{CompilerExtensionsResources.Class}"">
@@ -271,74 +332,8 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
 </NamingPreferencesInfo>
 ";
 
-    [DataMember(Order = 0)]
-    public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
-
-    [DataMember(Order = 1)]
-    public readonly ImmutableArray<NamingStyle> NamingStyles;
-
-    [DataMember(Order = 2)]
-    public ImmutableArray<SerializableNamingRule> SerializableNamingRules
-    {
-        get
-        {
-            if (_lazySerializableRules.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedInitialize(
-                    ref _lazySerializableRules,
-                    Rules.NamingRules.SelectAsArray(static rule => new SerializableNamingRule
-                    {
-                        SymbolSpecificationID = rule.SymbolSpecification.ID,
-                        NamingStyleID = rule.NamingStyle.ID,
-                        EnforcementLevel = rule.EnforcementLevel,
-                    }));
-            }
-
-            return _lazySerializableRules;
-        }
-    }
-
-    private ImmutableArray<SerializableNamingRule> _lazySerializableRules;
-
-    public readonly NamingStyleRules Rules;
-
-    // used for deserialization
-    public NamingStylePreferences(
-        ImmutableArray<SymbolSpecification> symbolSpecifications,
-        ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<SerializableNamingRule> serializableRules)
-    {
-        Contract.ThrowIfFalse(serializableRules.IsEmpty == namingStyles.IsEmpty);
-        Contract.ThrowIfFalse(serializableRules.IsEmpty == symbolSpecifications.IsEmpty);
-
-        SymbolSpecifications = symbolSpecifications;
-        NamingStyles = namingStyles;
-        _lazySerializableRules = serializableRules;
-
-        Rules = new NamingStyleRules(
-            serializableRules.SelectAsArray(static (rule, arg) => new NamingRule(
-                arg.symbolSpecifications.Single(static (s, id) => s.ID == id, rule.SymbolSpecificationID),
-                arg.namingStyles.Single(static (s, id) => s.ID == id, rule.NamingStyleID),
-                rule.EnforcementLevel), (symbolSpecifications, namingStyles)));
-    }
-
-    public NamingStylePreferences(
-        ImmutableArray<SymbolSpecification> symbolSpecifications,
-        ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<NamingRule> namingRules)
-    {
-        Contract.ThrowIfFalse(namingRules.IsEmpty == namingStyles.IsEmpty);
-        Contract.ThrowIfFalse(namingRules.IsEmpty == symbolSpecifications.IsEmpty);
-
-        SymbolSpecifications = symbolSpecifications;
-        NamingStyles = namingStyles;
-        Rules = new NamingStyleRules(namingRules);
-    }
-
     public static NamingStylePreferences Default { get; } = FromXElement(XElement.Parse(DefaultNamingPreferencesString));
     public static NamingStylePreferences Empty { get; } = new([], [], ImmutableArray<NamingRule>.Empty);
-
-    public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
     public bool IsEmpty
         => Rules.NamingRules.IsEmpty;

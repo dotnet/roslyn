@@ -13,6 +13,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -49,8 +50,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         \s*
         (?<Inclusion>[+|-]?)
         ((?<Kinds>[A-Za-z]+):)?
-        (?<MetadataName>[^#]*)
-        ([#].*)?
+        (?<MetadataName>.*)
         $
         """, RegexOptions.Singleline | RegexOptions.IgnorePatternWhitespace);
 
@@ -62,6 +62,14 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
 
     [Required]
     public string OutputDir { get; private set; } = null!;
+
+    [Required]
+    public string ApisDir { get; private set; } = null!;
+
+    /// <summary>
+    /// True to report an error if any changes in Semantic Search APIs are detected.
+    /// </summary>
+    public bool RequireNoApiChanges { get; private set; } = false;
 
     public override bool Execute()
     {
@@ -106,6 +114,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             }
 
             var peImageBuffer = File.ReadAllBytes(originalReferencePath);
+
             Rewrite(peImageBuffer, patterns.ToImmutableArray());
 
             try
@@ -116,7 +125,75 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             {
                 // Another instance of the task might already be writing the content. 
                 Log.LogMessage($"Output file '{filteredReferencePath}' already exists.");
+                return;
             }
+
+            WriteApis(assemblyName, peImageBuffer);
+        }
+    }
+
+    internal void WriteApis(string assemblyName, byte[] peImage)
+    {
+        string outputFilePath = Path.Combine(ApisDir, assemblyName + ".txt");
+
+        using var readableStream = new MemoryStream(peImage, writable: false);
+        var metadataRef = MetadataReference.CreateFromStream(readableStream);
+        var compilation = CSharpCompilation.Create("Metadata", references: [metadataRef]);
+
+        // Collect all externally accessible metadata member definitions:
+        var types = new List<INamedTypeSymbol>();
+        var methods = new List<IMethodSymbol>();
+        var fields = new List<IFieldSymbol>();
+        GetAllMembers(compilation, types, methods, fields,
+            filter: s => s is { MetadataToken: not 0, DeclaredAccessibility: Accessibility.Public or Accessibility.Protected or Accessibility.ProtectedOrInternal });
+
+        var apis = new List<string>();
+        apis.AddRange(((IEnumerable<ISymbol>)types).Concat(methods).Concat(fields).Select(GetDocumentationCommentSymbolName));
+
+        // Doc ids start with "X:" prefix, where X is member kind ('T', 'M' or 'F'):
+        apis.Sort(static (x, y) => x.AsSpan()[2..].CompareTo(y.AsSpan()[2..], StringComparison.Ordinal));
+
+        var newContent = $"# Generated, do not update manually{Environment.NewLine}" +
+            string.Join(Environment.NewLine, apis);
+
+        if (RequireNoApiChanges)
+        {
+            var oldContent = "";
+
+            if (File.Exists(outputFilePath))
+            {
+                try
+                {
+                    oldContent = File.ReadAllText(outputFilePath, Encoding.UTF8);
+                }
+                catch (FileNotFoundException)
+                {
+                }
+                catch (Exception e)
+                {
+                    Log.LogError($"Unable to read '{outputFilePath}': {e.Message}");
+                    return;
+                }
+            }
+
+            if (oldContent != newContent)
+            {
+                Log.LogError(
+                    $"APIs listed in file '{outputFilePath}' do not match the public APIs exposed by '{assemblyName}'. " +
+                    $"Build SemanticSearch.ReferenceAssemblies project locally to update the file and review the changes.");
+
+                return;
+            }
+        }
+
+        try
+        {
+            File.WriteAllText(outputFilePath, newContent, Encoding.UTF8);
+            Log.LogMessage($"Baseline updated: '{outputFilePath}'");
+        }
+        catch (Exception e)
+        {
+            Log.LogError($"Error updating baseline '{outputFilePath}': {e.Message}");
         }
     }
 
@@ -125,6 +202,10 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         for (var i = 0; i < lines.Count; i++)
         {
             var line = lines[i];
+            if (line.TrimStart().StartsWith("#"))
+            {
+                continue;
+            }
 
             var match = s_lineSyntax.Match(line);
             if (!match.Success)
@@ -197,7 +278,8 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         Compilation compilation,
         List<INamedTypeSymbol> types,
         List<IMethodSymbol> methods,
-        List<IFieldSymbol> fields)
+        List<IFieldSymbol> fields,
+        Func<ISymbol, bool> filter)
     {
         Recurse(compilation.GlobalNamespace.GetMembers());
 
@@ -208,7 +290,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
                 switch (member)
                 {
                     case INamedTypeSymbol type:
-                        if (type.MetadataToken != 0)
+                        if (filter(member))
                         {
                             types.Add(type);
                             Recurse(type.GetMembers());
@@ -216,14 +298,14 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
                         break;
 
                     case IMethodSymbol method:
-                        if (method.MetadataToken != 0)
+                        if (filter(member))
                         {
                             methods.Add(method);
                         }
                         break;
 
                     case IFieldSymbol field:
-                        if (field.MetadataToken != 0)
+                        if (filter(member))
                         {
                             fields.Add(field);
                         }
@@ -237,12 +319,16 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         }
     }
 
-    private static bool IsIncluded(ISymbol symbol, ImmutableArray<ApiPattern> patterns)
+    private static string GetDocumentationCommentSymbolName(ISymbol symbol)
     {
         var id = symbol.GetDocumentationCommentId();
         Debug.Assert(id is [_, ':', ..]);
-        id = id[2..];
+        return id[2..];
+    }
 
+    private static bool IsIncluded(ISymbol symbol, ImmutableArray<ApiPattern> patterns)
+    {
+        var docName = GetDocumentationCommentSymbolName(symbol);
         var kind = GetKindFlags(symbol);
 
         // Type symbols areconsidered excluded by default.
@@ -251,7 +337,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
 
         foreach (var pattern in patterns)
         {
-            if ((pattern.SymbolKinds & kind) == kind && pattern.MetadataNamePattern.IsMatch(id))
+            if ((pattern.SymbolKinds & kind) == kind && pattern.MetadataNamePattern.IsMatch(docName))
             {
                 isIncluded = pattern.IsIncluded;
             }
@@ -285,7 +371,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         var types = new List<INamedTypeSymbol>();
         var methods = new List<IMethodSymbol>();
         var fields = new List<IFieldSymbol>();
-        GetAllMembers(compilation, types, methods, fields);
+        GetAllMembers(compilation, types, methods, fields, filter: s => s.MetadataToken != 0);
 
         // Update visibility flags:
         using var writableStream = new MemoryStream(peImage, writable: true);

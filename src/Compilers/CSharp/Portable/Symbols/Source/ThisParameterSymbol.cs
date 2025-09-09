@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override ConstantValue? DefaultValueFromAttributes
+        {
+            get { return null; }
+        }
+
         internal sealed override bool IsMetadataOptional
         {
             get { return false; }
@@ -88,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
+        internal override bool HasEnumeratorCancellationAttribute
+        {
+            get { return false; }
         }
 
         public sealed override bool IsThis
@@ -172,6 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return (Symbol?)_containingMethod ?? _containingType; }
         }
+
+        internal override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
 
         internal override ScopedKind EffectiveScope
         {

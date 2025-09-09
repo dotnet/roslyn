@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ReturnKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ReturnKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ReturnKeyword)
 {
-    public ReturnKeywordRecommender()
-        : base(SyntaxKind.ReturnKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
@@ -29,7 +24,7 @@ internal class ReturnKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
     private static bool IsAttributeContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
-            context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, includingRecordParameters: false, cancellationToken) ||
+            context.IsMemberAttributeContext(SyntaxKindSet.NonEnumTypeDeclarations, includingRecordParameters: false, cancellationToken) ||
             (context.SyntaxTree.IsScript() && context.IsTypeAttributeContext(cancellationToken)) ||
             context.IsStatementAttributeContext() ||
             IsAccessorAttributeContext();

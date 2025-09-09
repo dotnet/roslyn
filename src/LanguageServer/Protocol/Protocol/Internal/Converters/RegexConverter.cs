@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Similar to https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=/src/Productivity/TextMate/Core/LanguageConfiguration/Impl/FastRegexConverter.cs
 /// to allow us to only compile the regex option once.
 /// </summary>
-internal class RegexConverter : JsonConverter<Regex>
+internal sealed class RegexConverter : JsonConverter<Regex>
 {
     public override Regex? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

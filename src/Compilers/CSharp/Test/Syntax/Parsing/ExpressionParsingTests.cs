@@ -5965,7 +5965,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_ConditionalAccessExpression()
+        public void RangeExpression_ConditionalAccessExpression_01()
         {
             UsingExpression("c?..b",
                 // (1,6): error CS1003: Syntax error, ':' expected
@@ -5994,6 +5994,50 @@ select t";
                 M(SyntaxKind.IdentifierName);
                 {
                     M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_ConditionalAccessExpression_02()
+        {
+            // It would also be reasonable to parse this as '(c?.b)..(a)', but a Range doesn't accept nullable operands, so the below parse is acceptable.
+            UsingExpression("c?.b..a",
+                // (1,6): error CS1001: Identifier expected
+                // c?.b..a
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 6));
+
+            N(SyntaxKind.ConditionalAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
                 }
             }
             EOF();

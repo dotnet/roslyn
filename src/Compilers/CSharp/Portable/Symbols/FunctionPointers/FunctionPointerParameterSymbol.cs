@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int Ordinal { get; }
         public override Symbol ContainingSymbol => _containingSymbol;
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+        internal override bool HasEnumeratorCancellationAttribute => false;
+
+        internal override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
 
         internal override ScopedKind EffectiveScope
             => ParameterHelpers.IsRefScopedByDefault(this) ? ScopedKind.ScopedRef : ScopedKind.None;
@@ -78,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
         internal override bool IsMetadataOut => RefKind == RefKind.Out;
         internal override ConstantValue? ExplicitDefaultConstantValue => null;
+        internal override ConstantValue? DefaultValueFromAttributes => null;
         internal override bool IsIDispatchConstant => false;
         internal override bool IsIUnknownConstant => false;
         internal override bool IsCallerFilePath => false;

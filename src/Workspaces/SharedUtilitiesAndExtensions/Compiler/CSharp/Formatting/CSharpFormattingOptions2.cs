@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Roslyn.Utilities;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
-
-#if CODE_STYLE
-using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
@@ -24,42 +21,42 @@ internal static partial class CSharpFormattingOptions2
     private static readonly BidirectionalMap<string, SpacePlacementWithinParentheses> s_spacingWithinParenthesisOptionsEditorConfigMap =
         new(
         [
-            KeyValuePairUtil.Create("expressions", SpacePlacementWithinParentheses.Expressions),
-            KeyValuePairUtil.Create("type_casts", SpacePlacementWithinParentheses.TypeCasts),
-            KeyValuePairUtil.Create("control_flow_statements", SpacePlacementWithinParentheses.ControlFlowStatements),
+            KeyValuePair.Create("expressions", SpacePlacementWithinParentheses.Expressions),
+            KeyValuePair.Create("type_casts", SpacePlacementWithinParentheses.TypeCasts),
+            KeyValuePair.Create("control_flow_statements", SpacePlacementWithinParentheses.ControlFlowStatements),
         ]);
-    private static readonly BidirectionalMap<string, BinaryOperatorSpacingOptions> s_binaryOperatorSpacingOptionsEditorConfigMap =
+    private static readonly BidirectionalMap<string, BinaryOperatorSpacingOptionsInternal> s_binaryOperatorSpacingOptionsEditorConfigMap =
         new(
         [
-            KeyValuePairUtil.Create("ignore", BinaryOperatorSpacingOptions.Ignore),
-            KeyValuePairUtil.Create("none", BinaryOperatorSpacingOptions.Remove),
-            KeyValuePairUtil.Create("before_and_after", BinaryOperatorSpacingOptions.Single),
+            KeyValuePair.Create("ignore", BinaryOperatorSpacingOptionsInternal.Ignore),
+            KeyValuePair.Create("none", BinaryOperatorSpacingOptionsInternal.Remove),
+            KeyValuePair.Create("before_and_after", BinaryOperatorSpacingOptionsInternal.Single),
         ]);
-    private static readonly BidirectionalMap<string, LabelPositionOptions> s_labelPositionOptionsEditorConfigMap =
+    private static readonly BidirectionalMap<string, LabelPositionOptionsInternal> s_labelPositionOptionsEditorConfigMap =
         new(
         [
-            KeyValuePairUtil.Create("flush_left", LabelPositionOptions.LeftMost),
-            KeyValuePairUtil.Create("no_change", LabelPositionOptions.NoIndent),
-            KeyValuePairUtil.Create("one_less_than_current", LabelPositionOptions.OneLess),
+            KeyValuePair.Create("flush_left", LabelPositionOptionsInternal.LeftMost),
+            KeyValuePair.Create("no_change", LabelPositionOptionsInternal.NoIndent),
+            KeyValuePair.Create("one_less_than_current", LabelPositionOptionsInternal.OneLess),
         ]);
     private static readonly BidirectionalMap<string, NewLineBeforeOpenBracePlacement> s_legacyNewLineOptionsEditorConfigMap =
         new(
         [
-            KeyValuePairUtil.Create("object_collection_array_initalizers", NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers),
+            KeyValuePair.Create("object_collection_array_initalizers", NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers),
         ]);
     private static readonly BidirectionalMap<string, NewLineBeforeOpenBracePlacement> s_newLineOptionsEditorConfigMap =
         new(
         [
-            KeyValuePairUtil.Create("all", NewLineBeforeOpenBracePlacement.All),
-            KeyValuePairUtil.Create("accessors", NewLineBeforeOpenBracePlacement.Accessors),
-            KeyValuePairUtil.Create("types", NewLineBeforeOpenBracePlacement.Types),
-            KeyValuePairUtil.Create("methods", NewLineBeforeOpenBracePlacement.Methods),
-            KeyValuePairUtil.Create("properties", NewLineBeforeOpenBracePlacement.Properties),
-            KeyValuePairUtil.Create("anonymous_methods", NewLineBeforeOpenBracePlacement.AnonymousMethods),
-            KeyValuePairUtil.Create("control_blocks", NewLineBeforeOpenBracePlacement.ControlBlocks),
-            KeyValuePairUtil.Create("anonymous_types", NewLineBeforeOpenBracePlacement.AnonymousTypes),
-            KeyValuePairUtil.Create("object_collection_array_initializers", NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers),
-            KeyValuePairUtil.Create("lambdas", NewLineBeforeOpenBracePlacement.LambdaExpressionBody),
+            KeyValuePair.Create("all", NewLineBeforeOpenBracePlacement.All),
+            KeyValuePair.Create("accessors", NewLineBeforeOpenBracePlacement.Accessors),
+            KeyValuePair.Create("types", NewLineBeforeOpenBracePlacement.Types),
+            KeyValuePair.Create("methods", NewLineBeforeOpenBracePlacement.Methods),
+            KeyValuePair.Create("properties", NewLineBeforeOpenBracePlacement.Properties),
+            KeyValuePair.Create("anonymous_methods", NewLineBeforeOpenBracePlacement.AnonymousMethods),
+            KeyValuePair.Create("control_blocks", NewLineBeforeOpenBracePlacement.ControlBlocks),
+            KeyValuePair.Create("anonymous_types", NewLineBeforeOpenBracePlacement.AnonymousTypes),
+            KeyValuePair.Create("object_collection_array_initializers", NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers),
+            KeyValuePair.Create("lambdas", NewLineBeforeOpenBracePlacement.LambdaExpressionBody),
         ]);
     #endregion
 
@@ -181,10 +178,10 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BeforeSemicolonsInForStatement))
         .WithPublicOption(PublicFeatureName, "SpaceBeforeSemicolonsInForStatement");
 
-    public static Option2<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CreateOption(
+    public static Option2<BinaryOperatorSpacingOptionsInternal> SpacingAroundBinaryOperator { get; } = CreateOption(
         CSharpFormattingOptionGroups.Spacing, "csharp_space_around_binary_operators",
         CSharpSyntaxFormattingOptions.Default.SpacingAroundBinaryOperator,
-        new EditorConfigValueSerializer<BinaryOperatorSpacingOptions>(
+        new EditorConfigValueSerializer<BinaryOperatorSpacingOptionsInternal>(
             s => ParseEditorConfigSpacingAroundBinaryOperator(s),
             GetSpacingAroundBinaryOperatorEditorConfigString))
         .WithPublicOption(PublicFeatureName, "SpacingAroundBinaryOperator");
@@ -214,10 +211,10 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock))
         .WithPublicOption(PublicFeatureName, "IndentSwitchCaseSectionWhenBlock");
 
-    public static Option2<LabelPositionOptions> LabelPositioning { get; } = CreateOption(
+    public static Option2<LabelPositionOptionsInternal> LabelPositioning { get; } = CreateOption(
         CSharpFormattingOptionGroups.Indentation, "csharp_indent_labels",
         CSharpSyntaxFormattingOptions.Default.LabelPositioning,
-        new EditorConfigValueSerializer<LabelPositionOptions>(
+        new EditorConfigValueSerializer<LabelPositionOptionsInternal>(
             s => ParseEditorConfigLabelPositioning(s),
             GetLabelPositionOptionEditorConfigString))
         .WithPublicOption(PublicFeatureName, "LabelPositioning");
@@ -290,11 +287,7 @@ internal static partial class CSharpFormattingOptions2
     internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [CollectionExpressionWrappingLength];
 }
 
-#if CODE_STYLE
-internal enum LabelPositionOptions
-#else
-public enum LabelPositionOptions
-#endif
+internal enum LabelPositionOptionsInternal
 {
     /// Placed in the Zeroth column of the text editor
     LeftMost = 0,
@@ -306,11 +299,7 @@ public enum LabelPositionOptions
     NoIndent = 2
 }
 
-#if CODE_STYLE
-internal enum BinaryOperatorSpacingOptions
-#else
-public enum BinaryOperatorSpacingOptions
-#endif
+internal enum BinaryOperatorSpacingOptionsInternal
 {
     /// Single Spacing
     Single = 0,

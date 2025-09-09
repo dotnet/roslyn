@@ -7,62 +7,61 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
+
+internal sealed class InlayHintRefreshQueue : AbstractRefreshQueue
 {
-    internal class InlayHintRefreshQueue : AbstractRefreshQueue
+    private readonly IGlobalOptionService _globalOptionService;
+
+    public InlayHintRefreshQueue(
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        IGlobalOptionService globalOptionService,
+        LspWorkspaceManager lspWorkspaceManager,
+        IClientLanguageServerManager notificationManager)
+        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
     {
-        private readonly IGlobalOptionService _globalOptionService;
+        _globalOptionService = globalOptionService;
+        _globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);
+    }
 
-        public InlayHintRefreshQueue(
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            IGlobalOptionService globalOptionService,
-            LspWorkspaceManager lspWorkspaceManager,
-            IClientLanguageServerManager notificationManager)
-            : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
+    public override void Dispose()
+    {
+        base.Dispose();
+        _globalOptionService.RemoveOptionChangedHandler(this, OnOptionChanged);
+    }
+
+    private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
+    {
+        if (e.HasOption(static option =>
+                option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForIndexerParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForLiteralParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForOtherParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForObjectCreationParameters) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent) ||
+                option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation) ||
+                option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)))
         {
-            _globalOptionService = globalOptionService;
-            _globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);
+            EnqueueRefreshNotification(documentUri: null);
         }
+    }
 
-        public override void Dispose()
-        {
-            base.Dispose();
-            _globalOptionService.RemoveOptionChangedHandler(this, OnOptionChanged);
-        }
+    protected override string GetFeatureAttribute()
+        => FeatureAttribute.InlineHints;
 
-        private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
-        {
-            if (e.HasOption(static option =>
-                    option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
-                    option.Equals(InlineHintsOptionsStorage.ForIndexerParameters) ||
-                    option.Equals(InlineHintsOptionsStorage.ForLiteralParameters) ||
-                    option.Equals(InlineHintsOptionsStorage.ForOtherParameters) ||
-                    option.Equals(InlineHintsOptionsStorage.ForObjectCreationParameters) ||
-                    option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix) ||
-                    option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName) ||
-                    option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent) ||
-                    option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
-                    option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
-                    option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
-                    option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation) ||
-                    option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)))
-            {
-                EnqueueRefreshNotification(documentUri: null);
-            }
-        }
+    protected override bool? GetRefreshSupport(ClientCapabilities clientCapabilities)
+    {
+        return clientCapabilities.Workspace?.InlayHint?.RefreshSupport;
+    }
 
-        protected override string GetFeatureAttribute()
-            => FeatureAttribute.InlineHints;
-
-        protected override bool? GetRefreshSupport(ClientCapabilities clientCapabilities)
-        {
-            return clientCapabilities.Workspace?.InlayHint?.RefreshSupport;
-        }
-
-        protected override string GetWorkspaceRefreshName()
-        {
-            return Methods.WorkspaceInlayHintRefreshName;
-        }
+    protected override string GetWorkspaceRefreshName()
+    {
+        return Methods.WorkspaceInlayHintRefreshName;
     }
 }

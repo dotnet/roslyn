@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -114,7 +114,7 @@ internal sealed partial class FindReferencesSearchEngine(
         await _progressTracker.AddItemsAsync(projectsToSearch.Length, cancellationToken).ConfigureAwait(false);
 
         // Pull off and start searching each project as soon as we can once we've done the inheritance cascade into it.
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             // ForEachAsync will serially pull on the IAsyncEnumerable returned here, kicking off the processing to then
             // happen in parallel.
             GetProjectsAndSymbolsToSearchSeriallyAsync(symbolSet, projectsToSearch, symbolToGroup, cancellationToken),
@@ -247,7 +247,7 @@ internal sealed partial class FindReferencesSearchEngine(
                 }
             }
 
-            await RoslynParallel.ForEachAsync(
+            await Parallel.ForEachAsync(
                 documentToSymbolsWithin,
                 GetParallelOptions(cancellationToken),
                 (kvp, cancellationToken) =>
@@ -298,7 +298,7 @@ internal sealed partial class FindReferencesSearchEngine(
                 cache.FindMatchingIdentifierTokens(symbol.Name, cancellationToken);
         }
 
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             symbolsToSearchFor,
             GetParallelOptions(cancellationToken),
             (kvp, cancellationToken) =>
@@ -311,7 +311,7 @@ internal sealed partial class FindReferencesSearchEngine(
                     cache, TryGet(symbolToGlobalAliases, symbolToSearchFor));
 
                 ProcessDocument(symbolToSearchFor, symbolGroup, state, onReferenceFound);
-                return ValueTaskFactory.CompletedTask;
+                return ValueTask.CompletedTask;
             }).ConfigureAwait(false);
 
         return;

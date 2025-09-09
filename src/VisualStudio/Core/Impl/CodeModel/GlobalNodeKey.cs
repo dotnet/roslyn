@@ -6,17 +6,16 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-{
-    internal readonly struct GlobalNodeKey
-    {
-        public readonly SyntaxNodeKey NodeKey;
-        public readonly SyntaxPath Path;
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 
-        public GlobalNodeKey(SyntaxNodeKey nodeKey, SyntaxPath path)
-        {
-            this.NodeKey = nodeKey;
-            this.Path = path;
-        }
+internal readonly struct GlobalNodeKey
+{
+    public readonly SyntaxNodeKey NodeKey;
+    public readonly SyntaxPath Path;
+
+    public GlobalNodeKey(SyntaxNodeKey nodeKey, SyntaxPath path)
+    {
+        this.NodeKey = nodeKey;
+        this.Path = path;
     }
 }

@@ -11,17 +11,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
-using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -647,7 +643,7 @@ if (true)
         public async Task ReturnInLoadedFile()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "return 42;"));
+                KeyValuePair.Create("a.csx", "return 42;"));
             var options = ScriptOptions.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
@@ -665,7 +661,7 @@ if (true)
         public async Task ReturnInLoadedFileTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", @"
+                KeyValuePair.Create("a.csx", @"
 if (false)
 {
     return 42;
@@ -688,7 +684,7 @@ if (false)
         public void ReturnInLoadedFileTrailingVoidExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", @"
+                KeyValuePair.Create("a.csx", @"
 if (false)
 {
     return 1;
@@ -711,8 +707,8 @@ System.Console.WriteLine(42)"));
         public async Task MultipleLoadedFilesWithTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "1"),
-                KeyValuePairUtil.Create("b.csx", @"
+                KeyValuePair.Create("a.csx", "1"),
+                KeyValuePair.Create("b.csx", @"
 #load ""a.csx""
 2"));
             var options = ScriptOptions.WithSourceResolver(resolver);
@@ -721,8 +717,8 @@ System.Console.WriteLine(42)"));
             Assert.Null(result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "1"),
-                KeyValuePairUtil.Create("b.csx", "2"));
+                KeyValuePair.Create("a.csx", "1"),
+                KeyValuePair.Create("b.csx", "2"));
             options = ScriptOptions.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -731,8 +727,8 @@ System.Console.WriteLine(42)"));
             Assert.Null(result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "1"),
-                KeyValuePairUtil.Create("b.csx", "2"));
+                KeyValuePair.Create("a.csx", "1"),
+                KeyValuePair.Create("b.csx", "2"));
             options = ScriptOptions.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -746,8 +742,8 @@ System.Console.WriteLine(42)"));
         public async Task MultipleLoadedFilesWithReturnAndTrailingExpression()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "return 1;"),
-                KeyValuePairUtil.Create("b.csx", @"
+                KeyValuePair.Create("a.csx", "return 1;"),
+                KeyValuePair.Create("b.csx", @"
 #load ""a.csx""
 2"));
             var options = ScriptOptions.WithSourceResolver(resolver);
@@ -756,8 +752,8 @@ System.Console.WriteLine(42)"));
             Assert.Equal(1, result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "return 1;"),
-                KeyValuePairUtil.Create("b.csx", "2"));
+                KeyValuePair.Create("a.csx", "return 1;"),
+                KeyValuePair.Create("b.csx", "2"));
             options = ScriptOptions.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -766,8 +762,8 @@ System.Console.WriteLine(42)"));
             Assert.Equal(1, result);
 
             resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", "return 1;"),
-                KeyValuePairUtil.Create("b.csx", "2"));
+                KeyValuePair.Create("a.csx", "return 1;"),
+                KeyValuePair.Create("b.csx", "2"));
             options = ScriptOptions.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -781,7 +777,7 @@ return 3;", options);
         public async Task LoadedFileWithReturnAndGoto()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", @"
+                KeyValuePair.Create("a.csx", @"
 goto EOF;
 NEXT:
 return 1;
@@ -830,7 +826,7 @@ b", ScriptOptions);
         public async Task LoadedFileWithVoidReturn()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePairUtil.Create("a.csx", @"
+                KeyValuePair.Create("a.csx", @"
 var i = 42;
 return;
 i = -1;"));
@@ -1065,6 +1061,51 @@ return reply;
             }
 
             Assert.True(exceptionThrown);
+        }
+
+        [Fact]
+        public void Function_ReturningPartialType()
+        {
+            var script = CSharpScript.Create("class partial;", ScriptOptions.WithLanguageVersion(LanguageVersion.Preview))
+                .ContinueWith("partial M() => new();");
+            script.GetCompilation().VerifyDiagnostics(
+                // (1,9): error CS1520: Method must have a return type
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(1, 9),
+                // (1,9): error CS0759: No defining declaration found for implementing declaration of partial method 'M()'
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("M()").WithLocation(1, 9),
+                // (1,9): error CS0751: A partial member must be declared within a partial type
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(1, 9),
+                // (1,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "new()").WithLocation(1, 16));
+        }
+
+        [Fact]
+        public async Task Function_ReturningPartialType_CSharp13()
+        {
+            var script = CSharpScript.Create("class partial;", ScriptOptions.WithLanguageVersion(LanguageVersion.CSharp13))
+                .ContinueWith("partial M() => new();")
+                .ContinueWith("M()");
+            script.GetCompilation().VerifyDiagnostics();
+
+            var result = await script.EvaluateAsync();
+            Assert.Equal("partial", result.GetType().Name);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79146")]
+        public void ScriptInstantiation()
+        {
+            var parseOptions = CSharpParseOptions.Default.WithKind(SourceCodeKind.Script);
+            var compilation = CSharpCompilation.CreateScriptCompilation("Test",
+                CSharpSyntaxTree.ParseText("var x = new Script();", parseOptions),
+                [NetStandard20Ref]);
+            compilation.VerifyDiagnostics(
+                // (1,13): error CS8386: Invalid object creation
+                // var x = new Script();
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "Script").WithLocation(1, 13));
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

@@ -7,13 +7,12 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), [Shared]>
-    Friend Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+    Friend NotInheritable Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
         Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax, VisualBasicCodeGenerationContextInfo)
 
         Private Const Underscore As String = "_"
@@ -36,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
                 info As VisualBasicCodeGenerationContextInfo,
                 propertySyntax As PropertyStatementSyntax,
                 fieldName As String,
-                generator As SyntaxGenerator,
                 cancellationToken As CancellationToken) As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
 
+            Dim generator = VisualBasicSyntaxGenerator.Instance
             Dim returnStatement = New SyntaxList(Of StatementSyntax)(DirectCast(generator.ReturnStatement(
                 generator.IdentifierName(fieldName)), StatementSyntax))
             Dim getAccessor As SyntaxNode = SyntaxFactory.GetAccessorBlock(
@@ -71,12 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return False
         End Function
 
-        Protected Overrides Function GetPropertyWithoutInitializer(propertyNode As SyntaxNode) As SyntaxNode
-            Return DirectCast(propertyNode, PropertyStatementSyntax).WithInitializer(Nothing)
+        Protected Overrides Function GetPropertyWithoutInitializer(propertyNode As PropertyStatementSyntax) As PropertyStatementSyntax
+            Return propertyNode.WithInitializer(Nothing)
         End Function
 
-        Protected Overrides Function GetInitializerValue(propertyNode As SyntaxNode) As SyntaxNode
-            Return DirectCast(propertyNode, PropertyStatementSyntax).Initializer?.Value
+        Protected Overrides Function GetInitializerValue(propertyNode As PropertyStatementSyntax) As SyntaxNode
+            Return propertyNode.Initializer?.Value
         End Function
 
         Protected Overrides Function ConvertPropertyToExpressionBodyIfDesired(info As VisualBasicCodeGenerationContextInfo, propertyNode As SyntaxNode) As SyntaxNode
@@ -85,6 +84,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
 
         Protected Overrides Function GetTypeBlock(syntaxNode As SyntaxNode) As SyntaxNode
             Return DirectCast(syntaxNode, TypeStatementSyntax).Parent
+        End Function
+
+        Protected Overrides Function ExpandToFieldPropertyAsync(document As Document, [property] As PropertyStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+            Throw ExceptionUtilities.Unreachable()
         End Function
     End Class
 End Namespace

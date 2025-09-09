@@ -16,14 +16,13 @@ using VerifyCS = CSharpCodeFixVerifier<CSharpConvertTypeOfToNameOfDiagnosticAnal
     CSharpConvertTypeOfToNameOfCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
-public partial class ConvertTypeOfToNameOfTests
+public sealed partial class ConvertTypeOfToNameOfTests
 {
     private static readonly LanguageVersion CSharp14 = LanguageVersion.Preview;
 
     [Fact]
-    public async Task BasicType()
-    {
-        var text = """
+    public Task BasicType()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 void Method()
@@ -31,8 +30,7 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName = [|typeof(Test).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -40,14 +38,11 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName = nameof(Test);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task ClassLibraryType()
-    {
-        var text = """
+    public Task ClassLibraryType()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 void Method()
@@ -55,8 +50,7 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName = [|typeof(System.String).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -64,14 +58,11 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName = nameof(System.String);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task ClassLibraryTypeWithUsing()
-    {
-        var text = """
+    public Task ClassLibraryTypeWithUsing()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -81,8 +72,7 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName = [|typeof(String).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -92,14 +82,11 @@ public partial class ConvertTypeOfToNameOfTests
                     var typeName = nameof(String);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task NestedCall()
-    {
-        var text = """
+    public Task NestedCall()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -113,8 +100,7 @@ public partial class ConvertTypeOfToNameOfTests
                     return 0;
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -128,9 +114,7 @@ public partial class ConvertTypeOfToNameOfTests
                     return 0;
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
-    }
+            """);
 
     [Fact]
     public async Task NotOnVariableContainingType()
@@ -151,9 +135,8 @@ public partial class ConvertTypeOfToNameOfTests
     }
 
     [Fact]
-    public async Task PrimitiveType()
-    {
-        var text = """
+    public Task PrimitiveType()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 void Method()
@@ -161,8 +144,7 @@ public partial class ConvertTypeOfToNameOfTests
                         var typeName = [|typeof(int).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -170,14 +152,11 @@ public partial class ConvertTypeOfToNameOfTests
                         var typeName = nameof(System.Int32);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
-    }
+            """);
 
     [Fact]
-    public async Task PrimitiveTypeWithUsing()
-    {
-        var text = """
+    public Task PrimitiveTypeWithUsing()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -187,8 +166,7 @@ public partial class ConvertTypeOfToNameOfTests
                         var typeName = [|typeof(int).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -198,9 +176,7 @@ public partial class ConvertTypeOfToNameOfTests
                         var typeName = nameof(Int32);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
-    }
+            """);
 
     [Fact]
     public async Task NotOnGenericType()
@@ -235,9 +211,8 @@ public partial class ConvertTypeOfToNameOfTests
     }
 
     [Fact]
-    public async Task GenericType_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task GenericType_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Test
@@ -253,12 +228,10 @@ public partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task GenericType_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task GenericType_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Test
@@ -267,31 +240,17 @@ public partial class ConvertTypeOfToNameOfTests
                     { 
                         void M() 
                         {
-                            _ = [|typeof(Goo<int>).Name|];
-                        }
-                    }
-                }
-                """,
-            FixedCode = """
-                class Test
-                {
-                    class Goo<T> 
-                    { 
-                        void M() 
-                        {
-                            _ = nameof(Goo<>);
+                            _ = typeof(Goo<int>).Name;
                         }
                     }
                 }
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task UnboundGenericType_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task UnboundGenericType_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Test
@@ -307,12 +266,10 @@ public partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task UnboundGenericType_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task UnboundGenericType_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Test
@@ -321,31 +278,17 @@ public partial class ConvertTypeOfToNameOfTests
                     { 
                         void M() 
                         {
-                            _ = [|typeof(Goo<>).Name|];
-                        }
-                    }
-                }
-                """,
-            FixedCode = """
-                class Test
-                {
-                    class Goo<T> 
-                    { 
-                        void M() 
-                        {
-                            _ = nameof(Goo<>);
+                            _ = typeof(Goo<>).Name;
                         }
                     }
                 }
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType()
-    {
-        var text = """
+    public Task NestedInGenericType()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 class Goo<T> 
@@ -359,8 +302,7 @@ public partial class ConvertTypeOfToNameOfTests
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 class Goo<T> 
@@ -374,14 +316,11 @@ public partial class ConvertTypeOfToNameOfTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType2_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task NestedInGenericType2_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -409,12 +348,10 @@ public partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType2_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task NestedInGenericType2_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -442,12 +379,10 @@ public partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType_UnboundTypeof_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task NestedInGenericType_UnboundTypeof_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -463,12 +398,10 @@ public partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType_UnboundTypeof_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task NestedInGenericType_UnboundTypeof_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -496,7 +429,6 @@ public partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54233")]
     public async Task NotOnVoid()
@@ -514,9 +446,8 @@ public partial class ConvertTypeOfToNameOfTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47128")]
-    public async Task TestNint()
-    {
-        await new VerifyCS.Test
+    public Task TestNint()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -542,5 +473,4 @@ public partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 }

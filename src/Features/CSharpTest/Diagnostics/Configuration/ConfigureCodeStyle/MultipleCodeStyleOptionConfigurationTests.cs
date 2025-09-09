@@ -46,16 +46,15 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class VarElsewhere_TrueConfigurationTests : MultipleCodeStyleOptionConfigurationTests
+    public sealed class VarElsewhere_TrueConfigurationTests : MultipleCodeStyleOptionConfigurationTests
     {
         protected override int OptionIndex => 0;
 
         protected override int CodeActionIndex => 0;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_True()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_Empty_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -71,9 +70,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -93,15 +90,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_True()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -120,9 +113,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -141,15 +132,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_True_WithoutSeveritySuffix()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_True_WithoutSeveritySuffix()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -168,9 +155,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -189,15 +174,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_True()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_InvalidHeader_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -215,9 +196,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -240,15 +219,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_MaintainSeverity_True()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_MaintainSeverity_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -266,9 +241,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -286,15 +259,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_True()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_InvalidRule_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -312,9 +281,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -335,23 +302,19 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class VarForBuiltInTypes_FalseConfigurationTests : MultipleCodeStyleOptionConfigurationTests
+    public sealed class VarForBuiltInTypes_FalseConfigurationTests : MultipleCodeStyleOptionConfigurationTests
     {
         protected override int OptionIndex => 1;
 
         protected override int CodeActionIndex => 1;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_False()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_Empty_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -367,9 +330,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -389,15 +350,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_False()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -415,9 +372,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -435,15 +390,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_False_WithoutSeveritySuffix()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_False_WithoutSeveritySuffix()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -461,9 +412,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -481,15 +430,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_False()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_InvalidHeader_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -507,9 +452,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -532,15 +475,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_MaintainSeverity_False()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_MaintainSeverity_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -558,9 +497,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -578,15 +515,11 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_False()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_InvalidRule_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -604,9 +537,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -627,9 +558,6 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
     }
 }

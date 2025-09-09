@@ -7,28 +7,23 @@ using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.CodeStyle
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.CodeStyle;
+
+[ExportLanguageServiceFactory(typeof(ILanguageSettingsProviderFactory<CodeStyleSetting>), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpCodeStyleSettingsLanguageServiceFactory(
+    IThreadingContext threadingContext,
+    IGlobalOptionService globalOptions) : ILanguageServiceFactory
 {
-    [ExportLanguageServiceFactory(typeof(ILanguageSettingsProviderFactory<CodeStyleSetting>), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpCodeStyleSettingsLanguageServiceFactory : ILanguageServiceFactory
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeStyleSettingsLanguageServiceFactory(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
-
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            var workspace = languageServices.WorkspaceServices.Workspace;
-            return new CSharpCodeStyleSettingsProviderFactory(workspace, _globalOptions);
-        }
+        var workspace = languageServices.WorkspaceServices.Workspace;
+        return new CSharpCodeStyleSettingsProviderFactory(threadingContext, workspace, globalOptions);
     }
 }

@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -14,9 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral;
 
@@ -31,6 +29,8 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
     /// </summary>
     public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
     {
+        var cancellationToken = context.OperationContext.UserCancellationToken;
+
         var textView = args.TextView;
         var subjectBuffer = args.SubjectBuffer;
         var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
@@ -50,8 +50,6 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         var currentSnapshot = subjectBuffer.CurrentSnapshot;
         if (position >= currentSnapshot.Length)
             return false;
-
-        var cancellationToken = context.OperationContext.UserCancellationToken;
 
         var document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
@@ -76,6 +74,10 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
 
                 quotesAfter++;
             }
+
+            // We must have at least one following quote, as we only got into ExecuteReturnCommandBeforeQuoteCharacter
+            // if there was a quote character in front of it.
+            Debug.Assert(quotesAfter > 0);
 
             for (var i = position - 1; i >= 0; i--)
             {
@@ -108,6 +110,14 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 token.Parent is not ExpressionSyntax expression)
             {
                 return false;
+            }
+
+            if (!isEmpty)
+            {
+                // in the non empty case (e.g. `"""goo$$"""`) we have to make sure sure that the caret is before the
+                // final quotes, not the initial ones.
+                if (token.Span.End - quotesAfter != position)
+                    return false;
             }
 
             return MakeEdit(parsedDocument, expression, isEmpty);

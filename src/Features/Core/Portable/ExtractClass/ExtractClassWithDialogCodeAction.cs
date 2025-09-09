@@ -85,7 +85,8 @@ internal sealed class ExtractClassWithDialogCodeAction(
             _selectedType.IsRecord,
             TypeKind.Class,
             extractClassOptions.TypeName,
-            typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, extractClassOptions.MemberAnalysisResults.Select(m => m.Member)));
+            typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(
+                _selectedType, extractClassOptions.MemberAnalysisResults.SelectAsArray(m => m.Member)));
 
         var containingNamespaceDisplay = namespaceService.GetContainingNamespaceDisplay(
             _selectedType,

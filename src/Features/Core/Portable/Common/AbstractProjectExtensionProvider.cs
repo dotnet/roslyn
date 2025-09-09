@@ -18,7 +18,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
     where TExportAttribute : Attribute
     where TExtension : class
 {
-    public record class ExtensionInfo(ImmutableArray<TextDocumentKind> DocumentKinds, string[]? DocumentExtensions);
+    public sealed record class ExtensionInfo(ImmutableArray<TextDocumentKind> DocumentKinds, string[]? DocumentExtensions);
 
     // Following CWTs are used to cache completion providers from projects' references,
     // so we can avoid the slow path unless there's any change to the references.

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -25,58 +24,101 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     where TPackage : AbstractPackage<TPackage, TLanguageService>
     where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
 {
-    private TLanguageService _languageService;
-
-    private PackageInstallerService _packageInstallerService;
-    private VisualStudioSymbolSearchService _symbolSearchService;
+    private PackageInstallerService? _packageInstallerService;
+    private VisualStudioSymbolSearchService? _symbolSearchService;
+    private IVsShell? _shell;
 
     protected AbstractPackage()
     {
     }
 
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    protected override void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
+        packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+    }
 
-        var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-        cancellationToken.ThrowIfCancellationRequested();
+    private async Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+    {
+        // This code uses various main thread only services, so it must run completely on the main thread
+        // (thus the CA(true) usage throughout)
+        Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
+
+        var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
         Assumes.Present(shell);
-        Assumes.Present(solution);
+
+        _shell = (IVsShell?)shell;
+        Assumes.Present(_shell);
 
         foreach (var editorFactory in CreateEditorFactories())
         {
             RegisterEditorFactory(editorFactory);
         }
 
+        // awaiting an IVsTask guarantees to return on the captured context
+        await shell.LoadPackageAsync(Guids.RoslynPackageId);
+    }
+
+    private Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+    {
         RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
         {
             // Ensure we're on the BG when creating the language service.
             await TaskScheduler.Default;
 
-            // Create the language service, tell it to set itself up, then store it in a field
-            // so we can notify it that it's time to clean up.
-            _languageService = CreateLanguageService();
-            await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
+            var languageService = CreateLanguageService();
+            languageService.Setup(cancellationToken);
 
-            return _languageService.ComAggregate;
+            // DevDiv 753309:
+            // We've redefined some VS interfaces that had incorrect PIAs. When 
+            // we interop with native parts of VS, they always QI, so everything
+            // works. However, Razor is now managed, but assumes that the C#
+            // language service is native. When setting breakpoints, they
+            // get the language service from its GUID and cast it to IVsLanguageDebugInfo.
+            // This would QI the native lang service. Since we're managed and
+            // we've redefined IVsLanguageDebugInfo, the cast
+            // fails. To work around this, we put the LS inside a ComAggregate object,
+            // which always force a QueryInterface and allow their cast to succeed.
+            // 
+            // This also fixes 752331, which is a similar problem with the 
+            // exception assistant.
+
+            // Creating the com aggregate has to happen on the UI thread.
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return Interop.ComAggregate.CreateAggregatedObject(languageService);
         });
 
-        await shell.LoadPackageAsync(Guids.RoslynPackageId);
-
+        // Misc workspace has to be up and running by the time our package is usable so that it can track running
+        // doc events and appropriately map files to/from it and other relevant workspaces (like the
+        // metadata-as-source workspace).
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
-        if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
-        {
-            // not every derived package support object browser and for those languages
-            // this is a no op
-            await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
-        }
+        return Task.CompletedTask;
+    }
 
-        LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+    protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
+    {
+        base.RegisterOnAfterPackageLoadedAsyncWork(afterPackageLoadedTasks);
+
+        afterPackageLoadedTasks.AddTask(
+            isMainThreadTask: true,
+            task: (packageLoadedTasks, cancellationToken) =>
+            {
+                if (_shell != null && !_shell.IsInCommandLineMode())
+                {
+                    // not every derived package support object browser and for those languages
+                    // this is a no op
+                    RegisterObjectBrowserLibraryManager();
+                }
+
+                LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+
+                return Task.CompletedTask;
+            });
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
@@ -106,10 +148,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     protected abstract IEnumerable<IVsEditorFactory> CreateEditorFactories();
     protected abstract TLanguageService CreateLanguageService();
 
-    protected void RegisterService<T>(Func<CancellationToken, Task<T>> serviceCreator)
-        => AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
-
-    // When registering a language service, we need to take its ComAggregate wrapper.
     protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
         => AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
 
@@ -117,16 +155,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
         if (disposing)
         {
-            if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
+            // Per VS core team, Package.Dispose is called on the UI thread.
+            Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
+            if (_shell != null && !_shell.IsInCommandLineMode())
             {
-                JoinableTaskFactory.Run(async () => await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true));
-            }
-
-            // If we've created the language service then tell it it's time to clean itself up now.
-            if (_languageService != null)
-            {
-                _languageService.TearDown();
-                _languageService = null;
+                UnregisterObjectBrowserLibraryManager();
             }
         }
 
@@ -135,17 +168,15 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     protected abstract string RoslynLanguageName { get; }
 
-    protected virtual Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+    protected virtual void RegisterObjectBrowserLibraryManager()
     {
         // it is virtual rather than abstract to not break other languages which derived from our
         // base package implementations
-        return Task.CompletedTask;
     }
 
-    protected virtual Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+    protected virtual void UnregisterObjectBrowserLibraryManager()
     {
         // it is virtual rather than abstract to not break other languages which derived from our
         // base package implementations
-        return Task.CompletedTask;
     }
 }

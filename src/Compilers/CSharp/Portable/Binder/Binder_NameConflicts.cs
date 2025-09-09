@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowShadowingNames,
             BindingDiagnosticBag diagnostics)
         {
-            PooledHashSet<string>? tpNames = null;
+            PooledDictionary<string, TypeParameterSymbol>? tpNames = null;
             if (!typeParameters.IsDefaultOrEmpty)
             {
-                tpNames = PooledHashSet<string>.GetInstance();
+                tpNames = PooledDictionary<string, TypeParameterSymbol>.GetInstance();
                 foreach (var tp in typeParameters)
                 {
                     var name = tp.Name;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (!tpNames.Add(name))
+                    if (!tpNames.TryAdd(name, tp))
                     {
                         // Type parameter declaration name conflicts are detected elsewhere
                     }
@@ -65,16 +65,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (tpNames != null && tpNames.Contains(name))
+                    if (tpNames != null && tpNames.TryGetValue(name, out TypeParameterSymbol? tp))
                     {
-                        // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
-                        diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, GetLocation(p), name);
+                        if (tp.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
+                        {
+                            if (p.ContainingSymbol != (object)tp.ContainingSymbol) // Otherwise, SynthesizedExtensionMarker is going to report an error about this conflict
+                            {
+                                diagnostics.Add(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, GetLocation(p), name);
+                            }
+                        }
+                        else if (p.IsExtensionParameter())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter, tp.GetFirstLocationOrNone(), name);
+                        }
+                        else
+                        {
+                            // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
+                            diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, GetLocation(p), name);
+                        }
                     }
 
                     if (!pNames.Add(name))
                     {
-                        // The parameter name '{0}' is a duplicate
-                        diagnostics.Add(ErrorCode.ERR_DuplicateParamName, GetLocation(p), name);
+                        if (parameters[0] is { ContainingSymbol: NamedTypeSymbol { IsExtension: true }, Name: var receiverName } && receiverName == name)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_LocalSameNameAsExtensionParameter, GetLocation(p), name);
+                        }
+                        else
+                        {
+                            // The parameter name '{0}' is a duplicate
+                            diagnostics.Add(ErrorCode.ERR_DuplicateParamName, GetLocation(p), name);
+                        }
                     }
                     else if (!allowShadowingNames)
                     {

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -31,7 +30,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-public class SolutionServiceTests
+public sealed class SolutionServiceTests
 {
     private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
     private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
@@ -289,19 +288,12 @@ public class SolutionServiceTests
     }
 
     [Fact]
-    public async Task TestUpdateDocumentInfo()
-    {
-        var code = @"class Test { void Method() { } }";
-
-        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
-    }
+    public Task TestUpdateDocumentInfo()
+        => VerifySolutionUpdate(@"class Test { void Method() { } }", s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
 
     [Fact]
-    public async Task TestAddUpdateRemoveProjects()
-    {
-        var code = @"class Test { void Method() { } }";
-
-        await VerifySolutionUpdate(code, s =>
+    public Task TestAddUpdateRemoveProjects()
+        => VerifySolutionUpdate(@"class Test { void Method() { } }", s =>
         {
             var existingProjectId = s.ProjectIds.First();
 
@@ -320,7 +312,6 @@ public class SolutionServiceTests
 
             return document.Project.Solution;
         });
-    }
 
     [Fact]
     public async Task TestAdditionalDocument()

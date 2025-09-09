@@ -28,11 +28,11 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
 
     public Task<object?> HandleRequestAsync(DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
+        var text = context.GetTrackedDocumentInfo(request.TextDocument.DocumentUri).SourceText;
 
         text = GetUpdatedSourceText(request.ContentChanges, text);
 
-        context.UpdateTrackedDocument(request.TextDocument.Uri, text);
+        context.UpdateTrackedDocument(request.TextDocument.DocumentUri, text, request.TextDocument.Version);
 
         return SpecializedTasks.Default<object>();
     }

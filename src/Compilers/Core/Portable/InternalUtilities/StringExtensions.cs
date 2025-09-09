@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +15,8 @@ namespace Roslyn.Utilities
 {
     internal static class StringExtensions
     {
+        private static readonly Func<char, char> s_toLower = char.ToLower;
+        private static readonly Func<char, char> s_toUpper = char.ToUpper;
         private static ImmutableArray<string> s_lazyNumerals;
         private static UTF8Encoding? s_lazyUtf8;
 
@@ -30,19 +34,7 @@ namespace Roslyn.Utilities
         }
 
         public static string Join(this IEnumerable<string?> source, string separator)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (separator == null)
-            {
-                throw new ArgumentNullException(nameof(separator));
-            }
-
-            return string.Join(separator, source);
-        }
+            => string.Join(separator, source);
 
         public static bool LooksLikeInterfaceName(this string name)
         {
@@ -53,9 +45,6 @@ namespace Roslyn.Utilities
         {
             return name.Length >= 3 && name[0] == 'T' && char.IsUpper(name[1]) && char.IsLower(name[2]);
         }
-
-        private static readonly Func<char, char> s_toLower = char.ToLower;
-        private static readonly Func<char, char> s_toUpper = char.ToUpper;
 
         [return: NotNullIfNotNull(parameterName: nameof(shortName))]
         public static string? ToPascalCase(
@@ -226,32 +215,6 @@ namespace Roslyn.Utilities
                 quoted = false;
                 return arg;
             }
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static char First(this string arg)
-        {
-            return arg[0];
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static char Last(this string arg)
-        {
-            return arg[arg.Length - 1];
-        }
-
-        // String isn't IEnumerable<char> in the current Portable profile. 
-        internal static bool All(this string arg, Predicate<char> predicate)
-        {
-            foreach (char c in arg)
-            {
-                if (!predicate(c))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public static int GetCaseInsensitivePrefixLength(this string string1, string string2)

@@ -3614,13 +3614,13 @@ public class C2 { }
                 // (13,9): error CS0501: 'C.F2(int, string)' must declare a body because it is not marked abstract, extern, or partial
                 //     int F2(int bufSize, string buf);
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F2").WithArguments("C.F2(int, string)").WithLocation(13, 9),
-                // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //     [DllImport("D.DLL")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(6, 6),
                 // (9,6): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [DllImport("D.DLL")]
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(9, 6),
-                // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //     [DllImport("D.DLL")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(12, 6),
                 // (15,6): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
@@ -5752,7 +5752,7 @@ class A
 
                 Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(method.GetAttributes()));
                 Assert.True(method.RequiresSecurityObject);
-            };
+            }
 
             var verifier = CompileAndVerify(
                 source,
@@ -11309,6 +11309,45 @@ public class C
             Assert.False(verifier.HasLocalsInit("C.<add_EventWithAttribute>g__local1|1_0"));
             Assert.True(verifier.HasLocalsInit("C.EventNoAttribute.add"));
             Assert.True(verifier.HasLocalsInit("C.<add_EventNoAttribute>g__local1|4_0"));
+        }
+
+        [Theory]
+        [InlineData("[SkipLocalsInit]", "")]
+        [InlineData("", "[SkipLocalsInit]")]
+        public void SkipLocalsInit_PartialEventAccessor_ContainsLocalFunction(string defAttrs, string implAttrs)
+        {
+            // SkipLocalsInit applied to either part affects the event and nested functions
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                public partial class C
+                {
+                    {{defAttrs}}
+                    partial event Action EventWithAttribute;
+
+                    {{implAttrs}}
+                    partial event Action EventWithAttribute
+                    {
+                        add
+                        {
+                            int w = 1;
+                            w = w + w + w + w;
+
+                            void local1()
+                            {
+                                int x = 1;
+                                x = x + x + x + x;
+                            }
+                        }
+                        remove { }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.EventWithAttribute.add"));
+            Assert.False(verifier.HasLocalsInit("C.<add_EventWithAttribute>g__local1|0_0"));
         }
 
         [Fact]

@@ -208,7 +208,7 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
     /// Listens to frame notifications for a visible frame. When the frame becomes invisible or closes,
     /// then it automatically disconnects.
     /// </summary>
-    private class FrameListener : IVsWindowFrameNotify, IVsWindowFrameNotify2
+    private sealed class FrameListener : IVsWindowFrameNotify, IVsWindowFrameNotify2
     {
         public readonly IVsWindowFrame Frame;
 

@@ -24,7 +24,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
-public class UnifiedSettingsTests
+public sealed class UnifiedSettingsTests
 {
     #region CSharpTest
     /// <summary>
@@ -114,16 +114,14 @@ public class UnifiedSettingsTests
             title: "Tab twice to insert arguments",
             customDefaultValue: false,
             order: 90,
-            languageName: LanguageNames.CSharp,
-            message: "Experimental feature")),
+            languageName: LanguageNames.CSharp)),
         (CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, CreateBooleanOption(
             CompletionOptionsStorage.ShowNewSnippetExperienceUserOption,
             title: "Show new snippet experience",
             customDefaultValue: false,
             order: 100,
             languageName: LanguageNames.CSharp,
-            featureFlagAndExperimentValue: (CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag, true),
-            message: "Experimental feature")),
+            featureFlagAndExperimentValue: (CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag, true))),
     ];
 
     [Fact]
@@ -224,8 +222,7 @@ public class UnifiedSettingsTests
             title: "Tab twice to insert arguments",
             customDefaultValue: false,
             order: 60,
-            languageName: LanguageNames.VisualBasic,
-            message: "Experimental feature")),
+            languageName: LanguageNames.VisualBasic)),
     ];
 
     [Fact]
@@ -258,9 +255,9 @@ public class UnifiedSettingsTests
 
     private static void VerifyProperties(JsonNode jsonDocument, string prefix, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
     {
-        var properties = jsonDocument!.Root["properties"]!.AsObject()
-            .Where(jsonObject => jsonObject.Key.StartsWith(prefix))
-            .SelectAsArray(jsonObject => jsonObject.Value);
+        var properties = jsonDocument!.Root["properties"]!.AsObject().SelectAsArray(
+            predicate: jsonObject => jsonObject.Key.StartsWith(prefix),
+            selector: jsonObject => jsonObject.Value);
         Assert.Equal(expectedOptionToSettings.Length, properties.Length);
         foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(expectedOptionToSettings, (actual, expected) => (actual, expected)))
         {

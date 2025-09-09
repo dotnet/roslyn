@@ -7,10 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Roslyn.Utilities;
 
@@ -56,7 +55,7 @@ internal static class SpecializedTasks
     {
         var taskArray = tasks.AsArray();
         if (taskArray.Length == 0)
-            return ValueTaskFactory.FromResult(Array.Empty<T>());
+            return ValueTask.FromResult(Array.Empty<T>());
 
         var allCompletedSuccessfully = true;
         for (var i = 0; i < taskArray.Length; i++)
@@ -76,7 +75,7 @@ internal static class SpecializedTasks
                 result[i] = taskArray[i].Result;
             }
 
-            return ValueTaskFactory.FromResult(result);
+            return ValueTask.FromResult(result);
         }
         else
         {

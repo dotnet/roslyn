@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class BoolKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class BoolKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.BoolKeyword)
 {
-    public BoolKeywordRecommender()
-        : base(SyntaxKind.BoolKeyword)
-    {
-    }
-
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;
@@ -46,8 +41,8 @@ internal class BoolKeywordRecommender : AbstractSpecialTypePreselectingKeywordRe
             context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken);
     }
 

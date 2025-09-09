@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class InlineValueContext
+internal sealed class InlineValueContext
 {
     /// <summary>
     /// The stack frame (as a DAP Id) where the execution has stopped.

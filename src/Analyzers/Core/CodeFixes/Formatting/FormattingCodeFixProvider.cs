@@ -30,6 +30,14 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
     protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
+#if WORKSPACE
+    /// <summary>
+    /// This refactoring provider touches syntax only.  So we can speed up fix all by having it only clean syntax
+    /// and not semantics.
+    /// </summary>
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+#endif
+
     /// <summary>
     /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
     /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.
@@ -62,7 +70,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
     private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var root = await context.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var text = root.GetText();
+        var text = await context.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         // The span to format is the full line(s) containing the diagnostic
         var diagnosticSpan = diagnostic.Location.SourceSpan;
@@ -71,7 +79,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
             text.Lines[diagnosticLinePositionSpan.Start.Line].Start,
             text.Lines[diagnosticLinePositionSpan.End.Line].End);
 
-        var formattingOptions = await context.Document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await context.Document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var formattedRoot = SyntaxFormatting.GetFormattingResult(root, [spanToFormat], formattingOptions, rules: default, cancellationToken: cancellationToken).GetFormattedRoot(cancellationToken);
 
         return context.Document.WithSyntaxRoot(formattedRoot);
@@ -79,7 +87,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
     protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var updatedRoot = SyntaxFormatting.GetFormattingResult(editor.OriginalRoot, [editor.OriginalRoot.FullSpan], formattingOptions, rules: default, cancellationToken).GetFormattedRoot(cancellationToken);
         editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
     }

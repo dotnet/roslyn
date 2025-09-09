@@ -44,8 +44,8 @@ internal static partial class TypeSyntaxExtensions
         var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
         var firstSymbol = symbols.FirstOrDefault();
 
-        var typeSymbol = firstSymbol != null && firstSymbol.Kind == SymbolKind.Alias
-            ? ((IAliasSymbol)firstSymbol).Target
+        var typeSymbol = firstSymbol is IAliasSymbol aliasSymbol
+            ? aliasSymbol.Target
             : firstSymbol as ITypeSymbol;
 
         return typeSymbol != null

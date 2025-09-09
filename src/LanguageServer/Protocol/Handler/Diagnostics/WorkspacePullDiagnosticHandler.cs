@@ -17,12 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal sealed partial class WorkspacePullDiagnosticHandler(
     LspWorkspaceManager workspaceManager,
     LspWorkspaceRegistrationService registrationService,
-    IDiagnosticAnalyzerService analyzerService,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
     : AbstractWorkspacePullDiagnosticsHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>(
-        workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
+        workspaceManager, registrationService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
     // All workspace diagnostics are potential duplicates given that they can be overridden by the diagnostics
     // produced by document diagnostics.
@@ -56,7 +55,7 @@ internal sealed partial class WorkspacePullDiagnosticHandler(
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-        => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
+        => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).SelectAsArray(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!));
 
     protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
     {

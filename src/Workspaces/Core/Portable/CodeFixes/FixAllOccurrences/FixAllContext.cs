@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
@@ -73,8 +72,6 @@ public partial class FixAllContext : IFixAllContext
 
     #region IFixAllContext implementation
     IFixAllState IFixAllContext.State => this.State;
-
-    IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
 
     object IFixAllContext.Provider => this.CodeFixProvider;
 

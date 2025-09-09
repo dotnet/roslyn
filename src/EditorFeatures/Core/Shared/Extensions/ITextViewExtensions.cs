@@ -108,6 +108,15 @@ internal static partial class ITextViewExtensions
         textView.GetMultiSelectionBroker().SetSelectionRange(spansInView, spansInView.Last());
     }
 
+    internal static bool TrySetSelectionAndEnsureVisible(this ITextView textView, SnapshotSpan span, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
+    {
+        if (!textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(span.End), outliningManagerService, ensureSpanVisibleOptions))
+            return false;
+
+        SetSelection(textView, span, isReversed: false);
+        return true;
+    }
+
     public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
         => textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
 

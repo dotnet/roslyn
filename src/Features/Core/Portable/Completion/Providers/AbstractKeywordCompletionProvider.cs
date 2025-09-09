@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LSPCompletionProvider
     where TContext : SyntaxContext
 {
-    private static readonly Comparer s_comparer = new();
+    private static readonly EqualityComparer<CompletionItem> s_comparer = EqualityComparer<CompletionItem>.Create(
+        static (x, y) => x?.DisplayText == y?.DisplayText,
+        static x => x.DisplayText.GetHashCode());
 
     private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
@@ -54,7 +56,7 @@ internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LS
         TContext context,
         CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
             return [];
@@ -72,13 +74,4 @@ internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LS
 
     public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
         => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
-
-    private sealed class Comparer : IEqualityComparer<CompletionItem>
-    {
-        public bool Equals(CompletionItem? x, CompletionItem? y)
-            => x?.DisplayText == y?.DisplayText;
-
-        public int GetHashCode(CompletionItem obj)
-            => Hash.Combine(obj.DisplayText.GetHashCode(), obj.DisplayText.GetHashCode());
-    }
 }

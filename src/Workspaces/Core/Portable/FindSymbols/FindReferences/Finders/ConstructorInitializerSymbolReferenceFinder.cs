@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -31,8 +30,20 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
         return FindDocumentsAsync(project, documents, static async (document, name, cancellationToken) =>
         {
             var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+
             if (index.ContainsBaseConstructorInitializer)
-                return true;
+            {
+                // if we have `partial class C { ... : base(...) }` we have to assume it might be a match, as the base
+                // type reference might be in a another part of the partial in another file.
+                if (index.ContainsPartialClass)
+                    return true;
+
+                // Otherwise, if it doesn't have any partial types, ensure that the base type name is referenced in the
+                // same file.  e.g. `partial class C : B { ... base(...) }`.   This allows us to greatly filter down the
+                // number of matches, presuming that most inheriting types in a project are not themselves partial.
+                if (index.ProbablyContainsIdentifier(name))
+                    return true;
+            }
 
             if (index.ProbablyContainsIdentifier(name))
             {

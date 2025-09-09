@@ -117,23 +117,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitOptions options = null,
             bool embedInteropTypes = false,
             ImmutableArray<string> aliases = default,
-            DiagnosticDescription[] expectedWarnings = null) => EmitToPortableExecutableReference(comp, options, embedInteropTypes, aliases, expectedWarnings);
+            DiagnosticDescription[] expectedWarnings = null,
+            DocumentationProvider documentation = null) => EmitToPortableExecutableReference(comp, options, embedInteropTypes, aliases, expectedWarnings, documentation);
 
         public static PortableExecutableReference EmitToPortableExecutableReference(
             this Compilation comp,
             EmitOptions options = null,
             bool embedInteropTypes = false,
             ImmutableArray<string> aliases = default,
-            DiagnosticDescription[] expectedWarnings = null)
+            DiagnosticDescription[] expectedWarnings = null,
+            DocumentationProvider documentation = null)
         {
             var image = comp.EmitToArray(options, expectedWarnings: expectedWarnings);
             if (comp.Options.OutputKind == OutputKind.NetModule)
             {
-                return ModuleMetadata.CreateFromImage(image).GetReference(display: comp.MakeSourceModuleName());
+                return ModuleMetadata.CreateFromImage(image).GetReference(documentation, display: comp.MakeSourceModuleName());
             }
             else
             {
-                return AssemblyMetadata.CreateFromImage(image).GetReference(aliases: aliases, embedInteropTypes: embedInteropTypes, display: comp.MakeSourceAssemblySimpleName());
+                return AssemblyMetadata.CreateFromImage(image).GetReference(documentation, aliases: aliases, embedInteropTypes: embedInteropTypes, display: comp.MakeSourceAssemblySimpleName());
             }
         }
 
@@ -142,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitBaseline baseline,
             ImmutableArray<SemanticEdit> edits,
             IEnumerable<ISymbol> allAddedSymbols = null,
+            EmitDifferenceOptions? options = null,
             CompilationTestData testData = null)
         {
             testData ??= new CompilationTestData();
@@ -158,6 +161,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 mdStream,
                 ilStream,
                 pdbStream,
+                options ?? EmitDifferenceOptions.Default,
                 testData,
                 CancellationToken.None);
 

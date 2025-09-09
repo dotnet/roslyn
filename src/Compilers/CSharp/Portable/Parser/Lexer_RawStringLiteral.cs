@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // trusting the contents.
             if (this.HasErrors)
             {
-                var afterStartDelimiter = TextWindow.LexemeStartPosition + startingQuoteCount;
+                var afterStartDelimiter = this.LexemeStartPosition + startingQuoteCount;
                 var valueLength = TextWindow.Position - afterStartDelimiter;
 
                 info.StringValue = TextWindow.GetText(
@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(info.Kind);
-                };
+                }
             }
 
-            info.Text = TextWindow.GetText(intern: true);
+            info.Text = this.GetInternedLexemeText();
         }
 
         private void ScanSingleLineRawStringLiteral(ref TokenInfo info, int startingQuoteCount)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // We have enough quotes to finish this string at this point.
-                var afterStartDelimiter = TextWindow.LexemeStartPosition + startingQuoteCount;
+                var afterStartDelimiter = this.LexemeStartPosition + startingQuoteCount;
                 var valueLength = beforeEndDelimiter - afterStartDelimiter;
 
                 info.StringValue = TextWindow.GetText(

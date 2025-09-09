@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.ParameterHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -177,16 +178,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var typeOpt = p.Type is not null ? BindType(p.Type, diagnostics) : default;
 
-                    var refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out var scope);
+                    var refKind = ParameterHelpers.GetModifiers(p.Modifiers, ignoreParams: false, out _, out var paramsKeyword, out _, out var scope);
                     var isParams = paramsKeyword.Kind() != SyntaxKind.None;
 
-                    ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,
-                        parsingLambdaParams: !isAnonymousMethod,
-                        parsingAnonymousMethodParams: isAnonymousMethod);
+                    ParameterHelpers.CheckParameterModifiers(p, diagnostics, isAnonymousMethod ? ParameterContext.AnonymousMethod : ParameterContext.Lambda);
 
                     ParameterHelpers.ReportParameterErrors(
-                        owner: null, p, ordinal: i, lastParameterIndex: n - 1, isParams: isParams, typeOpt,
-                        refKind, containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+                        owner: null, syntax: p, ordinal: i, lastParameterIndex: n - 1, isParams: isParams, typeWithAnnotations: typeOpt,
+                        refKind: refKind, containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault: firstDefault, diagnostics: diagnostics);
 
                     if (parameterCount == parameterSyntaxList.Count &&
                         paramsKeyword.Kind() != SyntaxKind.None &&

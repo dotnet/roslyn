@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveInKeyword;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveInKeyword)]
-public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveInKeywordCodeFixProviderTests(ITestOutputHelper logger)
       : base(logger)
@@ -25,9 +25,8 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
         => (null, new RemoveInKeywordCodeFixProvider());
 
     [Fact]
-    public async Task TestRemoveInKeyword()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveInKeyword()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -48,12 +47,10 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRemoveInKeywordMultipleArguments1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveInKeywordMultipleArguments1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -74,12 +71,10 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRemoveInKeywordMultipleArguments2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveInKeywordMultipleArguments2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -100,12 +95,10 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRemoveInKeywordMultipleArgumentsWithDifferentRefKinds()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveInKeywordMultipleArgumentsWithDifferentRefKinds()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -126,12 +119,10 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotRemoveInKeyword()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotRemoveInKeyword()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -142,7 +133,6 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("in    [|i|]", "i")]
@@ -161,9 +151,8 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
     [InlineData(
         "/* start */in /* middle */ [|i|] /* end */",
         "/* start */i /* end */")]
-    public async Task TestRemoveInKeywordWithTrivia(string original, string expected)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveInKeywordWithTrivia(string original, string expected)
+        => TestInRegularAndScriptAsync(
             $$"""
             class App
             {
@@ -186,12 +175,10 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
 
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRemoveInKeywordFixAllInDocument1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveInKeywordFixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -238,12 +225,10 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRemoveInKeywordFixAllInDocument2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestRemoveInKeywordFixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -290,5 +275,4 @@ public class RemoveInKeywordCodeFixProviderTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 }

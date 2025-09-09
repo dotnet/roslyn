@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,14 +21,14 @@ internal sealed class OmniSharpExtractInterfaceOptionsService(
 
     public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
         Document document,
-        List<ISymbol> extractableMembers,
+        ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         string defaultNamespace,
-        string generatedNameTypeParameterSuffix,
-        CancellationToken cancellationToken)
+        string generatedNameTypeParameterSuffix)
     {
-        var result = _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptions(extractableMembers, defaultInterfaceName);
+        var result = _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptions(
+            [.. extractableMembers], defaultInterfaceName);
         return new(
             result.IsCancelled,
             result.IncludedMembers,

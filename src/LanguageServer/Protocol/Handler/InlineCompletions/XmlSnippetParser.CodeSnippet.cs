@@ -14,13 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
-internal partial class XmlSnippetParser
+internal sealed partial class XmlSnippetParser
 {
     /// <summary>
     /// Shamelessly copied from the editor
     /// https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=/src/Editor/VisualStudio/Impl/Snippet/CodeSnippet.cs
     /// </summary>
-    internal class CodeSnippet
+    internal sealed class CodeSnippet
     {
         private const string ExpansionSnippetType = "Expansion";
 
@@ -78,7 +78,7 @@ internal partial class XmlSnippetParser
 
             if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippets", StringComparison.OrdinalIgnoreCase))
             {
-                return codeSnippetsElement.Elements().Where(e => e.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase)).ToImmutableArray();
+                return codeSnippetsElement.Elements().WhereAsArray(e => e.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase));
             }
             else if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase))
             {
@@ -117,9 +117,9 @@ internal partial class XmlSnippetParser
     /// Shamelessly adapted from https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=/src/Editor/VisualStudio/Impl/Snippet/ExpansionTemplate.cs
     /// with changes to parsing to store the snippet as a set of parts instead of a single string.
     /// </summary>
-    private class ExpansionTemplate
+    private sealed class ExpansionTemplate
     {
-        private record ExpansionField(string ID, string Default, string? FunctionName, string? FunctionParam, bool IsEditable);
+        private sealed record ExpansionField(string ID, string Default, string? FunctionName, string? FunctionParam, bool IsEditable);
 
         private const string Selected = "selected";
         private const string End = "end";

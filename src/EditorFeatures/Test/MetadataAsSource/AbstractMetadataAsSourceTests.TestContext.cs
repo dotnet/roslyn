@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -30,7 +28,7 @@ public abstract partial class AbstractMetadataAsSourceTests
     public const string DefaultMetadataSource = "public class C {}";
     public const string DefaultSymbolMetadataName = "C";
 
-    internal class TestContext : IDisposable
+    internal sealed class TestContext : IDisposable
     {
         public readonly EditorTestWorkspace Workspace;
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
@@ -104,7 +102,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             // Get an ISymbol corresponding to the metadata name
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             var diagnostics = compilation.GetDiagnostics().ToArray();
-            Assert.Equal(0, diagnostics.Length);
+            Assert.Empty(diagnostics);
             var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
             Contract.ThrowIfNull(symbol);
 
@@ -172,7 +170,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             {
                 compilation = await this.DefaultProject.GetRequiredCompilationAsync(CancellationToken.None);
                 var diagnostics = compilation.GetDiagnostics().ToArray();
-                Assert.Equal(0, diagnostics.Length);
+                Assert.Empty(diagnostics);
             }
 
             foreach (var reference in compilation.References)
@@ -313,7 +311,7 @@ public abstract partial class AbstractMetadataAsSourceTests
 
         internal async Task<ISymbol> GetNavigationSymbolAsync()
         {
-            var testDocument = Workspace.Documents.Single(d => d.FilePath == "SourceDocument");
+            var testDocument = Workspace.Documents.Single(d => d.Name == "SourceDocument");
             var document = Workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
 
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);

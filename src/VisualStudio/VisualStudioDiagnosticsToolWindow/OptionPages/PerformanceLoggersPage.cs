@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -19,90 +18,90 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Roslyn.Utilities;
 
-namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
+namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
+
+[Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
+internal sealed class PerformanceLoggersPage : AbstractOptionPage
 {
-    [Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
-    internal class PerformanceLoggersPage : AbstractOptionPage
+    private IGlobalOptionService _globalOptions;
+    private IThreadingContext _threadingContext;
+    private SolutionServices _workspaceServices;
+
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
     {
-        private IGlobalOptionService _globalOptions;
-        private IThreadingContext _threadingContext;
-        private SolutionServices _workspaceServices;
-
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
+        if (_globalOptions == null)
         {
-            if (_globalOptions == null)
-            {
-                var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+            var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-                _globalOptions = componentModel.GetService<IGlobalOptionService>();
-                _threadingContext = componentModel.GetService<IThreadingContext>();
+            _globalOptions = componentModel.GetService<IGlobalOptionService>();
+            _threadingContext = componentModel.GetService<IThreadingContext>();
 
-                var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _workspaceServices = workspace.Services.SolutionServices;
-            }
-
-            return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _workspaceServices = workspace.Services.SolutionServices;
         }
 
-        protected override void OnApply(PageApplyEventArgs e)
-        {
-            base.OnApply(e);
+        return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
+    }
 
-            SetLoggers(_globalOptions, _threadingContext, _workspaceServices);
+    protected override void OnApply(PageApplyEventArgs e)
+    {
+        base.OnApply(e);
+
+        SetLoggers(_globalOptions, _threadingContext, _workspaceServices);
+    }
+
+    public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, SolutionServices workspaceServices)
+    {
+        var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
+
+        // update loggers in VS
+        var isEnabled = FunctionIdOptions.CreateFunctionIsEnabledPredicate(globalOptions);
+
+        SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
+        SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));
+        SetRoslynLogger(loggerTypeNames, () => new OutputWindowLogger(isEnabled));
+
+        // update loggers in remote process
+        var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
+        if (client != null)
+        {
+            var functionIds = Enum.GetValues<FunctionId>().WhereAsArray(isEnabled);
+
+            threadingContext.JoinableTaskFactory.Run(async () => _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),
+                CancellationToken.None).ConfigureAwait(false));
+        }
+    }
+
+    private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService globalOptions)
+    {
+        if (globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey))
+        {
+            yield return nameof(EtwLogger);
         }
 
-        public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, SolutionServices workspaceServices)
+        if (globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey))
         {
-            var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
-
-            // update loggers in VS
-            var isEnabled = FunctionIdOptions.CreateFunctionIsEnabledPredicate(globalOptions);
-
-            SetRoslynLogger(loggerTypeNames, () => new EtwLogger(isEnabled));
-            SetRoslynLogger(loggerTypeNames, () => new TraceLogger(isEnabled));
-            SetRoslynLogger(loggerTypeNames, () => new OutputWindowLogger(isEnabled));
-
-            // update loggers in remote process
-            var client = threadingContext.JoinableTaskFactory.Run(() => RemoteHostClient.TryGetClientAsync(workspaceServices, CancellationToken.None));
-            if (client != null)
-            {
-                var functionIds = Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>().Where(isEnabled).ToImmutableArray();
-
-                threadingContext.JoinableTaskFactory.Run(async () => _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
-                    (service, cancellationToken) => service.EnableLoggingAsync(loggerTypeNames, functionIds, cancellationToken),
-                    CancellationToken.None).ConfigureAwait(false));
-            }
+            yield return nameof(TraceLogger);
         }
 
-        private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService globalOptions)
+        if (globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey))
         {
-            if (globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey))
-            {
-                yield return nameof(EtwLogger);
-            }
-
-            if (globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey))
-            {
-                yield return nameof(TraceLogger);
-            }
-
-            if (globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey))
-            {
-                yield return nameof(OutputWindowLogger);
-            }
+            yield return nameof(OutputWindowLogger);
         }
+    }
 
-        private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypeNames, Func<T> creator) where T : ILogger
+    private static void SetRoslynLogger<T>(ImmutableArray<string> loggerTypeNames, Func<T> creator) where T : ILogger
+    {
+        if (loggerTypeNames.Contains(typeof(T).Name))
         {
-            if (loggerTypeNames.Contains(typeof(T).Name))
-            {
-                Logger.SetLogger(AggregateLogger.AddOrReplace(creator(), Logger.GetLogger(), l => l is T));
-            }
-            else
-            {
-                Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => l is T));
-            }
+            Logger.SetLogger(AggregateLogger.AddOrReplace(creator(), Logger.GetLogger(), l => l is T));
+        }
+        else
+        {
+            Logger.SetLogger(AggregateLogger.Remove(Logger.GetLogger(), l => l is T));
         }
     }
 }

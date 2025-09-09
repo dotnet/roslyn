@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.GenerateType;
 
 internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
 {
-    protected class State
+    protected sealed class State
     {
         public string Name { get; private set; } = null!;
         public bool NameIsVerbatim { get; private set; }
@@ -65,17 +65,17 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         private State(Compilation compilation)
             => Compilation = compilation;
 
-        public static State? Generate(
+        public static async ValueTask<State?> GenerateAsync(
             TService service,
             SemanticDocument document,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
             var state = new State(document.SemanticModel.Compilation);
-            return state.TryInitialize(service, document, node, cancellationToken) ? state : (State?)null;
+            return await state.TryInitializeAsync(service, document, node, cancellationToken).ConfigureAwait(false) ? state : (State?)null;
         }
 
-        private bool TryInitialize(
+        private async ValueTask<bool> TryInitializeAsync(
             TService service,
             SemanticDocument semanticDocument,
             SyntaxNode node,
@@ -161,7 +161,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 }
             }
 
-            DetermineNamespaceOrTypeToGenerateIn(service, semanticDocument, cancellationToken);
+            await DetermineNamespaceOrTypeToGenerateInAsync(service, semanticDocument, cancellationToken).ConfigureAwait(false);
 
             // Now, try to infer a possible base type for this new class/interface.
             InferBaseType(service, semanticDocument, cancellationToken);
@@ -275,7 +275,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             return service.IsInInterfaceList(NameOrMemberAccessExpression);
         }
 
-        private void DetermineNamespaceOrTypeToGenerateIn(
+        private async ValueTask DetermineNamespaceOrTypeToGenerateInAsync(
             TService service,
             SemanticDocument document,
             CancellationToken cancellationToken)
@@ -292,7 +292,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 }
                 else
                 {
-                    var symbol = SymbolFinder.FindSourceDefinition(TypeToGenerateInOpt, document.Project.Solution, cancellationToken);
+                    var symbol = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                     if (symbol == null ||
                         !symbol.IsKind(SymbolKind.NamedType) ||
                         !symbol.Locations.Any(static loc => loc.IsInSource))
@@ -414,7 +414,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         }
     }
 
-    protected class GenerateTypeServiceStateOptions
+    protected sealed class GenerateTypeServiceStateOptions
     {
         public TExpressionSyntax? NameOrMemberAccessExpression { get; set; }
         public TObjectCreationExpressionSyntax? ObjectCreationExpressionOpt { get; set; }

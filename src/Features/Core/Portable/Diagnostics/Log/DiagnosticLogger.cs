@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log;
@@ -22,12 +20,13 @@ internal static class DiagnosticLogger
         bool telemetry,
         string uri)
     {
-        Logger.Log(FunctionId.Diagnostics_HyperLink, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.Diagnostics_HyperLink, KeyValueLogMessage.Create(static (m, args) =>
         {
+            var (from, telemetry, id, description, uri) = args;
             m[From] = from;
             m[Id] = telemetry ? id : id.GetHashCode().ToString();
             m[HasDescription] = description;
             m[Uri] = telemetry ? uri : uri.GetHashCode().ToString();
-        }));
+        }, (from, telemetry, id, description, uri)));
     }
 }

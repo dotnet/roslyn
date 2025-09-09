@@ -35,7 +35,7 @@ internal sealed class VisualStudioSettingsOptionPersister
         = ImmutableDictionary<string, (OptionKey2, string)>.Empty;
 
     /// <remarks>
-    /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
+    /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.RegisterOnAfterPackageLoadedAsyncWork"/>
     /// </remarks>
     public VisualStudioSettingsOptionPersister(Action<OptionKey2, object?> refreshOption, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks, ISettingsManager settingsManager)
     {

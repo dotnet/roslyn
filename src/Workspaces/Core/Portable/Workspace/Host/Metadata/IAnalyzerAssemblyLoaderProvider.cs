@@ -35,12 +35,31 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 /// </summary>
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
-    private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
+#if NET
+    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
+    private readonly ImmutableArray<IAnalyzerAssemblyResolver> _assemblyResolvers;
+    private readonly ImmutableArray<IAnalyzerPathResolver> _assemblyPathResolvers;
+
+    public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers, IEnumerable<IAnalyzerPathResolver> assemblyPathResolvers)
+    {
+        _assemblyResolvers = [.. assemblyResolvers];
+        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
+        _assemblyPathResolvers = [.. assemblyPathResolvers];
+    }
+
+    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
+        => _shadowCopyLoader.Value;
+
+    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+        => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
+                Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
+                _assemblyPathResolvers,
+                _assemblyResolvers));
+#else
     private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
 
-    public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    public AbstractAnalyzerAssemblyLoaderProvider()
     {
-        _externalResolvers = [.. externalResolvers];
         _shadowCopyLoader = new(CreateNewShadowCopyLoader);
     }
 
@@ -48,17 +67,30 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
         => _shadowCopyLoader.Value;
 
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-        => this.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+        => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
-                _externalResolvers));
+                pathResolvers: default));
+#endif
 
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
         => loader;
 }
 
 [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultAnalyzerAssemblyLoaderProvider(
-    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers);
+internal sealed class DefaultAnalyzerAssemblyLoaderProvider : AbstractAnalyzerAssemblyLoaderProvider
+{
+#if NET
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultAnalyzerAssemblyLoaderProvider([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers, [ImportMany] IEnumerable<IAnalyzerPathResolver> assemblyPathResolvers)
+        : base(assemblyResolvers, assemblyPathResolvers)
+    {
+    }
+#else
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultAnalyzerAssemblyLoaderProvider()
+    {
+    }
+#endif
+}

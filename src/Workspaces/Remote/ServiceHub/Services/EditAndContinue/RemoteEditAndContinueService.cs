@@ -6,12 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -100,7 +100,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -112,7 +112,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().EndDebuggingSession(sessionId);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -141,7 +141,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// Remote API.
     /// </summary>
     public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
-        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, IImmutableSet<ProjectId> runningProjects, CancellationToken cancellationToken)
+        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
@@ -153,24 +153,9 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return new EmitSolutionUpdateResults.Data()
-                {
-                    ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
-                    Diagnostics = GetUnexpectedUpdateError(solution, e),
-                    RudeEdits = [],
-                    SyntaxError = null,
-                    ProjectsToRebuild = [],
-                    ProjectsToRestart = [],
-                };
+                return EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjects);
             }
         }, cancellationToken);
-    }
-
-    private static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Solution solution, Exception e)
-    {
-        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-        var diagnostic = Diagnostic.Create(descriptor, Location.None, [e.Message]);
-        return [DiagnosticData.Create(solution, diagnostic, project: null)];
     }
 
     /// <summary>
@@ -181,7 +166,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().CommitSolutionUpdate(sessionId);
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -193,18 +178,6 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().DiscardSolutionUpdate(sessionId);
-            return default;
-        }, cancellationToken);
-    }
-
-    /// <summary>
-    /// Remote API.
-    /// </summary>
-    public ValueTask UpdateBaselinesAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ImmutableArray<ProjectId> rebuiltProjects, CancellationToken cancellationToken)
-    {
-        return RunServiceAsync(solutionChecksum, solution =>
-        {
-            GetService().UpdateBaselines(sessionId, solution, rebuiltProjects);
             return default;
         }, cancellationToken);
     }

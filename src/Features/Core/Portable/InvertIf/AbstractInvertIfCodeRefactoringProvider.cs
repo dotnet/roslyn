@@ -570,6 +570,11 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                     var statementsAfterIf = statements.Skip(index + 1);
                     var ifBody = GetIfBody(ifNode);
 
+                    //Get any final structured trivia on the last token of the parent and move it with the statements
+                    statementsAfterIf = statementsAfterIf
+                        .Take(statementsAfterIf.Count() - 1)
+                        .Append(statementsAfterIf.Last().WithTrailingTrivia(currentParent.ChildTokens().Last().LeadingTrivia));
+
                     var updatedIf = UpdateIf(
                         text,
                         ifNode: ifNode,
@@ -579,6 +584,11 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                     var updatedParent = WithStatements(
                         currentParent,
                         statementsBeforeIf.Concat(updatedIf));
+
+                    var updatedParentLastToken = updatedParent.ChildTokens().Last();
+                    updatedParent = updatedParent.ReplaceToken(
+                        updatedParentLastToken,
+                        updatedParentLastToken.WithoutLeadingTrivia());
 
                     return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
                 }

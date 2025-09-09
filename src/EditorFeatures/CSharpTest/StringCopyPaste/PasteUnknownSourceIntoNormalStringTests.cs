@@ -6,13 +6,12 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 
-public class PasteUnknownSourceIntoNormalStringTests
+public sealed class PasteUnknownSourceIntoNormalStringTests
     : StringCopyPasteCommandHandlerUnknownSourceTests
 {
     [WpfFact]
     public void TestNewLineIntoNormalString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\n",
             """
             var x = "[||]"
@@ -21,12 +20,10 @@ public class PasteUnknownSourceIntoNormalStringTests
             var x = "\n[||]"
             """,
             afterUndo: "var x = \"\n[||]\"");
-    }
 
     [WpfFact]
     public void TestNewLineIntoNormalString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
 
 
@@ -41,12 +38,10 @@ public class PasteUnknownSourceIntoNormalStringTests
             var x = "
             [||]"
             """);
-    }
 
     [WpfFact]
     public void TestTabIntoNormalString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t",
             """
             var x = "[||]"
@@ -55,12 +50,10 @@ public class PasteUnknownSourceIntoNormalStringTests
             var x = "\t[||]"
             """,
             afterUndo: "var x = \"\t[||]\"");
-    }
 
     [WpfFact]
     public void TestBackslashTIntoNormalString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """\t""",
             """
             var x = "[||]"
@@ -71,12 +64,10 @@ public class PasteUnknownSourceIntoNormalStringTests
             afterUndo: """
             var x = "[||]"
             """);
-    }
 
     [WpfFact]
     public void TestSingleQuoteIntoNormalString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """'""",
             """
             var x = "[||]"
@@ -87,12 +78,10 @@ public class PasteUnknownSourceIntoNormalStringTests
             afterUndo: """
             var x = "[||]"
             """);
-    }
 
     [WpfFact]
     public void TestDoubleQuoteIntoNormalString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             "
             """,
@@ -105,12 +94,10 @@ public class PasteUnknownSourceIntoNormalStringTests
             afterUndo: """
             var x = ""[||]"
             """);
-    }
 
     [WpfFact]
     public void TestComplexStringIntoNormalString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\t\"\"\t",
             """
             var x = "[||]"
@@ -119,12 +106,10 @@ public class PasteUnknownSourceIntoNormalStringTests
             var x = "\t\"\"\t[||]"
             """,
             afterUndo: "var x = \"\t\"\"\t[||]\"");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoNormalString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """abc""",
             """
             var x = "[||]"
@@ -135,5 +120,4 @@ public class PasteUnknownSourceIntoNormalStringTests
             afterUndo: """
             var x = "[||]"
             """);
-    }
 }

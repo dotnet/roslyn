@@ -34,11 +34,6 @@
 "Name"="C# Language Service"
 "IsAsyncQueryable"=dword:00000001
 
-[$RootKey$\Services\{dba64c84-56df-4e20-8aa6-02332a97f474}]
-@="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-"Name"="C# TempPE Compiler Service"
-"IsAsyncQueryable"=dword:00000001
-
 [$RootKey$\AutomationProperties\TextEditor\CSharp-Specific]
 @="#104"
 "Description"="#105"

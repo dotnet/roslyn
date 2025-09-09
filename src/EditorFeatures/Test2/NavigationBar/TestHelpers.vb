@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
@@ -14,7 +13,6 @@ Imports Microsoft.CodeAnalysis.NavigationBar
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Friend Module TestHelpers
@@ -109,13 +107,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         Public Async Function AssertNavigationPointAsync(
                 workspaceElement As XElement,
                 host As TestHost,
-                startingDocumentFilePath As String,
+                startingDocumentName As String,
                 leftItemToSelectText As String,
                 rightItemToSelectText As String,
                 Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
 
             Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
-                Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
+                Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.Name = startingDocumentName)
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 
 internal static class PredefinedCodeFixProviderNames
 {
-    public const string AddAccessibilityModifiers = nameof(AddAccessibilityModifiers);
+    public const string AddOrRemoveAccessibilityModifiers = nameof(AddOrRemoveAccessibilityModifiers);
     public const string AddAnonymousTypeMemberName = nameof(AddAnonymousTypeMemberName);
     public const string AddAsync = nameof(AddAsync);
     public const string AddBraces = nameof(AddBraces);
@@ -43,6 +43,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string ConvertToRecord = nameof(ConvertToRecord);
     public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
     public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
+    public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
     public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
     public const string DeclareAsNullable = nameof(DeclareAsNullable);
@@ -121,6 +122,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string SimplifyLinqTypeCheckAndCast = nameof(SimplifyLinqTypeCheckAndCast);
     public const string SimplifyNames = nameof(SimplifyNames);
     public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
+    public const string SimplifyPropertyAccessor = nameof(SimplifyPropertyAccessor);
     public const string SimplifyPropertyPattern = nameof(SimplifyPropertyPattern);
     public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
     public const string SpellCheck = nameof(SpellCheck);

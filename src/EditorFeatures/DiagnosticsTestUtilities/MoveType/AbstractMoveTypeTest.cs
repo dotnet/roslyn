@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +15,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -29,7 +30,7 @@ public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
 
     // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
     protected override TestComposition GetComposition()
-        => EditorTestCompositions.EditorFeaturesWpf;
+        => EditorTestCompositions.EditorFeatures;
 
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new MoveTypeCodeRefactoringProvider();
@@ -160,19 +161,26 @@ public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
             var sourceDocumentId = workspace.Documents[0].Id;
 
             // Verify the newly added document and its text
-            var oldSolutionAndNewSolution = await TestAddDocumentAsync(
+            var (oldSolution, newSolution) = await TestAddDocumentAsync(
                 testOptions, workspace, destinationDocumentText,
                 expectedDocumentName, destinationDocumentContainers);
 
             // Verify source document's text after moving type.
-            var oldSolution = oldSolutionAndNewSolution.Item1;
-            var newSolution = oldSolutionAndNewSolution.Item2;
             var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
             Assert.True(changedDocumentIds.Contains(sourceDocumentId), "source document was not changed.");
 
-            var modifiedSourceDocument = newSolution.GetDocument(sourceDocumentId);
-            var actualSourceTextAfterRefactoring = (await modifiedSourceDocument.GetTextAsync()).ToString();
-            AssertEx.Equal(expectedSourceTextAfterRefactoring, actualSourceTextAfterRefactoring);
+            var addedDocument = SolutionUtilities.GetSingleAddedDocument(oldSolution, newSolution);
+            var addedSourceText = await addedDocument.GetTextAsync();
+            var oldSourceDocument = oldSolution.GetRequiredDocument(sourceDocumentId);
+            var oldSourceText = await oldSourceDocument.GetTextAsync();
+            var newSourceDocument = newSolution.GetRequiredDocument(sourceDocumentId);
+            var newSourceText = await newSourceDocument.GetTextAsync();
+
+            Assert.Equal(Path.Combine(Path.GetDirectoryName(addedDocument.FilePath), expectedDocumentName), addedDocument.FilePath);
+            Assert.Equal(oldSourceText.Encoding, addedSourceText.Encoding);
+            Assert.Equal(oldSourceText.ChecksumAlgorithm, addedSourceText.ChecksumAlgorithm);
+
+            AssertEx.Equal(expectedSourceTextAfterRefactoring, newSourceText.ToString());
         }
         else
         {

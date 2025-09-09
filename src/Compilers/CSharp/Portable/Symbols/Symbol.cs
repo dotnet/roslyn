@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         string ISymbolInternal.MetadataName => this.MetadataName;
 
-        public Cci.TypeMemberVisibility MetadataVisibility
+        public virtual Cci.TypeMemberVisibility MetadataVisibility
         {
             get
             {
@@ -648,10 +647,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case SymbolKind.NamedType:
-                        if (((NamedTypeSymbol)this).IsSubmissionClass)
+                        var namedType = (NamedTypeSymbol)this;
+                        if (namedType.IsSubmissionClass || namedType.IsExtension)
                         {
                             return false;
                         }
+
                         break;
 
                     case SymbolKind.Property:
@@ -990,6 +991,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable 
+        public string GetEscapedDocumentationCommentId()
+        {
+            return escape(GetDocumentationCommentId());
+
+            static string escape(string s)
+            {
+                Debug.Assert(!s.Contains("&"));
+                return s.Replace("<", "&lt;").Replace(">", "&gt;");
+            }
+        }
+
         /// <summary>
         /// Fetches the documentation comment for this element with a cancellation token.
         /// </summary>
@@ -1519,6 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ScopedRefAttribute = 1 << 12,
             RefSafetyRulesAttribute = 1 << 13,
             RequiresLocationAttribute = 1 << 14,
+            ExtensionMarkerAttribute = 1 << 15,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1593,6 +1606,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((reserved & ReservedAttributes.RefSafetyRulesAttribute) != 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ExtensionMarkerAttribute))
             {
             }
             else
@@ -1738,6 +1755,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(variable.Kind);
+            }
+
+            if (containingSymbol.GetIsNewExtensionMember()
+                && variable is ParameterSymbol { ContainingSymbol: TypeSymbol { IsExtension: true } })
+            {
+                // An extension member doesn't capture the extension parameter
+                return false;
             }
 
             // Walk up the containing symbols until we find the target function, in which

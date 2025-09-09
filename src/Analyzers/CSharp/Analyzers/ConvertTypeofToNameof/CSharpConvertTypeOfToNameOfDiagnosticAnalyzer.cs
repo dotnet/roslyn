@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -18,9 +17,6 @@ internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer()
     : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(s_title)
 {
     private static readonly string s_title = CSharpAnalyzersResources.typeof_can_be_converted_to_nameof;
-
-    protected override bool SupportsUnboundGenerics(ParseOptions options)
-        => options.LanguageVersion().IsCSharp14OrAbove();
 
     protected override bool IsValidTypeofAction(OperationAnalysisContext context)
     {

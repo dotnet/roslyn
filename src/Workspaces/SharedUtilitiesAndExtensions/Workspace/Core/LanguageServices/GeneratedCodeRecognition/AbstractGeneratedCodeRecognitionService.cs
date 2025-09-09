@@ -8,13 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
 internal abstract class AbstractGeneratedCodeRecognitionService : IGeneratedCodeRecognitionService
 {
-#if !CODE_STYLE
+#if WORKSPACE
     public bool IsGeneratedCode(Document document, CancellationToken cancellationToken)
     {
         var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);

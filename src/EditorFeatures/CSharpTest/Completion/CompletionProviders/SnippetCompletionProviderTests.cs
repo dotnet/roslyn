@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     public SnippetCompletionProviderTests()
     {
@@ -85,9 +85,8 @@ public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTe
         => await VerifyItemIsAbsentAsync(@"#line (1, 2) - (3, 4) $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
-    public async Task ShowSnippetsFromOtherContext()
-    {
-        var markup = """
+    public Task ShowSnippetsFromOtherContext()
+        => VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -104,9 +103,7 @@ public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTe
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        await VerifyItemInLinkedFilesAsync(markup, MockSnippetInfoService.SnippetShortcut, null);
-    }
+            """, MockSnippetInfoService.SnippetShortcut, null);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140893")]
     public async Task CommitWithEnterObeysOption()
@@ -130,7 +127,7 @@ public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTe
     }
 
     [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp, ServiceLayer.Test), Shared, PartNotDiscoverable]
-    private class MockSnippetInfoService : ISnippetInfoService
+    private sealed class MockSnippetInfoService : ISnippetInfoService
     {
         internal const string SnippetShortcut = nameof(SnippetShortcut);
         internal const string SnippetDescription = nameof(SnippetDescription);
@@ -149,11 +146,10 @@ public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTe
         }
 
         public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
-            => new List<SnippetInfo>
-                {
-                    new SnippetInfo(SnippetShortcut, SnippetTitle, SnippetDescription, SnippetPath),
-                    new SnippetInfo(PreProcessorSnippetShortcut, PreProcessorSnippetTitle, PreProcessorSnippetDescription, PreProcessorSnippetPath)
-                };
+            => [
+                new SnippetInfo(SnippetShortcut, SnippetTitle, SnippetDescription, SnippetPath),
+                new SnippetInfo(PreProcessorSnippetShortcut, PreProcessorSnippetTitle, PreProcessorSnippetDescription, PreProcessorSnippetPath)
+            ];
 
         public bool SnippetShortcutExists_NonBlocking(string shortcut)
             => string.Equals(shortcut, SnippetShortcut, StringComparison.OrdinalIgnoreCase) ||

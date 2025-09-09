@@ -2,8 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -20,6 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Me.PropertyStatement = propertyStatement
         End Sub
 
+        Private ReadOnly Property NewExpression As SyntaxNode
+            Get
+                Return DirectCast(PropertyStatement.AsClause, AsNewClauseSyntax).NewExpression
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property InitializerActiveStatement As SyntaxNode
             Get
                 Return PropertyStatement
@@ -28,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Public Overrides ReadOnly Property OtherActiveStatementContainer As SyntaxNode
             Get
-                Return DirectCast(PropertyStatement.AsClause, AsNewClauseSyntax).NewExpression
+                Return NewExpression
             End Get
         End Property
 
@@ -38,9 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Public Overrides Function GetActiveTokens() As IEnumerable(Of SyntaxToken)
+        Public Overrides Function GetActiveTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
             ' Property: Attributes Modifiers [|Identifier AsClause Initializer|] ImplementsClause
-            Return SpecializedCollections.SingletonEnumerable(PropertyStatement.Identifier).Concat(PropertyStatement.AsClause.DescendantTokens())
+            Return SpecializedCollections.SingletonEnumerable(PropertyStatement.Identifier).Concat(getDescendantTokens(PropertyStatement.AsClause))
+        End Function
+
+        Public Overrides Function GetUserCodeTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
+            Return getDescendantTokens(NewExpression)
         End Function
     End Class
 End Namespace

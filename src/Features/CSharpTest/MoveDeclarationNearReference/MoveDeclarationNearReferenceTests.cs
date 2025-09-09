@@ -16,15 +16,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearReference;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpMoveDeclarationNearReferenceCodeRefactoringProvider();
 
     [Fact]
-    public async Task TestMove1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMove1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -49,12 +48,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMove1_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestMove1_TopLevelStatement()
+        => TestAsync(
             """
             int [||]x;
             {
@@ -67,13 +64,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 Console.WriteLine(x);
             }
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact]
-    public async Task TestMove2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMove2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -96,12 +91,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMove2_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestMove2_TopLevelStatement()
+        => TestAsync(
             """
             int [||]x;
             Console.WriteLine();
@@ -112,13 +105,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
             int x;
             Console.WriteLine(x);
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact]
-    public async Task TestMove3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMove3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -151,12 +142,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                     }
                 }
             """);
-    }
 
     [Fact]
-    public async Task TestMove3_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestMove3_TopLevelStatement()
+        => TestAsync(
             """
             int [||]x;
             Console.WriteLine();
@@ -179,13 +168,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 Console.WriteLine(x);
             }
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact]
-    public async Task TestMove4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMove4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -210,12 +197,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                     }
                 }
             """);
-    }
 
     [Fact]
-    public async Task TestMove4_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestMove4_TopLevelStatement()
+        => TestAsync(
             """
             int [||]x;
             Console.WriteLine();
@@ -230,13 +215,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 Console.WriteLine(x);
             }
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact]
-    public async Task TestAssign1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssign1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -262,12 +245,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssign2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssign2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -293,12 +274,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssign3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAssign3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -325,12 +304,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissing1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissing1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -341,22 +318,18 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissing1_TopLevelStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissing1_TopLevelStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             int [||]x;
             Console.WriteLine(x);
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538424")]
-    public async Task TestMissingWhenReferencedInDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWhenReferencedInDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -369,12 +342,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWhenInDeclarationGroup()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWhenInDeclarationGroup()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -386,23 +357,19 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWhenInDeclarationGroup_TopLevelStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWhenInDeclarationGroup_TopLevelStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             int [||]i = 5;
             int j = 10;
             Console.WriteLine(i);
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541475")]
-    public async Task Regression8190()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Regression8190()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -414,12 +381,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatting()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatting()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -440,12 +405,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFormatting_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestFormatting_TopLevelStatement()
+        => TestAsync(
             """
             int [||]i = 5; Console.WriteLine();
             Console.Write(i);
@@ -454,13 +417,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
             Console.WriteLine();
             int i = 5; Console.Write(i);
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact]
-    public async Task TestMissingInHiddenBlock1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInHiddenBlock1()
+        => TestMissingInRegularAndScriptAsync(
             """
             #line default
             class Program
@@ -475,12 +436,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
             #line default
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInHiddenBlock2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInHiddenBlock2()
+        => TestMissingInRegularAndScriptAsync(
             """
             #line default
             class Program
@@ -496,12 +455,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInHiddenBlock2_TopLevelStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInHiddenBlock2_TopLevelStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             #line default
 
@@ -512,12 +469,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
             #line default
             Bar(x);
             """);
-    }
 
     [Fact]
-    public async Task TestAvailableInNonHiddenBlock1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAvailableInNonHiddenBlock1()
+        => TestInRegularAndScriptAsync(
             """
             #line default
             class Program
@@ -546,12 +501,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
             #line default
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAvailableInNonHiddenBlock2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAvailableInNonHiddenBlock2()
+        => TestInRegularAndScriptAsync(
             """
             #line default
             class Program
@@ -584,12 +537,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAvailableInNonHiddenBlock2_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestAvailableInNonHiddenBlock2_TopLevelStatement()
+        => TestAsync(
             """
             #line default
 
@@ -614,13 +565,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
             int x = 0;
             Bar(x);
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-    public async Task TestWarnOnChangingScopes1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWarnOnChangingScopes1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Linq;
 
@@ -654,13 +603,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """,
-            title: FeaturesResources.Move_declaration_near_reference_may_change_semantics);
-    }
+            new(title: FeaturesResources.Move_declaration_near_reference_may_change_semantics));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-    public async Task TestWarnOnChangingScopes1_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestWarnOnChangingScopes1_TopLevelStatement()
+        => TestAsync(
             """
             using System.Linq;
 
@@ -683,13 +630,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             });
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-    public async Task TestWarnOnChangingScopes2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWarnOnChangingScopes2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Linq;
@@ -724,12 +669,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
-    public async Task TestWarnOnChangingScopes2_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestWarnOnChangingScopes2_TopLevelStatement()
+        => TestAsync(
             """
             using System;
             using System.Linq;
@@ -753,13 +696,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 i++;
             }
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/44664")]
-    public async Task TestWarnOnChangingScopes3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWarnOnChangingScopes3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Linq;
@@ -794,12 +735,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/44664")]
-    public async Task TestWarnOnChangingScopes3_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestWarnOnChangingScopes3_TopLevelStatement()
+        => TestAsync(
             """
             using System;
             using System.Linq;
@@ -823,13 +762,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 i++;
             }
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
-    public async Task InsertCastIfNecessary1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InsertCastIfNecessary1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -873,12 +810,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
-    public async Task InsertCastIfNecessary2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InsertCastIfNecessary2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -918,12 +853,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
-    public async Task MissingIfNotInDeclarationSpan()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MissingIfNotInDeclarationSpan()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -946,12 +879,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Tuple()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Tuple()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -976,12 +907,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TupleWithNames()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TupleWithNames()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1006,12 +935,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments01()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComments01()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1038,12 +965,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments02()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComments02()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1074,12 +999,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments03()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComments03()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1108,12 +1031,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments04()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComments04()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1146,12 +1067,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments05()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComments05()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1187,12 +1106,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments06()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComments06()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1232,12 +1149,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments07()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComments07()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1275,12 +1190,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments08()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComments08()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1322,12 +1235,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments01()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMergeComments01()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1355,12 +1266,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments02()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMergeComments02()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1392,12 +1301,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments03()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMergeComments03()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1427,12 +1334,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments04()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMergeComments04()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1466,12 +1371,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments05()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMergeComments05()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1507,12 +1410,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments06()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMergeComments06()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1552,12 +1453,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments07()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMergeComments07()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1595,12 +1494,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments07_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestMergeComments07_TopLevelStatement()
+        => TestAsync(
             """
             if (true)
             {
@@ -1626,13 +1523,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
             int i = 0;
             Console.Write(i);
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact]
-    public async Task TestMergeComments08()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMergeComments08()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1674,12 +1569,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMergeComments08_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestMergeComments08_TopLevelStatement()
+        => TestAsync(
             """
             if (true)
             {
@@ -1709,13 +1602,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 Console.Write(i);
             }
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
-    public async Task TestMissingOnCrossFunction1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnCrossFunction1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1740,12 +1631,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
               public static void Out<T>(out T t) => t = default;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
-    public async Task TestMissingOnCrossFunction2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnCrossFunction2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1773,12 +1662,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
               public static void Out<T>(out T t) => t = default;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
-    public async Task TestMissingOnCrossFunction3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnCrossFunction3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1805,12 +1692,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 public static void Out<T>(out T t) => t = default;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
-    public async Task TestMissingOnCrossFunction4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnCrossFunction4()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1839,12 +1724,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 public static void Out<T>(out T t) => t = default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveInsideSwitchSection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMoveInsideSwitchSection()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1877,12 +1760,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveIntoSwitchSection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMoveIntoSwitchSection()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1912,12 +1793,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveIntoSwitchSection_TopLevelStatement()
-    {
-        await TestAsync(
+    public Task TestMoveIntoSwitchSection_TopLevelStatement()
+        => TestAsync(
             """
             int [||]x;
             switch (true)
@@ -1935,13 +1814,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                     break;
             }
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact]
-    public async Task TestUsedInMultipleSwitchSections_MoveToSwitchStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUsedInMultipleSwitchSections_MoveToSwitchStatement()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1980,12 +1857,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUsedInMultipleSwitchSections_TopLevelStatement_MoveToSwitchStatement()
-    {
-        await TestAsync(
+    public Task TestUsedInMultipleSwitchSections_TopLevelStatement_MoveToSwitchStatement()
+        => TestAsync(
             """
             int [||]x;
             System.Console.WriteLine();
@@ -2012,13 +1887,11 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                     break;
             }
             """,
-            TestOptions.Regular);
-    }
+            new(TestOptions.Regular));
 
     [Fact]
-    public async Task TestUsedInMultipleSwitchSections_CannotMove()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestUsedInMultipleSwitchSections_CannotMove()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2037,12 +1910,10 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUsedInMultipleSwitchSections_TopLevelStatement_CannotMove()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestUsedInMultipleSwitchSections_TopLevelStatement_CannotMove()
+        => TestMissingInRegularAndScriptAsync(
             """
             int [||]x;
             switch (true)
@@ -2055,5 +1926,4 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                     break;
             }
             """);
-    }
 }

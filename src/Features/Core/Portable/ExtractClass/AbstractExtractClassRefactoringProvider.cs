@@ -22,6 +22,8 @@ internal abstract class AbstractExtractClassRefactoringProvider(IExtractClassOpt
     protected abstract Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context);
     protected abstract Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context);
 
+    internal override CodeRefactoringKind Kind => CodeRefactoringKind.Extract;
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var solution = context.Document.Project.Solution;

@@ -18,30 +18,20 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// Default <see cref="AbstractDocumentDifferenceService"/> is optimized for typing case in editor where we have events
 /// for each typing. But in remote workspace, we aggregate changes and update solution in bulk and we don't have concept
 /// of active file making default implementation unsuitable. Functionally, default one is still correct, but it often
-/// time makes us to do more than we need. Basically, it always says this project has semantic change which can cause
-/// a lot of re-analysis.
+/// time makes us to do more than we need. Basically, it always says this project has semantic change which can cause a
+/// lot of re-analysis.
 /// </summary>
 internal class RemoteDocumentDifferenceService : IDocumentDifferenceService
 {
     [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: ServiceLayer.Host), Shared]
-    internal sealed class CSharpDocumentDifferenceService : RemoteDocumentDifferenceService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpDocumentDifferenceService()
-        {
-        }
-    }
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CSharpDocumentDifferenceService() : RemoteDocumentDifferenceService;
 
     [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: ServiceLayer.Host), Shared]
-    internal sealed class VisualBasicDocumentDifferenceService : AbstractDocumentDifferenceService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualBasicDocumentDifferenceService()
-        {
-        }
-    }
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VisualBasicDocumentDifferenceService() : RemoteDocumentDifferenceService;
 
     public Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
     {

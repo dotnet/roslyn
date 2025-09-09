@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Remote.Testing
@@ -137,14 +136,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim locations = Renamer.FindRenameLocationsAsync(
                     solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
 
-                Return locations.ResolveConflictsAsync(symbol, renameTo, nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+                Return locations.ResolveConflictsAsync(symbol, renameTo, CancellationToken.None).GetAwaiter().GetResult()
             Else
                 ' This tests that rename properly works when the entire call is remoted to OOP and the final result is
                 ' marshaled back.
 
                 Return Renamer.RenameSymbolAsync(
-                    solution, symbol, renameTo, renameOptions,
-                    nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameTo, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function
 
@@ -221,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return locations
         End Function
 
-        Private Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
+        Public Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
             Try
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
                 Dim newLocation = ConflictResolution.GetResolutionTextSpan(location.SourceSpan, documentId)
@@ -244,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Try
         End Sub
 
-        Private Sub AssertLocationReferencedAs(location As Location, type As RelatedLocationType)
+        Public Sub AssertLocationReferencedAs(location As Location, type As RelatedLocationType)
             Try
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
                 Dim reference = _unassertedRelatedLocations.SingleOrDefault(

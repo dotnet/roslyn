@@ -3,7 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
+    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -21,7 +22,7 @@
 
     <CopyPublishedOutputProjectReference Include="..\..\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
       <OutputItemType>SemanticSearch_RefAssemblies</OutputItemType>
-      <SetTargetFramework>TargetFramework=$(NetRoslyn)</SetTargetFramework>
+      <SetTargetFramework>TargetFramework=$(NetVS)</SetTargetFramework>
     </CopyPublishedOutputProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -35,10 +35,25 @@
       "Microsoft.NETCore.App.Runtime.win-{arch}"
       "Microsoft.WindowsDesktop.App.Runtime.win-{arch}"
     -->    
-    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />    
+    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" />
   </ItemGroup>
   
-  <Target Name="CalculateCrossgenInputs" DependsOnTargets="PublishItemsOutputGroup">
+  <Target Name="CalculateCrossgenInputs" DependsOnTargets="PublishItemsOutputGroup">  
+    <PropertyGroup>
+      <!-- 
+        For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
+        This might not be possible if Roslyn is referencing a higher version than the one shipped as part of runtime in VS.
+        For example, we could be referecing S.C.I 7.0 but VS still ships .NET 6. Usually this is a transient state, and the
+        two would eventually be in sync. But we'd need to include those binaries during the out-of-sync period.
+        Note, for the same reasone, we can't safely exclude shared dependencies from ServiceHub host folder.
+
+        Always include BCL in the vsix for non-official build to avoid breakage. Since VS used on CI machines
+        as well as by external contributors usually lags behind our insertion target.
+      -->
+      <_ExcludeRuntimeLibraries Condition="'$(OfficialBuild)' == 'true'">false</_ExcludeRuntimeLibraries>
+    </PropertyGroup>
+
     <ItemGroup>
       <_PublishPaths Include="@(PublishItemsOutputGroupOutputs->'%(OutputPath)')" />
       <_PublishDllPaths Include="@(_PublishPaths)" Condition="'%(Extension)' == '.dll'" />
@@ -52,18 +67,31 @@
       <_R2RAssemblies Include="Microsoft.VisualStudio.Composition.dll" />
       <_R2RAssemblies Include="Microsoft.VisualStudio.Telemetry.dll" />
       <_R2RAssemblies Include="Microsoft.VisualStudio.Threading.dll" />
+      <_R2RAssemblies Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch.dll" />
       <_R2RAssemblies Include="MessagePack.dll" />
       <_R2RAssemblies Include="Nerdback.Streams.dll" />
       <_R2RAssemblies Include="Newtonsoft.Json.dll" />
       <_R2RAssemblies Include="SQLitePCLRaw.batteries_v2.dll" />
       <_R2RAssemblies Include="StreamJsonRpc.dll" />
       <_R2RAssemblies Include="System.IO.Pipelines.dll" />
-      <_R2RAssemblies Include="System.Text.Json.dll" />
-      <_R2RAssemblies Include="System.Text.Encodings.Web.dll" />
       <_R2RAssemblies Include="Microsoft.NET.StringTools.dll" />
+      
+      <!-- If we need to ship framework assemblies in our vsix (because we are refernceing them via NuGet packages of higher version than shipped in VS, see `_ExcludeRuntimeLibraries`)
+          then also crossgen a few of them to reduce jitting impact -->
+      <_R2RRuntimeAssemblies Include="System.Collections.Immutable.dll" />
+      <_R2RRuntimeAssemblies Include="System.Reflection.Metadata.dll" />
+      <_R2RRuntimeAssemblies Include="System.Text.Encodings.Web.dll" />
+      <_R2RRuntimeAssemblies Include="System.Text.Json.dll" />
+      <_R2RRuntimeAssemblies Include="System.Threading.Tasks.Dataflow.dll" />      
+      <_R2RAssemblies Include="@(_R2RRuntimeAssemblies)" Condition="'$(_ExcludeRuntimeLibraries)' != 'true'" />
 
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
-      <_AllPublishedAssemblyPaths Include="@(_PublishDllPaths)" Exclude="%(FileName).EndsWith('.resources')" />
+      <_AllPublishedAssemblyPaths Include="@(_PublishDllPaths)" />
+      <!-- Exclude resources DLLs-->
+      <_AllPublishedAssemblyPaths Remove="@(_AllPublishedAssemblyPaths)" Condition="$([MSBuild]::ValueOrDefault('%(FileName)', '').EndsWith('.resources'))" />
+      <!-- We are not including anything from runtimes folder, so don't try to crossgen them (see target "PublishedProjectOutputGroup" below) -->
+      <_AllPublishedAssemblyPaths Remove="@(_AllPublishedAssemblyPaths)" Condition="$([MSBuild]::ValueOrDefault('%(FullPath)', '').StartsWith('$(PublishDir)runtimes'))" />      
+
       <_AllPublishedAssemblies Include="@(_AllPublishedAssemblyPaths->'%(FileName)%(Extension)')" >
         <_FullFilePath>%(FullPath)</_FullFilePath>
       </_AllPublishedAssemblies>
@@ -78,31 +106,42 @@
       <_R2RAssemblyPaths Include="@(_AllPublishedAssemblyPaths)" Exclude="@(_NoR2RAssemblyPaths)" />
 
       <!-- Dependencies -->
-      <_RuntimeLibraries Include="$(_RuntimeLibrariesPath)**\*.dll" />
-      <_WinRuntimeLibraries Include="$(_WinRuntimeLibrariesPath)**\*.dll" />
+      <_RuntimeLibraryPaths Include="$(_RuntimeLibrariesPath)**\*.dll" />
+      <_RuntimeLibraryPaths Include="$(_WinRuntimeLibrariesPath)**\*.dll" />
+      <_RuntimeLibraryPaths Remove="@(_RuntimeLibraryPaths)" Condition="$([MSBuild]::ValueOrDefault('%(FileName)', '').EndsWith('.resources'))" />
 
-      <_RuntimeLibrariesInPublishDir Include="@(_RuntimeLibraries->'$(PublishDir)%(FileName)%(Extension)')" />
-      <_RuntimeLibrariesInPublishDir Include="@(_WinRuntimeLibraries->'$(PublishDir)%(FileName)%(Extension)')" />
+      <_RuntimeLibraries Include="@(_RuntimeLibraryPaths->'%(FileName)%(Extension)')">
+        <_FullFilePath>%(FullPath)</_FullFilePath>
+      </_RuntimeLibraries>
 
-      <_NonRuntimeAssembliesInPublishDir Include="@(_PublishDllPaths)" Exclude="@(_RuntimeLibrariesInPublishDir)" />
+      <!-- Make sure we only include runtime assemblies (later used for crossgen references) when they are not directly referenced by any of our assemblies.
+      Otherwise we might end up with two (different versions) of the same runtime assemblies as refernces. -->
+      <_NonRuntimeAssemblyPathsInPublishDir Include="@(_AllPublishedAssemblyPaths)" Exclude="@(_RuntimeLibraryPaths->'$(PublishDir)%(FileName)%(Extension)')" />
+      <_RuntimeLibraryPathsInPublishDir Include="@(_AllPublishedAssemblyPaths)" Exclude="@(_NonRuntimeAssemblyPathsInPublishDir)" />
+      <_RuntimeLibrariesInPublishDir Include="@(_RuntimeLibraryPathsInPublishDir->'%(FileName)%(Extension)')" />
+
+      <_RuntimeLibrariesNotInPublishDir Include="@(_RuntimeLibraries)" Exclude="@(_RuntimeLibrariesInPublishDir)" />
+      <_RuntimeLibraryPathsNotInPublishDir Include="@(_RuntimeLibrariesNotInPublishDir->'%(_FullFilePath)')" Exclude="@(_RuntimeLibrariesInPublishDir)" />
     </ItemGroup>
     
     <PropertyGroup>
       <CrossgenWorkDir>$(PublishDir)CrossGen\</CrossgenWorkDir>
       <OriginalAssemblyDir>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyDir>
       <PdbWorkDir>$(CrossgenWorkDir)Symbols\</PdbWorkDir>
+      <RspWorkDir>$(CrossgenWorkDir)RspFiles\</RspWorkDir>
     </PropertyGroup>   
   </Target>
 
   <Target Name="PrepareCrossgenTargets" DependsOnTargets="CalculateCrossgenInputs" Condition="'$(GenerateReadyToRun)' == 'true'">
-    <Move SourceFiles="@(_R2RAssemblyPaths)" DestinationFolder="$(OriginalAssemblyDir)">
+    <Move SourceFiles="@(_R2RAssemblyPaths)" DestinationFolder="$(OriginalAssemblyDir)\%(_R2RAssemblyPaths.DestinationSubDirectory)">
       <Output TaskParameter="DestinationFiles" ItemName="_FilesWritten" />
     </Move>
     <ItemGroup>
-      <_CrossgenTargetsAsDependencies Include="$(OriginalAssemblyDir)*.dll" />
-      <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishDir)" Exclude="@(_R2RAssemblyPaths)" />
+      <_CrossgenTargetsAsDependencies Include="$(OriginalAssemblyDir)**\*.dll" />
+      <_NonCrossgenTargetsAsDependencies Include="@(_AllPublishedAssemblyPaths)" Exclude="@(_R2RAssemblyPaths)" />
       <_CrossgenTargetPaths Include="@(_CrossgenTargetsAsDependencies)">      
-        <OutputPath>$(PublishDir)%(_CrossgenTargetsAsDependencies.Filename)%(_CrossgenTargetsAsDependencies.Extension)</OutputPath>
+        <OutputPath>$(PublishDir)%(RecursiveDir)\%(_CrossgenTargetsAsDependencies.Filename)%(_CrossgenTargetsAsDependencies.Extension)</OutputPath>
+        <_RelativeDirectory>%(RecursiveDir)</_RelativeDirectory>
       </_CrossgenTargetPaths>
     </ItemGroup>
   </Target>
@@ -139,7 +178,7 @@
     <WriteLinesToFile File="$(_NuspecFilePath)" Lines="$(_NuspecFileContent)" Overwrite="true"/>
 
     <MakeDir Directories="$(ArtifactsNonShippingPackagesDir)" />
-    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).$(PackageVersion).symbols.nupkg" />
+    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).$(PackageVersion).symbols.nupkg" Overwrite="true"/>
   </Target>
 
   <!--
@@ -153,18 +192,19 @@
     <PropertyGroup>
       <_Crossgen2ExePath>$(PkgMicrosoft_NETCore_App_crossgen2_win-x64)\tools\crossgen2.exe</_Crossgen2ExePath>
       <_R2ROptimizeAssemblyPath>%(_CrossgenTargetPaths.FullPath)</_R2ROptimizeAssemblyPath>
-      <_R2ROptimizeAssemblyOutputPath>$(PublishDir)%(_CrossgenTargetPaths.Filename)%(_CrossgenTargetPaths.Extension)</_R2ROptimizeAssemblyOutputPath>
-      <_RspFilePath>$(CrossgenWorkDir)%(_CrossgenTargetPaths.Filename).CrossgenArgs.rsp</_RspFilePath>
+      <_R2ROptimizeAssemblyOutputPath>%(_CrossgenTargetPaths.OutputPath)</_R2ROptimizeAssemblyOutputPath>
+      <_RspFilePath>$(RspWorkDir)%(_CrossgenTargetPaths._RelativeDirectory)\%(_CrossgenTargetPaths.Filename).CrossgenArgs.rsp</_RspFilePath>
+      <_R2RPdbOutputDirecotry>$(PdbWorkDir)\%(_CrossgenTargetPaths._RelativeDirectory)</_R2RPdbOutputDirecotry>
     </PropertyGroup>
     <ItemGroup>
       <_RspFileLines Include="$(_R2ROptimizeAssemblyPath)" />
       <_RspFileLines Include="--out:$(_R2ROptimizeAssemblyOutputPath)" />
       <_RspFileLines Include="--pdb" />
-      <_RspFileLines Include="--pdb-path:$(PdbWorkDir)" />
+      <_RspFileLines Include="--pdb-path:$(_R2RPdbOutputDirecotry)" />
       <_RspFileLines Include="--targetarch:$(TargetArch)" />
       <_RspFileLines Include="--optimize" />
       <_RspFileLines Include="--opt-cross-module:*" />
-      <_RspFileLines Include="@(_RuntimeLibraries->'--reference:%(FullPath)')" />
+      <_RspFileLines Include="@(_RuntimeLibraryPathsNotInPublishDir->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_CrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_NonCrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
     </ItemGroup>
@@ -172,7 +212,7 @@
     <WriteLinesToFile File="$(_RspFilePath)" Lines="" Overwrite="true" />
     <WriteLinesToFile File="$(_RspFilePath)" Lines="@(_RspFileLines)" />
     
-    <MakeDir Directories="$(PdbWorkDir)" />
+    <MakeDir Directories="$(_R2RPdbOutputDirecotry)" />
   
     <Exec Command='"$(_Crossgen2ExePath)" @"$(_RspFilePath)"' ConsoleToMSBuild="true" IgnoreExitCode="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="_Crossgen2Output" />
@@ -183,20 +223,6 @@
   </Target>
 
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="CalculateCrossgenInputs" Returns="@(_VsixItem)">
-    <PropertyGroup>
-      <!-- 
-        For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
-        This might not be possible if Roslyn is referencing a higher version than the one shipped as part of runtime in VS.
-        For example, we could be referecing S.C.I 7.0 but VS still ships .NET 6. Usually this is a transient state, and the
-        two would eventually be in sync. But we'd need to include those binaries during the out-of-sync period.
-        Note, for the same reasone, we can't safely exclude shared dependencies from ServiceHub host folder.
-
-        Always include BCL in the vsix for non-official build to avoid breakage. Since VS used on CI machines
-        as well as by external contributors usually lags behind our insertion target.
-      -->
-      <_ExcludeRuntimeLibraries Condition="'$(OfficialBuild)' == 'true'">true</_ExcludeRuntimeLibraries>
-    </PropertyGroup>
-
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
       <_VsixItem Include="@(_PublishPaths)" />
@@ -208,7 +234,7 @@
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
       <_VsixItem Remove="@(_VsixItem)" Condition="$([MSBuild]::ValueOrDefault('%(FullPath)', '').StartsWith('$(PublishDir)runtimes'))" />
 
-      <_VsixItem Remove="@(_RuntimeLibrariesInPublishDir)" Condition="'$(_ExcludeRuntimeLibraries)' == 'true'" />
+      <_VsixItem Remove="@(_RuntimeLibraryPathsInPublishDir)" Condition="'$(_ExcludeRuntimeLibraries)' == 'true'" />
     </ItemGroup>
   </Target>
 

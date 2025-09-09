@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -137,7 +138,7 @@ internal abstract partial class AbstractNavigateToSearchService
             var project = group.Key;
 
             // Break the project into high-pri docs and low pri docs, and process in that order.
-            await RoslynParallel.ForEachAsync(
+            await Parallel.ForEachAsync(
                 Prioritize(group, priorityDocumentKeysSet.Contains),
                 cancellationToken,
                 async (documentKey, cancellationToken) =>

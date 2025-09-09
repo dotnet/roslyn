@@ -12,11 +12,10 @@ using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers;
 
-internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly List<MemberSymbolViewModel> _allMembers;
 
@@ -71,24 +70,19 @@ internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
             memberContainer.IsChecked = true;
     }
 
-    private int? _selectedIndex;
-
     public int? SelectedIndex
     {
-        get
-        {
-            return _selectedIndex;
-        }
+        get;
 
         set
         {
             var newSelectedIndex = value == -1 ? null : value;
-            if (newSelectedIndex == _selectedIndex)
+            if (newSelectedIndex == field)
             {
                 return;
             }
 
-            _selectedIndex = newSelectedIndex;
+            field = newSelectedIndex;
 
             NotifyPropertyChanged(nameof(CanMoveUp));
             NotifyPropertyChanged(nameof(MoveUpAutomationText));
@@ -178,7 +172,7 @@ internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
         SelectedIndex += delta;
     }
 
-    internal class OptionViewModel : AbstractNotifyPropertyChanged
+    internal sealed class OptionViewModel : AbstractNotifyPropertyChanged
     {
         public PickMembersOption Option { get; }
 
@@ -191,15 +185,14 @@ internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
             IsChecked = option.Value;
         }
 
-        private bool _isChecked;
         public bool IsChecked
         {
-            get => _isChecked;
+            get;
 
             set
             {
                 Option.Value = value;
-                SetProperty(ref _isChecked, value);
+                SetProperty(ref field, value);
             }
         }
 

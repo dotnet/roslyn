@@ -7,17 +7,16 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+
+public class CSharpTestWorkspaceFixture : TestWorkspaceFixture
 {
-    public class CSharpTestWorkspaceFixture : TestWorkspaceFixture
+    protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
     {
-        protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
-        {
-            return EditorTestWorkspace.CreateWithSingleEmptySourceFile(
-                LanguageNames.CSharp,
-                compilationOptions: null,
-                parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Regular),
-                composition: composition);
-        }
+        return EditorTestWorkspace.CreateWithSingleEmptySourceFile(
+            LanguageNames.CSharp,
+            compilationOptions: null,
+            parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Regular),
+            composition: composition);
     }
 }

@@ -10,12 +10,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration;
 
 [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
+public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
 {
     [Fact]
     public void TestAddMultiplyPrecedence1()
-    {
-        Test(
+        => Test(
             f => f.MultiplyExpression(
                 f.AddExpression(
                     f.LiteralExpression(1),
@@ -25,12 +24,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(1 + 2) * 3",
             vb: "((1) + (2)) * (3)",
             vbSimple: "(1 + 2) * 3");
-    }
 
     [Fact]
     public void TestAddMultiplyPrecedence2()
-    {
-        Test(
+        => Test(
             f => f.AddExpression(
                 f.MultiplyExpression(
                     f.LiteralExpression(1),
@@ -40,12 +37,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 * 2 + 3",
             vb: "((1) * (2)) + (3)",
             vbSimple: "1 * 2 + 3");
-    }
 
     [Fact]
     public void TestAddMultiplyPrecedence3()
-    {
-        Test(
+        => Test(
             f => f.MultiplyExpression(
                 f.LiteralExpression(1),
                 f.AddExpression(
@@ -55,12 +50,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 * (2 + 3)",
             vb: "(1) * ((2) + (3))",
             vbSimple: "1 * (2 + 3)");
-    }
 
     [Fact]
     public void TestAddMultiplyPrecedence4()
-    {
-        Test(
+        => Test(
             f => f.AddExpression(
                 f.LiteralExpression(1),
                 f.MultiplyExpression(
@@ -70,12 +63,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 + 2 * 3",
             vb: "(1) + ((2) * (3))",
             vbSimple: "1 + 2 * 3");
-    }
 
     [Fact]
     public void TestBitwiseAndOrPrecedence1()
-    {
-        Test(
+        => Test(
             f => f.BitwiseAndExpression(
                 f.BitwiseOrExpression(
                     f.LiteralExpression(1),
@@ -85,12 +76,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(1 | 2) & 3",
             vb: "((1) Or (2)) And (3)",
             vbSimple: "(1 Or 2) And 3");
-    }
 
     [Fact]
     public void TestBitwiseAndOrPrecedence2()
-    {
-        Test(
+        => Test(
             f => f.BitwiseOrExpression(
                 f.BitwiseAndExpression(
                     f.LiteralExpression(1),
@@ -100,12 +89,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 & 2 | 3",
             vb: "((1) And (2)) Or (3)",
             vbSimple: "1 And 2 Or 3");
-    }
 
     [Fact]
     public void TestBitwiseAndOrPrecedence3()
-    {
-        Test(
+        => Test(
             f => f.BitwiseAndExpression(
                 f.LiteralExpression(1),
                 f.BitwiseOrExpression(
@@ -115,12 +102,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 & (2 | 3)",
             vb: "(1) And ((2) Or (3))",
             vbSimple: "1 And (2 Or 3)");
-    }
 
     [Fact]
     public void TestBitwiseAndOrPrecedence4()
-    {
-        Test(
+        => Test(
             f => f.BitwiseOrExpression(
                 f.LiteralExpression(1),
                 f.BitwiseAndExpression(
@@ -130,12 +115,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 | 2 & 3",
             vb: "(1) Or ((2) And (3))",
             vbSimple: "1 Or 2 And 3");
-    }
 
     [Fact]
     public void TestLogicalAndOrPrecedence1()
-    {
-        Test(
+        => Test(
             f => f.LogicalAndExpression(
                 f.LogicalOrExpression(
                     f.LiteralExpression(1),
@@ -145,12 +128,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(1 || 2) && 3",
             vb: "((1) OrElse (2)) AndAlso (3)",
             vbSimple: "(1 OrElse 2) AndAlso 3");
-    }
 
     [Fact]
     public void TestLogicalAndOrPrecedence2()
-    {
-        Test(
+        => Test(
             f => f.LogicalOrExpression(
                 f.LogicalAndExpression(
                     f.LiteralExpression(1),
@@ -160,12 +141,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 && 2 || 3",
             vb: "((1) AndAlso (2)) OrElse (3)",
             vbSimple: "1 AndAlso 2 OrElse 3");
-    }
 
     [Fact]
     public void TestLogicalAndOrPrecedence3()
-    {
-        Test(
+        => Test(
             f => f.LogicalAndExpression(
                 f.LiteralExpression(1),
                 f.LogicalOrExpression(
@@ -175,12 +154,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 && (2 || 3)",
             vb: "(1) AndAlso ((2) OrElse (3))",
             vbSimple: "1 AndAlso (2 OrElse 3)");
-    }
 
     [Fact]
     public void TestLogicalAndOrPrecedence4()
-    {
-        Test(
+        => Test(
             f => f.LogicalOrExpression(
                 f.LiteralExpression(1),
                 f.LogicalAndExpression(
@@ -190,12 +167,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "1 || 2 && 3",
             vb: "(1) OrElse ((2) AndAlso (3))",
             vbSimple: "1 OrElse 2 AndAlso 3");
-    }
 
     [Fact]
     public void TestMemberAccessOffOfAdd1()
-    {
-        Test(
+        => Test(
             f => f.MemberAccessExpression(
                 f.AddExpression(
                     f.LiteralExpression(1),
@@ -205,12 +180,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(1 + 2).M",
             vb: "((1) + (2)).M",
             vbSimple: "(1 + 2).M");
-    }
 
     [Fact]
     public void TestConditionalExpression1()
-    {
-        Test(
+        => Test(
             f => f.ConditionalExpression(
                 f.AssignmentStatement(
                     f.IdentifierName("E1"),
@@ -221,12 +194,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(E1 = E2) ? T : F",
             vb: null,
             vbSimple: null);
-    }
 
     [Fact]
     public void TestConditionalExpression2()
-    {
-        Test(
+        => Test(
             f => f.AddExpression(
                     f.ConditionalExpression(
                         f.IdentifierName("E1"),
@@ -240,12 +211,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(E1 ? T1 : F1) + (E2 ? T2 : F2)",
             vb: null,
             vbSimple: null);
-    }
 
     [Fact]
     public void TestMemberAccessOffOfElementAccess()
-    {
-        Test(
+        => Test(
             f => f.ElementAccessExpression(
                 f.AddExpression(
                     f.LiteralExpression(1),
@@ -255,12 +224,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(1 + 2)[M]",
             vb: "((1) + (2))(M)",
             vbSimple: "(1 + 2)(M)");
-    }
 
     [Fact]
     public void TestMemberAccessOffOfIsExpression()
-    {
-        Test(
+        => Test(
             f => f.MemberAccessExpression(
                 f.IsTypeExpression(
                     f.IdentifierName("a"),
@@ -270,12 +237,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(a is SomeType).M",
             vb: "(TypeOf (a) Is SomeType).M",
             vbSimple: "(TypeOf a Is SomeType).M");
-    }
 
     [Fact]
     public void TestIsOfMemberAccessExpression()
-    {
-        Test(
+        => Test(
             f => f.IsTypeExpression(
                 f.MemberAccessExpression(
                     f.IdentifierName("a"),
@@ -285,12 +250,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "a.M is SomeType",
             vb: "TypeOf (a.M) Is SomeType",
             vbSimple: "TypeOf a.M Is SomeType");
-    }
 
     [Fact]
     public void TestMemberAccessOffOfAsExpression()
-    {
-        Test(
+        => Test(
             f => f.MemberAccessExpression(
                 f.TryCastExpression(
                     f.IdentifierName("a"),
@@ -300,12 +263,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(a as SomeType).M",
             vb: "(TryCast(a, SomeType)).M",
             vbSimple: "TryCast(a, SomeType).M");
-    }
 
     [Fact]
     public void TestAsOfMemberAccessExpression()
-    {
-        Test(
+        => Test(
             f => f.TryCastExpression(
                      f.MemberAccessExpression(
                         f.IdentifierName("a"),
@@ -315,12 +276,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "a.M as SomeType",
             vb: "TryCast(a.M, SomeType)",
             vbSimple: "TryCast(a.M, SomeType)");
-    }
 
     [Fact]
     public void TestMemberAccessOffOfNotExpression()
-    {
-        Test(
+        => Test(
             f => f.MemberAccessExpression(
                 f.LogicalNotExpression(
                     f.IdentifierName("a")),
@@ -329,12 +288,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(!a).M",
             vb: "(Not (a)).M",
             vbSimple: "(Not a).M");
-    }
 
     [Fact]
     public void TestNotOfMemberAccessExpression()
-    {
-        Test(
+        => Test(
             f => f.LogicalNotExpression(
                 f.MemberAccessExpression(
                     f.IdentifierName("a"),
@@ -343,12 +300,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "!a.M",
             vb: "Not (a.M)",
             vbSimple: "Not a.M");
-    }
 
     [Fact]
     public void TestMemberAccessOffOfCastExpression()
-    {
-        Test(
+        => Test(
             f => f.MemberAccessExpression(
                 f.CastExpression(
                     CreateClass("SomeType"),
@@ -358,12 +313,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "((SomeType)a).M",
             vb: "(DirectCast(a, SomeType)).M",
             vbSimple: "DirectCast(a, SomeType).M");
-    }
 
     [Fact]
     public void TestCastOfAddExpression()
-    {
-        Test(
+        => Test(
             f => f.CastExpression(
                 CreateClass("SomeType"),
                 f.AddExpression(
@@ -373,12 +326,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(SomeType)(a + b)",
             vb: "DirectCast((a) + (b), SomeType)",
             vbSimple: "DirectCast(a + b, SomeType)");
-    }
 
     [Fact]
     public void TestNegateOfAddExpression()
-    {
-        Test(
+        => Test(
             f => f.NegateExpression(
                 f.AddExpression(
                     f.IdentifierName("a"),
@@ -387,12 +338,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "-(a + b)",
             vb: "-((a) + (b))",
             vbSimple: "-(a + b)");
-    }
 
     [Fact]
     public void TestMemberAccessOffOfNegate()
-    {
-        Test(
+        => Test(
             f => f.MemberAccessExpression(
                 f.NegateExpression(
                     f.IdentifierName("a")),
@@ -401,12 +350,10 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "(-a).M",
             vb: "(-(a)).M",
             vbSimple: "(-a).M");
-    }
 
     [Fact]
     public void TestNegateOfMemberAccess()
-    {
-        Test(f =>
+        => Test(f =>
             f.NegateExpression(
                 f.MemberAccessExpression(
                     f.IdentifierName("a"),
@@ -415,5 +362,4 @@ public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
             csSimple: "-a.M",
             vb: "-(a.M)",
             vbSimple: "-a.M");
-    }
 }

@@ -16,25 +16,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
     WorkspaceKind.MetadataAsSource,
     WorkspaceKind.Interactive,
     WorkspaceKind.SemanticSearch), Shared]
-internal sealed class LspWorkspaceRegistrationEventListener : IEventListener<object>, IEventListenerStoppable
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class LspWorkspaceRegistrationEventListener(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : IEventListener
 {
-    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LspWorkspaceRegistrationEventListener(LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-    {
-        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-    }
-
-    public void StartListening(Workspace workspace, object _)
-    {
-        _lspWorkspaceRegistrationService.Register(workspace);
-    }
+    public void StartListening(Workspace workspace)
+        => _lspWorkspaceRegistrationService.Register(workspace);
 
     public void StopListening(Workspace workspace)
-    {
-        _lspWorkspaceRegistrationService.Deregister(workspace);
-    }
+        => _lspWorkspaceRegistrationService.Deregister(workspace);
 }
 

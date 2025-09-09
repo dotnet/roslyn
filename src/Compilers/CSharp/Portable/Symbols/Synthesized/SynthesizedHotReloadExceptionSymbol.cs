@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _members =
             [
                 new SynthesizedHotReloadExceptionConstructorSymbol(this, stringType, intType),
-                new SynthesizedFieldSymbol(this, intType, CodeFieldName, isPublic: true, isReadOnly: true, isStatic: false)
+                new SynthesizedFieldSymbol(this, intType, CodeFieldName, DeclarationModifiers.Public, isReadOnly: true, isStatic: false)
             ];
         }
 
@@ -96,6 +96,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => [];
         public override bool IsStatic => false;
         public override bool IsRefLikeType => false;
+
+        internal override string ExtensionGroupingName
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override string ExtensionMarkerName
+            => throw ExceptionUtilities.Unreachable();
+
         public override bool IsReadOnly => false;
         public override bool IsAbstract => false;
         public override bool IsSealed => true;
@@ -106,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
         internal override bool HasCompilerLoweringPreserveAttribute => false;
         internal override bool IsInterpolatedStringHandlerType => false;
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
         internal override bool HasSpecialName => false;
         internal override bool IsComImport => false;
         internal override bool IsWindowsRuntimeImport => false;

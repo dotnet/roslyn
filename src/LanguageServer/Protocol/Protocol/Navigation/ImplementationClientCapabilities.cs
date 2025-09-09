@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal class ImplementationClientCapabilities : DynamicRegistrationSetting
+internal sealed class ImplementationClientCapabilities : DynamicRegistrationSetting
 {
     /// <summary>
     /// Whether the client supports supports additional metadata in the form of definition links

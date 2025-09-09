@@ -324,7 +324,8 @@ class X
                         case ErrorCode.WRN_Experimental:
                         case ErrorCode.WRN_ExperimentalWithMessage:
                         case ErrorCode.WRN_ConvertingLock:
-                        case ErrorCode.WRN_PartialPropertySignatureDifference:
+                        case ErrorCode.WRN_PartialMemberSignatureDifference:
+                        case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                         case ErrorCode.WRN_ConvertingNullableToNonNullable:
                         case ErrorCode.WRN_NullReferenceAssignment:
                         case ErrorCode.WRN_NullReferenceReceiver:
@@ -2990,6 +2991,8 @@ class Program
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     case ErrorCode.ERR_RefLocalAcrossAwait:
+                    case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
+                    case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

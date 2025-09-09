@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -20,8 +20,8 @@ internal sealed class EditSessionTelemetry
         public readonly ImmutableArray<Guid> ProjectsWithValidDelta = telemetry._projectsWithValidDelta.AsImmutable();
         public readonly ImmutableArray<Guid> ProjectsWithUpdatedBaselines = telemetry._projectsWithUpdatedBaselines.AsImmutable();
         public readonly EditAndContinueCapabilities Capabilities = telemetry._capabilities;
-        public readonly bool HadCompilationErrors = telemetry._hadCompilationErrors;
-        public readonly bool HadRudeEdits = telemetry._hadRudeEdits;
+        public readonly bool HasSyntaxErrors = telemetry._hadSyntaxErrors;
+        public readonly bool HadBlockingRudeEdits = telemetry._hadBlockingRudeEdits;
         public readonly bool HadValidChanges = telemetry._hadValidChanges;
         public readonly bool HadValidInsignificantChanges = telemetry._hadValidInsignificantChanges;
         public readonly bool InBreakState = telemetry._inBreakState!.Value;
@@ -41,8 +41,8 @@ internal sealed class EditSessionTelemetry
     private readonly HashSet<Guid> _projectsWithValidDelta = [];
     private readonly HashSet<Guid> _projectsWithUpdatedBaselines = [];
 
-    private bool _hadCompilationErrors;
-    private bool _hadRudeEdits;
+    private bool _hadSyntaxErrors;
+    private bool _hadBlockingRudeEdits;
     private bool _hadValidChanges;
     private bool _hadValidInsignificantChanges;
     private bool? _inBreakState;
@@ -61,8 +61,8 @@ internal sealed class EditSessionTelemetry
             _emitErrorIds.Clear();
             _projectsWithValidDelta.Clear();
             _projectsWithUpdatedBaselines.Clear();
-            _hadCompilationErrors = false;
-            _hadRudeEdits = false;
+            _hadSyntaxErrors = false;
+            _hadBlockingRudeEdits = false;
             _hadValidChanges = false;
             _hadValidInsignificantChanges = false;
             _inBreakState = null;
@@ -73,7 +73,7 @@ internal sealed class EditSessionTelemetry
         }
     }
 
-    public bool IsEmpty => !(_hadCompilationErrors || _hadRudeEdits || _hadValidChanges || _hadValidInsignificantChanges);
+    public bool IsEmpty => !(_hadSyntaxErrors || _hadBlockingRudeEdits || _hadValidChanges || _hadValidInsignificantChanges);
 
     public void SetBreakState(bool value)
         => _inBreakState = value;
@@ -84,29 +84,46 @@ internal sealed class EditSessionTelemetry
     public void LogAnalysisTime(TimeSpan span)
         => _analysisTime += span;
 
-    public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, ImmutableArray<string> errorsIds)
+    public void LogSyntaxError()
+        => _hadSyntaxErrors = true;
+
+    public void LogProjectAnalysisSummary(ProjectAnalysisSummary? summary, Guid projectTelemetryId, IEnumerable<Diagnostic> diagnostics)
     {
         lock (_guard)
         {
-            _emitErrorIds.AddRange(errorsIds);
+            var hasError = false;
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                {
+                    if (diagnostic.IsRudeEdit())
+                    {
+                        _hadBlockingRudeEdits = true;
+                    }
+                    else
+                    {
+                        _emitErrorIds.Add(diagnostic.Id);
+                        hasError = true;
+                    }
+                }
+            }
 
             switch (summary)
             {
+                case null:
+                    // report diagnostics only
+                    break;
+
                 case ProjectAnalysisSummary.NoChanges:
                     break;
 
-                case ProjectAnalysisSummary.SyntaxErrors:
-                    _hadCompilationErrors = true;
-                    break;
-
-                case ProjectAnalysisSummary.RudeEdits:
-                    _hadRudeEdits = true;
+                case ProjectAnalysisSummary.InvalidChanges:
                     break;
 
                 case ProjectAnalysisSummary.ValidChanges:
                     _hadValidChanges = true;
 
-                    if (errorsIds.IsEmpty && _projectsWithValidDelta.Count < MaxReportedProjectIds)
+                    if (!hasError && _projectsWithValidDelta.Count < MaxReportedProjectIds)
                     {
                         _projectsWithValidDelta.Add(projectTelemetryId);
                     }
@@ -122,9 +139,6 @@ internal sealed class EditSessionTelemetry
             }
         }
     }
-
-    public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, ImmutableArray<Diagnostic> emitDiagnostics)
-        => LogProjectAnalysisSummary(summary, projectTelemetryId, emitDiagnostics.SelectAsArray(d => d.Severity == DiagnosticSeverity.Error, d => d.Id));
 
     public void LogRudeEditDiagnostics(ImmutableArray<RudeEditDiagnostic> diagnostics, Guid projectTelemetryId)
     {

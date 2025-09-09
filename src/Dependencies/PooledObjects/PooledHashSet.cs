@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -10,6 +12,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     // HashSet that can be recycled via an object pool
     // NOTE: these HashSets always have the default comparer.
     internal sealed partial class PooledHashSet<T> : HashSet<T>
+#if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
+        , IPooled
+#endif
     {
         private readonly ObjectPool<PooledHashSet<T>> _pool;
 
@@ -42,5 +47,17 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             Debug.Assert(instance.Count == 0);
             return instance;
         }
+
+#if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
+        public static PooledDisposer<PooledHashSet<T>> GetInstance(out PooledHashSet<T> instance)
+        {
+            instance = GetInstance();
+            return new PooledDisposer<PooledHashSet<T>>(instance);
+        }
+
+        // Nothing special to do here.
+        void IPooled.Free(bool discardLargeInstance)
+            => this.Free();
+#endif
     }
 }

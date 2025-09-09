@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -317,6 +318,25 @@ namespace Roslyn.Test.Utilities
             return reader.TypeReferences
                 .Select(t => reader.GetTypeReference(t))
                 .Select(t => $"{reader.GetString(t.Name)}, {reader.GetString(t.Namespace)}, {reader.Dump(t.ResolutionScope)}");
+        }
+
+        public static ImmutableArray<string> DumpNestedTypes(this MetadataReader reader, TypeDefinitionHandle container)
+        {
+            var builder = ArrayBuilder<string>.GetInstance();
+            builder.Add(reader.Dump(container));
+            dumpNestedTypes(reader, container, ref builder);
+
+            return builder.ToImmutableAndFree();
+
+            static void dumpNestedTypes(MetadataReader reader, TypeDefinitionHandle container, ref ArrayBuilder<string> builder)
+            {
+                var nested = reader.GetTypeDefinition(container).GetNestedTypes();
+                foreach (var handle in nested)
+                {
+                    builder.Add(reader.Dump(handle));
+                    dumpNestedTypes(reader, handle, ref builder);
+                }
+            }
         }
 
         public static string Dump(this MetadataReader reader, EntityHandle handle)

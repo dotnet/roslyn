@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -512,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
-                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out _);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -553,6 +554,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Static member '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
+            }
+            else if (ContainingType.IsExtension && IsInitOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_InitInExtension, location, _property);
             }
             else if (LocalDeclaredReadOnly && IsInitOnly)
             {
@@ -654,13 +659,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var syntax = this.GetSyntax();
-                switch (syntax.Kind())
+                if (this._property.ContainingType is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: true })
                 {
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.InitAccessorDeclaration:
-                        return ((AccessorDeclarationSyntax)syntax).AttributeLists;
+                    var syntax = this.GetSyntax();
+                    switch (syntax.Kind())
+                    {
+                        case SyntaxKind.GetAccessorDeclaration:
+                        case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.InitAccessorDeclaration:
+                            return ((AccessorDeclarationSyntax)syntax).AttributeLists;
+                    }
                 }
 
                 return default;
@@ -721,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        public sealed override bool IsImplicitlyDeclared
+        public override bool IsImplicitlyDeclared
         {
             get
             {
@@ -734,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.ArrowExpressionClause:
                         return false;
-                };
+                }
 
                 return true;
             }
@@ -789,7 +797,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedReturnTypeFlowAnalysisAttributes(ref attributes);
+        }
 
+        internal void AddSynthesizedReturnTypeFlowAnalysisAttributes(ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
             var annotations = ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
@@ -798,33 +810,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
                 AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.NotNullAttributeIfExists));
-            }
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (_isAutoPropertyAccessor)
-            {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            }
-
-            if (!NotNullMembers.IsEmpty)
-            {
-                foreach (var attributeData in _property.MemberNotNullAttributeIfExists)
-                {
-                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
-                }
-            }
-
-            if (!NotNullWhenTrueMembers.IsEmpty || !NotNullWhenFalseMembers.IsEmpty)
-            {
-                foreach (var attributeData in _property.MemberNotNullWhenAttributeIfExists)
-                {
-                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
-                }
             }
         }
 

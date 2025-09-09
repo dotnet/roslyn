@@ -19791,6 +19791,7 @@ class C1 (int p1)
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76651")]
         [Fact]
         public void PartialMembers_01()
         {
@@ -19812,14 +19813,49 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2]);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
+            model.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76651")]
+        public void PartialMembers_02()
+        {
+            var source1 = """
+[System.Diagnostics.CodeAnalysis.Experimental(C.P)]
+class Repro
+{
+}
+""";
+
+            var source2 = """
+partial class C
+{
+    public static partial string P {get=>"";set{}}
+    public static partial string P {get;set;}
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+
+        public string Message { get; set; }
+    }
+}
+""";
+            var comp = CreateCompilation([source1, source2]);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
             model.GetDiagnostics().Verify(
-                // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
-                // c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(2, 3),
-                // (3,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
-                // _ = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(3, 7));
+                // (1,47): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [System.Diagnostics.CodeAnalysis.Experimental(C.P)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.P").WithLocation(1, 47)
+                );
         }
 
         [Fact]
@@ -19880,14 +19916,14 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
-                // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // (4,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(4, 7),
-                // (5,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M()").WithLocation(4, 5),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(5, 7));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P").WithLocation(5, 5)
+                );
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
@@ -19916,14 +19952,14 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
-                // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // (4,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(4, 7),
-                // (5,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M()").WithLocation(4, 5),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(5, 7));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P").WithLocation(5, 5)
+                );
         }
 
         [Fact]

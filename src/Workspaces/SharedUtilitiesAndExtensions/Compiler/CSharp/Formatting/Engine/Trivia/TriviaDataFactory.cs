@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 /// 
 /// it will cache some commonly used trivia to reduce memory footprint and heap allocation
 /// </summary>
-internal partial class TriviaDataFactory : AbstractTriviaDataFactory
+internal sealed partial class TriviaDataFactory : AbstractTriviaDataFactory
 {
     public TriviaDataFactory(TreeData treeInfo, LineFormattingOptions options)
         : base(treeInfo, options)

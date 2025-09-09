@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol KickoffMethod;
 
         public StateMachineTypeSymbol(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
-            : base(MakeName(slotAllocatorOpt, compilationState, kickoffMethod, kickoffMethodOrdinal), kickoffMethod)
+            : base(MakeName(slotAllocatorOpt, compilationState, kickoffMethod, kickoffMethodOrdinal), TypeMap.ConcatMethodTypeParameters(kickoffMethod, stopAt: null))
         {
             Debug.Assert(kickoffMethod != null);
             this.KickoffMethod = kickoffMethod;

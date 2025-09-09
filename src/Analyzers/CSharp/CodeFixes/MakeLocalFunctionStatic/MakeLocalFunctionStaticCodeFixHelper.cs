@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -100,7 +98,8 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
                     var seenDefaultArgumentValue = currentInvocation.ArgumentList.Arguments.Count < localFunction.ParameterList.Parameters.Count;
 
                     // Add all the non-this parameters to the end.  If there is a 'this' parameter, add it to the start.
-                    var newArguments = parameterAndCapturedSymbols.Where(p => !p.symbol.IsThisParameter()).Select(
+                    var newArguments = parameterAndCapturedSymbols.SelectAsArray(
+                        p => !p.symbol.IsThisParameter(),
                         symbolAndCapture => (ArgumentSyntax)generator.Argument(
                             seenNamedArgument || seenDefaultArgumentValue ? symbolAndCapture.symbol.Name : null,
                             symbolAndCapture.symbol.RefKind,

@@ -6,216 +6,167 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class ForEachKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ForEachKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact]
-        public async Task TestAtRoot_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestAtRoot_TopLevelStatement()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public Task TestAtRoot_TopLevelStatement()
+        => VerifyKeywordAsync(
 @"$$", options: CSharp9ParseOptions);
-        }
 
-        [Fact]
-        public async Task TestAfterClass_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterGlobalStatement()
-        {
-            await VerifyKeywordAsync(
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterStatement_TopLevelStatement()
-        {
-            await VerifyKeywordAsync(
-                """
-                System.Console.WriteLine();
-                $$
-                """, options: CSharp9ParseOptions);
-        }
+    [Fact]
+    public Task TestAfterStatement_TopLevelStatement()
+        => VerifyKeywordAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """, options: CSharp9ParseOptions);
 
-        [Fact]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestAfterVariableDeclaration_TopLevelStatement()
-        {
-            await VerifyKeywordAsync(
-                """
-                int i = 0;
-                $$
-                """, options: CSharp9ParseOptions);
-        }
+    [Fact]
+    public Task TestAfterVariableDeclaration_TopLevelStatement()
+        => VerifyKeywordAsync(
+            """
+            int i = 0;
+            $$
+            """, options: CSharp9ParseOptions);
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestEmptyStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestEmptyStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestAfterAwait(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestAfterAwait(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
 @"await $$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestBeforeStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                $$
-                return 0;
-                """, returnType: "int", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestBeforeStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            $$
+            return 0;
+            """, returnType: "int", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestAfterStatement(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                return true;
-                $$
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestAfterStatement(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            return true;
+            $$
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestAfterBlock(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                if (true) {
-                }
-                $$
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestAfterBlock(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            if (true) {
+            }
+            $$
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestInsideForEach(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                foreach (var v in c)
-                     $$
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestInsideForEach(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            foreach (var v in c)
+                 $$
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestInsideForEachInsideForEach(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                foreach (var v in c)
-                     foreach (var v in c)
-                        $$
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestInsideForEachInsideForEach(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            foreach (var v in c)
+                 foreach (var v in c)
+                    $$
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestInsideForEachBlock(bool topLevelStatement)
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                foreach (var v in c) {
-                     $$
-                """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
+    [Theory, CombinatorialData]
+    public Task TestInsideForEachBlock(bool topLevelStatement)
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            foreach (var v in c) {
+                 $$
+            """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
-        [Theory, CombinatorialData]
-        public async Task TestNotAfterForEach1(bool topLevelStatement)
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestNotAfterForEach1(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestNotAfterForEach2(bool topLevelStatement)
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestNotAfterForEach2(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach ($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestNotAfterForEach3(bool topLevelStatement)
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestNotAfterForEach3(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (var $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestNotAfterForEach4(bool topLevelStatement)
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestNotAfterForEach4(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (var v $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestNotAfterForEach5(bool topLevelStatement)
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestNotAfterForEach5(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (var v in $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Theory, CombinatorialData]
-        public async Task TestNotAfterForEach6(bool topLevelStatement)
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Theory, CombinatorialData]
+    public Task TestNotAfterForEach6(bool topLevelStatement)
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"foreach (var v in c $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
-        }
 
-        [Fact]
-        public async Task TestNotInClass()
-        {
-            await VerifyAbsenceAsync("""
-                class C
-                {
-                  $$
-                }
-                """);
-        }
-    }
+    [Fact]
+    public Task TestNotInClass()
+        => VerifyAbsenceAsync("""
+            class C
+            {
+              $$
+            }
+            """);
 }

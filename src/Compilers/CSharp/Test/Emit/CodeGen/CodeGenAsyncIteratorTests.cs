@@ -10,9 +10,11 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -498,7 +500,7 @@ class C
             CompileAndVerify(comp);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait1()
         {
@@ -527,7 +529,7 @@ class C
 8");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait2()
         {
@@ -2618,7 +2620,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Stream1:1 Finally Stream2:1 Stream2:2 Finally Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
             string source = @"
@@ -3187,7 +3189,7 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation()
         {
             string source = @"
@@ -3452,7 +3454,7 @@ class C
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Theory]
         [InlineData("[EnumeratorCancellation] ", "")]
         [InlineData("", "[EnumeratorCancellation] ")]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_ExtendedPartialMethod(string definitionAttributes, string implementationAttributes)
@@ -3720,7 +3722,7 @@ partial class C
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_LocalFunction()
         {
             string source = @"
@@ -3989,7 +3991,7 @@ class C
 }", sequencePoints: "C+<<M>g__local|0_0>d.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_NoUsage()
         {
             string source = @"
@@ -4457,7 +4459,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 2 END DISPOSAL DONE")]
         [InlineData(10, "1 2 END DISPOSAL DONE")]
@@ -4659,7 +4661,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "0 DISPOSAL DONE")]
         [InlineData(2, "0 1 DISPOSAL Finally DONE")]
         [InlineData(3, "0 1 Finally 2 DISPOSAL DONE")]
@@ -4694,7 +4696,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Break Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_DisposeIAsyncEnumeratorMethod(int iterations, string expectedOutput)
         {
@@ -4742,7 +4744,7 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Break Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInDisposeMode(int iterations, string expectedOutput)
         {
@@ -4780,10 +4782,219 @@ public class C
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations), source }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput,
+                verify: Verification.FailsILVerify with
+                {
+                    ILVerifyMessage = "[MoveNext]: Leave into try block. { Offset = 0x11a }"
+                });
+
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+                {
+                  // Code size      414 (0x19e)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                                C.<M>d__0 V_2,
+                                System.Exception V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+                  IL_0006:  stloc.0
+                  .try
+                  {
+                    IL_0007:  ldloc.0
+                    IL_0008:  ldc.i4.s   -4
+                    IL_000a:  sub
+                    IL_000b:  switch    (
+                        IL_0026,
+                        IL_0028,
+                        IL_002c,
+                        IL_002c,
+                        IL_002a)
+                    IL_0024:  br.s       IL_002c
+                    IL_0026:  br.s       IL_0059
+                    IL_0028:  br.s       IL_002c
+                    IL_002a:  br.s       IL_00aa
+                    IL_002c:  ldarg.0
+                    IL_002d:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+                    IL_0032:  brfalse.s  IL_0039
+                    IL_0034:  leave      IL_0167
+                    IL_0039:  ldarg.0
+                    IL_003a:  ldc.i4.m1
+                    IL_003b:  dup
+                    IL_003c:  stloc.0
+                    IL_003d:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_0042:  nop
+                    IL_0043:  ldarg.0
+                    IL_0044:  ldc.i4.1
+                    IL_0045:  stfld      "int C.<M>d__0.<>2__current"
+                    IL_004a:  ldarg.0
+                    IL_004b:  ldc.i4.s   -4
+                    IL_004d:  dup
+                    IL_004e:  stloc.0
+                    IL_004f:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_0054:  leave      IL_0190
+                    IL_0059:  ldarg.0
+                    IL_005a:  ldc.i4.m1
+                    IL_005b:  dup
+                    IL_005c:  stloc.0
+                    IL_005d:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_0062:  ldarg.0
+                    IL_0063:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+                    IL_0068:  brfalse.s  IL_006f
+                    IL_006a:  leave      IL_0167
+                    IL_006f:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                    IL_0074:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                    IL_0079:  stloc.1
+                    IL_007a:  ldloca.s   V_1
+                    IL_007c:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+                    IL_0081:  brtrue.s   IL_00c6
+                    IL_0083:  ldarg.0
+                    IL_0084:  ldc.i4.0
+                    IL_0085:  dup
+                    IL_0086:  stloc.0
+                    IL_0087:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_008c:  ldarg.0
+                    IL_008d:  ldloc.1
+                    IL_008e:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+                    IL_0093:  ldarg.0
+                    IL_0094:  stloc.2
+                    IL_0095:  ldarg.0
+                    IL_0096:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+                    IL_009b:  ldloca.s   V_1
+                    IL_009d:  ldloca.s   V_2
+                    IL_009f:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)"
+                    IL_00a4:  nop
+                    IL_00a5:  leave      IL_019d
+                    IL_00aa:  ldarg.0
+                    IL_00ab:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+                    IL_00b0:  stloc.1
+                    IL_00b1:  ldarg.0
+                    IL_00b2:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+                    IL_00b7:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+                    IL_00bd:  ldarg.0
+                    IL_00be:  ldc.i4.m1
+                    IL_00bf:  dup
+                    IL_00c0:  stloc.0
+                    IL_00c1:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_00c6:  ldloca.s   V_1
+                    IL_00c8:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                    IL_00cd:  nop
+                    .try
+                    {
+                      .try
+                      {
+                        IL_00ce:  nop
+                        .try
+                        {
+                          IL_00cf:  nop
+                          IL_00d0:  ldstr      "Break "
+                          IL_00d5:  call       "void System.Console.Write(string)"
+                          IL_00da:  nop
+                          IL_00db:  ldarg.0
+                          IL_00dc:  ldc.i4.1
+                          IL_00dd:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+                          IL_00e2:  br.s       IL_00e4
+                          IL_00e4:  leave.s    IL_00f9
+                        }
+                        finally
+                        {
+                          IL_00e6:  ldloc.0
+                          IL_00e7:  ldc.i4.m1
+                          IL_00e8:  bne.un.s   IL_00f8
+                          IL_00ea:  nop
+                          IL_00eb:  ldstr      "Throw "
+                          IL_00f0:  call       "void System.Console.Write(string)"
+                          IL_00f5:  nop
+                          IL_00f6:  ldnull
+                          IL_00f7:  throw
+                          IL_00f8:  endfinally
+                        }
+                        IL_00f9:  ldarg.0
+                        IL_00fa:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+                        IL_00ff:  brfalse.s  IL_0103
+                        IL_0101:  br.s       IL_0104
+                        IL_0103:  nop
+                        IL_0104:  leave.s    IL_011c
+                      }
+                      catch object
+                      {
+                        IL_0106:  pop
+                        IL_0107:  nop
+                        IL_0108:  ldstr      "Caught "
+                        IL_010d:  call       "void System.Console.Write(string)"
+                        IL_0112:  nop
+                        IL_0113:  ldarg.0
+                        IL_0114:  ldc.i4.1
+                        IL_0115:  stfld      "bool C.<M>d__0.<>w__disposeMode"
+                        IL_011a:  leave.s    IL_0104
+                      }
+                      IL_011c:  leave.s    IL_0130
+                    }
+                    finally
+                    {
+                      IL_011e:  ldloc.0
+                      IL_011f:  ldc.i4.m1
+                      IL_0120:  bne.un.s   IL_012f
+                      IL_0122:  nop
+                      IL_0123:  ldstr      "Finally "
+                      IL_0128:  call       "void System.Console.Write(string)"
+                      IL_012d:  nop
+                      IL_012e:  nop
+                      IL_012f:  endfinally
+                    }
+                    IL_0130:  ldarg.0
+                    IL_0131:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+                    IL_0136:  brfalse.s  IL_013a
+                    IL_0138:  leave.s    IL_0167
+                    IL_013a:  leave.s    IL_0167
+                  }
+                  catch System.Exception
+                  {
+                    IL_013c:  stloc.3
+                    IL_013d:  ldarg.0
+                    IL_013e:  ldc.i4.s   -2
+                    IL_0140:  stfld      "int C.<M>d__0.<>1__state"
+                    IL_0145:  ldarg.0
+                    IL_0146:  ldc.i4.0
+                    IL_0147:  stfld      "int C.<M>d__0.<>2__current"
+                    IL_014c:  ldarg.0
+                    IL_014d:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+                    IL_0152:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                    IL_0157:  nop
+                    IL_0158:  ldarg.0
+                    IL_0159:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+                    IL_015e:  ldloc.3
+                    IL_015f:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+                    IL_0164:  nop
+                    IL_0165:  leave.s    IL_019d
+                  }
+                  IL_0167:  ldarg.0
+                  IL_0168:  ldc.i4.s   -2
+                  IL_016a:  stfld      "int C.<M>d__0.<>1__state"
+                  IL_016f:  ldarg.0
+                  IL_0170:  ldc.i4.0
+                  IL_0171:  stfld      "int C.<M>d__0.<>2__current"
+                  IL_0176:  ldarg.0
+                  IL_0177:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+                  IL_017c:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                  IL_0181:  nop
+                  IL_0182:  ldarg.0
+                  IL_0183:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+                  IL_0188:  ldc.i4.0
+                  IL_0189:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+                  IL_018e:  nop
+                  IL_018f:  ret
+                  IL_0190:  ldarg.0
+                  IL_0191:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+                  IL_0196:  ldc.i4.1
+                  IL_0197:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+                  IL_019c:  nop
+                  IL_019d:  ret
+                }
+                """);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 2 DISPOSAL Dispose Finally Throw Dispose CAUGHT2 DONE")]
         [InlineData(3, "1 2 Try Dispose Finally Throw Dispose CAUGHT DISPOSAL DONE")]
@@ -4829,7 +5040,7 @@ public class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try 1 DISPOSAL Finally Item1 Item2 Throw CAUGHT2 DONE")]
         [InlineData(2, "Try 1 2 DISPOSAL Finally Item1 Item2 Throw CAUGHT2 DONE")]
         [InlineData(3, "Try 1 2 Finally Item1 Item2 Throw CAUGHT DISPOSAL DONE")]
@@ -4878,7 +5089,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Throw Caught Throw2 Dispose CAUGHT DISPOSAL DONE")]
         public void TryFinally_AwaitUsingInCatch(int iterations, string expectedOutput)
         {
@@ -4922,7 +5133,7 @@ public class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try Item1 Item2 Throw1 Finally Item1 Item2 Throw2 CAUGHT DISPOSAL DONE")]
         public void TryFinally_AwaitForeachInCatch(int iterations, string expectedOutput)
         {
@@ -4976,7 +5187,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch(int iterations, string expectedOutput)
@@ -5020,7 +5231,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch_WithAwaits(int iterations, string expectedOutput)
@@ -5066,7 +5277,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL Finally2 DONE")]
         [InlineData(2, "1 Throw Caught Break Finally Finally2 END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch_Nested(int iterations, string expectedOutput)
@@ -5119,7 +5330,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Break Finally END DISPOSAL DONE")]
@@ -5152,7 +5363,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally DONE")]
@@ -5183,7 +5394,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally1 Finally2 Finally5 Finally6 DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally1 Finally2 Finally5 Finally6 DONE")]
@@ -5248,7 +5459,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
@@ -5282,7 +5493,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally DONE")]
@@ -5313,7 +5524,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(10, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithYieldsOnly_WithThrow(int iterations, string expectedOutput)
@@ -5345,7 +5556,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try Finally 2 DISPOSAL DONE")]
         [InlineData(3, "1 Try Finally 2 END DISPOSAL DONE")]
@@ -5380,7 +5591,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithThrow(int iterations, string expectedOutput)
@@ -5414,7 +5625,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw1 Throw2 Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithSlowThrowInAwait(int iterations, string expectedOutput)
@@ -5453,7 +5664,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithFastThrowInAwait(int iterations, string expectedOutput)
@@ -5493,7 +5704,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 Throw Finally1 Caught")]
         [InlineData(2, "1 2 Throw Finally2 Finally1 Caught")]
         [InlineData(3, "1 2 Finally2 3 Throw Finally3 Finally1 Caught")]
@@ -5571,7 +5782,7 @@ class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "100 1 Throw Finally1 Caught")]
         [InlineData(2, "100 1 Throw Finally1 Caught")]
         [InlineData(3, "100 1 2 Throw Finally2 Finally1 Caught")]
@@ -5664,7 +5875,7 @@ class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try Caught1 Caught2 After END DISPOSAL DONE")]
         public void TryFinally_AwaitAndCatch(int iterations, string expectedOutput)
@@ -5699,7 +5910,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught END DISPOSAL DONE")]
         public void TryFinally_AwaitInCatch(int iterations, string expectedOutput)
@@ -5729,7 +5940,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught END DISPOSAL DONE")]
         public void TryFinally_AwaitAndYieldBreakInCatch(int iterations, string expectedOutput)
@@ -5760,7 +5971,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Try 2 DISPOSAL Finally DONE")]
@@ -6145,7 +6356,7 @@ class C
                 );
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "0 DISPOSAL Finally1 DONE")]
         [InlineData(2, "0 Finally1 Again 2 DISPOSAL Finally3 DONE")]
@@ -6185,7 +6396,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally CAUGHT2 DONE")]
         [InlineData(2, "1 Finally CAUGHT DISPOSAL DONE")]
@@ -6219,7 +6430,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally1 Finally2 CAUGHT2 DONE")]
         [InlineData(2, "1 Finally1 Finally2 CAUGHT DISPOSAL DONE")]
@@ -6260,7 +6471,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try1 Try2 Caught Finally1 Finally2 END DISPOSAL DONE")]
@@ -6299,7 +6510,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try1 1 DISPOSAL Finally1 Finally2 DONE")]
         [InlineData(2, "Try1 1 Throw Finally1 Finally2 CAUGHT DISPOSAL DONE")]
         [InlineData(10, "Try1 1 Throw Finally1 Finally2 CAUGHT DISPOSAL DONE")]
@@ -6335,7 +6546,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "Try1 1 DISPOSAL Finally1 Finally2 DONE")]
         [InlineData(2, "Try1 1 Try2 Finally1 Finally2 END DISPOSAL DONE")]
@@ -10645,6 +10856,258 @@ class Test1
                     ["Preserve1Attribute"],
                     m.GlobalNamespace.GetMember("Test1.<M2>d__0.<>3__x").GetAttributes().Select(a => a.ToString()));
             }
+        }
+
+        [Fact]
+        [WorkItem(78640, "https://github.com/dotnet/roslyn/issues/78640")]
+        public void Repro_78640()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                using System.Threading;
+                using System;
+
+                static class C
+                {
+                    #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+                    public static async IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IEnumerable<T> enumerable, [EnumeratorCancellation] CancellationToken cancellationToken)
+                    #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+                    {
+                        ArgumentNullException.ThrowIfNull(enumerable);
+
+                        cancellationToken.ThrowIfCancellationRequested();
+                        foreach (T item in enumerable)
+                        {
+                            yield return item;
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, DynamicAnalysisResourceTests.InstrumentationHelperSource],
+                targetFramework: TargetFramework.NetCoreApp,
+                emitOptions: EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.TestCoverage]),
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.<AsAsyncEnumerable>d__0<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+                {
+                  // Code size      518 (0x206)
+                  .maxstack  6
+                  .locals init (int V_0,
+                                T V_1, //item
+                                System.Exception V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                  IL_0006:  stloc.0
+                  .try
+                  {
+                    IL_0007:  ldloc.0
+                    IL_0008:  ldc.i4.s   -4
+                    IL_000a:  beq        IL_00b4
+                    IL_000f:  ldloc.0
+                    IL_0010:  ldc.i4.s   -3
+                    IL_0012:  pop
+                    IL_0013:  pop
+                    IL_0014:  ldarg.0
+                    IL_0015:  ldfld      "bool C.<AsAsyncEnumerable>d__0<T>.<>w__disposeMode"
+                    IL_001a:  brfalse.s  IL_0021
+                    IL_001c:  leave      IL_01a5
+                    IL_0021:  ldarg.0
+                    IL_0022:  ldc.i4.m1
+                    IL_0023:  dup
+                    IL_0024:  stloc.0
+                    IL_0025:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                    IL_002a:  ldarg.0
+                    IL_002b:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+                    IL_0030:  ldtoken    "System.Collections.Generic.IAsyncEnumerable<T> C.AsAsyncEnumerable<T>(System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken)"
+                    IL_0035:  ldelem.ref
+                    IL_0036:  stfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_003b:  ldarg.0
+                    IL_003c:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_0041:  brtrue.s   IL_006d
+                    IL_0043:  ldarg.0
+                    IL_0044:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+                    IL_0049:  ldtoken    "System.Collections.Generic.IAsyncEnumerable<T> C.AsAsyncEnumerable<T>(System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken)"
+                    IL_004e:  ldtoken    Source Document 0
+                    IL_0053:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+                    IL_0058:  ldtoken    "System.Collections.Generic.IAsyncEnumerable<T> C.AsAsyncEnumerable<T>(System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken)"
+                    IL_005d:  ldelema    "bool[]"
+                    IL_0062:  ldc.i4.6
+                    IL_0063:  call       "bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)"
+                    IL_0068:  stfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_006d:  ldarg.0
+                    IL_006e:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_0073:  ldc.i4.0
+                    IL_0074:  ldc.i4.1
+                    IL_0075:  stelem.i1
+                    IL_0076:  ldarg.0
+                    IL_0077:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_007c:  ldc.i4.1
+                    IL_007d:  ldc.i4.1
+                    IL_007e:  stelem.i1
+                    IL_007f:  ldarg.0
+                    IL_0080:  ldfld      "System.Collections.Generic.IEnumerable<T> C.<AsAsyncEnumerable>d__0<T>.enumerable"
+                    IL_0085:  ldstr      "enumerable"
+                    IL_008a:  call       "void System.ArgumentNullException.ThrowIfNull(object, string)"
+                    IL_008f:  ldarg.0
+                    IL_0090:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_0095:  ldc.i4.2
+                    IL_0096:  ldc.i4.1
+                    IL_0097:  stelem.i1
+                    IL_0098:  ldarg.0
+                    IL_0099:  ldflda     "System.Threading.CancellationToken C.<AsAsyncEnumerable>d__0<T>.cancellationToken"
+                    IL_009e:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+                    IL_00a3:  ldarg.0
+                    IL_00a4:  ldarg.0
+                    IL_00a5:  ldfld      "System.Collections.Generic.IEnumerable<T> C.<AsAsyncEnumerable>d__0<T>.enumerable"
+                    IL_00aa:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
+                    IL_00af:  stfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                    IL_00b4:  nop
+                    .try
+                    {
+                      IL_00b5:  ldloc.0
+                      IL_00b6:  ldc.i4.s   -4
+                      IL_00b8:  beq.s      IL_00f0
+                      IL_00ba:  br.s       IL_0115
+                      IL_00bc:  ldarg.0
+                      IL_00bd:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                      IL_00c2:  ldc.i4.5
+                      IL_00c3:  ldc.i4.1
+                      IL_00c4:  stelem.i1
+                      IL_00c5:  ldarg.0
+                      IL_00c6:  ldfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                      IL_00cb:  callvirt   "T System.Collections.Generic.IEnumerator<T>.Current.get"
+                      IL_00d0:  stloc.1
+                      IL_00d1:  ldarg.0
+                      IL_00d2:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                      IL_00d7:  ldc.i4.3
+                      IL_00d8:  ldc.i4.1
+                      IL_00d9:  stelem.i1
+                      IL_00da:  ldarg.0
+                      IL_00db:  ldloc.1
+                      IL_00dc:  stfld      "T C.<AsAsyncEnumerable>d__0<T>.<>2__current"
+                      IL_00e1:  ldarg.0
+                      IL_00e2:  ldc.i4.s   -4
+                      IL_00e4:  dup
+                      IL_00e5:  stloc.0
+                      IL_00e6:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                      IL_00eb:  leave      IL_01f9
+                      IL_00f0:  ldarg.0
+                      IL_00f1:  ldc.i4.m1
+                      IL_00f2:  dup
+                      IL_00f3:  stloc.0
+                      IL_00f4:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                      IL_00f9:  ldarg.0
+                      IL_00fa:  ldfld      "bool C.<AsAsyncEnumerable>d__0<T>.<>w__disposeMode"
+                      IL_00ff:  brtrue.s   IL_0122
+                      IL_0101:  ldarg.0
+                      IL_0102:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                      IL_0107:  ldc.i4.4
+                      IL_0108:  ldc.i4.1
+                      IL_0109:  stelem.i1
+                      IL_010a:  ldarg.0
+                      IL_010b:  ldflda     "System.Threading.CancellationToken C.<AsAsyncEnumerable>d__0<T>.cancellationToken"
+                      IL_0110:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+                      IL_0115:  ldarg.0
+                      IL_0116:  ldfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                      IL_011b:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                      IL_0120:  brtrue.s   IL_00bc
+                      IL_0122:  leave.s    IL_013c
+                    }
+                    finally
+                    {
+                      IL_0124:  ldloc.0
+                      IL_0125:  ldc.i4.m1
+                      IL_0126:  bne.un.s   IL_013b
+                      IL_0128:  ldarg.0
+                      IL_0129:  ldfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                      IL_012e:  brfalse.s  IL_013b
+                      IL_0130:  ldarg.0
+                      IL_0131:  ldfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                      IL_0136:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_013b:  endfinally
+                    }
+                    IL_013c:  ldarg.0
+                    IL_013d:  ldfld      "bool C.<AsAsyncEnumerable>d__0<T>.<>w__disposeMode"
+                    IL_0142:  brfalse.s  IL_0146
+                    IL_0144:  leave.s    IL_01a5
+                    IL_0146:  ldarg.0
+                    IL_0147:  ldnull
+                    IL_0148:  stfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                    IL_014d:  leave.s    IL_01a5
+                  }
+                  catch System.Exception
+                  {
+                    IL_014f:  stloc.2
+                    IL_0150:  ldarg.0
+                    IL_0151:  ldc.i4.s   -2
+                    IL_0153:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                    IL_0158:  ldarg.0
+                    IL_0159:  ldnull
+                    IL_015a:  stfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_015f:  ldarg.0
+                    IL_0160:  ldnull
+                    IL_0161:  stfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                    IL_0166:  ldarg.0
+                    IL_0167:  ldfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                    IL_016c:  brfalse.s  IL_0180
+                    IL_016e:  ldarg.0
+                    IL_016f:  ldfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                    IL_0174:  callvirt   "void System.Threading.CancellationTokenSource.Dispose()"
+                    IL_0179:  ldarg.0
+                    IL_017a:  ldnull
+                    IL_017b:  stfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                    IL_0180:  ldarg.0
+                    IL_0181:  ldflda     "T C.<AsAsyncEnumerable>d__0<T>.<>2__current"
+                    IL_0186:  initobj    "T"
+                    IL_018c:  ldarg.0
+                    IL_018d:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<AsAsyncEnumerable>d__0<T>.<>t__builder"
+                    IL_0192:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                    IL_0197:  ldarg.0
+                    IL_0198:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<AsAsyncEnumerable>d__0<T>.<>v__promiseOfValueOrEnd"
+                    IL_019d:  ldloc.2
+                    IL_019e:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+                    IL_01a3:  leave.s    IL_0205
+                  }
+                  IL_01a5:  ldarg.0
+                  IL_01a6:  ldc.i4.s   -2
+                  IL_01a8:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                  IL_01ad:  ldarg.0
+                  IL_01ae:  ldnull
+                  IL_01af:  stfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                  IL_01b4:  ldarg.0
+                  IL_01b5:  ldnull
+                  IL_01b6:  stfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                  IL_01bb:  ldarg.0
+                  IL_01bc:  ldfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                  IL_01c1:  brfalse.s  IL_01d5
+                  IL_01c3:  ldarg.0
+                  IL_01c4:  ldfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                  IL_01c9:  callvirt   "void System.Threading.CancellationTokenSource.Dispose()"
+                  IL_01ce:  ldarg.0
+                  IL_01cf:  ldnull
+                  IL_01d0:  stfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                  IL_01d5:  ldarg.0
+                  IL_01d6:  ldflda     "T C.<AsAsyncEnumerable>d__0<T>.<>2__current"
+                  IL_01db:  initobj    "T"
+                  IL_01e1:  ldarg.0
+                  IL_01e2:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<AsAsyncEnumerable>d__0<T>.<>t__builder"
+                  IL_01e7:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                  IL_01ec:  ldarg.0
+                  IL_01ed:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<AsAsyncEnumerable>d__0<T>.<>v__promiseOfValueOrEnd"
+                  IL_01f2:  ldc.i4.0
+                  IL_01f3:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+                  IL_01f8:  ret
+                  IL_01f9:  ldarg.0
+                  IL_01fa:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<AsAsyncEnumerable>d__0<T>.<>v__promiseOfValueOrEnd"
+                  IL_01ff:  ldc.i4.1
+                  IL_0200:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+                  IL_0205:  ret
+                }
+                """);
         }
     }
 }

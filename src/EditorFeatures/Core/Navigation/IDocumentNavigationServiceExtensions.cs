@@ -5,8 +5,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation;
 
@@ -75,7 +75,7 @@ internal static class IDocumentNavigationServiceExtensions
         // Navigation should not change the context of linked files and Shared Projects.
         documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
-        var document = workspace.CurrentSolution.GetDocument(documentId);
+        var document = workspace.CurrentSolution.GetTextDocument(documentId);
         if (document is null)
             return false;
 

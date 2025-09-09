@@ -8,15 +8,16 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -79,6 +80,8 @@ public abstract partial class CodeAction
     /// equal <see cref="EquivalenceKey"/> values, Visual Studio behavior may appear incorrect.
     /// </remarks>
     public virtual string? EquivalenceKey => null;
+
+    internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
     /// <summary>
     /// Priority of this particular action within a group of other actions.  Less relevant actions should override
@@ -397,15 +400,13 @@ public abstract partial class CodeAction
     /// used by batch fixer engine to get new solution
     /// </summary>
     internal async Task<Solution?> GetChangedSolutionInternalAsync(
-        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, bool postProcessChanges = true, CancellationToken cancellationToken = default)
+        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
         var solution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
-        if (solution == null || !postProcessChanges)
-        {
+        if (solution == null)
             return solution;
-        }
 
-        return await PostProcessChangesAsync(originalSolution, solution, cancellationToken).ConfigureAwait(false);
+        return await PostProcessChangesAsync(originalSolution, solution, progress, this.Cleanup, cancellationToken).ConfigureAwait(false);
     }
 
     internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
@@ -422,7 +423,7 @@ public abstract partial class CodeAction
 #pragma warning restore CA1822 // Mark members as static
         => PostProcessAsync(originalSolution: null, operations, cancellationToken);
 
-    internal static async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
+    internal async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
         Solution? originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
     {
         using var result = TemporaryArray<CodeActionOperation>.Empty;
@@ -431,7 +432,8 @@ public abstract partial class CodeAction
         {
             if (op is ApplyChangesOperation ac)
             {
-                result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(originalSolution, ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
+                result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(
+                    originalSolution, ac.ChangedSolution, CodeAnalysisProgress.None, this.Cleanup, cancellationToken).ConfigureAwait(false)));
             }
             else
             {
@@ -450,21 +452,7 @@ public abstract partial class CodeAction
 #pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
 #pragma warning restore CA1822 // Mark members as static
-        => PostProcessChangesAsync(originalSolution: null, changedSolution, cancellationToken);
-
-    private static async Task<Solution> PostProcessChangesAsync(
-        Solution? originalSolution,
-        Solution changedSolution,
-        CancellationToken cancellationToken)
-    {
-        // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
-        // current solution.  This is not ideal (as that is a mutable field that could be changing out from
-        // underneath us).  But it's the only option we have for the compat case with existing public extension
-        // points.
-        originalSolution ??= changedSolution.Workspace.CurrentSolution;
-
-        return await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
-    }
+        => PostProcessChangesAsync(originalSolution: null, changedSolution, progress: CodeAnalysisProgress.None, this.Cleanup, cancellationToken);
 
     /// <summary>
     /// Apply post processing steps to a single document:
@@ -546,6 +534,10 @@ public abstract partial class CodeAction
     /// <inheritdoc cref="Create(string, Func{CancellationToken, Task{Solution}}, string?, CodeActionPriority)"/>
     [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "This is source compatible")]
     public static CodeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
+        => Create(title, createChangedSolution, equivalenceKey, priority, CodeActionCleanup.Default);
+
+    internal static CodeAction Create(
+        string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey, CodeActionPriority priority, CodeActionCleanup cleanup)
     {
         if (title == null)
             throw new ArgumentNullException(nameof(title));
@@ -553,7 +545,7 @@ public abstract partial class CodeAction
         if (createChangedSolution == null)
             throw new ArgumentNullException(nameof(createChangedSolution));
 
-        return SolutionChangeAction.New(title, createChangedSolution, equivalenceKey, priority);
+        return SolutionChangeAction.New(title, createChangedSolution, equivalenceKey, priority, cleanup);
     }
 
     /// <summary>
@@ -658,16 +650,19 @@ public abstract partial class CodeAction
     internal class DocumentChangeAction : SimpleCodeAction
     {
         private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> _createChangedDocument;
+        private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>>? _createChangedDocumentPreview;
 
         private DocumentChangeAction(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
+            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>>? createChangedDocumentPreview,
             string? equivalenceKey,
             CodeActionPriority priority,
             bool createdFromFactoryMethod)
             : base(title, equivalenceKey, priority, createdFromFactoryMethod)
         {
             _createChangedDocument = createChangedDocument;
+            _createChangedDocumentPreview = createChangedDocumentPreview;
         }
 
         protected DocumentChangeAction(
@@ -675,7 +670,7 @@ public abstract partial class CodeAction
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
             string? equivalenceKey,
             CodeActionPriority priority = CodeActionPriority.Default)
-            : this(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: false)
+            : this(title, createChangedDocument, createChangedDocumentPreview: null, equivalenceKey, priority, createdFromFactoryMethod: false)
         {
         }
 
@@ -684,7 +679,16 @@ public abstract partial class CodeAction
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
             string? equivalenceKey,
             CodeActionPriority priority = CodeActionPriority.Default)
-            => new(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: true);
+            => new(title, createChangedDocument, createChangedDocumentPreview: null, equivalenceKey, priority, createdFromFactoryMethod: true);
+
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        {
+            if (_createChangedDocumentPreview is null)
+                return await base.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
+
+            var newDocument = await _createChangedDocumentPreview(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+            return [new ApplyChangesOperation(newDocument.Project.Solution)];
+        }
 
         protected sealed override Task<Document> GetChangedDocumentAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => _createChangedDocument(progress, cancellationToken);
@@ -694,23 +698,28 @@ public abstract partial class CodeAction
     {
         private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution;
 
+        internal override CodeActionCleanup Cleanup { get; }
+
         protected SolutionChangeAction(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
             string? equivalenceKey,
             CodeActionPriority priority,
+            CodeActionCleanup cleanup,
             bool createdFromFactoryMethod)
             : base(title, equivalenceKey, priority, createdFromFactoryMethod)
         {
             _createChangedSolution = createChangedSolution;
+            this.Cleanup = cleanup;
         }
 
         protected SolutionChangeAction(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
             string? equivalenceKey,
-            CodeActionPriority priority = CodeActionPriority.Default)
-            : this(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: false)
+            CodeActionPriority priority,
+            CodeActionCleanup cleanup)
+            : this(title, createChangedSolution, equivalenceKey, priority, cleanup, createdFromFactoryMethod: false)
         {
         }
 
@@ -718,8 +727,9 @@ public abstract partial class CodeAction
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
             string? equivalenceKey,
-            CodeActionPriority priority = CodeActionPriority.Default)
-            => new(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: true);
+            CodeActionPriority priority,
+            CodeActionCleanup cleanup)
+            => new(title, createChangedSolution, equivalenceKey, priority, cleanup, createdFromFactoryMethod: true);
 
         protected sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => _createChangedSolution(progress, cancellationToken).AsNullable();

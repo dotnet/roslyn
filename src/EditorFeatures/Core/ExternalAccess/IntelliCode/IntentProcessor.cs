@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -46,11 +45,12 @@ internal class IntentSourceProvider(
         var languageName = currentDocument.Project.Language;
         if (!_lazyIntentProviders.TryGetValue((LanguageName: languageName, IntentName: intentRequestContext.IntentName), out var provider))
         {
-            Logger.Log(FunctionId.Intellicode_UnknownIntent, KeyValueLogMessage.Create(LogType.UserAction, m =>
+            Logger.Log(FunctionId.Intellicode_UnknownIntent, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
             {
+                var (intentRequestContext, languageName) = args;
                 m["intent"] = intentRequestContext.IntentName;
                 m["language"] = languageName;
-            }));
+            }, (intentRequestContext, languageName)));
 
             return [];
         }

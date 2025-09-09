@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -2491,5 +2492,54 @@ End Class
             CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
         End Sub
 
+        <Fact>
+        Public Sub IteratorLambda()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Sub M()
+        Dim lambda = Iterator Function() As IEnumerable(Of Integer)
+                         Yield 1
+                     End Function
+    End Sub
+End Class
+    </file>
+</compilation>).VerifyDiagnostics()
+
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim lambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
+            Dim lambdaSymbolInfo = semanticModel.GetSymbolInfo(lambdaSyntax)
+            Dim lambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(lambdaSymbolInfo.Symbol)
+            Assert.True(lambdaMethod.IsIterator)
+        End Sub
+
+        <Fact>
+        Public Sub NotIteratorLambda()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Sub M()
+        Dim lambda = Function() As IEnumerable(Of Integer)
+                         Return Nothing
+                     End Function
+    End Sub
+End Class
+    </file>
+</compilation>).VerifyDiagnostics()
+
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim lambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
+            Dim lambdaSymbolInfo = semanticModel.GetSymbolInfo(lambdaSyntax)
+            Dim lambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(lambdaSymbolInfo.Symbol)
+            Assert.False(lambdaMethod.IsIterator)
+        End Sub
     End Class
 End Namespace

@@ -8,36 +8,35 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments;
+
+internal static class OmniSharpDocumentationCommentsSnippetService
 {
-    internal static class OmniSharpDocumentationCommentsSnippetService
-    {
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
-            Document document,
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            OmniSharpDocumentationCommentOptionsWrapper options,
-            CancellationToken cancellationToken)
-        {
-            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            return Translate(service.GetDocumentationCommentSnippetOnCharacterTyped(ParsedDocument.CreateSynchronously(document, cancellationToken), position, options.UnderlyingObject, cancellationToken));
-        }
-
-        public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
-            Document document,
-            SyntaxTree syntaxTree,
-            SourceText text,
-            int position,
-            OmniSharpDocumentationCommentOptionsWrapper options,
-            CancellationToken cancellationToken)
-        {
-            var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            return Translate(service.GetDocumentationCommentSnippetOnEnterTyped(ParsedDocument.CreateSynchronously(document, cancellationToken), position, options.UnderlyingObject, cancellationToken));
-        }
-
-        private static OmniSharpDocumentationCommentSnippet? Translate(DocumentationCommentSnippet? result)
-            => result == null ? null : new(result.SpanToReplace, result.SnippetText, result.CaretOffset);
+    public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
+        Document document,
+        SyntaxTree syntaxTree,
+        SourceText text,
+        int position,
+        OmniSharpDocumentationCommentOptionsWrapper options,
+        CancellationToken cancellationToken)
+    {
+        var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
+        return Translate(service.GetDocumentationCommentSnippetOnCharacterTyped(ParsedDocument.CreateSynchronously(document, cancellationToken), position, options.UnderlyingObject, cancellationToken));
     }
+
+    public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
+        Document document,
+        SyntaxTree syntaxTree,
+        SourceText text,
+        int position,
+        OmniSharpDocumentationCommentOptionsWrapper options,
+        CancellationToken cancellationToken)
+    {
+        var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
+        return Translate(service.GetDocumentationCommentSnippetOnEnterTyped(ParsedDocument.CreateSynchronously(document, cancellationToken), position, options.UnderlyingObject, cancellationToken));
+    }
+
+    private static OmniSharpDocumentationCommentSnippet? Translate(DocumentationCommentSnippet? result)
+        => result == null ? null : new(result.SpanToReplace, result.SnippetText, result.CaretOffset);
 }

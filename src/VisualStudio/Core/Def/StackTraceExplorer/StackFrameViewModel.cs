@@ -20,45 +20,38 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
 using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
 using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
 
-internal class StackFrameViewModel : FrameViewModel
+internal sealed class StackFrameViewModel(
+    ParsedStackFrame frame,
+    IThreadingContext threadingContext,
+    Workspace workspace,
+    IClassificationFormatMap formatMap,
+    ClassificationTypeMap typeMap) : FrameViewModel(formatMap, typeMap)
 {
-    private readonly ParsedStackFrame _frame;
-    private readonly IThreadingContext _threadingContext;
-    private readonly Workspace _workspace;
-    private readonly IStackTraceExplorerService _stackExplorerService;
+    private readonly ParsedStackFrame _frame = frame;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly Workspace _workspace = workspace;
+    private readonly IStackTraceExplorerService _stackExplorerService = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
     private readonly Dictionary<StackFrameSymbolPart, DefinitionItem?> _definitionCache = [];
 
-    private Document? _cachedDocument;
+    private TextDocument? _cachedDocument;
     private int _cachedLineNumber;
 
-    public StackFrameViewModel(
-        ParsedStackFrame frame,
-        IThreadingContext threadingContext,
-        Workspace workspace,
-        IClassificationFormatMap formatMap,
-        ClassificationTypeMap typeMap)
-        : base(formatMap, typeMap)
-    {
-        _frame = frame;
-        _threadingContext = threadingContext;
-        _workspace = workspace;
-        _stackExplorerService = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
-    }
+    private readonly CancellationSeries _navigationCancellation = new(threadingContext.DisposalToken);
 
     public override bool ShowMouseOver => true;
 
     public void NavigateToClass()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToClassAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        var cancellationToken = _navigationCancellation.CreateNext();
+        _ = NavigateToClassAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToClassAsync(CancellationToken cancellationToken)
@@ -86,8 +79,8 @@ internal class StackFrameViewModel : FrameViewModel
 
     public void NavigateToSymbol()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToMethodAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        var cancellationToken = _navigationCancellation.CreateNext();
+        _ = NavigateToMethodAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToMethodAsync(CancellationToken cancellationToken)
@@ -104,22 +97,19 @@ internal class StackFrameViewModel : FrameViewModel
 
     public void NavigateToFile()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToFileAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        var cancellationToken = _navigationCancellation.CreateNext();
+        _ = NavigateToFileAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToFileAsync(CancellationToken cancellationToken)
     {
         try
         {
-            var (document, lineNumber) = GetDocumentAndLine();
+            var (textDocument, lineNumber) = GetDocumentAndLine();
 
-            if (document is not null)
+            if (textDocument is not null)
             {
-                // While navigating do not activate the tab, which will change focus from the tool window
-                var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
-
-                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await textDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // If the line number is larger than the total lines in the file
                 // then just go to the end of the file (lines count). This can happen
@@ -131,8 +121,12 @@ internal class StackFrameViewModel : FrameViewModel
                 if (navigationService is null)
                     return;
 
-                var location = await navigationService.TryNavigateToLineAndOffsetAsync(
-                    _threadingContext, _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
+                // While navigating do not activate the tab, which will change focus from the tool window
+                var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
+
+                await navigationService.TryNavigateToLineAndOffsetAsync(
+                    _threadingContext, _workspace, textDocument.Id, lineNumber - 1, offset: 0, options, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
         catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
@@ -208,7 +202,7 @@ internal class StackFrameViewModel : FrameViewModel
         yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.Root.EndOfLineToken.ToFullString());
     }
 
-    private (Document? document, int lineNumber) GetDocumentAndLine()
+    private (TextDocument? document, int lineNumber) GetDocumentAndLine()
     {
         if (_cachedDocument is not null)
         {

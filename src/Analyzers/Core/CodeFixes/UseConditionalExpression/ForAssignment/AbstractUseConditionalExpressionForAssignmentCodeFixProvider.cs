@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
@@ -56,8 +55,11 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProv
     /// formatted specially.
     /// </summary>
     protected override async Task FixOneAsync(
-        Document document, Diagnostic diagnostic,
-        SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        Document document,
+        Diagnostic diagnostic,
+        SyntaxEditor editor,
+        SyntaxFormattingOptions formattingOptions,
+        CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var ifStatement = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
@@ -66,7 +68,7 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProv
         var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
 
         if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                syntaxFacts, ifOperation, out var isRef,
+                syntaxFacts, ifOperation, cancellationToken, out var isRef,
                 out var trueStatement, out var falseStatement,
                 out var trueAssignment, out var falseAssignment))
         {
@@ -101,19 +103,25 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProv
     private void ConvertOnlyIfToConditionalExpression(
         SyntaxEditor editor,
         IConditionalOperation ifOperation,
-        ISimpleAssignmentOperation assignment,
+        ISimpleAssignmentOperation assignmentOperation,
         TExpressionSyntax conditionalExpression)
     {
         var generator = editor.Generator;
         var ifStatement = (TIfStatementSyntax)ifOperation.Syntax;
-        var expressionStatement = (TStatementSyntax)generator.ExpressionStatement(
-            generator.AssignmentStatement(
-                assignment.Target.Syntax,
-                conditionalExpression)).WithTriviaFrom(ifStatement);
+        var assignment = generator.AssignmentStatement(assignmentOperation.Target.Syntax, conditionalExpression);
+
+        if (assignmentOperation.Parent is IConditionalAccessOperation conditionalAccess)
+        {
+            assignment = generator.ConditionalAccessExpression(
+                conditionalAccess.Operation.Syntax,
+                assignment);
+        }
+
+        var expressionStatement = (TStatementSyntax)generator.ExpressionStatement(assignment);
 
         editor.ReplaceNode(
             ifOperation.Syntax,
-            WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
+            WrapWithBlockIfAppropriate(ifStatement, expressionStatement).WithTriviaFrom(ifStatement));
     }
 
     private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(

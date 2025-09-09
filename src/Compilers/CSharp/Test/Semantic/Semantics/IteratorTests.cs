@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -35,12 +36,16 @@ class Test
             var comp = CreateCompilation(text);
 
             var i = comp.GetMember<MethodSymbol>("Test.I");
+            IMethodSymbol publicI = i.GetPublicSymbol();
+
             Assert.True(i.IsIterator);
+            Assert.True(publicI.IsIterator);
             Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             comp.VerifyDiagnostics();
 
             Assert.True(i.IsIterator);
+            Assert.True(publicI.IsIterator);
             Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
         }
 
@@ -59,6 +64,102 @@ class Test
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void BasicIterators_Async()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                
+                class Test
+                {
+                    async IAsyncEnumerable<int> I()
+                    {
+                        await Task.Yield();
+                        yield return 1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+
+            var i = comp.GetMember<MethodSymbol>("Test.I");
+            Assert.True(i.IsIterator);
+            Assert.True(i.GetPublicSymbol().IsIterator);
+            Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void BasicIterators_Metadata()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                
+                public class Test
+                {
+                    public IEnumerable<int> I1()
+                    {
+                        yield return 1;
+                    }
+
+                    public async IAsyncEnumerable<int> I2()
+                    {
+                        await Task.Yield();
+                        yield return 1;
+                    }
+                }
+                """;
+
+            var sourceComp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            sourceComp.VerifyDiagnostics();
+
+            var userComp = CreateCompilation("", references: [sourceComp.EmitToImageReference()]);
+            userComp.VerifyEmitDiagnostics();
+            var testType = Assert.IsAssignableFrom<PENamedTypeSymbol>(userComp.GetTypeByMetadataName("Test"));
+
+            var i1 = testType.GetMethod("I1");
+            Assert.False(i1.IsIterator);
+            Assert.False(i1.GetPublicSymbol().IsIterator);
+
+            var i2 = testType.GetMethod("I2");
+            Assert.False(i2.IsIterator);
+            Assert.False(i2.GetPublicSymbol().IsIterator);
+        }
+
+        [Fact]
+        public void MethodJustReturnsEnumerable_NotIterator()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class Test
+                {
+                    IEnumerable<int> I1()
+                    {
+                        return [];
+                    }
+
+                    IAsyncEnumerable<int> I2()
+                    {
+                        return default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+
+            var i1 = comp.GetMember<MethodSymbol>("Test.I1");
+            Assert.False(i1.IsIterator);
+            Assert.False(i1.GetPublicSymbol().IsIterator);
+
+            var i2 = comp.GetMember<MethodSymbol>("Test.I2");
+            Assert.False(i2.IsIterator);
+            Assert.False(i2.GetPublicSymbol().IsIterator);
         }
 
         [Fact]
@@ -447,10 +548,7 @@ namespace RoslynYield
                 // (1,18): error CS1002: ; expected
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 18),
-                // (1,18): error CS0117: 'int' does not contain a definition for ''
-                // yield return int.
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "").WithArguments("int", "").WithLocation(1, 18),
-                // (1,1): error CS7020: You cannot use 'yield' in top-level script code
+                // (1,1): error CS7020: Cannot use 'yield' in top-level script code
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(1, 1));
 

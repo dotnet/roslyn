@@ -17,7 +17,7 @@ namespace Roslyn.Test.Utilities
     /// the test execution. This utility is helpful at getting those artifacts attached to AzDO / Helix 
     /// when executed in our CI process. 
     /// 
-    /// The utilility works by collecting a set of file paths to artifacts. If the test succeeds it should 
+    /// The utility works by collecting a set of file paths to artifacts. If the test succeeds it should 
     /// call the <see cref="SetSucceeded"/> method. Otherwise if the test fails an exception is generated,
     /// the call is skipped and in <see cref="Dispose"/> we prepare the artifacts for upload.
     /// </summary>

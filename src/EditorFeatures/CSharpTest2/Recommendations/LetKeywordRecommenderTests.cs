@@ -6,127 +6,100 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class LetKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class LetKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact]
-        public async Task TestNotAtEndOfPreviousClause()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAtEndOfPreviousClause()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = from x in y$$"));
-        }
 
-        [Fact]
-        public async Task TestNewClause()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                var q = from x in y
-                          $$
-                """));
-        }
+    [Fact]
+    public Task TestNewClause()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            var q = from x in y
+                      $$
+            """));
 
-        [Fact]
-        public async Task TestAfterPreviousClause()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                var v = from x in y
-                          where x > y
-                          $$
-                """));
-        }
+    [Fact]
+    public Task TestAfterPreviousClause()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            var v = from x in y
+                      where x > y
+                      $$
+            """));
 
-        [Fact]
-        public async Task TestAfterPreviousContinuationClause()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                var v = from x in y
-                          group x by y into g
-                          $$
-                """));
-        }
+    [Fact]
+    public Task TestAfterPreviousContinuationClause()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            var v = from x in y
+                      group x by y into g
+                      $$
+            """));
 
-        [Fact]
-        public async Task TestBetweenClauses()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                var q = from x in y
-                          $$
-                          from z in w
-                """));
-        }
+    [Fact]
+    public Task TestBetweenClauses()
+        => VerifyKeywordAsync(AddInsideMethod(
+            """
+            var q = from x in y
+                      $$
+                      from z in w
+            """));
 
-        [Fact]
-        public async Task TestNotAfterLet()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-                """
-                var q = from x in y
-                          let $$
-                """));
-        }
-    }
+    [Fact]
+    public Task TestNotAfterLet()
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            var q = from x in y
+                      let $$
+            """));
 }

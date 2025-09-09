@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 using static AnalyzerRunner.Program;
 
 namespace AnalyzerRunner
@@ -231,7 +232,7 @@ namespace AnalyzerRunner
             var languages = refactorings.SelectMany(refactoring => refactoring.Metadata.Languages).Distinct();
             return languages.ToImmutableDictionary(
                 language => language,
-                language => refactorings.Where(refactoring => refactoring.Metadata.Languages.Contains(language)).ToImmutableArray());
+                language => refactorings.WhereAsArray(refactoring => refactoring.Metadata.Languages.Contains(language)));
         }
 
         private class CodeRefactoringProviderMetadata

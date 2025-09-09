@@ -307,16 +307,25 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext()
         {
-            var symbols = _context.SemanticModel.LookupNamespacesAndTypes(_context.LeftToken.SpanStart);
+            var semanticModel = _context.SemanticModel;
+            var symbols = semanticModel.LookupNamespacesAndTypes(_context.LeftToken.SpanStart);
 
             if (_context.TargetToken.IsUsingKeywordInUsingDirective())
-            {
-                return symbols.WhereAsArray(s => s.IsNamespace());
-            }
+                return symbols.WhereAsArray(static s => s is INamespaceSymbol);
 
             if (_context.TargetToken.IsStaticKeywordContextInUsingDirective())
+                return symbols.WhereAsArray(static s => !s.IsDelegateType());
+
+            if (_context.IsBaseListContext)
             {
-                return symbols.WhereAsArray(s => !s.IsDelegateType());
+                // Filter out the type we're in the inheritance list for if it has no nested types.  A type can't show
+                // up in its own inheritance list (unless being used to 
+                //
+                // Note: IsBaseListContext requires that we have a type declaration ancestor above us..
+                var containingType = semanticModel.GetRequiredDeclaredSymbol(
+                    _context.TargetToken.GetRequiredAncestor<TypeDeclarationSyntax>(), _cancellationToken).OriginalDefinition;
+                if (containingType.GetTypeMembers().IsEmpty)
+                    return symbols.WhereAsArray(static (s, containingType) => !Equals(s.OriginalDefinition, containingType), containingType);
             }
 
             return symbols;
@@ -434,7 +443,7 @@ internal partial class CSharpRecommendationService
                 CancellationToken cancellationToken)
             {
                 // Fine to offer primary constructor parameters in field/property initializers 
-                var initializer = context.TargetToken.GetAncestors<EqualsValueClauseSyntax>().FirstOrDefault();
+                var initializer = context.TargetToken.GetAncestor<EqualsValueClauseSyntax>();
                 if (initializer is
                     {
                         Parent: PropertyDeclarationSyntax or
@@ -443,6 +452,11 @@ internal partial class CSharpRecommendationService
                 {
                     return false;
                 }
+
+                // Also fine to offer primary constructor parameters in the base type list of that type.
+                var baseTypeSyntax = context.TargetToken.GetAncestor<PrimaryConstructorBaseTypeSyntax>();
+                if (baseTypeSyntax != null)
+                    return false;
 
                 // We're not in an initializer.  Filter out this primary constructor parameter if it's already been
                 // captured by an existing field or property initializer.
@@ -567,7 +581,7 @@ internal partial class CSharpRecommendationService
             {
                 return new RecommendedSymbols(usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
                     ? symbols.WhereAsArray(s => !s.IsDelegateType())
-                    : symbols.WhereAsArray(s => s.IsNamespace()));
+                    : symbols.WhereAsArray(s => s is INamespaceSymbol));
             }
 
             return new RecommendedSymbols(symbols);
@@ -691,7 +705,7 @@ internal partial class CSharpRecommendationService
             var typeMembers = GetSymbolsOffOfBoundExpressionWorker(reinterpretedBinding, originalExpression, expression, containerType, unwrapNullable, isForDereference);
 
             return new RecommendedSymbols(
-                result.NamedSymbols.Concat(typeMembers.NamedSymbols),
+                [.. result.NamedSymbols, .. typeMembers.NamedSymbols],
                 result.UnnamedSymbols);
 
             bool CanAccessInstanceAndStaticMembersOffOf(out SymbolInfo reinterpretedBinding)

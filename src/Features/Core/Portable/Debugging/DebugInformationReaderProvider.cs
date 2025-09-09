@@ -55,7 +55,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
                 metadataStream.CopyTo(stream);
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         public override void Dispose()

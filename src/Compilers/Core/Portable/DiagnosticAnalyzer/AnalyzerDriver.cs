@@ -16,10 +16,8 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -844,7 +842,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             AnalyzerDriver analyzerDriver = compilation.CreateAnalyzerDriver(analyzers, analyzerManager, severityFilter);
             newCompilation = compilation
-                .WithSemanticModelProvider(new CachingSemanticModelProvider())
+                .WithSemanticModelProvider(CachingSemanticModelProvider.Instance)
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             var categorizeDiagnostics = false;
@@ -2611,10 +2609,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             void executeNodeActionsByKind(ArrayBuilder<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
+                if (groupedActions.GroupedActionsByAnalyzer.Length == 0)
+                {
+                    return;
+                }
+
+                var analyzersForNodes = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
+                foreach (var node in nodesToAnalyze)
+                {
+                    if (groupedActions.AnalyzersByKind.TryGetValue(_getKind(node), out var analyzersForKind))
+                    {
+                        foreach (var analyzer in analyzersForKind)
+                        {
+                            analyzersForNodes.Add(analyzer);
+                        }
+                    }
+                }
+
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
-                    var nodeActionsByKind = groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind;
-                    if (nodeActionsByKind.IsEmpty || !analysisScope.Contains(analyzer))
+                    if (!analyzersForNodes.Contains(analyzer) || !analysisScope.Contains(analyzer))
                     {
                         continue;
                     }
@@ -2641,6 +2655,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, nodesToAnalyze);
                     }
                 }
+
+                analyzersForNodes.Free();
 
                 void executeSyntaxNodeActions(
                     DiagnosticAnalyzer analyzer,
@@ -2764,7 +2780,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            void executeOperationsBlockActions(ImmutableArray<IOperation> operationBlocksToAnalyze, ImmutableArray<IOperation> operationsToAnalyze, IEnumerable<ExecutableCodeBlockAnalyzerActions> codeBlockActions)
+            void executeOperationsBlockActions(ImmutableArray<IOperation> operationBlocksToAnalyze, ImmutableArray<IOperation> operationsToAnalyze, ArrayBuilder<ExecutableCodeBlockAnalyzerActions> codeBlockActions)
             {
                 if (!shouldExecuteOperationBlockActions)
                 {
@@ -2792,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            void executeCodeBlockActions(ImmutableArray<SyntaxNode> executableCodeBlocks, IEnumerable<ExecutableCodeBlockAnalyzerActions> codeBlockActions)
+            void executeCodeBlockActions(ImmutableArray<SyntaxNode> executableCodeBlocks, ArrayBuilder<ExecutableCodeBlockAnalyzerActions> codeBlockActions)
             {
                 if (executableCodeBlocks.IsEmpty || !shouldExecuteCodeBlockActions)
                 {

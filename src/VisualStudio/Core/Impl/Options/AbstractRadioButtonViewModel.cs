@@ -6,45 +6,44 @@
 
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+
+internal abstract class AbstractRadioButtonViewModel : AbstractNotifyPropertyChanged
 {
-    internal abstract class AbstractRadioButtonViewModel : AbstractNotifyPropertyChanged
+    private readonly AbstractOptionPreviewViewModel _info;
+    internal readonly string Preview;
+    private bool _isChecked;
+
+    public string Description { get; }
+    public string GroupName { get; }
+
+    public bool IsChecked
     {
-        private readonly AbstractOptionPreviewViewModel _info;
-        internal readonly string Preview;
-        private bool _isChecked;
-
-        public string Description { get; }
-        public string GroupName { get; }
-
-        public bool IsChecked
+        get
         {
-            get
-            {
-                return _isChecked;
-            }
-
-            set
-            {
-                SetProperty(ref _isChecked, value);
-
-                if (_isChecked)
-                {
-                    SetOptionAndUpdatePreview(_info, Preview);
-                }
-            }
+            return _isChecked;
         }
 
-        public AbstractRadioButtonViewModel(string description, string preview, AbstractOptionPreviewViewModel info, bool isChecked, string group)
+        set
         {
-            Description = description;
-            this.Preview = preview;
-            _info = info;
-            this.GroupName = group;
+            SetProperty(ref _isChecked, value);
 
-            SetProperty(ref _isChecked, isChecked);
+            if (_isChecked)
+            {
+                SetOptionAndUpdatePreview(_info, Preview);
+            }
         }
-
-        internal abstract void SetOptionAndUpdatePreview(AbstractOptionPreviewViewModel info, string preview);
     }
+
+    public AbstractRadioButtonViewModel(string description, string preview, AbstractOptionPreviewViewModel info, bool isChecked, string group)
+    {
+        Description = description;
+        this.Preview = preview;
+        _info = info;
+        this.GroupName = group;
+
+        SetProperty(ref _isChecked, isChecked);
+    }
+
+    internal abstract void SetOptionAndUpdatePreview(AbstractOptionPreviewViewModel info, string preview);
 }

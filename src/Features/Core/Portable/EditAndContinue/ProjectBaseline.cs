@@ -3,14 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class ProjectBaseline(Guid moduleId, ProjectId projectId, EmitBaseline emitBaseline, int generation)
+internal sealed class ProjectBaseline(Guid moduleId, ProjectId projectId, EmitBaseline emitBaseline, ImmutableDictionary<string, OneOrMany<AssemblyIdentity>> initiallyReferencedAssemblies, int generation)
 {
     public Guid ModuleId { get; } = moduleId;
     public ProjectId ProjectId { get; } = projectId;
     public EmitBaseline EmitBaseline { get; } = emitBaseline;
+    public ImmutableDictionary<string, OneOrMany<AssemblyIdentity>> InitiallyReferencedAssemblies { get; } = initiallyReferencedAssemblies;
     public int Generation { get; } = generation;
 }

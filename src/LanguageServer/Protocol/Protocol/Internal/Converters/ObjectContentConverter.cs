@@ -23,7 +23,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </list>
 /// Every other type is serialized as a string using the <see cref="object.ToString()"/> method.
 /// </summary>
-internal class ObjectContentConverter : JsonConverter<object>
+internal sealed class ObjectContentConverter : JsonConverter<object>
 {
     /// <summary>
     /// The property name used to save the .NET Type name of the serialized object.

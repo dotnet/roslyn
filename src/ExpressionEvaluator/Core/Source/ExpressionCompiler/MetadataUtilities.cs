@@ -20,18 +20,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         /// <summary>
         /// Group module metadata into assemblies.
-        /// If <paramref name="moduleVersionId"/> is set, the
+        /// If <paramref name="moduleId"/> is set, the
         /// assemblies are limited to those referenced by that module.
         /// </summary>
         internal static ImmutableArray<MetadataReference> MakeAssemblyReferences(
             this ImmutableArray<MetadataBlock> metadataBlocks,
-            Guid moduleVersionId,
+            ModuleId moduleId,
             AssemblyIdentityComparer identityComparer,
             MakeAssemblyReferencesKind kind,
             out IReadOnlyDictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>>? referencesBySimpleName)
         {
-            RoslynDebug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || moduleVersionId != Guid.Empty);
-            RoslynDebug.Assert(moduleVersionId == Guid.Empty || identityComparer != null);
+            RoslynDebug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || moduleId.Id != Guid.Empty);
+            RoslynDebug.Assert(moduleId.Id == Guid.Empty || identityComparer != null);
 
             // Get metadata for each module.
             var metadataBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     continue;
                 }
 
-                modulesByName ??= new Dictionary<string, ModuleMetadata?>(); // Requires case-insensitive comparison?
+                modulesByName ??= []; // Requires case-insensitive comparison?
                 var name = metadata.Name;
                 modulesByName[name] = modulesByName.ContainsKey(name) ? null : metadata;
             }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     refsBySimpleName[identity.Name] = refs.Add((identity, reference));
 
                     if (targetReference == null &&
-                        reader.GetModuleVersionIdOrThrow() == moduleVersionId)
+                        reader.GetModuleVersionIdOrThrow() == moduleId.Id)
                     {
                         targetReference = reference;
                     }
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         identitiesBuilder.Add(identity);
 
                         if (targetModule == null &&
-                            reader.GetModuleVersionIdOrThrow() == moduleVersionId)
+                            reader.GetModuleVersionIdOrThrow() == moduleId.Id)
                         {
                             targetModule = metadata;
                         }

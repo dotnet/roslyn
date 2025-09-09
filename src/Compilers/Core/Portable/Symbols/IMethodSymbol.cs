@@ -37,8 +37,14 @@ namespace Microsoft.CodeAnalysis
         bool IsGenericMethod { get; }
 
         /// <summary>
-        /// Returns true if this method is an extension method. 
+        /// Returns true if this method is a "classic" extension method (using the <see langword="this"/>
+        /// modifier in C# or <see cref="System.Runtime.CompilerServices.ExtensionAttribute"/> in VB).
         /// </summary>
+        /// <remarks>
+        /// Returns false for methods in <c>extension()</c> blocks.
+        /// To check if a method is a "new" extension method (a member of an <c>extension()</c> block),
+        /// check <see cref="ITypeSymbol.IsExtension"/> on the method's <see cref="ISymbol.ContainingType"/>.
+        /// </remarks>
         bool IsExtensionMethod { get; }
 
         /// <summary>
@@ -293,5 +299,10 @@ namespace Microsoft.CodeAnalysis
         /// Returns a flag indicating whether this symbol has at least one applied/inherited conditional attribute.
         /// </summary>
         bool IsConditional { get; }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if this method is a source method implemented as an iterator (either sync or async)
+        /// </summary>
+        bool IsIterator { get; }
     }
 }

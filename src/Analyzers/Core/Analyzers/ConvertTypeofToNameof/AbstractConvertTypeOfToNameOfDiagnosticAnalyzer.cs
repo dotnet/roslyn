@@ -20,12 +20,8 @@ internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(Localiza
 
     protected abstract bool IsValidTypeofAction(OperationAnalysisContext context);
 
-    protected abstract bool SupportsUnboundGenerics(ParseOptions options);
-
     protected override void InitializeWorker(AnalysisContext context)
-    {
-        context.RegisterOperationAction(AnalyzeAction, OperationKind.TypeOf);
-    }
+        => context.RegisterOperationAction(AnalyzeAction, OperationKind.TypeOf);
 
     protected void AnalyzeAction(OperationAnalysisContext context)
     {
@@ -47,7 +43,7 @@ internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(Localiza
 
     }
 
-    private bool IsValidOperation(IOperation operation)
+    private static bool IsValidOperation(IOperation operation)
     {
         // Cast to a typeof operation & check parent is a property reference and member access
         var typeofOperation = (ITypeOfOperation)operation;
@@ -69,11 +65,10 @@ internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(Localiza
         if (typeofOperation.TypeOperand is not INamedTypeSymbol namedType)
             return false;
 
-        // Non-generic types are always convertible.  typeof(X).Name can always be converted to nameof(X)
-        if (namedType.TypeArguments.Length == 0)
-            return true;
-
-        // Generic types are convertible if the lang supports it.  e.g. typeof(X<Y>).Name can be converted to nameof(X<>).
-        return SupportsUnboundGenerics(operation.Syntax.SyntaxTree.Options);
+        // Note: generic names like `typeof(List<int>)` are not convertible (since the name will be List`1). However,
+        // it's fine if an outer part of the name is generic (like `typeof(List<int>.Enumerator)`). as that will be
+        // convertible to `nameof(List<>.Enumerator)`.  So we only need to check the type arguments directly on the type
+        // here, not on any containing types.
+        return namedType.TypeArguments.Length == 0;
     }
 }

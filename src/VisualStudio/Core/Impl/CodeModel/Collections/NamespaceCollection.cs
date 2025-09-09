@@ -8,227 +8,225 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+
+[ComVisible(true)]
+[ComDefaultInterface(typeof(ICodeElements))]
+public sealed class NamespaceCollection : AbstractCodeElementCollection
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(ICodeElements))]
-    public sealed class NamespaceCollection : AbstractCodeElementCollection
+    internal static EnvDTE.CodeElements Create(
+        CodeModelState state,
+        object parent,
+        FileCodeModel fileCodeModel,
+        SyntaxNodeKey nodeKey)
     {
-        internal static EnvDTE.CodeElements Create(
-            CodeModelState state,
-            object parent,
-            FileCodeModel fileCodeModel,
-            SyntaxNodeKey nodeKey)
+        var collection = new NamespaceCollection(state, parent, fileCodeModel, nodeKey);
+        return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
+    }
+
+    private readonly ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
+    private readonly SyntaxNodeKey _nodeKey;
+
+    private NamespaceCollection(
+        CodeModelState state,
+        object parent,
+        FileCodeModel fileCodeModel,
+        SyntaxNodeKey nodeKey)
+        : base(state, parent)
+    {
+        Debug.Assert(fileCodeModel != null);
+
+        _fileCodeModel = new ComHandle<EnvDTE.FileCodeModel, FileCodeModel>(fileCodeModel);
+        _nodeKey = nodeKey;
+    }
+
+    private FileCodeModel FileCodeModel
+    {
+        get { return _fileCodeModel.Object; }
+    }
+
+    private bool IsRootNamespace
+    {
+        get { return _nodeKey == SyntaxNodeKey.Empty; }
+    }
+
+    private SyntaxNode LookupNode()
+    {
+        if (!IsRootNamespace)
         {
-            var collection = new NamespaceCollection(state, parent, fileCodeModel, nodeKey);
-            return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
+            return FileCodeModel.LookupNode(_nodeKey);
+        }
+        else
+        {
+            return FileCodeModel.GetSyntaxRoot();
+        }
+    }
+
+    private EnvDTE.CodeElement CreateCodeOptionsStatement(SyntaxNode node, SyntaxNode parentNode)
+    {
+        CodeModelService.GetOptionNameAndOrdinal(parentNode, node, out var name, out var ordinal);
+
+        return CodeOptionsStatement.Create(this.State, this.FileCodeModel, name, ordinal);
+    }
+
+    private EnvDTE.CodeElement CreateCodeImport(SyntaxNode node, AbstractCodeElement parentElement)
+    {
+        var name = CodeModelService.GetImportNamespaceOrType(node);
+
+        return CodeImport.Create(this.State, this.FileCodeModel, parentElement, name);
+    }
+
+    private EnvDTE.CodeElement CreateCodeAttribute(SyntaxNode node, SyntaxNode parentNode, AbstractCodeElement parentElement)
+    {
+        CodeModelService.GetAttributeNameAndOrdinal(parentNode, node, out var name, out var ordinal);
+
+        return (EnvDTE.CodeElement)CodeAttribute.Create(this.State, this.FileCodeModel, parentElement, name, ordinal);
+    }
+
+    internal override Snapshot CreateSnapshot()
+    {
+        var node = LookupNode();
+        var parentElement = !this.IsRootNamespace
+            ? (AbstractCodeElement)this.Parent
+            : null;
+        return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement,
+            [
+                .. CodeModelService.GetOptionNodes(node),
+                .. CodeModelService.GetImportNodes(node),
+                .. CodeModelService.GetAttributeNodes(node),
+                .. CodeModelService.GetLogicalSupportedMemberNodes(node),
+            ]);
+    }
+
+    protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
+    {
+        var node = LookupNode();
+        var parentElement = !this.IsRootNamespace
+            ? (AbstractCodeElement)this.Parent
+            : null;
+
+        var currentIndex = 0;
+
+        // Option statements
+        var optionNodes = CodeModelService.GetOptionNodes(node);
+        var optionNodeCount = optionNodes.Count();
+        if (index < currentIndex + optionNodeCount)
+        {
+            var child = optionNodes.ElementAt(index - currentIndex);
+            element = CreateCodeOptionsStatement(child, node);
+            return true;
         }
 
-        private readonly ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;
-        private readonly SyntaxNodeKey _nodeKey;
+        currentIndex += optionNodeCount;
 
-        private NamespaceCollection(
-            CodeModelState state,
-            object parent,
-            FileCodeModel fileCodeModel,
-            SyntaxNodeKey nodeKey)
-            : base(state, parent)
+        // Imports/using statements
+        var importNodes = CodeModelService.GetImportNodes(node);
+        var importNodeCount = importNodes.Count();
+        if (index < currentIndex + importNodeCount)
         {
-            Debug.Assert(fileCodeModel != null);
-
-            _fileCodeModel = new ComHandle<EnvDTE.FileCodeModel, FileCodeModel>(fileCodeModel);
-            _nodeKey = nodeKey;
+            var child = importNodes.ElementAt(index - currentIndex);
+            element = CreateCodeImport(child, parentElement);
+            return true;
         }
 
-        private FileCodeModel FileCodeModel
+        currentIndex += importNodeCount;
+
+        // Attributes
+        var attributeNodes = CodeModelService.GetAttributeNodes(node);
+        var attributeNodeCount = attributeNodes.Count();
+        if (index < currentIndex + attributeNodeCount)
         {
-            get { return _fileCodeModel.Object; }
+            var child = attributeNodes.ElementAt(index - currentIndex);
+            element = CreateCodeAttribute(child, node, parentElement);
+            return true;
         }
 
-        private bool IsRootNamespace
+        currentIndex += attributeNodeCount;
+
+        // Members
+        var memberNodes = CodeModelService.GetLogicalSupportedMemberNodes(node);
+        var memberNodeCount = memberNodes.Count();
+        if (index < currentIndex + memberNodeCount)
         {
-            get { return _nodeKey == SyntaxNodeKey.Empty; }
+            var child = memberNodes.ElementAt(index - currentIndex);
+            element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
+            return true;
         }
 
-        private SyntaxNode LookupNode()
+        element = null;
+        return false;
+    }
+
+    protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
+    {
+        var node = LookupNode();
+        var parentElement = !IsRootNamespace
+            ? (AbstractCodeElement)Parent
+            : null;
+
+        // Option statements
+        foreach (var child in CodeModelService.GetOptionNodes(node))
         {
-            if (!IsRootNamespace)
+            CodeModelService.GetOptionNameAndOrdinal(node, child, out var childName, out var ordinal);
+            if (childName == name)
             {
-                return FileCodeModel.LookupNode(_nodeKey);
-            }
-            else
-            {
-                return FileCodeModel.GetSyntaxRoot();
-            }
-        }
-
-        private EnvDTE.CodeElement CreateCodeOptionsStatement(SyntaxNode node, SyntaxNode parentNode)
-        {
-            CodeModelService.GetOptionNameAndOrdinal(parentNode, node, out var name, out var ordinal);
-
-            return CodeOptionsStatement.Create(this.State, this.FileCodeModel, name, ordinal);
-        }
-
-        private EnvDTE.CodeElement CreateCodeImport(SyntaxNode node, AbstractCodeElement parentElement)
-        {
-            var name = CodeModelService.GetImportNamespaceOrType(node);
-
-            return CodeImport.Create(this.State, this.FileCodeModel, parentElement, name);
-        }
-
-        private EnvDTE.CodeElement CreateCodeAttribute(SyntaxNode node, SyntaxNode parentNode, AbstractCodeElement parentElement)
-        {
-            CodeModelService.GetAttributeNameAndOrdinal(parentNode, node, out var name, out var ordinal);
-
-            return (EnvDTE.CodeElement)CodeAttribute.Create(this.State, this.FileCodeModel, parentElement, name, ordinal);
-        }
-
-        internal override Snapshot CreateSnapshot()
-        {
-            var node = LookupNode();
-            var parentElement = !this.IsRootNamespace
-                ? (AbstractCodeElement)this.Parent
-                : null;
-            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement,
-                [
-                    .. CodeModelService.GetOptionNodes(node),
-                    .. CodeModelService.GetImportNodes(node),
-                    .. CodeModelService.GetAttributeNodes(node),
-                    .. CodeModelService.GetLogicalSupportedMemberNodes(node),
-                ]);
-        }
-
-        protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
-        {
-            var node = LookupNode();
-            var parentElement = !this.IsRootNamespace
-                ? (AbstractCodeElement)this.Parent
-                : null;
-
-            var currentIndex = 0;
-
-            // Option statements
-            var optionNodes = CodeModelService.GetOptionNodes(node);
-            var optionNodeCount = optionNodes.Count();
-            if (index < currentIndex + optionNodeCount)
-            {
-                var child = optionNodes.ElementAt(index - currentIndex);
-                element = CreateCodeOptionsStatement(child, node);
+                element = CodeOptionsStatement.Create(State, FileCodeModel, childName, ordinal);
                 return true;
             }
+        }
 
-            currentIndex += optionNodeCount;
-
-            // Imports/using statements
-            var importNodes = CodeModelService.GetImportNodes(node);
-            var importNodeCount = importNodes.Count();
-            if (index < currentIndex + importNodeCount)
+        // Imports/using statements
+        foreach (var child in CodeModelService.GetImportNodes(node))
+        {
+            var childName = CodeModelService.GetImportNamespaceOrType(child);
+            if (childName == name)
             {
-                var child = importNodes.ElementAt(index - currentIndex);
-                element = CreateCodeImport(child, parentElement);
+                element = CodeImport.Create(State, FileCodeModel, parentElement, childName);
                 return true;
             }
+        }
 
-            currentIndex += importNodeCount;
-
-            // Attributes
-            var attributeNodes = CodeModelService.GetAttributeNodes(node);
-            var attributeNodeCount = attributeNodes.Count();
-            if (index < currentIndex + attributeNodeCount)
+        // Attributes
+        foreach (var child in CodeModelService.GetAttributeNodes(node))
+        {
+            CodeModelService.GetAttributeNameAndOrdinal(node, child, out var childName, out var ordinal);
+            if (childName == name)
             {
-                var child = attributeNodes.ElementAt(index - currentIndex);
-                element = CreateCodeAttribute(child, node, parentElement);
+                element = (EnvDTE.CodeElement)CodeAttribute.Create(State, FileCodeModel, parentElement, childName, ordinal);
                 return true;
             }
+        }
 
-            currentIndex += attributeNodeCount;
-
-            // Members
-            var memberNodes = CodeModelService.GetLogicalSupportedMemberNodes(node);
-            var memberNodeCount = memberNodes.Count();
-            if (index < currentIndex + memberNodeCount)
+        // Members
+        foreach (var child in CodeModelService.GetLogicalSupportedMemberNodes(node))
+        {
+            var childName = CodeModelService.GetName(child);
+            if (childName == name)
             {
-                var child = memberNodes.ElementAt(index - currentIndex);
                 element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
                 return true;
             }
-
-            element = null;
-            return false;
         }
 
-        protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
+        element = null;
+        return false;
+    }
+
+    public override int Count
+    {
+        get
         {
             var node = LookupNode();
-            var parentElement = !IsRootNamespace
-                ? (AbstractCodeElement)Parent
-                : null;
-
-            // Option statements
-            foreach (var child in CodeModelService.GetOptionNodes(node))
-            {
-                CodeModelService.GetOptionNameAndOrdinal(node, child, out var childName, out var ordinal);
-                if (childName == name)
-                {
-                    element = CodeOptionsStatement.Create(State, FileCodeModel, childName, ordinal);
-                    return true;
-                }
-            }
-
-            // Imports/using statements
-            foreach (var child in CodeModelService.GetImportNodes(node))
-            {
-                var childName = CodeModelService.GetImportNamespaceOrType(child);
-                if (childName == name)
-                {
-                    element = CodeImport.Create(State, FileCodeModel, parentElement, childName);
-                    return true;
-                }
-            }
-
-            // Attributes
-            foreach (var child in CodeModelService.GetAttributeNodes(node))
-            {
-                CodeModelService.GetAttributeNameAndOrdinal(node, child, out var childName, out var ordinal);
-                if (childName == name)
-                {
-                    element = (EnvDTE.CodeElement)CodeAttribute.Create(State, FileCodeModel, parentElement, childName, ordinal);
-                    return true;
-                }
-            }
-
-            // Members
-            foreach (var child in CodeModelService.GetLogicalSupportedMemberNodes(node))
-            {
-                var childName = CodeModelService.GetName(child);
-                if (childName == name)
-                {
-                    element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
-                    return true;
-                }
-            }
-
-            element = null;
-            return false;
-        }
-
-        public override int Count
-        {
-            get
-            {
-                var node = LookupNode();
-                return
-                    CodeModelService.GetOptionNodes(node).Count() +
-                    CodeModelService.GetImportNodes(node).Count() +
-                    CodeModelService.GetAttributeNodes(node).Count() +
-                    CodeModelService.GetLogicalSupportedMemberNodes(node).Count();
-            }
+            return
+                CodeModelService.GetOptionNodes(node).Count() +
+                CodeModelService.GetImportNodes(node).Count() +
+                CodeModelService.GetAttributeNodes(node).Count() +
+                CodeModelService.GetLogicalSupportedMemberNodes(node).Count();
         }
     }
 }

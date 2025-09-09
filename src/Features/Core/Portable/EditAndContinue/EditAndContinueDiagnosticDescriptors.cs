@@ -2,29 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal static class EditAndContinueDiagnosticDescriptors
 {
-    private const int GeneralDiagnosticBaseId = 1000;
-    private const int ModuleDiagnosticBaseId = 2000;
-    private static readonly int s_diagnosticBaseIndex;
+    private const string EncDiagnosticIdPrefix = "ENC";
+    private const string RudeEditDiagnosticIdPrefix = EncDiagnosticIdPrefix + "0";
+    private const string GeneralDiagnosticIdPrefix = EncDiagnosticIdPrefix + "1";
+    private const string ModuleDiagnosticIdPrefix = EncDiagnosticIdPrefix + "2";
+
+    private static readonly int s_generalDiagnosticBaseIndex;
 
     private static readonly LocalizableResourceString s_rudeEditLocString;
     private static readonly LocalizableResourceString s_encLocString;
     private static readonly LocalizableResourceString s_encDisallowedByProjectLocString;
 
     private static readonly ImmutableArray<DiagnosticDescriptor> s_descriptors;
+    private static readonly ImmutableHashSet<string> s_noEffectDiagnosticIds;
+
+    private static readonly string s_documentReadErrorId = GetDiagnosticId(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb);
 
     // descriptors for diagnostics reported by the debugger:
-    private static Dictionary<ManagedHotReloadAvailabilityStatus, DiagnosticDescriptor> s_lazyModuleDiagnosticDescriptors;
+    private static Dictionary<ManagedHotReloadAvailabilityStatus, DiagnosticDescriptor>? s_lazyModuleDiagnosticDescriptors;
     private static readonly object s_moduleDiagnosticDescriptorsGuard;
 
     static EditAndContinueDiagnosticDescriptors()
@@ -36,29 +43,50 @@ internal static class EditAndContinueDiagnosticDescriptors
         s_encDisallowedByProjectLocString = new LocalizableResourceString(nameof(FeaturesResources.EditAndContinueDisallowedByProject), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         var builder = ImmutableArray.CreateBuilder<DiagnosticDescriptor>();
+        var noEffectDiagnosticIds = ImmutableHashSet.CreateBuilder<string>();
 
-        void add(int index, int id, string resourceName, LocalizableResourceString title, DiagnosticSeverity severity)
+        void Add(int index, string prefix, int code, string resourceName, LocalizableResourceString title, DiagnosticSeverity severity, bool isNoEffect)
         {
+            // no-effect diagnostics should be warnings:
+            Debug.Assert(!isNoEffect || severity == DiagnosticSeverity.Warning);
+
             if (index >= builder.Count)
             {
                 builder.Count = index + 1;
             }
 
+            var id = GetDiagnosticId(prefix, code);
+
             builder[index] = new DiagnosticDescriptor(
-                $"ENC{id:D4}",
+                id,
                 title,
                 messageFormat: new LocalizableResourceString(resourceName, FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 DiagnosticCategory.EditAndContinue,
                 severity,
                 isEnabledByDefault: true,
                 customTags: DiagnosticCustomTags.EditAndContinue);
+
+            if (isNoEffect)
+            {
+                noEffectDiagnosticIds.Add(id);
+            }
         }
 
-        void AddRudeEdit(RudeEditKind kind, string resourceName, DiagnosticSeverity severity = DiagnosticSeverity.Error)
-            => add(GetDescriptorIndex(kind), (int)kind, resourceName, s_rudeEditLocString, severity);
+        void AddRudeEdit(RudeEditKind kind, string resourceName, DiagnosticSeverity severity = DiagnosticSeverity.Error, bool noEffect = false)
+            => Add(GetDescriptorIndex(kind), RudeEditDiagnosticIdPrefix, (int)kind, resourceName, s_rudeEditLocString, severity, noEffect);
 
-        void AddGeneralDiagnostic(EditAndContinueErrorCode code, string resourceName, DiagnosticSeverity severity = DiagnosticSeverity.Error)
-            => add(GetDescriptorIndex(code), GeneralDiagnosticBaseId + (int)code, resourceName, s_encLocString, severity);
+        void AddGeneralDiagnostic(EditAndContinueErrorCode code, string resourceName, DiagnosticSeverity severity = DiagnosticSeverity.Error, bool noEffect = false)
+            => Add(GetDescriptorIndex(code), GeneralDiagnosticIdPrefix, (int)code, resourceName, s_encLocString, severity, noEffect);
+
+        void AddProjectRudeEdit(ProjectSettingKind kind)
+        {
+            var code = EditAndContinueErrorCode.ChangingProjectSettingBase + (int)kind;
+            var resourceName = nameof(FeaturesResources.Changing_project_setting_0_from_1_to_2_requires_restarting_the_application);
+            var noEffect = kind.IsWarning();
+            var severity = noEffect ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error;
+
+            Add(GetDescriptorIndex(code), GeneralDiagnosticIdPrefix, (int)code, resourceName, s_encLocString, severity, noEffect);
+        }
 
         //
         // rude edits
@@ -147,7 +175,7 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddRudeEdit(RudeEditKind.NotCapturingPrimaryConstructorParameter, nameof(FeaturesResources.Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ChangingAttribute, nameof(FeaturesResources.Changing_attribute_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ChangingNameOrSignatureOfActiveMember, nameof(FeaturesResources.Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application));
-        AddRudeEdit(RudeEditKind.UpdateMightNotHaveAnyEffect, nameof(FeaturesResources.Changing_0_might_not_have_any_effect_until_the_application_is_restarted), DiagnosticSeverity.Warning);
+        AddRudeEdit(RudeEditKind.UpdateMightNotHaveAnyEffect, nameof(FeaturesResources.Changing_0_might_not_have_any_effect_until_the_application_is_restarted), DiagnosticSeverity.Warning, noEffect: true);
         AddRudeEdit(RudeEditKind.TypeUpdateAroundActiveStatement, nameof(FeaturesResources.Updating_a_0_around_an_active_statement_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.InsertOrMoveComInterfaceMember, nameof(FeaturesResources.Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application));
 
@@ -161,22 +189,37 @@ internal static class EditAndContinueDiagnosticDescriptors
         // other Roslyn reported diagnostics:
         //
 
-        s_diagnosticBaseIndex = builder.Count;
+        s_generalDiagnosticBaseIndex = builder.Count;
 
         AddGeneralDiagnostic(EditAndContinueErrorCode.ErrorReadingFile, nameof(FeaturesResources.ErrorReadingFile));
         AddGeneralDiagnostic(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError, nameof(FeaturesResources.CannotApplyChangesUnexpectedError));
         AddGeneralDiagnostic(EditAndContinueErrorCode.ChangesDisallowedWhileStoppedAtException, nameof(FeaturesResources.ChangesDisallowedWhileStoppedAtException));
         AddGeneralDiagnostic(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee, nameof(FeaturesResources.DocumentIsOutOfSyncWithDebuggee), DiagnosticSeverity.Warning);
-        AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb), DiagnosticSeverity.Warning);
+        AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb));
         AddGeneralDiagnostic(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired, nameof(FeaturesResources.ChangesRequiredSynthesizedType));
+        AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingDocumentInStaleProject, nameof(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit), DiagnosticSeverity.Warning, noEffect: true);
+
+        // Project setting rude edits. Defines a distinct error code per setting to simplify telemetry tracking even though some errors share the same message.
+
+        AddGeneralDiagnostic(EditAndContinueErrorCode.ChangingMultiVersionReferences, nameof(FeaturesResources.Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application));
+        AddGeneralDiagnostic(EditAndContinueErrorCode.ChangingReference, nameof(FeaturesResources.Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application));
+
+        foreach (var value in Enum.GetValues<ProjectSettingKind>())
+        {
+            AddProjectRudeEdit(value);
+        }
 
         s_descriptors = builder.ToImmutable();
+        s_noEffectDiagnosticIds = noEffectDiagnosticIds.ToImmutable();
     }
 
     internal static ImmutableArray<DiagnosticDescriptor> GetDescriptors()
         => s_descriptors.WhereAsArray(d => d != null);
 
     internal static DiagnosticDescriptor GetDescriptor(RudeEditKind kind)
+        => s_descriptors[GetDescriptorIndex(kind)];
+
+    internal static DiagnosticDescriptor GetDescriptor(ProjectSettingKind kind)
         => s_descriptors[GetDescriptorIndex(kind)];
 
     internal static DiagnosticDescriptor GetDescriptor(EditAndContinueErrorCode errorCode)
@@ -191,7 +234,7 @@ internal static class EditAndContinueDiagnosticDescriptors
             if (!s_lazyModuleDiagnosticDescriptors.TryGetValue(status, out var descriptor))
             {
                 s_lazyModuleDiagnosticDescriptors.Add(status, descriptor = new DiagnosticDescriptor(
-                    $"ENC{ModuleDiagnosticBaseId + (int)status:D4}",
+                    GetDiagnosticId(status),
                     s_encLocString,
                     s_encDisallowedByProjectLocString,
                     DiagnosticCategory.EditAndContinue,
@@ -204,9 +247,51 @@ internal static class EditAndContinueDiagnosticDescriptors
         }
     }
 
+    private static string GetDiagnosticId(string prefix, int code)
+        => $"{prefix}{code:D3}";
+
+    private static string GetDiagnosticId(EditAndContinueErrorCode code)
+        => GetDiagnosticId(GeneralDiagnosticIdPrefix, (int)code);
+
+    private static string GetDiagnosticId(ManagedHotReloadAvailabilityStatus status)
+        => GetDiagnosticId(ModuleDiagnosticIdPrefix, (int)status);
+
     private static int GetDescriptorIndex(RudeEditKind kind)
         => (int)kind;
 
+    private static int GetDescriptorIndex(ProjectSettingKind kind)
+        => GetDescriptorIndex(EditAndContinueErrorCode.ChangingProjectSettingBase + (int)kind);
+
     private static int GetDescriptorIndex(EditAndContinueErrorCode errorCode)
-        => s_diagnosticBaseIndex + (int)errorCode;
+        => s_generalDiagnosticBaseIndex + (int)errorCode;
+
+    public static bool IsEncDiagnostic(string diagnosticId)
+        => diagnosticId.Length > EncDiagnosticIdPrefix.Length && diagnosticId.StartsWith(EncDiagnosticIdPrefix, StringComparison.Ordinal) && diagnosticId[EncDiagnosticIdPrefix.Length] is >= '0' and <= '9';
+
+    public static bool IsRudeEdit(string diagnosticId)
+        => diagnosticId.StartsWith(RudeEditDiagnosticIdPrefix, StringComparison.Ordinal);
+
+    public static RudeEditKind GetRudeEditKind(string diagnosticId)
+        => IsRudeEdit(diagnosticId) && int.TryParse(diagnosticId[RudeEditDiagnosticIdPrefix.Length..], out var id) ? (RudeEditKind)id : RudeEditKind.None;
+
+    public static bool IsDocumentReadError(this Diagnostic diagnostic)
+        => diagnostic.Id == s_documentReadErrorId;
+
+    public static bool IsNoEffectDiagnostic(this Diagnostic diagnostic)
+        => s_noEffectDiagnosticIds.Contains(diagnostic.Id);
+
+    public static bool IsEncDiagnostic(this Diagnostic diagnostic)
+        => IsEncDiagnostic(diagnostic.Id);
+
+    public static bool IsRudeEdit(this Diagnostic diagnostic)
+        => IsRudeEdit(diagnostic.Id);
+
+    public static DiagnosticSeverity GetSeverity(this RudeEditKind kind)
+        => GetDescriptor(kind).DefaultSeverity;
+
+    public static bool IsBlocking(this RudeEditKind kind)
+        => kind.GetSeverity() == DiagnosticSeverity.Error;
+
+    public static bool HasBlockingRudeEdits(this ImmutableArray<RudeEditDiagnostic> diagnostics)
+        => diagnostics.Any(static e => e.Kind.IsBlocking());
 }

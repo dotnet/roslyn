@@ -98,6 +98,19 @@
         "group": "build"
     },
     {
+        "label": "build toolset",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+          "build",
+          "-p:InnerTargets=CopyFilesForDebugging",
+          "-p:GenerateFullPaths=true",
+          "${workspaceFolder}/src/NuGet/Microsoft.Net.Compilers.Toolset/AnyCpu/Microsoft.Net.Compilers.Toolset.Package.csproj"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
         "label": "msbuild current project",
         "type": "shell",
         "command": "echo 'Task not supported on this OS'",
@@ -157,7 +170,7 @@
       "type": "process",
       "options": {
         "env": {
-          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net8.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net9.0/Microsoft.CodeAnalysis.LanguageServer.dll"
         }
       },
       "dependsOn": [ "build language server" ]

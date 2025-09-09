@@ -220,6 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
+
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : code quality, share logic with Cci.ITypeMemberReference.GetContainingType implementation?
+                if (AdaptedPropertySymbol.GetIsNewExtensionMember())
+                {
+                    var containingType = AdaptedPropertySymbol.ContainingType;
+                    return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
+                }
+
                 return AdaptedPropertySymbol.ContainingType.GetCciAdapter();
             }
         }
@@ -240,6 +248,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ITypeReference ITypeMemberReference.GetContainingType(EmitContext context)
         {
             CheckDefinitionInvariant();
+
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : code quality, share logic with Cci.ITypeMemberReference.GetContainingType implementation in MethodSymbolAdapter?
+            if (AdaptedPropertySymbol.GetIsNewExtensionMember())
+            {
+                var containingType = AdaptedPropertySymbol.ContainingType;
+                return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
+            }
+
             return AdaptedPropertySymbol.ContainingType.GetCciAdapter();
         }
 

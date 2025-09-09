@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType;
@@ -253,7 +252,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (folders != null && folders.Count != 0)
             {
                 // Remove the empty entries and replace the spaces in the folder name to '_'
-                var refinedFolders = folders.Where(n => n != null && !n.IsEmpty()).Select(n => n.Replace(' ', '_')).ToArray();
+                var refinedFolders = folders.SelectAsArray(n => n != null && !n.IsEmpty(), n => n.Replace(' ', '_'));
                 container.AddRange(refinedFolders);
             }
         }

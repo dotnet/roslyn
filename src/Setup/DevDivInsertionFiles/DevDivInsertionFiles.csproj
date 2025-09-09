@@ -46,7 +46,6 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
-    <ExpectedDependency Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
@@ -101,6 +100,7 @@
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.ServiceHub.'))"/>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('System.Composition.'))"/>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.Internal.VisualStudio.'))"/>
+      <_Dependency Remove="Azure.Core"/>
       <_Dependency Remove="EnvDTE"/>
       <_Dependency Remove="EnvDTE80"/>
       <_Dependency Remove="EnvDTE90"/>
@@ -109,6 +109,7 @@
       <_Dependency Remove="MessagePack"/>
       <_Dependency Remove="MessagePack.Annotations"/>
       <_Dependency Remove="Microsoft.Bcl.AsyncInterfaces"/>
+      <_Dependency Remove="Microsoft.Bcl.HashCode" />
       <_Dependency Remove="Microsoft.Build"/>
       <_Dependency Remove="Microsoft.Build.Framework"/>
       <_Dependency Remove="Microsoft.Build.Tasks.Core"/>
@@ -128,13 +129,16 @@
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Buffers" />
+      <_Dependency Remove="System.ClientModel"/>
       <_Dependency Remove="System.Collections.Immutable"/>
       <_Dependency Remove="System.Configuration.ConfigurationManager"/>
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.Drawing.Common"/>
+      <_Dependency Remove="System.Formats.Nrbf" />
       <_Dependency Remove="System.IO.Packaging"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Memory"/>
+      <_Dependency Remove="System.Memory.Data"/>
       <_Dependency Remove="System.Numerics.Vectors"/>
       <_Dependency Remove="System.Reflection.Metadata"/>
       <_Dependency Remove="System.Reflection.MetadataLoadContext"/>

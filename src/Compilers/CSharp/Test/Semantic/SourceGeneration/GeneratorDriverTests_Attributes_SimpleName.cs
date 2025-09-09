@@ -549,7 +549,7 @@ public sealed class GeneratorDriverTests_Attributes_SimpleName : CSharpTestBase
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_OuterAliasReferencesInnerAlias()
     {
-        // note: this is not legal.  it's ok if this ever stops working in the futuer.
+        // note: this is not legal.  it's ok if this ever stops working in the future.
         var source = """
             using BAttribute = AAttribute;
             namespace N

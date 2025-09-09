@@ -1,0 +1,38 @@
+# This file contains the allowed analyzer rule "Category" and corresponding "Diagnostic ID range"
+# FORMAT:
+# 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
+
+# Code Analysis (CA) rules - https://learn.microsoft.com/visualstudio/code-quality/code-analysis-for-managed-code-warnings
+#
+# The ranges below represent the **currently used IDs** for the corresponding category.
+# When implementing a new rule for the category:
+#   1. Choose the rule ID immediately following the range end.
+#   2. Update the range end to the chosen rule ID.
+#
+Design: CA2210, CA1000-CA1070
+Globalization: CA2101, CA1300-CA1311
+Mobility: CA1600-CA1601
+Performance: HA, CA1800-CA1873
+Security: CA2100-CA2153, CA2300-CA2330, CA3000-CA3147, CA5300-CA5405
+Usage: CA1801, CA1806, CA1816, CA2200-CA2209, CA2211-CA2265
+Naming: CA1700-CA1727
+Interoperability: CA1400-CA1422
+Maintainability: CA1500-CA1515
+Reliability: CA9998-CA9999, CA2000-CA2024
+Documentation: CA1200-CA1200
+
+# Microsoft CodeAnalysis API rules
+MicrosoftCodeAnalysisCorrectness: RS1000-RS1999
+MicrosoftCodeAnalysisDesign: RS1000-RS1999
+MicrosoftCodeAnalysisDocumentation: RS1000-RS1999
+MicrosoftCodeAnalysisLocalization: RS1000-RS1999
+MicrosoftCodeAnalysisPerformance: RS1000-RS1999
+MicrosoftCodeAnalysisCompatibility: RS1000-RS1999
+MicrosoftCodeAnalysisReleaseTracking: RS2000-RS2100
+
+# Roslyn specific rules
+RoslynDiagnosticsDesign: RS0000-RS0999
+RoslynDiagnosticsMaintainability: RS0000-RS0999
+RoslynDiagnosticsPerformance: RS0000-RS0999
+RoslynDiagnosticsReliability: RS0000-RS0999
+RoslynDiagnosticsUsage: RS0000-RS0999

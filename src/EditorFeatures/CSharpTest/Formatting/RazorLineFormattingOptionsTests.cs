@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -18,11 +17,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
 [UseExportProvider]
-public class RazorLineFormattingOptionsTests
+public sealed class RazorLineFormattingOptionsTests
 {
     private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures;
 
-    private class TestRazorDocumentServiceProvider : IDocumentServiceProvider
+    private sealed class TestRazorDocumentServiceProvider : IDocumentServiceProvider
     {
         public TService? GetService<TService>() where TService : class, IDocumentService
             => typeof(TService) == typeof(DocumentPropertiesService) ? (TService?)(object)new PropertiesService() : null;
@@ -46,12 +45,14 @@ public class RazorLineFormattingOptionsTests
 
         var project = workspace.AddProject("Test", LanguageNames.CSharp);
 
-        var source = @"
-class C
-   {
-void F   () {}
-       }
-";
+        var source = """
+
+            class C
+               {
+            void F   () {}
+                   }
+
+            """;
 
         var sourceText = SourceText.From(source, encoding: null, SourceHashAlgorithms.Default);
         var documentInfo = DocumentInfo.Create(
@@ -73,11 +74,15 @@ void F   () {}
         var formattedText = await formattedDocument.GetTextAsync();
 
         // document options override solution options:
-        AssertEx.Equal(@"
-class C
-{
-" + "\t" + @"void F() { }
-}
-", formattedText.ToString());
+        AssertEx.Equal("""
+
+            class C
+            {
+
+            """ + "\t" + """
+            void F() { }
+            }
+
+            """, formattedText.ToString());
     }
 }

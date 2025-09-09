@@ -9,20 +9,19 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Fakes
-{
-    [Export(typeof(IStreamingFindUsagesPresenter))]
-    [Shared]
-    [PartNotDiscoverable]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class StubStreamingFindUsagesPresenter() : IStreamingFindUsagesPresenter
-    {
-        public void ClearAll()
-        {
-        }
+namespace Microsoft.CodeAnalysis.UnitTests.Fakes;
 
-        public (FindUsagesContext, CancellationToken) StartSearch(string title, StreamingFindUsagesPresenterOptions options)
-            => (new SimpleFindUsagesContext(), CancellationToken.None);
+[Export(typeof(IStreamingFindUsagesPresenter))]
+[Shared]
+[PartNotDiscoverable]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class StubStreamingFindUsagesPresenter() : IStreamingFindUsagesPresenter
+{
+    public void ClearAll()
+    {
     }
+
+    public (FindUsagesContext, CancellationToken) StartSearch(string title, StreamingFindUsagesPresenterOptions options)
+        => (new SimpleFindUsagesContext(), CancellationToken.None);
 }

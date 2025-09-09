@@ -13,7 +13,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -212,6 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (candidates.IsEmpty)
                 return;
 
+            AddOperators(operators, candidates);
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        {
             foreach (var candidate in candidates)
             {
                 if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
@@ -355,6 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var thisParam = method.Parameters.First();
 
+                        // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, we should use similar logic when looking up new extension members
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
                             (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
@@ -368,6 +373,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+#nullable enable
+
+        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+        {
+            // Consider whether IsClassType could be used instead. Tracked by https://github.com/dotnet/roslyn/issues/78275
+            if (!IsReferenceType || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
+
+            foreach (var nestedType in GetTypeMembersUnordered())
+            {
+                if (nestedType.IsExtension)
+                {
+                    extensions.Add(nestedType);
+                }
+            }
+        }
+
+        public virtual MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+#nullable disable
 
         // TODO: Probably should provide similar accessors for static constructor, destructor, 
         // TODO: operators, conversions.
@@ -493,6 +521,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the grouping type.
+        /// </summary>
+        internal abstract string ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// </summary>
+        internal abstract string ExtensionMarkerName { get; }
 
 #nullable disable
 

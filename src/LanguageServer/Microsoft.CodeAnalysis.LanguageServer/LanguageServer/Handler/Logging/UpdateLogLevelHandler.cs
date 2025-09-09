@@ -6,9 +6,7 @@ using System.Composition;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.Extensions.Logging;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
 
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class UpdateLogLevelHandler(ServerConfiguration serverConfiguration) : ILspServiceNotificationHandler<UpdateLogLevelParams>
+internal sealed class UpdateLogLevelHandler(ServerConfiguration serverConfiguration) : ILspServiceNotificationHandler<UpdateLogLevelParams>
 {
     private const string MethodName = "roslyn/updateLogLevel";
 
@@ -36,4 +34,4 @@ internal class UpdateLogLevelHandler(ServerConfiguration serverConfiguration) : 
 /// Request parameters for updating the log level in the server dynamically.
 /// </summary>
 /// <param name="LogLevelValue">the string value of the <see cref="LogLevel"/> enum</param>
-internal record class UpdateLogLevelParams([property: JsonPropertyName("logLevel")] string LogLevelValue);
+internal sealed record class UpdateLogLevelParams([property: JsonPropertyName("logLevel")] string LogLevelValue);

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -191,7 +192,7 @@ internal sealed class NavigateToSearcher
         await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
         await service.SearchDocumentAsync(
             _activeDocument, _searchPattern, _kinds,
-            r => _callback.AddResultsAsync(r, cancellationToken),
+            r => _callback.AddResultsAsync(r, _activeDocument, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -366,7 +367,7 @@ internal sealed class NavigateToSearcher
             }
             else
             {
-                await RoslynParallel.ForEachAsync(
+                await Parallel.ForEachAsync(
                     source: groups,
                     cancellationToken,
                     SearchCoreAsync).ConfigureAwait(false);
@@ -400,7 +401,7 @@ internal sealed class NavigateToSearcher
                     }
 
                     if (nonDuplicates.Count > 0)
-                        _callback.AddResultsAsync(nonDuplicates.ToImmutableAndClear(), cancellationToken);
+                        _callback.AddResultsAsync(nonDuplicates.ToImmutableAndClear(), _activeDocument, cancellationToken);
 
                     return Task.CompletedTask;
                 },
@@ -486,9 +487,9 @@ internal sealed class NavigateToSearcher
             .GetProjectDependencyGraph()
             .GetDependencySets(cancellationToken)
             .SelectAsArray(projectIdSet =>
-                projectIdSet.Where(id => allProjectIdSet.Contains(id))
-                            .Select(id => _solution.GetRequiredProject(id))
-                            .ToImmutableArray());
+                projectIdSet.SelectAsArray(
+                    predicate: id => allProjectIdSet.Contains(id),
+                    selector: id => _solution.GetRequiredProject(id)));
 
         Contract.ThrowIfFalse(orderedProjects.SelectMany(s => s).Count() == filteredProjects.SelectMany(s => s).Count());
 

@@ -17,13 +17,12 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 
-internal partial class UnusedReferencesTableProvider
+internal sealed partial class UnusedReferencesTableProvider
 {
-    internal class ReferenceImageMonikers
+    internal sealed class ReferenceImageMonikers
     {
         // Change this to use KnownMonikers.NuGetNoColor once we are able to move to Microsoft.VisualStudio.ImageCatalog v16.9
         public static ImageMoniker Package => new() { Guid = KnownImageIds.ImageCatalogGuid, Id = 3902 };
@@ -109,7 +108,7 @@ internal partial class UnusedReferencesTableProvider
 
     [Export(typeof(ITableColumnDefinition))]
     [Name(UnusedReferencesColumnDefinitions.SolutionName)]
-    internal class SolutionNameColumnDefinition : TableColumnDefinitionBase
+    internal sealed class SolutionNameColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -146,7 +145,7 @@ internal partial class UnusedReferencesTableProvider
 
     [Export(typeof(ITableColumnDefinition))]
     [Name(UnusedReferencesColumnDefinitions.ProjectName)]
-    internal class ProjectNameColumnDefinition : TableColumnDefinitionBase
+    internal sealed class ProjectNameColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -190,7 +189,7 @@ internal partial class UnusedReferencesTableProvider
 
     [Export(typeof(ITableColumnDefinition))]
     [Name(UnusedReferencesColumnDefinitions.ReferenceType)]
-    internal class ReferenceTypeColumnDefinition : TableColumnDefinitionBase
+    internal sealed class ReferenceTypeColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -241,7 +240,7 @@ internal partial class UnusedReferencesTableProvider
 
     [Export(typeof(ITableColumnDefinition))]
     [Name(UnusedReferencesColumnDefinitions.ReferenceName)]
-    internal class ReferenceNameColumnDefinition : TableColumnDefinitionBase
+    internal sealed class ReferenceNameColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -282,7 +281,7 @@ internal partial class UnusedReferencesTableProvider
 
     [Export(typeof(ITableColumnDefinition))]
     [Name(UnusedReferencesColumnDefinitions.UpdateAction)]
-    internal class UpdateActionColumnDefinition : TableColumnDefinitionBase
+    internal sealed class UpdateActionColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -315,7 +314,7 @@ internal partial class UnusedReferencesTableProvider
                 };
             }
 
-            combobox.SelectionChanged += (object sender, SelectionChangedEventArgs e) =>
+            combobox.SelectionChanged += (sender, e) =>
             {
                 var action = combobox.SelectedIndex switch
                 {
@@ -335,7 +334,7 @@ internal partial class UnusedReferencesTableProvider
     /// <summary>
     /// Used for columns that will be grouped on. Displays an image and text string.
     /// </summary>
-    internal class ImageEntryBucket : StringEntryBucket
+    internal sealed class ImageEntryBucket : StringEntryBucket
     {
         public readonly ImageMoniker ImageMoniker;
 

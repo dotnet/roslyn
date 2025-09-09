@@ -11,15 +11,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.SplitComment)]
-public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
+public sealed class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup)
         => EditorTestWorkspace.CreateCSharp(markup);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestWithSelection()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -39,12 +38,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestWithAllWhitespaceSelection()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -64,12 +61,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestMissingInSlashes()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -79,12 +74,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestMissingAtEndOfFile()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -92,12 +85,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 { 
                     //Test Comment[||]
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestMissingBeforeSlashes()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -107,12 +98,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestMissingWithMultiSelection()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -122,12 +111,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestSplitStartOfComment()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -147,12 +134,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestSplitStartOfQuadComment()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -172,13 +157,11 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
     public void TestSplitMiddleOfQuadComment()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -188,12 +171,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
     public void TestSplitWithCommentAfterwards1()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -203,12 +184,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
     public void TestSplitWithCommentAfterwards2()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -218,12 +197,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
     public void TestSplitWithCommentAfterwards3()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -233,12 +210,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
     public void TestSplitWithCommentAfterwards4()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -248,12 +223,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestSplitStartOfCommentWithLeadingSpace1()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -273,12 +246,10 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestSplitStartOfCommentWithLeadingSpace2()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -298,7 +269,6 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
                 }
             }
             """);
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     [WpfTheory]
@@ -307,26 +277,26 @@ public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandle
     [InlineData("X[||] Test Comment")]
     [InlineData("X [||] Test Comment")]
     public void TestCommentWithMultipleLeadingSpaces(string commentValue)
-    {
-        TestHandled(
-@$"public class Program
-{{
-    public static void Main(string[] args) 
-    {{ 
-        //    {commentValue}
-    }}
-}}",
-"""
-public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //    X
-        //    Test Comment
-    }
-}
-""");
-    }
+        => TestHandled(
+            $$"""
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    //    {{commentValue}}
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    //    X
+                    //    Test Comment
+                }
+            }
+            """);
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     [WpfTheory]
@@ -336,31 +306,30 @@ public class Program
     [InlineData("X [||] Test Comment")]
     [InlineData("X[| |]Test Comment")]
     public void TestQuadCommentWithMultipleLeadingSpaces(string commentValue)
-    {
-        TestHandled(
-@$"public class Program
-{{
-    public static void Main(string[] args) 
-    {{ 
-        ////    {commentValue}
-    }}
-}}",
-"""
-public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        ////    X
-        ////    Test Comment
-    }
-}
-""");
-    }
+        => TestHandled(
+            $$"""
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    ////    {{commentValue}}
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                public static void Main(string[] args) 
+                { 
+                    ////    X
+                    ////    Test Comment
+                }
+            }
+            """);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestSplitMiddleOfComment()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -380,12 +349,10 @@ public class Program
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestSplitEndOfComment()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             public class Program
             {
@@ -395,12 +362,10 @@ public class Program
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestSplitCommentEndOfLine1()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -418,12 +383,10 @@ public class Program
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestSplitCommentEndOfLine2()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -441,12 +404,10 @@ public class Program
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
     public void TestUseTabs()
-    {
-        TestHandled(
+        => TestHandled(
             """
             public class Program
             {
@@ -466,12 +427,10 @@ public class Program
             	}
             }
             """, useTabs: true);
-    }
 
     [WpfFact]
     public void TestDoesNotHandleDocComments()
-    {
-        TestNotHandled(
+        => TestNotHandled(
             """
             namespace TestNamespace
             {
@@ -484,5 +443,4 @@ public class Program
                 }
             }
             """);
-    }
 }

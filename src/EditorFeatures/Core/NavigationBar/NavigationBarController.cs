@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -33,7 +33,7 @@ using LastPresentedInfo = (ImmutableArray<NavigationBarProjectItem> projectItems
 /// The threading model for this class is simple: all non-static members are affinitized to the
 /// UI thread.
 /// </remarks>
-internal partial class NavigationBarController : IDisposable
+internal sealed partial class NavigationBarController : IDisposable
 {
     private readonly IThreadingContext _threadingContext;
     private readonly INavigationBarPresenter _presenter;

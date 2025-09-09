@@ -18,22 +18,16 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 using static ImplementHelpers;
 
-internal abstract partial class AbstractImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax>
 {
     private sealed partial class ImplementInterfaceGenerator
     {
         private readonly Document Document;
-        private readonly AbstractImplementInterfaceService Service;
+        private readonly AbstractImplementInterfaceService<TTypeDeclarationSyntax> Service;
 
         private readonly ImplementInterfaceInfo State;
         private readonly ImplementTypeOptions Options;
@@ -46,7 +40,7 @@ internal abstract partial class AbstractImplementInterfaceService
         private ISymbol? ThroughMember => Configuration.ThroughMember;
 
         internal ImplementInterfaceGenerator(
-            AbstractImplementInterfaceService service,
+            AbstractImplementInterfaceService<TTypeDeclarationSyntax> service,
             Document document,
             ImplementInterfaceInfo state,
             ImplementTypeOptions options,
@@ -99,7 +93,7 @@ internal abstract partial class AbstractImplementInterfaceService
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers)),
                 State.ClassOrStructType,
-                memberDefinitions.Concat(extraMembers),
+                [.. memberDefinitions, .. extraMembers],
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -293,7 +287,7 @@ internal abstract partial class AbstractImplementInterfaceService
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
         {
             var factory = Document.GetRequiredLanguageService<SyntaxGenerator>();
-            var modifiers = new DeclarationModifiers(isStatic: member.IsStatic, isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
+            var modifiers = DeclarationModifiers.None.WithIsStatic(member.IsStatic).WithIsAbstract(generateAbstractly).WithIsNew(addNew).WithIsUnsafe(addUnsafe);
 
             var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
             var accessibility = member.Name == memberName || generateAbstractly

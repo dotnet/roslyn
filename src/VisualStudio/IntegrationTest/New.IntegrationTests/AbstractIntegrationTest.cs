@@ -22,7 +22,7 @@ using Xunit.Harness;
 
 namespace Roslyn.VisualStudio.IntegrationTests;
 
-[IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 2)]
+[IdeSettings(MinVersion = VisualStudioVersion.VS18, RootSuffix = "RoslynDev", MaxAttempts = 2)]
 public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
 {
     private static string? s_catalogCacheFolder;
@@ -162,8 +162,6 @@ public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
         await TestServices.Workarounds.RemoveConflictingKeyBindingsAsync(HangMitigatingCancellationToken);
         await TestServices.StateReset.ResetGlobalOptionsAsync(HangMitigatingCancellationToken);
         await TestServices.StateReset.ResetHostSettingsAsync(HangMitigatingCancellationToken);
-
-        await TestServices.Workarounds.WaitForGitHubCoPilotAsync(HangMitigatingCancellationToken);
     }
 
     public override async Task DisposeAsync()

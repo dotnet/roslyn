@@ -17,29 +17,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
-internal partial class VisualStudioDiagnosticAnalyzerProvider
+internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 {
     /// <summary>
     /// Loads VSIX analyzers into workspaces that provide <see cref="ISolutionAnalyzerSetterWorkspaceService"/> when they are loaded.
     /// </summary>
     [Export]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.SemanticSearch), Shared]
-    internal sealed class WorkspaceEventListener : IEventListener<object>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class WorkspaceEventListener(
+        IAsynchronousOperationListenerProvider listenerProvider,
+        IVisualStudioDiagnosticAnalyzerProviderFactory providerFactory) : IEventListener
     {
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _providerFactory;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(nameof(Workspace));
+        private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _providerFactory = providerFactory;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceEventListener(
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IVisualStudioDiagnosticAnalyzerProviderFactory providerFactory)
-        {
-            _listener = listenerProvider.GetListener(nameof(Workspace));
-            _providerFactory = providerFactory;
-        }
-
-        public void StartListening(Workspace workspace, object serviceOpt)
+        public void StartListening(Workspace workspace)
         {
             var setter = workspace.Services.GetService<ISolutionAnalyzerSetterWorkspaceService>();
             if (setter != null)
@@ -48,6 +42,11 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider
                 var token = _listener.BeginAsyncOperation(nameof(InitializeWorkspaceAsync));
                 _ = Task.Run(() => InitializeWorkspaceAsync(setter)).CompletesAsyncOperation(token);
             }
+        }
+
+        public void StopListening(Workspace workspace)
+        {
+            // Nothing to do here.  We already kicked off the work to initialize the workspace.
         }
 
         private async Task InitializeWorkspaceAsync(ISolutionAnalyzerSetterWorkspaceService setter)
@@ -68,7 +67,8 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider
 
         private static void LogWorkspaceAnalyzerCount(int analyzerCount)
         {
-            Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(m => m["AnalyzerCount"] = analyzerCount, LogLevel.Debug));
+            Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(
+                static (m, analyzerCount) => m["AnalyzerCount"] = analyzerCount, analyzerCount, LogLevel.Debug));
         }
     }
 }

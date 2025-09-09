@@ -291,6 +291,101 @@ namespace Microsoft.CodeAnalysis
         public const string LikeOperatorName = "op_Like";
 
         /// <summary>
+        /// The name assigned to the '+=' operator.
+        /// </summary>
+        public const string AdditionAssignmentOperatorName = "op_AdditionAssignment";
+
+        /// <summary>
+        /// The name assigned to the '-=' operator.
+        /// </summary>
+        public const string SubtractionAssignmentOperatorName = "op_SubtractionAssignment";
+
+        /// <summary>
+        /// The name assigned to the '*=' operator.
+        /// </summary>
+        public const string MultiplicationAssignmentOperatorName = "op_MultiplicationAssignment";
+
+        /// <summary>
+        /// The name assigned to the '/=' operator.
+        /// </summary>
+        public const string DivisionAssignmentOperatorName = "op_DivisionAssignment";
+
+        /// <summary>
+        /// The name assigned to the '%=' operator.
+        /// </summary>
+        public const string ModulusAssignmentOperatorName = "op_ModulusAssignment";
+
+        /// <summary>
+        /// The name assigned to the '&amp;=' operator.
+        /// </summary>
+        public const string BitwiseAndAssignmentOperatorName = "op_BitwiseAndAssignment";
+
+        /// <summary>
+        /// The name assigned to the '|=' operator.
+        /// </summary>
+        public const string BitwiseOrAssignmentOperatorName = "op_BitwiseOrAssignment";
+
+        /// <summary>
+        /// The name assigned to the '^=' operator.
+        /// </summary>
+        public const string ExclusiveOrAssignmentOperatorName = "op_ExclusiveOrAssignment";
+
+        /// <summary>
+        /// The name assigned to the '&lt;&lt;=' operator.
+        /// </summary>
+        public const string LeftShiftAssignmentOperatorName = "op_LeftShiftAssignment";
+
+        /// <summary>
+        /// The name assigned to the '>>=' operator.
+        /// </summary>
+        public const string RightShiftAssignmentOperatorName = "op_RightShiftAssignment";
+
+        /// <summary>
+        /// The name assigned to the '>>>=' operator.
+        /// </summary>
+        public const string UnsignedRightShiftAssignmentOperatorName = "op_UnsignedRightShiftAssignment";
+
+        /// <summary>
+        /// The name assigned to the instance '++' operator.
+        /// </summary>
+        public const string IncrementAssignmentOperatorName = "op_IncrementAssignment";
+
+        /// <summary>
+        /// The name assigned to the instance '--' operator.
+        /// </summary>
+        public const string DecrementAssignmentOperatorName = "op_DecrementAssignment";
+
+        /// <summary>
+        /// The name assigned to the checked '+=' operator.
+        /// </summary>
+        public const string CheckedAdditionAssignmentOperatorName = "op_CheckedAdditionAssignment";
+
+        /// <summary>
+        /// The name assigned to the checked '-=' operator.
+        /// </summary>
+        public const string CheckedSubtractionAssignmentOperatorName = "op_CheckedSubtractionAssignment";
+
+        /// <summary>
+        /// The name assigned to the checked '*=' operator.
+        /// </summary>
+        public const string CheckedMultiplicationAssignmentOperatorName = "op_CheckedMultiplicationAssignment";
+
+        /// <summary>
+        /// The name assigned to the checked '/=' operator.
+        /// </summary>
+        public const string CheckedDivisionAssignmentOperatorName = "op_CheckedDivisionAssignment";
+
+        /// <summary>
+        /// The name assigned to the checked instance '++' operator.
+        /// </summary>
+        public const string CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment";
+
+        /// <summary>
+        /// The name assigned to the checked instance '--' operator.
+        /// </summary>
+        public const string CheckedDecrementAssignmentOperatorName = "op_CheckedDecrementAssignment";
+
+        /// <summary>
         /// The required name for the <c>GetEnumerator</c> method used in a ForEach statement.
         /// </summary>
         public const string GetEnumeratorMethodName = "GetEnumerator";
@@ -406,5 +501,20 @@ namespace Microsoft.CodeAnalysis
         internal const string CastUpMethodName = "CastUp";
         internal const string MemoryExtensionsTypeFullName = "System.MemoryExtensions";
         internal const string AsSpanMethodName = "AsSpan";
+
+        /// <summary>
+        /// The name of marker method for an extension type.
+        /// </summary>
+        internal const string ExtensionMarkerMethodName = "<Extension>$";
+
+        /// <summary>
+        /// The prefix for the grouping type name.
+        /// </summary>
+        internal const string ExtensionGroupingTypePrefix = "<G>$";
+
+        /// <summary>
+        /// The prefix for the marker type name.
+        /// </summary>
+        internal const string ExtensionMarkerTypePrefix = "<M>$";
     }
 }

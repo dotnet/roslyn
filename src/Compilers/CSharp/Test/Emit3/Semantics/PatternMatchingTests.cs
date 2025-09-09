@@ -11820,7 +11820,8 @@ static class C
     IL_01a0:  ldarg.0
     IL_01a1:  ldnull
     IL_01a2:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
-    IL_01a7:  leave.s    IL_01c1
+    IL_01a7:  ldnull
+    IL_01a8:  throw
   }
   catch System.Exception
   {
@@ -12196,7 +12197,8 @@ static class C
     IL_01d6:  ldarg.0
     IL_01d7:  ldnull
     IL_01d8:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
-    IL_01dd:  leave.s    IL_01f9
+    IL_01dd:  ldnull
+    IL_01de:  throw
   }
   catch System.Exception
   {
@@ -12312,7 +12314,7 @@ ref struct G<T> where T : class
 
         [Fact]
         [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
-        public void PatternNonConstant_UserDefinedImplicit_ConvertionToInputType()
+        public void PatternNonConstant_UserDefinedImplicit_ConversionToInputType()
         {
             var source =
 @"
@@ -12334,7 +12336,7 @@ class C
 
         [Fact]
         [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
-        public void PatternNonConstant_UserDefinedExplicit_ConvertionToInputType()
+        public void PatternNonConstant_UserDefinedExplicit_ConversionToInputType()
         {
             var source =
 @"
@@ -12355,7 +12357,7 @@ class C
         }
 
         [Fact]
-        public void PatternReadOnlySpan_ImplicitBuiltInConvertion_ToString()
+        public void PatternReadOnlySpan_ImplicitBuiltInConversion_ToString()
         {
             var source =
 @"
@@ -12369,7 +12371,7 @@ class C
         }
 
         [Fact]
-        public void PatternNoImplicitConvertionToInputType()
+        public void PatternNoImplicitConversionToInputType()
         {
             // Cannot implicitly cast long to byte..
             var source =

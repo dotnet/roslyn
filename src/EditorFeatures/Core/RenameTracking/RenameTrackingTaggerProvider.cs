@@ -8,22 +8,18 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
@@ -43,19 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 internal sealed partial class RenameTrackingTaggerProvider(
     IThreadingContext threadingContext,
     IInlineRenameService inlineRenameService,
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IGlobalOptionService globalOptions,
     IAsynchronousOperationListenerProvider listenerProvider) : ITaggerProvider
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
     private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
-    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
-        var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _diagnosticAnalyzerService, _globalOptions, _asyncListener));
+        var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _globalOptions, _asyncListener));
         return new Tagger(stateMachine) as ITagger<T>;
     }
 

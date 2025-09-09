@@ -8,28 +8,23 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 
 [Method(SemanticRangesMethodName)]
-internal class SemanticTokensRangesHandler : ILspServiceDocumentRequestHandler<SemanticTokensRangesParams, SemanticTokens>
+internal sealed class SemanticTokensRangesHandler(
+    IGlobalOptionService globalOptions,
+    SemanticTokensRefreshQueue semanticTokensRefreshQueue)
+    : ILspServiceDocumentRequestHandler<SemanticTokensRangesParams, SemanticTokens>
 {
     public const string SemanticRangesMethodName = "roslyn/semanticTokenRanges";
-    private readonly IGlobalOptionService _globalOptions;
-    private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue;
+
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+    private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
 
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
-
-    public SemanticTokensRangesHandler(
-        IGlobalOptionService globalOptions,
-        SemanticTokensRefreshQueue semanticTokensRefreshQueue)
-    {
-        _globalOptions = globalOptions;
-        _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
-    }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangesParams request)
     {
@@ -38,12 +33,14 @@ internal class SemanticTokensRangesHandler : ILspServiceDocumentRequestHandler<S
     }
 
     public async Task<SemanticTokens> HandleRequestAsync(
-            SemanticTokensRangesParams request,
-            RequestContext context,
-            CancellationToken cancellationToken)
+        SemanticTokensRangesParams request,
+        RequestContext context,
+        CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
-        var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, _semanticTokenRefreshQueue, request.Ranges, context, cancellationToken).ConfigureAwait(false);
+
+        var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(
+            _globalOptions, _semanticTokenRefreshQueue, request.Ranges, context, cancellationToken).ConfigureAwait(false);
         return new SemanticTokens { Data = tokensData };
     }
 }

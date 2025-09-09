@@ -5230,8 +5230,7 @@
 -reportivts[+|-]                  Output information on all IVTs granted to this
                                   assembly by all dependencies, and annotate foreign assembly
                                   accessibility errors with what assembly they came from.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emit compiler output in UTF-8 character
@@ -5459,6 +5458,9 @@
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string or XML literals.</value>
   </data>
+  <data name="ERR_TooManyUserStrings_RestartRequired" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</value>
+  </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
   </data>
@@ -5627,10 +5629,10 @@
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
   <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
-    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+    <value>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
   </data>
   <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
-    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+    <value>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</value>
   </data>
   <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
     <value>assigning to or passing 'ByRef' properties with init-only setters</value>
@@ -5733,5 +5735,9 @@
   </data>
   <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
     <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</value>
+  </data>
+  <data name="ERR_MethodImplAttributeAsyncCannotBeUsed" xml:space="preserve">
+    <value>'MethodImplAttribute.Async' cannot be manually applied to methods.</value>
+    <remarks>'MethodImplAttribute.Async' is not localizable.</remarks>
   </data>
 </root>

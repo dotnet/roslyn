@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -172,7 +173,7 @@ internal partial class StreamingFindUsagesPresenter
                 cancellationToken =>
                 {
                     _tableDataSink.FactorySnapshotChanged(this);
-                    return ValueTaskFactory.CompletedTask;
+                    return ValueTask.CompletedTask;
                 },
                 presenter._asyncListener,
                 CancellationTokenSource.Token);
@@ -506,7 +507,7 @@ internal partial class StreamingFindUsagesPresenter
         {
             try
             {
-                await foreach (var reference in references)
+                await foreach (var reference in references.ConfigureAwait(false))
                     await OnReferenceFoundWorkerAsync(reference, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
@@ -536,7 +537,7 @@ internal partial class StreamingFindUsagesPresenter
                 NoDefinitionsFoundMessage = message;
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         public sealed override async ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
@@ -570,7 +571,7 @@ internal partial class StreamingFindUsagesPresenter
                     _findReferencesWindow.SetProgress(current, maximum);
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         protected static DefinitionItem CreateNoResultsDefinitionItem(string message)

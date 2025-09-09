@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking;
 
 [UseExportProvider]
-public class VisualBasicValueTrackingTests : AbstractBaseValueTrackingTests
+public sealed class VisualBasicValueTrackingTests : AbstractBaseValueTrackingTests
 {
     protected override TestWorkspace CreateWorkspace(string code, TestComposition composition)
         => TestWorkspace.CreateVisualBasic(code, composition: composition);
@@ -20,28 +20,30 @@ public class VisualBasicValueTrackingTests : AbstractBaseValueTrackingTests
     public async Task TestProperty(TestHost testHost)
     {
         var code =
-@"
-Class C
-    Private _s As String
-    Public Property $$S() As String
-        Get
-            Return _s
-        End Get
-        Set(ByVal value As String)
-            _s = value
-        End Set
-    End Property
+            """
 
-    
-    Public Sub SetS(s As String)
-        Me.S = s
-    End Sub
+            Class C
+                Private _s As String
+                Public Property $$S() As String
+                    Get
+                        Return _s
+                    End Get
+                    Set(ByVal value As String)
+                        _s = value
+                    End Set
+                End Property
 
-    Public Function GetS() As String
-        Return Me.S
-    End Function
-End Class
-";
+                
+                Public Sub SetS(s As String)
+                    Me.S = s
+                End Sub
+
+                Public Function GetS() As String
+                    Return Me.S
+                End Function
+            End Class
+
+            """;
 
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
@@ -60,28 +62,30 @@ End Class
     public async Task TestPropertyValue(TestHost testHost)
     {
         var code =
-@"
-Class C
-    Private _s As String
-    Public Property S() As String
-        Get
-            Return _s
-        End Get
-        Set(ByVal value As String)
-            _s = $$value
-        End Set
-    End Property
+            """
 
-    
-    Public Sub SetS(s As String)
-        Me.S = s
-    End Sub
+            Class C
+                Private _s As String
+                Public Property S() As String
+                    Get
+                        Return _s
+                    End Get
+                    Set(ByVal value As String)
+                        _s = $$value
+                    End Set
+                End Property
 
-    Public Function GetS() As String
-        Return Me.S
-    End Function
-End Class
-";
+                
+                Public Sub SetS(s As String)
+                    Me.S = s
+                End Sub
+
+                Public Function GetS() As String
+                    Return Me.S
+                End Function
+            End Class
+
+            """;
 
         //
         // _s = value [Code.vb:8]
@@ -111,19 +115,21 @@ End Class
     public async Task TestField(TestHost testHost)
     {
         var code =
-@"
-Class C
-    Private $$_s As String = """"
-    
-    Public Sub SetS(s As String)
-        Me._s = s
-    End Sub
+            """
 
-    Public Function GetS() As String
-        Return Me._s
-    End Function
-End Class
-";
+            Class C
+                Private $$_s As String = ""
+                
+                Public Sub SetS(s As String)
+                    Me._s = s
+                End Sub
+
+                Public Function GetS() As String
+                    Return Me._s
+                End Function
+            End Class
+
+            """;
 
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
@@ -146,15 +152,17 @@ End Class
     public async Task TestLocal(TestHost testHost)
     {
         var code =
-@"
-Class C    
-    Public Function Add(x As Integer, y As Integer) As Integer
-        Dim $$z = x
-        z += y
-        Return z
-    End Function
-End Class
-";
+            """
+
+            Class C    
+                Public Function Add(x As Integer, y As Integer) As Integer
+                    Dim $$z = x
+                    z += y
+                    Return z
+                End Function
+            End Class
+
+            """;
 
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
@@ -173,14 +181,16 @@ End Class
     public async Task TestParameter(TestHost testHost)
     {
         var code =
-@"
-Class C    
-    Public Function Add($$x As Integer, y As Integer) As Integer
-        x += y
-        Return x
-    End Function
-End Class
-";
+            """
+
+            Class C    
+                Public Function Add($$x As Integer, y As Integer) As Integer
+                    x += y
+                    Return x
+                End Function
+            End Class
+
+            """;
 
         using var workspace = CreateWorkspace(code, testHost);
         var initialItems = await GetTrackedItemsAsync(workspace);
@@ -199,19 +209,21 @@ End Class
     public async Task TestVariableReferenceStart(TestHost testHost)
     {
         var code =
-@"
-Class Test
-    Public Sub M()
-        Dim x = GetM()
-        Console.Write(x)
-        Dim y = $$x + 1
-    End Sub
+            """
 
-    Public Function GetM() As Integer
-        Dim x = 0
-        Return x
-    End Function
-End Class";
+            Class Test
+                Public Sub M()
+                    Dim x = GetM()
+                    Console.Write(x)
+                    Dim y = $$x + 1
+                End Sub
+
+                Public Function GetM() As Integer
+                    Dim x = 0
+                    Return x
+                End Function
+            End Class
+            """;
 
         //
         //  |> Dim y = x + 1 [Code.vb:7]
@@ -258,19 +270,21 @@ End Class";
     public async Task TestVariableReferenceStart2(TestHost testHost)
     {
         var code =
-@"
-Class Test
-    Public Sub M()
-        Dim x = GetM()
-        Console.Write($$x)
-        Dim y = x + 1
-    End Sub
+            """
 
-    Public Function GetM() As Integer
-        Dim x = 0
-        Return x
-    End Function
-End Class";
+            Class Test
+                Public Sub M()
+                    Dim x = GetM()
+                    Console.Write($$x)
+                    Dim y = x + 1
+                End Sub
+
+                Public Function GetM() As Integer
+                    Dim x = 0
+                    Return x
+                End Function
+            End Class
+            """;
 
         //
         //  |> Dim y = x + 1 [Code.vb:7]
@@ -317,21 +331,23 @@ End Class";
     public async Task TestMultipleDeclarators(TestHost testHost)
     {
         var code =
-@"
-Imports System
+            """
 
-Class Test
-    Public Sub M()
-        Dim x = GetM(), z = 1, m As Boolean, n As Boolean, o As Boolean
-        Console.Write(x)
-        Dim y = $$x + 1
-    End Sub
+            Imports System
 
-    Public Function GetM() As Integer
-        Dim x = 0
-        Return x
-    End Function
-End Class";
+            Class Test
+                Public Sub M()
+                    Dim x = GetM(), z = 1, m As Boolean, n As Boolean, o As Boolean
+                    Console.Write(x)
+                    Dim y = $$x + 1
+                End Sub
+
+                Public Function GetM() As Integer
+                    Dim x = 0
+                    Return x
+                End Function
+            End Class
+            """;
 
         //
         //  |> Dim y = x + 1 [Code.vb:7]

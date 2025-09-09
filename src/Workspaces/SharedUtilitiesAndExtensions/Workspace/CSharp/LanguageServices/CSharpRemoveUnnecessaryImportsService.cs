@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpRemoveUnnecessaryImportsService() :
+internal sealed partial class CSharpRemoveUnnecessaryImportsService() :
     AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
 {
     private static readonly SyntaxAnnotation s_annotation = new();
@@ -68,7 +68,7 @@ internal partial class CSharpRemoveUnnecessaryImportsService() :
                 }
             }
 
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
             var formattedRoot = SyntaxFormatting.GetFormattingResult(newRoot, spansToFormat, formattingOptions, rules: default, cancellationToken).GetFormattedRoot(cancellationToken);
 
             return document.WithSyntaxRoot(formattedRoot);

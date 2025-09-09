@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -14,6 +15,7 @@ internal static class UseConditionalExpressionForReturnHelpers
         ISyntaxFacts syntaxFacts,
         IConditionalOperation ifOperation,
         ISymbol containingSymbol,
+        CancellationToken cancellationToken,
         out bool isRef,
         [NotNullWhen(true)] out IOperation? trueStatement,
         [NotNullWhen(true)] out IOperation? falseStatement,
@@ -121,7 +123,7 @@ internal static class UseConditionalExpressionForReturnHelpers
 
         isRef = anyReturn.GetRefKind(containingSymbol) != RefKind.None;
         return UseConditionalExpressionHelpers.CanConvert(
-            syntaxFacts, ifOperation, trueStatement, falseStatement);
+            syntaxFacts, ifOperation, trueStatement, falseStatement, cancellationToken);
     }
 
     private static bool IsReturnExprOrThrow(IOperation? statement)

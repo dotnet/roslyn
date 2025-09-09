@@ -24,7 +24,7 @@ internal abstract class AbstractMethodOrPropertyOrEventSymbolReferenceFinder<TSy
 
             // the only accessor method referenced in a foreach-statement is the .Current's
             // get-accessor
-            return symbols.CurrentProperty.GetMethod == null
+            return symbols.CurrentProperty?.GetMethod == null
                 ? []
                 : [symbols.CurrentProperty.GetMethod];
         }

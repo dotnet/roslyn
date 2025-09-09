@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
@@ -23,21 +24,19 @@ internal static class ITypeParameterSymbolExtensions
     public static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
         this IEnumerable<ITypeParameterSymbol> typeParameters)
     {
-        var clauses = new List<TypeParameterConstraintClauseSyntax>();
+        using var _ = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var clauses);
 
         foreach (var typeParameter in typeParameters)
-        {
             AddConstraintClauses(clauses, typeParameter);
-        }
 
         return [.. clauses];
     }
 
     private static void AddConstraintClauses(
-        List<TypeParameterConstraintClauseSyntax> clauses,
+        ArrayBuilder<TypeParameterConstraintClauseSyntax> clauses,
         ITypeParameterSymbol typeParameter)
     {
-        var constraints = new List<TypeParameterConstraintSyntax>();
+        using var _ = ArrayBuilder<TypeParameterConstraintSyntax>.GetInstance(out var constraints);
 
         if (typeParameter.HasReferenceTypeConstraint)
         {
@@ -64,15 +63,11 @@ internal static class ITypeParameterSymbolExtensions
         foreach (var type in constraintTypes)
         {
             if (type.SpecialType != SpecialType.System_Object)
-            {
                 constraints.Add(TypeConstraint(type.GenerateTypeSyntax()));
-            }
         }
 
         if (typeParameter.HasConstructorConstraint)
-        {
             constraints.Add(ConstructorConstraint());
-        }
 
         if (typeParameter.AllowsRefLikeType)
         {
@@ -81,9 +76,7 @@ internal static class ITypeParameterSymbolExtensions
         }
 
         if (constraints.Count == 0)
-        {
             return;
-        }
 
         clauses.Add(TypeParameterConstraintClause(
             typeParameter.Name.ToIdentifierName(),

@@ -4,11 +4,10 @@
 
 using System.Collections.Generic;
 using System.Globalization;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 
-internal class TokenComparer : IComparer<SyntaxToken>
+internal sealed class TokenComparer : IComparer<SyntaxToken>
 {
     public static readonly IComparer<SyntaxToken> NormalInstance = new TokenComparer(specialCaseSystem: false);
     public static readonly IComparer<SyntaxToken> SystemFirstInstance = new TokenComparer(specialCaseSystem: true);

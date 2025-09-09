@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -44,41 +44,61 @@ internal sealed partial class BraceCompletionSessionProvider(
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
-    public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
+    public bool TryCreateSession(
+        ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace,
+        [NotNullWhen(true)] out IBraceCompletionSession? session)
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
         var responsiveCompletion = textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
         var cancellationToken = GetCancellationToken(responsiveCompletion);
-
-        var textSnapshot = openingPoint.Snapshot;
-        var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (document != null)
+        try
         {
-            var editorSessionFactory = document.GetLanguageService<IBraceCompletionServiceFactory>();
-            if (editorSessionFactory != null)
-            {
-                var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-                var editorSession = editorSessionFactory.TryGetService(parsedDocument, openingPoint, openingBrace, cancellationToken);
-                if (editorSession != null)
-                {
-                    var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
-                    session = new BraceCompletionSession(
-                        this, textView, openingPoint.Snapshot.TextBuffer,
-                        openingPoint, openingBrace, closingBrace,
-                        undoHistory, editorSession, responsiveCompletion);
-                    return true;
-                }
-            }
+            return TryCreateSessionWorker(out session);
+        }
+        catch (OperationCanceledException)
+        {
+            session = null;
+            return false;
         }
 
-        session = null;
-        return false;
+        bool TryCreateSessionWorker([NotNullWhen(true)] out IBraceCompletionSession? session)
+        {
+            var textSnapshot = openingPoint.Snapshot;
+            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document != null)
+            {
+                var editorSessionFactory = document.GetLanguageService<IBraceCompletionServiceFactory>();
+                if (editorSessionFactory != null)
+                {
+                    var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+                    var editorSession = editorSessionFactory.TryGetService(parsedDocument, openingPoint, openingBrace, cancellationToken);
+                    if (editorSession != null)
+                    {
+                        var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
+                        session = new BraceCompletionSession(
+                            this, textView, openingPoint.Snapshot.TextBuffer,
+                            openingPoint, openingBrace, closingBrace,
+                            undoHistory, editorSession, responsiveCompletion);
+                        return true;
+                    }
+                }
+            }
+
+            session = null;
+            return false;
+        }
     }
 
     private static CancellationToken GetCancellationToken(bool responsiveCompletion)
     {
         if (!responsiveCompletion)
+            return CancellationToken.None;
+
+        // If we are running under a debugger, we want to disable the responsive completion feature.
+        // Debugging slows down VS a large amount, and it means that validating actual brace completion
+        // scenarios becomes very challenging.
+        if (Debugger.IsAttached)
             return CancellationToken.None;
 
         // Brace completion is cancellable if the user has the 'responsive completion' option enabled. 200 ms was

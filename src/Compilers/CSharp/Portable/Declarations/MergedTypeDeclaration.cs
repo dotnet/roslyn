@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
                         break;
 
@@ -122,6 +124,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var decl in this.Declarations)
                 {
                     if (decl.AnyMemberHasExtensionMethodSyntax)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool ContainsExtensionDeclarations
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.AnyExtensionDeclarationSyntax)
                         return true;
                 }
 
@@ -253,7 +269,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return $"{nameof(MergedTypeDeclaration)} {Name}";
+            string identifier = (Kind is DeclarationKind.Extension) ? "extension" : Name;
+            return $"{nameof(MergedTypeDeclaration)} {identifier}";
         }
     }
 }

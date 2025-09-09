@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
+using static Microsoft.CodeAnalysis.Serialization.SerializerService.TestAccessor;
 using static TemporaryStorageService;
 
 internal partial class SerializerService
@@ -29,18 +30,18 @@ internal partial class SerializerService
     /// pretend that a <see cref="AnalyzerImageReference"/> is a <see cref="AnalyzerFileReference"/> during tests.
     /// </summary>
     private static readonly object s_analyzerImageReferenceMapGate = new();
-    private static IBidirectionalMap<AnalyzerImageReference, Guid> s_analyzerImageReferenceMap = BidirectionalMap<AnalyzerImageReference, Guid>.Empty;
+    private static IBidirectionalMap<AnalyzerReference, Guid> s_analyzerReferenceMap = BidirectionalMap<AnalyzerReference, Guid>.Empty;
 
     private static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
     {
         lock (s_analyzerImageReferenceMapGate)
-            return s_analyzerImageReferenceMap.TryGetValue(imageReference, out guid);
+            return s_analyzerReferenceMap.TryGetValue(imageReference, out guid);
     }
 
-    private static bool TryGetAnalyzerImageReferenceFromGuid(Guid guid, [NotNullWhen(true)] out AnalyzerImageReference? imageReference)
+    private static bool TryGetAnalyzerImageReferenceFromGuid(Guid guid, [NotNullWhen(true)] out AnalyzerReference? analyzerReference)
     {
         lock (s_analyzerImageReferenceMapGate)
-            return s_analyzerImageReferenceMap.TryGetKey(guid, out imageReference);
+            return s_analyzerReferenceMap.TryGetKey(guid, out analyzerReference);
     }
 
     private static Checksum CreateChecksum(MetadataReference reference)
@@ -76,6 +77,12 @@ internal partial class SerializerService
                 case AnalyzerImageReference analyzerImageReference:
                     Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
                     writer.WriteGuid(guid);
+                    break;
+
+                case IAnalyzerReferenceWithGuid analyzerReferenceWithGuid:
+                    lock (s_analyzerImageReferenceMapGate)
+                        s_analyzerReferenceMap = s_analyzerReferenceMap.Add(reference, analyzerReferenceWithGuid.Guid);
+                    writer.WriteGuid(analyzerReferenceWithGuid.Guid);
                     break;
 
                 default:
@@ -482,12 +489,6 @@ internal partial class SerializerService
         writer.WriteSpan(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
     }
 
-    private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
-    {
-        writer.WriteString(nameof(UnresolvedAnalyzerReference));
-        writer.WriteString(reference.FullPath);
-    }
-
     private static Metadata? TryGetMetadata(PortableExecutableReference reference)
     {
         try
@@ -541,9 +542,23 @@ internal partial class SerializerService
         {
             lock (s_analyzerImageReferenceMapGate)
             {
-                if (!s_analyzerImageReferenceMap.ContainsKey(analyzerImageReference))
-                    s_analyzerImageReferenceMap = s_analyzerImageReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
+                if (!s_analyzerReferenceMap.ContainsKey(analyzerImageReference))
+                    s_analyzerReferenceMap = s_analyzerReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
             }
+        }
+
+        public static void AddAnalyzerImageReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
+        {
+            foreach (var analyzer in analyzerReferences)
+            {
+                if (analyzer is AnalyzerImageReference analyzerImageReference)
+                    AddAnalyzerImageReference(analyzerImageReference);
+            }
+        }
+
+        public interface IAnalyzerReferenceWithGuid
+        {
+            Guid Guid { get; }
         }
     }
 }

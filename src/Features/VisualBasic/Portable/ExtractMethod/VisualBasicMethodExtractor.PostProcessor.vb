@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -174,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Function
 
                 Public Shared Function RemoveDeclarationAssignmentPattern(statements As ImmutableArray(Of StatementSyntax)) As ImmutableArray(Of StatementSyntax)
-                    If statements.Count() < 2 Then
+                    If statements.Length < 2 Then
                         Return statements
                     End If
 
@@ -215,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Public Shared Function RemoveInitializedDeclarationAndReturnPattern(statements As ImmutableArray(Of StatementSyntax)) As ImmutableArray(Of StatementSyntax)
                     ' if we have inline temp variable as service, we could just use that service here.
                     ' since it is not a service right now, do very simple clean up
-                    If statements.Count() <> 2 Then
+                    If statements.Length <> 2 Then
                         Return statements
                     End If
 

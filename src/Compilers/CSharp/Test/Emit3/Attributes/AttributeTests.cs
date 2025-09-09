@@ -4879,12 +4879,14 @@ class Program
         public void AttributeArgumentAsEnumFromMetadata()
         {
             var metadataStream1 = CSharpCompilation.Create("bar.dll",
+                options: TestOptions.DebugDll,
                 references: new[] { MscorlibRef },
                 syntaxTrees: new[] { Parse("public enum Bar { Baz }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
 
             var ref1 = MetadataReference.CreateFromStream(metadataStream1);
 
             var metadataStream2 = CSharpCompilation.Create("goo.dll", references: new[] { MscorlibRef, ref1 },
+                options: TestOptions.DebugDll,
                 syntaxTrees: new[] {
                     SyntaxFactory.ParseSyntaxTree(
                         "public class Ca : System.Attribute { public Ca(object o) { } } " +

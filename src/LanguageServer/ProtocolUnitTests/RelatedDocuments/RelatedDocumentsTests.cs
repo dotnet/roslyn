@@ -21,7 +21,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
 {
     private static async Task<VSInternalRelatedDocumentReport[]> RunGetRelatedDocumentsAsync(
         TestLspServer testLspServer,
-        Uri uri,
+        DocumentUri uri,
         bool useProgress = false)
     {
         BufferedProgress<VSInternalRelatedDocumentReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalRelatedDocumentReport[]>(null) : null;
@@ -29,7 +29,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             VSInternalMethods.CopilotRelatedDocumentsName,
             new VSInternalRelatedDocumentParams
             {
-                TextDocument = new TextDocumentIdentifier { Uri = uri },
+                TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
                 PartialResultToken = progress,
             },
             CancellationToken.None).ConfigureAwait(false);
@@ -67,7 +67,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             project.Documents.First().GetURI(),
             useProgress: useProgress);
 
-        Assert.Equal(0, results.Length);
+        Assert.Empty(results);
     }
 
     [Theory, CombinatorialData]
@@ -95,7 +95,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             useProgress: useProgress);
 
         Assert.Equal(1, results.Length);
-        Assert.Equal(project.Documents.Last().FilePath, results[0].FilePaths.Single());
+        Assert.Equal(project.Documents.Last().FilePath, results[0].FilePaths!.Single());
     }
 
     [Theory, CombinatorialData]
@@ -129,8 +129,8 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             project.Documents.First().GetURI(),
             useProgress: useProgress);
 
-        Assert.Equal(2, results.SelectMany(r => r.FilePaths).Count());
-        AssertEx.SetEqual([.. project.Documents.Skip(1).Select(d => d.FilePath)], results.SelectMany(r => r.FilePaths));
+        Assert.Equal(2, results.SelectMany(r => r.FilePaths!).Count());
+        AssertEx.SetEqual([.. project.Documents.Skip(1).Select(d => d.FilePath)], results.SelectMany(r => r.FilePaths!));
     }
 
     [Theory, CombinatorialData]
@@ -189,18 +189,15 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
                 }
             }
             """;
-        var generated =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator("""
             namespace M
             {
                 class B
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+            """), testLspServer.TestWorkspace);
 
         var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
         var results = await RunGetRelatedDocumentsAsync(

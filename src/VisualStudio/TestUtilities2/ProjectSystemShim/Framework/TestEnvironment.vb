@@ -23,6 +23,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.Telemetry
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -49,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         '        GetType(MockDiagnosticUpdateSourceRegistrationService),
         '        GetType(MockWorkspaceEventListenerProvider))
 
-        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures _
             .AddParts(
                 GetType(FileChangeWatcherProvider),
                 GetType(MockVisualStudioWorkspace),
@@ -63,10 +64,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(CPSProjectFactory),
                 GetType(VisualStudioRuleSetManagerFactory),
                 GetType(VisualStudioMetadataServiceFactory),
-                GetType(VisualStudioMetadataReferenceManagerFactory),
+                GetType(VisualStudioMetadataReferenceManager),
                 GetType(MockWorkspaceEventListenerProvider),
                 GetType(HierarchyItemToProjectIdMap),
-                GetType(DiagnosticAnalyzerService))
+                GetType(DiagnosticAnalyzerService),
+                GetType(VisualStudioWorkspaceTelemetryService),
+                GetType(OpenTextBufferProvider),
+                GetType(StubVsEditorAdaptersFactoryService),
+                GetType(ExternalErrorDiagnosticUpdateSource),
+                GetType(MockServiceBroker))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
@@ -79,9 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
             Implementation.Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
-            Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
-            mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(True)
-            ServiceProvider = mockServiceProvider
+            ServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
         End Sub
 
         Public ReadOnly Property ProjectFactory As VisualStudioProjectFactory
@@ -163,46 +167,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Public Function GetUpdatedCompilationOptionOfSingleProject() As CompilationOptions
             Return Workspace.CurrentSolution.Projects.Single().CompilationOptions
         End Function
-
-        Private Class MockShellMonitorSelection
-            Implements IVsMonitorSelection
-
-            Public Property SolutionIsFullyLoaded As Boolean
-
-            Public Sub New(solutionIsFullyLoaded As Boolean)
-                Me.SolutionIsFullyLoaded = solutionIsFullyLoaded
-            End Sub
-
-            Public Function AdviseSelectionEvents(pSink As IVsSelectionEvents, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> ByRef pdwCookie As UInteger) As Integer Implements IVsMonitorSelection.AdviseSelectionEvents
-                Return VSConstants.S_OK
-            End Function
-
-            Public Function GetCmdUIContextCookie(<ComAliasName("Microsoft.VisualStudio.OLE.Interop.REFGUID")> ByRef rguidCmdUI As Guid, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> ByRef pdwCmdUICookie As UInteger) As Integer Implements IVsMonitorSelection.GetCmdUIContextCookie
-                Return VSConstants.S_OK
-            End Function
-
-            Public Function GetCurrentElementValue(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSSELELEMID")> elementid As UInteger, ByRef pvarValue As Object) As Integer Implements IVsMonitorSelection.GetCurrentElementValue
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function GetCurrentSelection(ByRef ppHier As IntPtr, <ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")> ByRef pitemid As UInteger, ByRef ppMIS As IVsMultiItemSelect, ByRef ppSC As IntPtr) As Integer Implements IVsMonitorSelection.GetCurrentSelection
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function IsCmdUIContextActive(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> dwCmdUICookie As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")> ByRef pfActive As Integer) As Integer Implements IVsMonitorSelection.IsCmdUIContextActive
-                ' Be lazy and don't worry checking which cookie this is, since for now the VisualStudioProjectTracker only checks for one
-                pfActive = If(SolutionIsFullyLoaded, 1, 0)
-                Return VSConstants.S_OK
-            End Function
-
-            Public Function SetCmdUIContext(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> dwCmdUICookie As UInteger, <ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")> fActive As Integer) As Integer Implements IVsMonitorSelection.SetCmdUIContext
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function UnadviseSelectionEvents(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> dwCookie As UInteger) As Integer Implements IVsMonitorSelection.UnadviseSelectionEvents
-                Throw New NotImplementedException()
-            End Function
-        End Class
 
         Friend Async Function GetFileChangeServiceAsync() As Task(Of MockVsFileChangeEx)
             ' Ensure we've pushed everything to the file change watcher

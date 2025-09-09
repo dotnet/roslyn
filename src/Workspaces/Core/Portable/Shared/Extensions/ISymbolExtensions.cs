@@ -309,8 +309,7 @@ internal static partial class ISymbolExtensions
             }
         }
 
-        var container = node as XContainer;
-        if (container == null)
+        if (node is not XContainer container)
         {
             return [Copy(node, copyAttributeAnnotations: false)];
         }
@@ -640,12 +639,23 @@ internal static partial class ISymbolExtensions
     /// This is useful for filtering out symbols that cannot be accessed in a given context due
     /// to the existence of overriding members. Second, remove remaining symbols that are
     /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
-    /// attribute.
+    /// attribute. Finally, keep only remaining symbols which the given inclusionFilter indicates
+    /// should be included.
     /// </summary>
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
-        this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
+        this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation, Func<T, bool> inclusionFilter) where T : ISymbol
     {
-        symbols = symbols.RemoveOverriddenSymbolsWithinSet();
+        if (symbols.Length == 0)
+            return [];
+
+        using var _ = MetadataUnifyingSymbolHashSet.GetInstance(out var overriddenSymbols);
+
+        foreach (var symbol in symbols)
+        {
+            var overriddenMember = symbol.GetOverriddenMember();
+            if (overriddenMember != null)
+                overriddenSymbols.Add(overriddenMember);
+        }
 
         // Since all symbols are from the same compilation, find the required attribute
         // constructors once and reuse.
@@ -653,36 +663,25 @@ internal static partial class ISymbolExtensions
 
         // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
         // check to see if we're referencing a symbol defined in source.
-        return symbols.WhereAsArray((s, arg) =>
+        var filteredSymbols = symbols.WhereAsArray(static (s, arg) =>
             // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
             // of each namespace symbol, which might end up allocating in LOH
-            (s.IsNamespace() || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
+            !arg.overriddenSymbols.Contains(s) &&
+            (s is INamespaceSymbol || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
             !s.IsDestructor() &&
             s.IsEditorBrowsable(
                 arg.hideAdvancedMembers,
                 arg.editorBrowsableInfo.Compilation,
-                arg.editorBrowsableInfo),
-            (hideAdvancedMembers, editorBrowsableInfo));
-    }
+                arg.editorBrowsableInfo) &&
+            arg.inclusionFilter(s),
+            arg: (hideAdvancedMembers, editorBrowsableInfo, overriddenSymbols, inclusionFilter));
 
-    private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
-    {
-        var overriddenSymbols = new MetadataUnifyingSymbolHashSet();
-
-        foreach (var symbol in symbols)
-        {
-            var overriddenMember = symbol.GetOverriddenMember();
-            if (overriddenMember != null && !overriddenSymbols.Contains(overriddenMember))
-                overriddenSymbols.Add(overriddenMember);
-        }
-
-        return symbols.WhereAsArray(s => !overriddenSymbols.Contains(s));
+        return filteredSymbols;
     }
 
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(
         this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
     {
-        return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
-            .WhereAsArray(s => !s.RequiresUnsafeModifier());
+        return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation, static s => !s.RequiresUnsafeModifier());
     }
 }

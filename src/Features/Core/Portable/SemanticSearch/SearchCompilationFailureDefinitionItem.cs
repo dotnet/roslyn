@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
-internal sealed class SearchCompilationFailureDefinitionItem(QueryCompilationError error, Document queryDocument)
+internal sealed class SearchCompilationFailureDefinitionItem(QueryCompilationError error, Document? queryDocument)
     : DefinitionItem(
         tags:
         [
@@ -24,10 +24,7 @@ internal sealed class SearchCompilationFailureDefinitionItem(QueryCompilationErr
             new TaggedText(TextTags.Text, error.Message)
         ],
         nameDisplayParts: [],
-        sourceSpans:
-        [
-            new DocumentSpan(queryDocument, error.Span)
-        ],
+        sourceSpans: queryDocument != null ? [new DocumentSpan(queryDocument, error.Span)] : [],
         classifiedSpans: [],
         metadataLocations: [],
         properties: null,

@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
 
+        /// <summary>
+        /// Containing Symbols are not checked after this step - for performance reasons we can allow inaccurate locals
+        /// </summary>
+        protected override bool EnforceAccurateContainerForLocals => false;
+
         internal AsyncMethodToStateMachineRewriter(
             MethodSymbol method,
             int methodOrdinal,
@@ -342,6 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
+            Debug.Assert(node.AwaitableInfo.RuntimeAsyncAwaitCall is null);
             BoundStatement preamble = MakeAwaitPreamble();
 
             var expression = (BoundExpression)Visit(node.Expression);

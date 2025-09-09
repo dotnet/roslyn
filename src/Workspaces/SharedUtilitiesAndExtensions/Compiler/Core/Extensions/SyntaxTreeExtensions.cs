@@ -17,7 +17,9 @@ internal static partial class SyntaxTreeExtensions
 {
     public static bool OverlapsHiddenPosition([NotNullWhen(returnValue: true)] this SyntaxTree? tree, TextSpan span, CancellationToken cancellationToken)
     {
-        if (tree == null)
+        // Short-circuit if there are no line mappings to avoid potentially realizing the source text.
+        // All lines are visible if there are no line mappings.
+        if (tree == null || tree.GetLineMappings(cancellationToken).IsEmpty())
         {
             return false;
         }

@@ -6,17 +6,16 @@
 
 using System;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public class ConditionalWpfTheoryAttribute : WpfTheoryAttribute
 {
-    public class ConditionalWpfTheoryAttribute : WpfTheoryAttribute
+    public ConditionalWpfTheoryAttribute(Type skipCondition)
     {
-        public ConditionalWpfTheoryAttribute(Type skipCondition)
+        var condition = Activator.CreateInstance(skipCondition) as ExecutionCondition;
+        if (condition.ShouldSkip)
         {
-            var condition = Activator.CreateInstance(skipCondition) as ExecutionCondition;
-            if (condition.ShouldSkip)
-            {
-                Skip = condition.SkipReason;
-            }
+            Skip = condition.SkipReason;
         }
     }
 }

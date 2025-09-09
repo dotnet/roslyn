@@ -14,8 +14,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument>(TDocument do
     where TDocument : TextDocument
 {
     public TDocument Document { get; } = document;
-
-    public abstract bool IsLiveSource();
+    public Solution Solution => this.Document.Project.Solution;
 
     public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         RequestContext context, CancellationToken cancellationToken);
@@ -25,7 +24,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument>(TDocument do
 
     public TextDocumentIdentifier? GetDocumentIdentifier()
         => !string.IsNullOrEmpty(Document.FilePath)
-            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), Uri = Document.GetURI() }
+            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), DocumentUri = Document.GetURI() }
             : null;
 
     public string ToDisplayString() => $"{this.GetType().Name}: {Document.FilePath ?? Document.Name} in {Document.Project.Name}";

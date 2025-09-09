@@ -6,146 +6,113 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class ReferenceKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ReferenceKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact]
-        public async Task TestNotAfterHash()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    [Fact]
+    public Task TestNotAfterHash()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"#$$");
-        }
 
-        [Fact]
-        public async Task TestAfterHash_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestAfterHash_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"#$$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterHashAndSpace()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    [Fact]
+    public Task TestNotAfterHashAndSpace()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"# $$");
-        }
 
-        [Fact]
-        public async Task TestAfterHashAndSpace_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestAfterHashAndSpace_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"# $$");
-        }
 
-        [Fact]
-        public async Task TestNestedPreprocessor()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                #if true
-                    #$$
-                #endif
-                """);
-        }
-
-        [Fact]
-        public async Task TestBeforeUsing()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
+    [Fact]
+    public Task TestNestedPreprocessor()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            #if true
                 #$$
-                using System;
-                """);
-        }
+            #endif
+            """);
 
-        [Fact]
-        public async Task TestBeforeGlobalUsing()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                #$$
-                global using System;
-                """);
-        }
+    [Fact]
+    public Task TestBeforeUsing()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            #$$
+            using System;
+            """);
 
-        [Fact]
-        public async Task TestNotAfterUsing()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                using System;
-                #$$
-                """);
-        }
+    [Fact]
+    public Task TestBeforeGlobalUsing()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            #$$
+            global using System;
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalUsing()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                global using System;
-                #$$
-                """);
-        }
-    }
+    [Fact]
+    public Task TestNotAfterUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            using System;
+            #$$
+            """);
+
+    [Fact]
+    public Task TestNotAfterGlobalUsing()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            global using System;
+            #$$
+            """);
 }

@@ -6,11 +6,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -68,10 +68,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         isUnnecessary: true);
 
     protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
-        : base(
-            [
-                (s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
-            ])
+        : base([(s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)])
     {
     }
 
@@ -117,9 +114,9 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
         var expressionType = context.Compilation.ExpressionOfTType();
         context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
-                blockStartContext.RegisterSyntaxNodeAction(
-                    nodeContext => AnalyzeNode(nodeContext, ienumerableType, expressionType),
-                    matchKindsArray));
+            blockStartContext.RegisterSyntaxNodeAction(
+                nodeContext => AnalyzeNode(nodeContext, ienumerableType, expressionType),
+                matchKindsArray));
     }
 
     private void AnalyzeNode(
@@ -206,13 +203,13 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!preferInitializerOption.Value)
                 return null;
 
-            var (_, matches) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
+            var (_, matches, changesSemantics) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
 
             // If analysis failed, we can't change this, no matter what.
             if (matches.IsDefault)
                 return null;
 
-            return (matches, shouldUseCollectionExpression: false, changesSemantics: false);
+            return (matches, shouldUseCollectionExpression: false, changesSemantics);
         }
 
         (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
@@ -224,7 +221,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!this.AreCollectionExpressionsSupported(context.Compilation))
                 return null;
 
-            var (preMatches, postMatches) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
+            var (preMatches, postMatches, changesSemantics1) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
 
             // If analysis failed, we can't change this, no matter what.
             if (preMatches.IsDefault || postMatches.IsDefault)
@@ -232,10 +229,10 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
             // Check if it would actually be legal to use a collection expression here though.
             var allowSemanticsChange = preferExpressionOption.Value == CollectionExpressionPreference.WhenTypesLooselyMatch;
-            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, preMatches, allowSemanticsChange, cancellationToken, out var changesSemantics))
+            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, preMatches, allowSemanticsChange, cancellationToken, out var changesSemantics2))
                 return null;
 
-            return (preMatches.Concat(postMatches), shouldUseCollectionExpression: true, changesSemantics);
+            return ([.. preMatches, .. postMatches], shouldUseCollectionExpression: true, changesSemantics1 || changesSemantics2);
         }
     }
 

@@ -989,80 +989,54 @@ public struct S1
     public int P1 { get; set; }
 }";
             string expectedGraph = @"
+
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1} {R2}
+        Entering: {R1}
 .locals {R1}
 {
     CaptureIds: [0]
-    .locals {R2}
-    {
-        CaptureIds: [1]
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-                  Value:
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: S1?, IsInvalid) (Syntax: 'x')
-            Jump if True (Regular) to Block[B3]
-                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
-                  Operand:
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
-                Leaving: {R2}
-            Next (Regular) Block[B2]
-        Block[B2] - Block
-            Predecessors: [B1]
-            Statements (1)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
-                  Value:
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.P1')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (ImplicitNullable)
-                      Operand:
-                        IPropertyReferenceOperation: System.Int32 S1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
-                          Instance Receiver:
-                            IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                              Instance Receiver:
-                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
-                              Arguments(0)
-            Next (Regular) Block[B4]
-                Leaving: {R2}
-    }
-    Block[B3] - Block
-        Predecessors: [B1]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
               Value:
-                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x')
-        Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B2] [B3]
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: S1?) (Syntax: 'x')
+        Jump if True (Regular) to Block[B3]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+              Operand:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1?, IsImplicit) (Syntax: 'x')
+            Leaving: {R1}
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x?.P1 = 0;')
               Expression:
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsInvalid) (Syntax: 'x?.P1 = 0')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.P1 = 0')
                   Left:
-                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.P1')
                       Children(1):
-                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                          IPropertyReferenceOperation: System.Int32 S1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
+                            Instance Receiver:
+                              IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsImplicit) (Syntax: 'x')
+                                Instance Receiver:
+                                  IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1?, IsImplicit) (Syntax: 'x')
+                                Arguments(0)
                   Right:
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '0')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (ImplicitNullable)
-                      Operand:
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Next (Regular) Block[B5]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Next (Regular) Block[B3]
             Leaving: {R1}
 }
-Block[B5] - Exit
-    Predecessors: [B4]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // (6,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         x?.P1 = 0;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x?.P1").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, ".P1").WithLocation(6, 11)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
@@ -1089,77 +1063,50 @@ public struct S1
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1} {R2}
+        Entering: {R1}
 .locals {R1}
 {
     CaptureIds: [0]
-    .locals {R2}
-    {
-        CaptureIds: [1]
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-                  Value:
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: S1?, IsInvalid) (Syntax: 'x')
-            Jump if True (Regular) to Block[B3]
-                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
-                  Operand:
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
-                Leaving: {R2}
-            Next (Regular) Block[B2]
-        Block[B2] - Block
-            Predecessors: [B1]
-            Statements (1)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
-                  Value:
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.P1')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (ImplicitNullable)
-                      Operand:
-                        IFieldReferenceOperation: System.Int32 S1.P1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
-                          Instance Receiver:
-                            IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                              Instance Receiver:
-                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
-                              Arguments(0)
-            Next (Regular) Block[B4]
-                Leaving: {R2}
-    }
-    Block[B3] - Block
-        Predecessors: [B1]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
               Value:
-                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x')
-        Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B2] [B3]
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: S1?) (Syntax: 'x')
+        Jump if True (Regular) to Block[B3]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+              Operand:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1?, IsImplicit) (Syntax: 'x')
+            Leaving: {R1}
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x?.P1 = 0;')
               Expression:
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsInvalid) (Syntax: 'x?.P1 = 0')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.P1 = 0')
                   Left:
-                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '.P1')
                       Children(1):
-                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                          IFieldReferenceOperation: System.Int32 S1.P1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
+                            Instance Receiver:
+                              IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsImplicit) (Syntax: 'x')
+                                Instance Receiver:
+                                  IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1?, IsImplicit) (Syntax: 'x')
+                                Arguments(0)
                   Right:
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '0')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (ImplicitNullable)
-                      Operand:
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Next (Regular) Block[B5]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Next (Regular) Block[B3]
             Leaving: {R1}
 }
-Block[B5] - Exit
-    Predecessors: [B4]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // (6,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         x?.P1 = 0;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x?.P1").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, ".P1").WithLocation(6, 11)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);

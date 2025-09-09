@@ -25,7 +25,7 @@ internal static partial class SyntaxGeneratorExtensions
         return CodeGenerationSymbolFactory.CreateConstructorSymbol(
             attributes: default,
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             typeName: typeName,
             parameters: constructor.Parameters,
             statements: default,
@@ -77,7 +77,8 @@ internal static partial class SyntaxGeneratorExtensions
         {
             // Call accessors directly if C# overriding VB
             if (document.Project.Language == LanguageNames.CSharp
-                && SymbolFinder.FindSourceDefinition(overriddenProperty, document.Project.Solution, cancellationToken) is { Language: LanguageNames.VisualBasic })
+                && (await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false))
+                        is { Language: LanguageNames.VisualBasic })
             {
                 var getName = overriddenProperty.GetMethod?.Name;
                 var setName = overriddenProperty.SetMethod?.Name;
@@ -236,8 +237,9 @@ internal static partial class SyntaxGeneratorExtensions
         // Required is not a valid modifier for methods, so clear it if the user typed it
         modifiers = modifiers.WithIsRequired(false);
 
-        // Abstract: Throw not implemented
-        if (overriddenMethod.IsAbstract)
+        // Abstract method: Throw not implemented
+        // Same for operators (they cannot call the base operator).
+        if (overriddenMethod.IsAbstract || overriddenMethod.MethodKind == MethodKind.UserDefinedOperator)
         {
             var compilation = await newDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var statement = codeFactory.CreateThrowNotImplementedStatement(compilation);

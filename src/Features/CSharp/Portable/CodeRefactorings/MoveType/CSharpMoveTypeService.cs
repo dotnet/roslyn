@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveType;
 internal sealed class CSharpMoveTypeService() :
     AbstractMoveTypeService<CSharpMoveTypeService, BaseTypeDeclarationSyntax, BaseNamespaceDeclarationSyntax, CompilationUnitSyntax>
 {
+    protected override (string name, int arity) GetSymbolNameAndArity(BaseTypeDeclarationSyntax syntax)
+        => (syntax.Identifier.ValueText, syntax is TypeDeclarationSyntax { TypeParameterList.Parameters.Count: var arity } ? arity : 0);
+
     protected override bool IsMemberDeclaration(SyntaxNode syntaxNode)
         => syntaxNode is MemberDeclarationSyntax;
 

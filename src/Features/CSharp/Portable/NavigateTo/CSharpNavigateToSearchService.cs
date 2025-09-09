@@ -12,6 +12,4 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigateTo;
 [ExportLanguageService(typeof(INavigateToSearchService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpNavigateToSearchService() : AbstractNavigateToSearchService
-{
-}
+internal sealed class CSharpNavigateToSearchService() : AbstractNavigateToSearchService;

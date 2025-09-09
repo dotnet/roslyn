@@ -13,87 +13,86 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+
+internal partial class OptionPreviewControl : AbstractOptionPageControl
 {
-    internal partial class OptionPreviewControl : AbstractOptionPageControl
+    internal AbstractOptionPreviewViewModel ViewModel;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
+
+    internal OptionPreviewControl(IServiceProvider serviceProvider, OptionStore optionStore, Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> createViewModel) : base(optionStore)
     {
-        internal AbstractOptionPreviewViewModel ViewModel;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
+        InitializeComponent();
 
-        internal OptionPreviewControl(IServiceProvider serviceProvider, OptionStore optionStore, Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> createViewModel) : base(optionStore)
+        // AutomationDelegatingListView is defined in ServicesVisualStudio, which has
+        // InternalsVisibleTo this project. But, the markup compiler doesn't consider the IVT 
+        // relationship, so declaring the AutomationDelegatingListView in XAML would require 
+        // duplicating that type in this project. Declaring and setting it here avoids the 
+        // markup compiler completely, allowing us to reference the internal 
+        // AutomationDelegatingListView without issue.
+        var listview = new AutomationDelegatingListView();
+        listview.Name = "Options";
+        listview.SelectionMode = SelectionMode.Single;
+        listview.PreviewKeyDown += Options_PreviewKeyDown;
+        listview.SelectionChanged += Options_SelectionChanged;
+        listview.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Path = new PropertyPath(nameof(ViewModel.Items)) });
+        AutomationProperties.SetName(listview, ServicesVSResources.Options);
+
+        listViewContentControl.Content = listview;
+
+        _serviceProvider = serviceProvider;
+        _createViewModel = createViewModel;
+    }
+
+    private void Options_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var listView = (AutomationDelegatingListView)sender;
+        if (listView.SelectedItem is AbstractCheckBoxViewModel checkbox)
         {
-            InitializeComponent();
-
-            // AutomationDelegatingListView is defined in ServicesVisualStudio, which has
-            // InternalsVisibleTo this project. But, the markup compiler doesn't consider the IVT 
-            // relationship, so declaring the AutomationDelegatingListView in XAML would require 
-            // duplicating that type in this project. Declaring and setting it here avoids the 
-            // markup compiler completely, allowing us to reference the internal 
-            // AutomationDelegatingListView without issue.
-            var listview = new AutomationDelegatingListView();
-            listview.Name = "Options";
-            listview.SelectionMode = SelectionMode.Single;
-            listview.PreviewKeyDown += Options_PreviewKeyDown;
-            listview.SelectionChanged += Options_SelectionChanged;
-            listview.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Path = new PropertyPath(nameof(ViewModel.Items)) });
-            AutomationProperties.SetName(listview, ServicesVSResources.Options);
-
-            listViewContentControl.Content = listview;
-
-            _serviceProvider = serviceProvider;
-            _createViewModel = createViewModel;
+            ViewModel.UpdatePreview(checkbox.GetPreview());
         }
 
-        private void Options_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
+        {
+            ViewModel.UpdatePreview(radioButton.Preview);
+        }
+    }
+
+    private void Options_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
         {
             var listView = (AutomationDelegatingListView)sender;
-            if (listView.SelectedItem is AbstractCheckBoxViewModel checkbox)
+            if (listView.SelectedItem is AbstractCheckBoxViewModel checkBox)
             {
-                ViewModel.UpdatePreview(checkbox.GetPreview());
+                checkBox.IsChecked = !checkBox.IsChecked;
+                e.Handled = true;
             }
 
             if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
             {
-                ViewModel.UpdatePreview(radioButton.Preview);
+                radioButton.IsChecked = true;
+                e.Handled = true;
             }
         }
+    }
 
-        private void Options_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
-            {
-                var listView = (AutomationDelegatingListView)sender;
-                if (listView.SelectedItem is AbstractCheckBoxViewModel checkBox)
-                {
-                    checkBox.IsChecked = !checkBox.IsChecked;
-                    e.Handled = true;
-                }
+    internal override void OnLoad()
+    {
+        this.ViewModel = _createViewModel(this.OptionStore, _serviceProvider);
 
-                if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
-                {
-                    radioButton.IsChecked = true;
-                    e.Handled = true;
-                }
-            }
-        }
+        // Use the first item's preview.
+        var firstItem = this.ViewModel.Items.OfType<CheckBoxOptionViewModel>().First();
+        this.ViewModel.SetOptionAndUpdatePreview(firstItem.IsChecked, firstItem.Option, firstItem.GetPreview());
 
-        internal override void OnLoad()
-        {
-            this.ViewModel = _createViewModel(this.OptionStore, _serviceProvider);
+        DataContext = ViewModel;
+    }
 
-            // Use the first item's preview.
-            var firstItem = this.ViewModel.Items.OfType<CheckBoxOptionViewModel>().First();
-            this.ViewModel.SetOptionAndUpdatePreview(firstItem.IsChecked, firstItem.Option, firstItem.GetPreview());
+    internal override void Close()
+    {
+        base.Close();
 
-            DataContext = ViewModel;
-        }
-
-        internal override void Close()
-        {
-            base.Close();
-
-            this.ViewModel?.Dispose();
-        }
+        this.ViewModel?.Dispose();
     }
 }

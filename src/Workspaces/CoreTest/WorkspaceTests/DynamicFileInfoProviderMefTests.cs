@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
@@ -12,42 +10,37 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+[UseExportProvider]
+public sealed class DynamicFileInfoProviderMefTests : TestBase
 {
-    [UseExportProvider]
-    public class DynamicFileInfoProviderMefTests : TestBase
+    [Fact]
+    public void TestFileExtensionsMetadata()
     {
-        [Fact]
-        public void TestFileExtensionsMetadata()
-        {
-            var lazy = GetDynamicFileInfoProvider();
+        var lazy = GetDynamicFileInfoProvider();
 
-            Assert.Equal(2, lazy.Metadata.Extensions.Count());
-            AssertEx.SetEqual(["cshtml", "vbhtml"], lazy.Metadata.Extensions);
-        }
+        Assert.Equal(2, lazy.Metadata.Extensions.Count());
+        AssertEx.SetEqual(["cshtml", "vbhtml"], lazy.Metadata.Extensions);
+    }
 
-        [Fact]
-        public void TestInvalidArgument1()
+    [Fact]
+    public void TestInvalidArgument1()
+        => Assert.Throws<ArgumentException>(() =>
         {
-            Assert.Throws<ArgumentException>(() =>
-            {
-                new ExportDynamicFileInfoProviderAttribute();
-            });
-        }
+            new ExportDynamicFileInfoProviderAttribute();
+        });
 
-        [Fact]
-        public void TestInvalidArgument2()
+    [Fact]
+    public void TestInvalidArgument2()
+        => Assert.Throws<ArgumentException>(() =>
         {
-            Assert.Throws<ArgumentException>(() =>
-            {
-                new FileExtensionsMetadata();
-            });
-        }
+            new FileExtensionsMetadata();
+        });
 
-        internal static Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata> GetDynamicFileInfoProvider()
-        {
-            var composition = TestComposition.Empty.AddParts(typeof(TestDynamicFileInfoProviderThatProducesNoFiles));
-            return composition.ExportProviderFactory.CreateExportProvider().GetExport<IDynamicFileInfoProvider, FileExtensionsMetadata>();
-        }
+    internal static Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata> GetDynamicFileInfoProvider()
+    {
+        var composition = TestComposition.Empty.AddParts(typeof(TestDynamicFileInfoProviderThatProducesNoFiles));
+        return composition.ExportProviderFactory.CreateExportProvider().GetExport<IDynamicFileInfoProvider, FileExtensionsMetadata>();
     }
 }

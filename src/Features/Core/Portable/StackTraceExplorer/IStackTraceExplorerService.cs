@@ -16,7 +16,7 @@ internal interface IStackTraceExplorerService : IWorkspaceService
     /// in a solution. Looks for an exact filepath match first, then defaults to 
     /// a best guess.
     /// </summary>
-    (Document? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame);
+    (TextDocument? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame);
     Task<DefinitionItem?> TryFindDefinitionAsync(Solution solution, ParsedFrame frame, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken);
 }
 

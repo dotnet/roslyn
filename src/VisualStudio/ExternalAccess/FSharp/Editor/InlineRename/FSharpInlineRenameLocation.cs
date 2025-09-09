@@ -6,17 +6,16 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
-{
-    internal readonly struct FSharpInlineRenameLocation
-    {
-        public Document Document { get; }
-        public TextSpan TextSpan { get; }
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 
-        public FSharpInlineRenameLocation(Document document, TextSpan textSpan)
-        {
-            this.Document = document;
-            this.TextSpan = textSpan;
-        }
+internal readonly struct FSharpInlineRenameLocation
+{
+    public Document Document { get; }
+    public TextSpan TextSpan { get; }
+
+    public FSharpInlineRenameLocation(Document document, TextSpan textSpan)
+    {
+        this.Document = document;
+        this.TextSpan = textSpan;
     }
 }

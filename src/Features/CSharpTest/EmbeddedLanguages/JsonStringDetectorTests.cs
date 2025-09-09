@@ -16,12 +16,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpJsonDetectionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
-public class JsonStringDetectorTests
+public sealed class JsonStringDetectorTests
 {
     [Fact]
-    public async Task TestStrict()
-    {
-        await new VerifyCS.Test
+    public Task TestStrict()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -44,12 +43,10 @@ public class JsonStringDetectorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNonStrict()
-    {
-        await new VerifyCS.Test
+    public Task TestNonStrict()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -72,12 +69,10 @@ public class JsonStringDetectorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNonStrictRawString()
-    {
-        await new VerifyCS.Test
+    public Task TestNonStrictRawString()
+        => new VerifyCS.Test
         {
             TestCode =
             """"
@@ -101,12 +96,12 @@ public class JsonStringDetectorTests
             """",
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithExistingComment()
-    {
-        var code = """
+    public Task TestNotWithExistingComment()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void Goo()
@@ -114,17 +109,14 @@ public class JsonStringDetectorTests
                     var j = /*lang=json,strict*/ "{ \"a\": 0 }";
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnUnlikelyJson()
-    {
-        var code = """
+    public Task TestNotOnUnlikelyJson()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void Goo()
@@ -132,10 +124,6 @@ public class JsonStringDetectorTests
                     var j = "[1, 2, 3]";
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
         }.RunAsync();
-    }
 }

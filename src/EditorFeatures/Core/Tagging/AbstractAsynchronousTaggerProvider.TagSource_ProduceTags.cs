@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
@@ -134,12 +135,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                                 snapshot,
                                 @this._dataSource.SpanTrackingMode,
                                 allTagsList);
-                            return ValueTaskFactory.FromResult((oldTagTrees.SetItem(buffer, newTagTree), default(VoidResult)));
+                            return ValueTask.FromResult((oldTagTrees.SetItem(buffer, newTagTree), default(VoidResult)));
                         }
                     }
 
                     // return oldTagTrees to indicate nothing changed.
-                    return ValueTaskFactory.FromResult((oldTagTrees, default(VoidResult)));
+                    return ValueTask.FromResult((oldTagTrees, default(VoidResult)));
                 },
                 args: (this, e, tagsToRemove, allTagsList, allTagsSet),
                 _disposalTokenSource.Token).VerifyCompleted();

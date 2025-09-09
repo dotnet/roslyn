@@ -9,9 +9,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Humanizer;
 #endif
 
@@ -90,15 +91,6 @@ internal static partial class SemanticModelExtensions
     public static INamespaceSymbol? GetEnclosingNamespace(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         => semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
 
-    public static IEnumerable<ISymbol> GetExistingSymbols(
-        this SemanticModel semanticModel, SyntaxNode? container, CancellationToken cancellationToken, Func<SyntaxNode, bool>? descendInto = null)
-    {
-        // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
-        // matches the name of the local we're introducing.
-        return semanticModel.GetAllDeclaredSymbols(container, cancellationToken, descendInto)
-            .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
-    }
-
     public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)
     {
         if (!semanticModel.IsSpeculativeSemanticModel)
@@ -113,40 +105,35 @@ internal static partial class SemanticModelExtensions
     }
 
     public static HashSet<ISymbol> GetAllDeclaredSymbols(
-       this SemanticModel semanticModel, SyntaxNode? container, CancellationToken cancellationToken, Func<SyntaxNode, bool>? filter = null)
+       this SemanticModel semanticModel, SyntaxNode? container, CancellationToken cancellationToken, Func<SyntaxNode, bool>? descendInto = null)
     {
         var symbols = new HashSet<ISymbol>();
-        if (container != null)
+
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.AddIfNotNull(container);
+
+        while (stack.TryPop(out var current))
         {
-            GetAllDeclaredSymbols(semanticModel, container, symbols, cancellationToken, filter);
+            var symbol = semanticModel.GetDeclaredSymbol(current, cancellationToken);
+
+            // Ignore an anonymous type property or tuple field.  While they are the declaration of a symbol, they are
+            // not actually introducing a symbol into the container scope (which is what all callers are asking about).
+            if (symbol != null && !symbol.IsAnonymousTypeProperty() && !symbol.IsTupleField())
+                symbols.Add(symbol);
+
+            foreach (var child in current.ChildNodesAndTokens())
+            {
+                if (child.AsNode(out var childNode) &&
+                    descendInto?.Invoke(childNode) != false)
+                {
+                    stack.Push(childNode);
+                }
+            }
         }
 
         return symbols;
     }
 
-    private static void GetAllDeclaredSymbols(
-        SemanticModel semanticModel, SyntaxNode node,
-        HashSet<ISymbol> symbols, CancellationToken cancellationToken, Func<SyntaxNode, bool>? descendInto = null)
-    {
-        var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-
-        if (symbol != null)
-        {
-            symbols.Add(symbol);
-        }
-
-        foreach (var child in node.ChildNodesAndTokens())
-        {
-            if (child.AsNode(out var childNode) &&
-                ShouldDescendInto(childNode, descendInto))
-            {
-                GetAllDeclaredSymbols(semanticModel, childNode, symbols, cancellationToken, descendInto);
-            }
-        }
-
-        static bool ShouldDescendInto(SyntaxNode node, Func<SyntaxNode, bool>? filter)
-            => filter != null ? filter(node) : true;
-    }
     public static string GenerateNameFromType(this SemanticModel semanticModel, ITypeSymbol type, ISyntaxFacts syntaxFacts, bool capitalize)
     {
         var pluralize = semanticModel.ShouldPluralize(type);
@@ -217,7 +204,7 @@ internal static partial class SemanticModelExtensions
 
     public static string Pluralize(string word)
     {
-#if CODE_STYLE
+#if !WORKSPACE
         return word;
 #else
         return word.Pluralize();

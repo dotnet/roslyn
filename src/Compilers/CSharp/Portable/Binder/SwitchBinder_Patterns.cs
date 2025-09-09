@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: node,
                 expression: boundSwitchGoverningExpression,
                 innerLocals: locals,
-                innerLocalFunctions: functions,
+                innerLocalFunctions: ImmutableArray<MethodSymbol>.CastUp(functions),
                 switchSections: switchSections,
                 defaultLabel: defaultLabel,
                 breakLabel: this.BreakLabel,

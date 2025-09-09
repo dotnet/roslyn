@@ -16,168 +16,167 @@ using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
+
+[UseExportProvider]
+public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTests
 {
-    [UseExportProvider]
-    public class LanguageServerTargetTests : AbstractLanguageServerProtocolTests
+    public LanguageServerTargetTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        public LanguageServerTargetTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    }
+
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(StatefulLspServiceFactory), typeof(StatelessLspService));
+
+    [Theory, CombinatorialData]
+    public async Task LanguageServerQueueEmptyOnShutdownMessage(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+        AssertServerAlive(server);
+
+        await server.ShutdownTestServerAsync();
+        await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
+        Assert.False(server.GetServerAccessor().GetServerRpc().IsDisposed);
+        await server.ExitTestServerAsync();
+    }
+
+    [Theory, CombinatorialData]
+    public async Task LanguageServerCleansUpOnExitMessage(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+        AssertServerAlive(server);
+
+        await server.ShutdownTestServerAsync();
+        await server.ExitTestServerAsync();
+        await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
+        Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+        AssertServerAlive(server);
+
+        server.GetServerAccessor().GetServerRpc().Dispose();
+        await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
+        Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task LanguageServerHasSeparateServiceInstances(bool mutatingLspWorkspace)
+    {
+        await using var serverOne = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+        await using var serverTwo = await CreateTestLspServerAsync(serverOne.TestWorkspace, initializationOptions: default, LanguageNames.CSharp);
+
+        // Get an LSP service and verify each server has its own instance per server.
+        Assert.NotSame(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
+        Assert.Same(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverOne.GetRequiredLspService<LspWorkspaceManager>());
+        Assert.Same(serverTwo.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
+
+        // Get a stateless request handler and verify each server has the same instance.
+        Assert.Same(serverOne.GetRequiredLspService<DidOpenHandler>(), serverTwo.GetRequiredLspService<DidOpenHandler>());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task LanguageServerSucceedsAfterInitializedCalled(bool mutatingLspWorkspace)
+    {
+        // Arrange
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var initializedParams = new InitializedParams();
+
+        await server.ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, initializedParams, CancellationToken.None);
+
+        // Act & Assert
+        var didOpenParams = new DidOpenTextDocumentParams
         {
-        }
-
-        protected override TestComposition Composition => base.Composition.AddParts(typeof(StatefulLspServiceFactory), typeof(StatelessLspService));
-
-        [Theory, CombinatorialData]
-        public async Task LanguageServerQueueEmptyOnShutdownMessage(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-            AssertServerAlive(server);
-
-            await server.ShutdownTestServerAsync();
-            await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
-            Assert.False(server.GetServerAccessor().GetServerRpc().IsDisposed);
-            await server.ExitTestServerAsync();
-        }
-
-        [Theory, CombinatorialData]
-        public async Task LanguageServerCleansUpOnExitMessage(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-            AssertServerAlive(server);
-
-            await server.ShutdownTestServerAsync();
-            await server.ExitTestServerAsync();
-            await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
-            Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-            AssertServerAlive(server);
-
-            server.GetServerAccessor().GetServerRpc().Dispose();
-            await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
-            Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task LanguageServerHasSeparateServiceInstances(bool mutatingLspWorkspace)
-        {
-            await using var serverOne = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-            await using var serverTwo = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            // Get an LSP service and verify each server has its own instance per server.
-            Assert.NotSame(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
-            Assert.Same(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverOne.GetRequiredLspService<LspWorkspaceManager>());
-            Assert.Same(serverTwo.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
-
-            // Get a stateless request handler and verify each server has the same instance.
-            Assert.Same(serverOne.GetRequiredLspService<DidOpenHandler>(), serverTwo.GetRequiredLspService<DidOpenHandler>());
-        }
-
-        [Theory, CombinatorialData]
-        public async Task LanguageServerSucceedsAfterInitializedCalled(bool mutatingLspWorkspace)
-        {
-            // Arrange
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            var initializedParams = new InitializedParams();
-
-            await server.ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, initializedParams, CancellationToken.None);
-
-            // Act & Assert
-            var didOpenParams = new DidOpenTextDocumentParams
+            TextDocument = new TextDocumentItem
             {
-                TextDocument = new TextDocumentItem
-                {
-                    Text = "sometext",
-                    Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\location\file.json"),
-                }
-            };
-
-            // We just want this to not throw.
-            await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
-        }
-
-        [Theory(Skip = "https://github.com/dotnet/razor/issues/8311"), CombinatorialData]
-        public async Task LanguageServerRejectsRequestsBeforeInitialized(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, new InitializationOptions { CallInitialized = false });
-
-            var didOpenParams = new DidOpenTextDocumentParams
-            {
-                TextDocument = new TextDocumentItem
-                {
-                    Text = "sometext",
-                    Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\location\file.json"),
-                }
-            };
-            var ex = await Assert.ThrowsAsync<RemoteInvocationException>(async () => await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None));
-            Assert.Equal("'initialized' has not been called.", ex.Message);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task LanguageServerDisposesOfServicesOnShutdown(bool mutatingLspWorkspace)
-        {
-            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-
-            var statefulService = server.GetRequiredLspService<StatefulLspService>();
-            var statelessService = server.GetRequiredLspService<StatelessLspService>();
-
-            Assert.False(statefulService.IsDisposed);
-            Assert.False(statelessService.IsDisposed);
-
-            await server.ShutdownTestServerAsync();
-            await server.ExitTestServerAsync();
-
-            // Only the stateful service should be disposed of on server shutdown.
-            Assert.True(statefulService.IsDisposed);
-            Assert.False(statelessService.IsDisposed);
-        }
-
-        private static void AssertServerAlive(TestLspServer server)
-        {
-            Assert.False(server.GetServerAccessor().HasShutdownStarted());
-            Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
-        }
-
-        [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]
-        internal class StatefulLspServiceFactory : ILspServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public StatefulLspServiceFactory()
-            {
+                Text = "sometext",
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\location\file.json"),
             }
+        };
 
-            public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new StatefulLspService();
+        // We just want this to not throw.
+        await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
+    }
+
+    [Theory(Skip = "https://github.com/dotnet/razor/issues/8311"), CombinatorialData]
+    public async Task LanguageServerRejectsRequestsBeforeInitialized(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, new InitializationOptions { CallInitialized = false });
+
+        var didOpenParams = new DidOpenTextDocumentParams
+        {
+            TextDocument = new TextDocumentItem
+            {
+                Text = "sometext",
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\location\file.json"),
+            }
+        };
+        var ex = await Assert.ThrowsAsync<RemoteInvocationException>(async () => await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None));
+        Assert.Equal("'initialized' has not been called.", ex.Message);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task LanguageServerDisposesOfServicesOnShutdown(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var statefulService = server.GetRequiredLspService<StatefulLspService>();
+        var statelessService = server.GetRequiredLspService<StatelessLspService>();
+
+        Assert.False(statefulService.IsDisposed);
+        Assert.False(statelessService.IsDisposed);
+
+        await server.ShutdownTestServerAsync();
+        await server.ExitTestServerAsync();
+
+        // Only the stateful service should be disposed of on server shutdown.
+        Assert.True(statefulService.IsDisposed);
+        Assert.False(statelessService.IsDisposed);
+    }
+
+    private static void AssertServerAlive(TestLspServer server)
+    {
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
+    }
+
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]
+    internal sealed class StatefulLspServiceFactory : ILspServiceFactory
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public StatefulLspServiceFactory()
+        {
         }
 
-        internal class StatefulLspService : ILspService, IDisposable
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new StatefulLspService();
+    }
+
+    internal sealed class StatefulLspService : ILspService, IDisposable
+    {
+        public bool IsDisposed { get; private set; } = false;
+        public void Dispose()
         {
-            public bool IsDisposed { get; private set; } = false;
-            public void Dispose()
-            {
-                IsDisposed = true;
-            }
+            IsDisposed = true;
+        }
+    }
+
+    [ExportCSharpVisualBasicStatelessLspService(typeof(StatelessLspService)), Shared]
+    internal sealed class StatelessLspService : ILspService, IDisposable
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public StatelessLspService()
+        {
         }
 
-        [ExportCSharpVisualBasicStatelessLspService(typeof(StatelessLspService)), Shared]
-        internal class StatelessLspService : ILspService, IDisposable
+        public bool IsDisposed { get; private set; } = false;
+        public void Dispose()
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public StatelessLspService()
-            {
-            }
-
-            public bool IsDisposed { get; private set; } = false;
-            public void Dispose()
-            {
-                IsDisposed = true;
-            }
+            IsDisposed = true;
         }
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 
-internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChanged
+internal sealed class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChanged
 {
     public static NewTypeDestinationSelectionViewModel Default = new(
         defaultName: string.Empty,

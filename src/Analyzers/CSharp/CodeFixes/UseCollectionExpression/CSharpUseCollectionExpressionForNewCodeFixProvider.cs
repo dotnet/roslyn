@@ -23,6 +23,7 @@ using static SyntaxFactory;
 using static UseCollectionExpressionHelpers;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForNew), Shared]
+[ExtensionOrder(Before = PredefinedCodeFixProviderNames.UseImplicitObjectCreation)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class CSharpUseCollectionExpressionForNewCodeFixProvider()

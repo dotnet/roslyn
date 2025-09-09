@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
-public class CollectionExtensionsTest
+public sealed class CollectionExtensionsTest
 {
     [Fact]
     public void PushReverse1()
@@ -21,7 +21,7 @@ public class CollectionExtensionsTest
         Assert.Equal(1, stack.Pop());
         Assert.Equal(2, stack.Pop());
         Assert.Equal(3, stack.Pop());
-        Assert.Equal(0, stack.Count);
+        Assert.Empty(stack);
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class CollectionExtensionsTest
     {
         var stack = new Stack<int>();
         stack.PushReverse(Array.Empty<int>());
-        Assert.Equal(0, stack.Count);
+        Assert.Empty(stack);
     }
 
     [Fact]
@@ -41,6 +41,6 @@ public class CollectionExtensionsTest
         Assert.Equal(1, stack.Pop());
         Assert.Equal(2, stack.Pop());
         Assert.Equal(3, stack.Pop());
-        Assert.Equal(0, stack.Count);
+        Assert.Empty(stack);
     }
 }

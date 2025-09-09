@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         Public Class FlowAnalysis
 
             <Fact>
-            Public Async Function TestExitSub() As Threading.Tasks.Task
+            Public Async Function TestExitSub() As Task
                 Dim code = <text>Class Test
     Sub Test()
         [|Exit Sub|]
@@ -26,7 +26,7 @@ End Class</text>
             End Function
 
             <Fact>
-            Public Async Function TestExitFunction() As Threading.Tasks.Task
+            Public Async Function TestExitFunction() As Task
                 Dim code = <text>Class Test
     Function Test1() As Integer
         Console.Write(42)
@@ -271,7 +271,7 @@ End Class</text>
             End Function
 
             <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")>
-            Public Async Function BugFix6313_2() As Threading.Tasks.Task
+            Public Async Function BugFix6313_2() As Task
                 Dim code = <text>Imports System
 
 Class A

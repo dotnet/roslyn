@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
@@ -56,7 +54,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
 
     public async ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
         Solution solution,
-        IImmutableSet<ProjectId> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -74,40 +72,14 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
                 callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : new EmitSolutionUpdateResults.Data()
-            {
-                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                Diagnostics = [],
-                RudeEdits = [],
-                SyntaxError = null,
-                ProjectsToRebuild = [],
-                ProjectsToRestart = [],
-            };
+            return result.HasValue
+                ? result.Value
+                : EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, errorMessage: "Unexpected RPC failure", runningProjects); // user friendly error already reported by OOP infra
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
-            return new EmitSolutionUpdateResults.Data()
-            {
-                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                Diagnostics = GetInternalErrorDiagnosticData(solution, e),
-                RudeEdits = [],
-                SyntaxError = null,
-                ProjectsToRebuild = [],
-                ProjectsToRestart = [],
-            };
+            return EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjects);
         }
-    }
-
-    private static ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(Solution solution, Exception e)
-    {
-        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-        var diagnostic = Diagnostic.Create(
-            descriptor,
-            Location.None,
-            string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
-
-        return [DiagnosticData.Create(solution, diagnostic, project: null)];
     }
 
     public async ValueTask CommitSolutionUpdateAsync(CancellationToken cancellationToken)
@@ -137,22 +109,6 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
         await client.TryInvokeAsync<IRemoteEditAndContinueService>(
             (service, cancellationToken) => service.DiscardSolutionUpdateAsync(sessionId, cancellationToken),
             cancellationToken).ConfigureAwait(false);
-    }
-
-    public async ValueTask UpdateBaselinesAsync(Solution solution, ImmutableArray<ProjectId> rebuiltProjects, CancellationToken cancellationToken)
-    {
-        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
-        if (client == null)
-        {
-            GetLocalService().UpdateBaselines(sessionId, solution, rebuiltProjects);
-        }
-        else
-        {
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService>(
-                solution,
-                (service, solutionInfo, cancellationToken) => service.UpdateBaselinesAsync(solutionInfo, sessionId, rebuiltProjects, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
     }
 
     public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)

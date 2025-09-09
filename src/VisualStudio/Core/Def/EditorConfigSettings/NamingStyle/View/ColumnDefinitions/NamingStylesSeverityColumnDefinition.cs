@@ -19,7 +19,7 @@ using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Severity)]
-internal class NamingStylesSeverityColumnDefinition : TableColumnDefinitionBase
+internal sealed class NamingStylesSeverityColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

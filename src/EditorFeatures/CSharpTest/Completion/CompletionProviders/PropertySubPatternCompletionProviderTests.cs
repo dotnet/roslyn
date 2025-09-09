@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(PropertySubpatternCompletionProvider);
@@ -103,10 +103,8 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
     }
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_WriteOnlyProperties()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_WriteOnlyProperties()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 public int P1 { set => throw null; }
@@ -116,9 +114,7 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                     _ = this is Program { $$ }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
     public async Task PropertiesInRecursivePattern_WithDerivedType()
@@ -165,10 +161,8 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
     }
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_WithDerivedType_WithInaccessibleMembers()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_WithDerivedType_WithInaccessibleMembers()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 void M()
@@ -181,15 +175,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                 private int P1 { get; set; }
                 private int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_WithDerivedType_WithPrivateMember()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_WithDerivedType_WithPrivateMember()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 private int P1 { get; set; }
@@ -202,9 +192,7 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
             {
                 private int P2 { get; set; }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
-    }
+            """, "P1", displayTextSuffix: "");
 
     [Fact]
     public async Task PropertiesInRecursivePattern_UseStaticTypeFromIs()
@@ -377,10 +365,8 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
     }
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_Nested_WithMissingProperty()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_Nested_WithMissingProperty()
+        => VerifyNoItemsExistAsync("""
             public class Nested
             {
                 public int P3 { get; set; }
@@ -396,15 +382,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                      _ = this is Program { : { $$ } }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_NoType()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_NoType()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 public int P1 { get; set; }
@@ -415,15 +397,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                     _ = missing is { $$ }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_MissingAfterColon()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_MissingAfterColon()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 public int P1 { get; set; }
@@ -434,9 +412,7 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                     _ = this is { P1: $$ }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
     public async Task PropertiesInRecursivePattern_SecondProperty()
@@ -460,10 +436,8 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
     }
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_PositionalInFirstProperty()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_PositionalInFirstProperty()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 public D P1 { get; set; }
@@ -477,15 +451,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
             {
                 public int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 public D P1 { get; set; }
@@ -499,15 +469,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
             {
                 public int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterCommaAndBeforeParen()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterCommaAndBeforeParen()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 public D P1 { get; set; }
@@ -521,15 +487,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
             {
                 public int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_InPositional_Incomplete()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_InPositional_Incomplete()
+        => VerifyItemExistsAsync("""
             public class Program
             {
                 public int P1 { get; set; }
@@ -541,15 +503,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
 
                 public void Deconstruct(out Program x, out Program y) => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
-    }
+            """, "P1", displayTextSuffix: "");
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithoutClosingBrace()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_InPositional_Incomplete_WithoutClosingBrace()
+        => VerifyItemExistsAsync("""
             public class Program
             {
                 public int P1 { get; set; }
@@ -561,15 +519,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
 
                 public void Deconstruct(out Program x, out Program y) => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
-    }
+            """, "P1", displayTextSuffix: "");
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithTwoTypes()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_InPositional_Incomplete_WithTwoTypes()
+        => VerifyNoItemsExistAsync("""
             public class Program
             {
                 void M()
@@ -583,15 +537,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
             {
                 public int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_InPositional_Complete_BeforeComma()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_InPositional_Complete_BeforeComma()
+        => VerifyItemExistsAsync("""
             public class Program
             {
                 public int P1 { get; set; }
@@ -603,15 +553,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
 
                 public void Deconstruct(out Program x, out Program y) => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
-    }
+            """, "P1", displayTextSuffix: "");
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_InPositional_Complete_AfterComma()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_InPositional_Complete_AfterComma()
+        => VerifyItemExistsAsync("""
             public class Program
             {
                 public int P1 { get; set; }
@@ -623,15 +569,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
 
                 public void Deconstruct(out Program x, out Program y) => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
-    }
+            """, "P1", displayTextSuffix: "");
 
     [Fact]
-    public async Task PropertiesInRecursivePattern_NoPropertyLeft()
-    {
-        var markup =
-            """
+    public Task PropertiesInRecursivePattern_NoPropertyLeft()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 public int P1 { get; set; }
@@ -642,9 +584,7 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                     _ = this is Program { P2: 1, P1: 2, $$ }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 
     [Fact]
     public async Task PropertiesInRecursivePattern_NotForEditorUnbrowsable()
@@ -670,10 +610,8 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33250")]
-    public async Task StaticProperties_NotSuggested()
-    {
-        var markup =
-            """
+    public Task StaticProperties_NotSuggested()
+        => VerifyItemIsAbsentAsync("""
             class Program
             {
                 void M()
@@ -681,15 +619,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                     _ = "" is { $$ }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "Empty");
-    }
+            """, "Empty");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33250")]
-    public async Task StaticFields_NotSuggested()
-    {
-        var markup =
-            """
+    public Task StaticFields_NotSuggested()
+        => VerifyItemIsAbsentAsync("""
             class Program
             {
                 static int x = 42;
@@ -699,15 +633,11 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                     _ = this is { $$ }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "x");
-    }
+            """, "x");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33250")]
-    public async Task ConstFields_NotSuggested()
-    {
-        var markup =
-            """
+    public Task ConstFields_NotSuggested()
+        => VerifyItemIsAbsentAsync("""
             class Program
             {
                 void M()
@@ -715,7 +645,5 @@ public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletio
                     _ = 5 is { $$ }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "MaxValue");
-    }
+            """, "MaxValue");
 }

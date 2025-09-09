@@ -30,11 +30,9 @@ internal sealed class InvocationExpressionSignatureHelpProvider : InvocationExpr
 
 internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractOrdinaryMethodSignatureHelpProvider
 {
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private async Task<InvocationExpressionSyntax?> TryGetInvocationExpressionAsync(Document document, int position, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken)
     {
@@ -54,7 +52,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<InvocationExpressionSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<InvocationExpressionSyntax>(token, TriggerCharacters);
 
     private static bool IsArgumentListToken(InvocationExpressionSyntax expression, SyntaxToken token)
     {
@@ -91,7 +89,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
             .GetMemberGroup(invocationExpression.Expression, cancellationToken)
             .OfType<IMethodSymbol>()
             .ToImmutableArray()
-            .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
+            .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true);
         methods = GetAccessibleMethods(invocationExpression, semanticModel, within, methods, cancellationToken);
         methods = methods.Sort(semanticModel, invocationExpression.SpanStart);
 

@@ -765,7 +765,7 @@ public abstract class SyntaxGenerator : ILanguageService
                         modifiers: DeclarationModifiers.From(type),
                         baseType: type.BaseType != null ? TypeExpression(type.BaseType) : null,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(CanBeDeclared, Declaration)),
                     TypeKind.Struct => StructDeclaration(
                         type.IsRecord,
                         type.Name,
@@ -773,20 +773,20 @@ public abstract class SyntaxGenerator : ILanguageService
                         accessibility: type.DeclaredAccessibility,
                         modifiers: DeclarationModifiers.From(type),
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(CanBeDeclared, Declaration)),
                     TypeKind.Interface => InterfaceDeclaration(
                         type.Name,
                         type.TypeParameters.Select(TypeParameter),
                         accessibility: type.DeclaredAccessibility,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(CanBeDeclared, Declaration)),
                     TypeKind.Enum => EnumDeclaration(
                         type.Name,
                         underlyingType: type.EnumUnderlyingType is null or { SpecialType: SpecialType.System_Int32 }
                             ? null
                             : TypeExpression(type.EnumUnderlyingType.SpecialType),
                         accessibility: type.DeclaredAccessibility,
-                        members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(s => s.Kind == SymbolKind.Field, Declaration)),
                     TypeKind.Delegate => type.GetMembers(WellKnownMemberNames.DelegateInvokeName) is [IMethodSymbol invoke, ..]
                         ? DelegateDeclaration(
                             type.Name,
@@ -1228,7 +1228,11 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Changes the <see cref="DeclarationModifiers"/> for the declaration.
     /// </summary>
-    public abstract SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers);
+    public SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers)
+        => WithModifiers<SyntaxNode>(declaration, modifiers);
+
+    internal abstract TSyntaxNode WithModifiers<TSyntaxNode>(TSyntaxNode declaration, DeclarationModifiers modifiers)
+        where TSyntaxNode : SyntaxNode;
 
     /// <summary>
     /// Gets the <see cref="DeclarationKind"/> for the declaration.
@@ -2329,25 +2333,25 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Creates an expression that declares a single parameter value returning lambda expression.
     /// </summary>
     public SyntaxNode ValueReturningLambdaExpression(string parameterName, SyntaxNode expression)
-        => ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
+        => ValueReturningLambdaExpression([LambdaParameter(parameterName)], expression);
 
     /// <summary>
     /// Creates an expression that declares a single parameter void returning lambda expression.
     /// </summary>
     public SyntaxNode VoidReturningLambdaExpression(string parameterName, SyntaxNode expression)
-        => VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
+        => VoidReturningLambdaExpression([LambdaParameter(parameterName)], expression);
 
     /// <summary>
     /// Creates an expression that declares a single parameter value returning lambda expression.
     /// </summary>
     public SyntaxNode ValueReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
-        => ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
+        => ValueReturningLambdaExpression([LambdaParameter(parameterName)], statements);
 
     /// <summary>
     /// Creates an expression that declares a single parameter void returning lambda expression.
     /// </summary>
     public SyntaxNode VoidReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
-        => VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
+        => VoidReturningLambdaExpression([LambdaParameter(parameterName)], statements);
 
     /// <summary>
     /// Creates an expression that declares a zero parameter value returning lambda expression.
@@ -2409,6 +2413,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Parses an expression from string
     /// </summary>
     internal abstract SyntaxNode ParseExpression(string stringToParse);
+
+    internal abstract SyntaxNode ParseTypeName(string stringToParse);
 
     internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 

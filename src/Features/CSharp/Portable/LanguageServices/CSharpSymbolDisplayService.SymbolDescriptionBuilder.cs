@@ -251,14 +251,15 @@ internal sealed partial class CSharpSymbolDisplayService
 
         protected override void AddCaptures(ISymbol symbol)
         {
-            if (symbol is IMethodSymbol method && method.ContainingSymbol.IsKind(SymbolKind.Method))
+            if (symbol is IMethodSymbol { ContainingSymbol.Kind: SymbolKind.Method } method)
             {
                 var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-                if (syntax.IsKind(SyntaxKind.LocalFunctionStatement) || syntax is AnonymousFunctionExpressionSyntax)
-                {
+                if (syntax is LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax)
                     AddCaptures(syntax);
-                }
             }
         }
+
+        protected override string GetCommentText(SyntaxTrivia trivia)
+            => trivia.ToFullString()["//".Length..];
     }
 }

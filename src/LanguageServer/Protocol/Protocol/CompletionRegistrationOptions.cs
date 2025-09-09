@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class CompletionRegistrationOptions : CompletionOptions, ITextDocumentRegistrationOptions
+internal sealed class CompletionRegistrationOptions : CompletionOptions, ITextDocumentRegistrationOptions
 {
     /// <inheritdoc/>
     [JsonPropertyName("documentSelector")]

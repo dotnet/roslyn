@@ -7,30 +7,29 @@
 using System;
 using Microsoft.VisualStudio.InteractiveWindow;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive;
+
+public sealed class InteractiveWindowTestHost : IDisposable
 {
-    public sealed class InteractiveWindowTestHost : IDisposable
+    internal readonly IInteractiveWindow Window;
+    internal readonly TestInteractiveEvaluator Evaluator;
+
+    internal InteractiveWindowTestHost(IInteractiveWindowFactoryService interactiveWindowFactory)
     {
-        internal readonly IInteractiveWindow Window;
-        internal readonly TestInteractiveEvaluator Evaluator;
+        Evaluator = new TestInteractiveEvaluator();
+        Window = interactiveWindowFactory.CreateWindow(Evaluator);
+        Window.InitializeAsync().Wait();
+    }
 
-        internal InteractiveWindowTestHost(IInteractiveWindowFactoryService interactiveWindowFactory)
+    public void Dispose()
+    {
+        if (Window != null)
         {
-            Evaluator = new TestInteractiveEvaluator();
-            Window = interactiveWindowFactory.CreateWindow(Evaluator);
-            Window.InitializeAsync().Wait();
-        }
+            // close interactive host process:
+            Window.Evaluator?.Dispose();
 
-        public void Dispose()
-        {
-            if (Window != null)
-            {
-                // close interactive host process:
-                Window.Evaluator?.Dispose();
-
-                // dispose buffer:
-                Window.Dispose();
-            }
+            // dispose buffer:
+            Window.Dispose();
         }
     }
 }

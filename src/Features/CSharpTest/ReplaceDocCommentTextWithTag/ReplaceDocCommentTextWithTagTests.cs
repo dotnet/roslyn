@@ -13,15 +13,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWithTag;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
-public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider();
 
     [Fact]
-    public async Task TestStartOfKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStartOfKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword [||]null.
             class C<TKey>
@@ -35,12 +34,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEndOfKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEndOfKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword abstract[||].
             class C<TKey>
@@ -54,12 +51,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEndOfKeyword_NewLineFollowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEndOfKeyword_NewLineFollowing()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword static[||]
             class C<TKey>
@@ -73,12 +68,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76548")]
-    public async Task TestEndOfKeyword_XmlCloseTagFollowing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEndOfKeyword_XmlCloseTagFollowing()
+        => TestInRegularAndScriptAsync(
             """
             /// <summary>Testing keyword null[||]</summary>
             class C<TKey>
@@ -92,12 +85,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76548")]
-    public async Task TestEndOfKeyword_XmlOpenTagPreceding()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEndOfKeyword_XmlOpenTagPreceding()
+        => TestInRegularAndScriptAsync(
             """
             /// <summary>[||]null is an option.</summary>
             class C<TKey>
@@ -111,12 +102,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectedKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSelectedKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword [|abstract|].
             class C<TKey>
@@ -130,12 +119,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsideKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInsideKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword asy[||]nc.
             class C<TKey>
@@ -149,24 +136,20 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotInsideKeywordIfNonEmptySpan()
-    {
-        await TestMissingAsync(
+    public Task TestNotInsideKeywordIfNonEmptySpan()
+        => TestMissingAsync(
             """
             /// TKey must implement the System.IDisposable int[|erf|]ace
             class C<TKey>
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStartOfFullyQualifiedTypeName_Start()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStartOfFullyQualifiedTypeName_Start()
+        => TestInRegularAndScriptAsync(
             """
             /// TKey must implement the [||]System.IDisposable interface.
             class C<TKey>
@@ -180,12 +163,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStartOfFullyQualifiedTypeName_Mid1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStartOfFullyQualifiedTypeName_Mid1()
+        => TestInRegularAndScriptAsync(
             """
             /// TKey must implement the System[||].IDisposable interface.
             class C<TKey>
@@ -199,12 +180,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStartOfFullyQualifiedTypeName_Mid2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStartOfFullyQualifiedTypeName_Mid2()
+        => TestInRegularAndScriptAsync(
             """
             /// TKey must implement the System.[||]IDisposable interface.
             class C<TKey>
@@ -218,12 +197,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStartOfFullyQualifiedTypeName_End()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStartOfFullyQualifiedTypeName_End()
+        => TestInRegularAndScriptAsync(
             """
             /// TKey must implement the System.IDisposable[||] interface.
             class C<TKey>
@@ -237,12 +214,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestStartOfFullyQualifiedTypeName_Selected()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStartOfFullyQualifiedTypeName_Selected()
+        => TestInRegularAndScriptAsync(
             """
             /// TKey must implement the [|System.IDisposable|] interface.
             class C<TKey>
@@ -256,12 +231,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTypeParameterReference()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTypeParameterReference()
+        => TestInRegularAndScriptAsync(
             """
             /// [||]TKey must implement the System.IDisposable interface.
             class C<TKey>
@@ -275,12 +248,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTypeParameterReference_EmptyClassBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTypeParameterReference_EmptyClassBody()
+        => TestInRegularAndScriptAsync(
             """
             /// [||]TKey must implement the System.IDisposable interface.
             class C<TKey>{}
@@ -290,12 +261,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             /// <typeparamref name="TKey"/> must implement the System.IDisposable interface.
             class C<TKey>{}
             """);
-    }
 
     [Fact]
-    public async Task TestCanSeeInnerMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCanSeeInnerMethod()
+        => TestInRegularAndScriptAsync(
             """
             /// Use WriteLine[||] as a Console.WriteLine replacement
             class C
@@ -311,12 +280,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnMispelledName()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnMispelledName()
+        => TestMissingAsync(
             """
             /// Use WriteLine1[||] as a Console.WriteLine replacement
             class C
@@ -324,12 +291,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodTypeParameterSymbol()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodTypeParameterSymbol()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -345,12 +310,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodTypeParameterSymbol_EmptyBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodTypeParameterSymbol_EmptyBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -366,12 +329,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value){}
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodTypeParameterSymbol_ExpressionBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodTypeParameterSymbol_ExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -387,12 +348,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 object WriteLine<TKey>(TKey value) => null;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodTypeParameter_SemicolonBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodTypeParameter_SemicolonBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -408,12 +367,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodParameterSymbol()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodParameterSymbol()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -429,12 +386,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodParameterSymbol_EmptyBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodParameterSymbol_EmptyBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -450,12 +405,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value){}
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodParameterSymbol_ExpressionBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodParameterSymbol_ExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -471,12 +424,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 object WriteLine<TKey>(TKey value) => null;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMethodParameterSymbol_SemicolonBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodParameterSymbol_SemicolonBody()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -492,13 +443,11 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
-    public async Task TestApplicableKeyword()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestApplicableKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword interfa[||]ce.
             class C<TKey>
@@ -511,12 +460,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
-    public async Task TestInXMLAttribute()
-    {
-        await TestMissingAsync(
+    public Task TestInXMLAttribute()
+        => TestMissingAsync(
             """
             /// Testing keyword inside <see langword ="nu[||]ll"/>
             class C
@@ -524,12 +471,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
-    public async Task TestInXMLAttribute2()
-    {
-        await TestMissingAsync(
+    public Task TestInXMLAttribute2()
+        => TestMissingAsync(
             """
             /// Testing keyword inside <see langword ="nu[||]ll"
             class C
@@ -537,12 +482,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
                 void WriteLine<TKey>(TKey value) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38370")]
-    public async Task TestBaseKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestBaseKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword [||]base.
             class C<TKey>
@@ -556,12 +499,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38370")]
-    public async Task TestThisKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestThisKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword [||]this.
             class C<TKey>
@@ -575,12 +516,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
-    public async Task TestArbitraryKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestArbitraryKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword [||]delegate.
             class C<TKey>
@@ -594,12 +533,10 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
-    public async Task TestContextualKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestContextualKeyword()
+        => TestInRegularAndScriptAsync(
             """
             /// Testing keyword [||]yield.
             class C<TKey>
@@ -613,5 +550,4 @@ public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_No
             {
             }
             """);
-    }
 }

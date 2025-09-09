@@ -17,54 +17,56 @@ public class BasicSignatureHelp : AbstractEditorTest
 {
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    private const string Baseline = @"
-Class C
-    Sub M()
-        $$
-    End Sub
-    
-    Function Method(i As Integer) As C
-        Return Nothing
-    End Function
-    
-    ''' <summary>
-    ''' Hello World 2.0!
-    ''' </summary>
-    ''' <param name=""i"">an integer, preferably 42.</param>
-    ''' <param name=""i2"">an integer, anything you like.</param>
-    ''' <returns>returns an object of type C</returns>
-    Function Method(i As Integer, i2 As Integer) As C
-        Return Nothing
-    End Function
+    private const string Baseline = """
+
+        Class C
+            Sub M()
+                $$
+            End Sub
+            
+            Function Method(i As Integer) As C
+                Return Nothing
+            End Function
+            
+            ''' <summary>
+            ''' Hello World 2.0!
+            ''' </summary>
+            ''' <param name="i">an integer, preferably 42.</param>
+            ''' <param name="i2">an integer, anything you like.</param>
+            ''' <returns>returns an object of type C</returns>
+            Function Method(i As Integer, i2 As Integer) As C
+                Return Nothing
+            End Function
 
 
-    ''' <summary>
-    ''' Hello Generic World!
-    ''' </summary>
-    ''' <typeparam name=""T1"">Type Param 1</typeparam>
-    ''' <param name=""i"">Param 1 of type T1</param>
-    ''' <returns>Null</returns>
-    Function GenericMethod(Of T1)(i As T1) As C
-        Return Nothing
-    End Function
+            ''' <summary>
+            ''' Hello Generic World!
+            ''' </summary>
+            ''' <typeparam name="T1">Type Param 1</typeparam>
+            ''' <param name="i">Param 1 of type T1</param>
+            ''' <returns>Null</returns>
+            Function GenericMethod(Of T1)(i As T1) As C
+                Return Nothing
+            End Function
 
 
-    Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C
-        Return Nothing
-    End Function
+            Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C
+                Return Nothing
+            End Function
 
 
-    ''' <summary>
-    ''' Complex Method Params
-    ''' </summary>
-    ''' <param name=""strings"">Jagged MultiDimensional Array</param>
-    ''' <param name=""outArr"">Out Array</param>
-    ''' <param name=""d"">Dynamic and Params param</param>
-    ''' <returns>Null</returns>
-    Sub OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)
-    End Sub
-End Class
-";
+            ''' <summary>
+            ''' Complex Method Params
+            ''' </summary>
+            ''' <param name="strings">Jagged MultiDimensional Array</param>
+            ''' <param name="outArr">Out Array</param>
+            ''' <param name="d">Dynamic and Params param</param>
+            ''' <returns>Null</returns>
+            Sub OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)
+            End Sub
+        End Class
+
+        """;
 
     public BasicSignatureHelp()
         : base(nameof(BasicSignatureHelp))
@@ -127,34 +129,36 @@ End Class
     [IdeFact]
     public async Task GenericMethodSignatureHelp2()
     {
-        await SetUpEditorAsync(@"
-Imports System
-Class C(Of T, R)
-    Sub M()
-        $$
-    End Sub
-    
-    ''' <summary>
-    ''' Generic Method with 1 Type Param
-    ''' </summary>
-    ''' <typeparam name=""T1"">Type Parameter</typeparam>
-    ''' <param name=""i"">param i of type T1</param>
-    Sub GenericMethod(Of T1)(i As T1)
-    End Sub
+        await SetUpEditorAsync("""
+
+            Imports System
+            Class C(Of T, R)
+                Sub M()
+                    $$
+                End Sub
+                
+                ''' <summary>
+                ''' Generic Method with 1 Type Param
+                ''' </summary>
+                ''' <typeparam name="T1">Type Parameter</typeparam>
+                ''' <param name="i">param i of type T1</param>
+                Sub GenericMethod(Of T1)(i As T1)
+                End Sub
 
 
-    ''' <summary>
-    ''' Generic Method with 2 Type Params
-    ''' </summary>
-    ''' <typeparam name=""T1"">Type Parameter 1</typeparam>
-    ''' <typeparam name=""T2"">Type Parameter 2</typeparam>
-    ''' <param name=""i"">param i of type T1</param>
-    ''' <param name=""i2"">param i2 of type T2</param>
-    ''' <returns>Null</returns>
-    Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C(Of T, R)
-        Return Nothing
-    End Function
-End Class", HangMitigatingCancellationToken);
+                ''' <summary>
+                ''' Generic Method with 2 Type Params
+                ''' </summary>
+                ''' <typeparam name="T1">Type Parameter 1</typeparam>
+                ''' <typeparam name="T2">Type Parameter 2</typeparam>
+                ''' <param name="i">param i of type T1</param>
+                ''' <param name="i2">param i2 of type T2</param>
+                ''' <returns>Null</returns>
+                Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C(Of T, R)
+                    Return Nothing
+                End Function
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("GenericMethod", HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(VirtualKeyCode.ESCAPE, HangMitigatingCancellationToken);
@@ -178,21 +182,23 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task GenericMethodSignatureHelp_InvokeSighelp()
     {
-        await SetUpEditorAsync(@"
-Imports System
-Class C
-    Sub M()
-        GenericMethod(Of String, $$Integer)(Nothing, 1)
-    End Sub
-    
-    Function GenericMethod(Of T1)(i As T1) As C
-        Return Nothing
-    End Function
-    
-    Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C
-        Return Nothing
-    End Function
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Imports System
+            Class C
+                Sub M()
+                    GenericMethod(Of String, $$Integer)(Nothing, 1)
+                End Sub
+                
+                Function GenericMethod(Of T1)(i As T1) As C
+                    Return Nothing
+                End Function
+                
+                Function GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C
+                    Return Nothing
+                End Function
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeSignatureHelpAsync(HangMitigatingCancellationToken);
         var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
@@ -220,12 +226,14 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task VerifyActiveParameterChanges()
     {
-        await SetUpEditorAsync(@"
-Module M
-    Sub Method(a As Integer, b As Integer)
-        $$
-    End Sub
-End Module", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Module M
+                Sub Method(a As Integer, b As Integer)
+                    $$
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("Method(", HangMitigatingCancellationToken);
         var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
@@ -242,22 +250,26 @@ End Module", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task HandleBufferTextChangesDuringComputation()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-    End Sub
-    Sub Test()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            Class C
+                Sub Goo()
+                End Sub
+                Sub Test()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("Goo(", HangMitigatingCancellationToken);
         var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
         Assert.Equal("C.Goo()", signature.Content);
 
-        await TestServices.Editor.SetTextAsync(@"
-Class C
-    'Marker", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            Class C
+                'Marker
+            """, HangMitigatingCancellationToken);
 
         Assert.False(await TestServices.Editor.IsSignatureHelpActiveAsync(HangMitigatingCancellationToken));
     }

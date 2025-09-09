@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpEscapingReducer : AbstractCSharpReducer
+internal sealed partial class CSharpEscapingReducer : AbstractCSharpReducer
 {
     private static readonly ObjectPool<IReductionRewriter> s_pool = new(
         () => new Rewriter(s_pool));
@@ -37,7 +37,7 @@ internal partial class CSharpEscapingReducer : AbstractCSharpReducer
     {
         var unescapedIdentifier = token.ValueText;
 
-        var enclosingXmlNameAttr = token.GetAncestors(n => n is XmlNameAttributeSyntax).FirstOrDefault();
+        var enclosingXmlNameAttr = token.GetAncestor<XmlNameAttributeSyntax>();
 
         // always escape keywords
         if (SyntaxFacts.GetKeywordKind(unescapedIdentifier) != SyntaxKind.None && enclosingXmlNameAttr == null)
@@ -52,32 +52,13 @@ internal partial class CSharpEscapingReducer : AbstractCSharpReducer
 
         if (SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) == SyntaxKind.AwaitKeyword)
         {
-            var enclosingLambdaExpression = parent.GetAncestorsOrThis(n => (n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax)).FirstOrDefault();
-            if (enclosingLambdaExpression != null)
-            {
-                if (enclosingLambdaExpression is SimpleLambdaExpressionSyntax simpleLambda)
-                {
-                    if (simpleLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
-                    {
-                        return token;
-                    }
-                }
-
-                if (enclosingLambdaExpression is ParenthesizedLambdaExpressionSyntax parenLamdba)
-                {
-                    if (parenLamdba.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
-                    {
-                        return token;
-                    }
-                }
-            }
-
-            var enclosingMethodBlock = parent.GetAncestorsOrThis(n => n is MethodDeclarationSyntax).FirstOrDefault();
-
-            if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(SyntaxKind.AsyncKeyword))
-            {
+            var enclosingLambdaExpression = parent.GetAncestorOrThis<LambdaExpressionSyntax>();
+            if (enclosingLambdaExpression != null && enclosingLambdaExpression.AsyncKeyword != default)
                 return token;
-            }
+
+            var enclosingMethodBlock = parent.GetAncestorOrThis<MethodDeclarationSyntax>();
+            if (enclosingMethodBlock != null && enclosingMethodBlock.Modifiers.Any(SyntaxKind.AsyncKeyword))
+                return token;
         }
 
         // within a query all contextual query keywords need to be escaped, even if they appear in a non query context.

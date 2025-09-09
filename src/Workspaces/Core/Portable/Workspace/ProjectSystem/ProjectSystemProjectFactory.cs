@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -506,7 +506,7 @@ internal sealed partial class ProjectSystemProjectFactory
         var distinctProjectsForOutputPath = projectsForOutputPath.Distinct().ToList();
 
         // If we have exactly one, then we're definitely good to convert
-        if (projectsForOutputPath.Count() == 1)
+        if (projectsForOutputPath.Length == 1)
         {
             projectUpdateState = ConvertMetadataReferencesToProjectReferences_NoLock(solutionChanges, projectId, outputPath, projectUpdateState);
         }
@@ -549,14 +549,20 @@ internal sealed partial class ProjectSystemProjectFactory
         string outputPath,
         ProjectUpdateState projectUpdateState)
     {
-        foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
+        // PERF: call GetRequiredProjectState instead of GetRequiredProject, otherwise creating a new project
+        // might force all Project instances to get created.
+        var candidateProjectState = solutionChanges.Solution.GetRequiredProjectState(projectIdToReference);
+
+        foreach (var projectToRetarget in solutionChanges.Solution.SortedProjectStates)
         {
-            if (CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectIdToRetarget, referencedProjectId: projectIdToReference))
+            // PERF: If we don't even have any metadata references yet, then don't even call CanConvertMetadataReferenceToProjectReference.
+            // This optimizes the early parts of solution load, where projects may be created with their output paths right away,
+            // but metadata references come in later. CanConvertMetadataReferenceToProjectReference isn't terribly expensive
+            // but when called enough times things can start to add up.
+            if (projectToRetarget.MetadataReferences.Count > 0 &&
+                CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectToRetarget, candidateProjectState))
             {
-                // PERF: call GetRequiredProjectState instead of GetRequiredProject, otherwise creating a new project
-                // might force all Project instances to get created.
-                var projectState = solutionChanges.Solution.GetRequiredProjectState(projectIdToRetarget);
-                foreach (var reference in projectState.MetadataReferences)
+                foreach (var reference in projectToRetarget.MetadataReferences)
                 {
                     if (reference is PortableExecutableReference peReference
                         && string.Equals(peReference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
@@ -565,13 +571,13 @@ internal sealed partial class ProjectSystemProjectFactory
 
                         var projectReference = new ProjectReference(projectIdToReference, peReference.Properties.Aliases, peReference.Properties.EmbedInteropTypes);
                         var newSolution = solutionChanges.Solution
-                            .RemoveMetadataReference(projectIdToRetarget, peReference)
-                            .AddProjectReference(projectIdToRetarget, projectReference);
+                            .RemoveMetadataReference(projectToRetarget.Id, peReference)
+                            .AddProjectReference(projectToRetarget.Id, projectReference);
 
-                        solutionChanges.UpdateSolutionForProjectAction(projectIdToRetarget, newSolution);
+                        solutionChanges.UpdateSolutionForProjectAction(projectToRetarget.Id, newSolution);
 
-                        projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var projectInfo);
-                        projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectIdToRetarget,
+                        projectUpdateState = GetReferenceInformation(projectToRetarget.Id, projectUpdateState, out var projectInfo);
+                        projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectToRetarget.Id,
                             projectInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference));
 
                         // We have converted one, but you could have more than one reference with different aliases that
@@ -586,40 +592,39 @@ internal sealed partial class ProjectSystemProjectFactory
 
     [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
         Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
-    private static bool CanConvertMetadataReferenceToProjectReference(Solution solution, ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
+    private static bool CanConvertMetadataReferenceToProjectReference(Solution solution, ProjectState projectWithMetadataReference, ProjectState candidateProjectToReference)
     {
         // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
         // we do want to throw exceptions.
-        if (projectIdWithMetadataReference == referencedProjectId)
+        if (projectWithMetadataReference.Id == candidateProjectToReference.Id)
         {
             return false;
         }
 
-        // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
-        // Project instances to get created.
-        var projectWithMetadataReference = solution.GetProjectState(projectIdWithMetadataReference);
-        var referencedProject = solution.GetProjectState(referencedProjectId);
-
-        Contract.ThrowIfNull(projectWithMetadataReference);
-        Contract.ThrowIfNull(referencedProject);
-
-        // We don't want to convert a metadata reference to a project reference if the project being referenced isn't something
-        // we can create a Compilation for. For example, if we have a C# project, and it's referencing a F# project via a metadata reference
-        // everything would be fine if we left it a metadata reference. Converting it to a project reference means we couldn't create a Compilation
-        // anymore in the IDE, since the C# compilation would need to reference an F# compilation. F# projects referencing other F# projects though
-        // do expect this to work, and so we'll always allow references through of the same language.
-        if (projectWithMetadataReference.Language != referencedProject.Language)
+        // We don't want to convert a metadata reference to a project reference if the project being referenced isn't
+        // something we can create a Compilation for. For example, if we have a C# project, and it's referencing a F#
+        // project via a metadata reference everything would be fine if we left it a metadata reference. Converting it
+        // to a project reference means we couldn't create a Compilation anymore in the IDE, since the C# compilation
+        // would need to reference an F# compilation. F# projects referencing other F# projects though do expect this to
+        // work, and so we'll always allow references through of the same language.
+        if (projectWithMetadataReference.Language != candidateProjectToReference.Language)
         {
             if (projectWithMetadataReference.LanguageServices.GetService<ICompilationFactoryService>() != null &&
-                referencedProject.LanguageServices.GetService<ICompilationFactoryService>() == null)
+                candidateProjectToReference.LanguageServices.GetService<ICompilationFactoryService>() == null)
             {
                 // We're referencing something that we can't create a compilation from something that can, so keep the metadata reference
                 return false;
             }
         }
 
+        // Getting a metadata reference from a 'module' is not supported from the compilation layer.  Nor is emitting a
+        // 'metadata-only' stream for it (a 'skeleton' reference).  So converting a NetModule reference to a project
+        // reference won't actually help us out.  Best to keep this as a plain metadata reference.
+        if (candidateProjectToReference.CompilationOptions?.OutputKind == OutputKind.NetModule)
+            return false;
+
         // If this is going to cause a circular reference, also disallow it
-        if (solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))
+        if (solution.GetProjectDependencyGraph().DoesProjectTransitivelyDependOnProject(candidateProjectToReference.Id, projectWithMetadataReference.Id))
         {
             return false;
         }
@@ -647,7 +652,7 @@ internal sealed partial class ProjectSystemProjectFactory
             projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo);
 
             // Update ConvertedProjectReferences in place to avoid duplicate list allocations
-            for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count(); i++)
+            for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Length; i++)
             {
                 var convertedReference = referenceInfo.ConvertedProjectReferences[i];
 
@@ -690,26 +695,26 @@ internal sealed partial class ProjectSystemProjectFactory
     /// during a workspace update (which will attempt to apply the update multiple times).
     /// </summary>
     public static ProjectUpdateState TryCreateConvertedProjectReference_NoLock(
-        ProjectId referencingProject,
+        ProjectState referencingProjectState,
         string path,
         MetadataReferenceProperties properties,
         ProjectUpdateState projectUpdateState,
         Solution currentSolution,
         out ProjectReference? projectReference)
     {
-        if (projectUpdateState.ProjectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
+        if (projectUpdateState.ProjectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Length == 1)
         {
             var projectIdToReference = ids.First();
 
-            if (CanConvertMetadataReferenceToProjectReference(currentSolution, referencingProject, projectIdToReference))
+            if (CanConvertMetadataReferenceToProjectReference(currentSolution, referencingProjectState, currentSolution.GetRequiredProjectState(projectIdToReference)))
             {
                 projectReference = new ProjectReference(
                     projectIdToReference,
                     aliases: properties.Aliases,
                     embedInteropTypes: properties.EmbedInteropTypes);
 
-                projectUpdateState = GetReferenceInformation(referencingProject, projectUpdateState, out var projectReferenceInfo);
-                projectUpdateState = projectUpdateState.WithProjectReferenceInfo(referencingProject, projectReferenceInfo.WithConvertedProjectReference(path, projectReference));
+                projectUpdateState = GetReferenceInformation(referencingProjectState.Id, projectUpdateState, out var projectReferenceInfo);
+                projectUpdateState = projectUpdateState.WithProjectReferenceInfo(referencingProjectState.Id, projectReferenceInfo.WithConvertedProjectReference(path, projectReference));
                 return projectUpdateState;
             }
             else

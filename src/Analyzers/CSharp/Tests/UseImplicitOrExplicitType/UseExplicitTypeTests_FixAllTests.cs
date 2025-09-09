@@ -17,9 +17,8 @@ public partial class UseExplicitTypeTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
-    {
-        var input = """
+    public Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -71,9 +70,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -125,17 +122,13 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
-    }
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject_PreferExplicitTypeEverywhere()
-    {
-        var input = """
+    public Task TestFixAllInProject_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -187,9 +180,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -241,17 +232,13 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
-    }
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
-    {
-        var input = """
+    public Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -303,9 +290,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -357,17 +342,13 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeEverywhere());
-    }
+            """, new(options: ExplicitTypeEverywhere()));
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
-    {
-        var input = """
+    public Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -387,9 +368,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -409,10 +388,7 @@ public partial class UseExplicitTypeTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected, options: ExplicitTypeExceptWhereApparent());
-    }
+            """, new(options: ExplicitTypeExceptWhereApparent()));
 
     #endregion
 }

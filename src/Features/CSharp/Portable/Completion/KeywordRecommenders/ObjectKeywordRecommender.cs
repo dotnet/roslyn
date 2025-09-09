@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ObjectKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class ObjectKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.ObjectKeyword)
 {
-    public ObjectKeywordRecommender()
-        : base(SyntaxKind.ObjectKeyword)
-    {
-    }
-
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;
@@ -45,8 +40,8 @@ internal class ObjectKeywordRecommender : AbstractSpecialTypePreselectingKeyword
             context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken);
     }
 

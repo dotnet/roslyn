@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod;
@@ -19,389 +17,409 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDec
 public sealed class GenerateDeconstructMethodTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateDeconstructMethodCodeFixProvider());
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_Simple()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Class
-{
-    void Method()
-    {
-        (int x, int y) = [|this|];
-    }
-}",
-@"using System;
+    public Task TestDeconstructionDeclaration_Simple()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    (int x, int y) = [|this|];
+                }
+            }
+            """,
+            """
+            using System;
 
-class Class
-{
-    private void Deconstruct(out int x, out int y)
-    {
-        throw new NotImplementedException();
-    }
+            class Class
+            {
+                private void Deconstruct(out int x, out int y)
+                {
+                    throw new NotImplementedException();
+                }
 
-    void Method()
-    {
-        (int x, int y) = this;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task TestDeconstructionDeclaration_Simple_Record()
-    {
-        await TestInRegularAndScriptAsync(
-@"record R
-{
-    void Method()
-    {
-        (int x, int y) = [|this|];
-    }
-}",
-@"using System;
-
-record R
-{
-    private void Deconstruct(out int x, out int y)
-    {
-        throw new NotImplementedException();
-    }
-
-    void Method()
-    {
-        (int x, int y) = this;
-    }
-}");
-    }
+                void Method()
+                {
+                    (int x, int y) = this;
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_TypeParameters()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Class<T>
-{
-    void Method<U>()
-    {
-        (T x, U y) = [|this|];
-    }
-}",
-@"using System;
+    public Task TestDeconstructionDeclaration_Simple_Record()
+        => TestInRegularAndScriptAsync(
+            """
+            record R
+            {
+                void Method()
+                {
+                    (int x, int y) = [|this|];
+                }
+            }
+            """,
+            """
+            using System;
 
-class Class<T>
-{
-    private void Deconstruct(out T x, out object y)
-    {
-        throw new NotImplementedException();
-    }
+            record R
+            {
+                private void Deconstruct(out int x, out int y)
+                {
+                    throw new NotImplementedException();
+                }
 
-    void Method<U>()
-    {
-        (T x, U y) = this;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task TestDeconstructionDeclaration_OtherDeconstructMethods()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Class
-{
-    void Method()
-    {
-        (int x, int y) = [|this|];
-    }
-    void Deconstruct(out int x) => throw null;
-    void Deconstruct(out int x, out int y, out int z) => throw null;
-}",
-@"using System;
-
-class Class
-{
-    void Method()
-    {
-        (int x, int y) = this;
-    }
-    void Deconstruct(out int x) => throw null;
-    void Deconstruct(out int x, out int y, out int z) => throw null;
-
-    private void Deconstruct(out int x, out int y)
-    {
-        throw new NotImplementedException();
-    }
-}");
-    }
+                void Method()
+                {
+                    (int x, int y) = this;
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_AlreadySuccessfull()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class Class
-{
-    void Method()
-    {
-        (int x, int y) = [|this|];
-    }
-    void Deconstruct(out int x, out int y) => throw null;
-}");
-    }
+    public Task TestDeconstructionDeclaration_TypeParameters()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class<T>
+            {
+                void Method<U>()
+                {
+                    (T x, U y) = [|this|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Class<T>
+            {
+                private void Deconstruct(out T x, out object y)
+                {
+                    throw new NotImplementedException();
+                }
+
+                void Method<U>()
+                {
+                    (T x, U y) = this;
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_UndeterminedType()
-    {
-        await TestInRegularAndScript1Async(
-@"class Class
-{
-    void Method()
-    {
-        (var x, var y) = [|this|];
-    }
-}",
-@"using System;
+    public Task TestDeconstructionDeclaration_OtherDeconstructMethods()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    (int x, int y) = [|this|];
+                }
+                void Deconstruct(out int x) => throw null;
+                void Deconstruct(out int x, out int y, out int z) => throw null;
+            }
+            """,
+            """
+            using System;
 
-class Class
-{
-    private void Deconstruct(out object x, out object y)
-    {
-        throw new NotImplementedException();
-    }
+            class Class
+            {
+                void Method()
+                {
+                    (int x, int y) = this;
+                }
+                void Deconstruct(out int x) => throw null;
+                void Deconstruct(out int x, out int y, out int z) => throw null;
 
-    void Method()
-    {
-        (var x, var y) = this;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task TestDeconstructionDeclaration_UndeterminedType2()
-    {
-        await TestInRegularAndScript1Async(
-@"class Class
-{
-    void Method()
-    {
-        var (x, y) = [|this|];
-    }
-}",
-@"using System;
-
-class Class
-{
-    private void Deconstruct(out object x, out object y)
-    {
-        throw new NotImplementedException();
-    }
-
-    void Method()
-    {
-        var (x, y) = this;
-    }
-}");
-    }
+                private void Deconstruct(out int x, out int y)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_BuiltinType()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class Class
-{
-    void Method()
-    {
-        (int x, int y) = [|1|];
-    }
-}");
-    }
+    public Task TestDeconstructionDeclaration_AlreadySuccessfull()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    (int x, int y) = [|this|];
+                }
+                void Deconstruct(out int x, out int y) => throw null;
+            }
+            """);
 
     [Fact]
-    public async Task TestDeconstructionAssignment()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Class
-{
-    void Method()
-    {
-        int x, y;
-        (x, y) = [|this|];
-    }
-}",
-@"using System;
+    public Task TestDeconstructionDeclaration_UndeterminedType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    (var x, var y) = [|this|];
+                }
+            }
+            """,
+            """
+            using System;
 
-class Class
-{
-    private void Deconstruct(out int x, out int y)
-    {
-        throw new NotImplementedException();
-    }
+            class Class
+            {
+                private void Deconstruct(out object x, out object y)
+                {
+                    throw new NotImplementedException();
+                }
 
-    void Method()
-    {
-        int x, y;
-        (x, y) = this;
-    }
-}");
-    }
-
-    [Fact]
-    public async Task TestDeconstructionAssignment_Nested()
-    {
-        // We only offer a fix for non-nested deconstruction, at the moment
-        await TestMissingInRegularAndScriptAsync(
-@"class Class
-{
-    void Method()
-    {
-        int x, y, z;
-        ((x, y), z) = ([|this|], 0);
-    }
-}");
-    }
+                void Method()
+                {
+                    (var x, var y) = this;
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestDeconstructionAssignment_Array()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"class Class
-{
-    void Method()
-    {
-        int x, y;
-        (x, y) = [|new[] { this }|];
-    }
-}");
-    }
+    public Task TestDeconstructionDeclaration_UndeterminedType2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    var (x, y) = [|this|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Class
+            {
+                private void Deconstruct(out object x, out object y)
+                {
+                    throw new NotImplementedException();
+                }
+
+                void Method()
+                {
+                    var (x, y) = this;
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestSimpleDeconstructionForeach()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Class
-{
-    void Method()
-    {
-        foreach ((int x, int y) in new[] { [|this|] }) { }
-    }
-}",
-@"using System;
-
-class Class
-{
-    private void Deconstruct(out int x, out int y)
-    {
-        throw new NotImplementedException();
-    }
-
-    void Method()
-    {
-        foreach ((int x, int y) in new[] { this }) { }
-    }
-}");
-    }
+    public Task TestDeconstructionDeclaration_BuiltinType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    (int x, int y) = [|1|];
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestSimpleDeconstructionForeach_AnotherType()
-    {
-        await TestInRegularAndScriptAsync(
-@"class Class
-{
-    void Method(D d)
-    {
-        foreach ((int x, int y) in new[] { [|d|] }) { }
-    }
-}
-class D
-{
-}",
-@"using System;
+    public Task TestDeconstructionAssignment()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    int x, y;
+                    (x, y) = [|this|];
+                }
+            }
+            """,
+            """
+            using System;
 
-class Class
-{
-    void Method(D d)
-    {
-        foreach ((int x, int y) in new[] { d }) { }
-    }
-}
-class D
-{
-    internal void Deconstruct(out int x, out int y)
-    {
-        throw new NotImplementedException();
-    }
-}");
-    }
+            class Class
+            {
+                private void Deconstruct(out int x, out int y)
+                {
+                    throw new NotImplementedException();
+                }
 
-    [Fact]
-    public async Task TestDeconstructionPositionalPattern()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void Method()
-    {
-        if(this is C(""""[||])) { }
-    }
-}",
-@"using System;
-
-class C
-{
-    private void Deconstruct(out string v)
-    {
-        throw new NotImplementedException();
-    }
-
-    void Method()
-    {
-        if(this is C(""""[||])) { }
-    }
-}");
-    }
+                void Method()
+                {
+                    int x, y;
+                    (x, y) = this;
+                }
+            }
+            """);
 
     [Fact]
-    public async Task TestDeconstructionPositionalPattern_NullExpression()
-    {
-        await TestInRegularAndScriptAsync(
-@"class C
-{
-    void Method()
-    {
-        if(this is C(""""[||], ref 0)) { }
-    }
-}",
-@"using System;
+    public Task TestDeconstructionAssignment_Nested()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    int x, y, z;
+                    ((x, y), z) = ([|this|], 0);
+                }
+            }
+            """);
 
-class C
-{
-    private void Deconstruct(out string v, out object value)
-    {
-        throw new NotImplementedException();
-    }
+    [Fact]
+    public Task TestDeconstructionAssignment_Array()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    int x, y;
+                    (x, y) = [|new[] { this }|];
+                }
+            }
+            """);
 
-    void Method()
-    {
-        if(this is C(""""[||], ref 0)) { }
-    }
-}");
-    }
+    [Fact]
+    public Task TestSimpleDeconstructionForeach()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    foreach ((int x, int y) in new[] { [|this|] }) { }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Class
+            {
+                private void Deconstruct(out int x, out int y)
+                {
+                    throw new NotImplementedException();
+                }
+
+                void Method()
+                {
+                    foreach ((int x, int y) in new[] { this }) { }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleDeconstructionForeach_AnotherType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(D d)
+                {
+                    foreach ((int x, int y) in new[] { [|d|] }) { }
+                }
+            }
+            class D
+            {
+            }
+            """,
+            """
+            using System;
+
+            class Class
+            {
+                void Method(D d)
+                {
+                    foreach ((int x, int y) in new[] { d }) { }
+                }
+            }
+            class D
+            {
+                internal void Deconstruct(out int x, out int y)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestDeconstructionPositionalPattern()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Method()
+                {
+                    if(this is C(""[||])) { }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                private void Deconstruct(out string v)
+                {
+                    throw new NotImplementedException();
+                }
+
+                void Method()
+                {
+                    if(this is C(""[||])) { }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestDeconstructionPositionalPattern_NullExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Method()
+                {
+                    if(this is C(""[||], ref 0)) { }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                private void Deconstruct(out string v, out object value)
+                {
+                    throw new NotImplementedException();
+                }
+
+                void Method()
+                {
+                    if(this is C(""[||], ref 0)) { }
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32510")]
-    public async Task TestDeconstructionAssignment_InvalidDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
-@"
-using System.Collections.Generic;
+    public Task TestDeconstructionAssignment_InvalidDeclaration()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
 
-class C
-{
-    void Method()
-    {
-        var stuff = new Dictionary<string, string>();
-        foreach ((key, value) in [|stuff|]) // Invalid variable declarator syntax
-        {
-        }
-    }
-}");
-    }
+            class C
+            {
+                void Method()
+                {
+                    var stuff = new Dictionary<string, string>();
+                    foreach ((key, value) in [|stuff|]) // Invalid variable declarator syntax
+                    {
+                    }
+                }
+            }
+            """);
 }

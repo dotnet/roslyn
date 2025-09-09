@@ -1,21 +1,37 @@
-*REMOVED*Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.CodeStyleOptions() -> void
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.BitwiseOrExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CastExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConvertExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.ITypeSymbol type) -> Microsoft.CodeAnalysis.SyntaxNode
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.SyntaxNode type) -> Microsoft.CodeAnalysis.SyntaxNode
-*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.IdentifierName(string identifier) -> Microsoft.CodeAnalysis.SyntaxNode
-*REMOVED*virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.CompilationOutputInfo.GeneratedFilesOutputDirectory.get -> string
-Microsoft.CodeAnalysis.CompilationOutputInfo.WithGeneratedFilesOutputDirectory(string path) -> Microsoft.CodeAnalysis.CompilationOutputInfo
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.BitwiseOrExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CastExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConvertExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.ITypeSymbol type) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.SyntaxNode type) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.IdentifierName(string identifier) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Project.HostAnalyzerOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
-Microsoft.CodeAnalysis.ProjectInfo.WithId(Microsoft.CodeAnalysis.ProjectId id) -> Microsoft.CodeAnalysis.ProjectInfo
-virtual Microsoft.CodeAnalysis.Host.HostLanguageServices.Dispose() -> void
-virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Dispose() -> void
+*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithModifiers(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithModifiers(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.OperatorKind.AdditionAssignment = 27 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.BitwiseAndAssignment = 33 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.BitwiseOrAssignment = 34 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.DivisionAssignment = 30 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.ExclusiveOrAssignment = 32 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.LeftShiftAssignment = 35 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.ModulusAssignment = 31 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.MultiplicationAssignment = 29 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.RightShiftAssignment = 36 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.SubtractionAssignment = 28 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.UnsignedRightShiftAssignment = 37 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Workspace.RegisterDocumentActiveContextChangedHandler(System.Action<Microsoft.CodeAnalysis.DocumentActiveContextChangedEventArgs> handler, Microsoft.CodeAnalysis.WorkspaceEventOptions? options = null) -> Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.Workspace.RegisterDocumentClosedHandler(System.Action<Microsoft.CodeAnalysis.DocumentEventArgs> handler, Microsoft.CodeAnalysis.WorkspaceEventOptions? options = null) -> Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.Workspace.RegisterDocumentOpenedHandler(System.Action<Microsoft.CodeAnalysis.DocumentEventArgs> handler, Microsoft.CodeAnalysis.WorkspaceEventOptions? options = null) -> Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.Workspace.RegisterTextDocumentClosedHandler(System.Action<Microsoft.CodeAnalysis.TextDocumentEventArgs> handler, Microsoft.CodeAnalysis.WorkspaceEventOptions? options = null) -> Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.Workspace.RegisterTextDocumentOpenedHandler(System.Action<Microsoft.CodeAnalysis.TextDocumentEventArgs> handler, Microsoft.CodeAnalysis.WorkspaceEventOptions? options = null) -> Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.Workspace.RegisterWorkspaceChangedHandler(System.Action<Microsoft.CodeAnalysis.WorkspaceChangeEventArgs> handler, Microsoft.CodeAnalysis.WorkspaceEventOptions? options = null) -> Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.Workspace.RegisterWorkspaceChangedImmediateHandler(System.Action<Microsoft.CodeAnalysis.WorkspaceChangeEventArgs> handler, Microsoft.CodeAnalysis.WorkspaceEventOptions? options = null) -> Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.Workspace.RegisterWorkspaceFailedHandler(System.Action<Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs> handler, Microsoft.CodeAnalysis.WorkspaceEventOptions? options = null) -> Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.WorkspaceEventOptions
+Microsoft.CodeAnalysis.WorkspaceEventOptions.Deconstruct(out bool RequiresMainThread) -> void
+Microsoft.CodeAnalysis.WorkspaceEventOptions.Equals(Microsoft.CodeAnalysis.WorkspaceEventOptions other) -> bool
+Microsoft.CodeAnalysis.WorkspaceEventOptions.RequiresMainThread.get -> bool
+Microsoft.CodeAnalysis.WorkspaceEventOptions.RequiresMainThread.set -> void
+Microsoft.CodeAnalysis.WorkspaceEventOptions.WorkspaceEventOptions() -> void
+Microsoft.CodeAnalysis.WorkspaceEventOptions.WorkspaceEventOptions(bool RequiresMainThread) -> void
+Microsoft.CodeAnalysis.WorkspaceEventRegistration
+Microsoft.CodeAnalysis.WorkspaceEventRegistration.Dispose() -> void
+override Microsoft.CodeAnalysis.WorkspaceEventOptions.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.WorkspaceEventOptions.GetHashCode() -> int
+override Microsoft.CodeAnalysis.WorkspaceEventOptions.ToString() -> string
+static Microsoft.CodeAnalysis.WorkspaceEventOptions.operator !=(Microsoft.CodeAnalysis.WorkspaceEventOptions left, Microsoft.CodeAnalysis.WorkspaceEventOptions right) -> bool
+static Microsoft.CodeAnalysis.WorkspaceEventOptions.operator ==(Microsoft.CodeAnalysis.WorkspaceEventOptions left, Microsoft.CodeAnalysis.WorkspaceEventOptions right) -> bool
+static readonly Microsoft.CodeAnalysis.WorkspaceEventOptions.DefaultOptions -> Microsoft.CodeAnalysis.WorkspaceEventOptions
+static readonly Microsoft.CodeAnalysis.WorkspaceEventOptions.RequiresMainThreadOptions -> Microsoft.CodeAnalysis.WorkspaceEventOptions

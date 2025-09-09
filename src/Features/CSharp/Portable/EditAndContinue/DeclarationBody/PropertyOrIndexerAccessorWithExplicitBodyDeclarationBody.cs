@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -38,6 +39,9 @@ internal sealed class PropertyOrIndexerAccessorWithExplicitBodyDeclarationBody(A
     public override SyntaxNode? MatchRoot
         => (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody!;
 
-    public sealed override IEnumerable<SyntaxToken>? GetActiveTokens()
-        => Body.DescendantTokens();
+    public sealed override IEnumerable<SyntaxToken>? GetActiveTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => getDescendantTokens(Body);
+
+    public override IEnumerable<SyntaxToken> GetUserCodeTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => getDescendantTokens(Body);
 }

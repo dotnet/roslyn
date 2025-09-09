@@ -9,19 +9,18 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
-{
-    internal static class FSharpContentTypeDefinitions
-    {
-        [Export]
-        [Name(FSharpContentTypeNames.FSharpContentType)]
-        [BaseDefinition(FSharpContentTypeNames.RoslynContentType)]
-        [BaseDefinition(CodeRemoteContentDefinition.CodeRemoteBaseTypeName)]
-        public static readonly ContentTypeDefinition FSharpContentTypeDefinition;
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
 
-        [Export]
-        [Name(FSharpContentTypeNames.FSharpSignatureHelpContentType)]
-        [BaseDefinition("sighelp")]
-        public static readonly ContentTypeDefinition FSharpSignatureHelpContentTypeDefinition;
-    }
+internal static class FSharpContentTypeDefinitions
+{
+    [Export]
+    [Name(FSharpContentTypeNames.FSharpContentType)]
+    [BaseDefinition(FSharpContentTypeNames.RoslynContentType)]
+    [BaseDefinition(CodeRemoteContentDefinition.CodeRemoteBaseTypeName)]
+    public static readonly ContentTypeDefinition FSharpContentTypeDefinition;
+
+    [Export]
+    [Name(FSharpContentTypeNames.FSharpSignatureHelpContentType)]
+    [BaseDefinition("sighelp")]
+    public static readonly ContentTypeDefinition FSharpSignatureHelpContentTypeDefinition;
 }

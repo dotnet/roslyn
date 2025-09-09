@@ -1,0 +1,835 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../CodeAnalysisDiagnosticsResources.resx">
+    <body>
+      <trans-unit id="AddCompilationEndCustomTagDescription">
+        <source>'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag "CompilationEnd". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.</source>
+        <target state="translated">Alana atanan 'DiagnosticDescriptor', bir derleme bitiş tanılamasını rapor etmek için kullanılır ancak bunu başlatmak için kullanılan 'DiagnosticDescriptor' oluşturucusu, gerekli "CompilationEnd" özel etiketinde geçmez. Ayrıntılar için 'WellKnownDiagnosticTags.CompilationEnd' belgesine bakın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagMessage">
+        <source>Add "CompilationEnd" custom tag to the diagnostic descriptor used to initialize field '{0}' as it is used to report a compilation end diagnostic</source>
+        <target state="translated">Derleme sonu tanılamasını rapor etmek için kullanıldığından, '{0}' alanını başlatmak için kullanılan tanılama tanımlayıcısına "CompilationEnd" özel etiketi ekleyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddCompilationEndCustomTagTitle">
+        <source>Add "CompilationEnd" custom tag to compilation end diagnostic descriptor</source>
+        <target state="translated">Derleme sonu tanılama tanımlayıcısına "CompilationEnd" özel etiketi ekleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
+        <source>Add rule entry to unshipped release file</source>
+        <target state="translated">Gönderilmeyen yayın dosyasına kural girişi ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
+        <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)</source>
+        <target state="translated">DiagnosticAnalyzer'dan '{0}' türünü devralın veya DiagnosticAnalyzerAttribute'ları kaldırın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
+        <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer</source>
+        <target state="translated">DiagnosticAnalyzerAttribute'lar ile işaretlenen türler DiagnosticAnalyzer'dan devralınmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyCodeFix">
+        <source>Use a 'SymbolEqualityComparer' for symbol comparison</source>
+        <target state="translated">Sembol karşılaştırması için 'SymbolEqualityComparer' kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescription">
+        <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
+        <target state="translated">Semboller kimlik değil, eşitlik bakımından karşılaştırılmalıdır. 'IEqualityComparer' kabul eden bir aşırı yükleme kullanın ve 'SymbolEqualityComparer' geçirin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
+        <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
+        <target state="translated">Semboller kimlik değil, eşitlik bakımından karşılaştırılmalıdır. 'GetHashCode'a yönelik açık çağrı büyük olasılıkla yanlış davranışa neden olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyMessage">
+        <source>Use 'SymbolEqualityComparer' when comparing symbols</source>
+        <target state="translated">Sembolleri karşılaştırırken 'SymbolEqualityComparer' kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyTitle">
+        <source>Symbols should be compared for equality</source>
+        <target state="translated">Semboller eşitlik bakımından karşılaştırılmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
+        <source>Configure generated code analysis</source>
+        <target state="translated">Oluşturulan kod analizini yapılandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
+        <source>Configure generated code analysis</source>
+        <target state="translated">Oluşturulan kod analizini yapılandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
+        <source>Configure generated code analysis</source>
+        <target state="translated">Oluşturulan kod analizini yapılandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseDescription">
+        <source>All supported analyzer diagnostic IDs should be part of an analyzer release.</source>
+        <target state="translated">Tüm desteklenen çözümleyici tanılama kimlikleri bir çözümleyici yayınının parçası olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
+        <source>Rule '{0}' is not part of any analyzer release</source>
+        <target state="translated">'{0}' kuralı herhangi bir çözümleyici yayınının parçası değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
+        <source>Add analyzer diagnostic IDs to analyzer release</source>
+        <target state="translated">Çözümleyici yayınına çözümleyici tanılama kimlikleri ekleyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
+        <target state="translated">Tanılama açıklaması, noktalama işaretiyle biten bir veya birkaç cümle olmalı ve başında veya sonunda boşluk olmamalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
+        <source>Define diagnostic description correctly</source>
+        <target state="translated">Tanılama açıklamasını doğru tanımlayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <target state="translated">Tanılama iletisi, satır başı karakteri veya başta ya da sonda boşluk içermemeli ve sonunda nokta olmayan tek bir cümle ya da sonunda nokta olan birden çok cümle olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
+        <source>Define diagnostic message correctly</source>
+        <target state="translated">Tanılama iletisini doğru tanımlayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="translated">Tanılama başlığı nokta, satır başı karakteri veya başta ya da sonda boşluk içermemelidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="translated">Tanılama başlığını doğru tanımlayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCSharpCompilerFeatureInAssemblyWithVisualBasicReferenceMessage">
+        <source>This C# compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.VisualBasic. The Microsoft.CodeAnalysis.VisualBasic assembly is not always provided during C# compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="translated">Bu C# derleyici uzantısı, Microsoft.CodeAnalysis.VisualBasic başvurusu içeren bir derlemede uygulanmamalıdır. Microsoft.CodeAnalysis.VisualBasic derlemesi, C# derleme senaryoları sırasında her zaman sağlanmaz, bu nedenle ona yapılan başvurular derleyici uzantısının beklenmedik şekilde davranmasına neden olabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkMessage">
+        <source>This compiler extension should not be implemented in an assembly with target framework '{0}'. References to other target frameworks will cause the compiler to behave unpredictably.</source>
+        <target state="translated">Bu derleyici uzantısı, '{0}' hedef çerçevesine sahip bir derlemede uygulanmamalıdır. Diğer hedef çerçevelere yapılan başvurular derleyicinin öngörülemeyen şekilde davranmasına neden olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleDescription">
+        <source>Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.</source>
+        <target state="translated">Derleyici uzantı noktalarını uygulayan türler yalnızca netstandard2.0'ı hedefleyen derlemelerde tanımlanabilir. Daha belirli hedef çerçeveler yalnızca desteklenen derleme senaryolarının bir alt kümesinde kullanılabilir, bu nedenle bunları hedeflemek özelliğin öngörülemeyen şekilde davranmasına neden olabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle">
+        <source>Compiler extensions should be implemented in assemblies targeting netstandard2.0</source>
+        <target state="translated">Derleyici uzantıları, netstandard2.0’ı hedefleyen derlemelerde uygulanmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareCompilerFeatureInAssemblyWithWorkspacesReferenceMessage">
+        <source>This compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.Workspaces. The Microsoft.CodeAnalysis.Workspaces assembly is not provided during command line compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="translated">Bu derleyici uzantısı, Microsoft.CodeAnalysis.Çalışma Alanları başvurusunu içeren bir derlemede uygulanmamalıdır. Microsoft.CodeAnalysis.Çalışma Alanları derlemesi, komut satırı derleme senaryoları sırasında sağlanmaz, dolayısıyla buna yapılan başvurular, derleyici uzantısının beklenmedik şekilde davranmasına neden olabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotDeclareVisualBasicCompilerFeatureInAssemblyWithCSharpReferenceMessage">
+        <source>This Visual Basic compiler extension should not be implemented in an assembly containing a reference to Microsoft.CodeAnalysis.CSharp. The Microsoft.CodeAnalysis.CSharp assembly is not always provided during Visual Basic compilation scenarios, so references to it could cause the compiler extension to behave unpredictably.</source>
+        <target state="translated">Bu Visual Basic derleyici uzantısı, Microsoft.CodeAnalysis.CSharp başvurusunu içeren bir derlemede uygulanmamalıdır. Microsoft.CodeAnalysis.CSharp derlemesi, Visual Basic derleme senaryoları sırasında her zaman sağlanmaz, bu nedenle derlemeye yapılan başvurular derleyici uzantısının beklenmedik şekilde davranmasına neden olabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleDescription">
+        <source>Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.</source>
+        <target state="translated">Derleyici uzantı noktalarını uygulayan türler, tüm derleme senaryoları tarafından sağlanmayan derlemelere başvurular içeren derlemelerde bildirilmemelidir. Bunu yapmak, özelliğin öngörülemeyen şekilde davranmasına neden olabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotRegisterCompilerTypesWithBadAssemblyReferenceRuleTitle">
+        <source>Compiler extensions should be implemented in assemblies with compiler-provided references</source>
+        <target state="translated">Derleyici uzantıları, derleyici tarafından sağlanan referanslara sahip derlemelerde uygulanmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">'GetSemanticModel', derleme verilerini derleyici veya diğer çözümleyiciler ile paylaşmayan tamamen yeni bir anlam modeli oluşturduğundan bir tanılama çözümleyicisi içinde çağırmak için pahalı bir yöntemdir. Bu işlem, anlamsal analiz sırasında ek bir performans maliyetine neden olur. Bunun yerine, 'RegisterOperationAction', 'RegisterSyntaxNodeAction' veya 'RegisterSemanticModelAction' gibi paylaşılan bir 'SemanticModel' kullanılmasına izin veren farklı bir çözümleyici eylemini kaydetmeyi deneyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Bir tanılama çözümleyicisi içinde Compilation.GetSemanticModel() yöntemini çağırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">Bir tanılama çözümleyicisi içinde Compilation.GetSemanticModel() yöntemini çağırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
+        <source>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</source>
+        <target state="new">Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage">
+        <source>Type '{0}' should not be marked with 'file'</source>
+        <target state="new">Type '{0}' should not be marked with 'file'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle">
+        <source>Do not use file types for implementing analyzers, generators, and code fixers</source>
+        <target state="new">Do not use file types for implementing analyzers, generators, and code fixers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
+        <source>DiagnosticId for analyzers should not use reserved IDs.</source>
+        <target state="translated">Çözümleyiciler için DiagnosticId, ayrılmış kimlikler kullanmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
+        <source>'{0}' is a reserved diagnostic ID</source>
+        <target state="translated">'{0}', ayrılmış bir tanılama kimliğidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
+        <source>Do not use reserved diagnostic IDs</source>
+        <target state="translated">Ayrılmış tanılama kimlikleri kullanmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
+        <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
+        <target state="translated">Çözümleyici paketleri için yayın izlemeyi etkinleştirme, her çözümleyici yayınıyla birlikte gelen ve/veya değişen çözümleyici tanılamalarını izlemeye ve belgelemeye yardımcı olur. https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md adresindeki ayrıntılara bakın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
+        <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
+        <target state="translated">'{0}' kuralını içeren çözümleyici projesi için çözümleyici yayını izlemeyi etkinleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
+        <source>Enable analyzer release tracking</source>
+        <target state="translated">Çözümleyici yayını izlemeyi etkinleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionFix">
+        <source>Enable concurrent execution</source>
+        <target state="translated">Eşzamanlı yürütmeyi etkinleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionMessage">
+        <source>Enable concurrent execution</source>
+        <target state="translated">Eşzamanlı yürütmeyi etkinleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionTitle">
+        <source>Enable concurrent execution</source>
+        <target state="translated">Eşzamanlı yürütmeyi etkinleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteDescription">
+        <source>The author of this interface has deprecated implementing this interface.</source>
+        <target state="new">The author of this interface has deprecated implementing this interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteMessage">
+        <source>Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</source>
+        <target state="new">Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteTitle">
+        <source>Implementations of this interface are not allowed</source>
+        <target state="new">Implementations of this interface are not allowed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
+        <source>Invalid entry in analyzer release file.</source>
+        <target state="translated">Çözümleyici yayın dosyasında geçersiz girdi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has an invalid entry '{1}'</source>
+        <target state="translated">'{0}' çözümleyici yayın dosyasında geçersiz '{1}' girişi var</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
+        <source>Invalid entry in analyzer release file</source>
+        <target state="translated">Çözümleyici yayın dosyasındaki giriş geçersiz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'</source>
+        <target state="translated">'{0}' çözümleyici yayın dosyası, eksik veya geçersiz bir yayın üst bilgisine ('{1}') sahip</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
+        <source>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</source>
+        <target state="translated">'{0}' çözümleyici yayın dosyası, '{2}' kuralı için önceden gönderilmiş bir yayın içermeyen geçersiz bir '{1}' girdisine sahip. Bunun yerine, gönderilmeyen yayın dosyasındaki kural için ayrı bir '{1}' girdisi ekleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</source>
+        <target state="translated">'{0}' çözümleyici yayın dosyasında, '{1}' içinde el ile doldurulması gereken en az bir 'Algılanmamış' alan içeren bir giriş var</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingAttributeMessage">
+        <source>Missing '{0}' attribute</source>
+        <target state="translated">'{0}' özniteliği eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
+        <source>Missing diagnostic analyzer attribute</source>
+        <target state="translated">Tanılama çözümleyicisi özniteliği eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
+        <source>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</source>
+        <target state="translated">Soyut olmayan DiagnosticAnalyzer alt türleri DiagnosticAnalyzerAttribute(s) ile işaretlenmelidir. Bu özniteliklerin bağımsız değişkenleri, varsa, çözümleyici için desteklenen dilleri belirler. Bu özniteliğe sahip olmayan çözümleyici türleri çözümleme altyapısı tarafından yoksayılır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerMessage">
+        <source>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</source>
+        <target state="translated">Tanılama çözümleyicisi '{0}' hem C# hem de Visual Basic’i destekleyebilir. '{1}' dil desteği için DiagnosticAnalyzerAttribute’a bir bağımsız değişken eklemeyi düşünün.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerTitle">
+        <source>Recommend adding language support to diagnostic analyzer</source>
+        <target state="translated">Tanılama çözümleyicisine dil desteği eklemeniz önerilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerDescription">
+        <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
+        <target state="translated">Tanılama çözümleyicisi yalnızca bir dili destekliyor olarak işaretlenmiş ancak çözümleyici bütünleştirilmiş kodu herhangi bir dile özgü CodeAnalysis bütünleştirilmiş koduna başvuruyor gibi görünmediğinden birden çok dil için çalışması olasıdır. DiagnosticAnalyzerAttribute’a bir ek dil bağımsız değişkeni eklemeyi düşünün.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
+        <source>Apply DiagnosticAnalyzer attribute for '{0}'.</source>
+        <target state="translated">'{0}' için DiagnosticAnalyzer özniteliğini uygulayın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ApplyDiagnosticAnalyzerAttribute_2">
+        <source>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</source>
+        <target state="translated">Hem '{0}' hem de '{1}' için DiagnosticAnalyzer özniteliğini uygulayın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingSymbolKindArgumentToRegisterActionMessage">
+        <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action</source>
+        <target state="translated">Bir sembol çözümleyicisi eylemi kaydedilirken en az bir ilgili SymbolKind belirtin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingSyntaxKindArgumentToRegisterActionMessage">
+        <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action</source>
+        <target state="translated">Bir söz dizimi düğümü çözümleyicisi eylemi kaydedilirken en az bir ilgili SyntaxKind belirtin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingOperationKindArgumentToRegisterActionMessage">
+        <source>Specify at least one OperationKind of interest when registering an operation analyzer action</source>
+        <target state="translated">Bir işlem çözümleyicisi eylemi kaydedilirken en az bir ilgili OperationKind belirtin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKindArgumentToRegisterActionTitle">
+        <source>Missing kind argument when registering an analyzer action</source>
+        <target state="translated">Bir çözümleyici eylemi kaydedilirken tür bağımsız değişkeni eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKindArgumentToRegisterActionDescription">
+        <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
+        <target state="translated">Bir söz dizimi, sembol veya işlem çözümleyicisi eylemi eklerken en az bir söz dizimi, sembol veya işlem türü belirtmeniz gerekir. Aksi takdirde, kayıtlı eylem çözümleme sırasında hiçbir zaman çağrılmaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersDescription">
+        <source>A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'.</source>
+        <target state="translated">Çözümleyiciler veya kaynak oluşturucular içeren bir proje '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;' özelliğini belirtilmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersMessage">
+        <source>'{0}': A project containing analyzers or source generators should specify the property '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;'</source>
+        <target state="translated">'{0}': Çözümleyiciler veya kaynak oluşturucular içeren bir proje '&lt;EnforceExtendedAnalyzerRules&gt;true&lt;/EnforceExtendedAnalyzerRules&gt;' özelliğini belirtilmelidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoSettingSpecifiedSymbolIsBannedInAnalyzersTitle">
+        <source>Specify analyzer banned API enforcement setting</source>
+        <target state="translated">Çözümleyici yasaklı API zorlama ayarını belirtin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
+        <target state="translated">Söz dizimi çeşitleri denetlenirken 'syntax.IsKind(kind)' türünü 'syntax.Kind() == kind' türüne tercih edin. 'IsKind' kullanan kod, çalışma zamanında biraz daha etkilidir, bu nedenle bu formu kullanmak, karmaşık analiz senaryolarında performansın artırılmasına yardımcı olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Use 'IsKind' instead of 'Kind'</source>
+        <target state="translated">'Kind' yerine 'IsKind' kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="translated">Söz dizimi türlerini denetlemek için 'IsKind' öğesini tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="translated">Söz dizimi türlerini denetlemek için 'IsKind' öğesini tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorDescription">
+        <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
+        <target state="translated">'customTags' değeri, etiketlerin belirli değerlerine dayalı olarak, tanılama tanımlayıcılarında belirli eylemleri ve filtreleri etkinleştirmek için kullanılır. Her Roslyn çözümleyicisinin 'WellKnownDiagnosticTags' sınıfından en az bir etiketi olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorMessage">
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors</source>
+        <target state="translated">Tanılama tanımlayıcılarının meta veri filtrelemesini etkinleştirmek için tanılama tanımlayıcısı oluşturucusuna null olmayan bir 'customTags' değeri sağlamayı düşünün</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorTitle">
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor</source>
+        <target state="translated">Tanılama tanımlayıcısı oluşturucusuna null olmayan 'customTags' değeri sağlayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
+        <target state="translated">Çözümleyici yayınları arasında tanılama kimliği için yinelenen girdileri kaldırın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
+        <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</source>
+        <target state="translated">'{0}' kuralı, '{1}' yayını ile '{2}' yayını arasında yinelenen giriş içeriyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
+        <target state="translated">Çözümleyici yayınları arasında tanılama kimliği için yinelenen girişleri kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
+        <target state="translated">Aynı çözümleyici yayınında tanılama kimliği için yinelenen girdileri kaldırın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
+        <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</source>
+        <target state="translated">'{0}' kuralı, '{1}' yayını için '{2}' çözümleyici yayın dosyasında birden fazla giriş içeriyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release</source>
+        <target state="translated">Aynı çözümleyici yayınında tanılama kimliği için yinelenen girişleri kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <target state="translated">Artık bildirilmeyen gönderilmiş tanılama kimliklerinin, gönderilmeyen dosyada 'Kaldırılan Kurallar' tablosunda bir girdisi olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdMessage">
+        <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</source>
+        <target state="translated">'{0}' kuralı '{1}' çözümleyici yayınında gönderildi, ancak artık herhangi bir çözümleyici için desteklenen bir tanılama değil. Gönderilmeyen dosyada, 'Kaldırılan kurallar' tablosunda bu kural için bir girdi ekleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</source>
+        <target state="translated">Artık bildirilmeyen gönderilmiş tanılama kimliklerinin, gönderilmeyen dosyada bulunan 'Kaldırılan Kurallar' tablosunda bir girişi olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
+        <source>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</source>
+        <target state="translated">Artık bildirilmeyen ve hiç gönderilmemiş çözümleyici tanılama kimliklerine yönelik girdiler, gönderilmeyen çözümleyici yayınından kaldırılabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
+        <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</source>
+        <target state="translated">'{0}' kuralı, sonraki gönderilmemiş çözümleyici yayınının parçası ancak herhangi bir çözümleyici için desteklenen bir tanılama değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
+        <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
+        <target state="translated">Kaldırılmış çözümleyici tanılama kimliklerini gönderilmeyen çözümleyici sürümüne ekleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullDescription">
+        <source>Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.</source>
+        <target state="translated">'GlobalStatementSyntax' ve 'IncompleteMemberSyntax' gibi 'SyntaxNode' öğesinden devralınan belirli türlerde 'SemanticModel.GetDeclaredSymbol' çağrısı her zaman 'null' döndürür.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldDescription">
+        <source>Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.</source>
+        <target state="translated">'FieldDeclarationSyntax' veya 'EventFieldDeclarationSyntax' bağımsız değişken türüyle 'SemanticModel.GetDeclaredSymbol' çağrısı yapmak her zaman 'null' döndürür. Bunun yerine, alandan değişken bildirimciler ile 'GetDeclaredSymbol' çağrısı yapın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullForFieldMessage">
+        <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol({0})' çağrısı her zaman 'null' döndürür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullMessage">
+        <source>A call to 'SemanticModel.GetDeclaredSymbol({0})' will always return 'null'</source>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol({0})' çağrısı her zaman 'null' döndürür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticModelGetDeclaredSymbolAlwaysReturnsNullTitle">
+        <source>This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'</source>
+        <target state="translated">'SemanticModel.GetDeclaredSymbol()' çağrısı her zaman 'null' döndürür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersDescription">
+        <source>The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.</source>
+        <target state="translated">Sembol, çözümleyicilerde kullanılması yasaklı olarak işaretlendiğinden bunun yerine başka bir sembol kullanılması gerekiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersMessage">
+        <source>The symbol '{0}' is banned for use by analyzers{1}</source>
+        <target state="translated">'{0}' sembolünün {1} çözümleyicileri tarafından kullanılması yasaklandı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedInAnalyzersTitle">
+        <source>Do not use APIs banned for analyzers</source>
+        <target state="translated">Çözümleyiciler için yasaklanan API'leri kullanmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
+        <target state="translated">Çözümleyici yayın dosyasında kaldırılmış olarak işaretlenen tanılama kimlikleri çözümleyiciler tarafından bildirilmemelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
+        <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</source>
+        <target state="translated">'{0}' kuralı en son çözümleyici yayınında kaldırılmış olarak işaretlenmiş ancak hala bildiriliyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</source>
+        <target state="translated">Çözümleyici yayın dosyasında kaldırılmış olarak işaretlenen tanılama kimlikleri çözümleyiciler tarafından bildirilmemelidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
+        <source>SymbolKind '{0}' is not supported for symbol analyzer actions</source>
+        <target state="translated">'{0}' SymbolKind, sembol çözümleyicisi eylemleri için desteklenmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
+        <source>Unsupported SymbolKind argument when registering a symbol analyzer action</source>
+        <target state="translated">Sembol çözümleyicisi eylemi kaydedilirken SymbolKind bağımsız değişkeni desteklenmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticMessage">
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'</source>
+        <target state="translated">ReportDiagnostic desteklenmeyen '{0}' DiagnosticDescriptor ile çağrıldı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticTitle">
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor</source>
+        <target state="translated">ReportDiagnostic desteklenmeyen bir DiagnosticDescriptor ile çağrıldı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticDescription">
+        <source>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</source>
+        <target state="translated">ReportDiagnostic yalnızca DiagnosticAnalyzer.SupportedDiagnostics özelliğinden döndürülen desteklenen DiagnosticDescriptors ile çağrılmalıdır. Aksi takdirde, raporlanan tanılama çözümleme altyapısı tarafından filtrelenir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
+        <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</source>
+        <target state="translated">'{2}' metodunun '{1}' tür parametresi için '{0}' tür bağımsız değişkeni bir SyntaxKind sabit listesi değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
+        <source>Invalid type argument for DiagnosticAnalyzer's Register method</source>
+        <target state="translated">DiagnosticAnalyzer’ın Register metodu için tür bağımsız değişkeni geçersiz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
+        <source>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</source>
+        <target state="translated">DiagnosticAnalyzer’ın dile özgü Register yöntemleri (örneğin RegisterSyntaxNodeAction, RegisterCodeBlockStartAction ve RegisterCodeBlockEndAction) '{0}' tür parametresi için dile özgü bir 'SyntaxKind' tür bağımsız değişkeni bekliyor. Aksi takdirde, kayıtlı çözümleyici eylemi çözümleme sırasında hiçbir zaman çağrılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithOnlyEndActionTitle">
+        <source>Start action has no registered non-end actions</source>
+        <target state="translated">Başlangıç eyleminin kayıtlı bitiş eylemi olmayan eylemi yok</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithNoRegisteredActionsMessage">
+        <source>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</source>
+        <target state="translated">'{0}' herhangi bir çözümleyici eylemini kaydetmez. Bu başlangıç eylemine bağımlı olan '{1}' içinde kayıtlı eylemleri '{0}' içine taşımayı düşünün.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithNoRegisteredActionsTitle">
+        <source>Start action has no registered actions</source>
+        <target state="translated">Başlangıç eyleminin kayıtlı eylemi yok</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithOnlyEndActionMessage">
+        <source>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</source>
+        <target state="translated">'{0}' bir '{1}' hariç herhangi bir çözümleyici eylemini kaydetmez. Bu başlangıç/bitiş eylem çiftini '{2}' ile eşlemeyi veya bu başlangıç eylemine bağımlı olan '{3}' içinde kayıtlı eylemleri '{0}' içine taşımayı düşünün.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StatefulAnalyzerRegisterActionsDescription">
+        <source>An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
+1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
+2. If required, define and initialize state in the start action.
+3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
+4. If required, register an end action to report diagnostics based on the final state.</source>
+        <target state="translated">Bir çözümleyici başlatma eylemi bir kod bloğu, derleme vb. belirli kod birimi üzerinde durum bilgisi olan çözümleme gerçekleştirmeye olanak sağlar. Bellek sızıntısı olmadan verimli çözümleyici yürütmesi sağlamak için dikkatli tasarım gereklidir. Bu tür çözümleyiciler yazmak için aşağıdaki kılavuzu kullanın:
+1. Muhtemelen her kod birimini çözümlemek için özel bir iç içe geçmiş tür ile kayıtlı başlatma eylemi için yeni bir kapsam tanımlayın.
+2. Gerekirse, durumu başlangıç eyleminde tanımlayın ve başlatın.
+3. Başlangıç eyleminde bu duruma başvuran en az bir bitiş eylemi olmayan eylem kaydedin. Böyle bir eyleme gerek yoksa, başlangıç eylemini başlangıç eylemi olmayan bir eylemle değiştirmeyi düşünün. Örneğin, kayıtlı eylemi olmayan veya yalnızca kayıtlı bir CodeBlockEndAction’ı olan CodeBlockStartAction, CodeBlockAction ile değiştirilmelidir.
+4. Gerekirse, son durumu temel alan tanılamaları raporlamak için bir bitiş eylemi kaydedin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseDescription">
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
+        <target state="translated">Çözümleyici tanılama kimlikleri için güncel girdilerin çözümleyici yayınına eklendiğinden emin olun.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseMessage">
+        <source>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</source>
+        <target state="translated">'{0}' kuralı, son yayından sonra değiştirilen bir 'Kategori' veya 'Önem Derecesi' içeriyor. Kaynaktaki güncelleştirmeleri geri alın veya gönderilmeyen yayın dosyasına yeni bir güncel girdi ekleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</source>
+        <target state="translated">Çözümleyici tanılama kimlikleri için çözümleyici yayınına güncel girişlerin eklendiğinden emin olun</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
+        <source>Update rule entry in unshipped release file</source>
+        <target state="translated">Gönderilmeyen yayın dosyasındaki kural girdisini güncelleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorMessage">
+        <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable</source>
+        <target state="translated">Tanımlayıcının yerelleştirilebilir olduğundan emin olmak için tanılama tanımlayıcısına '{0}' türünde yerelleştirilebilir bağımsız değişkenler sağlamayı düşünün</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorTitle">
+        <source>Provide localizable arguments to diagnostic descriptor constructor</source>
+        <target state="translated">Tanılama tanımlayıcısı oluşturucusuna yerelleştirilebilir bağımsız değişkenler sağlayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorDescription">
+        <source>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</source>
+        <target state="translated">Tanılama çözümleyicinizin ve raporlanan tanılamalarının yerelleştirilebilir olması gerekiyorsa, tanılamaları oluşturmak için kullanılan desteklenen DiagnosticDescriptors’ın da yerelleştirilebilir olması gerekir. Öyleyse, tanımlayıcının yerelleştirilebilir olduğundan emin olmak için tanılama tanımlayıcısı oluşturucusuna 'title' (ve isteğe bağlı olarak 'description') parametresi için yerelleştirilebilir bağımsız değişkenlerin sağlanması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
+        <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer</source>
+        <target state="translated">Tanılama çözümleyicisinin alanlarına '{0}' türünde derleme başına veriler depolamaktan kaçının</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
+        <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer</source>
+        <target state="translated">Tanılama çözümleyicisinin alanlarına derleme başına veriler depolamaktan kaçının</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
+        <source>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</source>
+        <target state="translated">Bir tanılama çözümleyicisi, derlemenin ömrüne daha uzun süre kullanılabilir. Bu nedenle, semboller gibi derleme başına simgelerin bir tanılama çözümleyicisinin alanlarında depolanması, eski derlemelerin kullanılmaya devam ederek bellek sızıntıları oluşturmasına neden olabilir.  Bunun yerine, bu verileri '{0}.{1}' API’si kullanılarak kaydedilmiş bir derleme başlatma eylemi içinde örneklenen ayrı bir tür üzerinde depolamanız gerekir. Derleme başına bu türde bir örnek oluşturulur ve derlemenin ömründen daha uzun süre kullanılmayarak bellek sızıntıları önlenir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyDescription">
+        <source>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</source>
+        <target state="translated">Bu arabirimin yazarı bu arabirimin üçüncü taraf uygulamalarının oluşturulmasını planlamadı ve arabirimi değiştirme hakkını saklı tutuyor. Bu nedenle, bu arabirimin uygulanması bu arabirimin gelecekteki bir sürümüyle kaynak veya uyumluluk sorunlarıyla sonuçlanabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyMessage">
+        <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation</source>
+        <target state="translated">{1} genel uygulama için kullanılabilir olmadığından {0} türü {1} arabirimini uygulayamıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyTitle">
+        <source>Only internal implementations of this interface are allowed</source>
+        <target state="translated">Bu arabirimin yalnızca içeride yapılan uygulamalarına izin verilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
+        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
+        <target state="translated">Tüm örnekleri düzeltme desteği sunmayı hedefleyen bir CodeFixProvider’ın, kayıtlı kod eylemlerine bu düzeltici tarafından oluşturulan her kod eylemi türü için benzersiz olan açık, null olmayan bir eşdeğerlik anahtarı atayarak bu kod eylemlerini eşdeğerlik sınıflarına ayırması gerekir. Bu, FixAllProvider’ın bu düzelticiden tetikleyici kod eyleminin eşdeğerlik sınıfında olan kod eylemlerini uygulayarak gerekli kapsamdaki tüm tanılamaları düzeltmesine olanak sağlar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</source>
+        <target state="translated">İsteğe bağlı '{0}' parametresi için, null olmayan ve bu düzeltici tarafından oluşturulan her kod eylemi için benzersiz olan bir açık bağımsız değişken sağlayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
+        <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support</source>
+        <target state="translated">Kod oluşturma eylemlerinin FixAll oluşumları desteği için benzersiz bir EquivalenceKey’e sahip olması gerekir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
+        <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
+        <target state="translated">'{0}' '{1}' özelliği için 'null' varsayılan değerine sahip. Null olmayan ve tüm kod eylemleri arasında benzersiz bir değer döndürmek için '{0}' üzerindeki bu özelliği geçersiz kılın veya buna benzer mevcut bir kod eylemi kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
+        <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support</source>
+        <target state="translated">FixAll oluşumları desteği için benzersiz bir EquivalenceKey’e sahip kod eylemleri kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription">
+        <source>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</source>
+        <target state="translated">Roslyn tarafından açığa çıkarılan birçok nesne sabittir. Bu nesneler üzerinde bir yöntem çağırmadan dönüş değeri yoksayılmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage">
+        <source>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</source>
+        <target state="translated">'{0}' sabittir ve '{1}' bu öğeyi etkilemez. '{1}' öğesinden dönüş değerini kullanmayı düşünün.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
+        <source>Do not ignore values returned by methods on immutable objects</source>
+        <target state="translated">Sabit nesnelerdeki yöntemler tarafından döndürülen değerleri yok saymama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderTitle">
+        <source>Code fix providers should provide FixAll support</source>
+        <target state="translated">Kod düzeltme sağlayıcıları FixAll desteği sağlamalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderMessage">
+        <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
+        <target state="translated">'{0}' bir veya daha fazla kod düzeltmesi kaydediyor ancak 'CodeFixProvider.GetFixAllProvider' metodunu geçersiz kılmıyor. Bu metodu geçersiz kılın ve FixAll desteği için 'WellKnownFixAllProviders.BatchFixer' gibi null olmayan bir FixAllProvider sağlayın veya FixAll desteğini açıkça devre dışı bırakmak için 'null' sağlayın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderDescription">
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="translated">CodeFixProvider, kullanıcıların tek bir kod düzeltmesiyle temel tanılamanın birden çok örneğini düzeltebilmesi için FixAll desteği sağlamalıdır. Daha fazla ayrıntı için https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md adresindeki belgelere bakın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
+        <source>Override GetFixAllProvider.</source>
+        <target state="translated">GetFixAllProvider’ı geçersiz kılın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorMessage">
+        <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list</source>
+        <target state="translated">Bu tanılama, hata listesinde görüntülendiğinde bilgileri göstermek için tanılama tanımlayıcısı oluşturucusuna null olmayan bir 'helpLinkUri' sağlamayı düşünün</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorTitle">
+        <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor</source>
+        <target state="translated">Tanılama tanımlayıcısı oluşturucusuna null olmayan 'helpLinkUri' değeri sağlayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorDescription">
+        <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
+        <target state="translated">'helpLinkUri' değeri, bu tanılama hata listesinde olduğunda bilgi görüntülemek için kullanılır. Her çözümleyici için zaman içinde değişmeyen bir yardım sayfasına işaret eden bir helpLinkUri belirtilmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
+        <source>DiagnosticId for analyzers must be in specified format</source>
+        <target state="translated">Çözümleyiciler için DiagnosticId belirtilen biçimde olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
+        <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'</source>
+        <target state="translated">'{1}' kategorisine ait '{0}' tanılama kimliği, '{3}' dosyasında belirtilen gerekli '{2}' aralığında ve/veya biçiminde değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
+        <source>DiagnosticId for analyzers must be in specified format.</source>
+        <target state="translated">Çözümleyiciler için DiagnosticId belirtilen biçimde olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdTitle">
+        <source>DiagnosticId must be unique across analyzers</source>
+        <target state="translated">DiagnosticId çözümleyiciler arasında benzersiz olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdMessage">
+        <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
+        <target state="translated">'{0}' tanılama kimliği zaten '{1}' çözümleyicisi tarafından kullanılıyor. Lütfen farklı bir tanılama kimliği kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdDescription">
+        <source>DiagnosticId must be unique across analyzers.</source>
+        <target state="translated">DiagnosticId çözümleyiciler arasında benzersiz olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
+        <source>Category for analyzers must be from the specified values</source>
+        <target state="translated">Çözümleyiciler için kategori, belirtilen değerlerden biri olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
+        <source>Category '{0}' is not from the allowed categories specified in the file '{1}'</source>
+        <target state="translated">'{0}' kategorisi '{1}' dosyasında belirtilen izin verilen kategoriler arasında değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
+        <source>Category for analyzers must be from the specified values.</source>
+        <target state="translated">Çözümleyiciler için kategori belirtilen değerlerden biri olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file</source>
+        <target state="translated">Çözümleyici kategorisi ve tanılama kimliği aralık belirtimi dosyasındaki girdi geçersiz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
+        <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'</source>
+        <target state="translated">Çözümleyici kategorisi ve tanılama kimliği aralık belirtimi dosyasında ('{1}'), '{0}' girdisi geçersiz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
+        <target state="translated">Çözümleyici kategorisi ve tanılama kimliği aralık belirtimi dosyasında geçersiz girdi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantTitle">
+        <source>DiagnosticId for analyzers must be a non-null constant</source>
+        <target state="translated">Çözümleyiciler için DiagnosticId null olmayan bir sabit değer olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantMessage">
+        <source>Diagnostic Id for rule '{0}' must be a non-null constant</source>
+        <target state="translated">'{0}' kuralı için tanılama kimliği null olmayan bir sabit değer olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantDescription">
+        <source>DiagnosticId for analyzers must be a non-null constant.</source>
+        <target state="translated">Çözümleyiciler için DiagnosticId null olmayan bir sabit değer olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
+        <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
+        <target state="translated">Tanılama çözümleyicisi türleri, Çalışma Alanları bütünleştirilmiş kodlarından alınan türleri kullanmamalıdır. Çalışma Alanları bütünleştirilmiş kodları yalnızca çözümleyici Visual Studio IDE canlı analizinde yürütülüyorsa kullanılabilir, ancak komut satırı derlemesi sırasında kullanılamaz. Çalışma Alanları bütünleştirilmiş kodlarından türlere başvurulması, komut satırı derlemesinde çözümleyici yürütüldüğü sırada çalışma zamanı özel durumuna yol açar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
+        <source>Do not use types from Workspaces assembly in an analyzer</source>
+        <target state="translated">Bir çözümleyicide Çalışma Alanları bütünleştirilmiş kodundan alınan türleri kullanmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
+        <target state="translated">'{2}' türüne erişen '{1}' türüne doğrudan veya dolaylı tüm erişimleri kaldırmak için tanılama çözümleyici türünü ('{0}') değiştirin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
+        <target state="translated">'{1}' türüne yönelik tüm doğrudan erişimleri kaldırmak için tanılama çözümleyici türünü ('{0}') değiştirin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="translated">MSBuildWorkspace, Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet paketini taşıdı ve hataya neden olan API değişiklikleri var.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="translated">Lütfen Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet paketine bir paket başvurusu ekleyerek MSBuildWorkspace’i yükseltin. MSBuildWorkspace’i başarıyla kullanma hakkında ayrıntılı bilgi için bkz. https://go.microsoft.com/fwlink/?linkid=874285.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="translated">MSBuildWorkspace’i yükseltir</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -86,7 +86,10 @@ internal enum Glyph
 
     OpenFolder,
 
-    Operator,
+    OperatorPublic,
+    OperatorProtected,
+    OperatorPrivate,
+    OperatorInternal,
 
     Parameter,
 

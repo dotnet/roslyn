@@ -52,14 +52,12 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             initialMarkup,
             expectedMarkup,
             index: index,
-            options: options,
-            parseOptions: parseOptions);
+            new(options: options, parseOptions: parseOptions));
     }
 
     [Fact]
-    public async Task TestSimpleMethods()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestSimpleMethods()
+        => TestAllOptionsOffAsync(
             """
             abstract class Goo
             {
@@ -116,12 +114,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16434")]
-    public async Task TestMethodWithTupleNames()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestMethodWithTupleNames()
+        => TestAllOptionsOffAsync(
             """
             abstract class Base
             {
@@ -146,12 +142,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70623")]
-    public async Task TestMethodWithNullableDynamic()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodWithNullableDynamic()
+        => TestInRegularAndScriptAsync(
             """
             abstract class Base
             {
@@ -176,17 +170,15 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """,
-            compilationOptions: new CSharpCompilationOptions
+            new(compilationOptions: new CSharpCompilationOptions
             (
                 OutputKind.DynamicallyLinkedLibrary,
                 nullableContextOptions: NullableContextOptions.Enable
-            ));
-    }
+            )));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]
-    public async Task TestNotAvailableForStruct()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotAvailableForStruct()
+        => TestMissingInRegularAndScriptAsync(
             """
             abstract class Goo
             {
@@ -197,12 +189,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalIntParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalIntParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -227,12 +217,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalCharParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalCharParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -257,12 +245,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalStringParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalStringParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -287,12 +273,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalShortParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalShortParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -317,12 +301,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalDecimalParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalDecimalParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -347,12 +329,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalDoubleParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalDoubleParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -377,12 +357,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalLongParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalLongParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -407,12 +385,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalFloatParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalFloatParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -437,12 +413,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalUshortParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalUshortParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -467,12 +441,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalUintParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalUintParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -497,12 +469,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalUlongParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalUlongParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -527,12 +497,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalStructParameter_CSharp7()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalStructParameter_CSharp7()
+        => TestAllOptionsOffAsync(
             """
             struct b
             {
@@ -566,12 +534,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             }
             """,
             parseOptions: TestOptions.Regular7);
-    }
 
     [Fact]
-    public async Task TestOptionalStructParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalStructParameter()
+        => TestAllOptionsOffAsync(
             """
             struct b
             {
@@ -604,12 +570,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
-    public async Task TestOptionalNullableStructParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalNullableStructParameter()
+        => TestAllOptionsOffAsync(
             """
             struct b
             {
@@ -642,12 +606,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
-    public async Task TestOptionalNullableIntParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalNullableIntParameter()
+        => TestAllOptionsOffAsync(
             """
             abstract class d
             {
@@ -672,12 +634,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOptionalObjectParameter()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOptionalObjectParameter()
+        => TestAllOptionsOffAsync(
             """
             class b
             {
@@ -710,12 +670,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543883")]
-    public async Task TestDifferentAccessorAccessibility()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestDifferentAccessorAccessibility()
+        => TestAllOptionsOffAsync(
             """
             abstract class c1
             {
@@ -748,12 +706,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEvent1()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestEvent1()
+        => TestAllOptionsOffAsync(
             """
             using System;
 
@@ -779,12 +735,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 public override event Action E;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexer1()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestIndexer1()
+        => TestAllOptionsOffAsync(
             """
             using System;
 
@@ -839,12 +793,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInHiddenType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInHiddenType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -859,12 +811,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             }
             #line default
             """);
-    }
 
     [Fact]
-    public async Task TestGenerateIfLocationAvailable()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestGenerateIfLocationAvailable()
+        => TestAllOptionsOffAsync(
             """
             #line default
             using System;
@@ -902,12 +852,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             }
             #line default
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
-    public async Task TestOnlyGenerateUnimplementedAccessors()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestOnlyGenerateUnimplementedAccessors()
+        => TestAllOptionsOffAsync(
             """
             using System;
 
@@ -961,12 +909,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545615")]
-    public async Task TestParamsArray()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestParamsArray()
+        => TestAllOptionsOffAsync(
             """
             class A
             {
@@ -1005,12 +951,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParamsCollection()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestParamsCollection()
+        => TestAllOptionsOffAsync(
             """
             using System.Collections.Generic;
 
@@ -1053,12 +997,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545636")]
-    public async Task TestNullPointerType()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestNullPointerType()
+        => TestAllOptionsOffAsync(
             """
             abstract class C
             {
@@ -1083,12 +1025,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545637")]
-    public async Task TestErrorTypeCalledVar()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestErrorTypeCalledVar()
+        => TestAllOptionsOffAsync(
             """
             extern alias var;
 
@@ -1117,12 +1057,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task Bugfix_581500()
-    {
-        await TestAllOptionsOffAsync(
+    public Task Bugfix_581500()
+        => TestAllOptionsOffAsync(
             """
             abstract class A<T>
             {
@@ -1153,12 +1091,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625442")]
-    public async Task Bugfix_625442()
-    {
-        await TestAllOptionsOffAsync(
+    public Task Bugfix_625442()
+        => TestAllOptionsOffAsync(
             """
             abstract class A<T>
             {
@@ -1185,12 +1121,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2407")]
-    public async Task ImplementClassWithInaccessibleMembers()
-    {
-        await TestAllOptionsOffAsync(
+    public Task ImplementClassWithInaccessibleMembers()
+        => TestAllOptionsOffAsync(
             """
             using System;
             using System.Globalization;
@@ -1274,12 +1208,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13149")]
-    public async Task TestPartialClass1()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestPartialClass1()
+        => TestAllOptionsOffAsync(
             """
             using System;
 
@@ -1316,12 +1248,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13149")]
-    public async Task TestPartialClass2()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestPartialClass2()
+        => TestAllOptionsOffAsync(
             """
             using System;
 
@@ -1358,12 +1288,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Method1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Method1()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1384,13 +1312,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override void M(int x) => throw new System.NotImplementedException();
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
-    }
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Property1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Property1()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1411,13 +1337,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int M => throw new System.NotImplementedException();
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
-    }
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Property3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Property3()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1444,17 +1368,15 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
-{
-    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
-    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-});
-    }
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+            }));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Property4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Property4()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1486,17 +1408,15 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
-{
-    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
-    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-});
-    }
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+            }));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Indexers1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Indexers1()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1517,13 +1437,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int this[int i] => throw new System.NotImplementedException();
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
-    }
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Indexer3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Indexer3()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1550,17 +1468,15 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
+            """, new(options: new OptionsCollection(GetLanguage())
 {
     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-});
-    }
+}));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Indexer4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Indexer4()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1592,17 +1508,15 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
+            """, new(options: new OptionsCollection(GetLanguage())
 {
     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-});
-    }
+}));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Accessor1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Accessor1()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1623,17 +1537,15 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int M { get => throw new System.NotImplementedException(); }
             }
-            """, options: new OptionsCollection(GetLanguage())
+            """, new(options: new OptionsCollection(GetLanguage())
 {
     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption2.Silent },
     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
-});
-    }
+}));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Accessor3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Accessor3()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1654,13 +1566,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int M { set => throw new System.NotImplementedException(); }
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
-    }
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
-    public async Task TestCodeStyle_Accessor4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCodeStyle_Accessor4()
+        => TestInRegularAndScriptAsync(
             """
             abstract class A
             {
@@ -1681,8 +1591,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             {
                 public override int M { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
-    }
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15387")]
     public async Task TestWithGroupingOff1()
@@ -1713,13 +1622,12 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
 
                 public override int Prop => throw new System.NotImplementedException();
             }
-            """, options: options);
+            """, new(options: options));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17274")]
-    public async Task TestAddedUsingWithBanner1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddedUsingWithBanner1()
+        => TestInRegularAndScriptAsync(
             """
             // Copyright ...
 
@@ -1759,12 +1667,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17562")]
-    public async Task TestNullableOptionalParameters_CSharp7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableOptionalParameters_CSharp7()
+        => TestInRegularAndScriptAsync(
             """
             struct V { }
             abstract class B
@@ -1796,13 +1702,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """,
-            parseOptions: TestOptions.Regular7);
-    }
+            new(parseOptions: TestOptions.Regular7));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17562")]
-    public async Task TestNullableOptionalParametersCSharp7()
-    {
-        await TestAsync(
+    public Task TestNullableOptionalParametersCSharp7()
+        => TestAsync(
             """
             struct V { }
             abstract class B
@@ -1833,13 +1737,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     throw new System.NotImplementedException();
                 }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
-    }
+            """, new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17562")]
-    public async Task TestNullableOptionalParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableOptionalParameters()
+        => TestInRegularAndScriptAsync(
             """
             struct V { }
             abstract class B
@@ -1871,7 +1773,6 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5898")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13932")]
@@ -1883,7 +1784,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
         };
 
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             abstract class AbstractClass
             {
@@ -1914,9 +1815,8 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
     }
 
     [Theory, CombinatorialData]
-    public async Task TestRefWithMethod_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRefWithMethod_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+        => TestInRegularAndScriptAsync(
             $$"""
             abstract class TestParent
             {
@@ -1939,12 +1839,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefReadOnlyWithMethod_ReturnType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRefReadOnlyWithMethod_ReturnType()
+        => TestInRegularAndScriptAsync(
             """
             abstract class TestParent
             {
@@ -1967,12 +1865,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefReadOnlyWithProperty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRefReadOnlyWithProperty()
+        => TestInRegularAndScriptAsync(
             """
             abstract class TestParent
             {
@@ -1992,12 +1888,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 public override ref readonly int Property => throw new System.NotImplementedException();
             }
             """);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRefWithIndexer_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRefWithIndexer_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+        => TestInRegularAndScriptAsync(
             $$"""
             abstract class TestParent
             {
@@ -2017,12 +1911,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 public override int this[{{modifier}} int p] { set => throw new System.NotImplementedException(); }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRefReadOnlyWithIndexer_ReturnType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRefReadOnlyWithIndexer_ReturnType()
+        => TestInRegularAndScriptAsync(
             """
             abstract class TestParent
             {
@@ -2042,12 +1934,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 public override ref readonly int this[int p] => throw new System.NotImplementedException();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnmanagedConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnmanagedConstraint()
+        => TestInRegularAndScriptAsync(
             """
             public abstract class ParentTest
             {
@@ -2070,12 +1960,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NothingOfferedWhenInheritanceIsPreventedByInternalAbstractMember()
-    {
-        await TestMissingAsync(
+    public Task NothingOfferedWhenInheritanceIsPreventedByInternalAbstractMember()
+        => TestMissingAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -2096,12 +1984,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30102")]
-    public async Task TestWithIncompleteGenericInBaseList()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestWithIncompleteGenericInBaseList()
+        => TestAllOptionsOffAsync(
             """
             abstract class A<T>
             {
@@ -2127,12 +2013,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44907")]
-    public async Task TestWithRecords()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestWithRecords()
+        => TestAllOptionsOffAsync(
             """
             abstract record A
             {
@@ -2158,12 +2042,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """, parseOptions: TestOptions.RegularPreview);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44907")]
-    public async Task TestWithRecordsWithPositionalMembers()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestWithRecordsWithPositionalMembers()
+        => TestAllOptionsOffAsync(
             """
             abstract record A
             {
@@ -2189,12 +2071,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """, parseOptions: TestOptions.RegularPreview);
-    }
 
     [Fact]
-    public async Task TestWithClassWithParameters()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestWithClassWithParameters()
+        => TestAllOptionsOffAsync(
             """
             abstract class A
             {
@@ -2220,12 +2100,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """, parseOptions: TestOptions.RegularPreview);
-    }
 
     [Fact]
-    public async Task TestWithClassWithSemicolonBody()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestWithClassWithSemicolonBody()
+        => TestAllOptionsOffAsync(
             """
             abstract class A
             {
@@ -2247,14 +2125,11 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     throw new System.NotImplementedException();
                 }
             }
-
             """, parseOptions: TestOptions.RegularPreview);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]
-    public async Task TestUnconstrainedGenericNullable()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestUnconstrainedGenericNullable()
+        => TestAllOptionsOffAsync(
             """
             #nullable enable
 
@@ -2283,12 +2158,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]
-    public async Task TestUnconstrainedGenericNullable2()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestUnconstrainedGenericNullable2()
+        => TestAllOptionsOffAsync(
             """
             #nullable enable
 
@@ -2317,12 +2190,10 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]
-    public async Task TestUnconstrainedGenericNullable_Tuple()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestUnconstrainedGenericNullable_Tuple()
+        => TestAllOptionsOffAsync(
             """
             #nullable enable
 
@@ -2351,7 +2222,6 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]
     [InlineData("", "T")]
@@ -2359,39 +2229,40 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
     [InlineData("", "T?")]
     [InlineData(" where T : class", "T?")]
     [InlineData(" where T : struct", "T?")]
-    public async Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
-    {
-        await TestAllOptionsOffAsync(
-$@"#nullable enable
+    public Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
+        => TestAllOptionsOffAsync(
+            $$"""
+            #nullable enable
 
-abstract class B<T>
-{{
-    public abstract T? M();
-}}
+            abstract class B<T>
+            {
+                public abstract T? M();
+            }
 
-class [|D<T>|] : B<{passToBase}>{constraint}
-{{
-}}",
-$@"#nullable enable
+            class [|D<T>|] : B<{{passToBase}}>{{constraint}}
+            {
+            }
+            """,
+            $$"""
+            #nullable enable
 
-abstract class B<T>
-{{
-    public abstract T? M();
-}}
+            abstract class B<T>
+            {
+                public abstract T? M();
+            }
 
-class D<T> : B<{passToBase}>{constraint}
-{{
-    public override T? M()
-    {{
-        throw new System.NotImplementedException();
-    }}
-}}");
-    }
+            class D<T> : B<{{passToBase}}>{{constraint}}
+            {
+                public override T? M()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53012")]
-    public async Task TestNullableGenericType()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestNullableGenericType()
+        => TestAllOptionsOffAsync(
             """
             abstract class C
             {
@@ -2416,12 +2287,10 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62092")]
-    public async Task TestNullableGenericType2()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestNullableGenericType2()
+        => TestAllOptionsOffAsync(
             """
             interface I<out T> { }
 
@@ -2457,12 +2326,10 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRequiredMember()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestRequiredMember()
+        => TestAllOptionsOffAsync(
             """
             abstract class C
             {
@@ -2493,12 +2360,10 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70530")]
-    public async Task TestRecordInheritance1()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestRecordInheritance1()
+        => TestAllOptionsOffAsync(
             """
             abstract record A()
             {
@@ -2523,12 +2388,10 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70530")]
-    public async Task TestRecordInheritance2()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestRecordInheritance2()
+        => TestAllOptionsOffAsync(
             """
             abstract record A()
             {
@@ -2553,12 +2416,10 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
-    public async Task InsertMissingBraces()
-    {
-        await TestAllOptionsOffAsync(
+    public Task InsertMissingBraces()
+        => TestAllOptionsOffAsync(
             """
             abstract class A
             {
@@ -2585,12 +2446,10 @@ class D<T> : B<{passToBase}>{constraint}
 
             file class C;
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
-    public async Task TestConstrainedTypeParameter1()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestConstrainedTypeParameter1()
+        => TestAllOptionsOffAsync(
             """
             #nullable enable
             using System;
@@ -2629,12 +2488,10 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
-    public async Task TestConstrainedTypeParameter2()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestConstrainedTypeParameter2()
+        => TestAllOptionsOffAsync(
             """
             #nullable enable
             using System;
@@ -2673,12 +2530,10 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
-    public async Task TestConstrainedTypeParameter3()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestConstrainedTypeParameter3()
+        => TestAllOptionsOffAsync(
             """
             #nullable enable
             using System;
@@ -2717,12 +2572,10 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71225")]
-    public async Task TestConstrainedTypeParameter4()
-    {
-        await TestAllOptionsOffAsync(
+    public Task TestConstrainedTypeParameter4()
+        => TestAllOptionsOffAsync(
             """
             #nullable enable
             using System;
@@ -2761,5 +2614,41 @@ class D<T> : B<{passToBase}>{constraint}
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78282")]
+    public Task TestInstanceCompoundOperator()
+        => TestAllOptionsOffAsync(
+            """
+            abstract class C1
+            {
+                abstract public void operator ++();
+
+                abstract public void operator -=(int i);
+            }
+
+            class [|C2|] : C1
+            {
+            }
+            """,
+            """
+            abstract class C1
+            {
+                abstract public void operator ++();
+            
+                abstract public void operator -=(int i);
+            }
+            
+            class C2 : C1
+            {
+                public override void operator -=(int i)
+                {
+                    throw new System.NotImplementedException();
+                }
+            
+                public override void operator ++()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """);
 }

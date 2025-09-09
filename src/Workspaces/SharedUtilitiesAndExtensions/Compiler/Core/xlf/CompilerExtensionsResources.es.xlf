@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">No se puede especificar ningún nombre de idioma para esta opción.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">Se debe especificar un nombre de lenguaje para esta opción.</target>
         <note />
       </trans-unit>
       <trans-unit id="Absolute_path_expected">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
-        <target state="new">Indentation and spacing</target>
+        <target state="translated">Sangría y espaciado</target>
         <note />
       </trans-unit>
       <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
-        <target state="new">Stream must support read and seek operations.</target>
+        <target state="translated">La secuencia debe admitir las operaciones de lectura y búsqueda.</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="new">Value too large to be represented as a 30 bit unsigned integer.</target>
+        <target state="translated">Valor demasiado largo para representarse como entero sin signo de 30 bits.</target>
         <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">

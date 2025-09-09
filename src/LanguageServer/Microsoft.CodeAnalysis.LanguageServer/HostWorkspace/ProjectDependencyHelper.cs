@@ -13,9 +13,10 @@ using NuGet.Versioning;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+
 internal static class ProjectDependencyHelper
 {
-    private const string ProjectNeedsRestoreName = "workspace/_roslyn_projectNeedsRestore";
+    internal const string ProjectNeedsRestoreName = "workspace/_roslyn_projectNeedsRestore";
 
     internal static bool NeedsRestore(ProjectFileInfo newProjectFileInfo, ProjectFileInfo? previousProjectFileInfo, ILogger logger)
     {
@@ -120,7 +121,7 @@ internal static class ProjectDependencyHelper
         }
     }
 
-    internal static async Task RestoreProjectsAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+    internal static async Task SendProjectNeedsRestoreRequestAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
     {
         if (projectPaths.IsEmpty)
             return;
@@ -134,6 +135,6 @@ internal static class ProjectDependencyHelper
         await languageServerManager.SendRequestAsync(ProjectNeedsRestoreName, unresolvedParams, cancellationToken);
     }
 
-    private record UnresolvedDependenciesParams(
+    private sealed record UnresolvedDependenciesParams(
         [property: JsonPropertyName("projectFilePaths")] string[] ProjectFilePaths);
 }
