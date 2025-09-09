@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,17 +71,14 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <summary>
     /// Return up to date diagnostics for the given span for the document
     /// <para/>
-    /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
-    /// Predicate <paramref name="shouldIncludeDiagnostic"/> filters out analyzers from execution if 
-    /// none of its reported diagnostics should be included in the result.
-    /// <para/>
     /// Non-local diagnostics for the requested document are not returned.  In other words, only the diagnostics
     /// produced by running the requested filtered set of analyzers <em>only</em> on this document are returned here.
     /// To get non-local diagnostics for a document, use <see cref="GetDiagnosticsForIdsAsync"/>.  Non-local diagnostics
     /// will always be returned for the document in that case.
     /// </summary>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-        TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic,
+        TextDocument document, TextSpan? range,
+        DiagnosticIdFilter diagnosticIdFilter,
         ICodeActionRequestPriorityProvider priorityProvider,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
@@ -135,8 +131,10 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
-        Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
-        return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
+        var filter = diagnosticId != null
+            ? DiagnosticIdFilter.Include([diagnosticId])
+            : DiagnosticIdFilter.All;
+        return service.GetDiagnosticsForSpanAsync(document, range, filter,
             priorityProvider, diagnosticKind, cancellationToken);
     }
 
