@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundSwitchGoverningExpression);
 
-            if (!wasReported && diagnostics.AccumulatesDiagnostics)
+            if (!wasReported && diagnostics.AccumulatesDiagnostics && DecisionDagBuilder.EnableRedundantPatternsCheck(this.Compilation))
             {
                 DecisionDagBuilder.CheckRedundantPatternsForSwitchStatement(this.Compilation, syntax: node, boundSwitchGoverningExpression, switchSections, diagnostics);
             }

@@ -9266,5 +9266,56 @@ class C
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(3, 75)
                 );
         }
+
+        [Fact]
+        public void RedundantPattern_LangVer()
+        {
+            var src = @"
+int i = 0;
+
+_ = i is not 42 or 43;
+
+_ = i switch
+{
+    not 42 or 43 => 0,
+    _ => 1
+};
+
+switch (i)
+{
+    case not 42 or 43:
+        break;
+    default:
+        break;
+}
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): warning CS9332: The pattern is redundant.
+                // _ = i is not 42 or 43;
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(4, 20),
+                // (8,15): warning CS9332: The pattern is redundant.
+                //     not 42 or 43 => 0,
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(8, 15),
+                // (14,20): warning CS9332: The pattern is redundant.
+                //     case not 42 or 43:
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(14, 20));
+
+            comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): warning CS9332: The pattern is redundant.
+                // _ = i is not 42 or 43;
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(4, 20),
+                // (8,15): warning CS9332: The pattern is redundant.
+                //     not 42 or 43 => 0,
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(8, 15),
+                // (14,20): warning CS9332: The pattern is redundant.
+                //     case not 42 or 43:
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(14, 20));
+
+        }
     }
 }

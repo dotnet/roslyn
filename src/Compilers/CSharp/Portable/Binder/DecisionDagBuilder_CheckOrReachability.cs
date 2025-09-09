@@ -21,7 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // TODO2 after review, rename file to use underscore separator
     internal sealed partial class DecisionDagBuilder
     {
         /// <summary>
@@ -81,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             redundantNodes.Free();
             noPreviousCases.Free();
+        }
+
+        internal static bool EnableRedundantPatternsCheck(CSharpCompilation compilation)
+        {
+            return compilation.LanguageVersion >= LanguageVersion.CSharp14;
         }
 
         /// <summary>
