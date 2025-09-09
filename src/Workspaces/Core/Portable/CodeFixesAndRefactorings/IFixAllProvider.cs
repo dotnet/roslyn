@@ -21,7 +21,7 @@ internal interface IFixAllProvider
     /// (b) <see cref="FixAllScope.Project"/> and
     /// (c) <see cref="FixAllScope.Solution"/>
     /// </summary>
-    IEnumerable<FixAllScope> GetSupportedFixAllScopes();
+    IEnumerable<FixAllScope> GetSupportedRefactorAllScopes();
 
     Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext);
 

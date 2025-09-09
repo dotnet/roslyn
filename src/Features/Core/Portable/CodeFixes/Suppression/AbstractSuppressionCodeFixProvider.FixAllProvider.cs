@@ -20,7 +20,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         {
         }
 
-        public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+        public override IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
             => [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
         public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)

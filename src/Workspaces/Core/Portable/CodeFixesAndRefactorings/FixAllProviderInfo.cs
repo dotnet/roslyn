@@ -57,7 +57,7 @@ internal abstract class FixAllProviderInfo
         if (diagnosticIds.IsEmpty)
             return null;
 
-        var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
+        var scopes = fixAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
             return null;
 
@@ -75,7 +75,7 @@ internal abstract class FixAllProviderInfo
             return null;
         }
 
-        var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
+        var scopes = fixAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
         {
             return null;
@@ -95,7 +95,7 @@ internal abstract class FixAllProviderInfo
             return null;
         }
 
-        var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
+        var scopes = fixAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
         {
             return null;

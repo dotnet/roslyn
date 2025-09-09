@@ -603,7 +603,7 @@ internal sealed class UnifiedSuggestedActionsSource
         foreach (var scope in fixAllProviderInfo.SupportedScopes)
         {
             var fixAllState = new CodeRefactorings.FixAllState(
-                (CodeRefactorings.FixAllProvider)fixAllProviderInfo.FixAllProvider,
+                (CodeRefactorings.RefactorAllProvider)fixAllProviderInfo.FixAllProvider,
                 document, selection, provider, scope, action);
 
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)

@@ -22,12 +22,12 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
     protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
     protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
-    internal sealed override FixAllProvider? GetFixAllProvider()
+    internal sealed override RefactorAllProvider? GetFixAllProvider()
     {
         if (SupportedFixAllScopes.IsEmpty)
             return null;
 
-        return FixAllProvider.Create(
+        return RefactorAllProvider.Create(
             async (fixAllContext, document, fixAllSpans) =>
                 await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
             SupportedFixAllScopes,

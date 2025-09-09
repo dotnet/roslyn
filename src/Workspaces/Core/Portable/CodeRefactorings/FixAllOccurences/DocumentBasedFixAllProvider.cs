@@ -16,7 +16,7 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 /// <summary>
-/// Provides a base class to write a <see cref="FixAllProvider"/> for refactorings that fixes documents independently.
+/// Provides a base class to write a <see cref="RefactorAllProvider"/> for refactorings that fixes documents independently.
 /// This type should be used in the case where the code refactoring(s) only affect individual <see cref="Document"/>s.
 /// </summary>
 /// <remarks>
@@ -26,18 +26,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 ///
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes) : FixAllProvider
+internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes) : RefactorAllProvider
 {
     private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes = supportedFixAllScopes;
 
     protected DocumentBasedFixAllProvider()
-        : this(DefaultSupportedFixAllScopes)
+        : this(DefaultSupportedRefactorAllScopes)
     {
     }
 
     /// <summary>
     /// Produce a suitable title for the fix-all <see cref="CodeAction"/> this type creates in <see
-    /// cref="GetFixAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
+    /// cref="GetRefactoringAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
     /// </summary>
     protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
         => fixAllContext.GetDefaultFixAllTitle();
@@ -58,10 +58,10 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
     /// </returns>
     protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans);
 
-    public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+    public sealed override IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
         => _supportedFixAllScopes;
 
-    public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+    public sealed override Task<CodeAction?> GetRefactoringAsync(FixAllContext fixAllContext)
         => DefaultFixAllProviderHelpers.GetFixAsync(
             fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 

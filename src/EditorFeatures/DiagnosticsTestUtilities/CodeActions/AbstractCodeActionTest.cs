@@ -76,12 +76,12 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
         FixAllScope scope)
     {
         var fixAllProvider = provider.GetFixAllProvider();
-        if (fixAllProvider == null || !fixAllProvider.GetSupportedFixAllScopes().Contains(scope))
+        if (fixAllProvider == null || !fixAllProvider.GetSupportedRefactorAllScopes().Contains(scope))
             return null;
 
         var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
         var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
-        return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+        return await fixAllProvider.GetRefactoringAsync(fixAllContext).ConfigureAwait(false);
     }
 
     protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(EditorTestWorkspace workspace, TestParameters parameters)

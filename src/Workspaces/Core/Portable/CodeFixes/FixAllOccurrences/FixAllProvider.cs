@@ -21,7 +21,7 @@ public abstract class FixAllProvider : IFixAllProvider
     private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
         = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
 
-    public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+    public virtual IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
         => DefaultSupportedFixAllScopes;
 
     CodeActionCleanup IFixAllProvider.Cleanup => this.Cleanup;

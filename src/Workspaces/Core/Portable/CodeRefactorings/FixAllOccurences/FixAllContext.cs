@@ -23,7 +23,7 @@ internal sealed class FixAllContext : IFixAllContext
 {
     internal FixAllState State { get; }
 
-    internal FixAllProvider FixAllProvider => State.FixAllProvider;
+    internal RefactorAllProvider FixAllProvider => State.FixAllProvider;
 
     /// <summary>
     /// Document within which fix all occurrences was triggered.
