@@ -183,17 +183,7 @@ internal sealed partial class DiagnosticAnalyzerService
             if (diagnosticIdFilter != DiagnosticIdFilter.All)
             {
                 var descriptors = _analyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-                if (diagnosticIdFilter.IncludedDiagnosticIds != null &&
-                    !descriptors.Any(static (a, includedIds) => includedIds.Contains(a.Id), diagnosticIdFilter.IncludedDiagnosticIds))
-                {
-                    return false;
-                }
-
-                if (diagnosticIdFilter.ExcludedDiagnosticIds != null &&
-                    descriptors.All(static (a, excludedIds) => excludedIds.Contains(a.Id), diagnosticIdFilter.ExcludedDiagnosticIds))
-                {
-                    return false;
-                }
+                return diagnosticIdFilter.Allow(descriptors.Select(d => d.Id));
             }
 
             return true;
@@ -271,22 +261,7 @@ internal sealed partial class DiagnosticAnalyzerService
             if (range != null && !range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)))
                 return false;
 
-            if (diagnosticIdFilter != DiagnosticIdFilter.All)
-            {
-                if (diagnosticIdFilter.IncludedDiagnosticIds != null &&
-                    !diagnosticIdFilter.IncludedDiagnosticIds.Contains(diagnostic.Id))
-                {
-                    return false;
-                }
-
-                if (diagnosticIdFilter.ExcludedDiagnosticIds != null &&
-                    diagnosticIdFilter.ExcludedDiagnosticIds.Contains(diagnostic.Id))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return diagnosticIdFilter.Allow(diagnostic.Id);
         }
     }
 

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,21 +10,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
-
-/// <param name="IncludedDiagnosticIds">If present, if an analyzer has at least one descriptor in this set, it will be included.</param>
-/// <param name="ExcludedDiagnosticIds">If present, if all of the descriptors an analyzer has is in this set, it will be excluded.</param>
-internal readonly record struct DiagnosticIdFilter(
-    ImmutableHashSet<string>? IncludedDiagnosticIds,
-    ImmutableHashSet<string>? ExcludedDiagnosticIds)
-{
-    public static readonly DiagnosticIdFilter All = default;
-
-    public static DiagnosticIdFilter Include(ImmutableHashSet<string>? includedDiagnosticIds)
-        => new(includedDiagnosticIds, ExcludedDiagnosticIds: null);
-
-    public static DiagnosticIdFilter Exclude(ImmutableHashSet<string> excludedDiagnosticIds)
-        => new(IncludedDiagnosticIds: null, excludedDiagnosticIds);
-}
 
 internal interface IDiagnosticAnalyzerService : IWorkspaceService
 {
