@@ -20,10 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvider, RefactorAllProvider, RefactorAllState>
 {
     /// <summary>
-    /// Original selection span from which FixAll was invoked.
-    /// This is used in <see cref="GetRefactorAllSpansAsync(CancellationToken)"/>
-    /// to compute fix all spans for <see cref="RefactorAllScope.ContainingMember"/>
-    /// and <see cref="RefactorAllScope.ContainingType"/> scopes.
+    /// Original selection span from which refactor-all was invoked. This is used in <see
+    /// cref="GetRefactorAllSpansAsync(CancellationToken)"/> to compute refactor all spans for <see
+    /// cref="RefactorAllScope.ContainingMember"/> and <see cref="RefactorAllScope.ContainingType"/> scopes.
     /// </summary>
     private readonly TextSpan _selectionSpan;
 
@@ -32,31 +31,31 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
     public string CodeActionTitle { get; }
 
     public RefactorAllState(
-        RefactorAllProvider fixAllProvider,
+        RefactorAllProvider refactorAllProvider,
         Document document,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
         RefactorAllScope refactorAllScope,
         CodeAction codeAction)
-        : this(fixAllProvider, document ?? throw new ArgumentNullException(nameof(document)), document.Project, selectionSpan, codeRefactoringProvider,
+        : this(refactorAllProvider, document ?? throw new ArgumentNullException(nameof(document)), document.Project, selectionSpan, codeRefactoringProvider,
                refactorAllScope, codeAction.Title, codeAction.EquivalenceKey)
     {
     }
 
     public RefactorAllState(
-        RefactorAllProvider fixAllProvider,
+        RefactorAllProvider refactorAllProvider,
         Project project,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
         RefactorAllScope refactorAllScope,
         CodeAction codeAction)
-        : this(fixAllProvider, document: null, project ?? throw new ArgumentNullException(nameof(project)), selectionSpan, codeRefactoringProvider,
+        : this(refactorAllProvider, document: null, project ?? throw new ArgumentNullException(nameof(project)), selectionSpan, codeRefactoringProvider,
                refactorAllScope, codeAction.Title, codeAction.EquivalenceKey)
     {
     }
 
     private RefactorAllState(
-        RefactorAllProvider fixAllProvider,
+        RefactorAllProvider refactorAllProvider,
         Document? document,
         Project project,
         TextSpan selectionSpan,
@@ -64,7 +63,7 @@ internal sealed class RefactorAllState : CommonFixAllState<CodeRefactoringProvid
         RefactorAllScope refactorAllScope,
         string codeActionTitle,
         string? codeActionEquivalenceKey)
-        : base(fixAllProvider, document, project, codeRefactoringProvider, refactorAllScope.ToFixAllScope(), codeActionEquivalenceKey)
+        : base(refactorAllProvider, document, project, codeRefactoringProvider, refactorAllScope.ToFixAllScope(), codeActionEquivalenceKey)
     {
         _selectionSpan = selectionSpan;
         this.CodeActionTitle = codeActionTitle;
