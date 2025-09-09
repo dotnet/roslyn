@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -21,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// </remarks>
 internal abstract class RefactorAllProvider : IFixAllProvider
 {
-    private protected static ImmutableArray<FixAllScope> DefaultSupportedRefactorAllScopes
-        = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
+    private protected static ImmutableArray<RefactorAllScope> DefaultSupportedRefactorAllScopes
+        = [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution];
 
-    public virtual IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
+    public virtual IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
         => DefaultSupportedRefactorAllScopes;
 
     public virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
@@ -65,20 +64,20 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     /// will be considered.
     /// </param>
     /// <param name="supportedFixAllScopes">
-    /// Supported <see cref="FixAllScope"/>s for the fix all provider.
-    /// Note that <see cref="FixAllScope.Custom"/> is not supported by the <see cref="DocumentBasedFixAllProvider"/>
+    /// Supported <see cref="RefactorAllScope"/>s for the fix all provider.
+    /// Note that <see cref="RefactorAllScope.Custom"/> is not supported by the <see cref="DocumentBasedFixAllProvider"/>
     /// and should not be part of the supported scopes.
     /// </param>
     public static RefactorAllProvider Create(
         Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
-        ImmutableArray<FixAllScope> supportedFixAllScopes)
+        ImmutableArray<RefactorAllScope> supportedFixAllScopes)
     {
         return Create(refactorAllAsync, supportedFixAllScopes, CodeActionCleanup.Default);
     }
 
     internal static RefactorAllProvider Create(
         Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
-        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        ImmutableArray<RefactorAllScope> supportedFixAllScopes,
         CodeActionCleanup cleanup)
     {
         if (refactorAllAsync is null)
@@ -87,7 +86,7 @@ internal abstract class RefactorAllProvider : IFixAllProvider
         if (supportedFixAllScopes.IsDefault)
             throw new ArgumentNullException(nameof(supportedFixAllScopes));
 
-        if (supportedFixAllScopes.Contains(FixAllScope.Custom))
+        if (supportedFixAllScopes.Contains(RefactorAllScope.Custom))
             throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
 
         return new CallbackDocumentBasedFixAllProvider(refactorAllAsync, supportedFixAllScopes, cleanup);
@@ -95,7 +94,7 @@ internal abstract class RefactorAllProvider : IFixAllProvider
 
     private sealed class CallbackDocumentBasedFixAllProvider(
         Func<RefactorAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> refactorAllAsync,
-        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        ImmutableArray<RefactorAllScope> supportedFixAllScopes,
         CodeActionCleanup cleanup) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
         public override CodeActionCleanup Cleanup { get; } = cleanup;

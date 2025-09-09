@@ -36,9 +36,9 @@ internal sealed class RefactorAllContext : IFixAllContext
     public CodeRefactoringProvider CodeRefactoringProvider => State.Provider;
 
     /// <summary>
-    /// <see cref="FixAllScope"/> to fix all occurrences.
+    /// <see cref="RefactorAllScope"/> to fix all occurrences.
     /// </summary>
-    public FixAllScope Scope => State.Scope;
+    public RefactorAllScope Scope => State.Scope;
 
     /// <summary>
     /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.

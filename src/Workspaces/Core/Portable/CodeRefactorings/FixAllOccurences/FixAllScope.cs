@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CodeFixes;
+namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 /// <summary>
-/// Indicates scope for "Fix all occurrences" code fixes provided by each <see cref="FixAllProvider"/>.
+/// Indicates scope for "Fix all occurrences" code fixes provided by each <see cref="RefactorAllProvider"/>.
 /// </summary>
-public enum FixAllScope
+public enum RefactorAllScope
 {
     /// <summary>
     /// Scope to fix all occurrences of diagnostic(s) in the entire document.
@@ -26,7 +26,7 @@ public enum FixAllScope
 
     /// <summary>
     /// Custom scope to fix all occurrences of diagnostic(s). This scope can
-    /// be used by custom <see cref="FixAllProvider"/>s and custom code fix engines.
+    /// be used by custom <see cref="RefactorAllProvider"/>s and custom code fix engines.
     /// </summary>
     Custom,
 

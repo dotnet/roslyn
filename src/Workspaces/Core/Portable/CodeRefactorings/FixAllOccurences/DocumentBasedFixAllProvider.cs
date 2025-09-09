@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
+using RefactorAllScope = Microsoft.CodeAnalysis.CodeFixes.RefactorAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 ///
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes) : RefactorAllProvider
+internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<RefactorAllScope> supportedFixAllScopes) : RefactorAllProvider
 {
-    private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes = supportedFixAllScopes;
+    private readonly ImmutableArray<RefactorAllScope> _supportedFixAllScopes = supportedFixAllScopes;
 
-    protected DocumentBasedFixAllProvider()
+    protected DocumentBasedRefactorAllProvider()
         : this(DefaultSupportedRefactorAllScopes)
     {
     }
@@ -58,7 +58,7 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
     /// </returns>
     protected abstract Task<Document?> FixAllAsync(RefactorAllContext fixAllContext, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans);
 
-    public sealed override IEnumerable<FixAllScope> GetSupportedRefactorAllScopes()
+    public sealed override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
         => _supportedFixAllScopes;
 
     public sealed override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext fixAllContext)
@@ -81,8 +81,8 @@ internal abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> 
     private async Task GetFixedDocumentsAsync(
         RefactorAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
     {
-        Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
-            or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+        Contract.ThrowIfFalse(fixAllContext.Scope is RefactorAllScope.Document or RefactorAllScope.Project
+            or RefactorAllScope.ContainingMember or RefactorAllScope.ContainingType);
 
         var cancellationToken = fixAllContext.CancellationToken;
 
