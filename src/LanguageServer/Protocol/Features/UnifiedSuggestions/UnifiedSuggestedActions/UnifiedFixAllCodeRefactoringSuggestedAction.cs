@@ -16,7 +16,7 @@ internal sealed class UnifiedRefactorAllCodeRefactoringSuggestedAction(
     CodeActionPriority codeActionPriority,
     object provider,
     IRefactorOrFixAllState fixAllState)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null, telemetryId: null)
 {
     public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
 }

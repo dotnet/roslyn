@@ -15,7 +15,8 @@ internal abstract class UnifiedSuggestedAction(
     CodeAction codeAction,
     CodeActionPriority codeActionPriority,
     object provider,
-    CodeRefactoringKind? codeRefactoringKind)
+    CodeRefactoringKind? codeRefactoringKind,
+    string? telemetryId)
 {
     public object Provider { get; } = provider;
 
@@ -24,4 +25,6 @@ internal abstract class UnifiedSuggestedAction(
     public CodeActionPriority CodeActionPriority { get; } = codeActionPriority;
 
     public CodeRefactoringKind? CodeRefactoringKind { get; } = codeRefactoringKind;
+
+    public string? TelemetryId { get; } = telemetryId;
 }
