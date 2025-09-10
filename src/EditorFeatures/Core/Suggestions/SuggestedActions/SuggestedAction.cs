@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -312,4 +313,32 @@ internal abstract partial class SuggestedAction(
     }
 
     #endregion
+
+    public static SuggestedAction CreateTrivialAction(
+        SuggestedAction action,
+        CodeAction codeAction)
+        => CreateTrivialAction(action.ThreadingContext, action.SourceProvider, action.OriginalSolution, action.SubjectBuffer, action.Provider, codeAction);
+
+    public static SuggestedAction CreateTrivialAction(
+        IThreadingContext threadingContext,
+        SuggestedActionsSourceProvider sourceProvider,
+        Solution originalSolution,
+        ITextBuffer subjectBuffer,
+        object provider,
+        CodeAction codeAction)
+        => new TrivialSuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction);
+
+    private sealed class TrivialSuggestedAction : SuggestedAction
+    {
+        public TrivialSuggestedAction(
+            IThreadingContext threadingContext,
+            SuggestedActionsSourceProvider sourceProvider,
+            Solution originalSolution,
+            ITextBuffer subjectBuffer,
+            object provider,
+            CodeAction codeAction)
+            : base(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction)
+        {
+        }
+    }
 }

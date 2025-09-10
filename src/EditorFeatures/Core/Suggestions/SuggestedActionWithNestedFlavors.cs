@@ -108,7 +108,8 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
         // suggested action set by our caller, we don't add them here.
 
         using var _ = ArrayBuilder<SuggestedAction>.GetInstance(out var suggestedActions);
-        var previewChangesAction = PreviewChangesSuggestedAction.Create(this);
+        var previewChangesAction = SuggestedAction.CreateTrivialAction(
+            this, new PreviewChangesCodeAction(this.CodeAction, this.GetPreviewResultAsync));
         suggestedActions.Add(previewChangesAction);
 
         var refineUsingCopilotAction = await RefineUsingCopilotSuggestedAction.TryCreateAsync(this, cancellationToken).ConfigureAwait(false);
