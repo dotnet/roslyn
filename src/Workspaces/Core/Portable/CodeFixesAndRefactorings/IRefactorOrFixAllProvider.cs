@@ -24,7 +24,7 @@ internal interface IRefactorOrFixAllProvider
     /// </summary>
     IEnumerable<FixAllScope> GetSupportedScopes();
 
-    Task<CodeAction?> GetCodeActionAsync(IFixAllContext fixAllContext);
+    Task<CodeAction?> GetCodeActionAsync(IRefactorOrFixAllContext fixAllContext);
 
     /// <summary>
     /// The sort of cleanup that should automatically be poerformed for this fix all provider.  By default this is

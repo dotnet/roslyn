@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// </summary>
 internal sealed class RefactorAllCodeRefactoringCodeAction(IRefactorOrFixAllState fixAllState) : AbstractFixAllCodeAction(fixAllState, showPreviewChangesDialog: true)
 {
-    protected override IFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    protected override IRefactorOrFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         => new RefactorAllContext((RefactorAllState)fixAllState, progressTracker, cancellationToken);
 
     protected override bool IsInternalProvider(IRefactorOrFixAllState fixAllState)

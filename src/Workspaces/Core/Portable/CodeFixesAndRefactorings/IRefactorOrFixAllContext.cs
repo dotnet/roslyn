@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// <summary>
 /// Represents a FixAllContext for code fixes or refactorings. 
 /// </summary>
-internal interface IFixAllContext
+internal interface IRefactorOrFixAllContext
 {
     IRefactorOrFixAllState State { get; }
     object Provider { get; }
     CancellationToken CancellationToken { get; }
     IProgress<CodeAnalysisProgress> Progress { get; }
 
-    string GetDefaultFixAllTitle();
-    IFixAllContext With(
+    string GetDefaultTitle();
+    IRefactorOrFixAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
         Optional<string?> codeActionEquivalenceKey = default,

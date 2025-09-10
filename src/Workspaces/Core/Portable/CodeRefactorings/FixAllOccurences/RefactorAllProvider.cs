@@ -41,7 +41,7 @@ public abstract class RefactorAllProvider : IRefactorOrFixAllProvider
     public abstract Task<CodeAction?> GetRefactoringAsync(RefactorAllContext refactorAllContext);
 
     #region IFixAllProvider implementation
-    Task<CodeAction?> IRefactorOrFixAllProvider.GetCodeActionAsync(IFixAllContext fixAllContext)
+    Task<CodeAction?> IRefactorOrFixAllProvider.GetCodeActionAsync(IRefactorOrFixAllContext fixAllContext)
         => this.GetRefactoringAsync((RefactorAllContext)fixAllContext);
     #endregion
 

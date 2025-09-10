@@ -31,9 +31,9 @@ internal abstract class AbstractFixAllCodeAction(
     protected abstract bool IsInternalProvider(IRefactorOrFixAllState fixAllState);
 
     /// <summary>
-    /// Creates a new <see cref="IFixAllContext"/> with the given parameters.
+    /// Creates a new <see cref="IRefactorOrFixAllContext"/> with the given parameters.
     /// </summary>
-    protected abstract IFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
+    protected abstract IRefactorOrFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 
     public override string Title
         => this.FixAllState.Scope switch
@@ -57,7 +57,7 @@ internal abstract class AbstractFixAllCodeAction(
         var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
         var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
-        progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
+        progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultTitle()));
 
         return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
     }
@@ -71,7 +71,7 @@ internal abstract class AbstractFixAllCodeAction(
         var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
         var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
-        progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
+        progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultTitle()));
 
         return service.GetFixAllChangedSolutionAsync(fixAllContext);
     }

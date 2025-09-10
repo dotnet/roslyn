@@ -21,7 +21,7 @@ internal sealed class FixAllCodeAction : AbstractFixAllCodeAction
     public override string Title
         => _title;
 
-    protected override IFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    protected override IRefactorOrFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
 
     protected override bool IsInternalProvider(IRefactorOrFixAllState fixAllState)

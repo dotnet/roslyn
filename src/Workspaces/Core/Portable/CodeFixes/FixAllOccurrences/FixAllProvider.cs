@@ -96,7 +96,7 @@ public abstract class FixAllProvider : IRefactorOrFixAllProvider
     }
 
     #region IFixAllProvider implementation
-    Task<CodeAction?> IRefactorOrFixAllProvider.GetCodeActionAsync(IFixAllContext fixAllContext)
+    Task<CodeAction?> IRefactorOrFixAllProvider.GetCodeActionAsync(IRefactorOrFixAllContext fixAllContext)
         => this.GetFixAsync((FixAllContext)fixAllContext);
     #endregion
 

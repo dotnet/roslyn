@@ -24,7 +24,7 @@ internal abstract class AbstractFixAllCodeFixCodeAction : AbstractFixAllCodeActi
     {
     }
 
-    protected sealed override IFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    protected sealed override IRefactorOrFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
 
     protected sealed override bool IsInternalProvider(IRefactorOrFixAllState fixAllState)
