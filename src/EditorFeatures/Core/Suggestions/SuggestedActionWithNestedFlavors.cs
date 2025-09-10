@@ -37,7 +37,7 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
     ITextBuffer subjectBuffer,
     object provider,
     CodeAction codeAction,
-    SuggestedActionSet fixAllFlavors)
+    SuggestedActionSet? fixAllFlavors)
     : SuggestedAction(threadingContext,
         sourceProvider,
         originalDocument.Project.Solution,
@@ -45,7 +45,7 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
         provider,
         codeAction), ISuggestedActionWithFlavors
 {
-    private readonly SuggestedActionSet _fixAllFlavors = fixAllFlavors;
+    private readonly SuggestedActionSet? _fixAllFlavors = fixAllFlavors;
     private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
     public TextDocument OriginalDocument { get; } = originalDocument;
