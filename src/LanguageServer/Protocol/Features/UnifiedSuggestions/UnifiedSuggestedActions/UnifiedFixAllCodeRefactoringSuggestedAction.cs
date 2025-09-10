@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 internal sealed class UnifiedRefactorAllCodeRefactoringSuggestedAction(
     CodeAction codeAction,
     CodeActionPriority codeActionPriority,
-    object? provider,
+    object provider,
     IRefactorOrFixAllState fixAllState)
     : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null), IRefactorAllCodeRefactoringSuggestedAction
 {

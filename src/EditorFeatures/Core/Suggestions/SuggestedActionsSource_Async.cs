@@ -297,7 +297,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument)),
                         UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
                             _threadingContext, owner, originalDocument, subjectBuffer,
-                            codeRefactoringAction.Provider ?? this, codeRefactoringAction.OriginalCodeAction,
+                            codeRefactoringAction.Provider, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
                         UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
                             _threadingContext, owner, originalSolution, subjectBuffer,
@@ -307,7 +307,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                             fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
                             _threadingContext, owner, originalSolution, subjectBuffer,
-                            nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
+                            nestedAction.Provider, nestedAction.OriginalCodeAction,
                             nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
                         _ => throw ExceptionUtilities.Unreachable()
                     };

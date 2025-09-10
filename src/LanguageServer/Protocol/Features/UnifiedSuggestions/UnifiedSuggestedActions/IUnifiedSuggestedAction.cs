@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// </summary>
 internal interface IUnifiedSuggestedAction
 {
-    object? Provider { get; }
+    object Provider { get; }
 
     CodeAction OriginalCodeAction { get; }
 

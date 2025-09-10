@@ -315,7 +315,8 @@ internal sealed class UnifiedSuggestedActionsSource
             var suppressOrConfigureCodeAction = NoChangeAction.Create(CodeFixesResources.Suppress_or_configure_issues, nameof(CodeFixesResources.Suppress_or_configure_issues));
             var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                 suppressOrConfigureCodeAction,
-                codeActionPriority: suppressOrConfigureCodeAction.Priority, provider: null,
+                codeActionPriority: suppressOrConfigureCodeAction.Priority,
+                suppressionSets[0]. ,
                 nestedActionSets: suppressionSets.ToImmutable());
 
             // Combine the spans and the category of each of the nested suggested actions
