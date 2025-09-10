@@ -313,11 +313,16 @@ internal sealed class UnifiedSuggestedActionsSource
             // Wrap the suppression/configuration actions within another top level suggested action
             // to avoid clutter in the light bulb menu.
             var suppressOrConfigureCodeAction = NoChangeAction.Create(CodeFixesResources.Suppress_or_configure_issues, nameof(CodeFixesResources.Suppress_or_configure_issues));
+
+            // Just pass along the provider belonging to the first action that we're offering to suppress/configure.
+            // This doesn't actually get used as this top level action is just a container for the nested actions
+            // and is never invoked itself.
+            var provider = suppressionSets[0].Actions[0].Provider;
             var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
                 suppressOrConfigureCodeAction,
-                codeActionPriority: suppressOrConfigureCodeAction.Priority,
-                suppressionSets[0]. ,
-                nestedActionSets: suppressionSets.ToImmutable());
+                suppressOrConfigureCodeAction.Priority,
+                provider,
+                suppressionSets.ToImmutable());
 
             // Combine the spans and the category of each of the nested suggested actions
             // to get the span and category for the new top level suggested action.
