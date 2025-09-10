@@ -34,11 +34,9 @@ internal sealed class CodeFixSuggestedAction(
         action,
         fixAllFlavors), ITelemetryDiagnosticID<string>
 {
-    public CodeFix CodeFix { get; } = fix;
-
     public string GetDiagnosticID()
-        => CodeFix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
+        => fix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
 
     protected override DiagnosticData GetDiagnostic()
-        => CodeFix.GetPrimaryDiagnosticData();
+        => fix.GetPrimaryDiagnosticData();
 }
