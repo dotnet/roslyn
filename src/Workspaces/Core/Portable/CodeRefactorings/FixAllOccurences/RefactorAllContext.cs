@@ -61,7 +61,7 @@ public sealed class RefactorAllContext : IFixAllContext
     public Solution Solution => Project.Solution;
 
     #region IFixAllContext implementation
-    IFixAllState IFixAllContext.State => this.State;
+    IRefactorOrFixAllState IFixAllContext.State => this.State;
 
     object IFixAllContext.Provider => this.CodeRefactoringProvider;
 

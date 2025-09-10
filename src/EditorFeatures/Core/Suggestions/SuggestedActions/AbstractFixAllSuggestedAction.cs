@@ -20,7 +20,7 @@ internal abstract class AbstractFixAllSuggestedAction : SuggestedAction
 {
     public CodeAction OriginalCodeAction { get; }
 
-    public IFixAllState FixAllState { get; }
+    public IRefactorOrFixAllState FixAllState { get; }
 
     protected AbstractFixAllSuggestedAction(
         IThreadingContext threadingContext,
@@ -28,7 +28,7 @@ internal abstract class AbstractFixAllSuggestedAction : SuggestedAction
         Workspace workspace,
         Solution originalSolution,
         ITextBuffer subjectBuffer,
-        IFixAllState fixAllState,
+        IRefactorOrFixAllState fixAllState,
         CodeAction originalCodeAction,
         AbstractFixAllCodeAction fixAllCodeAction)
         : base(threadingContext,

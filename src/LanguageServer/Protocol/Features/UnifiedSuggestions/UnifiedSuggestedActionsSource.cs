@@ -208,7 +208,7 @@ internal sealed class UnifiedSuggestedActionsSource
     private static async Task<UnifiedSuggestedActionSet?> GetUnifiedFixAllSuggestedActionSetAsync(
         CodeAction action,
         int actionCount,
-        IFixAllState? fixAllState,
+        IRefactorOrFixAllState? fixAllState,
         ImmutableArray<FixAllScope> supportedScopes,
         Diagnostic firstDiagnostic,
         Workspace workspace,

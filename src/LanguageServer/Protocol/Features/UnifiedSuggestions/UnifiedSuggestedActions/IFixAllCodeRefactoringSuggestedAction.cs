@@ -15,5 +15,5 @@ internal interface IRefactorAllCodeRefactoringSuggestedAction
 {
     CodeAction OriginalCodeAction { get; }
 
-    IFixAllState FixAllState { get; }
+    IRefactorOrFixAllState FixAllState { get; }
 }

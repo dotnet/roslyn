@@ -51,7 +51,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         CodeAction codeAction,
         bool showPreviewChangesDialog,
         IProgress<CodeAnalysisProgress> progressTracker,
-        IFixAllState fixAllState,
+        IRefactorOrFixAllState fixAllState,
         CancellationToken cancellationToken)
     {
         // We have computed the fix all occurrences code fix.
@@ -175,7 +175,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             CodeAction? action = null;
             try
             {
-                action = await fixAllContext.State.FixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                action = await fixAllContext.State.FixAllProvider.GetCodeActionAsync(fixAllContext).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

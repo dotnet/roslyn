@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-public abstract class RefactorAllProvider : IFixAllProvider
+public abstract class RefactorAllProvider : IRefactorOrFixAllProvider
 {
     private protected static ImmutableArray<RefactorAllScope> DefaultSupportedRefactorAllScopes
         = [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution];
@@ -28,12 +28,12 @@ public abstract class RefactorAllProvider : IFixAllProvider
     public virtual IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
         => DefaultSupportedRefactorAllScopes;
 
-    IEnumerable<FixAllScope> IFixAllProvider.GetSupportedFixAllScopes()
+    IEnumerable<FixAllScope> IRefactorOrFixAllProvider.GetSupportedScopes()
         => GetSupportedRefactorAllScopes().Select(s => s.ToFixAllScope());
 
     internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
-    CodeActionCleanup IFixAllProvider.Cleanup => this.Cleanup;
+    CodeActionCleanup IRefactorOrFixAllProvider.Cleanup => this.Cleanup;
 
     /// <summary>
     /// Gets refactor all occurrences for the given <paramref name="refactorAllContext"/>.
@@ -41,7 +41,7 @@ public abstract class RefactorAllProvider : IFixAllProvider
     public abstract Task<CodeAction?> GetRefactoringAsync(RefactorAllContext refactorAllContext);
 
     #region IFixAllProvider implementation
-    Task<CodeAction?> IFixAllProvider.GetFixAsync(IFixAllContext fixAllContext)
+    Task<CodeAction?> IRefactorOrFixAllProvider.GetCodeActionAsync(IFixAllContext fixAllContext)
         => this.GetRefactoringAsync((RefactorAllContext)fixAllContext);
     #endregion
 

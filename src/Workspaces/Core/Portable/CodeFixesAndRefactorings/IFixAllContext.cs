@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// </summary>
 internal interface IFixAllContext
 {
-    IFixAllState State { get; }
+    IRefactorOrFixAllState State { get; }
     object Provider { get; }
     CancellationToken CancellationToken { get; }
     IProgress<CodeAnalysisProgress> Progress { get; }

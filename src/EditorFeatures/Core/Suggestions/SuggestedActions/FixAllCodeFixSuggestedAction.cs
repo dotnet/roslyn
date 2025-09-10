@@ -26,7 +26,7 @@ internal sealed partial class FixAllCodeFixSuggestedAction : AbstractFixAllSugge
         Workspace workspace,
         Solution originalSolution,
         ITextBuffer subjectBuffer,
-        IFixAllState fixAllState,
+        IRefactorOrFixAllState fixAllState,
         Diagnostic diagnostic,
         CodeAction originalCodeAction)
         : base(threadingContext,

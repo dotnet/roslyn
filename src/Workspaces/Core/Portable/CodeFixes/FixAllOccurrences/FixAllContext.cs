@@ -71,7 +71,7 @@ public partial class FixAllContext : IFixAllContext
     public IProgress<CodeAnalysisProgress> Progress { get; }
 
     #region IFixAllContext implementation
-    IFixAllState IFixAllContext.State => this.State;
+    IRefactorOrFixAllState IFixAllContext.State => this.State;
 
     object IFixAllContext.Provider => this.CodeFixProvider;
 

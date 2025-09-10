@@ -105,7 +105,7 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
     /// <para/>
     /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic)"/> in that it also passes along
     /// the <see cref="FixAllState"/> in case that would be useful (for example if the <see
-    /// cref="IFixAllState.CodeActionEquivalenceKey"/> is used.
+    /// cref="IRefactorOrFixAllState.CodeActionEquivalenceKey"/> is used.
     /// <para/>
     /// Only one of these two overloads needs to be overridden if you want to customize behavior.
     /// </summary>
@@ -121,7 +121,7 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
     /// By default, all diagnostics will be included in fix-all unless they are filtered out here. If only the
     /// diagnostic needs to be queried to make this determination, only this overload needs to be overridden.  However,
     /// if information from <see cref="FixAllState"/> is needed (for example <see
-    /// cref="IFixAllState.CodeActionEquivalenceKey"/>), then <see cref="IncludeDiagnosticDuringFixAll(Diagnostic,
+    /// cref="IRefactorOrFixAllState.CodeActionEquivalenceKey"/>), then <see cref="IncludeDiagnosticDuringFixAll(Diagnostic,
     /// Document, string, CancellationToken)"/> should be overridden instead.
     /// <para/>
     /// Only one of these two overloads needs to be overridden if you want to customize behavior.
