@@ -8202,6 +8202,48 @@ struct S
             //     //         M();
             //     Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "M()").WithLocation(16, 9)
             // );
+            // verifier.VerifyIL("S.M(S)", """
+            //     {
+            //       // Code size      100 (0x64)
+            //       .maxstack  3
+            //       .locals init (int? V_0,
+            //                     int? V_1,
+            //                     int? V_2)
+            //       IL_0000:  ldarga.s   V_0
+            //       IL_0002:  initobj    "S"
+            //       IL_0008:  ldarga.s   V_0
+            //       IL_000a:  ldflda     "int? S.i"
+            //       IL_000f:  dup
+            //       IL_0010:  ldobj      "int?"
+            //       IL_0015:  stloc.0
+            //       IL_0016:  call       "System.Threading.Tasks.Task<int?> S.GetInt()"
+            //       IL_001b:  call       "int? System.Runtime.CompilerServices.AsyncHelpers.Await<int?>(System.Threading.Tasks.Task<int?>)"
+            //       IL_0020:  stloc.1
+            //       IL_0021:  ldloca.s   V_0
+            //       IL_0023:  call       "readonly bool int?.HasValue.get"
+            //       IL_0028:  ldloca.s   V_1
+            //       IL_002a:  call       "readonly bool int?.HasValue.get"
+            //       IL_002f:  and
+            //       IL_0030:  brtrue.s   IL_003d
+            //       IL_0032:  ldloca.s   V_2
+            //       IL_0034:  initobj    "int?"
+            //       IL_003a:  ldloc.2
+            //       IL_003b:  br.s       IL_0051
+            //       IL_003d:  ldloca.s   V_0
+            //       IL_003f:  call       "readonly int int?.GetValueOrDefault()"
+            //       IL_0044:  ldloca.s   V_1
+            //       IL_0046:  call       "readonly int int?.GetValueOrDefault()"
+            //       IL_004b:  add
+            //       IL_004c:  newobj     "int?..ctor(int)"
+            //       IL_0051:  dup
+            //       IL_0052:  stloc.2
+            //       IL_0053:  stobj      "int?"
+            //       IL_0058:  ldloc.2
+            //       IL_0059:  box        "int?"
+            //       IL_005e:  call       "void System.Console.WriteLine(object)"
+            //       IL_0063:  ret
+            //     }
+            //     """);
         }
 
         [Fact]
