@@ -46,7 +46,7 @@ object DebugBuild : BuildType({
                 path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "-BuildImage -ImageName MetalamaCompiler-2026.0"
+            scriptArgs = "-BuildImage -ImageName metalamacompiler-2026.0"
         }
         powerShell {
             name = "Build"
@@ -55,7 +55,7 @@ object DebugBuild : BuildType({
                 path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "-ImageName MetalamaCompiler-2026.0 -NoBuildImage test --configuration Debug --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
+            scriptArgs = "-ImageName metalamacompiler-2026.0 -NoBuildImage test --configuration Debug --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
     }
 
@@ -118,7 +118,7 @@ object ReleaseBuild : BuildType({
                 path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "-BuildImage -ImageName MetalamaCompiler-2026.0"
+            scriptArgs = "-BuildImage -ImageName metalamacompiler-2026.0"
         }
         powerShell {
             name = "Build"
@@ -127,7 +127,7 @@ object ReleaseBuild : BuildType({
                 path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "-ImageName MetalamaCompiler-2026.0 -NoBuildImage test --configuration Release --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
+            scriptArgs = "-ImageName metalamacompiler-2026.0 -NoBuildImage test --configuration Release --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
     }
 
@@ -181,7 +181,7 @@ object PublicBuild : BuildType({
                 path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "-BuildImage -ImageName MetalamaCompiler-2026.0"
+            scriptArgs = "-BuildImage -ImageName metalamacompiler-2026.0"
         }
         powerShell {
             name = "Build"
@@ -190,7 +190,7 @@ object PublicBuild : BuildType({
                 path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "-ImageName MetalamaCompiler-2026.0 -NoBuildImage test --configuration Public --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
+            scriptArgs = "-ImageName metalamacompiler-2026.0 -NoBuildImage test --configuration Public --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
     }
 
