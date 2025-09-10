@@ -22,34 +22,22 @@ if (-not (Test-Path $nugetCacheDir)) {
     New-Item -ItemType Directory -Force -Path $nugetCacheDir | Out-Null
 }
 
-# Check for Git LFS storage directory in .git/config
-$lfsStorageDir = $null
-$gitConfigPath = ".git\config"
-if (Test-Path $gitConfigPath) {
-    $gitConfig = Get-Content $gitConfigPath
-    foreach ($line in $gitConfig) {
-        if ($line.Trim() -match "^\s*storage\s*=\s*(.+)$") {
-            $lfsStorageDir = $matches[1].Trim()
-            Write-Host "Found Git LFS storage directory: $lfsStorageDir" -ForegroundColor Yellow
-            break
-        }
-    }
-}
+# Define static Git system directory for mapping
+$gitSystemDir = "C:\BuildAgent\system\git"
 
 Write-Host "Building the image." -ForegroundColor Green
-$buildArgs = @()
-if ($lfsStorageDir) {
-    $buildArgs += @("--build-arg", "LFS_STORAGE_DIR=$lfsStorageDir")
-    Write-Host "Building image with LFS storage directory: $lfsStorageDir" -ForegroundColor Yellow
-}
-Get-Content -Raw Dockerfile | docker build -t $imageName -f - @buildArgs $dockerContextDirectory
+Get-Content -Raw Dockerfile | docker build -t $imageName --build-arg GIT_SYSTEM_DIR=$gitSystemDir -f - $dockerContextDirectory
 
 # Prepare volume mappings
 $volumeMappings = @("-v", "${PWD}:c:\src", "-v", "${nugetCacheDir}:c:\nuget")
-if ($lfsStorageDir -and (Test-Path $lfsStorageDir)) {
-    $volumeMappings += @("-v", "${lfsStorageDir}:${lfsStorageDir}")
-    Write-Host "Adding LFS storage volume mapping: ${lfsStorageDir}:${lfsStorageDir}" -ForegroundColor Yellow
+
+# Create Git system directory on host if it doesn't exist and add volume mapping
+if (-not (Test-Path $gitSystemDir)) {
+    Write-Host "Creating Git system directory on host: $gitSystemDir" -ForegroundColor Yellow
+    New-Item -ItemType Directory -Path $gitSystemDir -Force | Out-Null
 }
+$volumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
+Write-Host "Adding Git system directory volume mapping (read-only): ${gitSystemDir}:${gitSystemDir}:ro" -ForegroundColor Yellow
 
 if ($Interactive) {
 	docker run --rm -it --memory=12g @volumeMappings -w c:\src $imageName pwsh
