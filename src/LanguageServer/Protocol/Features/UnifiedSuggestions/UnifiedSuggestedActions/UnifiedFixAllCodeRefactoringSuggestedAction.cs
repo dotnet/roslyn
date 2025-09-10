@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 
@@ -17,7 +16,7 @@ internal sealed class UnifiedRefactorAllCodeRefactoringSuggestedAction(
     CodeActionPriority codeActionPriority,
     object provider,
     IRefactorOrFixAllState fixAllState)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null), IRefactorAllCodeRefactoringSuggestedAction
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null)
 {
     public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
 }
