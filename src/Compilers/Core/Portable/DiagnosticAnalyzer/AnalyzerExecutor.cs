@@ -189,9 +189,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var hasDifferentOptions = false;
 
-                var map = new Dictionary<DiagnosticAnalyzer, AnalyzerOptions>(ReferenceEqualityComparer.Instance);
+                var map = new Dictionary<DiagnosticAnalyzer, AnalyzerOptions>(
+                    capacity: diagnosticAnalyzers.Length, ReferenceEqualityComparer.Instance);
 
-                // Deduping map for the distinct AnalyzerConfigOptionsProvider we get back from getAnalyzerConfigOptionsProvider
+                // Deduping map for the distinct AnalyzerConfigOptionsProvider we get back from getAnalyzerConfigOptionsProvider.
+                // The common case in VS host is that there is generally only 1-2 of these providers.  For example, a provider
+                // that looks in editorconfig+vsoptions, and a provider that only looks in editorconfig.  We only want to make
+                // a corresponding number of AnalyzerOptions instances for each unique provider we see.
                 var optionsProviderToOptions = new Dictionary<AnalyzerConfigOptionsProvider, AnalyzerOptions>(ReferenceEqualityComparer.Instance);
 
                 foreach (var analyzer in diagnosticAnalyzers)
