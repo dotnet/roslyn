@@ -31,8 +31,6 @@ internal sealed partial class FixAllCodeFixSuggestedAction(
         originalCodeAction,
         new FixAllCodeAction(fixAllState)), ITelemetryDiagnosticID<string>
 {
-    public Diagnostic Diagnostic { get; } = diagnostic;
-
     public string GetDiagnosticID()
-        => Diagnostic.GetTelemetryDiagnosticID();
+        => diagnostic.GetTelemetryDiagnosticID();
 }
