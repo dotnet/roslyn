@@ -13,7 +13,7 @@ internal sealed class FixAllCodeAction : AbstractFixAllCodeAction
 {
     private readonly string _title;
 
-    public FixAllCodeAction(string title, IFixAllState fixAllState, bool showPreviewChangesDialog) : base(fixAllState, showPreviewChangesDialog)
+    public FixAllCodeAction(string title, IRefactorOrFixAllState fixAllState, bool showPreviewChangesDialog) : base(fixAllState, showPreviewChangesDialog)
     {
         _title = title;
     }
@@ -21,9 +21,9 @@ internal sealed class FixAllCodeAction : AbstractFixAllCodeAction
     public override string Title
         => _title;
 
-    protected override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    protected override IRefactorOrFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
 
-    protected override bool IsInternalProvider(IFixAllState fixAllState)
+    protected override bool IsInternalProvider(IRefactorOrFixAllState fixAllState)
         => true; // FixAll support is internal for the language server.
 }

@@ -16,24 +16,24 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// a <see cref="CodeFixes.CodeFixProvider"/> or a <see cref="CodeRefactorings.CodeRefactoringProvider"/>.
 /// </summary>
 internal abstract class AbstractFixAllCodeAction(
-    IFixAllState fixAllState, bool showPreviewChangesDialog) : CodeAction
+    IRefactorOrFixAllState fixAllState, bool showPreviewChangesDialog) : CodeAction
 {
     private bool _showPreviewChangesDialog = showPreviewChangesDialog;
 
-    public IFixAllState FixAllState { get; } = fixAllState;
+    public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
 
     // We don't need to post process changes here as the inner code action created for Fix multiple code fix already executes.
     internal sealed override CodeActionCleanup Cleanup => CodeActionCleanup.None;
 
     /// <summary>
-    /// Determine if the <see cref="IFixAllState.Provider"/> is an internal first-party provider or not.
+    /// Determine if the <see cref="IRefactorOrFixAllState.Provider"/> is an internal first-party provider or not.
     /// </summary>
-    protected abstract bool IsInternalProvider(IFixAllState fixAllState);
+    protected abstract bool IsInternalProvider(IRefactorOrFixAllState fixAllState);
 
     /// <summary>
-    /// Creates a new <see cref="IFixAllContext"/> with the given parameters.
+    /// Creates a new <see cref="IRefactorOrFixAllContext"/> with the given parameters.
     /// </summary>
-    protected abstract IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
+    protected abstract IRefactorOrFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 
     public override string Title
         => this.FixAllState.Scope switch
@@ -57,7 +57,7 @@ internal abstract class AbstractFixAllCodeAction(
         var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
         var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
-        progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
+        progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultTitle()));
 
         return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
     }
@@ -71,7 +71,7 @@ internal abstract class AbstractFixAllCodeAction(
         var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
         var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
-        progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultFixAllTitle()));
+        progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultTitle()));
 
         return service.GetFixAllChangedSolutionAsync(fixAllContext);
     }

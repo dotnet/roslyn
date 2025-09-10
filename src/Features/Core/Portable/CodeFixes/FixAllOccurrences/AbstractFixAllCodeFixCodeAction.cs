@@ -19,15 +19,15 @@ internal abstract class AbstractFixAllCodeFixCodeAction : AbstractFixAllCodeActi
     private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
     protected AbstractFixAllCodeFixCodeAction(
-        IFixAllState fixAllState, bool showPreviewChangesDialog)
+        IRefactorOrFixAllState fixAllState, bool showPreviewChangesDialog)
         : base(fixAllState, showPreviewChangesDialog)
     {
     }
 
-    protected sealed override IFixAllContext CreateFixAllContext(IFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    protected sealed override IRefactorOrFixAllContext CreateFixAllContext(IRefactorOrFixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         => new FixAllContext((FixAllState)fixAllState, progressTracker, cancellationToken);
 
-    protected sealed override bool IsInternalProvider(IFixAllState fixAllState)
+    protected sealed override bool IsInternalProvider(IRefactorOrFixAllState fixAllState)
     {
         var exportAttributes = fixAllState.Provider.GetType().GetTypeInfo().GetCustomAttributes(typeof(ExportCodeFixProviderAttribute), false);
         if (exportAttributes?.Any() == true)

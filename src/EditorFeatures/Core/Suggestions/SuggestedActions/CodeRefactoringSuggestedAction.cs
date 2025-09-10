@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -16,21 +14,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Represents light bulb menu item for code refactorings.
 /// </summary>
-internal sealed class CodeRefactoringSuggestedAction : SuggestedActionWithNestedFlavors, ICodeRefactoringSuggestedAction
+internal sealed class CodeRefactoringSuggestedAction(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    TextDocument originalDocument,
+    ITextBuffer subjectBuffer,
+    CodeRefactoringProvider provider,
+    CodeAction codeAction,
+    SuggestedActionSet? fixAllFlavors)
+    : SuggestedActionWithNestedFlavors(
+        threadingContext, sourceProvider, originalDocument, subjectBuffer, provider, codeAction, fixAllFlavors), ICodeRefactoringSuggestedAction
 {
-    public CodeRefactoringProvider CodeRefactoringProvider { get; }
-
-    public CodeRefactoringSuggestedAction(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        TextDocument originalDocument,
-        ITextBuffer subjectBuffer,
-        CodeRefactoringProvider provider,
-        CodeAction codeAction,
-        SuggestedActionSet fixAllFlavors)
-        : base(threadingContext, sourceProvider, workspace, originalDocument, subjectBuffer, provider, codeAction, fixAllFlavors)
-    {
-        CodeRefactoringProvider = provider;
-    }
+    public CodeRefactoringProvider CodeRefactoringProvider { get; } = provider;
 }

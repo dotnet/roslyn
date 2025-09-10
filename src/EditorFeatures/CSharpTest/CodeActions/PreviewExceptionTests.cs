@@ -94,7 +94,7 @@ public sealed partial class PreviewTests
         var suggestedAction = new CodeRefactoringSuggestedAction(
             workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
             workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
-            workspace, document, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
+            document, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
         return suggestedAction;
     }
 

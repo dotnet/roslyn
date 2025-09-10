@@ -15,18 +15,12 @@ internal partial class SuggestedActionWithNestedFlavors
 {
     private partial class PreviewChangesSuggestedAction
     {
-        private sealed class PreviewChangesCodeAction : CodeAction
+        private sealed class PreviewChangesCodeAction(
+            CodeAction originalCodeAction,
+            Func<CancellationToken, Task<SolutionPreviewResult?>> getPreviewResultAsync) : CodeAction
         {
-            private readonly Workspace _workspace;
-            private readonly CodeAction _originalCodeAction;
-            private readonly Func<CancellationToken, Task<SolutionPreviewResult?>> _getPreviewResultAsync;
-
-            public PreviewChangesCodeAction(Workspace workspace, CodeAction originalCodeAction, Func<CancellationToken, Task<SolutionPreviewResult?>> getPreviewResultAsync)
-            {
-                _workspace = workspace;
-                _originalCodeAction = originalCodeAction;
-                _getPreviewResultAsync = getPreviewResultAsync;
-            }
+            private readonly CodeAction _originalCodeAction = originalCodeAction;
+            private readonly Func<CancellationToken, Task<SolutionPreviewResult?>> _getPreviewResultAsync = getPreviewResultAsync;
 
             public override string Title => EditorFeaturesResources.Preview_changes2;
 
@@ -34,7 +28,7 @@ internal partial class SuggestedActionWithNestedFlavors
                 Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
+                var previewDialogService = originalSolution.Services.GetService<IPreviewDialogService>();
                 if (previewDialogService == null)
                 {
                     return [];

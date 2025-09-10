@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 
@@ -26,12 +27,11 @@ internal partial class SuggestedActionWithNestedFlavors
         private FlavoredSuggestedAction(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
-            Workspace workspace,
             Solution originalSolution,
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction originalCodeAction)
-            : base(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, originalCodeAction)
+            : base(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, originalCodeAction)
         {
         }
 
@@ -40,7 +40,6 @@ internal partial class SuggestedActionWithNestedFlavors
             return new FlavoredSuggestedAction(
                 suggestedAction.ThreadingContext,
                 suggestedAction.SourceProvider,
-                suggestedAction.Workspace,
                 suggestedAction.OriginalSolution,
                 suggestedAction.SubjectBuffer,
                 suggestedAction.Provider,

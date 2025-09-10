@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,31 +19,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Represents light bulb menu item for code fixes.
 /// </summary>
-internal sealed class CodeFixSuggestedAction : SuggestedActionWithNestedFlavors, ICodeFixSuggestedAction, ITelemetryDiagnosticID<string>
+internal sealed class CodeFixSuggestedAction(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    TextDocument originalDocument,
+    ITextBuffer subjectBuffer,
+    CodeFix fix,
+    object provider,
+    CodeAction action,
+    SuggestedActionSet fixAllFlavors)
+    : SuggestedActionWithNestedFlavors(threadingContext,
+        sourceProvider,
+        originalDocument,
+        subjectBuffer,
+        provider,
+        action,
+        fixAllFlavors), ICodeFixSuggestedAction, ITelemetryDiagnosticID<string>
 {
-    public CodeFix CodeFix { get; }
-
-    public CodeFixSuggestedAction(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        TextDocument originalDocument,
-        ITextBuffer subjectBuffer,
-        CodeFix fix,
-        object provider,
-        CodeAction action,
-        SuggestedActionSet fixAllFlavors)
-        : base(threadingContext,
-               sourceProvider,
-               workspace,
-               originalDocument,
-               subjectBuffer,
-               provider,
-               action,
-               fixAllFlavors)
-    {
-        CodeFix = fix;
-    }
+    public CodeFix CodeFix { get; } = fix;
 
     public string GetDiagnosticID()
         => CodeFix.PrimaryDiagnostic.GetTelemetryDiagnosticID();

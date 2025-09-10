@@ -16,30 +16,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// Suggested action for fix all occurrences code fix.  Note: this is only used
 /// as a 'flavor' inside CodeFixSuggestionAction.
 /// </summary>
-internal sealed partial class FixAllCodeFixSuggestedAction : AbstractFixAllSuggestedAction, ITelemetryDiagnosticID<string>, IFixAllCodeFixSuggestedAction
+internal sealed partial class FixAllCodeFixSuggestedAction(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    Solution originalSolution,
+    ITextBuffer subjectBuffer,
+    IRefactorOrFixAllState fixAllState,
+    Diagnostic diagnostic,
+    CodeAction originalCodeAction)
+    : AbstractFixAllSuggestedAction(threadingContext,
+        sourceProvider,
+        originalSolution,
+        subjectBuffer,
+        fixAllState,
+        originalCodeAction,
+        new FixAllCodeAction(fixAllState)), ITelemetryDiagnosticID<string>, IFixAllCodeFixSuggestedAction
 {
-    public Diagnostic Diagnostic { get; }
-
-    public FixAllCodeFixSuggestedAction(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        Solution originalSolution,
-        ITextBuffer subjectBuffer,
-        IFixAllState fixAllState,
-        Diagnostic diagnostic,
-        CodeAction originalCodeAction)
-        : base(threadingContext,
-               sourceProvider,
-               workspace,
-               originalSolution,
-               subjectBuffer,
-               fixAllState,
-               originalCodeAction,
-               new FixAllCodeAction(fixAllState))
-    {
-        Diagnostic = diagnostic;
-    }
+    public Diagnostic Diagnostic { get; } = diagnostic;
 
     public string GetDiagnosticID()
         => Diagnostic.GetTelemetryDiagnosticID();

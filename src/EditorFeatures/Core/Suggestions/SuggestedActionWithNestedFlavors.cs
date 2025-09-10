@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -29,33 +30,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// 
 /// Because all derivations support 'preview changes', we bake that logic into this base type.
 /// </summary>
-internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedAction, ISuggestedActionWithFlavors
+internal abstract partial class SuggestedActionWithNestedFlavors(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    TextDocument originalDocument,
+    ITextBuffer subjectBuffer,
+    object provider,
+    CodeAction codeAction,
+    SuggestedActionSet fixAllFlavors)
+    : SuggestedAction(threadingContext,
+        sourceProvider,
+        originalDocument.Project.Solution,
+        subjectBuffer,
+        provider,
+        codeAction), ISuggestedActionWithFlavors
 {
-    private readonly SuggestedActionSet _fixAllFlavors;
+    private readonly SuggestedActionSet _fixAllFlavors = fixAllFlavors;
     private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
-    public TextDocument OriginalDocument { get; }
-
-    public SuggestedActionWithNestedFlavors(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        TextDocument originalDocument,
-        ITextBuffer subjectBuffer,
-        object provider,
-        CodeAction codeAction,
-        SuggestedActionSet fixAllFlavors)
-        : base(threadingContext,
-               sourceProvider,
-               workspace,
-               originalDocument.Project.Solution,
-               subjectBuffer,
-               provider,
-               codeAction)
-    {
-        _fixAllFlavors = fixAllFlavors;
-        OriginalDocument = originalDocument;
-    }
+    public TextDocument OriginalDocument { get; } = originalDocument;
 
     /// <summary>
     /// HasActionSets is always true because we always know we provide 'preview changes'.
@@ -71,7 +64,7 @@ internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedActi
 
         if (_nestedFlavors.IsDefault)
         {
-            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = this.OriginalSolution.Services.GetService<IExtensionManager>();
 
             // Note: We must ensure that CreateAllFlavorsAsync does not perform any expensive
             // long running operations as it will be invoked when a lightbulb preview is brought
@@ -146,7 +139,7 @@ internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedActi
         // Light bulb will always invoke this function on the UI thread.
         this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
+        var previewPaneService = this.OriginalSolution.Services.GetService<IPreviewPaneService>();
         if (previewPaneService == null)
         {
             return null;
@@ -154,10 +147,10 @@ internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedActi
 
         // after this point, this method should only return at GetPreviewPane. otherwise, DifferenceViewer will leak
         // since there is no one to close the viewer
-        var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
+        var preferredDocumentId = this.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext()?.Id;
         var preferredProjectId = preferredDocumentId?.ProjectId;
 
-        var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+        var extensionManager = this.OriginalSolution.Services.GetService<IExtensionManager>();
         var previewContents = await extensionManager.PerformFunctionAsync(Provider, async cancellationToken =>
         {
             // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
