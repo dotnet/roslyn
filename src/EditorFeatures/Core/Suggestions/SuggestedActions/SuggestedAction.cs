@@ -49,7 +49,7 @@ internal abstract partial class SuggestedAction(
     protected readonly ITextBuffer SubjectBuffer = subjectBuffer;
 
     protected readonly object Provider = provider;
-    internal readonly CodeAction CodeAction = codeAction;
+    internal CodeAction CodeAction { get; } = codeAction;
 
     private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
@@ -175,7 +175,7 @@ internal abstract partial class SuggestedAction(
     private void CreateLogProperties(Dictionary<string, object> map)
     {
         // set various correlation info
-        if (CodeAction is AbstractFixAllCodeFixCodeAction fixSome)
+        if (CodeAction is RefactorOrFixAllCodeAction fixSome)
         {
             // fix all correlation info
             map[FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
