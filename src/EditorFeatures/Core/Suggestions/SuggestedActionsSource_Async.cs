@@ -302,7 +302,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                         UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
                             _threadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
                             fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
-                        UnifiedFixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new FixAllCodeRefactoringSuggestedAction(
+                        UnifiedRefactorAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new RefactorAllCodeRefactoringSuggestedAction(
                             _threadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
                             fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(

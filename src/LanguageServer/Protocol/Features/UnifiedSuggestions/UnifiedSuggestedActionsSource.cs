@@ -602,21 +602,21 @@ internal sealed class UnifiedSuggestedActionsSource
         using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
         foreach (var scope in fixAllProviderInfo.SupportedScopes)
         {
-            var fixAllState = new CodeRefactorings.FixAllState(
-                (CodeRefactorings.FixAllProvider)fixAllProviderInfo.FixAllProvider,
-                document, selection, provider, scope, action);
+            var fixAllState = new RefactorAllState(
+                (RefactorAllProvider)fixAllProviderInfo.FixAllProvider,
+                document, selection, provider, scope.ToRefactorAllScope(), action);
 
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
             {
                 // Skip showing ContainingMember and ContainingType FixAll scopes if the language
                 // does not implement 'IFixAllSpanMappingService' langauge service or
                 // we have no mapped FixAll spans to fix.
-                var documentsAndSpans = await fixAllState.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
+                var documentsAndSpans = await fixAllState.GetRefactorAllSpansAsync(cancellationToken).ConfigureAwait(false);
                 if (documentsAndSpans.IsEmpty)
                     continue;
             }
 
-            var fixAllSuggestedAction = new UnifiedFixAllCodeRefactoringSuggestedAction(
+            var fixAllSuggestedAction = new UnifiedRefactorAllCodeRefactoringSuggestedAction(
                 workspace, action, action.Priority, fixAllState);
 
             fixAllSuggestedActions.Add(fixAllSuggestedAction);

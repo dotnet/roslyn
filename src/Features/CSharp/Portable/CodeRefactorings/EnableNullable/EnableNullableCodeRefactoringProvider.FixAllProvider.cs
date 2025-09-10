@@ -17,23 +17,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
 internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
 {
-    internal sealed override CodeAnalysis.CodeRefactorings.FixAllProvider? GetFixAllProvider()
-        => FixAllProvider.Instance;
+    internal sealed override CodeAnalysis.CodeRefactorings.RefactorAllProvider? GetRefactorAllProvider()
+        => RefactorAllProvider.Instance;
 
-    private sealed class FixAllProvider : CodeAnalysis.CodeRefactorings.FixAllProvider
+    private sealed class RefactorAllProvider : CodeAnalysis.CodeRefactorings.RefactorAllProvider
     {
-        public static readonly FixAllProvider Instance = new();
+        public static readonly RefactorAllProvider Instance = new();
 
-        private FixAllProvider()
+        private RefactorAllProvider()
         {
         }
 
-        public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => [FixAllScope.Solution];
+        public override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
+            => [RefactorAllScope.Solution];
 
-        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext fixAllContext)
         {
-            Debug.Assert(fixAllContext.Scope == FixAllScope.Solution);
+            Debug.Assert(fixAllContext.Scope == RefactorAllScope.Solution);
             return Task.FromResult<CodeAction?>(new FixAllCodeAction(EnableNullableReferenceTypesInSolutionAsync));
 
             async Task<Solution> EnableNullableReferenceTypesInSolutionAsync(
