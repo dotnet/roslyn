@@ -2,11 +2,15 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <!-- <Metalama> -->
-  <!-- Set the deafult versions of auto-updated dependencies -->
+  <!-- Set the default versions of auto-updated dependencies -->
   <Import Project="..\eng-Metalama\AutoUpdatedVersions.props" />
 
   <!-- Set the default version -->
   <Import Project="..\eng-Metalama\MainVersion.props" />
+
+  <PropertyGroup>
+    <PostSharpEngineeringVersion>2023.2.178</PostSharpEngineeringVersion>
+  </PropertyGroup>
   
   <!-- Import overrides for the local build -->
   <!-- Unlike in other projects using PostSharp.Engineering, we must import it here, otherwise the properties defined immediately below

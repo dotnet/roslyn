@@ -20,6 +20,7 @@ COPY docker.vsconfig /docker.vsconfig
 
 # Install Visual Studio Build Tools.
 # This is necessary, otherwise eng/build.ps will attempt to download them, and will fail because it depends on Microsoft's private resources.
+# TODO: The following downloads the latest version. Make sure it downloads a specific version.
 RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe; `
     Start-Process -Wait -FilePath vs_buildtools.exe -ArgumentList '--wait', '--quiet', '--config', 'C:\docker.vsconfig', '--norestart', '--locale en-US'; `
     Remove-Item C:\\vs_buildtools.exe; `

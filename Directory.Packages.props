@@ -3,10 +3,5 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-<!-- <Metalama> -->
-  <PropertyGroup>
-    <PostSharpEngineeringVersion>2023.2.178</PostSharpEngineeringVersion>
-  </PropertyGroup>
-<!-- </Metalama> -->
   <Import Project="eng\Directory.Packages.props" />
 </Project>

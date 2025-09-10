@@ -6,6 +6,7 @@ using Spectre.Console.Cli;
 using System.IO;
 using Build.NuGetDependencies;
 using PostSharp.Engineering.BuildTools.Build;
+using PostSharp.Engineering.BuildTools.ContinuousIntegration.Model;
 using PostSharp.Engineering.BuildTools.Dependencies.Definitions;
 using MetalamaDependencies = PostSharp.Engineering.BuildTools.Dependencies.Definitions.MetalamaDependencies.V2026_0;
 
@@ -21,7 +22,8 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
     ExportedProperties = { { @"eng/Versions.props", new[] { "RoslynVersion" } } },
     KeepEditorConfig = true,
     Configurations = Product.DefaultConfigurations.WithValue(BuildConfiguration.Release, c => c with { ExportsToTeamCityBuild = true }),
-    DefaultTestsFilter = "Category!=OuterLoop"
+    DefaultTestsFilter = "Category!=OuterLoop",
+    OverriddenBuildAgentRequirements = BuildAgentRequirements.WindowsDockerHost
 };
 
 
