@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -33,24 +32,12 @@ internal sealed class SuggestedActionWithNestedActions(
 {
     public readonly ImmutableArray<SuggestedActionSet> NestedActionSets = nestedActionSets;
 
-    public SuggestedActionWithNestedActions(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Solution originalSolution,
-        ITextBuffer subjectBuffer,
-        IRefactorOrFixProvider provider,
-        CodeAction codeAction,
-        SuggestedActionSet nestedActionSet)
-        : this(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction, [nestedActionSet])
-    {
-    }
-
-    public override bool HasActionSets => true;
+    public sealed override bool HasActionSets => true;
 
     public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         => Task.FromResult<IEnumerable<SuggestedActionSet>>(NestedActionSets);
 
-    protected override Task InnerInvokeAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+    protected sealed override Task InnerInvokeAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
         // A code action with nested actions is itself never invokable.  So just do nothing if this ever gets asked.
         // Report a message in debug and log a watson exception so that if this is hit we can try to narrow down how
