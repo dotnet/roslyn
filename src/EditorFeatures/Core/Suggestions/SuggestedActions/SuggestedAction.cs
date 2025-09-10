@@ -328,17 +328,11 @@ internal abstract partial class SuggestedAction(
         CodeAction codeAction)
         => new TrivialSuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction);
 
-    private sealed class TrivialSuggestedAction : SuggestedAction
-    {
-        public TrivialSuggestedAction(
-            IThreadingContext threadingContext,
-            SuggestedActionsSourceProvider sourceProvider,
-            Solution originalSolution,
-            ITextBuffer subjectBuffer,
-            object provider,
-            CodeAction codeAction)
-            : base(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction)
-        {
-        }
-    }
+    private sealed class TrivialSuggestedAction(
+        IThreadingContext threadingContext,
+        SuggestedActionsSourceProvider sourceProvider,
+        Solution originalSolution,
+        ITextBuffer subjectBuffer,
+        object provider,
+        CodeAction codeAction) : SuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction);
 }
