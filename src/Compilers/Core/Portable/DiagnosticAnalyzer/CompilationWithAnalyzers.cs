@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         #endregion
 
-        private ImmutableArray<AdditionalText> AdditionalFiles => _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
+        private ImmutableArray<AdditionalText> AdditionalFiles => _analysisOptions.Options.GetAdditionalFiles();
 
         /// <summary>
         /// Returns diagnostics produced by all <see cref="Analyzers"/>.
