@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 
@@ -14,4 +15,6 @@ internal interface IUnifiedSuggestedAction
     CodeAction OriginalCodeAction { get; }
 
     CodeActionPriority CodeActionPriority { get; }
+
+    CodeRefactoringKind? CodeRefactoringKind { get; }
 }

@@ -17,7 +17,7 @@ internal sealed class UnifiedFixAllCodeFixSuggestedAction(
     CodeActionPriority codeActionPriority,
     IRefactorOrFixAllState fixAllState,
     Diagnostic diagnostic)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority), IFixAllCodeFixSuggestedAction
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, codeRefactoringKind: null), IFixAllCodeFixSuggestedAction
 {
     public Diagnostic Diagnostic { get; } = diagnostic;
 

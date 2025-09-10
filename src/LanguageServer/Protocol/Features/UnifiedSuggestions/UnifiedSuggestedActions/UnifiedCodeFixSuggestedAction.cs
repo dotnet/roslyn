@@ -18,7 +18,7 @@ internal sealed class UnifiedCodeFixSuggestedAction(
     CodeFix codeFix,
     object provider,
     UnifiedSuggestedActionSet? fixAllFlavors)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority), ICodeFixSuggestedAction
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, codeRefactoringKind: null), ICodeFixSuggestedAction
 {
     public CodeFix CodeFix { get; } = codeFix;
 

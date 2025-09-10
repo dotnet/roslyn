@@ -5,7 +5,6 @@
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -23,7 +22,4 @@ internal sealed class CodeRefactoringSuggestedAction(
     CodeAction codeAction,
     SuggestedActionSet? fixAllFlavors)
     : SuggestedActionWithNestedFlavors(
-        threadingContext, sourceProvider, originalDocument, subjectBuffer, provider, codeAction, fixAllFlavors), ICodeRefactoringSuggestedAction
-{
-    public CodeRefactoringProvider CodeRefactoringProvider { get; } = provider;
-}
+        threadingContext, sourceProvider, originalDocument, subjectBuffer, provider, codeAction, fixAllFlavors);

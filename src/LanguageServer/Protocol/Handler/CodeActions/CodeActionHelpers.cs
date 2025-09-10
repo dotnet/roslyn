@@ -420,17 +420,12 @@ internal static class CodeActionHelpers
         };
 
     private static CodeActionKind GetRefactoringKind(IUnifiedSuggestedAction suggestedAction)
-    {
-        if (suggestedAction is not ICodeRefactoringSuggestedAction refactoringAction)
-            return CodeActionKind.Refactor;
-
-        return refactoringAction.CodeRefactoringProvider.Kind switch
+        => suggestedAction.CodeRefactoringKind switch
         {
             CodeRefactoringKind.Extract => CodeActionKind.RefactorExtract,
             CodeRefactoringKind.Inline => CodeActionKind.RefactorInline,
             _ => CodeActionKind.Refactor,
         };
-    }
 
     private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriority priority)
         => priority switch

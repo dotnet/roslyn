@@ -16,7 +16,7 @@ internal sealed class UnifiedSuggestedActionWithNestedActions(
     CodeActionPriority codeActionPriority,
     object? provider,
     ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, codeRefactoringKind: null)
 {
     public object? Provider { get; } = provider;
 
