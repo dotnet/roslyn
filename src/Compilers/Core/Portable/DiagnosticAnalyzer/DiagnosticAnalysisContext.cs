@@ -1221,11 +1221,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
-
-        internal CodeBlockAnalysisContext WithOptions(AnalyzerOptions options)
-            => this.Options == options
-                ? this
-                : new(this.CodeBlock, this.OwningSymbol, this.SemanticModel, options, _reportDiagnostic, _isSupportedDiagnostic, this.FilterSpan, this.IsGeneratedCode, this.CancellationToken);
     }
 
     /// <summary>
