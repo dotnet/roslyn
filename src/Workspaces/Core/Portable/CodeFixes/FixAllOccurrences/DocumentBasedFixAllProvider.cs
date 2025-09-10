@@ -56,7 +56,7 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
     /// </returns>
     protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
-    public sealed override IEnumerable<FixAllScope> GetSupportedScopes()
+    public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => _supportedFixAllScopes;
 
     public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)

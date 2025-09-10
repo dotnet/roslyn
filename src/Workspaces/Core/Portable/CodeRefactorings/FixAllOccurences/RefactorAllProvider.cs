@@ -28,9 +28,6 @@ public abstract class RefactorAllProvider : IRefactorOrFixAllProvider
     public virtual IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
         => DefaultSupportedRefactorAllScopes;
 
-    IEnumerable<FixAllScope> IRefactorOrFixAllProvider.GetSupportedScopes()
-        => GetSupportedRefactorAllScopes().Select(s => s.ToFixAllScope());
-
     internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
     CodeActionCleanup IRefactorOrFixAllProvider.Cleanup => this.Cleanup;
