@@ -26,12 +26,11 @@ internal partial class SuggestedActionWithNestedFlavors
         private RefineUsingCopilotSuggestedAction(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
-            Workspace workspace,
             Solution originalSolution,
             ITextBuffer subjectBuffer,
             object provider,
             RefineUsingCopilotCodeAction codeAction)
-            : base(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction)
+            : base(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction)
         {
         }
 
@@ -59,7 +58,6 @@ internal partial class SuggestedActionWithNestedFlavors
             return new RefineUsingCopilotSuggestedAction(
                 suggestedAction.ThreadingContext,
                 suggestedAction.SourceProvider,
-                suggestedAction.Workspace,
                 suggestedAction.OriginalSolution,
                 suggestedAction.SubjectBuffer,
                 suggestedAction.Provider,

@@ -65,9 +65,9 @@ internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TF
     }
 
     #region IFixAllState implementation
-    IRefactorOrFixAllProvider IRefactorOrFixAllState.FixAllProvider => this.FixAllProvider!;
+    IRefactorOrFixAllProvider IRefactorOrFixAllState.FixAllProvider => this.FixAllProvider;
 
-    object IRefactorOrFixAllState.Provider => this.Provider!;
+    IRefactorOrFixProvider IRefactorOrFixAllState.Provider => this.Provider;
 
     IRefactorOrFixAllState IRefactorOrFixAllState.With(
         Optional<(Document? document, Project project)> documentAndProject,

@@ -20,12 +20,11 @@ internal partial class SuggestedActionWithNestedFlavors
         private PreviewChangesSuggestedAction(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
-            Workspace workspace,
             Solution originalSolution,
             ITextBuffer subjectBuffer,
             object provider,
             PreviewChangesCodeAction codeAction)
-            : base(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction)
+            : base(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction)
         {
         }
 
@@ -34,12 +33,10 @@ internal partial class SuggestedActionWithNestedFlavors
             return new PreviewChangesSuggestedAction(
                 suggestedAction.ThreadingContext,
                 suggestedAction.SourceProvider,
-                suggestedAction.Workspace,
                 suggestedAction.OriginalSolution,
                 suggestedAction.SubjectBuffer,
                 suggestedAction.Provider,
-                new PreviewChangesCodeAction(
-                    suggestedAction.Workspace, suggestedAction.CodeAction, suggestedAction.GetPreviewResultAsync));
+                new PreviewChangesCodeAction(suggestedAction.CodeAction, suggestedAction.GetPreviewResultAsync));
         }
     }
 }

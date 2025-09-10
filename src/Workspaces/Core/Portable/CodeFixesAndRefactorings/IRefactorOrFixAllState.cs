@@ -24,7 +24,7 @@ internal interface IRefactorOrFixAllState
     /// <summary>
     /// Underlying code fix provider or code refactoring provider for the fix all occurrences fix.
     /// </summary>
-    object Provider { get; }
+    IRefactorOrFixProvider Provider { get; }
 
     IRefactorOrFixAllState With(
         Optional<(Document? document, Project project)> documentAndProject = default,

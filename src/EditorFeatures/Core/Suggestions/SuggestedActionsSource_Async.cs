@@ -236,7 +236,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                 }
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-                    workspace, owner._codeFixService, document, range.Span.ToTextSpan(),
+                    owner._codeFixService, document, range.Span.ToTextSpan(),
                     priorityProvider, cancellationToken).ConfigureAwait(false);
             }
 
@@ -268,7 +268,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority,
+                    owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority,
                     filterOutsideSelection, cancellationToken).ConfigureAwait(false);
             }
 
@@ -292,21 +292,21 @@ internal sealed partial class SuggestedActionsSourceProvider
                     => unifiedSuggestedAction switch
                     {
                         UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
-                            _threadingContext, owner, codeFixAction.Workspace, originalDocument, subjectBuffer,
+                            _threadingContext, owner, originalDocument, subjectBuffer,
                             codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument)),
                         UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
-                            _threadingContext, owner, codeRefactoringAction.Workspace, originalDocument, subjectBuffer,
+                            _threadingContext, owner, originalDocument, subjectBuffer,
                             codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
                         UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
-                            _threadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
+                            _threadingContext, owner, originalSolution, subjectBuffer,
                             fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
                         UnifiedRefactorAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new RefactorAllCodeRefactoringSuggestedAction(
-                            _threadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
+                            _threadingContext, owner, originalSolution, subjectBuffer,
                             fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                            _threadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
+                            _threadingContext, owner, originalSolution, subjectBuffer,
                             nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
                             nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
                         _ => throw ExceptionUtilities.Unreachable()

@@ -24,26 +24,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 internal sealed class SuggestedActionWithNestedActions(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
-    Workspace workspace,
     Solution originalSolution,
     ITextBuffer subjectBuffer,
     object provider,
     CodeAction codeAction,
     ImmutableArray<SuggestedActionSet> nestedActionSets)
-    : SuggestedAction(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction)
+    : SuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction)
 {
     public readonly ImmutableArray<SuggestedActionSet> NestedActionSets = nestedActionSets;
 
     public SuggestedActionWithNestedActions(
         IThreadingContext threadingContext,
         SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
         Solution originalSolution,
         ITextBuffer subjectBuffer,
         IRefactorOrFixProvider provider,
         CodeAction codeAction,
         SuggestedActionSet nestedActionSet)
-        : this(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction, [nestedActionSet])
+        : this(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction, [nestedActionSet])
     {
     }
 

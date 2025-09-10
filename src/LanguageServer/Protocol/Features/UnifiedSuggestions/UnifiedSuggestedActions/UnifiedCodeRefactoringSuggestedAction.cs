@@ -12,21 +12,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// Similar to CodeRefactoringSuggestedAction, but in a location that can be used by
 /// both local Roslyn and LSP.
 /// </summary>
-internal sealed class UnifiedCodeRefactoringSuggestedAction : UnifiedSuggestedAction, ICodeRefactoringSuggestedAction
+internal sealed class UnifiedCodeRefactoringSuggestedAction(
+    CodeAction codeAction,
+    CodeActionPriority codeActionPriority,
+    CodeRefactoringProvider codeRefactoringProvider,
+    UnifiedSuggestedActionSet? fixAllFlavors)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority), ICodeRefactoringSuggestedAction
 {
-    public CodeRefactoringProvider CodeRefactoringProvider { get; }
+    public CodeRefactoringProvider CodeRefactoringProvider { get; } = codeRefactoringProvider;
 
-    public UnifiedSuggestedActionSet? FixAllFlavors { get; }
-
-    public UnifiedCodeRefactoringSuggestedAction(
-        Workspace workspace,
-        CodeAction codeAction,
-        CodeActionPriority codeActionPriority,
-        CodeRefactoringProvider codeRefactoringProvider,
-        UnifiedSuggestedActionSet? fixAllFlavors)
-        : base(workspace, codeAction, codeActionPriority)
-    {
-        CodeRefactoringProvider = codeRefactoringProvider;
-        FixAllFlavors = fixAllFlavors;
-    }
+    public UnifiedSuggestedActionSet? FixAllFlavors { get; } = fixAllFlavors;
 }
