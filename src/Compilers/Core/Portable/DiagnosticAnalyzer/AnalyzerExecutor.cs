@@ -565,7 +565,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!filterSpan.HasValue || filterTree != null);
 
             var symbol = symbolDeclaredEvent.Symbol;
-            var addDiagnostic = GetAddDiagnostic(symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, getTopMostNodeForAnalysis, cancellationToken);
+            var options = this.GetAnalyzerSpecificOptions(analyzer);
+            var addDiagnostic = GetAddDiagnostic(symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, options, getTopMostNodeForAnalysis, cancellationToken);
 
             using var _ = PooledDelegates.GetPooledFunction(
                 static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
@@ -575,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
             // can use the same instance across all actions.
             var context = new SymbolAnalysisContext(
-                symbol, Compilation, this.GetAnalyzerSpecificOptions(analyzer), addDiagnostic,
+                symbol, Compilation, options, addDiagnostic,
                 isSupportedDiagnostic, isGeneratedCode, filterTree, filterSpan, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
@@ -680,7 +681,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
             // can use the same instance across all actions.
             var context = new SyntaxTreeAnalysisContext(
-                tree, this.GetAnalyzerSpecificOptions(analyzer), diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
+                tree, analyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
                 Compilation, filterSpan, isGeneratedCode, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation, file);
 
@@ -726,7 +727,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
             // can use the same instance across all actions.
             var context = new AdditionalFileAnalysisContext(
-                additionalFile, this.GetAnalyzerSpecificOptions(analyzer), diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
+                additionalFile, analyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
                 Compilation, filterSpan, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation, file);
 
@@ -755,9 +756,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!executionData.IsGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(syntaxNodeAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(syntaxNodeAction.Analyzer, node.SyntaxTree, cancellationToken));
 
-            var options = GetAnalyzerSpecificOptions(syntaxNodeAction.Analyzer);
             var syntaxNodeContext = new SyntaxNodeAnalysisContext(
-                node, executionData.DeclaredSymbol, executionData.SemanticModel, options, addDiagnostic,
+                node, executionData.DeclaredSymbol, executionData.SemanticModel,
+                GetAnalyzerSpecificOptions(syntaxNodeAction.Analyzer), addDiagnostic,
                 isSupportedDiagnostic, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
             ExecuteAndCatchIfThrows(
@@ -779,10 +780,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!executionData.IsGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(operationAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(operationAction.Analyzer, executionData.SemanticModel.SyntaxTree, cancellationToken));
 
-            var options = GetAnalyzerSpecificOptions(operationAction.Analyzer);
             var operationContext = new OperationAnalysisContext(
                 operation, executionData.DeclaredSymbol, executionData.SemanticModel.Compilation,
-                options, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph,
+                GetAnalyzerSpecificOptions(operationAction.Analyzer), addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph,
                 executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
             ExecuteAndCatchIfThrows(
@@ -1507,6 +1507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol contextSymbol,
             ImmutableArray<SyntaxReference> cachedDeclaringReferences,
             DiagnosticAnalyzer analyzer,
+            AnalyzerOptions options,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             CancellationToken cancellationToken)
         {
@@ -1515,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cachedDeclaringReferences,
                 Compilation,
                 analyzer,
-                this.GetAnalyzerSpecificOptions(analyzer),
+                options,
                 _addNonCategorizedDiagnostic,
                 _addCategorizedLocalDiagnostic,
                 _addCategorizedNonLocalDiagnostic,
