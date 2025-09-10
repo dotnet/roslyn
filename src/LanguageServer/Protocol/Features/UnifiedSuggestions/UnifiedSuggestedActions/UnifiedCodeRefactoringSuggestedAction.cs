@@ -17,9 +17,7 @@ internal sealed class UnifiedCodeRefactoringSuggestedAction(
     CodeActionPriority codeActionPriority,
     CodeRefactoringProvider codeRefactoringProvider,
     UnifiedSuggestedActionSet? fixAllFlavors)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority, codeRefactoringProvider.Kind)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, codeRefactoringProvider, codeRefactoringProvider.Kind)
 {
-    public CodeRefactoringProvider CodeRefactoringProvider { get; } = codeRefactoringProvider;
-
     public UnifiedSuggestedActionSet? FixAllFlavors { get; } = fixAllFlavors;
 }

@@ -297,7 +297,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument)),
                         UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
                             _threadingContext, owner, originalDocument, subjectBuffer,
-                            codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
+                            codeRefactoringAction.Provider ?? this, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
                         UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
                             _threadingContext, owner, originalSolution, subjectBuffer,

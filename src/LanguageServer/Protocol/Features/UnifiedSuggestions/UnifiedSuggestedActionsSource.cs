@@ -244,7 +244,7 @@ internal sealed class UnifiedSuggestedActionsSource
 
             var fixAllStateForScope = fixAllState.With(scope: scope, codeActionEquivalenceKey: action.EquivalenceKey);
             var fixAllSuggestedAction = new UnifiedFixAllCodeFixSuggestedAction(
-                action, action.Priority, fixAllStateForScope, firstDiagnostic);
+                action, action.Priority, fixAllStateForScope, fixAllState.Provider, firstDiagnostic);
 
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }
@@ -605,7 +605,8 @@ internal sealed class UnifiedSuggestedActionsSource
                     continue;
             }
 
-            var fixAllSuggestedAction = new UnifiedRefactorAllCodeRefactoringSuggestedAction(action, action.Priority, fixAllState);
+            var fixAllSuggestedAction = new UnifiedRefactorAllCodeRefactoringSuggestedAction(
+                action, action.Priority, provider, fixAllState);
 
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }

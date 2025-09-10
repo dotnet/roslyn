@@ -14,8 +14,11 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 internal abstract class UnifiedSuggestedAction(
     CodeAction codeAction,
     CodeActionPriority codeActionPriority,
+    object? provider,
     CodeRefactoringKind? codeRefactoringKind) : IUnifiedSuggestedAction
 {
+    public object? Provider { get; } = provider;
+
     public CodeAction OriginalCodeAction { get; } = codeAction;
 
     public CodeActionPriority CodeActionPriority { get; } = codeActionPriority;

@@ -18,7 +18,7 @@ internal sealed class CodeRefactoringSuggestedAction(
     SuggestedActionsSourceProvider sourceProvider,
     TextDocument originalDocument,
     ITextBuffer subjectBuffer,
-    CodeRefactoringProvider provider,
+    object provider,
     CodeAction codeAction,
     SuggestedActionSet? fixAllFlavors)
     : SuggestedActionWithNestedFlavors(

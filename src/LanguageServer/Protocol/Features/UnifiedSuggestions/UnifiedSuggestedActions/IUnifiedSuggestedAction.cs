@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// </summary>
 internal interface IUnifiedSuggestedAction
 {
+    object? Provider { get; }
+
     CodeAction OriginalCodeAction { get; }
 
     CodeActionPriority CodeActionPriority { get; }
