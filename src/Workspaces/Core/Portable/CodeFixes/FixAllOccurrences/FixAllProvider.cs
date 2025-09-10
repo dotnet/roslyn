@@ -21,8 +21,11 @@ public abstract class FixAllProvider : IRefactorOrFixAllProvider
     private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
         = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
 
-    public virtual IEnumerable<FixAllScope> GetSupportedScopes()
+    public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
+
+    IEnumerable<FixAllScope> IRefactorOrFixAllProvider.GetSupportedScopes()
+        => GetSupportedFixAllScopes();
 
     CodeActionCleanup IRefactorOrFixAllProvider.Cleanup => this.Cleanup;
 
