@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -117,9 +116,7 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
             suggestedActions.Add(refineUsingCopilotAction);
 
         foreach (var action in this.CodeAction.AdditionalPreviewFlavors)
-        {
-            suggestedActions.Add(FlavoredSuggestedAction.Create(this, action));
-        }
+            suggestedActions.Add(CreateTrivialAction(this, action));
 
         return new SuggestedActionSet(categoryName: null, actions: suggestedActions.ToImmutable());
 
