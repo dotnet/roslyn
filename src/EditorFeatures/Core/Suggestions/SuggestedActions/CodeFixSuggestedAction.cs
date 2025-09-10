@@ -34,7 +34,7 @@ internal sealed class CodeFixSuggestedAction(
         subjectBuffer,
         provider,
         action,
-        fixAllFlavors), ICodeFixSuggestedAction, ITelemetryDiagnosticID<string>
+        fixAllFlavors), ITelemetryDiagnosticID<string>
 {
     public CodeFix CodeFix { get; } = fix;
 
