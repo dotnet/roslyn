@@ -302,17 +302,10 @@ internal sealed partial class SuggestedActionsSourceProvider
                             _threadingContext, owner, originalDocument, subjectBuffer,
                             codeRefactoringAction.Provider, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
-                        UnifiedFixAllCodeFixSuggestedAction fixAllAction
+                        UnifiedRefactorOrFixAllSuggestedAction refactorOrFixAllAction
                             => new RefactorOrFixAllSuggestedAction(
                                 _threadingContext, owner, originalSolution, subjectBuffer,
-                                fixAllAction.FixAllState, fixAllAction.OriginalCodeAction, fixAllAction.TelemetryId,
-                                new FixAllCodeAction(fixAllAction.FixAllState)),
-                        UnifiedRefactorAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction
-                            => new RefactorOrFixAllSuggestedAction(
-                                _threadingContext, owner, originalSolution, subjectBuffer,
-                                fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction,
-                                diagnosticTelemetryId: null,
-                                new RefactorAllCodeRefactoringCodeAction(fixAllCodeRefactoringAction.FixAllState)),
+                                refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.OriginalCodeAction, refactorOrFixAllAction.TelemetryId),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
                             _threadingContext, owner, originalSolution, subjectBuffer,
                             nestedAction.Provider, nestedAction.OriginalCodeAction,

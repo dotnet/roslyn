@@ -6,7 +6,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -24,14 +26,18 @@ internal sealed class RefactorOrFixAllSuggestedAction(
     ITextBuffer subjectBuffer,
     IRefactorOrFixAllState fixAllState,
     CodeAction originalCodeAction,
-    string? diagnosticTelemetryId,
-    AbstractFixAllCodeAction fixAllCodeAction)
+    string? diagnosticTelemetryId)
     : SuggestedAction(threadingContext,
         sourceProvider,
         originalSolution,
         subjectBuffer,
         fixAllState.FixAllProvider,
-        fixAllCodeAction),
+        fixAllState switch
+        {
+            FixAllState state => new FixAllCodeAction(state),
+            RefactorAllState state => new RefactorAllCodeAction(state),
+            _ => throw ExceptionUtilities.UnexpectedValue(fixAllState)
+        }),
     ITelemetryDiagnosticID<string?>
 {
     public CodeAction OriginalCodeAction { get; } = originalCodeAction;
