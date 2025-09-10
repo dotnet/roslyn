@@ -37,7 +37,12 @@ if (Test-Path $gitConfigPath) {
 }
 
 Write-Host "Building the image." -ForegroundColor Green
-Get-Content -Raw Dockerfile | docker build -t $imageName -f - $dockerContextDirectory
+$buildArgs = @()
+if ($lfsStorageDir) {
+    $buildArgs += @("--build-arg", "LFS_STORAGE_DIR=$lfsStorageDir")
+    Write-Host "Building image with LFS storage directory: $lfsStorageDir" -ForegroundColor Yellow
+}
+Get-Content -Raw Dockerfile | docker build -t $imageName -f - @buildArgs $dockerContextDirectory
 
 # Prepare volume mappings
 $volumeMappings = @("-v", "${PWD}:c:\src", "-v", "${nugetCacheDir}:c:\nuget")

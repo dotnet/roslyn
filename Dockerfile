@@ -51,6 +51,10 @@ ENV POWERSHELL_UPDATECHECK=FALSE
 RUN New-Item -ItemType Directory -Path C:\nuget -Force | Out-Null
 ENV NUGET_PACKAGES=C:\nuget
 
+# Accept LFS storage directory as build argument and create it if provided
+ARG LFS_STORAGE_DIR
+RUN if ($env:LFS_STORAGE_DIR) { New-Item -ItemType Directory -Path $env:LFS_STORAGE_DIR -Force | Out-Null }
+
 # Create source directory and configure git
 RUN New-Item -ItemType Directory -Path C:\src -Force | Out-Null; `
     git config --global --add safe.directory C:/src/
