@@ -485,8 +485,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Wrap onAnalyzerException to pass in filtered diagnostic.
-            var newOnAnalyzerException = (Exception ex, DiagnosticAnalyzer analyzer, AnalyzerOptions options, Diagnostic diagnostic, CancellationToken cancellationToken) =>
+            var options = analysisOptions.Options ?? AnalyzerOptions.Empty;
+
+            var newOnAnalyzerException = (Exception ex, DiagnosticAnalyzer analyzer, Diagnostic diagnostic, CancellationToken cancellationToken) =>
             {
+                // Note: in this callback, it's fine/correct to use analysisOptions.Options instead of any diagnostic analyzer
+                // specific options. Thaat's because the options are only used for filtering/determing-severities.  But we 
+                // do not allow analyzers to control the filtering/severity around the reporting of analyzer exceptions themselves.
+                // These are always passed through and reported to the user.
                 var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, options, _severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
                 {
@@ -506,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
 
             var analyzerExecutor = AnalyzerExecutor.Create(
-                compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnostic, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
+                compilation, options, addNotCategorizedDiagnostic, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
                 IsCompilerAnalyzer, analysisScope.Analyzers, analysisOptions.GetAnalyzerConfigOptionsProvider,
                 AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, IsAnalyzerSuppressedForTree, GetAnalyzerGate,
                 getSemanticModel: GetOrCreateSemanticModel, _severityFilter,
@@ -1977,7 +1983,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, CancellationToken> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer> addDiagnosticCore, Compilation compilation, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds)
+        internal static Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions?, CancellationToken> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer> addDiagnosticCore, Compilation compilation, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds)
         {
             return (diagnostic, analyzer, analyzerOptions, cancellationToken) =>
             {
