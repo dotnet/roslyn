@@ -1503,11 +1503,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return DiagnosticAnalysisContextHelpers.GetControlFlowGraph(operationBlock, _getControlFlowGraph, _cancellationToken);
         }
-
-        internal OperationBlockAnalysisContext WithOptions(AnalyzerOptions options)
-            => this.Options == options
-                ? this
-                : new(this.OperationBlocks, this.OwningSymbol, this.Compilation, options, _reportDiagnostic, _isSupportedDiagnostic, _getControlFlowGraph, this.FilterTree, this.FilterSpan, this.IsGeneratedCode, this.CancellationToken);
     }
 
     /// <summary>
