@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -16,7 +17,7 @@ internal abstract class UnifiedSuggestedAction(
     CodeActionPriority codeActionPriority,
     object provider,
     CodeRefactoringKind? codeRefactoringKind,
-    string? telemetryId)
+    ImmutableArray<Diagnostic> diagnostics)
 {
     public object Provider { get; } = provider;
 
@@ -26,5 +27,5 @@ internal abstract class UnifiedSuggestedAction(
 
     public CodeRefactoringKind? CodeRefactoringKind { get; } = codeRefactoringKind;
 
-    public string? TelemetryId { get; } = telemetryId;
+    public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics;
 }
