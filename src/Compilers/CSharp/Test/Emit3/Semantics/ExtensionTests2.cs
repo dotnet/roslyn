@@ -4943,12 +4943,12 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+    <see cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
-        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1",
             e.GetTypeMembers().Single().GetDocumentationCommentId());
 
         var tree = comp.SyntaxTrees.Single();
@@ -5605,7 +5605,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;G&gt;$B8D310208B4544F25EEBACB9990FC73B.M"/>
+    <see cref="M:E.&lt;G&gt;$B8D310208B4544F25EEBACB9990FC73B`1.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -5664,7 +5664,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M"/>
+    <see cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -31483,11 +31483,15 @@ public static class E
             // extension
             var extension = e.GetTypeMembers().Single().GetPublicSymbol();
             Assert.True(extension.IsExtension);
-            Assert.Equal("", DocumentationCommentId.CreateReferenceId(extension));
+            // TODO2 is CreateReferenceId expected to produce identifiers that can be used in CREF?
+            AssertEx.Equal("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", DocumentationCommentId.CreateReferenceId(extension));
+            // TODO2 are expecting that CreateDeclarationId identifiers could be used in CREF?
             AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", DocumentationCommentId.CreateDeclarationId(extension));
             Assert.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ExtensionGroupingName);
             Assert.Equal("<M>$531E7AC45D443AE2243E7FFAB9455D60", extension.ExtensionMarkerName);
             AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", extension.GetDocumentationCommentId());
+            AssertEx.Equal([], // TODO2 should find the extension block
+                DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).ToTestDisplayStrings());
 
             // extension member
             var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
@@ -31512,9 +31516,11 @@ public static class E
     public void DocumentationCommentId_02()
     {
         var src = """
+42.M();
+
 public static class E
 {
-    extension<T>(int i1)
+    extension<T>(T t)
     {
         public void M() { }
     }
@@ -31522,6 +31528,20 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         validate(comp);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        var method = model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M()", method.ToTestDisplayString());
+        AssertEx.Equal("", DocumentationCommentId.CreateReferenceId(method));
+        AssertEx.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", DocumentationCommentId.CreateDeclarationId(method));
+
+        var extension = method.ContainingType;
+        AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB{System.Int32}.<M>$D1693D81A12E8DED4ED68FE22D9E856F{System.Int32}",
+            DocumentationCommentId.CreateReferenceId(extension));
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1",
+            DocumentationCommentId.CreateDeclarationId(extension));
 
         var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
         validate(comp2);
@@ -31536,28 +31556,116 @@ public static class E
             // extension
             var extension = e.GetTypeMembers().Single().GetPublicSymbol();
             Assert.True(extension.IsExtension);
-            Assert.Equal("", DocumentationCommentId.CreateReferenceId(extension));
-            AssertEx.Equal("T:E.<G>$B8D310208B4544F25EEBACB9990FC73B.<M>$4F043C3369CC5922051EC35190062B5C", DocumentationCommentId.CreateDeclarationId(extension));
-            Assert.Equal("<G>$B8D310208B4544F25EEBACB9990FC73B", extension.ExtensionGroupingName);
-            Assert.Equal("<M>$4F043C3369CC5922051EC35190062B5C", extension.ExtensionMarkerName);
-            AssertEx.Equal("T:E.<G>$B8D310208B4544F25EEBACB9990FC73B.<M>$4F043C3369CC5922051EC35190062B5C", extension.GetDocumentationCommentId());
+            // TODO2 is CreateReferenceId expected to produce identifiers that can be used in CREF?
+            AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", DocumentationCommentId.CreateReferenceId(extension));
+            // TODO2 are expecting that CreateDeclarationId identifiers could be used in CREF?
+            AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", DocumentationCommentId.CreateDeclarationId(extension));
+            Assert.Equal("<G>$8048A6C8BE30A622530249B904B537EB", extension.ExtensionGroupingName);
+            Assert.Equal("<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.ExtensionMarkerName);
+            AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", extension.GetDocumentationCommentId());
+            AssertEx.Equal([], // TODO2 should find the extension block
+                DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).ToTestDisplayStrings());
 
             // extension member
             var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
             Assert.Equal("", DocumentationCommentId.CreateReferenceId(m));
-            Assert.Equal("M:E.<G>$B8D310208B4544F25EEBACB9990FC73B.M", m.GetDocumentationCommentId());
+            Assert.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", m.GetDocumentationCommentId());
 
             var declarationId = DocumentationCommentId.CreateDeclarationId(m);
-            AssertEx.Equal("M:E.<G>$B8D310208B4544F25EEBACB9990FC73B.M", declarationId);
-            AssertEx.Equal("void E.<G>$B8D310208B4544F25EEBACB9990FC73B<T>.M()", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
-            AssertEx.Equal(["void E.<G>$B8D310208B4544F25EEBACB9990FC73B<T>.M()"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+            AssertEx.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", declarationId);
+            AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
 
             // implementation method
             var mImplementation = e.GetMember<MethodSymbol>("M").GetPublicSymbol();
             declarationId = DocumentationCommentId.CreateDeclarationId(mImplementation);
-            AssertEx.Equal("M:E.M``1(System.Int32)", declarationId);
-            AssertEx.Equal("void E.M<T>(this System.Int32 i1)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
-            AssertEx.Equal(["void E.M<T>(this System.Int32 i1)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+            AssertEx.Equal("M:E.M``1(``0)", declarationId);
+            AssertEx.Equal("void E.M<T>(this T t)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.M<T>(this T t)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
+    public void DocumentationCommentId_03()
+    {
+        // Unconventional types names from metadata including mangled arity
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname 'GroupingType`1'<$T0>
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname 'MarkerType`1'<T>
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( !T t ) cil managed 
+            {
+                ret
+            }
+        }
+        .method public hidebysig instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 44 31 36 39 33 44 38 31 41
+                31 32 45 38 44 45 44 34 45 44 36 38 46 45 32 32
+                44 39 45 38 35 36 46 00 00
+            )
+            ldnull
+            throw
+        }
+    }
+    .method public hidebysig static void M<T> ( !!T t ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        ret
+    }
+}
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]") + ExtensionMarkerAttributeIL;
+
+        var src = """
+42.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(); // TODO2 execute?
+        validate(comp);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var e = comp.GlobalNamespace.GetTypeMember("E");
+            Assert.False(e.IsExtension);
+            Assert.Null(e.ExtensionGroupingName);
+            Assert.Null(e.ExtensionMarkerName);
+
+            // extension
+            var extension = e.GetTypeMembers().Single().GetPublicSymbol();
+            Assert.True(extension.IsExtension);
+            AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", DocumentationCommentId.CreateReferenceId(extension));
+            AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", DocumentationCommentId.CreateDeclarationId(extension));
+            Assert.Equal("<G>$8048A6C8BE30A622530249B904B537EB", extension.ExtensionGroupingName);
+            Assert.Equal("<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.ExtensionMarkerName);
+            AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", extension.GetDocumentationCommentId());
+            AssertEx.Equal(["TODO2"],
+                DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).ToTestDisplayStrings());
+
+            // extension member
+            var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+            Assert.Equal("", DocumentationCommentId.CreateReferenceId(m));
+            Assert.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", m.GetDocumentationCommentId());
+
+            var declarationId = DocumentationCommentId.CreateDeclarationId(m);
+            AssertEx.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", declarationId);
+            AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+
+            // implementation method
+            var mImplementation = e.GetMember<MethodSymbol>("M").GetPublicSymbol();
+            declarationId = DocumentationCommentId.CreateDeclarationId(mImplementation);
+            AssertEx.Equal("M:E.M``1(``0)", declarationId);
+            AssertEx.Equal("void E.M<T>(this T t)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.M<T>(this T t)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
         }
     }
 }

@@ -239,7 +239,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If symbolName Is Nothing Then
-                symbolName = If(symbol.IsExtension, symbol.ExtensionGroupingName, symbol.Name)
+                ' Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, display grouping and marker names, with arity or type arguments as appropriate
+                symbolName = If(symbol.IsExtension, symbol.MetadataName, symbol.Name)
             End If
 
             If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso

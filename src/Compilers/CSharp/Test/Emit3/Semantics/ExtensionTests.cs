@@ -49982,9 +49982,9 @@ static class E
 """, e.GetDocumentationCommentXml());
 
         var extension = e.GetTypeMembers().Single();
-        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", extension.GetDocumentationCommentId());
         AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -49994,7 +49994,7 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
+<member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)">
     <summary>Summary for M</summary>
     <typeparam name="U">Description for U</typeparam>
     <param name="u">Description for u</param>
@@ -50005,14 +50005,14 @@ static class E
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``0,``1)">
-    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P">
+<member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P">
     <summary>Summary for P</summary>
 </member>
 
@@ -50021,7 +50021,7 @@ static class E
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1(``0)">
-    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -50037,22 +50037,22 @@ static class E
             <summary>Summary for E</summary>
         </member>
         <member name="M:E.M``2(``0,``1)">
-            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)"/>
         </member>
         <member name="M:E.get_P``1(``0)">
-            <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+            <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P"/>
         </member>
-        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
             <summary>Summary for extension block</summary>
             <typeparam name="T">Description for T</typeparam>
             <param name="t">Description for t</param>
         </member>
-        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
+        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)">
             <summary>Summary for M</summary>
             <typeparam name="U">Description for U</typeparam>
             <param name="u">Description for u</param>
         </member>
-        <member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P">
+        <member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P">
             <summary>Summary for P</summary>
         </member>
     </members>
@@ -50133,7 +50133,7 @@ static class E
 
         var extension = e.GetTypeMembers().Single();
         AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -50143,7 +50143,7 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)">
+<member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)">
     <summary>Summary for M</summary>
     <typeparam name="U">Description for U</typeparam>
     <param name="u">Description for u</param>
@@ -50154,14 +50154,14 @@ static class E
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``1)">
-    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P">
+<member name="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P">
     <summary>Summary for P</summary>
 </member>
 
@@ -50170,7 +50170,7 @@ static class E
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1">
-    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -50246,28 +50246,28 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)" -->
+<!-- Badly formed XML comment ignored for member "M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)" -->
 
 """, mSkeleton.GetDocumentationCommentXml());
 
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``1)">
-    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P" -->
+<!-- Badly formed XML comment ignored for member "P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P" -->
 
 """, p.GetDocumentationCommentXml());
 
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1">
-    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.P"/>
+    <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -50309,7 +50309,7 @@ static class E
 
         var extensions = e.GetTypeMembers();
         AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
     <summary>First summary for extension block</summary>
     <typeparam name="T">First description for T</typeparam>
     <param name="t">First description for t</param>
@@ -50321,7 +50321,7 @@ static class E
 """, extensions[0].GetDocumentationCommentXml());
 
         AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
     <summary>First summary for extension block</summary>
     <typeparam name="T">First description for T</typeparam>
     <param name="t">First description for t</param>
@@ -50340,12 +50340,12 @@ static class E
     </assembly>
     <members>
         <member name="M:E.M``1(System.Int32)">
-            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)"/>
+            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)"/>
         </member>
         <member name="M:E.M``1(System.String)">
-            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.String)"/>
+            <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.String)"/>
         </member>
-        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
             <summary>First summary for extension block</summary>
             <typeparam name="T">First description for T</typeparam>
             <param name="t">First description for t</param>
@@ -50353,10 +50353,10 @@ static class E
             <typeparam name="T">Second description for T</typeparam>
             <param name="t">Second description for t</param>
         </member>
-        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)">
             <summary>First method</summary>
         </member>
-        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.String)">
+        <member name="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.String)">
             <summary>Second method</summary>
         </member>
     </members>
@@ -50393,7 +50393,7 @@ static class E
         foreach (var extension in extensions)
         {
             AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
     <summary>First summary for extension block</summary>
     <summary>Second summary for extension block</summary>
 </member>
@@ -50408,7 +50408,7 @@ static class E
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
@@ -50452,7 +50452,7 @@ static class E
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var nestedExtension = e.GetTypeMembers().Single().GetTypeMembers().First();
-        AssertEx.Equal("T:E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+        AssertEx.Equal("T:E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1",
             nestedExtension.GetDocumentationCommentId());
 
         var expected = """
@@ -50462,14 +50462,14 @@ static class E
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
-        <member name="M:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+        <member name="M:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)">
             <summary>method</summary>
         </member>
-        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
@@ -50519,13 +50519,13 @@ static class E1
     </assembly>
     <members>
         <member name="M:E1.E2.M``1(System.Int32)">
-            <inheritdoc cref="M:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)"/>
+            <inheritdoc cref="M:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)"/>
         </member>
-        <member name="T:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
-        <member name="M:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+        <member name="M:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)">
             <summary>method</summary>
         </member>
     </members>
@@ -50567,13 +50567,13 @@ extension<T>(T t)
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
             <summary>First summary for extension block</summary>
         </member>
-        <member name="M:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M(System.Int32)">
+        <member name="M:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)">
             <summary>method</summary>
         </member>
-        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
             <summary>Second summary for extension block</summary>
         </member>
     </members>
@@ -50811,19 +50811,19 @@ public static class E
 
         var extension = libComp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Debug.Assert(extension.IsExtension);
-        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", extension.GetDocumentationCommentId());
 
         var p = extension.GetMember<PropertySymbol>("P");
-        AssertEx.Equal("P:E.<G>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
+        AssertEx.Equal("P:E.<G>$8048A6C8BE30A622530249B904B537EB`1.P", p.GetDocumentationCommentId());
 
         var comp = CreateCompilation("", references: [libComp.EmitToImageReference()]);
 
         extension = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Debug.Assert(extension.IsExtension);
-        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", extension.GetDocumentationCommentId());
 
         p = extension.GetMember<PropertySymbol>("P");
-        AssertEx.Equal("P:E.<G>$8048A6C8BE30A622530249B904B537EB.P", p.GetDocumentationCommentId());
+        AssertEx.Equal("P:E.<G>$8048A6C8BE30A622530249B904B537EB`1.P", p.GetDocumentationCommentId());
     }
 
     [Fact]

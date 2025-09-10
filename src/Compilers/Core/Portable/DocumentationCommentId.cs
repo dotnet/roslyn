@@ -387,6 +387,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     _builder.Append('.');
                     _builder.Append(symbol.ExtensionMarkerName);
+
+                    if (symbol.Arity != 0)
+                    {
+                        _builder.Append('`');
+                        _builder.Append(symbol.Arity);
+                    }
                 }
             }
 
@@ -533,7 +539,7 @@ namespace Microsoft.CodeAnalysis
 
                     _builder.Append(EncodeName(symbol.IsExtension ? symbol.ExtensionGroupingName : symbol.Name));
 
-                    if (symbol.TypeParameters.Length > 0 && !symbol.IsExtension)
+                    if (symbol.TypeParameters.Length > 0)
                     {
                         _builder.Append('`');
                         _builder.Append(symbol.TypeParameters.Length);
@@ -567,7 +573,17 @@ namespace Microsoft.CodeAnalysis
                     _builder.Append('.');
                 }
 
-                _builder.Append(EncodeName(symbol.Name));
+                if (symbol is INamedTypeSymbol { IsExtension: true } extension)
+                {
+                    _builder.Append(EncodeName(extension.ExtensionGroupingName));
+                    AppendArityOrTypeArguments(extension);
+                    _builder.Append('.');
+                    _builder.Append(EncodeName(extension.ExtensionMarkerName));
+                }
+                else
+                {
+                    _builder.Append(EncodeName(symbol.Name));
+                }
             }
 
             public override bool VisitAlias(IAliasSymbol symbol)
@@ -588,13 +604,13 @@ namespace Microsoft.CodeAnalysis
 
             public override bool VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (symbol.IsExtension)
-                {
-                    return false;
-                }
-
                 this.BuildDottedName(symbol);
+                AppendArityOrTypeArguments(symbol);
+                return true;
+            }
 
+            private void AppendArityOrTypeArguments(INamedTypeSymbol symbol)
+            {
                 if (symbol.IsGenericType)
                 {
                     if (symbol.OriginalDefinition == symbol)
@@ -619,8 +635,6 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append('}');
                     }
                 }
-
-                return true;
             }
 
             public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
@@ -1187,7 +1201,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                GetMatchingExtensions(container, memberName, results);
+                GetMatchingExtensions(container, memberName, arity, results);
             }
 
             private static void GetMatchingNamespaceOrTypes(List<INamespaceOrTypeSymbol> containers, string memberName, List<ISymbol> results)
@@ -1210,15 +1224,17 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                GetMatchingExtensions(container, memberName, results); // Note: the arity is already in the content-based extension grouping name
+                GetMatchingExtensions(container, memberName, arity: 0, results);
             }
 
-            private static void GetMatchingExtensions(INamespaceOrTypeSymbol container, string memberName, List<ISymbol> results)
+            private static void GetMatchingExtensions(INamespaceOrTypeSymbol container, string memberName, int arity, List<ISymbol> results)
             {
                 ImmutableArray<INamedTypeSymbol> unnamedNamedTypes = container.GetTypeMembers("");
                 foreach (var namedType in unnamedNamedTypes)
                 {
-                    if (namedType.IsExtension && namedType.ExtensionGroupingName == memberName)
+                    if (namedType.IsExtension
+                        && namedType.Arity == arity
+                        && namedType.ExtensionGroupingName == memberName)
                     {
                         results.Add(namedType);
                     }
