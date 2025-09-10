@@ -1074,7 +1074,6 @@ public sealed class CodeFixServiceTests
             return;
         }
 
-
         var deprioritizedAnalyzers = await analyzerService.GetTestAccessor().GetDeprioritizedAnalyzersAsync(sourceDocument.Project);
         var deprioritizedIds = await analyzerService.GetTestAccessor().GetDeprioritizedDiagnosticIdsAsync(sourceDocument.Project);
 
