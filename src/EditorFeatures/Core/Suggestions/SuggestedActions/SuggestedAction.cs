@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -33,40 +34,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Base class for all Roslyn light bulb menu items.
 /// </summary>
-internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<ISuggestedAction>
+internal abstract partial class SuggestedAction(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    Solution originalSolution,
+    ITextBuffer subjectBuffer,
+    object provider,
+    CodeAction codeAction) : ISuggestedAction3, IEquatable<ISuggestedAction>
 {
-    protected readonly IThreadingContext ThreadingContext;
-    protected readonly SuggestedActionsSourceProvider SourceProvider;
+    protected readonly IThreadingContext ThreadingContext = threadingContext;
+    protected readonly SuggestedActionsSourceProvider SourceProvider = sourceProvider;
 
-    protected readonly Workspace Workspace;
-    protected readonly Solution OriginalSolution;
-    protected readonly ITextBuffer SubjectBuffer;
+    protected readonly Solution OriginalSolution = originalSolution;
+    protected readonly ITextBuffer SubjectBuffer = subjectBuffer;
 
-    protected readonly object Provider;
-    internal readonly CodeAction CodeAction;
+    protected readonly object Provider = provider;
+    internal readonly CodeAction CodeAction = codeAction;
 
     private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
-
-    internal SuggestedAction(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        Solution originalSolution,
-        ITextBuffer subjectBuffer,
-        object provider,
-        CodeAction codeAction)
-    {
-        Contract.ThrowIfNull(provider);
-        Contract.ThrowIfNull(codeAction);
-
-        ThreadingContext = threadingContext;
-        SourceProvider = sourceProvider;
-        Workspace = workspace;
-        OriginalSolution = originalSolution;
-        SubjectBuffer = subjectBuffer;
-        Provider = provider;
-        CodeAction = codeAction;
-    }
 
     public virtual bool TryGetTelemetryId(out Guid telemetryId)
     {
@@ -139,7 +124,7 @@ internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<
         using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
         {
             // ConfigureAwait(true) so that CaretPositionRestorer.Dispose runs on the UI thread.
-            await Workspace.Services.GetService<IExtensionManager>().PerformActionAsync(
+            await this.OriginalSolution.Services.GetService<IExtensionManager>().PerformActionAsync(
                 Provider, () => InvokeWorkerAsync(progressTracker, cancellationToken)).ConfigureAwait(true);
         }
     }
@@ -176,8 +161,8 @@ internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<
                 var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                 await EditHandler.ApplyAsync(
-                    Workspace,
-                    OriginalSolution,
+                    this.OriginalSolution.Workspace,
+                    this.OriginalSolution,
                     document,
                     [.. operations],
                     CodeAction.Title,
@@ -216,7 +201,7 @@ internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<
         {
             // Underscores will become an accelerator in the VS smart tag.  So we double all
             // underscores so they actually get represented as an underscore in the UI.
-            var extensionManager = Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = this.OriginalSolution.Services.GetService<IExtensionManager>();
             var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, defaultValue: string.Empty);
             return text.Replace("_", "__");
         }
@@ -229,7 +214,8 @@ internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<
         var operations = await GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        return await EditHandler.GetPreviewsAsync(Workspace, operations, cancellationToken).ConfigureAwait(true);
+        return await EditHandler.GetPreviewsAsync(
+            this.OriginalSolution.Workspace, operations, cancellationToken).ConfigureAwait(true);
     }
 
     public virtual bool HasPreview => false;
@@ -327,4 +313,17 @@ internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<
     }
 
     #endregion
+
+    public static SuggestedAction CreateTrivialAction(
+        SuggestedAction action,
+        CodeAction codeAction)
+        => new TrivialSuggestedAction(action.ThreadingContext, action.SourceProvider, action.OriginalSolution, action.SubjectBuffer, action.Provider, codeAction);
+
+    private sealed class TrivialSuggestedAction(
+        IThreadingContext threadingContext,
+        SuggestedActionsSourceProvider sourceProvider,
+        Solution originalSolution,
+        ITextBuffer subjectBuffer,
+        object provider,
+        CodeAction codeAction) : SuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction);
 }

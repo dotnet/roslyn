@@ -5,21 +5,22 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 /// <summary>
-/// Represents a FixAllContext for code fixes or refactorings. 
+/// Represents a <see cref="FixAllContext"/> or <see cref="RefactorAllContext"/>.
 /// </summary>
-internal interface IFixAllContext
+internal interface IRefactorOrFixAllContext
 {
-    IFixAllState State { get; }
-    object Provider { get; }
+    IRefactorOrFixAllState State { get; }
+    IRefactorOrFixProvider Provider { get; }
     CancellationToken CancellationToken { get; }
     IProgress<CodeAnalysisProgress> Progress { get; }
 
-    string GetDefaultFixAllTitle();
-    IFixAllContext With(
+    string GetDefaultTitle();
+    IRefactorOrFixAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
         Optional<string?> codeActionEquivalenceKey = default,

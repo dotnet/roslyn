@@ -6,24 +6,16 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 /// <summary>
-/// Represents a FixAllProvider for code fixes or refactorings. 
+/// Allows for generic handling of a <see cref="FixAllProvider"/> or <see cref="RefactorAllProvider"/>.
 /// </summary>
-internal interface IFixAllProvider
+internal interface IRefactorOrFixAllProvider
 {
-    /// <summary>
-    /// Gets the supported scopes for applying multiple occurrences of a code refactoring.
-    /// By default, it returns the following scopes:
-    /// (a) <see cref="FixAllScope.Document"/>
-    /// (b) <see cref="FixAllScope.Project"/> and
-    /// (c) <see cref="FixAllScope.Solution"/>
-    /// </summary>
-    IEnumerable<FixAllScope> GetSupportedFixAllScopes();
-
-    Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext);
+    Task<CodeAction?> GetCodeActionAsync(IRefactorOrFixAllContext fixAllContext);
 
     /// <summary>
     /// The sort of cleanup that should automatically be poerformed for this fix all provider.  By default this is

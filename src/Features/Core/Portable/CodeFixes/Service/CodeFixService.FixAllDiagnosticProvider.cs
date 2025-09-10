@@ -44,20 +44,17 @@ internal sealed partial class CodeFixService
         {
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = Filter(await service.GetDiagnosticsForIdsAsync(
-                document.Project, [document.Id], _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false));
+                document.Project, [document.Id], _diagnosticIds, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }
 
         public override async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
         {
-            bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
-
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = Filter(await service.GetDiagnosticsForSpanAsync(
-                document, fixAllSpan, shouldIncludeDiagnostic,
-                priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-                DiagnosticKind.All, cancellationToken).ConfigureAwait(false));
+                document, fixAllSpan, DiagnosticIdFilter.Include(_diagnosticIds),
+                priority: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }
@@ -67,7 +64,7 @@ internal sealed partial class CodeFixService
             // Get all diagnostics for the entire project, including document diagnostics.
             var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = Filter(await service.GetDiagnosticsForIdsAsync(
-                project, documentIds: default, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false));
+                project, documentIds: default, _diagnosticIds, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false));
             return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
         }
 
@@ -76,7 +73,7 @@ internal sealed partial class CodeFixService
             // Get all no-location diagnostics for the project, doesn't include document diagnostics.
             var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = Filter(await service.GetProjectDiagnosticsForIdsAsync(
-                project, _diagnosticIds, shouldIncludeAnalyzer: null, cancellationToken).ConfigureAwait(false));
+                project, _diagnosticIds, AnalyzerFilter.All, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
             return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
         }

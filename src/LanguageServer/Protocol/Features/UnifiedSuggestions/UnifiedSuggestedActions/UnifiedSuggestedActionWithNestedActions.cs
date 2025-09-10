@@ -11,21 +11,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// Similar to SuggestedActionWithNestedActions, but in a location that can be used by
 /// both local Roslyn and LSP.
 /// </summary>
-internal sealed class UnifiedSuggestedActionWithNestedActions : UnifiedSuggestedAction
+internal sealed class UnifiedSuggestedActionWithNestedActions(
+    CodeAction codeAction,
+    CodeActionPriority codeActionPriority,
+    object? provider,
+    ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority)
 {
-    public object? Provider { get; }
+    public object? Provider { get; } = provider;
 
-    public ImmutableArray<UnifiedSuggestedActionSet> NestedActionSets { get; }
-
-    public UnifiedSuggestedActionWithNestedActions(
-        Workspace workspace,
-        CodeAction codeAction,
-        CodeActionPriority codeActionPriority,
-        object? provider,
-        ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
-        : base(workspace, codeAction, codeActionPriority)
-    {
-        Provider = provider;
-        NestedActionSets = nestedActionSets;
-    }
+    public ImmutableArray<UnifiedSuggestedActionSet> NestedActionSets { get; } = nestedActionSets;
 }

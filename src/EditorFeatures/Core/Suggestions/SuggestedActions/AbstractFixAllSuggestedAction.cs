@@ -16,32 +16,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Suggested action for fix all occurrences for a code fix or a code refactoring.
 /// </summary>
-internal abstract class AbstractFixAllSuggestedAction : SuggestedAction
+internal abstract class AbstractFixAllSuggestedAction(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    Solution originalSolution,
+    ITextBuffer subjectBuffer,
+    IRefactorOrFixAllState fixAllState,
+    CodeAction originalCodeAction,
+    AbstractFixAllCodeAction fixAllCodeAction)
+    : SuggestedAction(threadingContext,
+        sourceProvider,
+        originalSolution,
+        subjectBuffer,
+        fixAllState.FixAllProvider,
+        fixAllCodeAction)
 {
-    public CodeAction OriginalCodeAction { get; }
+    public CodeAction OriginalCodeAction { get; } = originalCodeAction;
 
-    public IFixAllState FixAllState { get; }
-
-    protected AbstractFixAllSuggestedAction(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        Solution originalSolution,
-        ITextBuffer subjectBuffer,
-        IFixAllState fixAllState,
-        CodeAction originalCodeAction,
-        AbstractFixAllCodeAction fixAllCodeAction)
-        : base(threadingContext,
-               sourceProvider,
-               workspace,
-               originalSolution,
-               subjectBuffer,
-               fixAllState.FixAllProvider,
-               fixAllCodeAction)
-    {
-        OriginalCodeAction = originalCodeAction;
-        FixAllState = fixAllState;
-    }
+    public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
 
     public override bool TryGetTelemetryId(out Guid telemetryId)
     {
