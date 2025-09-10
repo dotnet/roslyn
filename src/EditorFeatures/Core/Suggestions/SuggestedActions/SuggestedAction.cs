@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 internal abstract partial class SuggestedAction(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
-    Workspace workspace,
     Solution originalSolution,
     ITextBuffer subjectBuffer,
     object provider,
@@ -45,7 +44,6 @@ internal abstract partial class SuggestedAction(
     protected readonly IThreadingContext ThreadingContext = threadingContext;
     protected readonly SuggestedActionsSourceProvider SourceProvider = sourceProvider;
 
-    protected readonly Workspace Workspace = workspace;
     protected readonly Solution OriginalSolution = originalSolution;
     protected readonly ITextBuffer SubjectBuffer = subjectBuffer;
 
@@ -125,7 +123,7 @@ internal abstract partial class SuggestedAction(
         using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
         {
             // ConfigureAwait(true) so that CaretPositionRestorer.Dispose runs on the UI thread.
-            await Workspace.Services.GetService<IExtensionManager>().PerformActionAsync(
+            await this.OriginalSolution.Services.GetService<IExtensionManager>().PerformActionAsync(
                 Provider, () => InvokeWorkerAsync(progressTracker, cancellationToken)).ConfigureAwait(true);
         }
     }
@@ -162,8 +160,8 @@ internal abstract partial class SuggestedAction(
                 var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                 await EditHandler.ApplyAsync(
-                    Workspace,
-                    OriginalSolution,
+                    this.OriginalSolution.Workspace,
+                    this.OriginalSolution,
                     document,
                     [.. operations],
                     CodeAction.Title,
@@ -202,7 +200,7 @@ internal abstract partial class SuggestedAction(
         {
             // Underscores will become an accelerator in the VS smart tag.  So we double all
             // underscores so they actually get represented as an underscore in the UI.
-            var extensionManager = Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = this.OriginalSolution.Services.GetService<IExtensionManager>();
             var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, defaultValue: string.Empty);
             return text.Replace("_", "__");
         }
@@ -215,7 +213,8 @@ internal abstract partial class SuggestedAction(
         var operations = await GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        return await EditHandler.GetPreviewsAsync(Workspace, operations, cancellationToken).ConfigureAwait(true);
+        return await EditHandler.GetPreviewsAsync(
+            this.OriginalSolution.Workspace, operations, cancellationToken).ConfigureAwait(true);
     }
 
     public virtual bool HasPreview => false;

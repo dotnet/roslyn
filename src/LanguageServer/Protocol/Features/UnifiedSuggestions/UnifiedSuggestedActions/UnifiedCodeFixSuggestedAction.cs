@@ -12,25 +12,17 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// Similar to CodeFixSuggestionAction, but in a location that can be used by
 /// both local Roslyn and LSP.
 /// </summary>
-internal sealed class UnifiedCodeFixSuggestedAction : UnifiedSuggestedAction, ICodeFixSuggestedAction
+internal sealed class UnifiedCodeFixSuggestedAction(
+    CodeAction codeAction,
+    CodeActionPriority codeActionPriority,
+    CodeFix codeFix,
+    object provider,
+    UnifiedSuggestedActionSet? fixAllFlavors)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority), ICodeFixSuggestedAction
 {
-    public CodeFix CodeFix { get; }
+    public CodeFix CodeFix { get; } = codeFix;
 
-    public object Provider { get; }
+    public object Provider { get; } = provider;
 
-    public UnifiedSuggestedActionSet? FixAllFlavors { get; }
-
-    public UnifiedCodeFixSuggestedAction(
-        Workspace workspace,
-        CodeAction codeAction,
-        CodeActionPriority codeActionPriority,
-        CodeFix codeFix,
-        object provider,
-        UnifiedSuggestedActionSet? fixAllFlavors)
-        : base(workspace, codeAction, codeActionPriority)
-    {
-        CodeFix = codeFix;
-        Provider = provider;
-        FixAllFlavors = fixAllFlavors;
-    }
+    public UnifiedSuggestedActionSet? FixAllFlavors { get; } = fixAllFlavors;
 }

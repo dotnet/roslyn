@@ -18,14 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 internal sealed class RefactorAllCodeRefactoringSuggestedAction(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
-    Workspace workspace,
     Solution originalSolution,
     ITextBuffer subjectBuffer,
     IRefactorOrFixAllState fixAllState,
     CodeAction originalCodeAction)
         : AbstractFixAllSuggestedAction(threadingContext,
            sourceProvider,
-           workspace,
            originalSolution,
            subjectBuffer,
            fixAllState,

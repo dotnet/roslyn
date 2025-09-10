@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 internal sealed class CodeFixSuggestedAction(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
-    Workspace workspace,
     TextDocument originalDocument,
     ITextBuffer subjectBuffer,
     CodeFix fix,
@@ -31,7 +30,6 @@ internal sealed class CodeFixSuggestedAction(
     SuggestedActionSet fixAllFlavors)
     : SuggestedActionWithNestedFlavors(threadingContext,
         sourceProvider,
-        workspace,
         originalDocument,
         subjectBuffer,
         provider,

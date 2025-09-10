@@ -396,12 +396,12 @@ internal static class CodeActionHelpers
         var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
         var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-            document.Project.Solution.Workspace, codeFixService, document, textSpan,
+            codeFixService, document, textSpan,
             new DefaultCodeActionRequestPriorityProvider(),
             cancellationToken).ConfigureAwait(false);
 
         var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-            document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null,
+            codeRefactoringService, document, textSpan, priority: null,
             filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
         var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(

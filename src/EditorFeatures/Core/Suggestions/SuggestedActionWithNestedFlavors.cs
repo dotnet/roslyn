@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 internal abstract partial class SuggestedActionWithNestedFlavors(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
-    Workspace workspace,
     TextDocument originalDocument,
     ITextBuffer subjectBuffer,
     object provider,
@@ -41,7 +40,6 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
     SuggestedActionSet fixAllFlavors)
     : SuggestedAction(threadingContext,
         sourceProvider,
-        workspace,
         originalDocument.Project.Solution,
         subjectBuffer,
         provider,
@@ -66,7 +64,7 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
 
         if (_nestedFlavors.IsDefault)
         {
-            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = this.OriginalSolution.Services.GetService<IExtensionManager>();
 
             // Note: We must ensure that CreateAllFlavorsAsync does not perform any expensive
             // long running operations as it will be invoked when a lightbulb preview is brought
@@ -141,7 +139,7 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
         // Light bulb will always invoke this function on the UI thread.
         this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
+        var previewPaneService = this.OriginalSolution.Services.GetService<IPreviewPaneService>();
         if (previewPaneService == null)
         {
             return null;
@@ -149,10 +147,10 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
 
         // after this point, this method should only return at GetPreviewPane. otherwise, DifferenceViewer will leak
         // since there is no one to close the viewer
-        var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
+        var preferredDocumentId = this.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext()?.Id;
         var preferredProjectId = preferredDocumentId?.ProjectId;
 
-        var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+        var extensionManager = this.OriginalSolution.Services.GetService<IExtensionManager>();
         var previewContents = await extensionManager.PerformFunctionAsync(Provider, async cancellationToken =>
         {
             // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
