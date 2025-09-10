@@ -52,6 +52,8 @@ internal static class RefactorAllScopeExtensions
     static RefactorAllScopeExtensions()
     {
 #if DEBUG
+        // Ensures that RefactorAllScope and FixAllScope have the same set of values.
+
         var refactorFields = typeof(RefactorAllScope)
             .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             .Select(f => (f.Name, Value: (int)f.GetValue(null)!));
