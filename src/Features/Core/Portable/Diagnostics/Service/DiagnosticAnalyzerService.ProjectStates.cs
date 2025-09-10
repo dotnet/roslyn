@@ -37,7 +37,7 @@ internal sealed partial class DiagnosticAnalyzerService
         }
     }
 
-    private ProjectAnalyzerInfo GetOrCreateProjectAnalyzerInfo(Project project)
+    private ProjectAnalyzerInfo GetOrCreateProjectAnalyzerInfo_OnlyCallInProcess(Project project)
     {
         return ImmutableInterlocked.GetOrAdd(
             ref _projectAnalyzerStateMap,
