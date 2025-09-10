@@ -11,13 +11,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
 internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
 {
-    internal sealed override CodeAnalysis.CodeRefactorings.RefactorAllProvider? GetRefactorAllProvider()
+    public sealed override CodeAnalysis.CodeRefactorings.RefactorAllProvider? GetRefactorAllProvider()
         => RefactorAllProvider.Instance;
 
     private sealed class RefactorAllProvider : CodeAnalysis.CodeRefactorings.RefactorAllProvider

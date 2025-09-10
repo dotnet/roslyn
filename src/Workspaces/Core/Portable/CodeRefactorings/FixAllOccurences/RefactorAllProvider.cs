@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class RefactorAllProvider : IFixAllProvider
+public abstract class RefactorAllProvider : IFixAllProvider
 {
     private protected static ImmutableArray<RefactorAllScope> DefaultSupportedRefactorAllScopes
         = [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution];
@@ -31,7 +31,9 @@ internal abstract class RefactorAllProvider : IFixAllProvider
     IEnumerable<FixAllScope> IFixAllProvider.GetSupportedFixAllScopes()
         => GetSupportedRefactorAllScopes().Select(s => s.ToFixAllScope());
 
-    public virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
+    internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
+
+    CodeActionCleanup IFixAllProvider.Cleanup => this.Cleanup;
 
     /// <summary>
     /// Gets refactor all occurrences for the given <paramref name="refactorAllContext"/>.
@@ -100,7 +102,7 @@ internal abstract class RefactorAllProvider : IFixAllProvider
         ImmutableArray<RefactorAllScope> supportedRefactorAllScopes,
         CodeActionCleanup cleanup) : DocumentBasedRefactorAllProvider(supportedRefactorAllScopes)
     {
-        public override CodeActionCleanup Cleanup { get; } = cleanup;
+        internal override CodeActionCleanup Cleanup { get; } = cleanup;
 
         protected override Task<Document?> RefactorAllAsync(RefactorAllContext context, Document document, Optional<ImmutableArray<TextSpan>> refactorAllSpans)
             => refactorAllAsync(context, document, refactorAllSpans);
