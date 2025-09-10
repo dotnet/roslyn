@@ -308,8 +308,6 @@ start:
                 get { return true; }
             }
 
-            protected override bool InheritsParams => false;
-
             internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
             /// <summary>

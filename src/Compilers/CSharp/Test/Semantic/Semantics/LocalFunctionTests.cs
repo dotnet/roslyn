@@ -2635,6 +2635,8 @@ class Program
                 Assert.True(parameter.IsParams);
                 Assert.True(parameter.IsParamsArray);
                 Assert.False(parameter.IsParamsCollection);
+
+                Assert.DoesNotContain("ParamArrayAttribute", module.TypeNames);
             }
         }
 
@@ -2683,6 +2685,8 @@ class Program
                 Assert.True(parameter.IsParams);
                 Assert.True(parameter.IsParamsArray);
                 Assert.False(parameter.IsParamsCollection);
+
+                Assert.DoesNotContain("ParamArrayAttribute", module.TypeNames);
             }
         }
 
@@ -2725,8 +2729,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params int[] xs").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(7, 21));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
-        public void ParamsCollection_Attribute()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute(bool includeAttribute)
         {
             var source = """
                 using System;
@@ -2743,7 +2747,10 @@ class Program
                   .CustomAttributes
                   .Select(a => a.AttributeType)));
                 """;
-            CompileAndVerify(source,
+
+            var r = CreateCompilation(includeAttribute ? TestSources.ParamsCollectionAttribute : "").VerifyDiagnostics().ToMetadataReference();
+
+            CompileAndVerify(source, [r],
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: validate,
                 expectedOutput: """
@@ -2752,7 +2759,7 @@ class Program
                     """)
                 .VerifyDiagnostics();
 
-            static void validate(ModuleSymbol module)
+            void validate(ModuleSymbol module)
             {
                 var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<<Main>$>g__fun|0_0");
                 var parameter = lambda.GetParameters().Single();
@@ -2760,11 +2767,13 @@ class Program
                 Assert.True(parameter.IsParams);
                 Assert.False(parameter.IsParamsArray);
                 Assert.True(parameter.IsParamsCollection);
+
+                Assert.Equal(includeAttribute, !module.TypeNames.Contains("ParamCollectionAttribute"));
             }
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
-        public void ParamsCollection_Attribute_ExtensionMethod()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_ExtensionMethod(bool includeAttribute)
         {
             var source = """
                 using System;
@@ -2792,7 +2801,10 @@ class Program
                     }
                 }
                 """;
-            CompileAndVerify(source,
+
+            var r = CreateCompilation(includeAttribute ? TestSources.ParamsCollectionAttribute : "").VerifyDiagnostics().ToMetadataReference();
+
+            CompileAndVerify(source, [r],
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: validate,
                 expectedOutput: """
@@ -2801,7 +2813,7 @@ class Program
                     """)
                 .VerifyDiagnostics();
 
-            static void validate(ModuleSymbol module)
+            void validate(ModuleSymbol module)
             {
                 var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("E.<M>g__fun|1_0");
                 var parameter = lambda.GetParameters().Single();
@@ -2809,7 +2821,52 @@ class Program
                 Assert.True(parameter.IsParams);
                 Assert.False(parameter.IsParamsArray);
                 Assert.True(parameter.IsParamsCollection);
+
+                Assert.Equal(includeAttribute, !module.TypeNames.Contains("ParamCollectionAttribute"));
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Missing()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        int func(params IList<int> xs) => xs.Count;
+                        func(4, 5, 6);
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+                // (6,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         int func(params IList<int> xs) => xs.Count;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(6, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Missing_ExtensionMethod()
+        {
+            var source = """
+                using System.Collections.Generic;
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            int func(params IList<int> xs) => xs.Count;
+                            func(4, 5, 6);
+                        }
+                    }
+                }
+                """;
+            CreateCompilation([source, ExtensionMarkerAttributeDefinition], options: TestOptions.ReleaseModule).VerifyDiagnostics(
+                // (8,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //             int func(params IList<int> xs) => xs.Count;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(8, 22));
         }
 
         [Fact]
