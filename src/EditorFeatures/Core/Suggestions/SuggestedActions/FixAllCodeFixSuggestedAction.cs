@@ -30,7 +30,7 @@ internal sealed partial class FixAllCodeFixSuggestedAction(
         subjectBuffer,
         fixAllState,
         originalCodeAction,
-        new FixAllCodeAction(fixAllState)), ITelemetryDiagnosticID<string>, IFixAllCodeFixSuggestedAction
+        new FixAllCodeAction(fixAllState)), ITelemetryDiagnosticID<string>
 {
     public Diagnostic Diagnostic { get; } = diagnostic;
 
