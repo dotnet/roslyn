@@ -858,11 +858,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
-
-        internal SymbolAnalysisContext WithOptions(AnalyzerOptions options)
-            => this.Options == options
-                ? this
-                : new(this.Symbol, this.Compilation, options, _reportDiagnostic, _isSupportedDiagnostic, this.IsGeneratedCode, this.FilterTree, this.FilterSpan, this.CancellationToken);
     }
 
     /// <summary>
