@@ -4636,7 +4636,7 @@ partial class B
                 analyzer1.AssertAllCallbacksInvoked();
                 analyzer2.AssertAllCallbacksInvoked();
 
-                // Both analyzers should get the exact same AnalyzerOptions instance since they used teh same customOptions.
+                // Both analyzers should get the exact same AnalyzerOptions instance since they used the same customOptions.
                 Assert.Same(analyzer1.SeenOptions, analyzer2.SeenOptions);
             }
         }
