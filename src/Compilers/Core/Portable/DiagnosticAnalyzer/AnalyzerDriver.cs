@@ -471,23 +471,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagnosticQueue = DiagnosticQueue.Create(categorizeDiagnostics);
             var suppressedDiagnosticIds = trackSuppressedDiagnosticIds ? new ConcurrentSet<string>() : null;
 
-            Action<Diagnostic, CancellationToken>? addNotCategorizedDiagnostic = null;
-            Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic = null;
-            Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic = null;
+            Action<Diagnostic, AnalyzerOptions, CancellationToken>? addNotCategorizedDiagnostic = null;
+            Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, bool, CancellationToken>? addCategorizedLocalDiagnostic = null;
+            Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, CancellationToken>? addCategorizedNonLocalDiagnostic = null;
             if (categorizeDiagnostics)
             {
-                addCategorizedLocalDiagnostic = GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation, analysisOptions.Options, _severityFilter, suppressedDiagnosticIds);
-                addCategorizedNonLocalDiagnostic = GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation, analysisOptions.Options, _severityFilter, suppressedDiagnosticIds);
+                addCategorizedLocalDiagnostic = GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation, _severityFilter, suppressedDiagnosticIds);
+                addCategorizedNonLocalDiagnostic = GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation, _severityFilter, suppressedDiagnosticIds);
             }
             else
             {
-                addNotCategorizedDiagnostic = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation, analysisOptions.Options, _severityFilter, suppressedDiagnosticIds);
+                addNotCategorizedDiagnostic = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation, _severityFilter, suppressedDiagnosticIds);
             }
 
             // Wrap onAnalyzerException to pass in filtered diagnostic.
-            Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> newOnAnalyzerException = (ex, analyzer, diagnostic, cancellationToken) =>
+            var newOnAnalyzerException = (Exception ex, DiagnosticAnalyzer analyzer, AnalyzerOptions options, Diagnostic diagnostic, CancellationToken cancellationToken) =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analysisOptions.Options, _severityFilter, suppressedDiagnosticIds, cancellationToken);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, options, _severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
                 {
                     if (analysisOptions.OnAnalyzerException != null)
@@ -496,11 +496,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     else if (categorizeDiagnostics)
                     {
-                        addCategorizedNonLocalDiagnostic!(filteredDiagnostic, analyzer, cancellationToken);
+                        addCategorizedNonLocalDiagnostic!(filteredDiagnostic, analyzer, options, cancellationToken);
                     }
                     else
                     {
-                        addNotCategorizedDiagnostic!(filteredDiagnostic, cancellationToken);
+                        addNotCategorizedDiagnostic!(filteredDiagnostic, options, cancellationToken);
                     }
                 }
             };
@@ -1953,9 +1953,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static Action<Diagnostic, CancellationToken> GetDiagnosticSink(Action<Diagnostic> addDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds)
+        internal static Action<Diagnostic, AnalyzerOptions, CancellationToken> GetDiagnosticSink(Action<Diagnostic> addDiagnosticCore, Compilation compilation, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds)
         {
-            return (diagnostic, cancellationToken) =>
+            return (diagnostic, analyzerOptions, cancellationToken) =>
             {
                 var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
@@ -1965,9 +1965,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds)
+        internal static Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, bool, CancellationToken> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticCore, Compilation compilation, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds)
         {
-            return (diagnostic, analyzer, isSyntaxDiagnostic, cancellationToken) =>
+            return (diagnostic, analyzer, analyzerOptions, isSyntaxDiagnostic, cancellationToken) =>
             {
                 var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
@@ -1977,9 +1977,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer, CancellationToken> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer> addDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds)
+        internal static Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, CancellationToken> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer> addDiagnosticCore, Compilation compilation, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds)
         {
-            return (diagnostic, analyzer, cancellationToken) =>
+            return (diagnostic, analyzer, analyzerOptions, cancellationToken) =>
             {
                 var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
