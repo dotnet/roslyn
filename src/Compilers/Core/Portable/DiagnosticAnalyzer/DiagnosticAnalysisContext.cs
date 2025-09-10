@@ -1654,11 +1654,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
-
-        internal AdditionalFileAnalysisContext WithOptions(AnalyzerOptions options)
-            => this.Options == options
-                ? this
-                : new(AdditionalFile, options, _reportDiagnostic, _isSupportedDiagnostic, this.Compilation, this.FilterSpan, this.CancellationToken);
     }
 
     /// <summary>
