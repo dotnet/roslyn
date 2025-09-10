@@ -672,11 +672,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return valueProvider.TryGetValue(key, out value);
         }
-
-        internal CompilationAnalysisContext WithOptions(AnalyzerOptions options)
-            => this.Options == options
-                ? this
-                : new(this.Compilation, options, _reportDiagnostic, _isSupportedDiagnostic, _compilationAnalysisValueProviderFactoryOpt, this.CancellationToken);
     }
 
     /// <summary>
