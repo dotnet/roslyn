@@ -7,7 +7,7 @@ This document lists known breaking changes in Roslyn after .NET 9 general releas
 ***Introduced in Visual Studio 2022 version 17.13***
 
 C# 14 introduces the ability to write a lambda with parameter modifiers, without having to specify a parameter type:
-https://github.com/dotnet/csharplang/blob/main/proposals/simple-lambda-parameters-with-modifiers.md
+[Simple lambda parameters with modifiers](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-14.0/simple-lambda-parameters-with-modifiers.md)
 
 As part of this work, a breaking change was accepted where `scoped` will always be treated as a modifier
 in a lambda parameter, even where it might have been accepted as a type name in the past.  For example:
