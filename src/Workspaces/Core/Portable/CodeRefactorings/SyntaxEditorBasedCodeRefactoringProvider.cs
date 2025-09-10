@@ -21,7 +21,7 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
     protected abstract ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes { get; }
     protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
-    internal sealed override RefactorAllProvider? GetRefactorAllProvider()
+    public sealed override RefactorAllProvider? GetRefactorAllProvider()
     {
         if (SupportedRefactorAllScopes.IsEmpty)
             return null;

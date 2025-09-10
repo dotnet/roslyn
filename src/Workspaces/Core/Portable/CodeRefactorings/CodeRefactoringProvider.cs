@@ -27,7 +27,7 @@ public abstract class CodeRefactoringProvider
     /// registered by this code refactoring provider across the supported <see cref="RefactorAllScope"/>s.
     /// Return null if the provider doesn't support the refactor all operation.
     /// </summary>
-    internal virtual RefactorAllProvider? GetRefactorAllProvider()
+    public virtual RefactorAllProvider? GetRefactorAllProvider()
         => null;
 
     /// <summary>
