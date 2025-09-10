@@ -382,7 +382,8 @@ internal static class CodeActionHelpers
         // Retrieves the fix all code action based on the scope that was selected. 
         // Creates a FixAllCodeAction type so that we can get the correct operations for the selected scope.
         var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedRefactorOrFixAllSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
-        codeActions.Add(new RefactorOrFixAllCodeAction(fixAllFlavor.FixAllState, showPreviewChangesDialog: false));
+        codeActions.Add(new RefactorOrFixAllCodeAction(
+            fixAllFlavor.FixAllState, showPreviewChangesDialog: false, title: codeAction.Title));
     }
 
     private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
