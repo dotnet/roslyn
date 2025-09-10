@@ -1585,11 +1585,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
-
-        internal SyntaxTreeAnalysisContext WithOptions(AnalyzerOptions options)
-            => this.Options == options
-                ? this
-                : new(this.Tree, options, _reportDiagnostic, _isSupportedDiagnostic, this.Compilation, this.FilterSpan, this.IsGeneratedCode, this.CancellationToken);
     }
 
     /// <summary>
