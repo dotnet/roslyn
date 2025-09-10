@@ -1,5 +1,15 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithModifiers(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllProvider.GetRefactoringAsync(Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext refactorAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.CodeActionEquivalenceKey.get -> string
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.CodeRefactoringProvider.get -> Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.Document.get -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.GetRefactorAllSpansAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Document, Microsoft.CodeAnalysis.Optional<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>>>>
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.Progress.get -> System.IProgress<Microsoft.CodeAnalysis.CodeAnalysisProgress>
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.Project.get -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.Scope.get -> Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllContext.Solution.get -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllProvider
 Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllProvider.RefactorAllProvider() -> void
 Microsoft.CodeAnalysis.CodeRefactorings.RefactorAllScope
