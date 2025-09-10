@@ -6852,7 +6852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return creation;
         }
 
-        private BoundExpression CreateBadClassCreationExpression(
+        private BoundBadExpression CreateBadClassCreationExpression(
             SyntaxNode node,
             SyntaxNode typeNode,
             NamedTypeSymbol type,
@@ -10263,7 +10263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(lengthOrCountAccess is BoundPropertyAccess);
-            Debug.Assert(indexerOrSliceAccess is BoundIndexerAccess or BoundCall);
+            Debug.Assert(indexerOrSliceAccess is BoundIndexerAccess or BoundCall or BoundBadExpression);
             Debug.Assert(indexerOrSliceAccess.Type is not null);
 
             implicitIndexerAccess = new BoundImplicitIndexerAccess(

@@ -1098,6 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundKind.FunctionPointerInvocation:
+                case BoundKind.BadExpression:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
@@ -1118,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Diagnostics.</param>
         /// <param name="queryClause">The syntax for the query clause generating this invocation expression, if any.</param>
         /// <returns>BoundCall or error expression representing the invocation.</returns>
-        private BoundCall BindInvocationExpressionContinued(
+        private BoundExpression BindInvocationExpressionContinued(
             SyntaxNode node,
             SyntaxNode expression,
             string methodName,
@@ -1972,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundCall CreateBadCall(
+        private BoundExpression CreateBadCall(
             SyntaxNode node,
             string name,
             BoundExpression receiver,
@@ -1983,7 +1984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod,
             bool isDelegate)
         {
-            MethodSymbol method;
             ImmutableArray<BoundExpression> args;
             if (!typeArgumentsWithAnnotations.IsDefaultOrEmpty)
             {
@@ -2010,24 +2010,83 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods = constructedMethods.ToImmutableAndFree();
             }
 
+            TypeSymbol resultType;
+
             if (methods.Length == 1 && !IsUnboundGeneric(methods[0]))
             {
-                method = methods[0];
+                resultType = methods[0].ReturnType;
             }
             else
             {
-                var returnType = GetCommonTypeOrReturnType(methods) ?? new ExtendedErrorTypeSymbol(this.Compilation, string.Empty, arity: 0, errorInfo: null);
-                var methodContainer = (object)receiver != null && (object)receiver.Type != null
-                    ? receiver.Type
-                    : this.ContainingType;
-                method = new ErrorMethodSymbol(methodContainer, returnType, name);
+                resultType = GetCommonTypeOrReturnType(methods) ?? new ExtendedErrorTypeSymbol(this.Compilation, string.Empty, arity: 0, errorInfo: null);
             }
 
             args = BuildArgumentsForErrorRecovery(analyzedArguments, methods);
-            var argNames = analyzedArguments.GetNames();
             var argRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             receiver = BindToTypeForErrorRecovery(receiver);
-            return BoundCall.ErrorCall(node, receiver, method, args, argNames, argRefKinds, isDelegate, invokedAsExtensionMethod: invokedAsExtensionMethod, originalMethods: methods, resultKind: resultKind, binder: this);
+            return ErrorCall(node, receiver, args, argRefKinds, methods, resultKind, resultType, binder: this);
+        }
+
+        private static BoundBadExpression ErrorCall(
+            SyntaxNode node,
+            BoundExpression receiverOpt,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<MethodSymbol> originalMethods,
+            LookupResultKind resultKind,
+            TypeSymbol resultType,
+            Binder binder)
+        {
+            if (!originalMethods.IsEmpty)
+                resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
+
+            var childBoundNodes = arguments.SelectAsArray((e, binder) => binder.BindToTypeForErrorRecovery(e), binder);
+
+            if (receiverOpt is not null)
+            {
+                childBoundNodes = childBoundNodes.Insert(0, binder.BindToTypeForErrorRecovery(receiverOpt));
+
+                RefKind receiverRefKind = RefKind.None;
+
+                if (originalMethods is [MethodSymbol singleCandidate])
+                {
+                    if (singleCandidate.TryGetThisParameter(out var thisParameter)
+                        && thisParameter is object
+                        && !thisParameter.Type.TypeIsImmutable())
+                    {
+                        receiverRefKind = thisParameter.RefKind;
+                        //if (thisRefKind.IsWritableReference())
+                        //{
+                        //    WriteArgument(receiverOpt, thisRefKind, method);
+                        //}
+                    }
+
+                }
+                else if (!originalMethods.Any(m => m.MethodKind == MethodKind.Constructor && !m.ContainingType.IsStructType()))
+                {
+                    receiverRefKind = RefKind.Ref;
+                }
+
+                if (!argumentRefKindsOpt.IsDefault)
+                {
+                    argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, receiverRefKind);
+                }
+                else if (receiverRefKind != RefKind.None)
+                {
+                    var builder = ArrayBuilder<RefKind>.GetInstance(childBoundNodes.Length, RefKind.None);
+                    builder[0] = receiverRefKind;
+                    argumentRefKindsOpt = builder.ToImmutableAndFree();
+                }
+            }
+
+            return new BoundBadExpression(
+                syntax: node,
+                resultKind: resultKind,
+                symbols: originalMethods.Cast<MethodSymbol, Symbol>(),
+                childBoundNodes: childBoundNodes,
+                argumentRefKindsOpt: argumentRefKindsOpt,
+                type: resultType,
+                hasErrors: true);
         }
 
         private static bool IsUnboundGeneric(MethodSymbol method)
@@ -2251,22 +2310,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BuildArgumentsForErrorRecovery(analyzedArguments, Enumerable.Empty<ImmutableArray<ParameterSymbol>>());
         }
 
-        private BoundCall CreateBadCall(
+        private BoundExpression CreateBadCall(
             SyntaxNode node,
             BoundExpression expr,
             LookupResultKind resultKind,
             AnalyzedArguments analyzedArguments)
         {
             TypeSymbol returnType = new ExtendedErrorTypeSymbol(this.Compilation, string.Empty, arity: 0, errorInfo: null);
-            var methodContainer = expr.Type ?? this.ContainingType;
-            MethodSymbol method = new ErrorMethodSymbol(methodContainer, returnType, string.Empty);
-
             var args = BuildArgumentsForErrorRecovery(analyzedArguments);
-            var argNames = analyzedArguments.GetNames();
             var argRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             var originalMethods = (expr.Kind == BoundKind.MethodGroup) ? ((BoundMethodGroup)expr).Methods : ImmutableArray<MethodSymbol>.Empty;
 
-            return BoundCall.ErrorCall(node, expr, method, args, argNames, argRefKinds, isDelegateCall: false, invokedAsExtensionMethod: false, originalMethods: originalMethods, resultKind: resultKind, binder: this);
+            return ErrorCall(node, expr, args, argRefKinds, originalMethods, resultKind: resultKind, returnType, binder: this);
         }
 
         private static TypeSymbol GetCommonTypeOrReturnType<TMember>(ImmutableArray<TMember> members)

@@ -2286,5 +2286,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return false;
         }
+
+        /// <summary>
+        /// Certain (struct) types are known by the compiler to be immutable.  In these cases calling a method on
+        /// the type is known (by flow analysis) not to write the receiver.
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        internal static bool TypeIsImmutable(this TypeSymbol t)
+        {
+            switch (t.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Decimal:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                case SpecialType.System_DateTime:
+                    return true;
+                default:
+                    return t.IsNullableType();
+            }
+        }
     }
 }

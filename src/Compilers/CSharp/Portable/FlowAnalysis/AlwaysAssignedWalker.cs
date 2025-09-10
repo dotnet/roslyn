@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
+#nullable enable
+        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol? method)
         {
             // ref parameter does not "always" assign.
             if (refKind == RefKind.Out)
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(arg, value: null);
             }
         }
+#nullable disable
 
         protected override void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement target, ref bool labelStateChanged)
         {

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 LookupResultKind resultKind,
                                 TypeSymbol type)
             => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, this.OriginalMethodsOpt, type);
-
+/*
         public static BoundCall ErrorCall(
             SyntaxNode node,
             BoundExpression receiverOpt,
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: method.ReturnType,
                 hasErrors: true);
         }
-
+*/
         public BoundCall Update(ImmutableArray<BoundExpression> arguments)
         {
             return this.Update(ReceiverOpt, InitialBindingReceiverIsSubjectToCloning, Method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
@@ -529,6 +529,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(syntax, resultKind, symbols, childBoundNodes, type, true)
         {
             Debug.Assert((object)type != null);
+        }
+
+        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type, bool hasErrors = false)
+            : this(syntax, resultKind, symbols, childBoundNodes, argumentRefKindsOpt: default, type, hasErrors)
+        {
+        }
+
+        public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type)
+        {
+            return Update(resultKind, symbols, childBoundNodes, ArgumentRefKindsOpt, type);
         }
     }
 

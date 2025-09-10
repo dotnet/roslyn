@@ -1652,6 +1652,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(call.Method.Name == "Add");
                         return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0];
                     case BoundBadExpression badExpression:
+                        if (badExpression.ChildBoundNodes is [BoundObjectOrCollectionValuePlaceholder, var child])
+                        {
+                            return child;
+                        }
+
                         Debug.Assert(false); // Add test if we hit this assert.
                         return badExpression;
                     default:

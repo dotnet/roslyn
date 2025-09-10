@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var v = groupClause.GroupExpression;
                         var k = groupClause.ByExpression;
                         var vId = v as IdentifierNameSyntax;
-                        BoundCall result;
+                        BoundExpression result;
                         var lambdaLeft = MakeQueryUnboundLambda(state.RangeVariableMap(), x, k, diagnostics.AccumulatesDependencies);
 
                         // this is the unoptimized form (when v is not the identifier x)
@@ -305,29 +305,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundCall ReverseLastTwoParameterOrder(BoundCall result)
+        private static BoundExpression ReverseLastTwoParameterOrder(BoundExpression possibleCall)
         {
             // The input call has its arguments in the appropriate order for the invocation, but its last
             // two argument expressions appear in the reverse order from which they appeared in source.
             // Since we want region analysis to see them in source order, we rewrite the call so that these
             // two arguments are evaluated in source order.
-            int n = result.Arguments.Length;
-            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
-            arguments.AddRange(result.Arguments);
-            var lastArgument = arguments[n - 1];
-            arguments[n - 1] = arguments[n - 2];
-            arguments[n - 2] = lastArgument;
-            var argsToParams = ArrayBuilder<int>.GetInstance();
-            argsToParams.AddRange(Enumerable.Range(0, n));
-            argsToParams[n - 1] = n - 2;
-            argsToParams[n - 2] = n - 1;
-            var defaultArguments = result.DefaultArguments.Clone();
-            (defaultArguments[n - 1], defaultArguments[n - 2]) = (defaultArguments[n - 2], defaultArguments[n - 1]);
+            if (possibleCall is BoundCall result)
+            {
+                int n = result.Arguments.Length;
+                var argsToParams = ArrayBuilder<int>.GetInstance();
+                argsToParams.AddRange(Enumerable.Range(0, n));
+                argsToParams[n - 1] = n - 2;
+                argsToParams[n - 2] = n - 1;
+                var defaultArguments = result.DefaultArguments.Clone();
+                (defaultArguments[n - 1], defaultArguments[n - 2]) = (defaultArguments[n - 2], defaultArguments[n - 1]);
 
-            return result.Update(
-                result.ReceiverOpt, result.InitialBindingReceiverIsSubjectToCloning, result.Method, arguments.ToImmutableAndFree(), argumentNamesOpt: default,
-                argumentRefKindsOpt: default, result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
-                argsToParams.ToImmutableAndFree(), defaultArguments, result.ResultKind, result.OriginalMethodsOpt, result.Type);
+                return result.Update(
+                    result.ReceiverOpt, result.InitialBindingReceiverIsSubjectToCloning, result.Method, adjustArguments(result.Arguments), argumentNamesOpt: default,
+                    argumentRefKindsOpt: default, result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
+                    argsToParams.ToImmutableAndFree(), defaultArguments, result.ResultKind, result.OriginalMethodsOpt, result.Type);
+            }
+
+            var badResult = (BoundBadExpression)possibleCall;
+
+            return badResult.Update(badResult.ResultKind, badResult.Symbols, adjustArguments(badResult.ChildBoundNodes), argumentRefKindsOpt: default, badResult.Type);
+
+            static ImmutableArray<BoundExpression> adjustArguments(ImmutableArray<BoundExpression> originalArguments)
+            {
+                int n = originalArguments.Length;
+                var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+                arguments.AddRange(originalArguments);
+                var lastArgument = arguments[n - 1];
+                arguments[n - 1] = arguments[n - 2];
+                arguments[n - 2] = lastArgument;
+                return arguments.ToImmutableAndFree();
+            }
         }
 
         private void ReduceQuery(QueryTranslationState state, BindingDiagnosticBag diagnostics)
@@ -412,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (state.clauses.IsEmpty() && state.selectOrGroup.Kind() == SyntaxKind.SelectClause)
             {
                 var select = (SelectClauseSyntax)state.selectOrGroup;
-                BoundCall invocation;
+                BoundExpression invocation;
                 if (join.Into == null)
                 {
                     // A query expression with a join clause without an into followed by a select clause
@@ -468,10 +481,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
                     // record the into clause in the bound tree
-                    var arguments = invocation.Arguments;
-                    arguments = arguments.SetItem(arguments.Length - 1, MakeQueryClause(join.Into, arguments[arguments.Length - 1], g));
-
-                    invocation = invocation.Update(invocation.ReceiverOpt, invocation.InitialBindingReceiverIsSubjectToCloning, invocation.Method, arguments);
+                    if (invocation is BoundCall invocationCall)
+                    {
+                        invocation = invocationCall.Update(invocationCall.ReceiverOpt, invocationCall.InitialBindingReceiverIsSubjectToCloning, invocationCall.Method,
+                            adjustLastArgument(join.Into, g, invocationCall.Arguments));
+                    }
+                    else
+                    {
+                        var badInvocation = (BoundBadExpression)invocation;
+                        invocation = badInvocation.Update(badInvocation.ResultKind, badInvocation.Symbols,
+                            adjustLastArgument(join.Into, g, badInvocation.ChildBoundNodes), badInvocation.Type);
+                    }
                 }
 
                 state.Clear(); // this completes the whole query
@@ -480,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundCall invocation;
+                BoundExpression invocation;
                 if (join.Into == null)
                 {
                     // A query expression with a join clause without an into followed by something other than a select clause
@@ -539,13 +559,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     state.nextInvokedMethodName = null;
 #endif
 
-                    var arguments = invocation.Arguments;
-                    arguments = arguments.SetItem(arguments.Length - 1, MakeQueryClause(join.Into, arguments[arguments.Length - 1], g));
-
-                    invocation = invocation.Update(invocation.ReceiverOpt, invocation.InitialBindingReceiverIsSubjectToCloning, invocation.Method, arguments);
+                    if (invocation is BoundCall invocationCall)
+                    {
+                        invocation = invocationCall.Update(invocationCall.ReceiverOpt, invocationCall.InitialBindingReceiverIsSubjectToCloning, invocationCall.Method,
+                            adjustLastArgument(join.Into, g, invocationCall.Arguments));
+                    }
+                    else
+                    {
+                        var badInvocation = (BoundBadExpression)invocation;
+                        invocation = badInvocation.Update(badInvocation.ResultKind, badInvocation.Symbols,
+                            adjustLastArgument(join.Into, g, badInvocation.ChildBoundNodes), badInvocation.Type);
+                    }
                 }
 
                 state.fromExpression = MakeQueryClause(join, invocation, x2, invocation, castInvocation);
+            }
+
+            ImmutableArray<BoundExpression> adjustLastArgument(JoinIntoClauseSyntax joinInto, RangeVariableSymbol g, ImmutableArray<BoundExpression> arguments)
+            {
+                arguments = arguments.SetItem(arguments.Length - 1, MakeQueryClause(joinInto, arguments[arguments.Length - 1], g));
+                return arguments;
             }
         }
 
@@ -630,12 +663,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Adjust the second-to-last parameter to be a query clause (if it was an extension method, an extra parameter was added)
                 BoundExpression? castInvocation = (from.Type != null) ? ExtractCastInvocation(invocation) : null;
 
-                var arguments = invocation.Arguments;
-                invocation = invocation.Update(
-                    invocation.ReceiverOpt,
-                    invocation.InitialBindingReceiverIsSubjectToCloning,
-                    invocation.Method,
-                    arguments.SetItem(arguments.Length - 2, MakeQueryClause(from, arguments[arguments.Length - 2], x2, invocation, castInvocation)));
+                if (invocation is BoundCall invocationCall)
+                {
+                    invocation = invocationCall.Update(
+                        invocationCall.ReceiverOpt,
+                        invocationCall.InitialBindingReceiverIsSubjectToCloning,
+                        invocationCall.Method,
+                        adjustSecondToLastArgument(from, x2, invocation, castInvocation, invocationCall.Arguments));
+                }
+                else
+                {
+                    var badInvocation = (BoundBadExpression)invocation;
+                    invocation = badInvocation.Update(
+                        badInvocation.ResultKind,
+                        badInvocation.Symbols,
+                        adjustSecondToLastArgument(from, x2, invocation, castInvocation, badInvocation.ChildBoundNodes),
+                        badInvocation.Type);
+                }
 
                 state.Clear();
                 state.fromExpression = MakeQueryClause(from, invocation, definedSymbol: x2, queryInvocation: invocation);
@@ -678,16 +722,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression? castInvocation = (from.Type != null) ? ExtractCastInvocation(invocation) : null;
                 state.fromExpression = MakeQueryClause(from, invocation, x2, invocation, castInvocation);
             }
+
+            ImmutableArray<BoundExpression> adjustSecondToLastArgument(FromClauseSyntax from, RangeVariableSymbol x2, BoundExpression invocation, BoundExpression? castInvocation, ImmutableArray<BoundExpression> arguments)
+            {
+                return arguments.SetItem(arguments.Length - 2, MakeQueryClause(from, arguments[arguments.Length - 2], x2, invocation, castInvocation));
+            }
         }
 
-        private static BoundExpression? ExtractCastInvocation(BoundCall invocation)
+        private static BoundExpression? ExtractCastInvocation(BoundExpression possibleCall)
         {
-            int index = invocation.InvokedAsExtensionMethod ? 1 : 0;
-            var c1 = invocation.Arguments[index] as BoundConversion;
-            var l1 = c1 != null ? c1.Operand as BoundLambda : null;
-            var r1 = l1 != null ? l1.Body.Statements[0] as BoundReturnStatement : null;
-            var i1 = r1 != null ? r1.ExpressionOpt as BoundCall : null;
-            return i1;
+            if (possibleCall is BoundCall invocation)
+            {
+                int index = invocation.InvokedAsExtensionMethod ? 1 : 0;
+                var c1 = invocation.Arguments[index] as BoundConversion;
+                var l1 = c1 != null ? c1.Operand as BoundLambda : null;
+                var r1 = l1 != null ? l1.Body.Statements[0] as BoundReturnStatement : null;
+                var i1 = r1 != null ? r1.ExpressionOpt as BoundCall : null;
+                return i1;
+            }
+
+            return null;
         }
 
         private UnboundLambda MakePairLambda(CSharpSyntaxNode node, QueryTranslationState state, RangeVariableSymbol x1, RangeVariableSymbol x2, bool withDependencies)
@@ -877,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambda;
         }
 
-        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, BoundExpression arg, BindingDiagnosticBag diagnostics
+        protected BoundExpression MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, BoundExpression arg, BindingDiagnosticBag diagnostics
 #if DEBUG
             , string? expectedMethodName
 #endif
@@ -890,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, ImmutableArray<BoundExpression> args, BindingDiagnosticBag diagnostics
+        protected BoundExpression MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, ImmutableArray<BoundExpression> args, BindingDiagnosticBag diagnostics
 #if DEBUG
             , string? expectedMethodName
 #endif
@@ -903,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, TypeSyntax typeArgSyntax, TypeWithAnnotations typeArg, BindingDiagnosticBag diagnostics
+        protected BoundExpression MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, TypeSyntax typeArgSyntax, TypeWithAnnotations typeArg, BindingDiagnosticBag diagnostics
 #if DEBUG
             , string? expectedMethodName
 #endif
@@ -916,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, SeparatedSyntaxList<TypeSyntax> typeArgsSyntax, ImmutableArray<TypeWithAnnotations> typeArgs, ImmutableArray<BoundExpression> args, BindingDiagnosticBag diagnostics
+        protected BoundExpression MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, bool receiverIsCheckedForRValue, string methodName, SeparatedSyntaxList<TypeSyntax> typeArgsSyntax, ImmutableArray<TypeWithAnnotations> typeArgs, ImmutableArray<BoundExpression> args, BindingDiagnosticBag diagnostics
 #if DEBUG
             , string? expectedMethodName
 #endif
@@ -1002,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return (BoundCall)MakeInvocationExpression(
+            return MakeInvocationExpression(
                 node,
                 receiver,
                 methodName,

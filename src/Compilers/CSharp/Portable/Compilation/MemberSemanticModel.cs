@@ -1805,6 +1805,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // TODO: should we look for the "nearest" argument as a fallback?
                         node = call.Arguments.LastOrDefault();
                         continue;
+
+                    case BoundKind.BadExpression:
+                        var badExpression = (BoundBadExpression)node;
+                        node = GetContainingArgument(badExpression.ChildBoundNodes, position);
+                        if (node != null)
+                        {
+                            continue;
+                        }
+
+                        if (badExpression.ChildBoundNodes is [BoundExpression badReceiver, ..])
+                        {
+                            // In some error scenarios, we end-up with a method group as the receiver,
+                            // let's get to real receiver.
+                            while (badReceiver?.Kind == BoundKind.MethodGroup)
+                            {
+                                receiver = ((BoundMethodGroup)badReceiver).ReceiverOpt;
+                            }
+
+                            if (badReceiver != null)
+                            {
+                                node = GetContainingExprOrQueryClause(badReceiver, position);
+                                if (node != null)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        // TODO: should we look for the "nearest" argument as a fallback?
+                        node = badExpression.ChildBoundNodes.LastOrDefault();
+                        continue;
+
                     case BoundKind.Conversion:
                         node = ((BoundConversion)node).Operand;
                         continue;
