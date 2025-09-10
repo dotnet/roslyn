@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzerExecutor = AnalyzerExecutor.Create(
                 compilation,
                 AnalyzerOptions.Empty,
-                addNonCategorizedDiagnostic: (_, _) => { },
+                addNonCategorizedDiagnostic: (_, _, _) => { },
                 onAnalyzerException,
                 analyzerExceptionFilter: null,
                 isCompilerAnalyzer: _ => false,
