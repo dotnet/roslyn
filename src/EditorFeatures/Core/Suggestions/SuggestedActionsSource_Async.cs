@@ -288,7 +288,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                     ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
                     unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
 
-                ISuggestedAction ConvertToSuggestedAction(IUnifiedSuggestedAction unifiedSuggestedAction)
+                ISuggestedAction ConvertToSuggestedAction(UnifiedSuggestedAction unifiedSuggestedAction)
                     => unifiedSuggestedAction switch
                     {
                         UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(

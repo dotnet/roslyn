@@ -15,7 +15,7 @@ internal abstract class UnifiedSuggestedAction(
     CodeAction codeAction,
     CodeActionPriority codeActionPriority,
     object provider,
-    CodeRefactoringKind? codeRefactoringKind) : IUnifiedSuggestedAction
+    CodeRefactoringKind? codeRefactoringKind)
 {
     public object Provider { get; } = provider;
 
