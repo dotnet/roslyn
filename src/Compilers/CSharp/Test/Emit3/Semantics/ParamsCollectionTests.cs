@@ -20,15 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class ParamsCollectionTests : CompilingTestBase
     {
-        private const string ParamCollectionAttributeSource = @"
-namespace System.Runtime.CompilerServices
-{
-    public sealed class ParamCollectionAttribute : Attribute
-    {
-        public ParamCollectionAttribute() { }
-    }
-}
-";
+        private static string ParamCollectionAttributeSource => TestSources.ParamsCollectionAttribute;
 
         private static void VerifyParamsAndAttribute(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
         {
