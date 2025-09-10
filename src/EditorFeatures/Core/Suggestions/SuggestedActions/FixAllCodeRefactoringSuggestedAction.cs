@@ -15,24 +15,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// Suggested action for fix all occurrences for a code refactoring.  Note: this is only used
 /// as a 'flavor' inside CodeRefactoringSuggestionAction.
 /// </summary>
-internal sealed class FixAllCodeRefactoringSuggestedAction : AbstractFixAllSuggestedAction, IFixAllCodeRefactoringSuggestedAction
-{
-    public FixAllCodeRefactoringSuggestedAction(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        Solution originalSolution,
-        ITextBuffer subjectBuffer,
-        IFixAllState fixAllState,
-        CodeAction originalCodeAction)
-        : base(threadingContext,
-               sourceProvider,
-               workspace,
-               originalSolution,
-               subjectBuffer,
-               fixAllState,
-               originalCodeAction,
-               new FixAllCodeRefactoringCodeAction(fixAllState))
-    {
-    }
-}
+internal sealed class RefactorAllCodeRefactoringSuggestedAction(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    Workspace workspace,
+    Solution originalSolution,
+    ITextBuffer subjectBuffer,
+    IFixAllState fixAllState,
+    CodeAction originalCodeAction)
+        : AbstractFixAllSuggestedAction(threadingContext,
+           sourceProvider,
+           workspace,
+           originalSolution,
+           subjectBuffer,
+           fixAllState,
+           originalCodeAction,
+           new RefactorAllCodeRefactoringCodeAction(fixAllState)), IRefactorAllCodeRefactoringSuggestedAction;

@@ -180,6 +180,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
 
     public ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Checksum solutionChecksum,
+        ProjectId? projectId,
         CancellationToken cancellationToken)
     {
         return RunWithSolutionAsync(
@@ -187,27 +188,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
             async solution =>
             {
                 var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                var map = await service.GetDiagnosticDescriptorsPerReferenceAsync(solution, cancellationToken).ConfigureAwait(false);
-                return map.ToImmutableDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.SelectAsArray(DiagnosticDescriptorData.Create));
-
-            },
-            cancellationToken);
-    }
-
-    public ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Checksum solutionChecksum,
-        ProjectId projectId,
-        CancellationToken cancellationToken)
-    {
-        return RunWithSolutionAsync(
-            solutionChecksum,
-            async solution =>
-            {
-                var project = solution.GetRequiredProject(projectId);
-                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                var map = await service.GetDiagnosticDescriptorsPerReferenceAsync(project, cancellationToken).ConfigureAwait(false);
+                var map = await service.GetDiagnosticDescriptorsPerReferenceAsync(solution, projectId, cancellationToken).ConfigureAwait(false);
                 return map.ToImmutableDictionary(
                     kvp => kvp.Key,
                     kvp => kvp.Value.SelectAsArray(DiagnosticDescriptorData.Create));

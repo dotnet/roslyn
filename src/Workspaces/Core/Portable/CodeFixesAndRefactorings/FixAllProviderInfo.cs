@@ -69,19 +69,19 @@ internal abstract class FixAllProviderInfo
     /// </summary>
     private static FixAllProviderInfo? CreateWithCodeRefactoring(CodeRefactoringProvider provider)
     {
-        var fixAllProvider = provider.GetFixAllProvider();
-        if (fixAllProvider == null)
+        var refactorAllProvider = provider.GetRefactorAllProvider();
+        if (refactorAllProvider == null)
         {
             return null;
         }
 
-        var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
+        var scopes = refactorAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
         {
             return null;
         }
 
-        return new CodeRefactoringFixAllProviderInfo(fixAllProvider, scopes);
+        return new CodeRefactoringFixAllProviderInfo(refactorAllProvider, scopes);
     }
 
     /// <summary>
@@ -118,7 +118,8 @@ internal abstract class FixAllProviderInfo
     private sealed class SuppressionFixerFixAllProviderInfo(
         IFixAllProvider fixAllProvider,
         IConfigurationFixProvider suppressionFixer,
-        ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
+        ImmutableArray<FixAllScope> supportedScopes)
+        : FixAllProviderInfo(fixAllProvider, supportedScopes)
     {
         private readonly Func<Diagnostic, bool> _canBeSuppressedOrUnsuppressed = suppressionFixer.IsFixableDiagnostic;
 
@@ -128,7 +129,8 @@ internal abstract class FixAllProviderInfo
 
     private sealed class CodeRefactoringFixAllProviderInfo(
         IFixAllProvider fixAllProvider,
-        ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
+        ImmutableArray<RefactorAllScope> supportedScopes)
+        : FixAllProviderInfo(fixAllProvider, supportedScopes.SelectAsArray(s => s.ToFixAllScope()))
     {
         public override bool CanBeFixed(Diagnostic diagnostic)
             => throw ExceptionUtilities.Unreachable();

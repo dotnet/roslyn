@@ -23,11 +23,11 @@ public abstract class CodeRefactoringProvider
     public abstract Task ComputeRefactoringsAsync(CodeRefactoringContext context);
 
     /// <summary>
-    /// Gets an optional <see cref="FixAllProvider"/> that can apply multiple occurrences of code refactoring(s)
-    /// registered by this code refactoring provider across the supported <see cref="CodeFixes.FixAllScope"/>s.
-    /// Return null if the provider doesn't support fix all operation.
+    /// Gets an optional <see cref="RefactorAllProvider"/> that can apply multiple occurrences of code refactoring(s)
+    /// registered by this code refactoring provider across the supported <see cref="RefactorAllScope"/>s.
+    /// Return null if the provider doesn't support the refactor all operation.
     /// </summary>
-    internal virtual FixAllProvider? GetFixAllProvider()
+    internal virtual RefactorAllProvider? GetRefactorAllProvider()
         => null;
 
     /// <summary>

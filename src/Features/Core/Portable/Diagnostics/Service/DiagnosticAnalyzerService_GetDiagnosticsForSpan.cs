@@ -40,7 +40,7 @@ internal sealed partial class DiagnosticAnalyzerService
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document,
         TextSpan? range,
-        Func<string, bool>? shouldIncludeDiagnostic,
+        DiagnosticIdFilter diagnosticIdFilter,
         ICodeActionRequestPriorityProvider? priorityProvider,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
@@ -108,7 +108,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 foreach (var analyzer in analyzers)
                 {
-                    if (!ShouldIncludeAnalyzer(analyzer, shouldIncludeDiagnostic, priorityProvider, this))
+                    if (!ShouldIncludeAnalyzer(analyzer))
                         continue;
 
                     bool includeSyntax = true, includeSemantic = true;
@@ -166,12 +166,7 @@ internal sealed partial class DiagnosticAnalyzerService
             }
         }
 
-        // Local functions
-        static bool ShouldIncludeAnalyzer(
-            DiagnosticAnalyzer analyzer,
-            Func<string, bool>? shouldIncludeDiagnostic,
-            ICodeActionRequestPriorityProvider priorityProvider,
-            DiagnosticAnalyzerService owner)
+        bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
         {
             // Skip executing analyzer if its priority does not match the request priority.
             if (!priorityProvider.MatchesPriority(analyzer))
@@ -185,10 +180,10 @@ internal sealed partial class DiagnosticAnalyzerService
                 return true;
 
             // Skip analyzer if none of its reported diagnostics should be included.
-            if (shouldIncludeDiagnostic != null &&
-                !owner._analyzerInfoCache.GetDiagnosticDescriptors(analyzer).Any(static (a, shouldIncludeDiagnostic) => shouldIncludeDiagnostic(a.Id), shouldIncludeDiagnostic))
+            if (diagnosticIdFilter != DiagnosticIdFilter.All)
             {
-                return false;
+                var descriptors = _analyzerInfoCache.GetDiagnosticDescriptors(analyzer);
+                return diagnosticIdFilter.Allow(descriptors.Select(d => d.Id));
             }
 
             return true;
@@ -260,9 +255,13 @@ internal sealed partial class DiagnosticAnalyzerService
 
         bool ShouldInclude(DiagnosticData diagnostic)
         {
-            return diagnostic.DocumentId == document.Id &&
-                (range == null || range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)))
-                && (shouldIncludeDiagnostic == null || shouldIncludeDiagnostic(diagnostic.Id));
+            if (diagnostic.DocumentId != document.Id)
+                return false;
+
+            if (range != null && !range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)))
+                return false;
+
+            return diagnosticIdFilter.Allow(diagnostic.Id);
         }
     }
 

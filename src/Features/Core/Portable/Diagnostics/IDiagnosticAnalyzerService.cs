@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -32,10 +30,6 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// </summary>
     Task<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
         Project project, CancellationToken cancellationToken);
-
-    /// <inheritdoc cref="IRemoteDiagnosticAnalyzerService.GetDeprioritizationCandidatesAsync"/>
-    Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
-        Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets document diagnostics of the given diagnostic ids and/or analyzers from the given project.
@@ -77,35 +71,28 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// <summary>
     /// Return up to date diagnostics for the given span for the document
     /// <para/>
-    /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
-    /// Predicate <paramref name="shouldIncludeDiagnostic"/> filters out analyzers from execution if 
-    /// none of its reported diagnostics should be included in the result.
-    /// <para/>
     /// Non-local diagnostics for the requested document are not returned.  In other words, only the diagnostics
     /// produced by running the requested filtered set of analyzers <em>only</em> on this document are returned here.
     /// To get non-local diagnostics for a document, use <see cref="GetDiagnosticsForIdsAsync"/>.  Non-local diagnostics
     /// will always be returned for the document in that case.
     /// </summary>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-        TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic,
+        TextDocument document, TextSpan? range,
+        DiagnosticIdFilter diagnosticIdFilter,
         ICodeActionRequestPriorityProvider priorityProvider,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
+
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference"/>
+    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        Solution solution, ProjectId? projectId, CancellationToken cancellationToken);
 
     /// <param name="projectId">A project within <paramref name="solution"/> where <paramref name="analyzerReference"/> can be found</param>
     Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
         Solution solution, ProjectId projectId, AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache)"/>
-    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Solution solution, CancellationToken cancellationToken);
-
-    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache, Project)"/>
-    Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Project project, CancellationToken cancellationToken);
-
     /// <summary>
-    /// For all analyers in the given solution, return the descriptor ids of all compilation end diagnostics.
+    /// For all analyzers in the given solution, return the descriptor ids of all compilation end diagnostics.
     /// Note: this does not include the "built in compiler analyzer".
     /// </summary>
     Task<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
@@ -144,8 +131,19 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
-        Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
-        return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
+        var filter = diagnosticId != null
+            ? DiagnosticIdFilter.Include([diagnosticId])
+            : DiagnosticIdFilter.All;
+        return service.GetDiagnosticsForSpanAsync(document, range, filter,
             priorityProvider, diagnosticKind, cancellationToken);
     }
+
+    public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        this IDiagnosticAnalyzerService service, Solution solution, CancellationToken cancellationToken)
+        => service.GetDiagnosticDescriptorsPerReferenceAsync(solution, projectId: null, cancellationToken);
+
+    public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
+        this IDiagnosticAnalyzerService service, Project project, CancellationToken cancellationToken)
+        => service.GetDiagnosticDescriptorsPerReferenceAsync(project.Solution, project.Id, cancellationToken);
+
 }

@@ -96,7 +96,7 @@ End Class
 
     Private Shared Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
         Dim diagnosticService = New HostDiagnosticAnalyzers({New AnalyzerImageReference(ImmutableArray.Create(analyzer))})
-        diagnosticService.GetDiagnosticDescriptorsPerReference(New DiagnosticAnalyzerInfoCache())
+        diagnosticService.GetDiagnosticDescriptorsPerReference(New DiagnosticAnalyzerInfoCache(), project:=Nothing)
     End Sub
 
     <Fact>

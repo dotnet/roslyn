@@ -7,56 +7,54 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 /// <summary>
-/// Context for "Fix all occurrences" for code refactorings provided by each <see cref="CodeRefactoringProvider"/>.
+/// Context for "Refactor all occurrences" for code refactorings provided by each <see cref="CodeRefactoringProvider"/>.
 /// </summary>
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal sealed class FixAllContext : IFixAllContext
+internal sealed class RefactorAllContext : IFixAllContext
 {
-    internal FixAllState State { get; }
+    internal RefactorAllState State { get; }
 
-    internal FixAllProvider FixAllProvider => State.FixAllProvider;
+    internal RefactorAllProvider RefactorAllProvider => State.FixAllProvider;
 
     /// <summary>
-    /// Document within which fix all occurrences was triggered.
+    /// Document within which refactor all occurrences was triggered.
     /// </summary>
     public Document Document => State.Document!;
 
     /// <summary>
-    /// Underlying <see cref="CodeRefactoringProvider"/> which triggered this fix all.
+    /// Underlying <see cref="CodeRefactoringProvider"/> which triggered this refactor all.
     /// </summary>
     public CodeRefactoringProvider CodeRefactoringProvider => State.Provider;
 
     /// <summary>
-    /// <see cref="FixAllScope"/> to fix all occurrences.
+    /// <see cref="RefactorAllScope"/> to refactor all occurrences.
     /// </summary>
-    public FixAllScope Scope => State.Scope;
+    public RefactorAllScope Scope => (RefactorAllScope)State.Scope;
 
     /// <summary>
-    /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
+    /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this
+    /// refactor all.
     /// </summary>
     public string? CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
 
     /// <summary>
-    /// CancellationToken for fix all session.
+    /// CancellationToken for refactor all session.
     /// </summary>
     public CancellationToken CancellationToken { get; }
 
     public IProgress<CodeAnalysisProgress> Progress { get; }
 
     /// <summary>
-    /// Project to fix all occurrences.
-    /// Note that this property will always be the containing project of <see cref="Document"/>
-    /// for publicly exposed FixAllContext instance. However, we might create an intermediate FixAllContext
-    /// with null <see cref="Document"/> and non-null Project, so we require this internal property for intermediate computation.
+    /// Project to refactor all occurrences within.
     /// </summary>
     public Project Project => State.Project;
 
@@ -67,18 +65,25 @@ internal sealed class FixAllContext : IFixAllContext
 
     object IFixAllContext.Provider => this.CodeRefactoringProvider;
 
-    string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultFixAllTitle();
+    string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultRefactorAllTitle();
 
     IFixAllContext IFixAllContext.With(
         Optional<(Document? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
         Optional<string?> codeActionEquivalenceKey,
         Optional<CancellationToken> cancellationToken)
-        => this.With(documentAndProject, scope, codeActionEquivalenceKey, cancellationToken);
+    {
+        var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
+        var newCancellationToken = cancellationToken.HasValue ? cancellationToken.Value : this.CancellationToken;
+
+        return State == newState && CancellationToken == newCancellationToken
+            ? this
+            : new RefactorAllContext(newState, this.Progress, newCancellationToken);
+    }
     #endregion
 
-    internal FixAllContext(
-        FixAllState state,
+    internal RefactorAllContext(
+        RefactorAllState state,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
     {
@@ -88,26 +93,12 @@ internal sealed class FixAllContext : IFixAllContext
     }
 
     /// <summary>
-    /// Gets the spans to fix by document for the <see cref="Scope"/> for this fix all occurences fix.
-    /// If no spans are specified, it indicates the entire document needs to be fixed.
+    /// Gets the spans to refactor by document for the <see cref="Scope"/> for this refactor all occurrences fix. If no
+    /// spans are specified, it indicates the entire document needs to be refactored.
     /// </summary>
-    public Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
-        => State.GetFixAllSpansAsync(cancellationToken);
+    public Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetRefactorAllSpansAsync(CancellationToken cancellationToken)
+        => State.GetRefactorAllSpansAsync(cancellationToken);
 
-    internal FixAllContext With(
-        Optional<(Document? document, Project project)> documentAndProject = default,
-        Optional<FixAllScope> scope = default,
-        Optional<string?> codeActionEquivalenceKey = default,
-        Optional<CancellationToken> cancellationToken = default)
-    {
-        var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-        var newCancellationToken = cancellationToken.HasValue ? cancellationToken.Value : this.CancellationToken;
-
-        return State == newState && CancellationToken == newCancellationToken
-            ? this
-            : new FixAllContext(newState, this.Progress, newCancellationToken);
-    }
-
-    internal string GetDefaultFixAllTitle()
-        => FixAllHelper.GetDefaultFixAllTitle(this.Scope, this.State.CodeActionTitle, this.Document, this.Project);
+    internal string GetDefaultRefactorAllTitle()
+        => FixAllHelper.GetDefaultFixAllTitle(this.Scope.ToFixAllScope(), this.State.CodeActionTitle, this.Document, this.Project);
 }

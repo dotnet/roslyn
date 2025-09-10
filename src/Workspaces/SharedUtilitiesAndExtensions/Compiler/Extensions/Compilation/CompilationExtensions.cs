@@ -123,6 +123,9 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
 
+    public static INamedTypeSymbol? IFormattableType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IFormattable).FullName!);
+
     public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
 

@@ -209,10 +209,11 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var range = new TextSpan(0, tree.Length);
 
-        // Compute diagnostics for everything that is not an IDE analyzer
         var diagnosticService = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, range,
-            shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
+        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
+            document, range,
+            // Compute diagnostics for everything that is *NOT* an IDE analyzer
+            DiagnosticIdFilter.Exclude(IDEDiagnosticIdToOptionMappingHelper.KnownIDEDiagnosticIds),
             priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
             DiagnosticKind.All,
             cancellationToken).ConfigureAwait(false);
