@@ -52,7 +52,7 @@ $gitSystemDir = "$BuildAgentPath\system\git"
 
 if (-not $NoBuildImage) {
     Write-Host "Building the image." -ForegroundColor Green
-    Get-Content -Raw Dockerfile | docker build -t $ImageName --build-arg GIT_SYSTEM_DIR=$gitSystemDir -f - $dockerContextDirectory
+    Get-Content -Raw Dockerfile | docker build -t $ImageName -f - $dockerContextDirectory
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Docker build failed with exit code $LASTEXITCODE" -ForegroundColor Red
         exit $LASTEXITCODE
