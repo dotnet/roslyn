@@ -400,8 +400,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(compilationEvent is CompilationStartedEvent || compilationEvent is CompilationCompletedEvent);
 
-            var options = this.GetAnalyzerSpecificOptions(analyzer);
-            var addDiagnostic = GetAddCompilationDiagnostic(analyzer, options, cancellationToken);
+            var analyzerOptions = this.GetAnalyzerSpecificOptions(analyzer);
+            var addDiagnostic = GetAddCompilationDiagnostic(analyzer, analyzerOptions, cancellationToken);
 
             using var _ = PooledDelegates.GetPooledFunction(
                 static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
             // can use the same instance across all actions.
             var context = new CompilationAnalysisContext(
-                Compilation, options, addDiagnostic,
+                Compilation, analyzerOptions, addDiagnostic,
                 isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation);
 
@@ -565,8 +565,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!filterSpan.HasValue || filterTree != null);
 
             var symbol = symbolDeclaredEvent.Symbol;
-            var options = this.GetAnalyzerSpecificOptions(analyzer);
-            var addDiagnostic = GetAddDiagnostic(symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, options, getTopMostNodeForAnalysis, cancellationToken);
+            var analyzerOptions = this.GetAnalyzerSpecificOptions(analyzer);
+            var addDiagnostic = GetAddDiagnostic(symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
 
             using var _ = PooledDelegates.GetPooledFunction(
                 static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
             // can use the same instance across all actions.
             var context = new SymbolAnalysisContext(
-                symbol, Compilation, options, addDiagnostic,
+                symbol, Compilation, analyzerOptions, addDiagnostic,
                 isSupportedDiagnostic, isGeneratedCode, filterTree, filterSpan, cancellationToken);
             var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
@@ -616,8 +616,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var options = this.GetAnalyzerSpecificOptions(analyzer);
-            var diagReporter = GetAddSemanticDiagnostic(semanticModel.SyntaxTree, analyzer, options, cancellationToken);
+            var analyzerOptions = this.GetAnalyzerSpecificOptions(analyzer);
+            var diagReporter = GetAddSemanticDiagnostic(semanticModel.SyntaxTree, analyzer, analyzerOptions, cancellationToken);
 
             using var _ = PooledDelegates.GetPooledFunction(
                 static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
