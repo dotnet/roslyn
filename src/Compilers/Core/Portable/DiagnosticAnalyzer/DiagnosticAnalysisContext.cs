@@ -760,11 +760,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
-
-        internal SemanticModelAnalysisContext WithOptions(AnalyzerOptions options)
-            => this.Options == options
-                ? this
-                : new(this.SemanticModel, options, _reportDiagnostic, _isSupportedDiagnostic, this.FilterSpan, this.IsGeneratedCode, this.CancellationToken);
     }
 
     /// <summary>
