@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions, as long as the options stay the same per analyzer.
+            // can use the same instance across all actions.
             var context = new CompilationAnalysisContext(
                 Compilation, options, addDiagnostic,
                 isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, cancellationToken);
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions, unless the options change per analyzer.
+            // can use the same instance across all actions.
             var context = new SymbolAnalysisContext(
                 symbol, Compilation, this.GetAnalyzerSpecificOptions(analyzer), addDiagnostic,
                 isSupportedDiagnostic, isGeneratedCodeSymbol, filterTree,
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-            // can use the same instance across all actions, unless the options change per analyzer.
+            // can use the same instance across all actions.
             var context = new SemanticModelAnalysisContext(
                 semanticModel, options, diagReporter.AddDiagnosticAction,
                 isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
