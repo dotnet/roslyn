@@ -8,10 +8,6 @@
   <!-- Set the default version -->
   <Import Project="..\eng-Metalama\MainVersion.props" />
 
-  <PropertyGroup>
-    <PostSharpEngineeringVersion>2023.2.178</PostSharpEngineeringVersion>
-  </PropertyGroup>
-  
   <!-- Import overrides for the local build -->
   <!-- Unlike in other projects using PostSharp.Engineering, we must import it here, otherwise the properties defined immediately below
        would not be properly defined.  -->

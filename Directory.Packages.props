@@ -1,7 +1,17 @@
-﻿<Project>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+
+  <!-- <Metalama> -->
+  <PropertyGroup>
+    <PostSharpEngineeringVersion>2023.2.179</PostSharpEngineeringVersion>
+  </PropertyGroup>
+  <Import Project="..\eng-Metalama\Versions.g.props" Condition="Exists('..\eng-Metalama\Versions.g.props')" />
+  <!-- </Metalama> -->
+
+
   <Import Project="eng\Directory.Packages.props" />
 </Project>
