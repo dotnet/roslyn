@@ -8,7 +8,9 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
-internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TFixAllState> : IRefactorOrFixAllState
+internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TFixAllState>
+    : IRefactorOrFixAllState
+    where TProvider : IRefactorOrFixProvider
     where TFixAllProvider : IRefactorOrFixAllProvider
     where TFixAllState : CommonFixAllState<TProvider, TFixAllProvider, TFixAllState>
 {

@@ -63,7 +63,7 @@ public sealed class RefactorAllContext : IRefactorOrFixAllContext
     #region IFixAllContext implementation
     IRefactorOrFixAllState IRefactorOrFixAllContext.State => this.State;
 
-    object IRefactorOrFixAllContext.Provider => this.CodeRefactoringProvider;
+    IRefactorOrFixProvider IRefactorOrFixAllContext.Provider => this.CodeRefactoringProvider;
 
     string IRefactorOrFixAllContext.GetDefaultTitle() => this.GetDefaultRefactorAllTitle();
 

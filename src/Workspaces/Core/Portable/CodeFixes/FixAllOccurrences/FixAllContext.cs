@@ -73,7 +73,7 @@ public partial class FixAllContext : IRefactorOrFixAllContext
     #region IFixAllContext implementation
     IRefactorOrFixAllState IRefactorOrFixAllContext.State => this.State;
 
-    object IRefactorOrFixAllContext.Provider => this.CodeFixProvider;
+    IRefactorOrFixProvider IRefactorOrFixAllContext.Provider => this.CodeFixProvider;
 
     string IRefactorOrFixAllContext.GetDefaultTitle()
         => this.GetDefaultFixAllTitle();
