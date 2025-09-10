@@ -294,14 +294,16 @@ internal sealed partial class SuggestedActionsSourceProvider
                 ISuggestedAction ConvertToSuggestedAction(UnifiedSuggestedAction unifiedSuggestedAction)
                     => unifiedSuggestedAction switch
                     {
-                        UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
+                        UnifiedCodeFixSuggestedAction codeFixAction => new SuggestedActionWithNestedFlavors(
                             _threadingContext, owner, originalDocument, subjectBuffer,
-                            codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.OriginalCodeAction,
-                            ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument)),
-                        UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
+                            codeFixAction.Provider, codeFixAction.OriginalCodeAction,
+                            ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument),
+                            codeFixAction.CodeFix.PrimaryDiagnostic),
+                        UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new SuggestedActionWithNestedFlavors(
                             _threadingContext, owner, originalDocument, subjectBuffer,
                             codeRefactoringAction.Provider, codeRefactoringAction.OriginalCodeAction,
-                            ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
+                            ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument),
+                            diagnostic: null),
                         UnifiedRefactorOrFixAllSuggestedAction refactorOrFixAllAction
                             => new RefactorOrFixAllSuggestedAction(
                                 _threadingContext, owner, originalSolution, subjectBuffer,

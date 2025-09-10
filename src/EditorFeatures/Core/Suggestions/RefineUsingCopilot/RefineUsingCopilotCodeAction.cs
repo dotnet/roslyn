@@ -11,9 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Copilot;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
@@ -26,7 +24,7 @@ internal partial class SuggestedActionWithNestedFlavors
     private sealed class RefineUsingCopilotCodeAction(
         Solution originalSolution,
         CodeAction originalCodeAction,
-        DiagnosticData? primaryDiagnostic,
+        Diagnostic? primaryDiagnostic,
         ICopilotCodeAnalysisService copilotCodeAnalysisService) : CodeAction
     {
         public override string Title => EditorFeaturesResources.Refine_using_Copilot;
@@ -73,12 +71,8 @@ internal partial class SuggestedActionWithNestedFlavors
             var oldDocument = changeSummary.OldSolution.GetRequiredDocument(changedDocumentId);
             var newDocument = changeSummary.NewSolution.GetRequiredDocument(changedDocumentId);
 
-            var convertedPrimaryDiagnostic = primaryDiagnostic != null
-                ? await primaryDiagnostic.ToDiagnosticAsync(oldDocument.Project, cancellationToken).ConfigureAwait(false)
-                : null;
-
             cancellationToken.ThrowIfCancellationRequested();
-            return [new OpenRefinementSessionOperation(oldDocument, newDocument, convertedPrimaryDiagnostic, copilotCodeAnalysisService)];
+            return [new OpenRefinementSessionOperation(oldDocument, newDocument, primaryDiagnostic, copilotCodeAnalysisService)];
         }
 
         /// <summary>

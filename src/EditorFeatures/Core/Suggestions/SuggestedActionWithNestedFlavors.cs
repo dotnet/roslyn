@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -29,22 +31,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// 
 /// Because all derivations support 'preview changes', we bake that logic into this base type.
 /// </summary>
-internal abstract partial class SuggestedActionWithNestedFlavors(
+internal sealed partial class SuggestedActionWithNestedFlavors(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
     TextDocument originalDocument,
     ITextBuffer subjectBuffer,
     object provider,
     CodeAction codeAction,
-    SuggestedActionSet? fixAllFlavors)
+    SuggestedActionSet? fixAllFlavors,
+    Diagnostic? diagnostic)
     : SuggestedAction(threadingContext,
         sourceProvider,
         originalDocument.Project.Solution,
         subjectBuffer,
         provider,
-        codeAction), ISuggestedActionWithFlavors
+        codeAction), ISuggestedActionWithFlavors, ITelemetryDiagnosticID<string?>
 {
     private readonly SuggestedActionSet? _fixAllFlavors = fixAllFlavors;
+    private readonly Diagnostic? _diagnostic = diagnostic;
+
     private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
     public TextDocument OriginalDocument { get; } = originalDocument;
@@ -139,7 +144,7 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
 
             return CreateTrivialAction(
                 this, new RefineUsingCopilotCodeAction(
-                    this.OriginalSolution, this.CodeAction, this.GetDiagnostic(), copilotService));
+                    this.OriginalSolution, this.CodeAction, _diagnostic, copilotService));
         }
     }
 
@@ -193,8 +198,10 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
         // GetPreviewPane() needs to run on the UI thread.
         this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents!);
+        var diagnosticData = _diagnostic is null ? null : CodeFix.GetDiagnosticData(this.OriginalDocument.Project, _diagnostic);
+        return previewPaneService.GetPreviewPane(diagnosticData, previewContents!);
     }
 
-    protected virtual DiagnosticData? GetDiagnostic() => null;
+    public string? GetDiagnosticID()
+        => _diagnostic?.GetTelemetryDiagnosticID();
 }
