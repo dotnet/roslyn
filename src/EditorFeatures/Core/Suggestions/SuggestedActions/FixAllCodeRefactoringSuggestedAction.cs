@@ -21,7 +21,7 @@ internal sealed class RefactorAllCodeRefactoringSuggestedAction(
     Workspace workspace,
     Solution originalSolution,
     ITextBuffer subjectBuffer,
-    IFixAllState fixAllState,
+    IRefactorOrFixAllState fixAllState,
     CodeAction originalCodeAction)
         : AbstractFixAllSuggestedAction(threadingContext,
            sourceProvider,

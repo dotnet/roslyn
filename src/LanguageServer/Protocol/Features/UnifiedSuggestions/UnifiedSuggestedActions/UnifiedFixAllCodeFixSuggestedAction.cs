@@ -16,13 +16,13 @@ internal sealed class UnifiedFixAllCodeFixSuggestedAction : UnifiedSuggestedActi
 {
     public Diagnostic Diagnostic { get; }
 
-    public IFixAllState FixAllState { get; }
+    public IRefactorOrFixAllState FixAllState { get; }
 
     public UnifiedFixAllCodeFixSuggestedAction(
         Workspace workspace,
         CodeAction codeAction,
         CodeActionPriority codeActionPriority,
-        IFixAllState fixAllState,
+        IRefactorOrFixAllState fixAllState,
         Diagnostic diagnostic)
         : base(workspace, codeAction, codeActionPriority)
     {

@@ -33,40 +33,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Base class for all Roslyn light bulb menu items.
 /// </summary>
-internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<ISuggestedAction>
+internal abstract partial class SuggestedAction(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    Workspace workspace,
+    Solution originalSolution,
+    ITextBuffer subjectBuffer,
+    object provider,
+    CodeAction codeAction) : ISuggestedAction3, IEquatable<ISuggestedAction>
 {
-    protected readonly IThreadingContext ThreadingContext;
-    protected readonly SuggestedActionsSourceProvider SourceProvider;
+    protected readonly IThreadingContext ThreadingContext = threadingContext;
+    protected readonly SuggestedActionsSourceProvider SourceProvider = sourceProvider;
 
-    protected readonly Workspace Workspace;
-    protected readonly Solution OriginalSolution;
-    protected readonly ITextBuffer SubjectBuffer;
+    protected readonly Workspace Workspace = workspace;
+    protected readonly Solution OriginalSolution = originalSolution;
+    protected readonly ITextBuffer SubjectBuffer = subjectBuffer;
 
-    protected readonly object Provider;
-    internal readonly CodeAction CodeAction;
+    protected readonly object Provider = provider;
+    internal readonly CodeAction CodeAction = codeAction;
 
     private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
-
-    internal SuggestedAction(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        Solution originalSolution,
-        ITextBuffer subjectBuffer,
-        object provider,
-        CodeAction codeAction)
-    {
-        Contract.ThrowIfNull(provider);
-        Contract.ThrowIfNull(codeAction);
-
-        ThreadingContext = threadingContext;
-        SourceProvider = sourceProvider;
-        Workspace = workspace;
-        OriginalSolution = originalSolution;
-        SubjectBuffer = subjectBuffer;
-        Provider = provider;
-        CodeAction = codeAction;
-    }
 
     public virtual bool TryGetTelemetryId(out Guid telemetryId)
     {

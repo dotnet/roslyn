@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -29,33 +30,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// 
 /// Because all derivations support 'preview changes', we bake that logic into this base type.
 /// </summary>
-internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedAction, ISuggestedActionWithFlavors
+internal abstract partial class SuggestedActionWithNestedFlavors(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    Workspace workspace,
+    TextDocument originalDocument,
+    ITextBuffer subjectBuffer,
+    object provider,
+    CodeAction codeAction,
+    SuggestedActionSet fixAllFlavors)
+    : SuggestedAction(threadingContext,
+        sourceProvider,
+        workspace,
+        originalDocument.Project.Solution,
+        subjectBuffer,
+        provider,
+        codeAction), ISuggestedActionWithFlavors
 {
-    private readonly SuggestedActionSet _fixAllFlavors;
+    private readonly SuggestedActionSet _fixAllFlavors = fixAllFlavors;
     private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
-    public TextDocument OriginalDocument { get; }
-
-    public SuggestedActionWithNestedFlavors(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        TextDocument originalDocument,
-        ITextBuffer subjectBuffer,
-        object provider,
-        CodeAction codeAction,
-        SuggestedActionSet fixAllFlavors)
-        : base(threadingContext,
-               sourceProvider,
-               workspace,
-               originalDocument.Project.Solution,
-               subjectBuffer,
-               provider,
-               codeAction)
-    {
-        _fixAllFlavors = fixAllFlavors;
-        OriginalDocument = originalDocument;
-    }
+    public TextDocument OriginalDocument { get; } = originalDocument;
 
     /// <summary>
     /// HasActionSets is always true because we always know we provide 'preview changes'.

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -20,9 +21,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// Lightbulb item that has child items that should be displayed as 'menu items'
 /// (as opposed to 'flavor items').
 /// </summary>
-internal sealed class SuggestedActionWithNestedActions : SuggestedAction
+internal sealed class SuggestedActionWithNestedActions(
+    IThreadingContext threadingContext,
+    SuggestedActionsSourceProvider sourceProvider,
+    Workspace workspace,
+    Solution originalSolution,
+    ITextBuffer subjectBuffer,
+    object provider,
+    CodeAction codeAction,
+    ImmutableArray<SuggestedActionSet> nestedActionSets)
+    : SuggestedAction(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction)
 {
-    public readonly ImmutableArray<SuggestedActionSet> NestedActionSets;
+    public readonly ImmutableArray<SuggestedActionSet> NestedActionSets = nestedActionSets;
 
     public SuggestedActionWithNestedActions(
         IThreadingContext threadingContext,
@@ -30,22 +40,7 @@ internal sealed class SuggestedActionWithNestedActions : SuggestedAction
         Workspace workspace,
         Solution originalSolution,
         ITextBuffer subjectBuffer,
-        object provider,
-        CodeAction codeAction,
-        ImmutableArray<SuggestedActionSet> nestedActionSets)
-        : base(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction)
-    {
-        Debug.Assert(!nestedActionSets.IsDefaultOrEmpty);
-        NestedActionSets = nestedActionSets;
-    }
-
-    public SuggestedActionWithNestedActions(
-        IThreadingContext threadingContext,
-        SuggestedActionsSourceProvider sourceProvider,
-        Workspace workspace,
-        Solution originalSolution,
-        ITextBuffer subjectBuffer,
-        object provider,
+        IRefactorOrFixProvider provider,
         CodeAction codeAction,
         SuggestedActionSet nestedActionSet)
         : this(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction, [nestedActionSet])

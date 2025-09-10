@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-public sealed class RefactorAllContext : IFixAllContext
+public sealed class RefactorAllContext : IRefactorOrFixAllContext
 {
     internal RefactorAllState State { get; }
 
@@ -61,13 +61,13 @@ public sealed class RefactorAllContext : IFixAllContext
     public Solution Solution => Project.Solution;
 
     #region IFixAllContext implementation
-    IFixAllState IFixAllContext.State => this.State;
+    IRefactorOrFixAllState IRefactorOrFixAllContext.State => this.State;
 
-    object IFixAllContext.Provider => this.CodeRefactoringProvider;
+    IRefactorOrFixProvider IRefactorOrFixAllContext.Provider => this.CodeRefactoringProvider;
 
-    string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultRefactorAllTitle();
+    string IRefactorOrFixAllContext.GetDefaultTitle() => this.GetDefaultRefactorAllTitle();
 
-    IFixAllContext IFixAllContext.With(
+    IRefactorOrFixAllContext IRefactorOrFixAllContext.With(
         Optional<(Document? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
         Optional<string?> codeActionEquivalenceKey,

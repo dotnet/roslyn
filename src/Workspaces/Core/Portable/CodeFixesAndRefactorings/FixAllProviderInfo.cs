@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -16,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// </summary>
 internal abstract class FixAllProviderInfo
 {
-    public readonly IFixAllProvider FixAllProvider;
+    public readonly IRefactorOrFixAllProvider FixAllProvider;
     public readonly ImmutableArray<FixAllScope> SupportedScopes;
 
     private FixAllProviderInfo(
-        IFixAllProvider fixAllProvider,
+        IRefactorOrFixAllProvider fixAllProvider,
         ImmutableArray<FixAllScope> supportedScopes)
     {
         FixAllProvider = fixAllProvider;
@@ -71,15 +70,11 @@ internal abstract class FixAllProviderInfo
     {
         var refactorAllProvider = provider.GetRefactorAllProvider();
         if (refactorAllProvider == null)
-        {
             return null;
-        }
 
         var scopes = refactorAllProvider.GetSupportedRefactorAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
-        {
             return null;
-        }
 
         return new CodeRefactoringFixAllProviderInfo(refactorAllProvider, scopes);
     }
@@ -91,15 +86,11 @@ internal abstract class FixAllProviderInfo
     {
         var fixAllProvider = provider.GetFixAllProvider();
         if (fixAllProvider == null)
-        {
             return null;
-        }
 
         var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
         if (scopes.IsEmpty)
-        {
             return null;
-        }
 
         return new SuppressionFixerFixAllProviderInfo(fixAllProvider, provider, scopes);
     }
@@ -107,7 +98,7 @@ internal abstract class FixAllProviderInfo
     public abstract bool CanBeFixed(Diagnostic diagnostic);
 
     private sealed class CodeFixerFixAllProviderInfo(
-        IFixAllProvider fixAllProvider,
+        IRefactorOrFixAllProvider fixAllProvider,
         ImmutableArray<string> supportedDiagnosticIds,
         ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
     {
@@ -116,7 +107,7 @@ internal abstract class FixAllProviderInfo
     }
 
     private sealed class SuppressionFixerFixAllProviderInfo(
-        IFixAllProvider fixAllProvider,
+        IRefactorOrFixAllProvider fixAllProvider,
         IConfigurationFixProvider suppressionFixer,
         ImmutableArray<FixAllScope> supportedScopes)
         : FixAllProviderInfo(fixAllProvider, supportedScopes)
@@ -128,7 +119,7 @@ internal abstract class FixAllProviderInfo
     }
 
     private sealed class CodeRefactoringFixAllProviderInfo(
-        IFixAllProvider fixAllProvider,
+        IRefactorOrFixAllProvider fixAllProvider,
         ImmutableArray<RefactorAllScope> supportedScopes)
         : FixAllProviderInfo(fixAllProvider, supportedScopes.SelectAsArray(s => s.ToFixAllScope()))
     {

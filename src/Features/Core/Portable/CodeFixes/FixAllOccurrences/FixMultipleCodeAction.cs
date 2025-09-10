@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
 internal sealed partial class FixMultipleCodeAction(
-    IFixAllState fixAllState,
+    IRefactorOrFixAllState fixAllState,
     string title,
     string computingFixWaitDialogMessage) : AbstractFixAllCodeFixCodeAction(fixAllState, showPreviewChangesDialog: false)
 {
