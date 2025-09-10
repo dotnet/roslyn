@@ -38,7 +38,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     /// cref="CodeActionRequestPriority.Default"/> priority case, and only run them in the <see
     /// cref="CodeActionRequestPriority.Low"/> case.
     /// </summary>
-    Task<bool> IsAnyDeprioritizedDiagnosticIdAsync(
+    Task<bool> IsAnyDiagnosticIdDeprioritizedAsync(
         Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
 
     /// <summary>

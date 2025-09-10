@@ -40,7 +40,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
             cancellationToken);
     }
 
-    public ValueTask<bool> IsAnyDeprioritizedDiagnosticIdAsync(
+    public ValueTask<bool> IsAnyDiagnosticIdDeprioritizedAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
     {
         return RunWithSolutionAsync(
@@ -50,7 +50,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var project = solution.GetRequiredProject(projectId);
                 var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-                return await service.IsAnyDeprioritizedDiagnosticIdAsync(
+                return await service.IsAnyDiagnosticIdDeprioritizedAsync(
                     project, diagnosticIds, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);

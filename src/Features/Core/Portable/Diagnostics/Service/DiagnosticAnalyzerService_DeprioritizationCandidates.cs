@@ -38,7 +38,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
     private async ValueTask PopulateDeprioritizedDiagnosticIdMapAsync(Project project, CancellationToken cancellationToken)
     {
-        await IsAnyDeprioritizedDiagnosticIdAsync(project, diagnosticIds: [], cancellationToken).ConfigureAwait(false);
+        await IsAnyDiagnosticIdDeprioritizedAsync(project, diagnosticIds: [], cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<bool> IsAnyDeprioritizedDiagnosticIdInProcessAsync(
