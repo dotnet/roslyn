@@ -24,12 +24,11 @@ using Microsoft.VisualStudio.Text;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
 /// <summary>
-/// Base type for all SuggestedActions that have 'flavors'.  'Flavors' are child actions that
-/// are presented as simple links, not as menu-items, in the light-bulb.  Examples of 'flavors'
-/// include 'preview changes' (for refactorings and fixes) and 'fix all in document, project, solution'
-/// (for refactorings and fixes).
+/// Type for all SuggestedActions that have 'flavors'.  'Flavors' are child actions that are presented as simple links,
+/// not as menu-items, in the light-bulb.  Examples of 'flavors' include 'preview changes' (for refactorings and fixes)
+/// and 'fix all in document, project, solution' (for refactorings and fixes).
 /// 
-/// Because all derivations support 'preview changes', we bake that logic into this base type.
+/// Supports 'preview changes' for all changes.
 /// </summary>
 internal sealed partial class SuggestedActionWithNestedFlavors(
     IThreadingContext threadingContext,
