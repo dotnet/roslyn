@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.AddImport.AddImportDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport;
@@ -624,7 +623,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
         var semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken);
         var leftExpressionType = semanticInfo.Type;
 
-        return IsViableExtensionMethod(method, leftExpressionType);
+        return IsViableExtensionMethod(semanticModel.Compilation, method, leftExpressionType);
     }
 
     protected override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
