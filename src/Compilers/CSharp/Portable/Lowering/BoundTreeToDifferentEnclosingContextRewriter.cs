@@ -223,6 +223,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ;
         }
 
+        [return: NotNullIfNotNull(nameof(field))]
+        public override FieldSymbol? VisitFieldSymbol(FieldSymbol? field)
+        {
+            if (field is null)
+            {
+                return null;
+            }
+
+            // Field of a regular type
+            return ((FieldSymbol)field.OriginalDefinition)
+                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(field.ContainingType).AsTypeSymbolOnly());
+        }
+
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             // Cannot replace a MethodDefIndex's Method/Type with a substituted symbol.
