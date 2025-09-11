@@ -1603,7 +1603,7 @@ public sealed partial class AddUsingTests
                 {
                     void X()
                     {
-                        int o = new();
+                        int o = 0;
                         o.M1();
                     }
                 }

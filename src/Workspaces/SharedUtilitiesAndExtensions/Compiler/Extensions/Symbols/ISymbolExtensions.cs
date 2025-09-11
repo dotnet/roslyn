@@ -860,7 +860,7 @@ internal static partial class ISymbolExtensions
             }
 
 #if !ROSLYN_4_12_OR_LOWER
-            if (method.AssociatedExtensionImplementation is { IsStatic: false } associatedMethod)
+            if (method is { IsStatic: false, AssociatedExtensionImplementation: { } associatedMethod })
             {
                 classicExtensionMethod = associatedMethod;
                 return true;
