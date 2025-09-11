@@ -31597,5 +31597,152 @@ public class CAttribute : System.Attribute { }
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_01()
+    {
+        var src = """
+public static class E
+{
+    extension(int i)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        var extensionMethod = comp.GlobalNamespace.GetTypeMember("E").GetTypeMember("").GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Equal("void E.M(this System.Int32 i)", extensionMethod.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_02()
+    {
+        // not a definition
+        var src = """
+42.M();
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, add support for constructed symbols
+        Assert.Null(method.AssociatedExtensionImplementation);
+        Assert.Equal("void E.M<T>(this T t)", method.OriginalDefinition.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_03()
+    {
+        // not an extension method
+        var src = """
+public class E
+{
+    public void M() { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        var method = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.AssociatedExtensionImplementation);
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_04()
+    {
+        // missing implementation method in metadata
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
+            )
+            ldnull
+            throw
+        }
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var comp = CreateCompilationWithIL("", ilSrc);
+        var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.AssociatedExtensionImplementation);
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_05()
+    {
+        // incorrect accessibility on implementation method in metadata
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+            extends [mscorlib]System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig static void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 41 34 31 43 46 45 32 42
+                35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
+                39 45 44 34 44 36 39 00 00
+            )
+            ldnull
+            throw
+        }
+    }
+    .method family hidebysig static void M () cil managed 
+    {
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var comp = CreateCompilationWithIL("", ilSrc);
+        var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.AssociatedExtensionImplementation);
+    }
 }
 
