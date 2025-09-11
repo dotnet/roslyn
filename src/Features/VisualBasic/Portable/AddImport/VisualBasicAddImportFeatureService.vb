@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 leftExpressionType = semanticInfo.Type
             End If
 
-            Return IsViableExtensionMethod(semanticModel.Compilation, method, leftExpressionType)
+            Return IsViableExtensionMethod(method, leftExpressionType)
         End Function
 
         Protected Overrides Function IsAddMethodContext(node As SyntaxNode, semanticModel As SemanticModel) As Boolean

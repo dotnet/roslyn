@@ -391,13 +391,13 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols, ITypeSymbol typeSymbol)
         {
             return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                s => IsViableExtensionMethod(_semanticModel.Compilation, s.Symbol, typeSymbol));
+                s => IsViableExtensionMethod(s.Symbol, typeSymbol));
         }
 
         private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols)
             => methodSymbols.WhereAsArray(s =>
             {
-                if (!s.Symbol.IsExtensionMethod && !s.Symbol.ContainingType.IsExtension)
+                if (!s.Symbol.IsClassicOrModernInstanceExtensionMethod())
                     return false;
 
                 return s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly);

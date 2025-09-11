@@ -478,8 +478,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             allSymbolReferences.Enqueue(reference);
     }
 
-    protected static bool IsViableExtensionMethod(
-        Compilation compilation, IMethodSymbol method, ITypeSymbol receiver)
+    protected static bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
     {
         if (receiver == null || method == null)
             return false;
@@ -497,16 +496,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         if (receiver.Language != method.Language)
             return false;
 
-        if (method.IsExtensionMethod)
-            return method.ReduceExtensionMethod(receiver) != null;
+        // Uniformly check classic and modern extension methods.
+        if (method.IsClassicOrModernInstanceExtensionMethod(out var classicMethod))
+            method = classicMethod;
 
-        if (method.ContainingType is { IsExtension: true, ExtensionParameter.Type: var extensionType })
-        {
-            var conversion = compilation.ClassifyCommonConversion(receiver, extensionType);
-            return conversion.Exists && conversion.IsImplicit;
-        }
-
-        return false;
+        return method.ReduceExtensionMethod(receiver) != null;
     }
 
     private static bool NotGlobalNamespace(SymbolReference reference)
