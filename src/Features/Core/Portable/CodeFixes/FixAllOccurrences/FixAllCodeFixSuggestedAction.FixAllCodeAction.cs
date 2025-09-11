@@ -6,5 +6,5 @@ using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
-internal sealed partial class FixAllCodeAction(IRefactorOrFixAllState fixAllState, bool showPreviewChangesDialog = true)
+internal sealed partial class FixAllCodeAction(FixAllState fixAllState, bool showPreviewChangesDialog = true)
     : AbstractFixAllCodeFixCodeAction(fixAllState, showPreviewChangesDialog);

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -18,8 +19,8 @@ internal sealed class UnifiedRefactorOrFixAllSuggestedAction(
     IRefactorOrFixAllState fixAllState,
     object provider,
     CodeRefactoringKind? codeRefactoringKind,
-    string? telemetryDiagnosticID)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind, telemetryDiagnosticID)
+    ImmutableArray<Diagnostic> diagnostics)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics)
 {
     public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
 }

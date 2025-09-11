@@ -287,20 +287,16 @@ internal sealed partial class SuggestedActionsSourceProvider
                 ISuggestedAction ConvertToSuggestedAction(UnifiedSuggestedAction unifiedSuggestedAction)
                     => unifiedSuggestedAction switch
                     {
-                        UnifiedCodeFixSuggestedAction codeFixAction => new SuggestedActionWithNestedFlavors(
+                        UnifiedSuggestedActionWithNestedFlavors codeFixAction => new SuggestedActionWithNestedFlavors(
                             _threadingContext, owner, originalDocument, subjectBuffer,
                             codeFixAction.Provider, codeFixAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument),
-                            codeFixAction.CodeFix.Diagnostics.First()),
-                        UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new SuggestedActionWithNestedFlavors(
-                            _threadingContext, owner, originalDocument, subjectBuffer,
-                            codeRefactoringAction.Provider, codeRefactoringAction.OriginalCodeAction,
-                            ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument),
-                            diagnostic: null),
+                            codeFixAction.Diagnostics.FirstOrDefault()),
                         UnifiedRefactorOrFixAllSuggestedAction refactorOrFixAllAction
                             => new RefactorOrFixAllSuggestedAction(
                                 _threadingContext, owner, originalSolution, subjectBuffer,
-                                refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.OriginalCodeAction, refactorOrFixAllAction.TelemetryId),
+                                refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.OriginalCodeAction,
+                                refactorOrFixAllAction.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID()),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
                             _threadingContext, owner, originalSolution, subjectBuffer,
                             nestedAction.Provider, nestedAction.OriginalCodeAction,

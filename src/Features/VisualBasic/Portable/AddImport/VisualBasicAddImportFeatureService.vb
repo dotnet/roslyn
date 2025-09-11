@@ -325,11 +325,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 SyntaxFactory.QualifiedName(CreateNameSyntax(nameSpaceParts, index - 1), namePiece))
         End Function
 
-        Protected Overrides Function IsViableExtensionMethod(method As IMethodSymbol,
-                                                             expression As SyntaxNode,
-                                                             semanticModel As SemanticModel,
-                                                             syntaxFacts As ISyntaxFacts,
-                                                             cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function IsViableExtensionMethod(
+                method As IMethodSymbol,
+                expression As SyntaxNode,
+                semanticModel As SemanticModel,
+                syntaxFacts As ISyntaxFacts,
+                cancellationToken As CancellationToken) As Boolean
             Dim leftExpressionType As ITypeSymbol
             If syntaxFacts.IsInvocationExpression(expression) Then
                 leftExpressionType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken)
