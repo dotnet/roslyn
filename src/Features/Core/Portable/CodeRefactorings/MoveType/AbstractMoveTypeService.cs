@@ -42,7 +42,12 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     protected abstract Task<TTypeDeclarationSyntax?> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
     protected abstract bool IsMemberDeclaration(SyntaxNode syntaxNode);
-    protected abstract SyntaxList<SyntaxNode> GetMembers(TTypeDeclarationSyntax typeDeclaration);
+
+    /// <summary>
+    /// If this is a type declaration that only contains a type declaration within it.  In this case, we want the file
+    /// name to match the inner type, not this outer type.
+    /// </summary>
+    protected abstract bool IsTrivialTypeContainer(TTypeDeclarationSyntax typeDeclaration);
 
     protected string GetSymbolName(TTypeDeclarationSyntax syntax)
         => GetSymbolNameAndArity(syntax).name;
@@ -156,7 +161,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         // Try to find the first interesting type in the file, as that's what we'll be trying to rename to.
         // A type is intersting if it's not a trivial container of a nested type.
         var allTypeDeclarations = TypeDeclarations(semanticDocument.Root, checkTopLevelTypesOnly: false);
-        var firstInterestingType = allTypeDeclarations.FirstOrDefault(t => GetMembers(t) is not [TTypeDeclarationSyntax]);
+        var firstInterestingType = allTypeDeclarations.FirstOrDefault(t => !IsTrivialTypeContainer(t));
         if (firstInterestingType == null)
             return [];
 
