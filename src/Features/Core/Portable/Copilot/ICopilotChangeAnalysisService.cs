@@ -350,9 +350,9 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                         if (codeFixCollection is
                             {
                                 Provider: not IConfigurationFixProvider,
-                                Fixes: [var codeFix, ..],
+                                Fixes: [{ Diagnostics: [var primaryDiagnostic, ..] }, ..],
                             } &&
-                            IsVisibleDiagnostic(codeFix.PrimaryDiagnostic.IsSuppressed, codeFix.PrimaryDiagnostic.Severity) &&
+                            IsVisibleDiagnostic(primaryDiagnostic.IsSuppressed, primaryDiagnostic.Severity) &&
                             (codeFixCollection.Provider.GetType().Namespace ?? "").StartsWith(RoslynPrefix))
                         {
                             callback(codeFixCollection);

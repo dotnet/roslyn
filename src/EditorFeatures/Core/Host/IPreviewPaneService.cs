@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Host;
 
 internal interface IPreviewPaneService : IWorkspaceService
 {
-    object GetPreviewPane(DiagnosticData? diagnostic, IReadOnlyList<object> previewContent);
+    object GetPreviewPane(Diagnostic? diagnostic, IReadOnlyList<object> previewContent);
 }

@@ -13,15 +13,17 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority?>;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+
+using CodeFixGroupKey = (DiagnosticData diagnostic, CodeActionPriority firstPriority, CodeActionPriority? secondPriority);
 
 /// <summary>
 /// Provides mutual code action logic for both local and LSP scenarios
@@ -39,8 +41,6 @@ internal sealed class UnifiedSuggestedActionsSource
         CodeActionRequestPriority? priority,
         CancellationToken cancellationToken)
     {
-        var originalSolution = document.Project.Solution;
-
         // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally run any of
         // this on the UI thread and potentially allow any code to take a dependency on that.
         await TaskScheduler.Default;
@@ -52,7 +52,7 @@ internal sealed class UnifiedSuggestedActionsSource
 
         var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var organizedFixes = await OrganizeFixesAsync(originalSolution, text, filteredFixes, cancellationToken).ConfigureAwait(false);
+        var organizedFixes = await OrganizeFixesAsync(document.Project, text, filteredFixes, cancellationToken).ConfigureAwait(false);
 
         return organizedFixes;
     }
@@ -61,7 +61,7 @@ internal sealed class UnifiedSuggestedActionsSource
     /// Arrange fixes into groups based on the issue (diagnostic being fixed) and prioritize these groups.
     /// </summary>
     private static async Task<ImmutableArray<UnifiedSuggestedActionSet>> OrganizeFixesAsync(
-        Solution originalSolution,
+        Project project,
         SourceText text,
         ImmutableArray<CodeFixCollection> fixCollections,
         CancellationToken cancellationToken)
@@ -70,10 +70,10 @@ internal sealed class UnifiedSuggestedActionsSource
         using var _ = ArrayBuilder<CodeFixGroupKey>.GetInstance(out var order);
 
         // First group fixes by diagnostic and priority.
-        await GroupFixesAsync(originalSolution, fixCollections, map, order, cancellationToken).ConfigureAwait(false);
+        await GroupFixesAsync(project, fixCollections, map, order, cancellationToken).ConfigureAwait(false);
 
         // Then prioritize between the groups.
-        var prioritizedFixes = PrioritizeFixGroups(originalSolution, text, map.ToImmutable(), order.ToImmutable());
+        var prioritizedFixes = PrioritizeFixGroups(project.Solution, text, map.ToImmutable(), order.ToImmutable());
         return prioritizedFixes;
     }
 
@@ -81,18 +81,18 @@ internal sealed class UnifiedSuggestedActionsSource
     /// Groups fixes by the diagnostic being addressed by each fix.
     /// </summary>
     private static async Task GroupFixesAsync(
-        Solution originalSolution,
+        Project project,
         ImmutableArray<CodeFixCollection> fixCollections,
         IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
         ArrayBuilder<CodeFixGroupKey> order,
         CancellationToken cancellationToken)
     {
         foreach (var fixCollection in fixCollections)
-            await ProcessFixCollectionAsync(originalSolution, map, order, fixCollection, cancellationToken).ConfigureAwait(false);
+            await ProcessFixCollectionAsync(project, map, order, fixCollection, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task ProcessFixCollectionAsync(
-        Solution originalSolution,
+        Project project,
         IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
         ArrayBuilder<CodeFixGroupKey> order,
         CodeFixCollection fixCollection,
@@ -104,11 +104,11 @@ internal sealed class UnifiedSuggestedActionsSource
         var nonSupressionCodeFixes = fixes.WhereAsArray(f => !IsTopLevelSuppressionAction(f.Action));
         var supressionCodeFixes = fixes.WhereAsArray(f => IsTopLevelSuppressionAction(f.Action));
 
-        await AddCodeActionsAsync(originalSolution, map, order, fixCollection, GetFixAllSuggestedActionSetAsync, nonSupressionCodeFixes).ConfigureAwait(false);
+        await AddCodeActionsAsync(project, map, order, fixCollection, GetFixAllSuggestedActionSetAsync, nonSupressionCodeFixes).ConfigureAwait(false);
 
         // Add suppression fixes to the end of a given SuggestedActionSet so that they
         // always show up last in a group.
-        await AddCodeActionsAsync(originalSolution, map, order, fixCollection, GetFixAllSuggestedActionSetAsync, supressionCodeFixes).ConfigureAwait(false);
+        await AddCodeActionsAsync(project, map, order, fixCollection, GetFixAllSuggestedActionSetAsync, supressionCodeFixes).ConfigureAwait(false);
 
         return;
 
@@ -117,11 +117,11 @@ internal sealed class UnifiedSuggestedActionsSource
             => GetUnifiedFixAllSuggestedActionSetAsync(
                 codeAction, fixCount, fixCollection.FixAllState,
                 fixCollection.SupportedScopes, fixCollection.FirstDiagnostic,
-                originalSolution, cancellationToken);
+                project.Solution, cancellationToken);
     }
 
     private static async Task AddCodeActionsAsync(
-        Solution originalSolution,
+        Project project,
         IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
         ArrayBuilder<CodeFixGroupKey> order,
         CodeFixCollection fixCollection,
@@ -130,31 +130,31 @@ internal sealed class UnifiedSuggestedActionsSource
     {
         foreach (var fix in codeFixes)
         {
-            var unifiedSuggestedAction = await GetUnifiedSuggestedActionAsync(originalSolution, fix.Action, fix).ConfigureAwait(false);
-            AddFix(fix, unifiedSuggestedAction, map, order);
+            var unifiedSuggestedAction = await GetUnifiedSuggestedActionAsync(project, fix.Action, fix).ConfigureAwait(false);
+            AddFix(project, fix, unifiedSuggestedAction, map, order);
         }
 
         return;
 
         // Local functions
-        async Task<UnifiedSuggestedAction> GetUnifiedSuggestedActionAsync(Solution originalSolution, CodeAction action, CodeFix fix)
+        async Task<UnifiedSuggestedAction> GetUnifiedSuggestedActionAsync(Project project, CodeAction action, CodeFix fix)
         {
             if (action.NestedActions.Length > 0)
             {
                 var unifiedNestedActions = new FixedSizeArrayBuilder<UnifiedSuggestedAction>(action.NestedActions.Length);
                 foreach (var nestedAction in action.NestedActions)
                 {
-                    var unifiedNestedAction = await GetUnifiedSuggestedActionAsync(originalSolution, nestedAction, fix).ConfigureAwait(false);
+                    var unifiedNestedAction = await GetUnifiedSuggestedActionAsync(project, nestedAction, fix).ConfigureAwait(false);
                     unifiedNestedActions.Add(unifiedNestedAction);
                 }
 
                 var set = new UnifiedSuggestedActionSet(
-                    originalSolution,
+                    project.Solution,
                     categoryName: null,
                     actions: unifiedNestedActions.MoveToImmutable(),
                     title: null,
                     priority: action.Priority,
-                    applicableToSpan: fix.PrimaryDiagnostic.Location.SourceSpan);
+                    applicableToSpan: fix.Diagnostics.First().Location.SourceSpan);
 
                 return new UnifiedSuggestedActionWithNestedActions(
                     action, action.Priority, fixCollection.Provider, [set]);
@@ -169,11 +169,13 @@ internal sealed class UnifiedSuggestedActionsSource
     }
 
     private static void AddFix(
-        CodeFix fix, UnifiedSuggestedAction suggestedAction,
+        Project project,
+        CodeFix fix,
+        UnifiedSuggestedAction suggestedAction,
         IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
         ArrayBuilder<CodeFixGroupKey> order)
     {
-        var groupKey = GetGroupKey(fix);
+        var groupKey = GetGroupKey(fix, project);
         if (!map.TryGetValue(groupKey, out var suggestedActions))
         {
             order.Add(groupKey);
@@ -184,16 +186,16 @@ internal sealed class UnifiedSuggestedActionsSource
         suggestedActions.Add(suggestedAction);
         return;
 
-        static CodeFixGroupKey GetGroupKey(CodeFix fix)
+        static CodeFixGroupKey GetGroupKey(CodeFix fix, Project project)
         {
-            var diag = fix.GetPrimaryDiagnosticData();
+            var diagnosticData = DiagnosticData.Create(fix.Diagnostics.First(), project);
             if (fix.Action is AbstractConfigurationActionWithNestedActions configurationAction)
             {
                 return new CodeFixGroupKey(
-                    diag, configurationAction.Priority, configurationAction.AdditionalPriority);
+                    diagnosticData, configurationAction.Priority, configurationAction.AdditionalPriority);
             }
 
-            return new CodeFixGroupKey(diag, fix.Action.Priority, null);
+            return new CodeFixGroupKey(diagnosticData, fix.Action.Priority, null);
         }
     }
 

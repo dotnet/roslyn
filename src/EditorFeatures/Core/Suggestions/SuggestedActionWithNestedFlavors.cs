@@ -196,5 +196,5 @@ internal abstract partial class SuggestedActionWithNestedFlavors(
         return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents!);
     }
 
-    protected virtual DiagnosticData? GetDiagnostic() => null;
+    protected virtual Diagnostic? GetDiagnostic() => null;
 }

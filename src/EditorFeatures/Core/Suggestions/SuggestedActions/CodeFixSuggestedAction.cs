@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -25,7 +23,7 @@ internal sealed class CodeFixSuggestedAction(
     CodeFix fix,
     object provider,
     CodeAction action,
-    SuggestedActionSet fixAllFlavors)
+    SuggestedActionSet? fixAllFlavors)
     : SuggestedActionWithNestedFlavors(threadingContext,
         sourceProvider,
         originalDocument,
@@ -37,8 +35,8 @@ internal sealed class CodeFixSuggestedAction(
     public CodeFix CodeFix { get; } = fix;
 
     public string GetDiagnosticID()
-        => CodeFix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
+        => CodeFix.Diagnostics.First().GetTelemetryDiagnosticID();
 
-    protected override DiagnosticData GetDiagnostic()
-        => CodeFix.GetPrimaryDiagnosticData();
+    protected override Diagnostic? GetDiagnostic()
+        => CodeFix.Diagnostics.First();
 }
