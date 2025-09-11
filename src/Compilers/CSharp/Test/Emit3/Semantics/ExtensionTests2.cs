@@ -76,6 +76,26 @@ static class E
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, @"""""").WithArguments("string", "2").WithLocation(1, 14));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80217")]
+    public void Deconstruct_Nested()
+    {
+        var source = """
+            var (a, b, c) = 42;
+            var ((d, _, _), (_, e, _), (_, _, f)) = 42;
+            System.Console.WriteLine($"{a} {b} {c} {d} {e} {f}");
+
+            static class E
+            {
+                extension(int instance)
+                {
+                    public void Deconstruct(out int a, out int b, out int c)
+                        => (a, b, c) = (1, 2, 3);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1 2 3 1 2 3").VerifyDiagnostics();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
     public void Deconstruction_UnscopedRef_ExtensionMethod()
     {
