@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Roslyn.Test.Utilities;
@@ -1505,6 +1503,66 @@ public sealed partial class AddUsingTests
                 {
                     public static T Bar<T>( this Goo @this )
                         => (T)@this.Bar( typeof( T ) );
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension1(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        [|o.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        o.M1();
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public void M1()
+                        {
+                        }
+                    }
                 }
             }
             """);

@@ -285,27 +285,20 @@ internal sealed partial class SuggestedActionsSourceProvider
                 ISuggestedAction ConvertToSuggestedAction(UnifiedSuggestedAction unifiedSuggestedAction)
                     => unifiedSuggestedAction switch
                     {
-                        UnifiedCodeFixSuggestedAction codeFixAction
-                            => new SuggestedActionWithNestedFlavors(
-                                _threadingContext, owner, originalDocument, subjectBuffer,
-                                codeFixAction.Provider, codeFixAction.OriginalCodeAction,
-                                ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument),
-                                codeFixAction.CodeFix.PrimaryDiagnostic),
-                        UnifiedCodeRefactoringSuggestedAction codeRefactoringAction
-                            => new SuggestedActionWithNestedFlavors(
-                                _threadingContext, owner, originalDocument, subjectBuffer,
-                                codeRefactoringAction.Provider, codeRefactoringAction.OriginalCodeAction,
-                                ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument),
-                                diagnostic: null),
+                        UnifiedSuggestedActionWithNestedFlavors codeFixAction => new SuggestedActionWithNestedFlavors(
+                            _threadingContext, owner, originalDocument, subjectBuffer,
+                            codeFixAction.Provider, codeFixAction.OriginalCodeAction,
+                            ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument),
+                            codeFixAction.Diagnostics.FirstOrDefault()),
                         UnifiedRefactorOrFixAllSuggestedAction refactorOrFixAllAction
                             => new RefactorOrFixAllSuggestedAction(
-                                _threadingContext, owner, originalDocument.Project.Solution, subjectBuffer,
-                                refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.OriginalCodeAction, refactorOrFixAllAction.TelemetryId),
-                        UnifiedSuggestedActionWithNestedActions nestedAction
-                            => new SuggestedActionWithNestedActions(
-                                _threadingContext, owner, solution, subjectBuffer,
-                                nestedAction.Provider, nestedAction.OriginalCodeAction,
-                                nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
+                                _threadingContext, owner, document.Project.Solution, subjectBuffer,
+                                refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.OriginalCodeAction,
+                                refactorOrFixAllAction.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID()),
+                        UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
+                            _threadingContext, owner, document.Project.Solution, subjectBuffer,
+                            nestedAction.Provider, nestedAction.OriginalCodeAction,
+                            nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
                         _ => throw ExceptionUtilities.Unreachable()
                     };
             }

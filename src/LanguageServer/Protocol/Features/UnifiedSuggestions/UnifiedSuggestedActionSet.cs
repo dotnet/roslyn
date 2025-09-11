@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 internal sealed class UnifiedSuggestedActionSet(
     string? categoryName,
     ImmutableArray<UnifiedSuggestedAction> actions,
-    string? title,
+    object? title,
     CodeActionPriority priority,
     TextSpan? applicableToSpan)
 {
-    public string? CategoryName { get; } = categoryName;
-    public ImmutableArray<UnifiedSuggestedAction> Actions { get; } = actions;
-    public string? Title { get; } = title;
-    public CodeActionPriority Priority { get; } = priority;
-    public TextSpan? ApplicableToSpan { get; } = applicableToSpan;
+    public readonly string? CategoryName = categoryName;
+    public readonly ImmutableArray<UnifiedSuggestedAction> Actions = actions;
+    public readonly object? Title = title;
+    public readonly CodeActionPriority Priority = priority;
+    public readonly TextSpan? ApplicableToSpan = applicableToSpan;
 }
