@@ -201,8 +201,8 @@ internal sealed partial class SuggestedActionsSourceProvider
             var target = state.Target;
             var owner = target.Owner;
             var subjectBuffer = target.SubjectBuffer;
-            var workspace = document.Project.Solution.Workspace;
-            var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
+            var solution = document.Project.Solution;
+            var supportsFeatureService = solution.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
             var fixesTask = GetCodeFixesAsync();
             var refactoringsTask = GetRefactoringsAsync();
@@ -275,8 +275,6 @@ internal sealed partial class SuggestedActionsSourceProvider
                 if (unifiedSuggestedActionSet == null)
                     return null;
 
-                var originalSolution = unifiedSuggestedActionSet.OriginalSolution;
-
                 return new SuggestedActionSet(
                     unifiedSuggestedActionSet.CategoryName,
                     unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
@@ -294,11 +292,11 @@ internal sealed partial class SuggestedActionsSourceProvider
                             codeFixAction.Diagnostics.FirstOrDefault()),
                         UnifiedRefactorOrFixAllSuggestedAction refactorOrFixAllAction
                             => new RefactorOrFixAllSuggestedAction(
-                                _threadingContext, owner, originalSolution, subjectBuffer,
+                                _threadingContext, owner, document.Project.Solution, subjectBuffer,
                                 refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.OriginalCodeAction,
                                 refactorOrFixAllAction.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID()),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                            _threadingContext, owner, originalSolution, subjectBuffer,
+                            _threadingContext, owner, document.Project.Solution, subjectBuffer,
                             nestedAction.Provider, nestedAction.OriginalCodeAction,
                             nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
                         _ => throw ExceptionUtilities.Unreachable()
