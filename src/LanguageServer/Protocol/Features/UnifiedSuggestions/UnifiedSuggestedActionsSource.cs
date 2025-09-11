@@ -161,9 +161,11 @@ internal sealed class UnifiedSuggestedActionsSource
             }
             else
             {
-                return new UnifiedCodeFixSuggestedAction(
-                    action, action.Priority, fix, fixCollection.Provider,
-                    await getFixAllSuggestedActionSetAsync(action).ConfigureAwait(false));
+                return new UnifiedSuggestedActionWithNestedFlavors(
+                    action, action.Priority, fixCollection.Provider,
+                    await getFixAllSuggestedActionSetAsync(action).ConfigureAwait(false),
+                    codeRefactoringKind: null,
+                    fix.Diagnostics);
             }
         }
     }
@@ -245,7 +247,7 @@ internal sealed class UnifiedSuggestedActionsSource
             var fixAllStateForScope = fixAllState.With(scope: scope, codeActionEquivalenceKey: action.EquivalenceKey);
             var fixAllSuggestedAction = new UnifiedRefactorOrFixAllSuggestedAction(
                 action, action.Priority, fixAllStateForScope, fixAllState.Provider,
-                codeRefactoringKind: null, firstDiagnostic.GetTelemetryDiagnosticID());
+                codeRefactoringKind: null, [firstDiagnostic]);
 
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }
@@ -562,8 +564,9 @@ internal sealed class UnifiedSuggestedActionsSource
                     refactoring.CodeActions.Length, document as Document, selection, refactoring.Provider,
                     refactoring.FixAllProviderInfo, cancellationToken).ConfigureAwait(false);
 
-                return new UnifiedCodeRefactoringSuggestedAction(
-                    codeAction, codeAction.Priority, refactoring.Provider, fixAllSuggestedActionSet);
+                return new UnifiedSuggestedActionWithNestedFlavors(
+                    codeAction, codeAction.Priority, refactoring.Provider, fixAllSuggestedActionSet,
+                    refactoring.Provider.Kind, diagnostics: []);
             }
         }
     }
@@ -614,7 +617,7 @@ internal sealed class UnifiedSuggestedActionsSource
 
             var fixAllSuggestedAction = new UnifiedRefactorOrFixAllSuggestedAction(
                 action, action.Priority, fixAllState, provider,
-                provider.Kind, telemetryDiagnosticID: null);
+                provider.Kind, diagnostics: []);
 
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }
