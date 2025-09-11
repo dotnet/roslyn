@@ -19,6 +19,11 @@ internal sealed partial class MoveTypeCodeRefactoringProvider
         public override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
             => [RefactorAllScope.Project];
 
+        /// <summary>
+        /// Preview changes dialog can't represent file renames currently.  So this ends up just showing the user that
+        /// nothing changed (which is obviously misleading).  So we just suppress the dialog entirely and just make the
+        /// change.
+        /// </summary>
         internal override bool ShowPreviewChangesDialog
             => false;
 
