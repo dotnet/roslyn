@@ -723,12 +723,10 @@ internal sealed class UnifiedSuggestedActionsSource
         using var newActionsDisposer = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var newActions);
         foreach (var action in actionSet.Actions)
         {
-            var actionWithNestedActions = action as UnifiedSuggestedActionWithNestedActions;
-
             // Only inline if the underlying code action allows it.
-            if (actionWithNestedActions?.OriginalCodeAction.IsInlinable == true)
+            if (action is UnifiedSuggestedActionWithNestedActions { OriginalCodeAction.IsInlinable: true, NestedActionSets: var nestedActionsSets })
             {
-                newActions.AddRange(actionWithNestedActions.NestedActionSets.SelectMany(set => set.Actions));
+                newActions.AddRange(nestedActionsSets.SelectMany(set => set.Actions));
             }
             else
             {
