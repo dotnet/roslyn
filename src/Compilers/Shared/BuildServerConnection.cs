@@ -434,6 +434,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             var processFilePath = Path.Combine(clientDir, $"VBCSCompiler{PlatformInformation.ExeExtension}");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
+
+            if (!File.Exists(processFilePath))
+            {
+                // Fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
+                commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
+                processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault();
+            }
+
             return (processFilePath, commandLineArgs);
         }
 

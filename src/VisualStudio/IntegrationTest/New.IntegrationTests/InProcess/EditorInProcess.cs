@@ -580,18 +580,18 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         return (await GetNavigationBarMarginAsync(view, cancellationToken)) is not null;
     }
 
-    private async Task<List<ComboBox>> GetNavigationBarComboBoxesAsync(IWpfTextView textView, CancellationToken cancellationToken)
+    private async Task<List<Microsoft.VisualStudio.Shell.Controls.ComboBox>> GetNavigationBarComboBoxesAsync(IWpfTextView textView, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var margin = await GetNavigationBarMarginAsync(textView, cancellationToken);
         try
         {
-            return margin.GetFieldValue<List<ComboBox>>("_combos");
+            return margin.GetFieldValue<List<Microsoft.VisualStudio.Shell.Controls.ComboBox>>("_combos");
         }
         catch (FieldAccessException)
         {
-            return margin.GetFieldValue<List<ComboBox>>("Combos");
+            return margin.GetFieldValue<List<Microsoft.VisualStudio.Shell.Controls.ComboBox>>("Combos");
         }
     }
 

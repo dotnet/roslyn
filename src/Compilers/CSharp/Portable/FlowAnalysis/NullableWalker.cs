@@ -44,6 +44,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Additional info for getter null resilience analysis.
+        /// When this value is passed down through 'Analyze()', it means we are in the process of inferring the nullable annotation of 'field'.
+        /// The 'assumedAnnotation' should be used as the field's nullable annotation for this analysis pass.
+        /// See https://github.com/dotnet/csharplang/blob/229406aa6dc51c1e37b98e90eb868d979ec6d195/proposals/csharp-14.0/field-keyword.md#nullability-of-the-backing-field
+        /// </summary>
+        /// <param name="assumedAnnotation">Indicates whether the *not-annotated* pass or the *annotated* pass is being performed.</param>
+        internal readonly struct GetterNullResilienceData(SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)
+        {
+            public readonly SynthesizedBackingFieldSymbol field = field;
+            public readonly NullableAnnotation assumedAnnotation = assumedAnnotation;
+
+            public void Deconstruct(out SynthesizedBackingFieldSymbol field, out NullableAnnotation assumedAnnotation)
+            {
+                field = this.field;
+                assumedAnnotation = this.assumedAnnotation;
+            }
+        }
+
+        /// <summary>
         /// Used to copy variable slots and types from the NullableWalker for the containing method
         /// or lambda to the NullableWalker created for a nested lambda or local function.
         /// </summary>
@@ -184,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Non-null if we are performing the 'null-resilience' analysis of a getter which uses the 'field' keyword.
         /// In this case, the inferred nullable annotation of the backing field must not be used, as we are currently in the process of inferring it.
         /// </summary>
-        private readonly (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? _getterNullResilienceData;
+        private readonly GetterNullResilienceData? _getterNullResilienceData;
 
         /// <summary>
         /// If true, the parameter types and nullability from _delegateInvokeMethod is used for
@@ -460,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol? symbol,
             bool useConstructorExitWarnings,
-            (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? getterNullResilienceData,
+            GetterNullResilienceData? getterNullResilienceData,
             bool useDelegateInvokeParameterTypes,
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
@@ -1738,7 +1757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             SyntaxNode syntax,
             DiagnosticBag diagnostics,
-            (SourcePropertyAccessorSymbol getter, SynthesizedBackingFieldSymbol field, NullableAnnotation assumedNullableAnnotation)? getterNullResilienceData = null)
+            (SourcePropertyAccessorSymbol symbol, GetterNullResilienceData getterNullResilienceData)? symbolAndGetterNullResilienceData = null)
         {
             bool requiresAnalysis = true;
             var compilation = binder.Compilation;
@@ -1754,13 +1773,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Analyze(
                 compilation,
-                symbol: getterNullResilienceData?.getter,
+                symbol: symbolAndGetterNullResilienceData?.symbol,
                 node,
                 binder,
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: false,
-                getterNullResilienceData is var (_, field, annotation) ? (field, annotation) : null,
+                getterNullResilienceData: symbolAndGetterNullResilienceData?.getterNullResilienceData,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1781,7 +1800,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             MethodSymbol? delegateInvokeMethodOpt,
             VariableState initialState,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt)
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
+            GetterNullResilienceData? getterNullResilienceData)
         {
             var symbol = lambda.Symbol;
             var variables = Variables.Create(initialState.Variables).CreateNestedMethodScope(symbol);
@@ -1790,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 symbol,
                 useConstructorExitWarnings: false,
-                getterNullResilienceData: null,
+                getterNullResilienceData: getterNullResilienceData,
                 useDelegateInvokeParameterTypes: useDelegateInvokeParameterTypes,
                 useDelegateInvokeReturnType: useDelegateInvokeReturnType,
                 delegateInvokeMethodOpt: delegateInvokeMethodOpt,
@@ -1821,7 +1841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
-            (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? getterNullResilienceData,
+            GetterNullResilienceData? getterNullResilienceData,
             bool useDelegateInvokeParameterTypes,
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
@@ -8493,7 +8513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // MethodTypeInferrer must infer nullability for lambdas based on the nullability
                     // from flow analysis rather than the declared nullability. To allow that, we need
                     // to re-bind lambdas in MethodTypeInferrer.
-                    return getUnboundLambda((BoundLambda)argument, GetVariableState(_variables, lambdaState.Value));
+                    return getUnboundLambda((BoundLambda)argument, GetVariableState(_variables, lambdaState.Value), _getterNullResilienceData);
                 }
 
                 if (argument.Kind == BoundKind.CollectionExpression)
@@ -8539,9 +8559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.Type);
             }
 
-            static UnboundLambda getUnboundLambda(BoundLambda expr, VariableState variableState)
+            static UnboundLambda getUnboundLambda(BoundLambda expr, VariableState variableState, GetterNullResilienceData? getterNullResilienceData)
             {
-                return expr.UnboundLambda.WithNullableState(variableState);
+                return expr.UnboundLambda.WithNullabilityInfo(variableState, getterNullResilienceData);
             }
         }
 
