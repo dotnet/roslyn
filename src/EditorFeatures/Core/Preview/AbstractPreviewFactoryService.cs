@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -90,11 +91,32 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
                 var newProject = projectChanges.NewProject;
 
                 // Exclude changes to unchangeable documents if they will be ignored when applied to workspace.
-                foreach (var documentId in projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, ignoreUnchangeableDocuments))
+                var allChangedDocuments = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: false, ignoreUnchangeableDocuments: false).ToHashSet();
+                var textChangedDocuments = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, ignoreUnchangeableDocuments).ToHashSet();
+
+                foreach (var documentId in textChangedDocuments)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, async c =>
                         await CreateChangedDocumentPreviewViewAsync(oldSolution.GetRequiredDocument(documentId), newSolution.GetRequiredDocument(documentId), zoomLevel, c).ConfigureAwaitRunInline()));
+                }
+
+                foreach (var documentId in allChangedDocuments)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (textChangedDocuments.Contains(documentId))
+                        continue;
+
+                    var oldDocument = oldProject.GetRequiredDocument(documentId);
+                    var newDocument = newProject.GetRequiredDocument(documentId);
+
+                    if (oldDocument.Name != newDocument.Name)
+                    {
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId,
+                            string.Format(WorkspacesResources.Rename_0_to_1, oldDocument.Name, newDocument.Name)));
+                        break;
+                    }
                 }
 
                 foreach (var documentId in projectChanges.GetAddedDocuments())
