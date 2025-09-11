@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -16,24 +17,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Suggested action for fix all occurrences for a code fix or a code refactoring.
 /// </summary>
-internal abstract class AbstractFixAllSuggestedAction(
+internal sealed class RefactorOrFixAllSuggestedAction(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
     Solution originalSolution,
     ITextBuffer subjectBuffer,
     IRefactorOrFixAllState fixAllState,
     CodeAction originalCodeAction,
+    string? diagnosticTelemetryId,
     AbstractFixAllCodeAction fixAllCodeAction)
     : SuggestedAction(threadingContext,
         sourceProvider,
         originalSolution,
         subjectBuffer,
         fixAllState.FixAllProvider,
-        fixAllCodeAction)
+        fixAllCodeAction),
+    ITelemetryDiagnosticID<string?>
 {
     public CodeAction OriginalCodeAction { get; } = originalCodeAction;
 
     public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
+
+    public string? GetDiagnosticID() => diagnosticTelemetryId;
 
     public override bool TryGetTelemetryId(out Guid telemetryId)
     {
