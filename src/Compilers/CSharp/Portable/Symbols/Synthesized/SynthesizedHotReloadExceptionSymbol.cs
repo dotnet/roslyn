@@ -97,11 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsStatic => false;
         public override bool IsRefLikeType => false;
 
-        internal override string ExtensionGroupingName
-            => throw ExceptionUtilities.Unreachable();
-
-        internal override string ExtensionMarkerName
-            => throw ExceptionUtilities.Unreachable();
+        internal override string? ExtensionGroupingName => null;
+        internal override string? ExtensionMarkerName => null;
 
         public override bool IsReadOnly => false;
         public override bool IsAbstract => false;

@@ -9,7 +9,7 @@ This document provides guidance for thinking about language interactions and tes
 - BCL (including mono) and other customer impact
 - Determinism
 - Loading from metadata (source vs. loaded from metadata)
-- Public interface of compiler APIs (including semantic model APIs listed below):
+- Public compiler APIs (including semantic model and other APIs listed below):
     - GetDeclaredSymbol 
     - GetEnclosingSymbol 
     - GetSymbolInfo 
@@ -29,6 +29,7 @@ This document provides guidance for thinking about language interactions and tes
     - ClassifyConversion
     - GetOperation (`IOperation`)
     - GetCFG (`ControlFlowGraph`)
+    - DocumentationCommentId APIs
 - VB/F# interop
 - C++/CLI interop (particularly for metadata format changes, e.g. DIMs, static abstracts in interfaces, or generic attributes)
 - Performance and stress testing

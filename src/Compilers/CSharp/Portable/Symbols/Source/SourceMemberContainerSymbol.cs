@@ -2416,7 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void checkMemberNameConflictsInExtensions(BindingDiagnosticBag diagnostics)
             {
-                IEnumerable<IGrouping<string, NamedTypeSymbol>> extensionsByReceiverType = GetTypeMembers("").Where(static t => t.IsExtension).GroupBy(static t => ((SourceNamedTypeSymbol)t).ExtensionGroupingName);
+                IEnumerable<IGrouping<string, NamedTypeSymbol>> extensionsByReceiverType = GetTypeMembers("").Where(static t => t.IsExtension).GroupBy(static t => ((SourceNamedTypeSymbol)t).ExtensionGroupingName!);
 
                 foreach (var grouping in extensionsByReceiverType)
                 {

@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsReferenceType => false;
         public override bool IsValueType => true;
         internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
         public override TypeKind TypeKind => TypeKind.FunctionPointer;
         public override bool IsRefLikeType => false;
         public override bool IsReadOnly => false;

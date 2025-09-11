@@ -345,9 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                 {
-                    // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, should we output ExtensionMarkerName instead here?
-                    var extensionIdentifier = underlyingTypeSymbol!.ExtensionGroupingName; // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, use public API once it's available
-                    Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, extensionIdentifier));
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, symbol.ExtensionGroupingName));
                 }
                 else
                 {

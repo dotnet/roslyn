@@ -1095,11 +1095,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override string ExtensionGroupingName
+        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
+        public override bool IsExtension => base.IsExtension;
+
+        internal override string? ExtensionGroupingName
         {
             get
             {
-                Debug.Assert(IsExtension);
+                if (!IsExtension)
+                {
+                    return null;
+                }
+
                 if (_lazyExtensionInfo is null)
                 {
                     Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
@@ -1114,11 +1121,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override string ExtensionMarkerName
+        internal override string? ExtensionMarkerName
         {
             get
             {
-                Debug.Assert(IsExtension);
+                if (!IsExtension)
+                {
+                    return null;
+                }
+
                 if (_lazyExtensionInfo is null)
                 {
                     Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);

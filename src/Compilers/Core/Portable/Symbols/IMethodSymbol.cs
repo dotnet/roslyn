@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Returns false for methods in <c>extension()</c> blocks.
         /// To check if a method is a "new" extension method (a member of an <c>extension()</c> block),
-        /// check <see cref="ITypeSymbol.IsExtension"/> on the method's <see cref="ISymbol.ContainingType"/>.
+        /// check <see cref="INamedTypeSymbol.IsExtension"/> on the method's <see cref="ISymbol.ContainingType"/>.
         /// </remarks>
         bool IsExtensionMethod { get; }
 

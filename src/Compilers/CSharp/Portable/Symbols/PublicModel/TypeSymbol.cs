@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -155,12 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsTupleType => UnderlyingTypeSymbol.IsTupleType;
 
         bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
-
-#nullable enable
-        bool ITypeSymbol.IsExtension => UnderlyingTypeSymbol.IsExtension;
-
-        IParameterSymbol? ITypeSymbol.ExtensionParameter => UnderlyingTypeSymbol.ExtensionParameter?.GetPublicSymbol();
-#nullable disable
 
         string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
         {

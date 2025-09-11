@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If symbolName Is Nothing Then
-                symbolName = If(symbol.IsExtension, symbol.MetadataName, symbol.Name)
+                symbolName = If(symbol.IsExtension, symbol.ExtensionGroupingName, symbol.Name)
             End If
 
             If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso

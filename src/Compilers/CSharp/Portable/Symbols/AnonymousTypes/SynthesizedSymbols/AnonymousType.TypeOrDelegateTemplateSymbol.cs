@@ -167,11 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal override string ExtensionGroupingName
-                => throw ExceptionUtilities.Unreachable();
+            internal sealed override string? ExtensionGroupingName => null;
 
-            internal override string ExtensionMarkerName
-                => throw ExceptionUtilities.Unreachable();
+            internal sealed override string? ExtensionMarkerName => null;
 
             public sealed override bool IsReadOnly
             {

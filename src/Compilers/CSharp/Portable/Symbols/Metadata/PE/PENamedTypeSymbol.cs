@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -2686,31 +2687,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override string ExtensionGroupingName
+#nullable enable
+        internal override string? ExtensionGroupingName
         {
-            get
-            {
-                if (!IsExtension)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                return _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.MetadataName;
-            }
+            get { return IsExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.MetadataName : null; }
         }
 
-        internal override string ExtensionMarkerName
+        internal override string? ExtensionMarkerName
         {
-            get
-            {
-                if (!IsExtension)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                return MetadataName;
-            }
+            get { return IsExtension ? MetadataName : null; }
         }
+#nullable disable
 
         public override bool IsReadOnly
         {
