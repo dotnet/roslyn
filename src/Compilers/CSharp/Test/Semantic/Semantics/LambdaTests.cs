@@ -8814,6 +8814,50 @@ class Program
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(8, 24));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Speculative()
+        {
+            // Compile without a need for the attribute.
+            var source1 = """
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source1);
+            var tree1 = comp.SyntaxTrees.Single();
+            var model1 = comp.GetSemanticModel(tree1);
+
+            // Speculatively bind a lambda that needs the attribute.
+            var source2 = """
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (params System.Collections.Generic.IList<int> xs) => xs.Count;
+                    }
+                }
+                """;
+            var tree2 = CSharpSyntaxTree.ParseText(source2);
+            var method1 = tree1.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var method2 = tree2.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            Assert.True(model1.TryGetSpeculativeSemanticModelForMethodBody(method1.Body.SpanStart, method2, out var model2));
+            var lambda = tree2.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var symbol = model2.GetSymbolInfo(lambda).Symbol;
+            Assert.NotNull(symbol);
+            Assert.True(symbol.GetParameters().Single().IsParamsCollection);
+
+            // The original compilation does not synthesize the attribute when emitted.
+            CompileAndVerify(comp,
+                symbolValidator: static (module) =>
+                {
+                    Assert.DoesNotContain("ParamCollectionAttribute", module.TypeNames);
+                })
+                .VerifyDiagnostics();
+        }
+
         [Fact]
         public void ImplicitlyTypedLambdaWithModifier_CSharp13()
         {
