@@ -12,6 +12,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
+    public readonly struct ResourceEdit(ResourceEditKind kind, ResourceDescription resource)
+    {
+        public ResourceEditKind Kind { get; } = kind;
+        public ResourceDescription Resource { get; } = resource;
+    }
+
     /// <summary>
     /// Describes a symbol edit between two compilations. 
     /// For example, an addition of a method, an update of a method, removal of a type, etc.
