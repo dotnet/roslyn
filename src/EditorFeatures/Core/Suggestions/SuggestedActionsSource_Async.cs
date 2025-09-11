@@ -12,6 +12,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -19,6 +21,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -292,12 +295,17 @@ internal sealed partial class SuggestedActionsSourceProvider
                             _threadingContext, owner, originalDocument, subjectBuffer,
                             codeRefactoringAction.Provider, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
-                        UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
-                            _threadingContext, owner, originalSolution, subjectBuffer,
-                            fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
-                        UnifiedRefactorAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new RefactorAllCodeRefactoringSuggestedAction(
-                            _threadingContext, owner, originalSolution, subjectBuffer,
-                            fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
+                        UnifiedFixAllCodeFixSuggestedAction fixAllAction
+                            => new RefactorOrFixAllSuggestedAction(
+                                _threadingContext, owner, originalSolution, subjectBuffer,
+                                fixAllAction.FixAllState, fixAllAction.OriginalCodeAction, fixAllAction.TelemetryId,
+                                new FixAllCodeAction(fixAllAction.FixAllState)),
+                        UnifiedRefactorAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction
+                            => new RefactorOrFixAllSuggestedAction(
+                                _threadingContext, owner, originalSolution, subjectBuffer,
+                                fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction,
+                                diagnosticTelemetryId: null,
+                                new RefactorAllCodeRefactoringCodeAction(fixAllCodeRefactoringAction.FixAllState)),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
                             _threadingContext, owner, originalSolution, subjectBuffer,
                             nestedAction.Provider, nestedAction.OriginalCodeAction,

@@ -12,6 +12,7 @@ Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.get -> bool
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.init -> void
+Microsoft.CodeAnalysis.IMethodSymbol.AssociatedExtensionImplementation.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IMethodSymbol.IsIterator.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsExtension.get -> bool

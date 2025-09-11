@@ -2634,6 +2634,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private void MarkFieldsUsed(TypeSymbol type)
         {
+            type = type.OriginalDefinition;
+
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
