@@ -407,3 +407,12 @@ partial interface I
 
 class C : I;
 ```
+
+## Missing `ParamCollectionAttribute` is reported in more cases
+
+***Introduced in Visual Studio 2026 version 18.0***
+
+If you are compiling a module (note that this doesn't apply to normal DLL/EXE compilations),
+and have an unused lambda or local function with a `params` collection parameter,
+and the `ParamCollectionAttribute` is not found, a compilation error is now reported.
+You can work around that by defining the attribute yourself.
