@@ -203,8 +203,12 @@ internal sealed class DiagnosticData(
         }
     }
 
-    public static DiagnosticData Create(Diagnostic diagnostic, Project project)
+    [return: NotNullIfNotNull(nameof(diagnostic))]
+    public static DiagnosticData? Create(Diagnostic? diagnostic, Project project)
     {
+        if (diagnostic is null)
+            return null;
+
         var document = project.GetDocument(diagnostic.Location.SourceTree);
         if (document != null)
             return Create(diagnostic, document);
