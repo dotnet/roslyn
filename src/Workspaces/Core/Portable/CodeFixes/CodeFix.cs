@@ -56,22 +56,23 @@ internal sealed class CodeFix
     }
 
     public DiagnosticData GetPrimaryDiagnosticData()
-    {
-        var diagnostic = PrimaryDiagnostic;
+        => GetDiagnosticData(Project, PrimaryDiagnostic);
 
+    public static DiagnosticData GetDiagnosticData(Project project, Diagnostic diagnostic)
+    {
         if (diagnostic.Location.IsInSource)
         {
-            var document = Project.GetDocument(diagnostic.Location.SourceTree);
+            var document = project.GetDocument(diagnostic.Location.SourceTree);
             if (document != null)
                 return DiagnosticData.Create(diagnostic, document);
         }
         else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
         {
-            var document = Project.Documents.FirstOrDefault(d => d.FilePath == diagnostic.Location.GetLineSpan().Path);
+            var document = project.Documents.FirstOrDefault(d => d.FilePath == diagnostic.Location.GetLineSpan().Path);
             if (document != null)
                 return DiagnosticData.Create(diagnostic, document);
         }
 
-        return DiagnosticData.Create(diagnostic, Project);
+        return DiagnosticData.Create(diagnostic, project);
     }
 }

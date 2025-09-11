@@ -842,7 +842,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
                 action = fixAllAction;
 
                 if (willBlockUntilComplete
-                    && action is AbstractFixAllSuggestedAction fixAllSuggestedAction
+                    && action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction
                     && fixAllSuggestedAction.CodeAction is AbstractFixAllCodeAction fixAllCodeAction)
                 {
                     // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
@@ -933,7 +933,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         return actions;
     }
 
-    private async Task<AbstractFixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
+    private async Task<RefactorOrFixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -941,7 +941,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         {
             foreach (var action in actionSet.Actions)
             {
-                if (action is AbstractFixAllSuggestedAction fixAllSuggestedAction)
+                if (action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction)
                 {
                     var fixAllCodeAction = fixAllSuggestedAction.CodeAction as AbstractFixAllCodeAction;
                     if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)

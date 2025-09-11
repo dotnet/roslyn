@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag nullableAnalyzeAndFilterDiagnostics(NullableAnnotation assumedNullableAnnotation)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, diagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, assumedNullableAnnotation));
+                NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, diagnostics, symbolAndGetterNullResilienceData: (getAccessor, new NullableWalker.GetterNullResilienceData(_property.BackingField, assumedNullableAnnotation)));
                 if (diagnostics.IsEmptyWithoutResolution)
                 {
                     return diagnostics;
