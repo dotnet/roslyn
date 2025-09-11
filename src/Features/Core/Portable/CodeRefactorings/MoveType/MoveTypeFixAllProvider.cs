@@ -17,7 +17,7 @@ internal sealed partial class MoveTypeCodeRefactoringProvider
     private sealed class MoveTypeFixAllProvider : RefactorAllProvider
     {
         public override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
-            => [RefactorAllScope.Project, RefactorAllScope.Solution];
+            => [RefactorAllScope.Project];
 
         public override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext refactorAllContext)
         {
