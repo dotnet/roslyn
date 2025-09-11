@@ -14,8 +14,8 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-    Public Class AddImportCrossLanguageTests
-        Inherits AbstractCrossLanguageUserDiagnosticTest
+    Public Class AddImportCrossLanguageUserDiagnosticTests
+        Inherits AbstractCrossLanguageUserDiagnosticTests
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             Dim fixer As CodeFixProvider

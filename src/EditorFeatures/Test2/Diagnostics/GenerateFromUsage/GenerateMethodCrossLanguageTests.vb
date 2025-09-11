@@ -8,8 +8,8 @@ Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-    Partial Public Class GenerateMethodCrossLanguageTests
-        Inherits AbstractCrossLanguageUserDiagnosticTest
+    Partial Public Class GenerateMethodCrossLanguageUserDiagnosticTests
+        Inherits AbstractCrossLanguageUserDiagnosticTests
 
         Public Sub New(outputHelper As ITestOutputHelper)
             MyBase.New(outputHelper)

@@ -32,15 +32,12 @@ internal sealed class RefactorOrFixAllSuggestedAction(
         originalSolution,
         subjectBuffer,
         fixAllState.FixAllProvider,
-        fixAllState switch
-        {
-            FixAllState state => new FixAllCodeAction(state),
-            RefactorAllState state => new RefactorAllCodeAction(state),
-            _ => throw ExceptionUtilities.UnexpectedValue(fixAllState)
-        }),
+        new RefactorOrFixAllCodeAction(fixAllState, showPreviewChangesDialog: true)),
     ITelemetryDiagnosticID<string?>
 {
     public string? GetDiagnosticID() => diagnosticTelemetryId;
+
+    internal new RefactorOrFixAllCodeAction CodeAction => (RefactorOrFixAllCodeAction)base.CodeAction;
 
     public override bool TryGetTelemetryId(out Guid telemetryId)
     {

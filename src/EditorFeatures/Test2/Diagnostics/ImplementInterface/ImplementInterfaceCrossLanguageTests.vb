@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ImplementInterface
     <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-    Public Class ImplementInterfaceCrossLanguageTests
-        Inherits AbstractCrossLanguageUserDiagnosticTest
+    Public Class ImplementInterfaceCrossLanguageUserDiagnosticTests
+        Inherits AbstractCrossLanguageUserDiagnosticTests
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then

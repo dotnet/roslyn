@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateEvent
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
-    Public Class GenerateEventCrossLanguageTests
-        Inherits AbstractCrossLanguageUserDiagnosticTest
+    Public Class GenerateEventCrossLanguageUserDiagnosticTests
+        Inherits AbstractCrossLanguageUserDiagnosticTests
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent.GenerateEventCodeFixProvider())
