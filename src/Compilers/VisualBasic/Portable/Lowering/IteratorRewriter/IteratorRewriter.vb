@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     F.If(
                     condition:=
                         F.LogicalAndAlso(
-                            F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineState.FinishedState)),
+                            F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineState.InitialEnumerableState)),
                             F.IntEqual(F.Field(F.Me, _initialThreadIdField, False), managedThreadId)),
                     thenClause:=
                         F.Block(
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     DirectCast(F.StatementList(), BoundStatement))
                         ),
                     elseClause:=
-                        F.Assignment(F.Local(resultVariable, True), F.[New](StateMachineType.Constructor, F.Literal(0)))
+                        F.Assignment(F.Local(resultVariable, True), F.[New](StateMachineType.Constructor, F.Literal(StateMachineState.FirstUnusedState)))
                     ))
 
                 ' Initialize all the parameter copies
@@ -323,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
             ' Dim stateMachineLocal As new IteratorImplementationClass(N)
             ' where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            Dim initialState = If(_isEnumerable, StateMachineState.FinishedState, StateMachineState.FirstUnusedState)
+            Dim initialState = If(_isEnumerable, StateMachineState.InitialEnumerableState, StateMachineState.FirstUnusedState)
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal, True),
