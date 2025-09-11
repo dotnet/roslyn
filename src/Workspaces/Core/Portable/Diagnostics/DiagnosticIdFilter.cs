@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -16,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// If present, if all of the descriptors an analyzer has is in this set, it will be excluded.
 /// Note: this set can include diagnostic IDs from multiple analyzers in it.
 /// </param>
+[DataContract]
 internal readonly record struct DiagnosticIdFilter(
-    ImmutableHashSet<string>? IncludedDiagnosticIds,
-    ImmutableHashSet<string>? ExcludedDiagnosticIds)
+    [property: DataMember(Order = 0)] ImmutableHashSet<string>? IncludedDiagnosticIds,
+    [property: DataMember(Order = 1)] ImmutableHashSet<string>? ExcludedDiagnosticIds)
 {
     public static readonly DiagnosticIdFilter All = default;
 
