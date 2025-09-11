@@ -6,7 +6,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -24,20 +26,20 @@ internal sealed class RefactorOrFixAllSuggestedAction(
     ITextBuffer subjectBuffer,
     IRefactorOrFixAllState fixAllState,
     CodeAction originalCodeAction,
-    string? diagnosticTelemetryId,
-    AbstractFixAllCodeAction fixAllCodeAction)
+    string? diagnosticTelemetryId)
     : SuggestedAction(threadingContext,
         sourceProvider,
         originalSolution,
         subjectBuffer,
         fixAllState.FixAllProvider,
-        fixAllCodeAction),
+        fixAllState switch
+        {
+            FixAllState state => new FixAllCodeAction(state),
+            RefactorAllState state => new RefactorAllCodeAction(state),
+            _ => throw ExceptionUtilities.UnexpectedValue(fixAllState)
+        }),
     ITelemetryDiagnosticID<string?>
 {
-    public CodeAction OriginalCodeAction { get; } = originalCodeAction;
-
-    public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
-
     public string? GetDiagnosticID() => diagnosticTelemetryId;
 
     public override bool TryGetTelemetryId(out Guid telemetryId)
@@ -45,7 +47,7 @@ internal sealed class RefactorOrFixAllSuggestedAction(
         // We get the telemetry id for the original code action we are fixing,
         // not the special 'FixAllCodeAction'.  that is the .CodeAction this
         // SuggestedAction is pointing at.
-        telemetryId = OriginalCodeAction.GetTelemetryId(FixAllState.Scope);
+        telemetryId = originalCodeAction.GetTelemetryId(fixAllState.Scope);
         return true;
     }
 
@@ -54,7 +56,7 @@ internal sealed class RefactorOrFixAllSuggestedAction(
     {
         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var fixAllKind = FixAllState.FixAllKind;
+        var fixAllKind = fixAllState.FixAllKind;
         var functionId = fixAllKind switch
         {
             FixAllKind.CodeFix => FunctionId.CodeFixes_FixAllOccurrencesSession,
@@ -62,7 +64,7 @@ internal sealed class RefactorOrFixAllSuggestedAction(
             _ => throw ExceptionUtilities.UnexpectedValue(fixAllKind)
         };
 
-        using (Logger.LogBlock(functionId, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
+        using (Logger.LogBlock(functionId, FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId), cancellationToken))
         {
             await base.InnerInvokeAsync(progress, cancellationToken).ConfigureAwait(false);
         }
