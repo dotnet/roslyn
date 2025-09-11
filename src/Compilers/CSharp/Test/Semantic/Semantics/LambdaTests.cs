@@ -8793,6 +8793,27 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Missing_NoSynthesizedDelegate()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        Func<IList<int>, int> lam = (params IList<int> xs) => xs.Count;
+                        lam([1, 2, 3]);
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+                // (7,38): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         Func<IList<int>, int> lam = (params IList<int> xs) => xs.Count;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(7, 38));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
         public void ParamsCollection_Attribute_Missing_ExtensionMethod()
         {
             var source = """
