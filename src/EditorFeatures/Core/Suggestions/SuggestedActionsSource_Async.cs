@@ -198,8 +198,8 @@ internal sealed partial class SuggestedActionsSourceProvider
             var target = state.Target;
             var owner = target.Owner;
             var subjectBuffer = target.SubjectBuffer;
-            var workspace = document.Project.Solution.Workspace;
-            var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
+            var solution = document.Project.Solution;
+            var supportsFeatureService = solution.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
             var fixesTask = GetCodeFixesAsync();
             var refactoringsTask = GetRefactoringsAsync();
@@ -272,8 +272,6 @@ internal sealed partial class SuggestedActionsSourceProvider
                 if (unifiedSuggestedActionSet == null)
                     return null;
 
-                var originalSolution = unifiedSuggestedActionSet.OriginalSolution;
-
                 return new SuggestedActionSet(
                     unifiedSuggestedActionSet.CategoryName,
                     unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
@@ -293,13 +291,13 @@ internal sealed partial class SuggestedActionsSourceProvider
                             codeRefactoringAction.Provider, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
                         UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
-                            _threadingContext, owner, originalSolution, subjectBuffer,
+                            _threadingContext, owner, solution, subjectBuffer,
                             fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
                         UnifiedRefactorAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new RefactorAllCodeRefactoringSuggestedAction(
-                            _threadingContext, owner, originalSolution, subjectBuffer,
+                            _threadingContext, owner, solution, subjectBuffer,
                             fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                            _threadingContext, owner, originalSolution, subjectBuffer,
+                            _threadingContext, owner, solution, subjectBuffer,
                             nestedAction.Provider, nestedAction.OriginalCodeAction,
                             nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
                         _ => throw ExceptionUtilities.Unreachable()
