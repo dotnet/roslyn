@@ -296,17 +296,17 @@ internal sealed partial class SuggestedActionsSourceProvider
                     {
                         UnifiedSuggestedActionWithNestedFlavors codeFixAction => new SuggestedActionWithNestedFlavors(
                             _threadingContext, owner, originalDocument, subjectBuffer,
-                            codeFixAction.Provider, codeFixAction.OriginalCodeAction,
+                            codeFixAction.Provider, codeFixAction.CodeAction,
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument),
                             codeFixAction.Diagnostics.FirstOrDefault()),
                         UnifiedRefactorOrFixAllSuggestedAction refactorOrFixAllAction
                             => new RefactorOrFixAllSuggestedAction(
                                 _threadingContext, owner, originalSolution, subjectBuffer,
-                                refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.OriginalCodeAction,
+                                refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.CodeAction,
                                 refactorOrFixAllAction.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID()),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
                             _threadingContext, owner, originalSolution, subjectBuffer,
-                            nestedAction.Provider, nestedAction.OriginalCodeAction,
+                            nestedAction.Provider, nestedAction.CodeAction,
                             nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
                         _ => throw ExceptionUtilities.Unreachable()
                     };

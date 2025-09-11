@@ -285,14 +285,14 @@ internal sealed class UnifiedSuggestedActionsSource
         {
             var actions = map[groupKey];
 
-            var nonSuppressionActions = actions.WhereAsArray(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction));
+            var nonSuppressionActions = actions.WhereAsArray(a => !IsTopLevelSuppressionAction(a.CodeAction));
             AddUnifiedSuggestedActionsSet(originalSolution, text, nonSuppressionActions, groupKey, nonSuppressionSets);
 
-            var suppressionActions = actions.WhereAsArray(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
-                !IsBulkConfigurationAction(a.OriginalCodeAction));
+            var suppressionActions = actions.WhereAsArray(a => IsTopLevelSuppressionAction(a.CodeAction) &&
+                !IsBulkConfigurationAction(a.CodeAction));
             AddUnifiedSuggestedActionsSet(originalSolution, text, suppressionActions, groupKey, suppressionSets);
 
-            bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.OriginalCodeAction)));
+            bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.CodeAction)));
         }
 
         var sets = nonSuppressionSets.ToImmutable();
@@ -730,7 +730,7 @@ internal sealed class UnifiedSuggestedActionsSource
             var actionWithNestedActions = action as UnifiedSuggestedActionWithNestedActions;
 
             // Only inline if the underlying code action allows it.
-            if (actionWithNestedActions?.OriginalCodeAction.IsInlinable == true)
+            if (actionWithNestedActions?.CodeAction.IsInlinable == true)
             {
                 newActions.AddRange(actionWithNestedActions.NestedActionSets.SelectMany(set => set.Actions));
             }
@@ -773,7 +773,7 @@ internal sealed class UnifiedSuggestedActionsSource
 
         foreach (var action in set.Actions)
         {
-            if (seenTitles.Add(action.OriginalCodeAction.Title))
+            if (seenTitles.Add(action.CodeAction.Title))
             {
                 actions.Add(action);
             }
