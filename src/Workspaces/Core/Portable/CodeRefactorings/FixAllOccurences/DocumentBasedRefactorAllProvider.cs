@@ -25,10 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 ///
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
 /// </remarks>
-internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<RefactorAllScope> supportedRefactorAllScopes)
+internal abstract class DocumentBasedRefactorAllProvider(
+    ImmutableArray<RefactorAllScope> supportedRefactorAllScopes,
+    Optional<string> equivalenceKey = default)
     : RefactorAllProvider
 {
     private readonly ImmutableArray<RefactorAllScope> _supportedRefactorAllScopes = supportedRefactorAllScopes;
+    private readonly Optional<string> _equivalenceKey = equivalenceKey;
 
     protected DocumentBasedRefactorAllProvider()
         : this(DefaultSupportedRefactorAllScopes)
@@ -62,9 +65,14 @@ internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<Refactor
     public sealed override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
         => _supportedRefactorAllScopes;
 
-    public sealed override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext refactorAllContext)
-        => DefaultFixAllProviderHelpers.GetFixAsync(
-            refactorAllContext.GetDefaultRefactorAllTitle(), refactorAllContext, RefactorAllContextsHelperAsync);
+    public sealed override async Task<CodeAction?> GetRefactoringAsync(RefactorAllContext refactorAllContext)
+    {
+        if (_equivalenceKey.HasValue && refactorAllContext.CodeActionEquivalenceKey != _equivalenceKey.Value)
+            return null;
+
+        return await DefaultFixAllProviderHelpers.GetFixAsync(
+            refactorAllContext.GetDefaultRefactorAllTitle(), refactorAllContext, RefactorAllContextsHelperAsync).ConfigureAwait(false);
+    }
 
     private Task<Solution?> RefactorAllContextsHelperAsync(RefactorAllContext originalRefactorAllContext, ImmutableArray<RefactorAllContext> refactorAllContexts)
         => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(
