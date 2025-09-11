@@ -10,8 +10,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
-    Partial Public Class GenerateVariableCrossLanguageTests
-        Inherits AbstractCrossLanguageUserDiagnosticTest
+    Partial Public Class GenerateVariableCrossLanguageUserDiagnosticTests
+        Inherits AbstractCrossLanguageUserDiagnosticTests
 
         Public Sub New(outputHelper As ITestOutputHelper)
             MyBase.New(outputHelper)

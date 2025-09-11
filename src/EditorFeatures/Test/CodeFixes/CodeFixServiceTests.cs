@@ -212,7 +212,7 @@ public sealed class CodeFixServiceTests
             cancellationToken: CancellationToken.None);
         Assert.True(codeFix.Called);
         var fixCollection = Assert.Single(fixCollectionSet);
-        Assert.Equal(MockFixer.Id, fixCollection.FirstDiagnostic.Id);
+        Assert.Equal(MockFixer.Id, fixCollection.Diagnostics.First().Id);
         var fix = Assert.Single(fixCollection.Fixes);
         Assert.Equal(fixTitle, fix.Action.Title);
     }

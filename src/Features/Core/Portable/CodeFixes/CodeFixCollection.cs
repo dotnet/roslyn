@@ -11,22 +11,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// Represents a collection of <see cref="CodeFix"/>es supplied by a given fix provider
 /// (such as <see cref="CodeFixProvider"/> or <see cref="IConfigurationFixProvider"/>).
 /// </summary>
-internal sealed class CodeFixCollection(
-    object provider,
-    TextSpan span,
-    ImmutableArray<CodeFix> fixes,
-    FixAllState? fixAllState,
-    ImmutableArray<FixAllScope> supportedScopes,
-    Diagnostic firstDiagnostic)
+internal sealed class CodeFixCollection
 {
-    public object Provider { get; } = provider;
-    public TextSpan TextSpan { get; } = span;
-    public ImmutableArray<CodeFix> Fixes { get; } = fixes.NullToEmpty();
+    public object Provider { get; }
+    public TextSpan TextSpan { get; }
+    public ImmutableArray<CodeFix> Fixes { get; }
 
     /// <summary>
     /// Optional fix all context, which is non-null if the given <see cref="Provider"/> supports fix all occurrences code fix.
     /// </summary>
-    public FixAllState? FixAllState { get; } = fixAllState;
-    public ImmutableArray<FixAllScope> SupportedScopes { get; } = supportedScopes.NullToEmpty();
-    public Diagnostic FirstDiagnostic { get; } = firstDiagnostic;
+    public FixAllState? FixAllState { get; }
+    public ImmutableArray<FixAllScope> SupportedScopes { get; }
+
+    /// <summary>
+    /// Diagnostics this collection of fixes can fix. This is guaranteed to be non-empty.
+    /// </summary>
+    public ImmutableArray<Diagnostic> Diagnostics { get; }
+
+    public CodeFixCollection(
+        object provider,
+        TextSpan span,
+        ImmutableArray<CodeFix> fixes,
+        FixAllState? fixAllState,
+        ImmutableArray<FixAllScope> supportedScopes,
+        ImmutableArray<Diagnostic> diagnostics)
+    {
+        Contract.ThrowIfTrue(diagnostics.IsDefaultOrEmpty);
+        Provider = provider;
+        TextSpan = span;
+        Fixes = fixes.NullToEmpty();
+        FixAllState = fixAllState;
+        SupportedScopes = supportedScopes.NullToEmpty();
+        Diagnostics = diagnostics;
+    }
 }

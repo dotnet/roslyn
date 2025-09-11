@@ -116,7 +116,7 @@ internal sealed class UnifiedSuggestedActionsSource
         Task<UnifiedSuggestedActionSet?> GetFixAllSuggestedActionSetAsync(CodeAction codeAction)
             => GetUnifiedFixAllSuggestedActionSetAsync(
                 codeAction, fixCount, fixCollection.FixAllState,
-                fixCollection.SupportedScopes, fixCollection.FirstDiagnostic,
+                fixCollection.SupportedScopes, fixCollection.Diagnostics,
                 originalSolution, cancellationToken);
     }
 
@@ -207,19 +207,18 @@ internal sealed class UnifiedSuggestedActionsSource
         int actionCount,
         IRefactorOrFixAllState? fixAllState,
         ImmutableArray<FixAllScope> supportedScopes,
-        Diagnostic firstDiagnostic,
+        ImmutableArray<Diagnostic> diagnostics,
         Solution originalSolution,
         CancellationToken cancellationToken)
     {
         if (fixAllState == null)
-        {
             return null;
-        }
 
         if (actionCount > 1 && action.EquivalenceKey == null)
-        {
             return null;
-        }
+
+        if (diagnostics is not [var firstDiagnostic, ..])
+            return null;
 
         var textDocument = fixAllState.Document!;
         using var fixAllSuggestedActionsDisposer = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
@@ -247,7 +246,7 @@ internal sealed class UnifiedSuggestedActionsSource
             var fixAllStateForScope = fixAllState.With(scope: scope, codeActionEquivalenceKey: action.EquivalenceKey);
             var fixAllSuggestedAction = new UnifiedRefactorOrFixAllSuggestedAction(
                 action, action.Priority, fixAllStateForScope, fixAllState.Provider,
-                codeRefactoringKind: null, [firstDiagnostic]);
+                codeRefactoringKind: null, diagnostics);
 
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }
