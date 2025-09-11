@@ -32,7 +32,7 @@ internal sealed class RefactorOrFixAllSuggestedAction(
         originalSolution,
         subjectBuffer,
         fixAllState.FixAllProvider,
-        new RefactorOrFixAllCodeAction(fixAllState, showPreviewChangesDialog: true)),
+        new RefactorOrFixAllCodeAction(fixAllState, fixAllState.FixAllProvider.ShowPreviewChangesDialog)),
     ITelemetryDiagnosticID<string?>
 {
     public string? GetDiagnosticID() => diagnosticTelemetryId;

@@ -32,6 +32,10 @@ public abstract class RefactorAllProvider : IRefactorOrFixAllProvider
 
     CodeActionCleanup IRefactorOrFixAllProvider.Cleanup => this.Cleanup;
 
+    internal virtual bool ShowPreviewChangesDialog => true;
+
+    bool IRefactorOrFixAllProvider.ShowPreviewChangesDialog => ShowPreviewChangesDialog;
+
     /// <summary>
     /// Gets refactor all occurrences for the given <paramref name="refactorAllContext"/>.
     /// </summary>

@@ -19,6 +19,9 @@ internal sealed partial class MoveTypeCodeRefactoringProvider
         public override IEnumerable<RefactorAllScope> GetSupportedRefactorAllScopes()
             => [RefactorAllScope.Project];
 
+        internal override bool ShowPreviewChangesDialog
+            => false;
+
         public override Task<CodeAction?> GetRefactoringAsync(RefactorAllContext refactorAllContext)
         {
             if (refactorAllContext.CodeActionEquivalenceKey != MoveTypeOperationKind.RenameFile.ToString())

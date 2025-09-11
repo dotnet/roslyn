@@ -28,6 +28,10 @@ public abstract class FixAllProvider : IRefactorOrFixAllProvider
 
     internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
+    internal virtual bool ShowPreviewChangesDialog => true;
+
+    bool IRefactorOrFixAllProvider.ShowPreviewChangesDialog => ShowPreviewChangesDialog;
+
     /// <summary>
     /// Gets the diagnostic IDs for which fix all occurrences is supported.
     /// By default, it returns <see cref="CodeFixProvider.FixableDiagnosticIds"/> for the given <paramref name="originalCodeFixProvider"/>.
