@@ -111,7 +111,7 @@ static class E
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source).VerifyEmitDiagnostics(
             // (1,73): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'E.extension(int).Deconstruct(out int, out int, out int)'
             // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "42").WithArguments("c", "E.extension(int).Deconstruct(out int, out int, out int)").WithLocation(1, 73),
@@ -141,7 +141,7 @@ static class E
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source).VerifyEmitDiagnostics(
             // (1,96): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
             // ((int d, int _, int _), (int _, int e, int _), (int _, int _, int f), (int _, int _, int _)) = 42;
             Diagnostic(ErrorCode.ERR_BadArgCount, "42").WithArguments("Deconstruct", "4").WithLocation(1, 96),
