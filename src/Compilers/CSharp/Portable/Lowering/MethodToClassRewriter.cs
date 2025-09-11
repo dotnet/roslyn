@@ -349,48 +349,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(rewrittenArgument, method, node.IsExtensionMethod, node.WasTargetTyped, type);
         }
 
-        [return: NotNullIfNotNull(nameof(property))]
-        private new PropertySymbol? VisitPropertySymbol(PropertySymbol? property)
-        {
-            if (property is null)
-            {
-                return null;
-            }
-
-            if (!property.ContainingType.IsAnonymousType)
-            {
-                //  Property of a regular type
-                return ((PropertySymbol)property.OriginalDefinition)
-                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly());
-            }
-
-            //  Method of an anonymous type
-            var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
-            if (ReferenceEquals(newType, property.ContainingType))
-            {
-                //  Anonymous type symbol was not rewritten
-                return property;
-            }
-
-            //  get a new property by name
-            foreach (var member in newType.GetMembers(property.Name))
-            {
-                if (member.Kind == SymbolKind.Property)
-                {
-                    return (PropertySymbol)member;
-                }
-            }
-
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        private new FieldSymbol VisitFieldSymbol(FieldSymbol field)
-        {
-            //  Property of a regular type
-            return ((FieldSymbol)field.OriginalDefinition)
-                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(field.ContainingType).AsTypeSymbolOnly());
-        }
-
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);

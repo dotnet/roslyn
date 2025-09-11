@@ -76,6 +76,102 @@ static class E
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, @"""""").WithArguments("string", "2").WithLocation(1, 14));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80217")]
+    public void Deconstruct_Nested_01()
+    {
+        var source = """
+            var (a, b, c) = 42;
+            var ((d, _, _), (_, e, _), (_, _, f)) = 42;
+            System.Console.WriteLine($"{a} {b} {c} {d} {e} {f}");
+
+            static class E
+            {
+                extension(int instance)
+                {
+                    public void Deconstruct(out int a, out int b, out int c)
+                        => (a, b, c) = (1, 2, 3);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1 2 3 1 2 3").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80217")]
+    public void Deconstruct_Nested_02()
+    {
+        var source = """
+            ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
+
+            static class E
+            {
+                extension(int instance)
+                {
+                    public void Deconstruct(out int a, out int b, out int c)
+                        => (a, b, c) = (1, 2, 3);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (1,73): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'E.extension(int).Deconstruct(out int, out int, out int)'
+            // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "42").WithArguments("c", "E.extension(int).Deconstruct(out int, out int, out int)").WithLocation(1, 73),
+            // (1,73): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 2 out parameters and a void return type.
+            // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(1, 73),
+            // (1,73): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
+            // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
+            Diagnostic(ErrorCode.ERR_BadArgCount, "42").WithArguments("Deconstruct", "4").WithLocation(1, 73),
+            // (1,73): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 4 out parameters and a void return type.
+            // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "4").WithLocation(1, 73));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80217")]
+    public void Deconstruct_Nested_03()
+    {
+        var source = """
+            ((int d, int _, int _), (int _, int e, int _), (int _, int _, int f), (int _, int _, int _)) = 42;
+
+            static class E
+            {
+                extension(int instance)
+                {
+                    public void Deconstruct(out int a, out int b, out int c)
+                        => (a, b, c) = (1, 2, 3);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (1,96): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
+            // ((int d, int _, int _), (int _, int e, int _), (int _, int _, int f), (int _, int _, int _)) = 42;
+            Diagnostic(ErrorCode.ERR_BadArgCount, "42").WithArguments("Deconstruct", "4").WithLocation(1, 96),
+            // (1,96): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 4 out parameters and a void return type.
+            // ((int d, int _, int _), (int _, int e, int _), (int _, int _, int f), (int _, int _, int _)) = 42;
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "4").WithLocation(1, 96));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80217")]
+    public void Deconstruct_Nested_04()
+    {
+        var source = """
+            var ((a, b, c), (d, e), (f, g)) = 42;
+            System.Console.WriteLine($"{a} {b} {c} {d} {e} {f} {g}");
+
+            static class E
+            {
+                extension(int instance)
+                {
+                    public void Deconstruct(out int a, out int b, out int c)
+                        => (a, b, c) = (1, 2, 3);
+
+                    public void Deconstruct(out int a, out int b)
+                        => (a, b) = (4, 5);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1 2 3 4 5 4 5").VerifyDiagnostics();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
     public void Deconstruction_UnscopedRef_ExtensionMethod()
     {
@@ -617,6 +713,60 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "method 42").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78968")]
+    public void AnonymousType_03()
+    {
+        var src = """
+42.M();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            var x = new { A = 1 };
+            local(x, x => new { x.A });
+
+            void local<U>(U u, System.Linq.Expressions.Expression<System.Func<U, object>> f)
+            {
+                System.Console.Write(f.Compile()(u));
+            }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("{ A = 1 }"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78968")]
+    public void AnonymousType_04()
+    {
+        var src = """
+42.M(43);
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M<T>(T t)
+        {
+            var x = new { A = t };
+            local(x, x => new { x.A });
+
+            static void local<U>(U u, System.Linq.Expressions.Expression<System.Func<U, object>> f)
+            {
+                System.Console.Write(f.Compile()(u));
+            }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("{ A = 43 }"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -15529,16 +15679,13 @@ struct S1
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79415 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Test1<S1>();
 
-        // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //await Test3<S1>();
+        await Test3<S1>();
     }
 
     static T GetT<T>() => (T)(object)new S1 { F1 = 123 };
@@ -15553,22 +15700,21 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    GetT<T>()[Get1(), $""] += await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        GetT<T>()[Get1(), $""] += await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123123").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
@@ -15653,8 +15799,6 @@ class C1
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79415 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Test1<C1>();
@@ -15663,10 +15807,9 @@ class Program
 
         Test2<C1>();
 
-        // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //await Test3<C1>();
+        await Test3<C1>();
     }
 
     static T GetT<T>() => (T)(object)new C1 { F1 = 123 };
@@ -15686,17 +15829,16 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79415 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    GetT<T>()[Get1(), $""] += await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        GetT<T>()[Get1(), $""] += await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
