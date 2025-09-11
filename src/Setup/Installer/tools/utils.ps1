@@ -128,7 +128,7 @@ function Uninstall-VsixViaTool([string]$vsDir, [string]$vsId, [string]$rootSuffi
 }
 
 function Use-VsixTool([string]$vsDir, [string]$vsId, [string]$rootSuffix, [string]$additionalArgs = "") {
-  $installerExe = Join-Path $PSScriptRoot "vsixexpinstaller\VsixExpInstaller.exe"
+  $installerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
   Write-Host "Using VS Instance $vsId at `"$vsDir`"" -ForegroundColor Gray
 
   $vsixFileNames = @("RoslynDeployment.vsix")
