@@ -1377,7 +1377,7 @@ Microsoft.CodeAnalysis.Workspace.RaiseWorkspaceChangedEventAsync(Microsoft.CodeA
 Microsoft.CodeAnalysis.Workspace.RegisterText(Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> void
 Microsoft.CodeAnalysis.Workspace.ScheduleTask(System.Action action, string taskName = "Workspace.Task") -> System.Threading.Tasks.Task
 Microsoft.CodeAnalysis.Workspace.ScheduleTask<T>(System.Func<T> func, string taskName = "Workspace.Task") -> System.Threading.Tasks.Task<T>
-Microsoft.CodeAnalysis.Services.get -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
+Microsoft.CodeAnalysis.Workspace.Services.get -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
 Microsoft.CodeAnalysis.Workspace.SetCurrentSolution(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Workspace.TextDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
 Microsoft.CodeAnalysis.Workspace.TextDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
