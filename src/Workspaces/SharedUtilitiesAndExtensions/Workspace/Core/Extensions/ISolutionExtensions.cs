@@ -158,10 +158,10 @@ internal static partial class ISolutionExtensions
         }
     }
 
-    public static TLanguageService? GetLanguageService<TLanguageService>(this Solution? solution, string languageName) where TLanguageService : class, ILanguageService
-        => solution?.GetExtendedLanguageServices(languageName).GetService<TLanguageService>();
+    public static TLanguageService? GetLanguageService<TLanguageService>(this Solution? solution, string languageName) where TLanguageService : ILanguageService
+        => solution is null ? default : solution.GetExtendedLanguageServices(languageName).GetService<TLanguageService>();
 
-    public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Solution solution, string languageName) where TLanguageService : class, ILanguageService
+    public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Solution solution, string languageName) where TLanguageService : ILanguageService
         => solution.GetExtendedLanguageServices(languageName).GetRequiredService<TLanguageService>();
 
 #pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
