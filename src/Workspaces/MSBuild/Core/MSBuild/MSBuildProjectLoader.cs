@@ -23,7 +23,6 @@ public partial class MSBuildProjectLoader
 
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
-    private readonly PathResolver _pathResolver;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
     // used to protect access to the following mutable state
@@ -39,7 +38,6 @@ public partial class MSBuildProjectLoader
         _solutionServices = solutionServices;
         _diagnosticReporter = diagnosticReporter;
         _loggerFactory = loggerFactory;
-        _pathResolver = new PathResolver(_diagnosticReporter);
         _projectFileExtensionRegistry = projectFileExtensionRegistry;
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -61,7 +59,6 @@ public partial class MSBuildProjectLoader
         _solutionServices = workspace.Services.SolutionServices;
         _diagnosticReporter = new DiagnosticReporter(workspace);
         _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
-        _pathResolver = new PathResolver(_diagnosticReporter);
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(_solutionServices, _diagnosticReporter);
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -172,12 +169,17 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, reportingMode, cancellationToken).ConfigureAwait(false);
-        var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
+        var pathResolver = new PathResolver(_diagnosticReporter);
+
+        var (absoluteSolutionFilePath, projects) = await SolutionFileReader
+            .ReadSolutionFileAsync(solutionFilePath, pathResolver, reportingMode, cancellationToken)
+            .ConfigureAwait(false);
+
+        var projectFilePaths = projects.SelectAsArray(p => p.ProjectFilePath);
 
         using (_dataGuard.DisposableWait(cancellationToken))
         {
-            SetSolutionProperties(absoluteSolutionPath);
+            SetSolutionProperties(absoluteSolutionFilePath);
         }
 
         var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
@@ -186,12 +188,11 @@ public partial class MSBuildProjectLoader
         var worker = new Worker(
             _solutionServices,
             _diagnosticReporter,
-            _pathResolver,
             _projectFileExtensionRegistry,
             buildHostProcessManager,
-            projectPaths,
+            projectFilePaths,
             // TryGetAbsoluteSolutionPath should not return an invalid path
-            baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
+            baseDirectory: Path.GetDirectoryName(absoluteSolutionFilePath)!,
             projectMap: null,
             progress,
             requestedProjectOptions: reportingOptions,
@@ -202,9 +203,9 @@ public partial class MSBuildProjectLoader
 
         // construct workspace from loaded project infos
         return SolutionInfo.Create(
-            SolutionId.CreateNewId(debugName: absoluteSolutionPath),
+            SolutionId.CreateNewId(debugName: absoluteSolutionFilePath),
             version: default,
-            absoluteSolutionPath,
+            absoluteSolutionFilePath,
             projectInfos);
     }
 
@@ -247,7 +248,6 @@ public partial class MSBuildProjectLoader
         var worker = new Worker(
             _solutionServices,
             _diagnosticReporter,
-            _pathResolver,
             _projectFileExtensionRegistry,
             buildHostProcessManager,
             requestedProjectPaths: [projectFilePath],

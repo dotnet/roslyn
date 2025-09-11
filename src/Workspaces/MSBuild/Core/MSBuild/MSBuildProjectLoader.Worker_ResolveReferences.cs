@@ -197,12 +197,14 @@ public partial class MSBuildProjectLoader
             var projectDirectory = Path.GetDirectoryName(projectFileInfo.FilePath);
             RoslynDebug.AssertNotNull(projectDirectory);
 
+            var pathResolver = GetPathResolver(projectDirectory);
+
             // Next, iterate through all project references in the file and create project references.
             foreach (var projectFileReference in projectFileInfo.ProjectReferences)
             {
                 var aliases = projectFileReference.Aliases;
 
-                if (_pathResolver.TryGetAbsoluteProjectPath(projectFileReference.Path, baseDirectory: projectDirectory, _discoveredProjectOptions.OnPathFailure, out var projectReferencePath))
+                if (pathResolver.TryGetAbsoluteProjectFilePath(projectFileReference.Path, _discoveredProjectOptions.OnPathFailure, out var projectReferencePath))
                 {
                     // The easiest case is to add a reference to a project we already know about.
                     if (TryAddReferenceToKnownProject(id, projectReferencePath, aliases, builder))
@@ -347,10 +349,10 @@ public partial class MSBuildProjectLoader
                 && File.Exists(outputFilePath);
         }
 
-        private async Task<bool> VerifyProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
+        private async Task<bool> VerifyProjectOutputExistsAsync(string projectFilePath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
             // Note: Load the project, but don't report failures.
-            var projectFileInfos = await LoadProjectFileInfosAsync(projectPath, DiagnosticReportingOptions.IgnoreAll, cancellationToken).ConfigureAwait(false);
+            var projectFileInfos = await LoadProjectFileInfosAsync(projectFilePath, DiagnosticReportingOptions.IgnoreAll, cancellationToken).ConfigureAwait(false);
 
             foreach (var projectFileInfo in projectFileInfos)
             {

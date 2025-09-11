@@ -15,51 +15,53 @@ internal partial class SolutionFileReader
 {
     private static class SolutionFilterReader
     {
-        public static bool IsSolutionFilterFilename(string filename)
+        public static bool IsSolutionFilterFilename(string filePath)
         {
-            return Path.GetExtension(filename).Equals(".slnf", StringComparison.OrdinalIgnoreCase);
+            return Path.GetExtension(filePath).Equals(".slnf", StringComparison.OrdinalIgnoreCase);
         }
 
-        public static bool TryRead(string filterFilename, PathResolver pathResolver, [NotNullWhen(true)] out string? solutionFilename, out ImmutableHashSet<string> projectFilter)
+        public static bool TryRead(string filterFilePath, PathResolver pathResolver, [NotNullWhen(true)] out string? solutionFilePath, out ImmutableHashSet<string> projectFilter)
         {
             try
             {
-                using var document = JsonDocument.Parse(File.ReadAllText(filterFilename));
+                using var document = JsonDocument.Parse(File.ReadAllText(filterFilePath));
                 var solution = document.RootElement.GetProperty("solution");
                 // Convert directory separators to the platform's default, since that is what MSBuild provide us.
                 var solutionPath = solution.GetProperty("path").GetString()?.Replace('\\', Path.DirectorySeparatorChar);
-                if (solutionPath is null || Path.GetDirectoryName(filterFilename) is not string baseDirectory)
+                if (solutionPath is null || Path.GetDirectoryName(filterFilePath) is not string baseDirectory)
                 {
-                    solutionFilename = string.Empty;
+                    solutionFilePath = string.Empty;
                     projectFilter = [];
                     return false;
                 }
 
-                Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteSolutionPath(solutionPath, baseDirectory, DiagnosticReportingMode.Throw, out solutionFilename));
+                pathResolver = pathResolver.WithBaseDirectory(baseDirectory);
+                Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteSolutionFilePath(solutionPath, DiagnosticReportingMode.Throw, out solutionFilePath));
 
-                if (!File.Exists(solutionFilename))
+                if (!File.Exists(solutionFilePath))
                 {
                     projectFilter = [];
                     return false;
                 }
 
                 // The base directory for projects is the solution folder.
-                baseDirectory = Path.GetDirectoryName(solutionFilename)!;
+                baseDirectory = Path.GetDirectoryName(solutionFilePath)!;
                 RoslynDebug.AssertNotNull(baseDirectory);
+                pathResolver = pathResolver.WithBaseDirectory(baseDirectory);
 
                 var filterProjects = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var project in solution.GetProperty("projects").EnumerateArray())
                 {
                     // Convert directory separators to the platform's default, since that is what MSBuild provide us.
-                    var projectPath = project.GetString()?.Replace('\\', Path.DirectorySeparatorChar);
-                    if (projectPath is null)
+                    var projectFilePath = project.GetString()?.Replace('\\', Path.DirectorySeparatorChar);
+                    if (projectFilePath is null)
                     {
                         continue;
                     }
 
                     // Fill the filter with the absolute project paths.
-                    Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteProjectPath(projectPath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath));
-                    filterProjects.Add(absoluteProjectPath);
+                    Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteProjectFilePath(projectFilePath, DiagnosticReportingMode.Throw, out var absoluteProjectFilePath));
+                    filterProjects.Add(absoluteProjectFilePath);
                 }
 
                 projectFilter = filterProjects.ToImmutable();
@@ -67,7 +69,7 @@ internal partial class SolutionFileReader
             }
             catch
             {
-                solutionFilename = string.Empty;
+                solutionFilePath = string.Empty;
                 projectFilter = [];
                 return false;
             }
