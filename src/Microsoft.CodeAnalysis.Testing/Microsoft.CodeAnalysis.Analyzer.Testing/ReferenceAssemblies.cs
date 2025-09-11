@@ -1200,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net9.0",
                         new PackageIdentity(
                             "Microsoft.NETCore.App.Ref",
-                            "9.0.0-preview.1.24080.9"),
+                            "9.0.0"),
                         Path.Combine("ref", "net9.0"));
                 });
 
@@ -1208,37 +1208,90 @@ namespace Microsoft.CodeAnalysis.Testing
                 new Lazy<ReferenceAssemblies>(() =>
                     Net90.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "9.0.0-preview.1.24081.3"))));
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "9.0.0"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet90MacOS =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net90.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.macOS.Ref", "14.2.9088-net9-p1"))));
+                            new PackageIdentity("Microsoft.macOS.Ref.net9.0_15.0", "15.0.9617"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet90Android =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net90.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.Android.Ref.34", "34.99.0-preview.1.151"))));
+                            new PackageIdentity("Microsoft.Android.Ref.34", "34.99.0-preview.6.340"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet90iOS =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net90.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.iOS.Ref", "17.2.9088-net9-p1"))));
+                            new PackageIdentity("Microsoft.iOS.Ref.net9.0_18.0", "18.0.9617"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet90MacCatalyst =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net90.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.MacCatalyst.Ref", "17.2.9088-net9-p1"))));
+                            new PackageIdentity("Microsoft.MacCatalyst.Ref.net9.0_18.0", "18.0.9617"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet90TvOS =
                 new Lazy<ReferenceAssemblies>(() =>
                     Net90.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.tvOS.Ref", "17.2.9088-net9-p1"))));
+                            new PackageIdentity("Microsoft.tvOS.Ref.net9.0_18.0", "18.0.9617"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet100 =
+                new Lazy<ReferenceAssemblies>(() =>
+                {
+                    if (!NuGetFramework.Parse("net10.0").IsPackageBased)
+                    {
+                        // The NuGet version provided at runtime does not recognize the 'net10.0' target framework
+                        throw new NotSupportedException("The 'net10.0' target framework is not supported by this version of NuGet.");
+                    }
+
+                    return new ReferenceAssemblies(
+                        "net10.0",
+                        new PackageIdentity(
+                            "Microsoft.NETCore.App.Ref",
+                            "10.0.0-rc.1.25451.107"),
+                        Path.Combine("ref", "net10.0"));
+                });
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet100Windows =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net100.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "10.0.0-rc.1.25451.107"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet100MacOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net100.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.macOS.Ref.net10.0_15.5", "15.5.10727-net10-rc.1"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet100Android =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net100.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.Android.Ref.36", "36.0.0-rc.1.285"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet100iOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net100.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.iOS.Ref.net10.0_18.5", "18.5.10727-net10-rc.1"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet100MacCatalyst =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net100.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.MacCatalyst.Ref.net10.0_18.5", "18.5.10727-net10-rc.1"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet100TvOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net100.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.tvOS.Ref.net10.0_18.5", "18.5.10727-net10-rc.1"))));
 
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
@@ -1297,6 +1350,20 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies Net90MacCatalyst => _lazyNet90MacCatalyst.Value;
 
             public static ReferenceAssemblies Net90TvOS => _lazyNet90TvOS.Value;
+
+            public static ReferenceAssemblies Net100 => _lazyNet100.Value;
+
+            public static ReferenceAssemblies Net100Windows => _lazyNet100Windows.Value;
+
+            public static ReferenceAssemblies Net100Android => _lazyNet100Android.Value;
+
+            public static ReferenceAssemblies Net100iOS => _lazyNet100iOS.Value;
+
+            public static ReferenceAssemblies Net100MacOS => _lazyNet100MacOS.Value;
+
+            public static ReferenceAssemblies Net100MacCatalyst => _lazyNet100MacCatalyst.Value;
+
+            public static ReferenceAssemblies Net100TvOS => _lazyNet100TvOS.Value;
         }
 
         public static class NetStandard
