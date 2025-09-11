@@ -18,7 +18,7 @@ Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     <[UseExportProvider]>
-    Partial Public MustInherit Class AbstractCrossLanguageUserDiagnosticTest
+    Partial Public MustInherit Class AbstractCrossLanguageUserDiagnosticTests
         Private ReadOnly _outputHelper As ITestOutputHelper
 
         Protected Sub New(Optional outputHelper As ITestOutputHelper = Nothing)
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 If fixes.Any() Then
                     result.Add(Tuple.Create(diagnostic, New CodeFixCollection(
                                             fixer, diagnostic.Location.SourceSpan, fixes.ToImmutableArrayOrEmpty(),
-                                            fixAllState:=Nothing, supportedScopes:=Nothing, firstDiagnostic:=Nothing)))
+                                            fixAllState:=Nothing, supportedScopes:=Nothing, ImmutableArray.Create(diagnostic))))
                 End If
             Next
 

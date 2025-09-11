@@ -10,8 +10,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.AddMissingReference
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReference
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
-    Public Class AddMissingReferenceTests
-        Inherits AbstractCrossLanguageUserDiagnosticTest
+    Public Class AddMissingReferenceCrossLanguageUserDiagnosticTests
+        Inherits AbstractCrossLanguageUserDiagnosticTests
 
         Private Shared ReadOnly s_presentationCoreAssembly As Assembly
         Private Shared ReadOnly s_presentationFrameworkAssembly As Assembly

@@ -8334,6 +8334,58 @@ class Program
   IL_0035:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Cannot change initonly field outside its .ctor. { Offset = 0xa }
+                [Main]: Cannot change initonly field outside its .ctor. { Offset = 0x32 }
+                [Main]: Return value missing on the stack. { Offset = 0x41 }
+                [Initialize]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+                [Initialize]: Expected numeric type on the stack. { Offset = 0xc, Found = address of Int32 }
+                [Increment]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+                [Increment]: Expected numeric type on the stack. { Offset = 0xc, Found = address of Int32 }
+                [Test1]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+                [Test3]: Return value missing on the stack. { Offset = 0x47 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x2a, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test3<T>()", """
+            {
+              // Code size       72 (0x48)
+              .maxstack  2
+              .locals init (T V_0,
+                            int V_1,
+                            T V_2)
+              IL_0000:  ldloca.s   V_2
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.2
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0028:  stloc.1
+              IL_0029:  ldloca.s   V_2
+              IL_002b:  initobj    "T"
+              IL_0031:  ldloc.2
+              IL_0032:  box        "T"
+              IL_0037:  brtrue.s   IL_003c
+              IL_0039:  ldloc.0
+              IL_003a:  br.s       IL_0041
+              IL_003c:  ldsfld     "T Program<T>.F"
+              IL_0041:  ldloc.1
+              IL_0042:  call       "void E.set_P1<T>(T, int)"
+              IL_0047:  ret
+            }
+            """);
     }
 
     [Theory]
@@ -9018,6 +9070,64 @@ class Program
   IL_0020:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0xa4 }
+                [Test3]: Return value missing on the stack. { Offset = 0x67 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x34, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test3<T>()", """
+            {
+              // Code size      104 (0x68)
+              .maxstack  2
+              .locals init (T V_0,
+                            int V_1,
+                            int V_2,
+                            T V_3)
+              IL_0000:  ldloca.s   V_3
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.3
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  ldloca.s   V_3
+              IL_0020:  initobj    "T"
+              IL_0026:  ldloc.3
+              IL_0027:  box        "T"
+              IL_002c:  brtrue.s   IL_0031
+              IL_002e:  ldloc.0
+              IL_002f:  br.s       IL_0036
+              IL_0031:  ldsfld     "T Program<T>.F"
+              IL_0036:  call       "int E.get_P1<T>(T)"
+              IL_003b:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0040:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0045:  stloc.1
+              IL_0046:  ldloc.1
+              IL_0047:  add
+              IL_0048:  stloc.2
+              IL_0049:  ldloca.s   V_3
+              IL_004b:  initobj    "T"
+              IL_0051:  ldloc.3
+              IL_0052:  box        "T"
+              IL_0057:  brtrue.s   IL_005c
+              IL_0059:  ldloc.0
+              IL_005a:  br.s       IL_0061
+              IL_005c:  ldsfld     "T Program<T>.F"
+              IL_0061:  ldloc.2
+              IL_0062:  call       "void E.set_P1<T>(T, int)"
+              IL_0067:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -9115,6 +9225,38 @@ class Program
   IL_0014:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0x6a }
+                [Test3]: Return value missing on the stack. { Offset = 0x23 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x34, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test3<T>()", """
+            {
+              // Code size       36 (0x24)
+              .maxstack  3
+              .locals init (int V_0,
+                            int V_1)
+              IL_0000:  ldsflda    "T Program<T>.F"
+              IL_0005:  call       "int E.get_P1<T>(ref T)"
+              IL_000a:  stloc.0
+              IL_000b:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0010:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0015:  stloc.1
+              IL_0016:  ldsflda    "T Program<T>.F"
+              IL_001b:  ldloc.0
+              IL_001c:  ldloc.1
+              IL_001d:  add
+              IL_001e:  call       "void E.set_P1<T>(ref T, int)"
+              IL_0023:  ret
+            }
+            """);
 
         var src2 = """
 static class E
@@ -9312,6 +9454,64 @@ class Program
   IL_0019:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0x95 }
+                [Test3]: Return value missing on the stack. { Offset = 0x67 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test3<T>()", """
+            {
+              // Code size      104 (0x68)
+              .maxstack  2
+              .locals init (T V_0,
+                            int V_1,
+                            int V_2,
+                            T V_3)
+              IL_0000:  ldloca.s   V_3
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.3
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  ldloca.s   V_3
+              IL_0020:  initobj    "T"
+              IL_0026:  ldloc.3
+              IL_0027:  box        "T"
+              IL_002c:  brtrue.s   IL_0031
+              IL_002e:  ldloc.0
+              IL_002f:  br.s       IL_0036
+              IL_0031:  ldsfld     "T Program<T>.F"
+              IL_0036:  call       "int E.get_P1<T>(T)"
+              IL_003b:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0040:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0045:  stloc.1
+              IL_0046:  ldloc.1
+              IL_0047:  add
+              IL_0048:  stloc.2
+              IL_0049:  ldloca.s   V_3
+              IL_004b:  initobj    "T"
+              IL_0051:  ldloc.3
+              IL_0052:  box        "T"
+              IL_0057:  brtrue.s   IL_005c
+              IL_0059:  ldloc.0
+              IL_005a:  br.s       IL_0061
+              IL_005c:  ldsfld     "T Program<T>.F"
+              IL_0061:  ldloc.2
+              IL_0062:  call       "void E.set_P1<T>(T, int)"
+              IL_0067:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -9406,8 +9606,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123125125:123125125";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
@@ -9445,6 +9646,71 @@ class Program
   IL_0041:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Cannot change initonly field outside its .ctor. { Offset = 0xa }
+                [Main]: Cannot change initonly field outside its .ctor. { Offset = 0x32 }
+                [Main]: Return value missing on the stack. { Offset = 0x41 }
+                [Initialize]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+                [Initialize]: Expected numeric type on the stack. { Offset = 0xc, Found = address of Int32 }
+                [Increment]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+                [Increment]: Expected numeric type on the stack. { Offset = 0xc, Found = address of Int32 }
+                [Test1]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
+                [Test3]: Return value missing on the stack. { Offset = 0x67 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x2a, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test3<T>()", """
+            {
+              // Code size      104 (0x68)
+              .maxstack  2
+              .locals init (T V_0,
+                            int V_1,
+                            int V_2,
+                            T V_3)
+              IL_0000:  ldloca.s   V_3
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.3
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  ldloca.s   V_3
+              IL_0020:  initobj    "T"
+              IL_0026:  ldloc.3
+              IL_0027:  box        "T"
+              IL_002c:  brtrue.s   IL_0031
+              IL_002e:  ldloc.0
+              IL_002f:  br.s       IL_0036
+              IL_0031:  ldsfld     "T Program<T>.F"
+              IL_0036:  call       "int E.get_P1<T>(T)"
+              IL_003b:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0040:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0045:  stloc.1
+              IL_0046:  ldloc.1
+              IL_0047:  add
+              IL_0048:  stloc.2
+              IL_0049:  ldloca.s   V_3
+              IL_004b:  initobj    "T"
+              IL_0051:  ldloc.3
+              IL_0052:  box        "T"
+              IL_0057:  brtrue.s   IL_005c
+              IL_0059:  ldloc.0
+              IL_005a:  br.s       IL_0061
+              IL_005c:  ldsfld     "T Program<T>.F"
+              IL_0061:  ldloc.2
+              IL_0062:  call       "void E.set_P1<T>(T, int)"
+              IL_0067:  ret
+            }
+            """);
     }
 
     [Theory]
@@ -12079,6 +12345,121 @@ class Program
   IL_003d:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0x152 }
+                [Test13]: Return value missing on the stack. { Offset = 0x6d }
+                [Test23]: Return value missing on the stack. { Offset = 0x7f }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x34, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test13<T>()", """
+            {
+              // Code size      110 (0x6e)
+              .maxstack  3
+              .locals init (T V_0,
+                            T V_1,
+                            object V_2,
+                            object V_3)
+              IL_0000:  ldloca.s   V_1
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.1
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  ldloca.s   V_1
+              IL_0020:  initobj    "T"
+              IL_0026:  ldloc.1
+              IL_0027:  box        "T"
+              IL_002c:  brtrue.s   IL_0031
+              IL_002e:  ldloc.0
+              IL_002f:  br.s       IL_0036
+              IL_0031:  ldsfld     "T Program<T>.F"
+              IL_0036:  call       "object E.get_P1<T>(T)"
+              IL_003b:  brtrue.s   IL_006d
+              IL_003d:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0042:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0047:  box        "int"
+              IL_004c:  stloc.2
+              IL_004d:  ldloca.s   V_1
+              IL_004f:  initobj    "T"
+              IL_0055:  ldloc.1
+              IL_0056:  box        "T"
+              IL_005b:  brtrue.s   IL_0060
+              IL_005d:  ldloc.0
+              IL_005e:  br.s       IL_0065
+              IL_0060:  ldsfld     "T Program<T>.F"
+              IL_0065:  ldloc.2
+              IL_0066:  dup
+              IL_0067:  stloc.3
+              IL_0068:  call       "void E.set_P1<T>(T, object)"
+              IL_006d:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Program.Test23<T>()", """
+            {
+              // Code size      128 (0x80)
+              .maxstack  3
+              .locals init (T V_0,
+                            int? V_1,
+                            int V_2,
+                            T V_3,
+                            int? V_4)
+              IL_0000:  ldloca.s   V_3
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.3
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  ldloca.s   V_3
+              IL_0020:  initobj    "T"
+              IL_0026:  ldloc.3
+              IL_0027:  box        "T"
+              IL_002c:  brtrue.s   IL_0031
+              IL_002e:  ldloc.0
+              IL_002f:  br.s       IL_0036
+              IL_0031:  ldsfld     "T Program<T>.F"
+              IL_0036:  call       "int? E.get_P2<T>(T)"
+              IL_003b:  stloc.1
+              IL_003c:  ldloca.s   V_1
+              IL_003e:  call       "readonly int int?.GetValueOrDefault()"
+              IL_0043:  stloc.2
+              IL_0044:  ldloca.s   V_1
+              IL_0046:  call       "readonly bool int?.HasValue.get"
+              IL_004b:  brtrue.s   IL_007f
+              IL_004d:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0052:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0057:  stloc.2
+              IL_0058:  ldloca.s   V_3
+              IL_005a:  initobj    "T"
+              IL_0060:  ldloc.3
+              IL_0061:  box        "T"
+              IL_0066:  brtrue.s   IL_006b
+              IL_0068:  ldloc.0
+              IL_0069:  br.s       IL_0070
+              IL_006b:  ldsfld     "T Program<T>.F"
+              IL_0070:  ldloca.s   V_4
+              IL_0072:  ldloc.2
+              IL_0073:  call       "int?..ctor(int)"
+              IL_0078:  ldloc.s    V_4
+              IL_007a:  call       "void E.set_P2<T>(T, int?)"
+              IL_007f:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -12253,6 +12634,69 @@ class Program
   IL_0033:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0xde }
+                [Test13]: Return value missing on the stack. { Offset = 0x29 }
+                [Test23]: Return value missing on the stack. { Offset = 0x3a }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x34, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test13<T>()", """
+            {
+              // Code size       42 (0x2a)
+              .maxstack  3
+              .locals init (int V_0,
+                            object V_1)
+              IL_0000:  ldsflda    "T Program<T>.F"
+              IL_0005:  call       "object E.get_P1<T>(ref T)"
+              IL_000a:  brtrue.s   IL_0029
+              IL_000c:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0011:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0016:  stloc.0
+              IL_0017:  ldsflda    "T Program<T>.F"
+              IL_001c:  ldloc.0
+              IL_001d:  box        "int"
+              IL_0022:  dup
+              IL_0023:  stloc.1
+              IL_0024:  call       "void E.set_P1<T>(ref T, object)"
+              IL_0029:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Program.Test23<T>()", """
+            {
+              // Code size       59 (0x3b)
+              .maxstack  3
+              .locals init (int? V_0,
+                            int V_1,
+                            int? V_2)
+              IL_0000:  ldsflda    "T Program<T>.F"
+              IL_0005:  call       "int? E.get_P2<T>(ref T)"
+              IL_000a:  stloc.0
+              IL_000b:  ldloca.s   V_0
+              IL_000d:  call       "readonly int int?.GetValueOrDefault()"
+              IL_0012:  stloc.1
+              IL_0013:  ldloca.s   V_0
+              IL_0015:  call       "readonly bool int?.HasValue.get"
+              IL_001a:  brtrue.s   IL_003a
+              IL_001c:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0021:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0026:  stloc.1
+              IL_0027:  ldsflda    "T Program<T>.F"
+              IL_002c:  ldloca.s   V_2
+              IL_002e:  ldloc.1
+              IL_002f:  call       "int?..ctor(int)"
+              IL_0034:  ldloc.2
+              IL_0035:  call       "void E.set_P2<T>(ref T, int?)"
+              IL_003a:  ret
+            }
+            """);
 
         var src2 = """
 static class E
@@ -12606,6 +13050,121 @@ class Program
   IL_0038:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0x134 }
+                [Test13]: Return value missing on the stack. { Offset = 0x6d }
+                [Test23]: Return value missing on the stack. { Offset = 0x7f }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test13<T>()", """
+            {
+              // Code size      110 (0x6e)
+              .maxstack  3
+              .locals init (T V_0,
+                            T V_1,
+                            object V_2,
+                            object V_3)
+              IL_0000:  ldloca.s   V_1
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.1
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  ldloca.s   V_1
+              IL_0020:  initobj    "T"
+              IL_0026:  ldloc.1
+              IL_0027:  box        "T"
+              IL_002c:  brtrue.s   IL_0031
+              IL_002e:  ldloc.0
+              IL_002f:  br.s       IL_0036
+              IL_0031:  ldsfld     "T Program<T>.F"
+              IL_0036:  call       "object E.get_P1<T>(T)"
+              IL_003b:  brtrue.s   IL_006d
+              IL_003d:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0042:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0047:  box        "int"
+              IL_004c:  stloc.2
+              IL_004d:  ldloca.s   V_1
+              IL_004f:  initobj    "T"
+              IL_0055:  ldloc.1
+              IL_0056:  box        "T"
+              IL_005b:  brtrue.s   IL_0060
+              IL_005d:  ldloc.0
+              IL_005e:  br.s       IL_0065
+              IL_0060:  ldsfld     "T Program<T>.F"
+              IL_0065:  ldloc.2
+              IL_0066:  dup
+              IL_0067:  stloc.3
+              IL_0068:  call       "void E.set_P1<T>(T, object)"
+              IL_006d:  ret
+            }
+            """);
+
+        verifier.VerifyIL("Program.Test23<T>()", """
+            {
+              // Code size      128 (0x80)
+              .maxstack  3
+              .locals init (T V_0,
+                            int? V_1,
+                            int V_2,
+                            T V_3,
+                            int? V_4)
+              IL_0000:  ldloca.s   V_3
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.3
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  ldloca.s   V_3
+              IL_0020:  initobj    "T"
+              IL_0026:  ldloc.3
+              IL_0027:  box        "T"
+              IL_002c:  brtrue.s   IL_0031
+              IL_002e:  ldloc.0
+              IL_002f:  br.s       IL_0036
+              IL_0031:  ldsfld     "T Program<T>.F"
+              IL_0036:  call       "int? E.get_P2<T>(T)"
+              IL_003b:  stloc.1
+              IL_003c:  ldloca.s   V_1
+              IL_003e:  call       "readonly int int?.GetValueOrDefault()"
+              IL_0043:  stloc.2
+              IL_0044:  ldloca.s   V_1
+              IL_0046:  call       "readonly bool int?.HasValue.get"
+              IL_004b:  brtrue.s   IL_007f
+              IL_004d:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0052:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0057:  stloc.2
+              IL_0058:  ldloca.s   V_3
+              IL_005a:  initobj    "T"
+              IL_0060:  ldloc.3
+              IL_0061:  box        "T"
+              IL_0066:  brtrue.s   IL_006b
+              IL_0068:  ldloc.0
+              IL_0069:  br.s       IL_0070
+              IL_006b:  ldsfld     "T Program<T>.F"
+              IL_0070:  ldloca.s   V_4
+              IL_0072:  ldloc.2
+              IL_0073:  call       "int?..ctor(int)"
+              IL_0078:  ldloc.s    V_4
+              IL_007a:  call       "void E.set_P2<T>(T, int?)"
+              IL_007f:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -13078,6 +13637,51 @@ class Program
   IL_0014:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0xa4 }
+                [Test3]: Return value missing on the stack. { Offset = 0x47 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test3<T>()", """
+            {
+              // Code size       72 (0x48)
+              .maxstack  2
+              .locals init (T V_0,
+                            int V_1,
+                            T V_2)
+              IL_0000:  ldloca.s   V_2
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.2
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0028:  stloc.1
+              IL_0029:  ldloca.s   V_2
+              IL_002b:  initobj    "T"
+              IL_0031:  ldloc.2
+              IL_0032:  box        "T"
+              IL_0037:  brtrue.s   IL_003c
+              IL_0039:  ldloc.0
+              IL_003a:  br.s       IL_0041
+              IL_003c:  ldsfld     "T Program<T>.F"
+              IL_0041:  ldloc.1
+              IL_0042:  call       "void E.set_P1<T>(T, int)"
+              IL_0047:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -13175,6 +13779,32 @@ class Program
   IL_000f:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0x6a }
+                [Test3]: Return value missing on the stack. { Offset = 0x16 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test3<T>()", """
+            {
+              // Code size       23 (0x17)
+              .maxstack  2
+              .locals init (int V_0)
+              IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_000a:  stloc.0
+              IL_000b:  ldsflda    "T Program<T>.F"
+              IL_0010:  ldloc.0
+              IL_0011:  call       "void E.set_P1<T>(ref T, int)"
+              IL_0016:  ret
+            }
+            """);
 
         var src2 = """
 static class E
@@ -13368,6 +13998,51 @@ class Program
   IL_0014:  ret
 }
 ");
+
+        comp = CreateRuntimeAsyncCompilation(src);
+        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        {
+            ILVerifyMessage = """
+                [Main]: Return value missing on the stack. { Offset = 0x95 }
+                [Test3]: Return value missing on the stack. { Offset = 0x47 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x50, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                """
+        });
+
+        verifier.VerifyIL("Program.Test3<T>()", """
+            {
+              // Code size       72 (0x48)
+              .maxstack  2
+              .locals init (T V_0,
+                            int V_1,
+                            T V_2)
+              IL_0000:  ldloca.s   V_2
+              IL_0002:  initobj    "T"
+              IL_0008:  ldloc.2
+              IL_0009:  box        "T"
+              IL_000e:  brtrue.s   IL_0018
+              IL_0010:  ldsfld     "T Program<T>.F"
+              IL_0015:  stloc.0
+              IL_0016:  br.s       IL_001e
+              IL_0018:  ldsfld     "T Program<T>.F"
+              IL_001d:  pop
+              IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0028:  stloc.1
+              IL_0029:  ldloca.s   V_2
+              IL_002b:  initobj    "T"
+              IL_0031:  ldloc.2
+              IL_0032:  box        "T"
+              IL_0037:  brtrue.s   IL_003c
+              IL_0039:  ldloc.0
+              IL_003a:  br.s       IL_0041
+              IL_003c:  ldsfld     "T Program<T>.F"
+              IL_0041:  ldloc.1
+              IL_0042:  call       "void E.set_P1<T>(T, int)"
+              IL_0047:  ret
+            }
+            """);
     }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]

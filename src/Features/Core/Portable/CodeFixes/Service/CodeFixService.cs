@@ -782,15 +782,14 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var allDiagnostics =
-            await diagnosticsWithSameSpan.OrderByDescending(d => d.Severity)
-                                         .ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
+        var allDiagnostics = await diagnosticsWithSameSpan
+            .OrderByDescending(d => d.Severity)
+            .ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
         var diagnostics = allDiagnostics.WhereAsArray(hasFix);
-        if (diagnostics.Length <= 0)
-        {
-            // this can happen for suppression case where all diagnostics can't be suppressed
+
+        // this can happen for suppression case where all diagnostics can't be suppressed
+        if (diagnostics.IsEmpty)
             return null;
-        }
 
         var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
         var fixes = await extensionManager.PerformFunctionAsync(fixer,
@@ -808,13 +807,10 @@ internal sealed partial class CodeFixService : ICodeFixService
         var supportedScopes = ImmutableArray<FixAllScope>.Empty;
         if (fixAllProviderInfo != null && textDocument is Document document)
         {
-            var diagnosticIds = diagnostics.Where(fixAllProviderInfo.CanBeFixed)
-                                           .Select(d => d.Id)
-                                           .ToImmutableHashSet();
-
-            var diagnosticProvider = fixAllForInSpan
-                ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
-                : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(diagnosticIds);
+            var diagnosticIds = diagnostics
+                .Where(fixAllProviderInfo.CanBeFixed)
+                .Select(d => d.Id)
+                .ToImmutableHashSet();
 
             var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 
@@ -827,14 +823,15 @@ internal sealed partial class CodeFixService : ICodeFixService
                 FixAllScope.Document,
                 fixes[0].Action.EquivalenceKey,
                 diagnosticIds,
-                diagnosticProvider);
+                fixAllForInSpan
+                    ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
+                    : new FixAllDiagnosticProvider(diagnosticIds));
 
             supportedScopes = fixAllProviderInfo.SupportedScopes;
         }
 
         return new CodeFixCollection(
-            fixer, fixesSpan, fixes, fixAllState,
-            supportedScopes, diagnostics.First());
+            fixer, fixesSpan, fixes, fixAllState, supportedScopes, diagnostics);
     }
 
     /// <summary> Looks explicitly for an <see cref="AbstractSuppressionCodeFixProvider"/>.</summary>

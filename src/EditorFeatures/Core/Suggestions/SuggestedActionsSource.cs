@@ -222,7 +222,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                     if (result != null)
                     {
                         Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                        return result.FirstDiagnostic.Severity switch
+                        return result.Diagnostics.First().Severity switch
                         {
 
                             DiagnosticSeverity.Hidden or DiagnosticSeverity.Info or DiagnosticSeverity.Warning => PredefinedSuggestedActionCategoryNames.CodeFix,
