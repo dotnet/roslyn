@@ -1507,17 +1507,19 @@ public sealed partial class AddUsingTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
-    public Task TestModernExtension1()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension1(string sourceType)
         => TestInRegularAndScriptAsync(
-            """
+            $$"""
             namespace M
             {
                 class C
                 {
                     void X()
                     {
-                        object o = new();
+                        {{sourceType}} o = new();
                         [|o.M1();|]
                     }
                 }
@@ -1536,7 +1538,7 @@ public sealed partial class AddUsingTests
                 }
             }
             """,
-            """
+            $$"""
             using N;
 
             namespace M
@@ -1545,65 +1547,7 @@ public sealed partial class AddUsingTests
                 {
                     void X()
                     {
-                        object o = new();
-                        o.M1();
-                    }
-                }
-            }
-            
-            namespace N
-            {
-                static class Test
-                {
-                    extension(object o)
-                    {
-                        public void M1()
-                        {
-                        }
-                    }
-                }
-            }
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
-    public Task TestModernExtension2()
-        => TestInRegularAndScriptAsync(
-            """
-            namespace M
-            {
-                class C
-                {
-                    void X()
-                    {
-                        int o = 0;
-                        [|o.M1();|]
-                    }
-                }
-            }
-
-            namespace N
-            {
-                static class Test
-                {
-                    extension(object o)
-                    {
-                        public void M1()
-                        {
-                        }
-                    }
-                }
-            }
-            """,
-            """
-            using N;
-
-            namespace M
-            {
-                class C
-                {
-                    void X()
-                    {
-                        int o = 0;
+                        {{sourceType}} o = new();
                         o.M1();
                     }
                 }
