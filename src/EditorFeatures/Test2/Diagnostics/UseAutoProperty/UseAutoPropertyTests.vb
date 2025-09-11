@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
-    Public Class UseAutoPropertyTests
-        Inherits AbstractCrossLanguageUserDiagnosticTest
+    Public Class UseAutoPropertyCrossLanguageUserDiagnosticTests
+        Inherits AbstractCrossLanguageUserDiagnosticTests
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then

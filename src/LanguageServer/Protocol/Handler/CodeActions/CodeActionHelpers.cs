@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -381,12 +382,8 @@ internal static class CodeActionHelpers
         // Retrieves the fix all code action based on the scope that was selected. 
         // Creates a FixAllCodeAction type so that we can get the correct operations for the selected scope.
         var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedRefactorOrFixAllSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
-        codeActions.Add(fixAllFlavor.FixAllState switch
-        {
-            FixAllState fixAllState => new FixAllCodeAction(fixAllState, showPreviewChangesDialog: false),
-            RefactorAllState refactorAllState => new RefactorAllCodeAction(refactorAllState, showPreviewChangesDialog: false),
-            _ => throw ExceptionUtilities.UnexpectedValue(fixAllFlavor.FixAllState)
-        });
+        codeActions.Add(new RefactorOrFixAllCodeAction(
+            fixAllFlavor.FixAllState, showPreviewChangesDialog: false, title: codeAction.Title));
     }
 
     private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
@@ -458,7 +455,7 @@ internal static class CodeActionHelpers
                 // Otherwise, we are likely at the end of the path and need to retrieve
                 // the FixAllCodeAction if we are in that state or just the regular CodeAction
                 // since they have the same title path.
-                matchingAction = matchingActions.Single(action => isFixAllAction ? action is FixAllCodeAction : action is CodeAction);
+                matchingAction = matchingActions.Single(action => isFixAllAction ? action is RefactorOrFixAllCodeAction : action is CodeAction);
             }
 
             Contract.ThrowIfNull(matchingAction);

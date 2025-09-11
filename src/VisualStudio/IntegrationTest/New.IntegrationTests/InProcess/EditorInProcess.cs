@@ -842,13 +842,12 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
                 action = fixAllAction;
 
                 if (willBlockUntilComplete
-                    && action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction
-                    && fixAllSuggestedAction.CodeAction is AbstractFixAllCodeAction fixAllCodeAction)
+                    && action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction)
                 {
                     // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                     // the caller would not be able to interact with the preview changes dialog, and the tests would
                     // either timeout or deadlock.
-                    fixAllCodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
+                    fixAllSuggestedAction.CodeAction.GetTestAccessor().ShowPreviewChangesDialog = false;
                 }
 
                 if (string.IsNullOrEmpty(actionName))
@@ -941,13 +940,10 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         {
             foreach (var action in actionSet.Actions)
             {
-                if (action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction)
+                if (action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction &&
+                    fixAllSuggestedAction.CodeAction.FixAllState.Scope == fixAllScope)
                 {
-                    var fixAllCodeAction = fixAllSuggestedAction.CodeAction as AbstractFixAllCodeAction;
-                    if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)
-                    {
-                        return fixAllSuggestedAction;
-                    }
+                    return fixAllSuggestedAction;
                 }
 
                 if (action.HasActionSets)
