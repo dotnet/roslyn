@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -93,7 +92,7 @@ internal static class CodeActionHelpers
         return codeActions.ToArray();
     }
 
-    private static bool IsCodeActionNotSupportedByLSP(IUnifiedSuggestedAction suggestedAction)
+    private static bool IsCodeActionNotSupportedByLSP(UnifiedSuggestedAction suggestedAction)
         // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
         // Exceptions are made for ExtractClass and ExtractInterface because we have OptionsServices which
         // provide reasonable defaults without user interaction.
@@ -109,7 +108,7 @@ internal static class CodeActionHelpers
     /// </summary>
     private static LSP.CodeAction[] GenerateCodeActions(
         CodeActionParams request,
-        IUnifiedSuggestedAction suggestedAction,
+        UnifiedSuggestedAction suggestedAction,
         LSP.CodeActionKind codeActionKind)
     {
         var codeAction = suggestedAction.OriginalCodeAction;
@@ -142,7 +141,7 @@ internal static class CodeActionHelpers
         CodeActionParams request,
         LSP.CodeActionKind codeActionKind,
         LSP.Diagnostic[]? diagnosticsForFix,
-        IUnifiedSuggestedAction suggestedAction,
+        UnifiedSuggestedAction suggestedAction,
         ImmutableArray<string> pathOfParentAction,
         bool isTopLevelCodeAction = false)
     {
@@ -181,7 +180,7 @@ internal static class CodeActionHelpers
         Command? nestedCodeActionCommand,
         ImmutableArray<LSP.CodeAction>? nestedCodeActions,
         string[] codeActionPath,
-        IUnifiedSuggestedAction suggestedAction)
+        UnifiedSuggestedAction suggestedAction)
     {
         var title = codeAction.Title;
         // We add an overarching action to the lightbulb that may contain nested actions.
@@ -220,7 +219,7 @@ internal static class CodeActionHelpers
     private static VSInternalCodeAction GenerateVSCodeAction(
         CodeActionParams request,
         SourceText documentText,
-        IUnifiedSuggestedAction suggestedAction,
+        UnifiedSuggestedAction suggestedAction,
         LSP.CodeActionKind codeActionKind,
         CodeActionPriority setPriority,
         LSP.Range? applicableRange,
@@ -250,7 +249,7 @@ internal static class CodeActionHelpers
         static VSInternalCodeAction[] GenerateNestedVSCodeActions(
             CodeActionParams request,
             SourceText documentText,
-            IUnifiedSuggestedAction suggestedAction,
+            UnifiedSuggestedAction suggestedAction,
             CodeActionKind codeActionKind,
             ref int currentHighestSetNumber,
             ImmutableArray<string> codeActionPath)
@@ -279,7 +278,7 @@ internal static class CodeActionHelpers
         }
     }
 
-    private static LSP.Diagnostic[]? GetApplicableDiagnostics(CodeActionContext context, IUnifiedSuggestedAction action)
+    private static LSP.Diagnostic[]? GetApplicableDiagnostics(CodeActionContext context, UnifiedSuggestedAction action)
     {
         if (action is UnifiedCodeFixSuggestedAction codeFixAction && context.Diagnostics != null)
         {
@@ -346,7 +345,7 @@ internal static class CodeActionHelpers
     /// <summary>
     /// Generates a code action with its nested actions properly set.
     /// </summary>
-    private static CodeAction GetNestedActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, string? fixAllScope)
+    private static CodeAction GetNestedActionsFromActionSet(UnifiedSuggestedAction suggestedAction, string? fixAllScope)
     {
         var codeAction = suggestedAction.OriginalCodeAction;
         if (suggestedAction is not UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
@@ -371,7 +370,7 @@ internal static class CodeActionHelpers
             codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
     }
 
-    private static void GetFixAllActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, ArrayBuilder<CodeAction> codeActions, string? fixAllScope)
+    private static void GetFixAllActionsFromActionSet(UnifiedSuggestedAction suggestedAction, ArrayBuilder<CodeAction> codeActions, string? fixAllScope)
     {
         var codeAction = suggestedAction.OriginalCodeAction;
         if (suggestedAction is not UnifiedCodeFixSuggestedAction { FixAllFlavors: not null } unifiedCodeFixSuggestedAction)
@@ -407,7 +406,7 @@ internal static class CodeActionHelpers
         return actionSets;
     }
 
-    private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, IUnifiedSuggestedAction suggestedAction)
+    private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, UnifiedSuggestedAction suggestedAction)
         => categoryName switch
         {
             UnifiedPredefinedSuggestedActionCategoryNames.CodeFix => CodeActionKind.QuickFix,
@@ -417,18 +416,13 @@ internal static class CodeActionHelpers
             _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
         };
 
-    private static CodeActionKind GetRefactoringKind(IUnifiedSuggestedAction suggestedAction)
-    {
-        if (suggestedAction is not ICodeRefactoringSuggestedAction refactoringAction)
-            return CodeActionKind.Refactor;
-
-        return refactoringAction.CodeRefactoringProvider.Kind switch
+    private static CodeActionKind GetRefactoringKind(UnifiedSuggestedAction suggestedAction)
+        => suggestedAction.CodeRefactoringKind switch
         {
             CodeRefactoringKind.Extract => CodeActionKind.RefactorExtract,
             CodeRefactoringKind.Inline => CodeActionKind.RefactorInline,
             _ => CodeActionKind.Refactor,
         };
-    }
 
     private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriority priority)
         => priority switch

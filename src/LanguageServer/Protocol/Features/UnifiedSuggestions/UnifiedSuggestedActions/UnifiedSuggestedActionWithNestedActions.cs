@@ -14,11 +14,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 internal sealed class UnifiedSuggestedActionWithNestedActions(
     CodeAction codeAction,
     CodeActionPriority codeActionPriority,
-    object? provider,
+    object provider,
     ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null)
 {
-    public object? Provider { get; } = provider;
-
     public ImmutableArray<UnifiedSuggestedActionSet> NestedActionSets { get; } = nestedActionSets;
 }

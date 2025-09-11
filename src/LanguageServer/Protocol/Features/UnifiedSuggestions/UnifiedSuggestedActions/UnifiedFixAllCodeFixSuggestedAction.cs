@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 
@@ -16,8 +15,9 @@ internal sealed class UnifiedFixAllCodeFixSuggestedAction(
     CodeAction codeAction,
     CodeActionPriority codeActionPriority,
     IRefactorOrFixAllState fixAllState,
+    object provider,
     Diagnostic diagnostic)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority), IFixAllCodeFixSuggestedAction
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null)
 {
     public Diagnostic Diagnostic { get; } = diagnostic;
 

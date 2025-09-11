@@ -6,11 +6,9 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -34,7 +32,7 @@ internal sealed class CodeFixSuggestedAction(
         subjectBuffer,
         provider,
         action,
-        fixAllFlavors), ICodeFixSuggestedAction, ITelemetryDiagnosticID<string>
+        fixAllFlavors), ITelemetryDiagnosticID<string>
 {
     public CodeFix CodeFix { get; } = fix;
 

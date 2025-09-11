@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 
@@ -18,11 +17,9 @@ internal sealed class UnifiedCodeFixSuggestedAction(
     CodeFix codeFix,
     object provider,
     UnifiedSuggestedActionSet? fixAllFlavors)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority), ICodeFixSuggestedAction
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null)
 {
     public CodeFix CodeFix { get; } = codeFix;
-
-    public object Provider { get; } = provider;
 
     public UnifiedSuggestedActionSet? FixAllFlavors { get; } = fixAllFlavors;
 }

@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -30,10 +29,8 @@ internal sealed partial class FixAllCodeFixSuggestedAction(
         subjectBuffer,
         fixAllState,
         originalCodeAction,
-        new FixAllCodeAction(fixAllState)), ITelemetryDiagnosticID<string>, IFixAllCodeFixSuggestedAction
+        new FixAllCodeAction(fixAllState)), ITelemetryDiagnosticID<string>
 {
-    public Diagnostic Diagnostic { get; } = diagnostic;
-
     public string GetDiagnosticID()
-        => Diagnostic.GetTelemetryDiagnosticID();
+        => diagnostic.GetTelemetryDiagnosticID();
 }

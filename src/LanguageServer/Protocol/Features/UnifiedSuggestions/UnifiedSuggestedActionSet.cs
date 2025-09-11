@@ -18,7 +18,7 @@ internal sealed class UnifiedSuggestedActionSet
 
     public string? CategoryName { get; }
 
-    public ImmutableArray<IUnifiedSuggestedAction> Actions { get; }
+    public ImmutableArray<UnifiedSuggestedAction> Actions { get; }
 
     public object? Title { get; }
 
@@ -29,7 +29,7 @@ internal sealed class UnifiedSuggestedActionSet
     public UnifiedSuggestedActionSet(
         Solution originalSolution,
         string? categoryName,
-        ImmutableArray<IUnifiedSuggestedAction> actions,
+        ImmutableArray<UnifiedSuggestedAction> actions,
         object? title,
         CodeActionPriority priority,
         TextSpan? applicableToSpan)

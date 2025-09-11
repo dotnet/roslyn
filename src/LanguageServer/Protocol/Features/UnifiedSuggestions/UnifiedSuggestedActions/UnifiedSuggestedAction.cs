@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 
@@ -11,9 +12,16 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// both local Roslyn and LSP.
 /// </summary>
 internal abstract class UnifiedSuggestedAction(
-    CodeAction codeAction, CodeActionPriority codeActionPriority) : IUnifiedSuggestedAction
+    CodeAction codeAction,
+    CodeActionPriority codeActionPriority,
+    object provider,
+    CodeRefactoringKind? codeRefactoringKind)
 {
+    public object Provider { get; } = provider;
+
     public CodeAction OriginalCodeAction { get; } = codeAction;
 
     public CodeActionPriority CodeActionPriority { get; } = codeActionPriority;
+
+    public CodeRefactoringKind? CodeRefactoringKind { get; } = codeRefactoringKind;
 }
