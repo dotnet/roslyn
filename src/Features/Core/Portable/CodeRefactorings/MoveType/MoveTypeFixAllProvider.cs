@@ -24,7 +24,7 @@ internal sealed partial class MoveTypeCodeRefactoringProvider
             if (refactorAllContext.CodeActionEquivalenceKey != MoveTypeOperationKind.RenameFile.ToString())
                 return SpecializedTasks.Null<CodeAction>();
 
-            return CodeAction.Create(
+            var codeAction = CodeAction.Create(
                 refactorAllContext.GetDefaultRefactorAllTitle(),
                 async cancellationToken =>
                 {
@@ -42,12 +42,8 @@ internal sealed partial class MoveTypeCodeRefactoringProvider
                             foreach (var name in suggestedNames)
                             {
                                 // Ensure the new name isn't one that will conflict with an existing document.
-                                if (document.Project.Documents.Any(
-                                        static (d, args) => d.Folders.SequenceEqual(args.document.Folders) && d.Name == args.name,
-                                        arg: (document, name)))
-                                {
+                                if (CollidesWithExistingDocument(document.Project.State, document.State, name))
                                     continue;
-                                }
 
                                 callback((document.Id, name));
                             }
@@ -56,21 +52,27 @@ internal sealed partial class MoveTypeCodeRefactoringProvider
                         cancellationToken).ConfigureAwait(false);
 
                     var currentSolution = refactorAllContext.Solution;
-                    foreach (var group in documentIdsAndNames.GroupBy(static t => t.documentId.ProjectId))
+                    foreach (var (documentId, newFileName) in documentIdsAndNames)
                     {
-                        var project = refactorAllContext.Solution.GetRequiredProject(group.Key);
-                        var newProject = project;
-                        foreach (var (documentId, newFileName) in group)
-                        {
-                            var document = project.GetRequiredDocument(documentId);
-                            newProject = newProject.WithDocumentName(documentId, newFileName);
-                        }
-                        refactorAllContext = refactorAllContext.With(
-                            (document: null, project: newProject), cancellationToken: cancellationToken);
+                        var projectState = currentSolution.GetRequiredProjectState(documentId.ProjectId);
+                        var documentState = projectState.DocumentStates.GetRequiredState(documentId);
+                        if (CollidesWithExistingDocument(projectState, documentState, newFileName))
+                            continue;
+
+                        currentSolution = currentSolution.WithDocumentName(documentId, newFileName);
                     }
 
                     return currentSolution;
                 });
+
+            return Task.FromResult<CodeAction?>(codeAction);
+        }
+
+        private static bool CollidesWithExistingDocument(ProjectState projectState, TextDocumentState document, string newName)
+        {
+            return projectState.DocumentStates.States.Any(
+                static (kvp, args) => kvp.Value.Name == args.newName && kvp.Value.Folders.SequenceEqual(args.document.Folders),
+                arg: (document, newName));
         }
     }
 }
