@@ -394,14 +394,13 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 s => IsViableExtensionMethod(s.Symbol, typeSymbol));
         }
 
-        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols)
-            => methodSymbols.WhereAsArray(s =>
-            {
-                if (!s.Symbol.IsClassicOrModernInstanceExtensionMethod())
-                    return false;
-
-                return s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly);
-            });
+        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(
+            ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols)
+        {
+            return methodSymbols.WhereAsArray(
+                s => s.Symbol.IsClassicOrModernInstanceExtensionMethod() &&
+                     s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly));
+        }
 
         /// <summary>
         /// Searches for extension methods exactly called 'Add'.  Returns
