@@ -12,19 +12,9 @@ RUN Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/downl
 
 # Install PowerShell Core.
 RUN Invoke-WebRequest -Uri https://github.com/PowerShell/PowerShell/releases/download/v7.5.2/PowerShell-7.5.2-win-x64.msi -OutFile PowerShell.msi; `
-    Start-Process msiexec.exe -Wait -ArgumentList '/I PowerShell.msi /quiet'; `
+    $process = Start-Process msiexec.exe -Wait -PassThru -ArgumentList '/I PowerShell.msi /quiet'; `
+    if ($process.ExitCode -ne 0) { exit $process.ExitCode }; `
     Remove-Item PowerShell.msi
-
-# Copy Visual Studio configuration
-COPY docker.vsconfig /docker.vsconfig
-
-# Install Visual Studio Build Tools.
-# This is necessary, otherwise eng/build.ps will attempt to download them, and will fail because it depends on Microsoft's private resources.
-# TODO: The following downloads the latest version. Make sure it downloads a specific version.
-RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe; `
-    Start-Process -Wait -FilePath vs_buildtools.exe -ArgumentList '--wait', '--quiet', '--config', 'C:\docker.vsconfig', '--norestart', '--locale en-US'; `
-    Remove-Item C:\\vs_buildtools.exe; `
-    Remove-Item C:\\docker.vsconfig
 
 # Download the .NET installer. We will need it several times.
 RUN Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1; 
@@ -34,6 +24,20 @@ RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 9.0.304
 
 # Install .NET SDK 10.0.100-preview.6.25358.103 - Must match global.json.
 RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 10.0.100-preview.6.25358.103 -InstallDir 'C:\Program Files\dotnet'; 
+
+
+# Copy Visual Studio configuration
+COPY vsconfig.json /vsconfig.json
+
+# Install Visual Studio Build Tools.
+# To find a version, inspect the JSON file https://aka.ms/vs/17/release/channel and choose the payload URL.
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe; `
+    $process = Start-Process .\vs_buildtools.exe -NoNewWindow -Wait -PassThru `
+        -ArgumentList  "--quiet", "--wait", "--norestart", "--nocache",  "--installPath", "C:\BuildTools", "--installChannelUri", "https://aka.ms/vs/17/release/channel", "--installCatalogUri", "https://download.visualstudio.microsoft.com/download/pr/c2e2845d-bdff-44fc-ac00-3d488e9f5675/dc1d78c601c2839b8099ef634ff1f8304b1bd26a2dd485e3b2a70d12f7f9ae7c/VisualStudio.vsman", "--productId", "Microsoft.VisualStudio.Product.BuildTools", "--config", "\vsconfig.json"; `
+        Get-ChildItem "$env:TEMP\dd_*.log" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "=== Contents of $($_.Name) ==="; Get-Content $_.FullName; Write-Host "=== End of $($_.Name) ===" }; `
+    if ($process.ExitCode -ne 0) { exit $process.ExitCode }; `
+    Remove-Item C:\\vs_buildtools.exe;
+
 
 # Clean up.
 RUN Remove-Item C:\\dotnet-install.ps1
