@@ -13,14 +13,12 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// by both local Roslyn and LSP.
 /// </summary>
 internal sealed class UnifiedSuggestedActionSet(
-    Solution originalSolution,
     string? categoryName,
     ImmutableArray<UnifiedSuggestedAction> actions,
     object? title,
     CodeActionPriority priority,
     TextSpan? applicableToSpan)
 {
-    public readonly Solution OriginalSolution = originalSolution;
     public readonly string? CategoryName = categoryName;
     public readonly ImmutableArray<UnifiedSuggestedAction> Actions = actions;
     public readonly object? Title = title;
