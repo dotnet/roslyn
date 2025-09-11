@@ -1564,4 +1564,62 @@ public sealed partial class AddUsingTests
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    public Task TestModernExtension2()
+        => TestInRegularAndScriptAsync(
+            """
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        int o = 0;
+                        [|o.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        int o = new();
+                        o.M1();
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
 }

@@ -494,7 +494,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // case we decide that the method is not viable.  But we could, in the future, decide
         // to just always consider such methods viable.
 
-        if (receiver.Language == method.Language)
+        if (receiver.Language != method.Language)
             return false;
 
         if (method.IsExtensionMethod)
