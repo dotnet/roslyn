@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
@@ -124,27 +125,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             this._analyzerInfoCache, solution.GetProject(projectId));
     }
 
-    public async Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizationCandidatesAsync(
-        Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
-    {
-        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-        if (client is not null)
-        {
-            var analyzerIds = analyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
-            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableHashSet<string>>(
-                project,
-                (service, solution, cancellationToken) => service.GetDeprioritizationCandidatesAsync(
-                    solution, project.Id, analyzerIds, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-            if (!result.HasValue)
-                return [];
-
-            return analyzers.FilterAnalyzers(result.Value);
-        }
-
-        return await GetDeprioritizationCandidatesInProcessAsync(project, analyzers, cancellationToken).ConfigureAwait(false);
-    }
-
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
         Project project, ImmutableArray<DocumentId> documentIds, ImmutableHashSet<string>? diagnosticIds, AnalyzerFilter analyzerFilter, bool includeLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
@@ -187,41 +167,44 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
             project, diagnosticIds, analyzerFilter, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
+    public async Task<bool> IsAnyDiagnosticIdDeprioritizedAsync(
+        Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, bool>(
+                project,
+                (service, solution, cancellationToken) => service.IsAnyDiagnosticIdDeprioritizedAsync(
+                    solution, project.Id, diagnosticIds, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            return result.HasValue && result.Value;
+        }
+
+        return await IsAnyDeprioritizedDiagnosticIdInProcessAsync(
+            project, diagnosticIds, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document,
         TextSpan? range,
-        ImmutableArray<DiagnosticAnalyzer> allAnalyzers,
-        ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
-        ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
-        ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers,
-        bool incrementalAnalysis,
-        bool logPerformanceInfo,
+        DiagnosticIdFilter diagnosticIdFilter,
+        CodeActionRequestPriority? priority,
+        DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
-        if (allAnalyzers.Length == 0)
-            return [];
-
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
-            var allAnalyzerIds = allAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
-            var syntaxAnalyzersIds = syntaxAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
-            var semanticSpanAnalyzersIds = semanticSpanAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
-            var semanticDocumentAnalyzersIds = semanticDocumentAnalyzers.Select(a => a.GetAnalyzerId()).ToImmutableHashSet();
-
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
                 document.Project,
-                (service, solution, cancellationToken) => service.ComputeDiagnosticsAsync(
-                    solution, document.Id, range,
-                    allAnalyzerIds, syntaxAnalyzersIds, semanticSpanAnalyzersIds, semanticDocumentAnalyzersIds,
-                    incrementalAnalysis, logPerformanceInfo, cancellationToken),
+                (service, solution, cancellationToken) => service.GetDiagnosticsForSpanAsync(
+                    solution, document.Id, range, diagnosticIdFilter, priority, diagnosticKind, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-
             return result.HasValue ? result.Value : [];
         }
 
-        return await ComputeDiagnosticsInProcessAsync(
-            document, range, allAnalyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
-            incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
+        return await GetDiagnosticsForSpanInProcessAsync(
+            document, range, diagnosticIdFilter, priority, diagnosticKind, cancellationToken).ConfigureAwait(false);
     }
 }
