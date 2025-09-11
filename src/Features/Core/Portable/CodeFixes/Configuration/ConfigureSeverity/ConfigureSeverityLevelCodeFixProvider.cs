@@ -68,7 +68,7 @@ internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigura
             }
 
             var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
-            result.Add(new CodeFix(codeAction, diagnostic));
+            result.Add(new CodeFix(codeAction, [diagnostic]));
 
             // Bulk configuration is only supported for analyzer diagnostics.
             if (!SuppressionHelpers.IsCompilerDiagnostic(diagnostic))

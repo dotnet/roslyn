@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 
@@ -11,15 +12,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// Similar to FixAllCodeFixSuggestedAction, but in a location that can be used by
 /// both local Roslyn and LSP.
 /// </summary>
-internal sealed class UnifiedFixAllCodeFixSuggestedAction(
+internal sealed class UnifiedRefactorOrFixAllSuggestedAction(
     CodeAction codeAction,
     CodeActionPriority codeActionPriority,
     IRefactorOrFixAllState fixAllState,
     object provider,
-    Diagnostic diagnostic)
-    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind: null)
+    CodeRefactoringKind? codeRefactoringKind,
+    string? telemetryDiagnosticID)
+    : UnifiedSuggestedAction(codeAction, codeActionPriority, provider, codeRefactoringKind, telemetryDiagnosticID)
 {
-    public Diagnostic Diagnostic { get; } = diagnostic;
-
     public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
 }

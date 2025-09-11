@@ -188,10 +188,10 @@ internal abstract partial class SuggestedAction(
             map["TelemetryId"] = telemetryId.ToString();
         }
 
-        if (this is ITelemetryDiagnosticID<string> diagnosticId)
+        if (this is ITelemetryDiagnosticID<string> telemetry && telemetry.GetDiagnosticID() is string diagnosticId)
         {
             // save what it is actually fixing
-            map["DiagnosticId"] = diagnosticId.GetDiagnosticID();
+            map["DiagnosticId"] = diagnosticId;
         }
     }
 

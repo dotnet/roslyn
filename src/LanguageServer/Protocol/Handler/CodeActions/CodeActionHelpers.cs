@@ -197,7 +197,7 @@ internal static class CodeActionHelpers
 
         if (suggestedAction is UnifiedCodeFixSuggestedAction unifiedCodeFixSuggestedAction && unifiedCodeFixSuggestedAction.FixAllFlavors is not null)
         {
-            var fixAllFlavors = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Select(action => action.FixAllState.Scope.ToString());
+            var fixAllFlavors = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedRefactorOrFixAllSuggestedAction>().Select(action => action.FixAllState.Scope.ToString());
             var fixAllTitle = string.Format(FeaturesResources.Fix_All_0, title);
             var command = new LSP.Command
             {
@@ -380,8 +380,8 @@ internal static class CodeActionHelpers
 
         // Retrieves the fix all code action based on the scope that was selected. 
         // Creates a FixAllCodeAction type so that we can get the correct operations for the selected scope.
-        var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedFixAllCodeFixSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
-        codeActions.Add(new FixAllCodeAction(codeAction.Title, fixAllFlavor.FixAllState, showPreviewChangesDialog: false));
+        var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedRefactorOrFixAllSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
+        codeActions.Add(new FixAllCodeAction(fixAllFlavor.FixAllState, showPreviewChangesDialog: false));
     }
 
     private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(

@@ -5288,6 +5288,358 @@ public sealed class SyntaxGeneratorTests
             """);
     }
 
+    [Fact]
+    public void TestExtensionDeclaration_01()
+    {
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(int i)
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::System.Int32 i)
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_02()
+    {
+        // unnamed extension parameter
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(int)
+                {
+                    public static int P { get => 0; set { } }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public static global::System.Int32 P { get; set; }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_03()
+    {
+        // generic
+        var compilation = Compile("""
+            public static class E
+            {
+                extension<T>(int)
+                {
+                    public static int P => 0;
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension<T>(global::System.Int32)
+                {
+                    public static global::System.Int32 P { get; }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_04()
+    {
+        // null extension parameter
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(__arglist)
+                {
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        Assert.Throws<ArgumentException>(() => Generator.Declaration(symbol));
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_05()
+    {
+        // operator
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(C)
+                {
+                    public static C operator +(C c1, C c2) => null;
+                }
+            }
+
+            class C { }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::C)
+                {
+                    public static global::C operator +(global::C c1, global::C c2)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_06()
+    {
+        // in struct
+        var compilation = Compile("""
+            public struct E
+            {
+                extension(int)
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<StructDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public struct E
+            {
+                extension(global::System.Int32)
+                {
+                    public void M()
+                    {
+                    }
+                }
+
+                public E()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_07()
+    {
+        // in non-static class
+        var compilation = Compile("""
+            public class E
+            {
+                extension(int)
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public void M()
+                    {
+                    }
+                }
+
+                public E()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_08()
+    {
+        // top-level
+        var compilation = Compile("""
+            extension(int)
+            {
+                public void M() { }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("").Single();
+        VerifySyntax<ExtensionBlockDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            extension(global::System.Int32)
+            {
+                public void M()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_09()
+    {
+        // nested in type
+        var compilation = Compile("""
+            static class E1
+            {
+                static class E2
+                {
+                    extension(int)
+                    {
+                        public void M() { }
+                    }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E1").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E1 : global::System.Object
+            {
+                private static class E2 : global::System.Object
+                {
+                    extension(global::System.Int32)
+                    {
+                        public void M()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_10()
+    {
+        // merged extension blocks
+        var compilation = Compile("""
+            static class E
+            {
+                extension(int)
+                {
+                    public void M1() { }
+                }
+                extension(int)
+                {
+                    public void M2() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public void M1()
+                    {
+                    }
+                }
+
+                extension(global::System.Int32)
+                {
+                    public void M2()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_11()
+    {
+        // type parameter constraints
+        var compilation = Compile("""
+            static class E
+            {
+                extension<T>(int) where T : class
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension<T>(global::System.Int32)
+                    where T : class
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Operator_01()
+    {
+        var compilation = Compile("""
+            class C
+            {
+                public static C operator+(C c1, C c2) => throw null;
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("C").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal class C : global::System.Object
+            {
+                public static global::C operator +(global::C c1, global::C c2)
+                {
+                }
+
+                public C()
+                {
+                }
+            }
+            """);
+    }
+
     private static void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
     {
         MarkupTestFile.GetSpan(markup, out var code, out var span);
