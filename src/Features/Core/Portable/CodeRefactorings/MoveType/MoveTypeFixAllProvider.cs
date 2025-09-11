@@ -33,7 +33,7 @@ internal sealed partial class MoveTypeCodeRefactoringProvider
                 return SpecializedTasks.Null<CodeAction>();
 
             var codeAction = CodeAction.Create(
-                refactorAllContext.GetDefaultRefactorAllTitle(),
+                FeaturesResources.Rename_files_to_match_types_within,
                 async cancellationToken =>
                 {
                     var documentsToCheck = await refactorAllContext.GetRefactorAllSpansAsync(cancellationToken).ConfigureAwait(false);
