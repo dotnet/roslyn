@@ -412,7 +412,24 @@ class C : I;
 
 ***Introduced in Visual Studio 2026 version 18.0***
 
-If you are compiling a module (note that this doesn't apply to normal DLL/EXE compilations),
-and have an unused lambda or local function with a `params` collection parameter,
-and the `ParamCollectionAttribute` is not found, a compilation error is now reported.
+If you are compiling a `.netmodule` (note that this doesn't apply to normal DLL/EXE compilations),
+and have a lambda or a local function with a `params` collection parameter,
+and the `ParamCollectionAttribute` is not found, a compilation error is now reported
+(because the attribute is now [emitted](https://github.com/dotnet/roslyn/issues/79752) on the synthesized method
+but the attribute type itself is not synthesized by the compiler into a `.netmodule`).
 You can work around that by defining the attribute yourself.
+
+```cs
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var lam = (params IList<int> xs) => xs.Count; // error if ParamCollectionAttribute does not exist
+        lam(1, 2, 3);
+
+        int func(params IList<int> xs) => xs.Count; // error if ParamCollectionAttribute does not exist
+        func(4, 5, 6);
+    }
+}
+```

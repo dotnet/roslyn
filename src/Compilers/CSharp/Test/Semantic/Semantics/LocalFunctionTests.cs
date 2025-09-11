@@ -2905,6 +2905,7 @@ class Program
             Assert.True(symbol.Parameters.Single().IsParamsCollection);
 
             // The original compilation does not synthesize the attribute when emitted.
+            Assert.Equal(TypeKind.Error, comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute).TypeKind);
             CompileAndVerify(comp,
                 symbolValidator: static (module) =>
                 {
