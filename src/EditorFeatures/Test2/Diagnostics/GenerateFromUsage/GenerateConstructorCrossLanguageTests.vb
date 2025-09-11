@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructor
-    Partial Public Class GenerateConstructorCrossLanguageTests
-        Inherits AbstractCrossLanguageUserDiagnosticTest
+    Partial Public Class GenerateConstructorCrossLanguageUserDiagnosticTests
+        Inherits AbstractCrossLanguageUserDiagnosticTests
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then

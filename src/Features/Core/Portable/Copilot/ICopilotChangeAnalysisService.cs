@@ -284,7 +284,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
                 await foreach (var (codeFixCollection, success, applicationTime) in values.ConfigureAwait(false))
                 {
-                    var diagnosticId = codeFixCollection.FirstDiagnostic.Id;
+                    var diagnosticId = codeFixCollection.Diagnostics.First().Id;
                     var providerName = GetProviderName(codeFixCollection);
 
                     IncrementCount(diagnosticIdToCount, diagnosticId);
