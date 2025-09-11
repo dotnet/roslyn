@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
         End Sub
 
         Protected Overrides Function IsTrivialTypeContainer(typeDeclaration As TypeBlockSyntax) As Boolean
-            If typeDeclaration.Members.Count = 0 Then
+            If typeDeclaration.Members.Count = 1 Then
                 Dim member = typeDeclaration.Members(0)
                 Return TypeOf member Is TypeBlockSyntax OrElse TypeOf member Is EnumBlockSyntax
             End If
