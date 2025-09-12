@@ -217,7 +217,7 @@ internal sealed class UnifiedSuggestedActionsSource
             return null;
 
         var textDocument = fixAllState.Document!;
-        using var fixAllSuggestedActionsDisposer = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
+        using var _ = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
         foreach (var scope in supportedScopes)
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
@@ -246,13 +246,7 @@ internal sealed class UnifiedSuggestedActionsSource
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }
 
-        return new(
-            //categoryName: null,
-            Actions: fixAllSuggestedActions.ToImmutable(),
-            Title: CodeFixesResources.Fix_all_occurrences_in);
-        //,
-        //    priority: CodeActionPriority.Lowest,
-        //    applicableToSpan: null);
+        return new(CodeFixesResources.Fix_all_occurrences_in, fixAllSuggestedActions.ToImmutableAndClear());
     }
 
     /// <summary>
