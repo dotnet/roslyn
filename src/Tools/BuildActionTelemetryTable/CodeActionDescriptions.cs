@@ -167,6 +167,7 @@ internal static class CodeActionDescriptions
         { "Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic.PassInCapturedVariablesAsArgumentsCodeFixProvider", "Make Local Function Static: Pass In Captured Variables As Arguments" },
         { "Microsoft.CodeAnalysis.CSharp.MakeMemberStatic.CSharpMakeMemberStaticCodeFixProvider", "Make Member Static" },
         { "Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous.CSharpMakeMethodAsynchronousCodeFixProvider", "Make Method Asynchronous" },
+        { "Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous.CSharpMakeMethodSynchronousCodeFixProvider", "Make Method Synchronous" },
         { "Microsoft.CodeAnalysis.CSharp.MakeRefStruct.MakeRefStructCodeFixProvider", "Make Ref Struct" },
         { "Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable.CSharpMakeStructFieldsWritableCodeFixProvider", "Make Struct Fields Writable" },
         { "Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly.CSharpMakeStructMemberReadOnlyCodeFixProvider", "Make Struct Member Read Only" },
