@@ -5,7 +5,7 @@
 Imports System.IO
 Imports System.Text
 
-Friend Module Program
+Public Module Program
     Public Function Main(args As String()) As Integer
         If args.Length <> 2 Then
             Console.WriteLine(
@@ -18,6 +18,10 @@ Friend Module Program
         Dim inputPath = args(0)
         Dim outputPath = args(1)
 
+        Return Generate(inputPath, outputPath)
+    End Function
+
+    Public Function Generate(inputPath As String, outputPath As String) As Integer
         Dim outputText = New StringBuilder
         outputText.AppendLine("Namespace Microsoft.CodeAnalysis.VisualBasic")
         outputText.AppendLine("    Friend Partial Module ErrorFacts")
