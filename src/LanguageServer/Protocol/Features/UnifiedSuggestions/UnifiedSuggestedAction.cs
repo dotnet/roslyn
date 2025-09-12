@@ -95,7 +95,7 @@ internal sealed class UnifiedSuggestedAction
         ImmutableArray<Diagnostic> diagnostics,
         UnifiedSuggestedActionFlavors? flavors)
     {
-        return new(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics, flavors, nestedActionSets: default, refactorOrFixAllState: null);
+        return new(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics, flavors, nestedActionSets: [], refactorOrFixAllState: null);
     }
 
     public static UnifiedSuggestedAction CreateWithNestedActionSets(
@@ -116,6 +116,6 @@ internal sealed class UnifiedSuggestedAction
         ImmutableArray<Diagnostic> diagnostics,
         IRefactorOrFixAllState refactorOrFixAllState)
     {
-        return new(codeAction, codeActionPriority, refactorOrFixAllState.Provider, codeRefactoringKind, diagnostics, flavors: null, nestedActionSets: default, refactorOrFixAllState);
+        return new(codeAction, codeActionPriority, refactorOrFixAllState.Provider, codeRefactoringKind, diagnostics, flavors: null, nestedActionSets: [], refactorOrFixAllState);
     }
 }

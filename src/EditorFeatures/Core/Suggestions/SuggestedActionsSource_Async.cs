@@ -283,7 +283,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                             action.RefactorOrFixAllState, action.CodeAction,
                             action.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID());
                     }
-                    else if (!action.NestedActionSets.IsDefaultOrEmpty)
+                    else if (!action.NestedActionSets.IsEmpty)
                     {
                         return new SuggestedActionWithNestedActions(
                            _threadingContext, owner, document.Project.Solution, subjectBuffer,

@@ -573,7 +573,7 @@ internal sealed class UnifiedSuggestedActionsSource
         if (actionCount > 1 && action.EquivalenceKey == null)
             return null;
 
-        using var fixAllSuggestedActionsDisposer = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
+        using var _ = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
         foreach (var scope in fixAllProviderInfo.SupportedScopes)
         {
             var fixAllState = new RefactorAllState(
@@ -697,9 +697,9 @@ internal sealed class UnifiedSuggestedActionsSource
         foreach (var action in actionSet.Actions)
         {
             // Only inline if the underlying code action allows it.
-            if (action is { CodeAction.IsInlinable: true, NestedActionSets: var nestedActionsSets })
+            if (action is { CodeAction.IsInlinable: true, NestedActionSets.Length: > 0 })
             {
-                newActions.AddRange(nestedActionsSets.SelectMany(set => set.Actions));
+                newActions.AddRange(action.NestedActionSets.SelectMany(set => set.Actions));
             }
             else
             {

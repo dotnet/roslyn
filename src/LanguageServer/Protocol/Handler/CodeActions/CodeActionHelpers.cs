@@ -149,7 +149,7 @@ internal static class CodeActionHelpers
         var codeAction = suggestedAction.CodeAction;
         using var _1 = ArrayBuilder<LSP.CodeAction>.GetInstance(out var nestedCodeActions);
 
-        if (!suggestedAction.NestedActionSets.IsDefaultOrEmpty)
+        if (!suggestedAction.NestedActionSets.IsEmpty)
         {
             foreach (var actionSet in suggestedAction.NestedActionSets)
             {
@@ -255,7 +255,7 @@ internal static class CodeActionHelpers
             ref int currentHighestSetNumber,
             ImmutableArray<string> codeActionPath)
         {
-            if (suggestedAction.NestedActionSets.IsDefaultOrEmpty)
+            if (suggestedAction.NestedActionSets.IsEmpty)
                 return [];
 
             using var _ = ArrayBuilder<VSInternalCodeAction>.GetInstance(out var nestedActions);
@@ -347,7 +347,7 @@ internal static class CodeActionHelpers
     private static CodeAction GetNestedActionsFromActionSet(UnifiedSuggestedAction suggestedAction, string? fixAllScope)
     {
         var codeAction = suggestedAction.CodeAction;
-        if (suggestedAction.NestedActionSets.IsDefaultOrEmpty)
+        if (suggestedAction.NestedActionSets.IsEmpty)
             return codeAction;
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
