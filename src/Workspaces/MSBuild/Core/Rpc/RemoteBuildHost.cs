@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,6 +39,10 @@ internal sealed class RemoteBuildHost
     public Task<bool> HasUsableMSBuildAsync(string projectOrSolutionFilePath, CancellationToken cancellationToken)
         => _client.InvokeAsync<bool>(BuildHostTargetObject, nameof(IBuildHost.HasUsableMSBuild), parameters: [projectOrSolutionFilePath], cancellationToken);
 
+    /// <inheritdoc cref="IBuildHost.ConfigureGlobalState(ImmutableDictionary{string, string}, string?)"/>
+    public Task ConfigureGlobalStateAsync(ImmutableDictionary<string, string> globalProperties, string? binlogPath, CancellationToken cancellationToken)
+        => _client.InvokeAsync(BuildHostTargetObject, nameof(IBuildHost.ConfigureGlobalState), parameters: [globalProperties, binlogPath], cancellationToken);
+
     public async Task<RemoteProjectFile> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
     {
         var remoteProjectFileTargetObject = await _client.InvokeAsync<int>(BuildHostTargetObject, nameof(IBuildHost.LoadProjectFileAsync), parameters: [projectFilePath, languageName], cancellationToken).ConfigureAwait(false);
@@ -61,5 +67,4 @@ internal sealed class RemoteBuildHost
 
     public Task ShutdownAsync(CancellationToken cancellationToken)
         => _client.InvokeAsync(BuildHostTargetObject, nameof(IBuildHost.ShutdownAsync), parameters: [], cancellationToken);
-
 }

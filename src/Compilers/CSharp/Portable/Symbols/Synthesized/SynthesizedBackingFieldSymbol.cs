@@ -147,6 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Gets the inferred nullable annotation of the backing field,
+        /// potentially binding and nullable-analyzing the associated get accessor.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="FieldSymbol.TypeWithAnnotations"/> for this symbol does not expose this inferred nullable annotation.
+        /// For that API, the nullable annotation of the associated property is used instead.
+        /// </remarks>
         internal NullableAnnotation GetInferredNullableAnnotation()
         {
             if (_inferredNullableAnnotation == (int)NullableAnnotation.Ignored)
@@ -217,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag nullableAnalyzeAndFilterDiagnostics(NullableAnnotation assumedNullableAnnotation)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, diagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, assumedNullableAnnotation));
+                NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, diagnostics, symbolAndGetterNullResilienceData: (getAccessor, new NullableWalker.GetterNullResilienceData(_property.BackingField, assumedNullableAnnotation)));
                 if (diagnostics.IsEmptyWithoutResolution)
                 {
                     return diagnostics;

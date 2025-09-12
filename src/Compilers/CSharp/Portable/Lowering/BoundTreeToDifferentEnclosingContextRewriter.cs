@@ -192,15 +192,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
+
             if (property.ContainingType.IsAnonymousType)
             {
                 //at this point we expect that the code is lowered and that getters of anonymous types are accessed
-                //only via their corresponding get-methods (see VisitMethodSymbol)
+                //only via their corresponding get-methods, except for properties in expression trees
+
+                // Property of an anonymous type
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
+                if (ReferenceEquals(newType, property.ContainingType))
+                {
+                    // Anonymous type symbol was not rewritten
+                    return property;
+                }
+
+                // get a new property by name
+                foreach (var member in newType.GetMembers(property.Name))
+                {
+                    if (member.Kind == SymbolKind.Property)
+                    {
+                        return (PropertySymbol)member;
+                    }
+                }
+
                 throw ExceptionUtilities.Unreachable();
             }
+
             return ((PropertySymbol)property.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly())
                     ;
+        }
+
+        [return: NotNullIfNotNull(nameof(field))]
+        public override FieldSymbol? VisitFieldSymbol(FieldSymbol? field)
+        {
+            if (field is null)
+            {
+                return null;
+            }
+
+            // Field of a regular type
+            return ((FieldSymbol)field.OriginalDefinition)
+                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(field.ContainingType).AsTypeSymbolOnly());
         }
 
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)

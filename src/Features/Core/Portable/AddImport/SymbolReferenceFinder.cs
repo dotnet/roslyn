@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -67,7 +65,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             _symbolSearchService = symbolSearchService;
             Options = options;
             _packageSources = packageSources;
-            _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            _syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             _namespacesInScope = GetNamespacesInScope(cancellationToken);
             _isWithinImport = owner.IsWithinImport(node);
@@ -96,7 +94,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         internal Task<ImmutableArray<SymbolReference>> FindInAllSymbolsInStartingProjectAsync(bool exact, CancellationToken cancellationToken)
             => DoAsync(new AllSymbolsProjectSearchScope(_owner, _document.Project, exact), cancellationToken);
 
-        internal Task<ImmutableArray<SymbolReference>> FindInSourceSymbolsInProjectAsync(ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly, Project project, bool exact, CancellationToken cancellationToken)
+        internal Task<ImmutableArray<SymbolReference>> FindInSourceSymbolsInProjectAsync(ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly, Project project, bool exact, CancellationToken cancellationToken)
             => DoAsync(new SourceSymbolsProjectSearchScope(_owner, projectToAssembly, project, exact), cancellationToken);
 
         internal Task<ImmutableArray<SymbolReference>> FindInMetadataSymbolsAsync(IAssemblySymbol assembly, Project assemblyProject, PortableExecutableReference metadataReference, bool exact, CancellationToken cancellationToken)
@@ -165,7 +163,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
 
             inAttributeContext = syntaxFacts.IsNameOfAttribute(nameNode);
-            hasIncompleteParentMember = nameNode?.Parent?.RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
+            hasIncompleteParentMember = nameNode.GetRequiredParent().RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
             looksGeneric = syntaxFacts.LooksGeneric(nameNode);
         }
 
@@ -296,12 +294,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
                 // 'Black' did not bind.  We want to find a type called 'Color' that will actually
                 // allow 'Black' to bind.
-                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) ||
                     syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                 {
                     var expression = syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode)
-                        ? syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true)
+                        ? syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.GetRequiredParent(), allowImplicitTarget: true)
                         : syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
                     if (expression is TSimpleNameSyntax simpleName)
                     {
@@ -370,7 +368,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                         var methodSymbols = OfType<IMethodSymbol>(symbols);
 
                         var extensionMethodSymbols = GetViableExtensionMethods(
-                            methodSymbols, nameNode.Parent, cancellationToken);
+                            methodSymbols, nameNode.GetRequiredParent(), cancellationToken);
 
                         var namespaceSymbols = extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
                         return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
@@ -400,7 +398,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols)
         {
             return methodSymbols.WhereAsArray(
-                s => s.Symbol.IsExtensionMethod &&
+                s => s.Symbol.IsClassicOrModernInstanceExtensionMethod() &&
                      s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly));
         }
 
@@ -426,7 +424,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
 
                 var viableMethods = GetViableExtensionMethods(
-                    methodSymbols, _node.Parent, cancellationToken);
+                    methodSymbols, _node.GetRequiredParent(), cancellationToken);
 
                 return GetNamespaceSymbolReferences(searchScope,
                     viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
@@ -562,7 +560,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         private async Task<ImmutableArray<SymbolReference>> GetReferencesForExtensionMethodAsync(
-            SearchScope searchScope, string name, ITypeSymbol type, Func<IMethodSymbol, bool> predicate, CancellationToken cancellationToken)
+            SearchScope searchScope, string name, ITypeSymbol type, Func<IMethodSymbol, bool>? predicate, CancellationToken cancellationToken)
         {
             var symbols = await searchScope.FindDeclarationsAsync(
                 name, nameNode: null, filter: SymbolFilter.Member, cancellationToken).ConfigureAwait(false);

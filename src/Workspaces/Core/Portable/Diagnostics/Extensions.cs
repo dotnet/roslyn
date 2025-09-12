@@ -567,24 +567,4 @@ internal static partial class Extensions
 
         return false;
     }
-
-    public static ImmutableArray<DiagnosticAnalyzer> FilterAnalyzers(
-        this ImmutableArray<DiagnosticAnalyzer> analyzers,
-        ImmutableHashSet<string> analyzerIds)
-    {
-        using var _ = PooledDictionary<string, DiagnosticAnalyzer>.GetInstance(out var analyzerMap);
-        foreach (var analyzer in analyzers)
-        {
-            // In the case of multiple analyzers with the same ID, we keep the last one.
-            var analyzerId = analyzer.GetAnalyzerId();
-            if (analyzerIds.Contains(analyzerId))
-                analyzerMap[analyzerId] = analyzer;
-        }
-
-        var result = new FixedSizeArrayBuilder<DiagnosticAnalyzer>(analyzerMap.Count);
-        foreach (var (_, analyzer) in analyzerMap)
-            result.Add(analyzer);
-
-        return result.MoveToImmutable();
-    }
 }

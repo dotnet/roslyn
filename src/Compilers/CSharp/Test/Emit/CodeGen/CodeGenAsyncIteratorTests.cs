@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         YieldBreak
     }
 
-    [CompilerTrait(CompilerFeature.AsyncStreams)]
+    [CompilerTrait(CompilerFeature.AsyncStreams, CompilerFeature.Async)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
         internal static string ExpectedOutput(string output)
