@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this returns false, then the real explicit implementation comparer will also return false.
         /// Skips checking whether the return type is equal.
         /// </summary>
-        public static readonly MemberSignatureComparer SloppyExplicitImplementationComparer = new MemberSignatureComparer(
+        public static readonly MemberSignatureComparer ExplicitImplementationWithoutReturnTypeComparer = new MemberSignatureComparer(
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: false,

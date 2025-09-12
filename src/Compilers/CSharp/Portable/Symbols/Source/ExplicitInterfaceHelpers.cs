@@ -235,12 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Found a matching member without checking the return type.
-            var foundSloppyMatchingMember = false;
+            var foundMatchingMemberWithoutReturnTypeComparer = false;
             // Setting this flag to true does not imply that an interface member has been successfully implemented.
             // It just indicates that a corresponding interface member has been found (there may still be errors).
             var foundMatchingMember = false;
 
-            Symbol sloppyMatchingMember = null;
+            Symbol matchingMemberWithoutReturnTypeComparer = null;
             Symbol implementedMember = null;
 
             // Do not look in itself
@@ -269,15 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                if (implementingMethod != null &&
-                    !MemberSignatureComparer.SloppyExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
-                {
-                    continue;
-                }
-
-                foundSloppyMatchingMember = true;
-                sloppyMatchingMember = interfaceMember;
-
                 if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
                 {
                     foundMatchingMember = true;
@@ -304,6 +295,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
                 }
+                else if (implementingMethod != null &&
+                    MemberSignatureComparer.ExplicitImplementationWithoutReturnTypeComparer.Equals(implementingMember, interfaceMember))
+                {
+                    foundMatchingMemberWithoutReturnTypeComparer = true;
+                    matchingMemberWithoutReturnTypeComparer = interfaceMember;
+                }
             }
 
             if (!foundMatchingMember)
@@ -311,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CONSIDER: we may wish to suppress these errors in the event that another error
                 // has been reported about the signature.
 
-                if (implementingMethod != null && foundSloppyMatchingMember)
+                if (implementingMethod != null && foundMatchingMemberWithoutReturnTypeComparer)
                 {
                     var returnTypeLocation = implementingMethod.ExtractReturnTypeSyntax().Location;
-                    var returnType = sloppyMatchingMember.GetTypeOrReturnType();
+                    var returnType = matchingMemberWithoutReturnTypeComparer.GetTypeOrReturnType();
                     diagnostics.Add(ErrorCode.ERR_InterfaceMemberReturnTypeMismatch, returnTypeLocation, returnType, implementingMember);
                 }
                 else
