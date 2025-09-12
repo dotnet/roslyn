@@ -793,7 +793,7 @@ internal sealed partial class ProjectSystemProject
         // loader.  This is fine as we're just creating these to pass into CreateIsolatedAnalyzerReferencesAsync which
         // will properly give them an isolated ALC to use instead.
         var assemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        var sharedShadowCopyLoader = assemblyLoaderProvider.SharedShadowCopyLoader;
+        var sharedShadowCopyLoader = solution.Workspace.GetAssemblyLoader(assemblyLoaderProvider);
 
         var project = solution.GetRequiredProject(projectId);
 
