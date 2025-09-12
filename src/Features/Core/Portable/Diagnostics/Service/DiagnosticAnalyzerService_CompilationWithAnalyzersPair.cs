@@ -111,9 +111,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 return true;
             };
 
-            var filteredAnalyzers = filteredHostAnalyzers.Concat(filteredProjectAnalyzers).Distinct();
-            Contract.ThrowIfTrue(filteredAnalyzers.IsEmpty);
-
             var (sharedOptions, analyzerSpecificOptionsFactory) = GetOptions();
 
             return compilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(
