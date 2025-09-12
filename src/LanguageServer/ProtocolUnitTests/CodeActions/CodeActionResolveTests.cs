@@ -534,7 +534,8 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         {
             DocumentChanges = new TextDocumentEdit[]
             {
-                new() {
+                new()
+                {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
                         DocumentUri = locations.Single().DocumentUri

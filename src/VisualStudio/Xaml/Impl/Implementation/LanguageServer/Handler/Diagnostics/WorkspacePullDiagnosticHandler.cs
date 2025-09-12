@@ -29,8 +29,7 @@ internal sealed class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHan
     { }
 
     protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-        => new()
-        { TextDocument = identifier, Diagnostics = diagnostics, ResultId = resultId };
+        => new() { TextDocument = identifier, Diagnostics = diagnostics, ResultId = resultId };
 
     /// <summary>
     /// Collect all the opened documents from solution. 
