@@ -3226,4 +3226,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="extension_block" xml:space="preserve">
     <value>extension block</value>
   </data>
+  <data name="Rename_files_to_match_types_within" xml:space="preserve">
+    <value>Rename files to match types within</value>
+  </data>
 </root>

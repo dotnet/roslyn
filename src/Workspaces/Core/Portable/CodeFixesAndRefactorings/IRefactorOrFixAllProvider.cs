@@ -22,4 +22,6 @@ internal interface IRefactorOrFixAllProvider
     /// <see cref="CodeActionCleanup.Default"/>.
     /// </summary>
     CodeActionCleanup Cleanup { get; }
+
+    bool ShowPreviewChangesDialog { get; }
 }

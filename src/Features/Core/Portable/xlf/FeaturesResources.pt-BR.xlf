@@ -2560,6 +2560,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Remover {0} que contém uma instrução ativa requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_files_to_match_types_within">
+        <source>Rename files to match types within</source>
+        <target state="new">Rename files to match types within</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">Renomear {0} requer reiniciar o aplicativo.</target>

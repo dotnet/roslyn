@@ -2,10 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
@@ -13,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
     Name = PredefinedCodeRefactoringProviderNames.MoveTypeToFile), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class MoveTypeCodeRefactoringProvider() : CodeRefactoringProvider
+internal sealed partial class MoveTypeCodeRefactoringProvider() : CodeRefactoringProvider
 {
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -26,6 +31,9 @@ internal sealed class MoveTypeCodeRefactoringProvider() : CodeRefactoringProvide
 
         var service = document.GetRequiredLanguageService<IMoveTypeService>();
         var actions = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        context.RegisterRefactorings(actions);
+        context.RegisterRefactorings(actions, textSpan);
     }
+
+    public override RefactorAllProvider? GetRefactorAllProvider()
+        => new MoveTypeFixAllProvider();
 }

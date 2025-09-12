@@ -2560,6 +2560,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для удаления {0} с активным оператором требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_files_to_match_types_within">
+        <source>Rename files to match types within</source>
+        <target state="new">Rename files to match types within</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">Для переименования {0} требуется перезапустить приложение.</target>

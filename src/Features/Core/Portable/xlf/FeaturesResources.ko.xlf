@@ -2560,6 +2560,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">활성 문이 포함된 {0}을(를) 제거하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_files_to_match_types_within">
+        <source>Rename files to match types within</source>
+        <target state="new">Rename files to match types within</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">{0} 이름을 바꾸려면 애플리케이션을 다시 시작해야 합니다.</target>

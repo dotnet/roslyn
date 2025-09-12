@@ -20,6 +20,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsTrivialTypeContainer(typeDeclaration As TypeBlockSyntax) As Boolean
+            If typeDeclaration.Members.Count = 1 Then
+                Dim member = typeDeclaration.Members(0)
+                Return TypeOf member Is TypeBlockSyntax OrElse TypeOf member Is EnumBlockSyntax
+            End If
+
+            Return False
+        End Function
+
         Protected Overrides Function GetSymbolNameAndArity(syntax As TypeBlockSyntax) As (name As String, arity As Integer)
             Dim statement = syntax.BlockStatement
             Return (statement.Identifier.ValueText, If(statement.TypeParameterList?.Parameters.Count, 0))

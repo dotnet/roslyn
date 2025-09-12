@@ -47,6 +47,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         public override string Title { get; }
 
+        public override string? EquivalenceKey => _operationKind.ToString();
+
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {

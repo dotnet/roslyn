@@ -28,6 +28,7 @@ internal abstract class AbstractMoveTypeService : IMoveTypeService
 
     public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
     public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+    public abstract Task<ImmutableArray<string>> TryGetSuggestedFileRenamesAsync(Document document, CancellationToken cancellationToken);
 }
 
 internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax> :
@@ -41,6 +42,12 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     protected abstract Task<TTypeDeclarationSyntax?> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
     protected abstract bool IsMemberDeclaration(SyntaxNode syntaxNode);
+
+    /// <summary>
+    /// If this is a type declaration that only contains a type declaration within it.  In this case, we want the file
+    /// name to match the inner type, not this outer type.
+    /// </summary>
+    protected abstract bool IsTrivialTypeContainer(TTypeDeclarationSyntax typeDeclaration);
 
     protected string GetSymbolName(TTypeDeclarationSyntax syntax)
         => GetSymbolNameAndArity(syntax).name;
@@ -83,6 +90,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (typeDeclaration is null)
             return [];
 
+        return CreateOperations(document, typeDeclaration, checkTopLevelTypesOnly: true)
+            .SelectAsArray(tuple => (CodeAction)new MoveTypeCodeAction((TService)this, document, typeDeclaration, tuple.operationKind, tuple.fileName));
+    }
+
+    private ImmutableArray<(string fileName, MoveTypeOperationKind operationKind)> CreateOperations(
+        SemanticDocument document, TTypeDeclarationSyntax typeDeclaration, bool checkTopLevelTypesOnly)
+    {
         var documentNameWithoutExtension = GetDocumentNameWithoutExtension(document);
         var typeMatchesDocumentName = TypeMatchesDocumentName(typeDeclaration, documentNameWithoutExtension);
 
@@ -90,7 +104,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (typeMatchesDocumentName)
             return [];
 
-        using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+        using var _ = ArrayBuilder<(string fileName, MoveTypeOperationKind operationKind)>.GetInstance(out var actions);
 
         var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(document.Root);
         var isNestedType = IsNestedType(typeDeclaration);
@@ -111,20 +125,20 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (manyTypes || isNestedType || isClassNextToGlobalStatements)
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(fileName, operationKind: MoveTypeOperationKind.MoveType));
+                actions.Add((fileName, operationKind: MoveTypeOperationKind.MoveType));
         }
 
         // (2) Add rename file and rename type code actions:
         // Case: No type declaration in file matches the file name.
-        if (!AnyTopLevelTypeMatchesDocumentName())
+        if (!AnyTypeMatchesDocumentName())
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(fileName, operationKind: MoveTypeOperationKind.RenameFile));
+                actions.Add((fileName, operationKind: MoveTypeOperationKind.RenameFile));
 
             // Only if the document name can be legal identifier in the language, offer to rename type with document name
             if (syntaxFacts.IsValidIdentifier(documentNameWithoutExtension))
             {
-                actions.Add(GetCodeAction(
+                actions.Add((
                     fileName: documentNameWithoutExtension,
                     operationKind: MoveTypeOperationKind.RenameType));
             }
@@ -134,13 +148,25 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         return actions.ToImmutableAndClear();
 
-        bool AnyTopLevelTypeMatchesDocumentName()
-            => TopLevelTypeDeclarations(document.Root).Any(
+        bool AnyTypeMatchesDocumentName()
+            => TypeDeclarations(document.Root, checkTopLevelTypesOnly).Any(
                 typeDeclaration => TypeMatchesDocumentName(
                     typeDeclaration, documentNameWithoutExtension));
+    }
 
-        MoveTypeCodeAction GetCodeAction(string fileName, MoveTypeOperationKind operationKind)
-            => new((TService)this, document, typeDeclaration, operationKind, fileName);
+    public override async Task<ImmutableArray<string>> TryGetSuggestedFileRenamesAsync(Document document, CancellationToken cancellationToken)
+    {
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+        // Try to find the first interesting type in the file, as that's what we'll be trying to rename to.
+        // A type is intersting if it's not a trivial container of a nested type.
+        var allTypeDeclarations = TypeDeclarations(semanticDocument.Root, checkTopLevelTypesOnly: false);
+        var firstInterestingType = allTypeDeclarations.FirstOrDefault(t => !IsTrivialTypeContainer(t));
+        if (firstInterestingType == null)
+            return [];
+
+        var operations = CreateOperations(semanticDocument, firstInterestingType, checkTopLevelTypesOnly: false);
+        return operations.SelectAsArray(t => t.operationKind == MoveTypeOperationKind.RenameFile, t => t.fileName);
     }
 
     private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)
@@ -156,10 +182,24 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     /// optimized for perf, uses Skip(1).Any() instead of Count() > 1
     /// </remarks>
     private static bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root)
-        => TopLevelTypeDeclarations(root).Skip(1).Any();
+        => TypeDeclarations(root, checkTopLevelTypesOnly: true).Skip(1).Any();
 
-    private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root)
-        => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax).OfType<TTypeDeclarationSyntax>();
+    private static IEnumerable<TTypeDeclarationSyntax> TypeDeclarations(SyntaxNode root, bool checkTopLevelTypesOnly)
+    {
+        var descendantNodes = root.DescendantNodes(n =>
+        {
+            // Always walk into the compilation unit and namespace declarations so we at least find the top level types.
+            if (n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax)
+                return true;
+
+            // If we are only looking for top level types, do not walk into type declarations.
+            if (!checkTopLevelTypesOnly && n is TTypeDeclarationSyntax)
+                return true;
+
+            return false;
+        });
+        return descendantNodes.OfType<TTypeDeclarationSyntax>();
+    }
 
     private static string GetDocumentNameWithoutExtension(SemanticDocument document)
         => Path.GetFileNameWithoutExtension(document.Document.Name);
