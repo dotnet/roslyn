@@ -357,12 +357,10 @@ internal static partial class ProtocolConversions
         => new(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
 
     public static LSP.Position LinePositionToPosition(LinePosition linePosition)
-        => new()
-        { Line = linePosition.Line, Character = linePosition.Character };
+        => new() { Line = linePosition.Line, Character = linePosition.Character };
 
     public static LSP.Range LinePositionToRange(LinePositionSpan linePositionSpan)
-        => new()
-        { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
+        => new() { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
 
     public static LSP.Range TextSpanToRange(TextSpan textSpan, SourceText text)
     {
