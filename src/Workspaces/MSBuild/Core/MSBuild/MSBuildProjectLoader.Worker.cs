@@ -27,13 +27,6 @@ public partial class MSBuildProjectLoader
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
         private readonly BuildHostProcessManager _buildHostProcessManager;
-        private readonly string _baseDirectory;
-
-        /// <summary>
-        /// An ordered list of paths to project files that should be loaded. In the case of a solution,
-        /// this is the list of project file paths in the solution.
-        /// </summary>
-        private readonly ImmutableArray<string> _requestedProjectPaths;
 
         /// <summary>
         /// Map of <see cref="ProjectId"/>s, project paths, and output file paths.
@@ -44,11 +37,6 @@ public partial class MSBuildProjectLoader
         /// Progress reporter.
         /// </summary>
         private readonly IProgress<ProjectLoadProgress>? _progress;
-
-        /// <summary>
-        /// Provides options for how failures should be reported when loading requested project files.
-        /// </summary>
-        private readonly DiagnosticReportingOptions _requestedProjectOptions;
 
         /// <summary>
         /// Provides options for how failures should be reported when loading any discovered project files.
@@ -69,11 +57,8 @@ public partial class MSBuildProjectLoader
             DiagnosticReporter diagnosticReporter,
             ProjectFileExtensionRegistry projectFileExtensionRegistry,
             BuildHostProcessManager buildHostProcessManager,
-            ImmutableArray<string> requestedProjectPaths,
-            string baseDirectory,
             ProjectMap? projectMap,
             IProgress<ProjectLoadProgress>? progress,
-            DiagnosticReportingOptions requestedProjectOptions,
             DiagnosticReportingOptions discoveredProjectOptions,
             bool preferMetadataForReferencesOfDiscoveredProjects)
         {
@@ -81,11 +66,8 @@ public partial class MSBuildProjectLoader
             _diagnosticReporter = diagnosticReporter;
             _projectFileExtensionRegistry = projectFileExtensionRegistry;
             _buildHostProcessManager = buildHostProcessManager;
-            _baseDirectory = baseDirectory;
-            _requestedProjectPaths = requestedProjectPaths;
             _projectMap = projectMap ?? ProjectMap.Create();
             _progress = progress;
-            _requestedProjectOptions = requestedProjectOptions;
             _discoveredProjectOptions = discoveredProjectOptions;
             _preferMetadataForReferencesOfDiscoveredProjects = preferMetadataForReferencesOfDiscoveredProjects;
             _projectIdToFileInfoMap = [];
@@ -119,18 +101,33 @@ public partial class MSBuildProjectLoader
             return result;
         }
 
-        public async Task<ImmutableArray<ProjectInfo>> LoadAsync(CancellationToken cancellationToken)
+        /// <summary>
+        /// Loads the <see cref="ProjectInfo"/> from the given list of project files and all referenced projects.
+        /// </summary>
+        /// <param name="projectFilePaths">An ordered list of paths to project files that should be loaded.</param>
+        /// /// <param name="baseDirectory">An optional base directory to use when resolving project file paths
+        /// if they aren't already absolute. If <see langword="null" /> is specified, the current directory
+        /// is used.</param>
+        /// <param name="reportingOptions">Provides options for how failures should be reported when loading requested project files.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+        /// <returns></returns>
+        public async Task<ImmutableArray<ProjectInfo>> LoadAsync(
+            ImmutableArray<string> projectFilePaths,
+            string? baseDirectory,
+            DiagnosticReportingOptions reportingOptions,
+            CancellationToken cancellationToken)
         {
             var results = ImmutableArray.CreateBuilder<ProjectInfo>();
             var processedPaths = new HashSet<string>(PathUtilities.Comparer);
 
-            var pathResolver = GetPathResolver(_baseDirectory);
+            baseDirectory ??= Directory.GetCurrentDirectory();
+            var pathResolver = GetPathResolver(baseDirectory);
 
-            foreach (var projectFilePath in _requestedProjectPaths)
+            foreach (var projectFilePath in projectFilePaths)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!pathResolver.TryGetAbsoluteProjectFilePath(projectFilePath, _requestedProjectOptions.OnPathFailure, out var absoluteProjectFilePath))
+                if (!pathResolver.TryGetAbsoluteProjectFilePath(projectFilePath, reportingOptions.OnPathFailure, out var absoluteProjectFilePath))
                 {
                     continue; // Failure should already be reported.
                 }
@@ -145,7 +142,7 @@ public partial class MSBuildProjectLoader
                     continue;
                 }
 
-                var projectFileInfos = await LoadProjectInfosFromPathAsync(absoluteProjectFilePath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
+                var projectFileInfos = await LoadProjectInfosFromPathAsync(absoluteProjectFilePath, reportingOptions, cancellationToken).ConfigureAwait(false);
 
                 results.AddRange(projectFileInfos);
             }

@@ -177,6 +177,9 @@ public partial class MSBuildProjectLoader
 
         var projectFilePaths = projects.SelectAsArray(p => p.ProjectFilePath);
 
+        // TryGetAbsoluteSolutionPath should not return an invalid path
+        var baseDirectory = Path.GetDirectoryName(absoluteSolutionFilePath)!;
+
         using (_dataGuard.DisposableWait(cancellationToken))
         {
             SetSolutionProperties(absoluteSolutionFilePath);
@@ -190,16 +193,14 @@ public partial class MSBuildProjectLoader
             _diagnosticReporter,
             _projectFileExtensionRegistry,
             buildHostProcessManager,
-            projectFilePaths,
-            // TryGetAbsoluteSolutionPath should not return an invalid path
-            baseDirectory: Path.GetDirectoryName(absoluteSolutionFilePath)!,
             projectMap: null,
             progress,
-            requestedProjectOptions: reportingOptions,
             discoveredProjectOptions: reportingOptions,
             preferMetadataForReferencesOfDiscoveredProjects: false);
 
-        var projectInfos = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+        var projectInfos = await worker
+            .LoadAsync(projectFilePaths, baseDirectory, reportingOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         // construct workspace from loaded project infos
         return SolutionInfo.Create(
@@ -234,8 +235,6 @@ public partial class MSBuildProjectLoader
             throw new ArgumentNullException(nameof(projectFilePath));
         }
 
-        var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
-
         var reportingMode = GetReportingModeForUnrecognizedProjects();
 
         var discoveredProjectOptions = new DiagnosticReportingOptions(
@@ -250,14 +249,13 @@ public partial class MSBuildProjectLoader
             _diagnosticReporter,
             _projectFileExtensionRegistry,
             buildHostProcessManager,
-            requestedProjectPaths: [projectFilePath],
-            baseDirectory: Directory.GetCurrentDirectory(),
             projectMap,
             progress,
-            requestedProjectOptions,
             discoveredProjectOptions,
             this.LoadMetadataForReferencedProjects);
 
-        return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+        return await worker
+            .LoadAsync([projectFilePath], baseDirectory: null, DiagnosticReportingOptions.ThrowForAll, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

@@ -337,13 +337,13 @@ public partial class MSBuildProjectLoader
             return true;
         }
 
-        private bool IsProjectLoadable(string projectPath)
-            => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
+        private bool IsProjectLoadable(string projectFilePath)
+            => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectFilePath, DiagnosticReportingMode.Ignore, out _);
 
-        private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
+        private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectFilePath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
-            var buildHost = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, cancellationToken).ConfigureAwait(false);
-            var outputFilePath = await buildHost.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
+            var buildHost = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, cancellationToken).ConfigureAwait(false);
+            var outputFilePath = await buildHost.TryGetProjectOutputPathAsync(projectFilePath, cancellationToken).ConfigureAwait(false);
             return outputFilePath != null
                 && builder.Contains(outputFilePath)
                 && File.Exists(outputFilePath);
