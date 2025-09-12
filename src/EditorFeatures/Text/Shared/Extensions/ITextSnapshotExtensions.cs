@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions;
 internal static partial class ITextSnapshotExtensions
 {
     public static SnapshotPoint GetPoint(this ITextSnapshot snapshot, int position)
-        => new SnapshotPoint(snapshot, position);
+        => new(snapshot, position);
 
     public static SnapshotPoint? TryGetPoint(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
     {
@@ -76,13 +76,13 @@ internal static partial class ITextSnapshotExtensions
     }
 
     public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, int start, int length)
-        => new SnapshotSpan(snapshot, new Span(start, length));
+        => new(snapshot, new Span(start, length));
 
     public static SnapshotSpan GetSpanFromBounds(this ITextSnapshot snapshot, int start, int end)
-        => new SnapshotSpan(snapshot, Span.FromBounds(start, end));
+        => new(snapshot, Span.FromBounds(start, end));
 
     public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, Span span)
-        => new SnapshotSpan(snapshot, span);
+        => new(snapshot, span);
 
     public static TagSpan<TTag> GetTagSpan<TTag>(this ITextSnapshot snapshot, Span span, TTag tag) where TTag : ITag
         => new(new SnapshotSpan(snapshot, span), tag);

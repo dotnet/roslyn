@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 internal abstract partial class AbstractCodeModelService : ICodeModelService
 {
     private readonly ConditionalWeakTable<SyntaxTree, IBidirectionalMap<SyntaxNodeKey, SyntaxNode>> _treeToNodeKeyMaps =
-        new ConditionalWeakTable<SyntaxTree, IBidirectionalMap<SyntaxNodeKey, SyntaxNode>>();
+        new();
 
     protected readonly ISyntaxFactsService SyntaxFactsService;
 

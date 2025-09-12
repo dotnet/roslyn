@@ -33,7 +33,7 @@ internal sealed class InlineRenameAdornmentManager : IDisposable
     private readonly IAdornmentLayer _adornmentLayer;
 
     private static readonly ConditionalWeakTable<InlineRenameSession, object> s_createdViewModels =
-        new ConditionalWeakTable<InlineRenameSession, object>();
+        new();
 
     public InlineRenameAdornmentManager(
         InlineRenameService renameService,

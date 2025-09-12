@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 public static partial class FormattedClassifications
 {
     private static FormattedClassification New(string text, string typeName)
-        => new FormattedClassification(text, typeName);
+        => new(text, typeName);
 
     [DebuggerStepThrough]
     public static FormattedClassification Struct(string text)

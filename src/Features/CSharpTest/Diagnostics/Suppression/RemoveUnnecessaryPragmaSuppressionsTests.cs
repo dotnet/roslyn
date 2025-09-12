@@ -49,9 +49,9 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
     protected sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor Descriptor0168 =
-            new DiagnosticDescriptor("Analyzer0168", "Variable is declared but never used", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            new("Analyzer0168", "Variable is declared but never used", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
         public static readonly DiagnosticDescriptor Descriptor0219 =
-            new DiagnosticDescriptor("Analyzer0219", "Variable is assigned but its value is never used", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            new("Analyzer0219", "Variable is assigned but its value is never used", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor0168, Descriptor0219];
 
@@ -106,7 +106,7 @@ public abstract class RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper
     protected sealed class CompilationEndDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor Descriptor =
-            new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            new("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
                 customTags: [WellKnownDiagnosticTags.CompilationEnd]);
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
         public override void Initialize(AnalysisContext context)

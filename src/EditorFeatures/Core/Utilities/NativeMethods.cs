@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wpf.Utilities;
 
 internal static class NativeMethods
 {
-    public static readonly IntPtr HWND_BROADCAST = new IntPtr(0xFFFF);
+    public static readonly IntPtr HWND_BROADCAST = new(0xFFFF);
     public const int WM_SYSCOLORCHANGE = 0x0015;
 
     [DllImport("user32.dll", CharSet = CharSet.Auto)]

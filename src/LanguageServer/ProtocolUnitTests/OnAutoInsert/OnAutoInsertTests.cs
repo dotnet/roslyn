@@ -457,7 +457,7 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
         LSP.Location locationTyped,
         bool insertSpaces,
         int tabSize)
-        => new LSP.VSInternalDocumentOnAutoInsertParams
+        => new()
         {
             Position = locationTyped.Range.Start,
             Character = characterTyped,

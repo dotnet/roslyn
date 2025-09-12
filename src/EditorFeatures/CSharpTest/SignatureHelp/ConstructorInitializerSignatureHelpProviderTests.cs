@@ -28,7 +28,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass()", string.Empty, null, currentParameterIndex: 0)
+            new("BaseClass()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -50,7 +50,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass()", "Summary for BaseClass", null, currentParameterIndex: 0)
+            new("BaseClass()", "Summary for BaseClass", null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -73,7 +73,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("BaseClass(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -95,7 +95,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param a", currentParameterIndex: 0)
+            new("BaseClass(int a, int b)", "Summary for BaseClass", "Param a", currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -120,7 +120,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
+            new("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -146,7 +146,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
+            new("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -171,7 +171,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)
+            new("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -188,7 +188,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            new("Foo()", string.Empty, null, currentParameterIndex: 0),
         };
 
         await TestAsync("""
@@ -205,7 +205,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)
+            new("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -222,7 +222,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            new("Foo()", string.Empty, null, currentParameterIndex: 0),
         };
 
         await TestAsync("""
@@ -239,8 +239,8 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0, isSelected: true),
-            new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0),
+            new("D(int i)", currentParameterIndex: 0, isSelected: true),
+            new("D(string i)", currentParameterIndex: 0),
         };
 
         await TestAsync("""
@@ -260,8 +260,8 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0),
-            new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0, isSelected: true),
+            new("D(int i)", currentParameterIndex: 0),
+            new("D(string i)", currentParameterIndex: 0, isSelected: true),
         };
 
         await TestAsync("""
@@ -299,7 +299,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Goo(int a)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("Goo(int a)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -316,7 +316,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            new("Foo()", string.Empty, null, currentParameterIndex: 0),
         };
 
         await TestAsync("""
@@ -333,7 +333,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)
+            new("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -350,7 +350,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            new("Foo()", string.Empty, null, currentParameterIndex: 0),
         };
 
         await TestAsync("""
@@ -407,7 +407,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -438,7 +438,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -469,7 +469,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -513,13 +513,13 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
             """;
         var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("BaseClass(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("BaseClass(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("BaseClass(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -647,7 +647,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            new("D(object o)", currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -665,7 +665,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            new("D(object o)", currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -682,7 +682,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            new("D(object o)", currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -700,7 +700,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0)
+            new("D(object o)", currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -725,7 +725,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Program(int i1, int i2, int i3)", currentParameterIndex: expectedParameterIndex, isSelected: true),
+            new("Program(int i1, int i2, int i3)", currentParameterIndex: expectedParameterIndex, isSelected: true),
         };
 
         await TestAsync($$"""
@@ -759,8 +759,8 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
         var index = 0;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Program(int i, string s)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
-            new SignatureHelpTestItem("Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
+            new("Program(int i, string s)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
+            new("Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
         };
 
         await TestAsync($$"""
