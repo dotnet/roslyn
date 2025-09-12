@@ -1746,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // this[int]
                 BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundIndexerAccess indexerAccess } => indexerAccess.Indexer,
                 // array[Index]
-                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess } => null,
+                BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess or BoundBadExpression } => null,
                 // array[int or Range]
                 BoundArrayAccess => null,
                 BoundDynamicIndexerAccess => null,
@@ -4182,6 +4182,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (patternMethodCall.Kind != BoundKind.Call)
                 {
+                    if (patternMethodCall is BoundBadExpression { ResultKind: not LookupResultKind.Empty })
+                    {
+                        diagnostics.AddRange(bindingDiagnostics);
+                        return PatternLookupResult.ResultHasErrors;
+                    }
+
                     return PatternLookupResult.NotCallable;
                 }
 

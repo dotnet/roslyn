@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBadExpression : BoundExpression
     {
-        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type, bool hasErrors = false)
+        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.BadExpression, syntax, type, hasErrors || childBoundNodes.HasErrors())
         {
 
@@ -968,20 +968,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ResultKind = resultKind;
             this.Symbols = symbols;
             this.ChildBoundNodes = childBoundNodes;
+            this.ArgumentRefKindsOpt = argumentRefKindsOpt;
         }
 
         public override LookupResultKind ResultKind { get; }
         public ImmutableArray<Symbol?> Symbols { get; }
         public ImmutableArray<BoundExpression> ChildBoundNodes { get; }
+        public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBadExpression(this);
 
-        public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type)
+        public BoundBadExpression Update(LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol? type)
         {
-            if (resultKind != this.ResultKind || symbols != this.Symbols || childBoundNodes != this.ChildBoundNodes || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (resultKind != this.ResultKind || symbols != this.Symbols || childBoundNodes != this.ChildBoundNodes || argumentRefKindsOpt != this.ArgumentRefKindsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBadExpression(this.Syntax, resultKind, symbols, childBoundNodes, type, this.HasErrors);
+                var result = new BoundBadExpression(this.Syntax, resultKind, symbols, childBoundNodes, argumentRefKindsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10943,7 +10945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Symbol?> symbols = this.VisitSymbols<Symbol?>(node.Symbols);
             ImmutableArray<BoundExpression> childBoundNodes = this.VisitList(node.ChildBoundNodes);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.ResultKind, symbols, childBoundNodes, type);
+            return node.Update(node.ResultKind, symbols, childBoundNodes, node.ArgumentRefKindsOpt, type);
         }
         public override BoundNode? VisitBadStatement(BoundBadStatement node)
         {
@@ -12641,12 +12643,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(node.ResultKind, node.Symbols, childBoundNodes, infoAndType.Type);
+                updatedNode = node.Update(node.ResultKind, node.Symbols, childBoundNodes, node.ArgumentRefKindsOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.ResultKind, node.Symbols, childBoundNodes, node.Type);
+                updatedNode = node.Update(node.ResultKind, node.Symbols, childBoundNodes, node.ArgumentRefKindsOpt, node.Type);
             }
             return updatedNode;
         }
@@ -15284,6 +15286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("symbols", node.Symbols, null),
             new TreeDumperNode("childBoundNodes", null, from x in node.ChildBoundNodes select Visit(x, null)),
+            new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
