@@ -12,17 +12,9 @@
 #:project ../src/Tools/Source/CompilerGeneratorTools/Source/VisualBasicSyntaxGenerator/
 #:project ../src/Tools/Source/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator/
 
-var repoRoot = Environment.CurrentDirectory;
-if (File.Exists(Path.Join(repoRoot, "generate-compiler-code.cs")))
-{
-    // We are in the eng folder, move up to the repo root
-    repoRoot = Path.GetDirectoryName(repoRoot);
-}
-else if (!File.Exists(Path.Join(repoRoot, "eng", "generate-compiler-code.cs")))
-{
-    Console.WriteLine("Could not find the repo root. This script must be run from the eng folder or the repo root.");
-    return 1;
-}
+using System.Runtime.CompilerServices;
+
+var repoRoot = GetRoslynDirectory();
 
 var test = false;
 var configuration = "Debug";
@@ -131,6 +123,16 @@ if (test)
 }
 
 return retVal;
+
+static string GetRoslynDirectory([CallerFilePath] string sourceFilePath = "")
+{
+    if (Path.GetDirectoryName(sourceFilePath) is not string engDir || Path.GetDirectoryName(engDir) is not string roslynRoot || !File.Exists(Path.Join(roslynRoot, "eng", Path.GetFileName(sourceFilePath))))
+    {
+        throw new InvalidOperationException("Could not determine source file path. This script must be located in the 'eng' directory of the Roslyn repo.");
+    }
+
+    return roslynRoot;
+}
 
 static int GenerateLanguage(BoundTreeGenerator.TargetLanguage language, string languageDir, string generatedDir, string generatedTestDir, SyntaxGeneratorAction syntaxGenerator, ErrorFactsGeneratorAction errorFactsGenerator)
 {
