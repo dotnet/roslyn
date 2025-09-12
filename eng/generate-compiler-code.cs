@@ -4,7 +4,6 @@
 
 // Need this fix to delete the static graph disable: https://github.com/dotnet/sdk/pull/50532
 #:property RestoreUseStaticGraphEvaluation=false
-#:property ManagePackageVersionsCentrally=true
 #:project ../src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator/
 #:project ../src/Tools/Source/CompilerGeneratorTools/Source/IOperationGenerator/
 #:project ../src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/
