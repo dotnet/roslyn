@@ -1,0 +1,8 @@
+schemaVersion: 0.0.1
+isProduction: true
+accountableOwners:
+  service: c8aedd2a-1f14-4660-83e2-c74a9417c3cc
+routing:
+  defaultAreaPath:
+    org: devdiv
+    path: DevDiv\NET Developer Experience\CSharp and VB IDE
