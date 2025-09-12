@@ -10,10 +10,8 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal sealed partial class CodeStyleHostLanguageServices : HostLanguageServices
 {
-    private static readonly ConditionalWeakTable<HostLanguageServices, CodeStyleHostLanguageServices> s_mappedLanguageServices =
-        new();
-    private static readonly ConditionalWeakTable<string, MefHostExportProvider> s_exportProvidersByLanguageCache =
-        new();
+    private static readonly ConditionalWeakTable<HostLanguageServices, CodeStyleHostLanguageServices> s_mappedLanguageServices = new();
+    private static readonly ConditionalWeakTable<string, MefHostExportProvider> s_exportProvidersByLanguageCache = new();
 
     private readonly HostLanguageServices _hostLanguageServices;
     private readonly HostLanguageServices _codeStyleLanguageServices;
