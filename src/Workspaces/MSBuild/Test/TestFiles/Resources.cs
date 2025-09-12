@@ -111,6 +111,7 @@ public static class Resources
         public static class CSharp
         {
             public static string AnalyzerReference => GetText("ProjectFiles.CSharp.AnalyzerReference.csproj");
+            public static string AnalyzerWithLaterCompilerDependency => GetText("ProjectFiles.CSharp.AnalyzerWithLaterCompilerDependency.csproj");
             public static string AllOptions => GetText("ProjectFiles.CSharp.AllOptions.csproj");
             public static string AssemblyNameIsPath => GetText("ProjectFiles.CSharp.AssemblyNameIsPath.csproj");
             public static string AssemblyNameIsPath2 => GetText("ProjectFiles.CSharp.AssemblyNameIsPath2.csproj");
@@ -185,6 +186,7 @@ public static class Resources
         public static class VisualBasic
         {
             public static string AnalyzerReference => GetText("ProjectFiles.VisualBasic.AnalyzerReference.vbproj");
+            public static string AnalyzerWithLaterCompilerDependency => GetText("ProjectFiles.VisualBasic.AnalyzerWithLaterCompilerDependency.vbproj");
             public static string Circular_Target => GetText("ProjectFiles.VisualBasic.Circular_Target.vbproj");
             public static string Circular_Top => GetText("ProjectFiles.VisualBasic.Circular_Top.vbproj");
             public static string Embed => GetText("ProjectFiles.VisualBasic.Embed.vbproj");
