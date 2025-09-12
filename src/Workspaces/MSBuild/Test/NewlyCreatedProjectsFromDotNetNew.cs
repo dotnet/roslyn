@@ -218,6 +218,7 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
             AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
 
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+            AssertEx.Empty(await project.GetSourceGeneratorDiagnosticsAsync(CancellationToken.None), $"The following source generator diagnostics are being reported for the template.");
 
             // Unnecessary using directives are reported with a severity of Hidden
             var nonHiddenDiagnostics = compilation!.GetDiagnostics()
