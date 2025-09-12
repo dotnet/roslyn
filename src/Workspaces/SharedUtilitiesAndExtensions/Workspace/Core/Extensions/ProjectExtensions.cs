@@ -15,31 +15,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 internal static partial class ProjectExtensions
 {
     public static TLanguageService? GetLanguageService<TLanguageService>(this Project? project) where TLanguageService : class, ILanguageService
-#if CODE_STYLE
-        => project?.GetExtendedLanguageServices().GetService<TLanguageService>();
-#else
-        => project?.Services.GetService<TLanguageService>();
-#endif
+        => project?.Solution.GetLanguageService<TLanguageService>(project.Language);
 
     public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Project project) where TLanguageService : class, ILanguageService
-#if CODE_STYLE
-        => project.GetExtendedLanguageServices().GetRequiredService<TLanguageService>();
-#else
-        => project.Services.GetRequiredService<TLanguageService>();
-#endif
+        => project.Solution.GetRequiredLanguageService<TLanguageService>(project.Language);
 
-#pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
     /// <summary>
-    /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
+    /// Gets extended host language services, which includes language services from <see cref="Solution.Services"/>.
     /// </summary>
     public static HostLanguageServices GetExtendedLanguageServices(this Project project)
-#if !WORKSPACE
-        => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
-#else
-        => project.Solution.Services.GetExtendedLanguageServices(project.Language);
-#endif
-
-#pragma warning restore RS0030 // Do not used banned APIs
+        => project.Solution.GetExtendedLanguageServices(project.Language);
 
     public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)
         => TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic: null);

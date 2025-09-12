@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -35,6 +36,22 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
                 return await service.ForceRunCodeAnalysisDiagnosticsAsync(
                     project, cancellationToken).ConfigureAwait(false);
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<bool> IsAnyDiagnosticIdDeprioritizedAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+                return await service.IsAnyDiagnosticIdDeprioritizedAsync(
+                    project, diagnosticIds, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }
@@ -197,34 +214,13 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
             cancellationToken);
     }
 
-    public ValueTask<ImmutableHashSet<string>> GetDeprioritizationCandidatesAsync(
-        Checksum solutionChecksum, ProjectId projectId, ImmutableHashSet<string> analyzerIds, CancellationToken cancellationToken)
-    {
-        return RunWithSolutionAsync(
-            solutionChecksum,
-            async solution =>
-            {
-                var project = solution.GetRequiredProject(projectId);
-                var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-
-                var allProjectAnalyzers = service.GetProjectAnalyzers(project);
-
-                var candidates = await service.GetDeprioritizationCandidatesAsync(
-                    project, allProjectAnalyzers.FilterAnalyzers(analyzerIds), cancellationToken).ConfigureAwait(false);
-
-                return candidates.Select(c => c.GetAnalyzerId()).ToImmutableHashSet();
-            },
-            cancellationToken);
-    }
-
-    public ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
-        Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
-        ImmutableHashSet<string> allAnalyzerIds,
-        ImmutableHashSet<string> syntaxAnalyzersIds,
-        ImmutableHashSet<string> semanticSpanAnalyzersIds,
-        ImmutableHashSet<string> semanticDocumentAnalyzersIds,
-        bool incrementalAnalysis,
-        bool logPerformanceInfo,
+    public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+        Checksum solutionChecksum,
+        DocumentId documentId,
+        TextSpan? range,
+        DiagnosticIdFilter diagnosticIdFilter,
+        CodeActionRequestPriority? priority,
+        DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
         return RunWithSolutionAsync(
@@ -233,17 +229,10 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
             {
                 var document = await solution.GetRequiredTextDocumentAsync(
                     documentId, cancellationToken).ConfigureAwait(false);
-                var service = (DiagnosticAnalyzerService)solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-                var allProjectAnalyzers = service.GetProjectAnalyzers(document.Project);
-
-                return await service.ComputeDiagnosticsAsync(
-                    document, range,
-                    allProjectAnalyzers.FilterAnalyzers(allAnalyzerIds),
-                    allProjectAnalyzers.FilterAnalyzers(syntaxAnalyzersIds),
-                    allProjectAnalyzers.FilterAnalyzers(semanticSpanAnalyzersIds),
-                    allProjectAnalyzers.FilterAnalyzers(semanticDocumentAnalyzersIds),
-                    incrementalAnalysis, logPerformanceInfo, cancellationToken).ConfigureAwait(false);
+                return await service.GetDiagnosticsForSpanAsync(
+                    document, range, diagnosticIdFilter, priority, diagnosticKind, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }

@@ -24,7 +24,7 @@ internal sealed partial class DiagnosticAnalyzerService
        ImmutableHashSet<string>? diagnosticIds,
        AnalyzerFilter analyzerFilter)
     {
-        var analyzersForProject = GetProjectAnalyzers(project);
+        var analyzersForProject = GetProjectAnalyzers_OnlyCallInProcess(project);
         return analyzersForProject.WhereAsArray(ShouldIncludeAnalyzer);
 
         bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
@@ -124,7 +124,7 @@ internal sealed partial class DiagnosticAnalyzerService
     {
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
-        var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo(project);
+        var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project);
         var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
 
         foreach (var analyzer in analyzers)
@@ -167,7 +167,7 @@ internal sealed partial class DiagnosticAnalyzerService
             ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             // Otherwise, just compute for the analyzers we care about.
-            var compilation = await GetOrCreateCompilationWithAnalyzersAsync(
+            var compilation = await GetOrCreateCompilationWithAnalyzers_OnlyCallInProcessAsync(
                 project, analyzers, hostAnalyzerInfo, this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
             var result = await ComputeDiagnosticAnalysisResultsInProcessAsync(

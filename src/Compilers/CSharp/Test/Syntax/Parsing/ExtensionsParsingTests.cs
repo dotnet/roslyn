@@ -16,127 +16,27 @@ public class ExtensionsParsingTests : ParsingTests
 {
     public ExtensionsParsingTests(ITestOutputHelper output) : base(output) { }
 
-    [Fact]
-    public void LangVer13()
-    {
-        // Tracked by https://github.com/dotnet/roslyn/issues/78961 : consider giving a LangVer error to trigger UpgradeProject
-        UsingTree("""
-class C
-{
-    extension<T>(object o) where T : struct { }
-}
-""",
-            TestOptions.Regular13,
-            // (3,17): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-            //     extension<T>(object o) where T : struct { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 17),
-            // (3,26): error CS8124: Tuple must contain at least two elements.
-            //     extension<T>(object o) where T : struct { }
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 26),
-            // (3,34): error CS1002: ; expected
-            //     extension<T>(object o) where T : struct { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "T").WithLocation(3, 34),
-            // (3,36): error CS1519: Invalid token ':' in class, record, struct, or interface member declaration
-            //     extension<T>(object o) where T : struct { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":").WithLocation(3, 36),
-            // (3,36): error CS1519: Invalid token ':' in class, record, struct, or interface member declaration
-            //     extension<T>(object o) where T : struct { }
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":").WithLocation(3, 36),
-            // (3,45): error CS1001: Identifier expected
-            //     extension<T>(object o) where T : struct { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 45));
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.GenericName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "extension");
-                        N(SyntaxKind.TypeArgumentList);
-                        {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "T");
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.TupleType);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.TupleElement);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.ObjectKeyword);
-                                }
-                                N(SyntaxKind.IdentifierToken, "o");
-                            }
-                            M(SyntaxKind.CommaToken);
-                            M(SyntaxKind.TupleElement);
-                            {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "where");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "T");
-                    }
-                }
-                N(SyntaxKind.StructDeclaration);
-                {
-                    N(SyntaxKind.StructKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
     [Theory, CombinatorialData]
-    public void LangVer14(bool useCSharp14)
+    public void LangVer_01(bool useCSharp14)
     {
-        UsingTree("""
-class C
+        var src = """
+static class C
 {
     extension<T>(object o) where T : struct { }
 }
-""",
-            useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            //     extension<T>(object o) where T : struct { }
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "extension").WithArguments("extensions", "14.0").WithLocation(3, 5));
 
+        UsingTree(src, TestOptions.Regular13);
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -181,6 +81,505 @@ class C
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "o");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void LangVer_02(bool useCSharp14)
+    {
+        // Without type parameters
+        var src = """
+static class C
+{
+    extension(object o) { }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            //     extension(object o) { }
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "extension(object o) { }").WithArguments("extensions", "14.0").WithLocation(3, 5),
+            // (3,5): error CS0710: Static classes cannot have instance constructors
+            //     extension(object o) { }
+            Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "extension").WithLocation(3, 5));
+
+        UsingTree(src, TestOptions.Regular13);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "o");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "o");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void LangVer_03()
+    {
+        // Without type parameters, escaped identifier
+        var src = """
+static class C
+{
+    @extension(object o) { }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS1520: Method must have a return type
+            //     @extension(object o) { }
+            Diagnostic(ErrorCode.ERR_MemberNeedsType, "@extension").WithLocation(3, 5),
+            // (3,5): error CS0710: Static classes cannot have instance constructors
+            //     @extension(object o) { }
+            Diagnostic(ErrorCode.ERR_ConstructorInStaticClass, "@extension").WithLocation(3, 5));
+
+        UsingTree(src, TestOptions.Regular13);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierToken, "@extension");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "o");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void LangVer_04(bool useCSharp14)
+    {
+        // Without parameter list
+        var src = """
+class C
+{
+    extension { }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1519: Invalid token '{' in a member declaration
+            //     extension { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 15),
+            // (3,15): error CS1519: Invalid token '{' in a member declaration
+            //     extension { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 15),
+            // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+            // }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+
+        UsingTree(src, TestOptions.Regular13,
+            // (3,15): error CS1519: Invalid token '{' in a member declaration
+            //     extension { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 15),
+            // (3,15): error CS1519: Invalid token '{' in a member declaration
+            //     extension { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 15),
+            // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+            // }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview,
+            // (3,15): error CS1003: Syntax error, '(' expected
+            //     extension { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(").WithLocation(3, 15),
+            // (3,15): error CS1031: Type expected
+            //     extension { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(3, 15),
+            // (3,15): error CS1026: ) expected
+            //     extension { }
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(3, 15));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionBlockDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    M(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.Parameter);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void LangVer_05(bool useCSharp14)
+    {
+        // Top-level
+        var src = """
+extension<T>(object o) { }
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+            // extension<T>(object o) { }
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "extension").WithArguments("extensions", "14.0").WithLocation(1, 1),
+            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(object o) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
+
+        UsingTree(src, TestOptions.Regular13);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ExtensionBlockDeclaration);
+            {
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.TypeParameterList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.TypeParameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ExtensionBlockDeclaration);
+            {
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.TypeParameterList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.TypeParameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void LangVer_06(bool useCSharp14)
+    {
+        // Top-level, without type parameters
+        var src = """
+extension(object o) { }
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0103: The name 'extension' does not exist in the current context
+            // extension(object o) { }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "extension").WithArguments("extension").WithLocation(1, 1),
+            // (1,11): error CS1525: Invalid expression term 'object'
+            // extension(object o) { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "object").WithArguments("object").WithLocation(1, 11),
+            // (1,18): error CS1003: Syntax error, ',' expected
+            // extension(object o) { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "o").WithArguments(",").WithLocation(1, 18),
+            // (1,18): error CS0103: The name 'o' does not exist in the current context
+            // extension(object o) { }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(1, 18),
+            // (1,21): error CS1002: ; expected
+            // extension(object o) { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 21));
+
+        UsingTree(src, TestOptions.Regular13,
+            // (1,11): error CS1525: Invalid expression term 'object'
+            // extension(object o) { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "object").WithArguments("object").WithLocation(1, 11),
+            // (1,18): error CS1003: Syntax error, ',' expected
+            // extension(object o) { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "o").WithArguments(",").WithLocation(1, 18),
+            // (1,21): error CS1002: ; expected
+            // extension(object o) { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 21));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingTree(src, useCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ExtensionBlockDeclaration);
+            {
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
