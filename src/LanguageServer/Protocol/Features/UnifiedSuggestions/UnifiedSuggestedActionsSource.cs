@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using static Nerdbank.Streams.MultiplexingStream;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 

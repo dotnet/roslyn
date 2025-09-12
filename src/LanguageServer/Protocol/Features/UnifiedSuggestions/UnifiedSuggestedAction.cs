@@ -46,9 +46,25 @@ internal sealed class UnifiedSuggestedAction
     /// </summary>
     public ImmutableArray<Diagnostic> Diagnostics { get; }
 
+    /// <summary>
+    /// Optional flavors for this action.  Flavors are child actions that are presented as simple links, not as
+    /// menu-items. For example the flavors to 'fix all in document/project/solution'.  It present, <see
+    /// cref="NestedActionSets"/> will be empty and <see cref="RefactorOrFixAllCodeAction"/> will be <see
+    /// langword="null"/>.
+    /// </summary>
     public UnifiedSuggestedActionFlavors? Flavors { get; }
 
+    /// <summary>
+    /// Nested actions that should ideally be shown in a sub-menu under this item.  This action will not itself be
+    /// invocable, and serves only as a named container for these sub-actions.  If this is non-empty, then <see
+    /// cref="Flavors"/> and <see cref="RefactorOrFixAllState"/> will be <see langword="null"/>.
+    /// </summary>
     public ImmutableArray<UnifiedSuggestedActionSet> NestedActionSets { get; }
+
+    /// <summary>
+    /// Non-null if this is a fix-all or refactor-all action.  If this is non-null, then <see cref="Flavors"/> will be
+    /// <see langword="null"/> and <see cref="NestedActionSets"/> will be empty.
+    /// </summary>
     public IRefactorOrFixAllState? RefactorOrFixAllState { get; }
 
     private UnifiedSuggestedAction(
@@ -103,7 +119,3 @@ internal sealed class UnifiedSuggestedAction
         return new(codeAction, codeActionPriority, refactorOrFixAllState.Provider, codeRefactoringKind, diagnostics, flavors: null, nestedActionSets: default, refactorOrFixAllState);
     }
 }
-
-internal readonly record struct UnifiedSuggestedActionFlavors(
-    string Title,
-    ImmutableArray<UnifiedSuggestedAction> Actions);
