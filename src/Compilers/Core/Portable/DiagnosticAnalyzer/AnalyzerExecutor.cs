@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         /// <param name="isCompilerAnalyzer">Delegate to determine if the given analyzer is compiler analyzer. 
         /// We need to special case the compiler analyzer at few places for performance reasons.</param>
+        /// <param name="diagnosticAnalyzers">Analyzers to query for custom options if <paramref
+        /// name="getAnalyzerConfigOptionsProvider"/> is provided.</param>
         /// <param name="getAnalyzerConfigOptionsProvider">Optional callback to allow individual configuration options
         /// on a per analyzer basis.</param>
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
