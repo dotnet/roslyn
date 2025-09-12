@@ -18,7 +18,7 @@ internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Cached data from a <see cref="ProjectState"/> to the <see cref="CompilationWithAnalyzers"/>s
-    /// we've created for it.  Note: the CompilationWithAnalyzers instance is dependent on the set of <see
+    /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
     /// cref="DiagnosticAnalyzer"/>s passed along with the project.
     /// <para/>
     /// The value of the table is a SmallDictionary that maps from the 
@@ -83,65 +83,60 @@ internal sealed partial class DiagnosticAnalyzerService
         {
             var (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException) = tuple;
 
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            var projectAnalyzers = analyzers.WhereAsArray(static (s, info) => !info.IsHostAnalyzer(s), hostAnalyzerInfo);
-            var hostAnalyzers = analyzers.WhereAsArray(static (s, info) => info.IsHostAnalyzer(s), hostAnalyzerInfo);
-
-            // Create driver that holds onto compilation and associated analyzers
-            var filteredProjectAnalyzers = projectAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
-            var filteredHostAnalyzers = hostAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
+            // Ensure we filter out DocumentDiagnosticAnalyzers (they're used to get diagnostics, without involving a
+            // compilation), and also ensure the list has no duplicates.
+            analyzers = analyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer()).Distinct();
 
             // PERF: there is no analyzers for this compilation.
             //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
-            if (filteredProjectAnalyzers.IsEmpty && filteredHostAnalyzers.IsEmpty)
+            if (analyzers.IsEmpty)
                 return null;
 
-            var exceptionFilter = (Exception ex) =>
-            {
-                if (ex is not OperationCanceledException && crashOnAnalyzerException)
-                {
-                    // report telemetry
-                    FatalError.ReportAndPropagate(ex);
-
-                    // force fail fast (the host might not crash when reporting telemetry):
-                    FailFast.OnFatalException(ex);
-                }
-
-                return true;
-            };
+            var projectAnalyzers = analyzers.Where(a => !hostAnalyzerInfo.IsHostAnalyzer(a)).ToSet();
 
             var (sharedOptions, analyzerSpecificOptionsFactory) = GetOptions();
 
-            return compilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(
-                options: sharedOptions,
-                onAnalyzerException: null,
-                // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
-                // async being used with synchronous blocking concurrency.
-                concurrentAnalysis: false,
-                logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: true,
-                analyzerExceptionFilter: exceptionFilter,
-                analyzerSpecificOptionsFactory));
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            return compilation.WithAnalyzers(
+                analyzers,
+                new CompilationWithAnalyzersOptions(
+                    options: sharedOptions,
+                    onAnalyzerException: null,
+                    // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
+                    // async being used with synchronous blocking concurrency.
+                    concurrentAnalysis: false,
+                    logAnalyzerExecutionTime: true,
+                    reportSuppressedDiagnostics: true,
+                    getAnalyzerConfigOptionsProvider: analyzerSpecificOptionsFactory,
+                    analyzerExceptionFilter: ex =>
+                    {
+                        if (ex is not OperationCanceledException && crashOnAnalyzerException)
+                        {
+                            // report telemetry
+                            FatalError.ReportAndPropagate(ex);
+
+                            // force fail fast (the host might not crash when reporting telemetry):
+                            FailFast.OnFatalException(ex);
+                        }
+
+                        return true;
+                    }));
 
             (AnalyzerOptions sharedOptions, Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory) GetOptions()
             {
-                // Checked above before this is called.
-                Contract.ThrowIfTrue(hostAnalyzers.IsEmpty && projectAnalyzers.IsEmpty);
-
-                // If we're all host analyzers and no project analyzers, we can just return the options for host
-                // analyzers and not need any special logic.  Similarly, If we're all project analyzers and no host
-                // analyzers, then just return the project analyzer specific options.
+                // If we're all host analyzers and no project analyzers (which we can check if we just have 0 project
+                // analyzers), we can just return the options for host analyzers and not need any special logic.
                 //
                 // We want to do this (as opposed to passing back the lambda below in either of these cases) as
                 // the compiler optimizes this in src\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerExecutor.cs
                 // to effectively no-op this and only add the cost of a null-check (which will then should be
                 // optimized out by branch 
-                if (!hostAnalyzers.IsEmpty && projectAnalyzers.IsEmpty)
+                if (projectAnalyzers.Count == 0)
                     return (project.State.HostAnalyzerOptions, null);
 
-                // Same in reverse.  
-                if (hostAnalyzers.IsEmpty && !projectAnalyzers.IsEmpty)
+                // Similarly, If we're all project analyzers and no host analyzers, then just return the project
+                // analyzer specific options.
+                if (projectAnalyzers.Count == analyzers.Length)
                     return (project.State.ProjectAnalyzerOptions, null);
 
                 // Ok, we have both host analyzers and project analyzers.  in that case, we want to provide
