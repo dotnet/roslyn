@@ -278,7 +278,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                 {
                     if (action.RefactorOrFixAllState != null)
                     {
-                        return new EditorSuggestedActionActionForRefactorOrFixAll(
+                        return new EditorSuggestedActionForRefactorOrFixAll(
                             _threadingContext, owner, originalDocument.Project.Solution, subjectBuffer,
                             action.RefactorOrFixAllState, action.CodeAction,
                             action.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID());

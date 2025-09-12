@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Suggested action for fix all occurrences for a code fix or a code refactoring.
 /// </summary>
-internal sealed class EditorSuggestedActionActionForRefactorOrFixAll(
+internal sealed class EditorSuggestedActionForRefactorOrFixAll(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
     Solution originalSolution,
