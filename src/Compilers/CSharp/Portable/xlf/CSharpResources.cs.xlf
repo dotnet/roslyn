@@ -1312,6 +1312,11 @@
         <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože má parametr __arglist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceMemberReturnTypeMismatch">
+        <source>Explicit implementation must have return type '{0}' for '{1}'</source>
+        <target state="new">Explicit implementation must have return type '{0}' for '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
         <target state="translated">Vnitřní chyba v kompilátoru jazyka C#</target>

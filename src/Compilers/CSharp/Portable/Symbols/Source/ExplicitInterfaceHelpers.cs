@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -234,10 +235,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //do a lookup anyway
             }
 
+            // Found a matching member without checking the return type.
+            var foundSloppyMatchingMember = false;
             // Setting this flag to true does not imply that an interface member has been successfully implemented.
             // It just indicates that a corresponding interface member has been found (there may still be errors).
             var foundMatchingMember = false;
 
+            Symbol sloppyMatchingMember = null;
             Symbol implementedMember = null;
 
             // Do not look in itself
@@ -249,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var hasParamsParam = implementingMember.HasParamsParameter();
+            var interfaceMethod = implementingMember as MethodSymbol;
 
             foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
             {
@@ -259,11 +264,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                if (interfaceMember is MethodSymbol interfaceMethod &&
+                if (interfaceMethod != null &&
                     (interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator)
                 {
                     continue;
                 }
+
+                if (interfaceMethod != null &&
+                    !MemberSignatureComparer.SloppyExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
+                {
+                    continue;
+                }
+
+                foundSloppyMatchingMember = true;
+                sloppyMatchingMember = interfaceMember;
 
                 if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
                 {
@@ -295,9 +309,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!foundMatchingMember)
             {
-                // CONSIDER: we may wish to suppress this error in the event that another error
+                // CONSIDER: we may wish to suppress these errors in the event that another error
                 // has been reported about the signature.
-                diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
+
+                if (interfaceMethod != null && foundSloppyMatchingMember)
+                {
+                    var returnTypeLocation = interfaceMethod.ExtractReturnTypeSyntax().Location;
+                    var returnType = sloppyMatchingMember.GetTypeOrReturnType();
+                    diagnostics.Add(ErrorCode.ERR_InterfaceMemberReturnTypeMismatch, returnTypeLocation, returnType, implementingMember);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
+                }
             }
 
             // Make sure implemented member is accessible

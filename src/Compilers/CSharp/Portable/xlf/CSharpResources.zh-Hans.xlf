@@ -1312,6 +1312,11 @@
         <target state="translated">“{0}”无法在类型“{2}”中实现接口成员“{1}”，因为它具有 __arglist 参数</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceMemberReturnTypeMismatch">
+        <source>Explicit implementation must have return type '{0}' for '{1}'</source>
+        <target state="new">Explicit implementation must have return type '{0}' for '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
         <target state="translated">C# 编译器中出现内部错误。</target>

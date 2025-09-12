@@ -1312,6 +1312,11 @@
         <target state="translated">“{0}” no puede implementar el miembro de interfaz “{1}” en el tipo “{2}” porque tiene un parámetro __arglist</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceMemberReturnTypeMismatch">
+        <source>Explicit implementation must have return type '{0}' for '{1}'</source>
+        <target state="new">Explicit implementation must have return type '{0}' for '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
         <target state="translated">Error interno en el compilador de C#.</target>

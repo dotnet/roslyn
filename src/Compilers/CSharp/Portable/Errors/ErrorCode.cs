@@ -2424,6 +2424,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion14 = 9327,
         ERR_ExtensionBlockCollision = 9329,
 
+        ERR_InterfaceMemberReturnTypeMismatch = 9330,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
