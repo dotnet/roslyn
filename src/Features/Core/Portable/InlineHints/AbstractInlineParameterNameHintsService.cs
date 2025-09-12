@@ -105,21 +105,18 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
 
                 if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                 {
-                    var inlineHintText = GetReplacementText(parameter.Name);
                     var textSpan = new TextSpan(position, 0);
 
-                    TextChange? replacementTextChange = null;
-                    if (!parameter.IsParams)
-                    {
-                        replacementTextChange = new TextChange(textSpan, inlineHintText);
-                    }
+                    TextChange? replacementTextChange = parameter.IsParams
+                        ? null
+                        : new TextChange(textSpan, GetReplacementText(parameter.Name));
 
                     result.Add(new InlineHint(
                         textSpan,
                         [new TaggedText(TextTags.Text, parameter.Name + ": ")],
                         replacementTextChange,
                         ranking: InlineHintsConstants.ParameterRanking,
-                        InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
+                        InlineHintHelpers.GetDescriptionFunction(position, parameter, displayOptions)));
                 }
             }
         }

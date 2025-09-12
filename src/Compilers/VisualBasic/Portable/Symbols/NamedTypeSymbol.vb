@@ -1569,5 +1569,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
+        Public ReadOnly Property IsExtension As Boolean Implements INamedTypeSymbol.IsExtension
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public ReadOnly Property ExtensionParameter As IParameterSymbol Implements INamedTypeSymbol.ExtensionParameter
+            Get
+                Return Nothing
+            End Get
+        End Property
     End Class
 End Namespace

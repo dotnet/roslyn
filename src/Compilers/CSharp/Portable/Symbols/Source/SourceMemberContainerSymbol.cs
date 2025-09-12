@@ -1843,6 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
+            var location = GetFirstLocation();
+
             if (IsInterface)
             {
                 CheckInterfaceMembers(this.GetMembersAndInitializers().NonTypeMembers, diagnostics);
@@ -1850,6 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsExtension)
             {
                 CheckExtensionMembers(this.GetMembers(), diagnostics);
+                MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, compilation, location);
             }
 
             CheckMemberNamesDistinctFromType(diagnostics);
@@ -1868,8 +1871,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ReportRequiredMembers(diagnostics);
             }
-
-            var location = GetFirstLocation();
 
             if (this.IsRefLikeType)
             {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Resources;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     public abstract class ManagedToolTask : ToolTask
     {
+        private bool? _useAppHost;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         /// <summary>
@@ -55,6 +57,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal string PathToBuiltInTool => Path.Combine(GetToolDirectory(), ToolName);
 
+        /// <summary>
+        /// We fallback to not use the apphost if it is not present (can happen in compiler toolset scenarios for example).
+        /// </summary>
+        private bool UseAppHost
+        {
+            get
+            {
+                if (_useAppHost is not { } useAppHost)
+                {
+                    _useAppHost = useAppHost = File.Exists(Path.Combine(GetToolDirectory(), AppHostToolName));
+                    Debug.Assert(IsBuiltinToolRunningOnCoreClr || useAppHost);
+                }
+
+                return useAppHost;
+            }
+        }
+
         protected ManagedToolTask(ResourceManager resourceManager)
             : base(resourceManager)
         {
@@ -79,7 +98,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected sealed override string GenerateCommandLineCommands()
         {
-            return GenerateToolArguments();
+            var commandLineArguments = GenerateToolArguments();
+
+            if (UsingBuiltinTool && !UseAppHost)
+            {
+                commandLineArguments = RuntimeHostInfo.GetDotNetExecCommandLine(PathToBuiltInTool, commandLineArguments);
+            }
+
+            return commandLineArguments;
         }
 
         /// <summary>
@@ -111,12 +137,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         /// <summary>
         /// This generates the path to the executable that is directly ran.
-        /// This could be the managed assembly itself (on desktop .NET on Windows),
-        /// or a runtime such as dotnet.
+        /// This could be the executable apphost or a runtime such as dotnet.
         /// </summary>
-        protected sealed override string GenerateFullPathToTool() => UsingBuiltinTool
-            ? PathToBuiltInTool
-            : Path.Combine(ToolPath ?? "", ToolExe);
+        protected sealed override string GenerateFullPathToTool()
+        {
+            if (UsingBuiltinTool)
+            {
+                return UseAppHost ? PathToBuiltInTool : RuntimeHostInfo.GetDotNetPathOrDefault();
+            }
+
+            return Path.Combine(ToolPath ?? "", ToolExe);
+        }
 
         protected abstract string ToolNameWithoutExtension { get; }
 
@@ -132,7 +163,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// It returns the name of the managed assembly, which might not be the path returned by
         /// GenerateFullPathToTool, which can return the path to e.g. the dotnet executable.
         /// </remarks>
-        protected sealed override string ToolName => $"{ToolNameWithoutExtension}{PlatformInformation.ExeExtension}";
+        protected sealed override string ToolName
+        {
+            get
+            {
+                return UseAppHost ? AppHostToolName : $"{ToolNameWithoutExtension}.dll";
+            }
+        }
+
+        private string AppHostToolName => $"{ToolNameWithoutExtension}{PlatformInformation.ExeExtension}";
 
         /// <summary>
         /// This generates the command line arguments passed to the tool.

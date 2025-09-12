@@ -51,8 +51,8 @@ internal sealed class EditorLayerExtensionManager(
 
             if (provider is CodeFixProvider
                 or CodeRefactoringProvider
-                or CodeRefactorings.FixAllProvider
-                or CodeFixes.FixAllProvider
+                or RefactorAllProvider
+                or FixAllProvider
                 or CompletionProvider)
             {
                 if (!IsIgnored(provider))

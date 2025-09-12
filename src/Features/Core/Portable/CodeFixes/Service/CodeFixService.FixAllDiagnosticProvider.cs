@@ -51,13 +51,10 @@ internal sealed partial class CodeFixService
 
         public override async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
         {
-            bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
-
             var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             var diagnostics = Filter(await service.GetDiagnosticsForSpanAsync(
-                document, fixAllSpan, shouldIncludeDiagnostic,
-                priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-                DiagnosticKind.All, cancellationToken).ConfigureAwait(false));
+                document, fixAllSpan, DiagnosticIdFilter.Include(_diagnosticIds),
+                priority: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }

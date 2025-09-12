@@ -179,7 +179,7 @@ public sealed class DiagnosticAnalyzerDriverTests
     private static void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
     {
         var diagnosticService = new HostDiagnosticAnalyzers([new AnalyzerImageReference([analyzer])]);
-        diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
+        diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache(), project: null);
     }
 
     private sealed class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct

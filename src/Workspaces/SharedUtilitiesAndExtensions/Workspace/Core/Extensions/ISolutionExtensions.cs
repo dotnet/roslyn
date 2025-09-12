@@ -157,4 +157,24 @@ internal static partial class ISolutionExtensions
                 return null;
         }
     }
+
+    public static TLanguageService? GetLanguageService<TLanguageService>(this Solution? solution, string languageName) where TLanguageService : ILanguageService
+        => solution is null ? default : solution.GetExtendedLanguageServices(languageName).GetService<TLanguageService>();
+
+    public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Solution solution, string languageName) where TLanguageService : ILanguageService
+        => solution.GetExtendedLanguageServices(languageName).GetRequiredService<TLanguageService>();
+
+#pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
+
+    /// <summary>
+    /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
+    /// </summary>
+    public static HostLanguageServices GetExtendedLanguageServices(this Solution solution, string languageName)
+#if !WORKSPACE
+        => solution.Workspace.Services.GetExtendedLanguageServices(languageName);
+#else
+        => solution.Services.GetExtendedLanguageServices(languageName);
+#endif
+
+#pragma warning restore RS0030 // Do not used banned APIs
 }

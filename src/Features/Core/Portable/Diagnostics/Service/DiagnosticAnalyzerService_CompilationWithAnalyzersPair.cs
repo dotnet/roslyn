@@ -39,7 +39,7 @@ internal sealed partial class DiagnosticAnalyzerService
     /// </summary>
     private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
-    private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
+    private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzers_OnlyCallInProcessAsync(
         Project project,
         ImmutableArray<DiagnosticAnalyzer> analyzers,
         HostAnalyzerInfo hostAnalyzerInfo,

@@ -258,7 +258,6 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
     public override SyntaxNode OperatorDeclaration(OperatorKind kind, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
     {
         return OperatorDeclaration(GetOperatorName(kind), isImplicitConversion: kind == OperatorKind.ImplicitConversion, parameters, returnType, accessibility, modifiers, statements);
-
     }
 
     private protected override SyntaxNode OperatorDeclaration(string operatorName, bool isImplicitConversion, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
@@ -3738,6 +3737,19 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     internal override SyntaxNode ParseTypeName(string stringToParse)
         => SyntaxFactory.ParseTypeName(stringToParse);
+
+    internal override SyntaxNode ExtensionBlockDeclaration(
+        SyntaxNode extensionParameter,
+        IEnumerable<SyntaxNode>? typeParameters,
+        IEnumerable<SyntaxNode> members)
+    {
+        SyntaxList<MemberDeclarationSyntax> extensionMembers = [.. members.OfType<MemberDeclarationSyntax>().WhereNotNull()];
+        var typeParameterList = AsTypeParameterList(typeParameters);
+
+        return SyntaxFactory.ExtensionBlockDeclaration(attributeLists: default, modifiers: default, ExtensionKeyword,
+            typeParameterList, parameterList: AsParameterList([extensionParameter]),
+            constraintClauses: default, OpenBraceToken, extensionMembers, CloseBraceToken, default);
+    }
 
     #endregion
 }
