@@ -596,15 +596,7 @@ internal sealed class UnifiedSuggestedActionsSource
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }
 
-        return new(
-            //new UnifiedSuggestedActionSet(
-            //categoryName: null,
-            //
-            Title: CodeFixesResources.Fix_all_occurrences_in,
-            Actions: fixAllSuggestedActions.ToImmutable());
-        //,
-        //    priority: CodeActionPriority.Lowest,
-        //    applicableToSpan: null);
+        return new(CodeFixesResources.Fix_all_occurrences_in, fixAllSuggestedActions.ToImmutableAndClear());
     }
 
     /// <summary>
