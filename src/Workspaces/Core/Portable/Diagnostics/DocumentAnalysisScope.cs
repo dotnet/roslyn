@@ -21,15 +21,19 @@ internal sealed class DocumentAnalysisScope
     public DocumentAnalysisScope(
         TextDocument document,
         TextSpan? span,
-        ImmutableArray<DiagnosticAnalyzer> analyzers,
+        ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         AnalysisKind kind)
     {
         Debug.Assert(kind is AnalysisKind.Syntax or AnalysisKind.Semantic);
-        Debug.Assert(!analyzers.IsDefaultOrEmpty);
+        Debug.Assert(!projectAnalyzers.IsDefault);
+        Debug.Assert(!hostAnalyzers.IsDefault);
+        Debug.Assert(!projectAnalyzers.IsEmpty || !hostAnalyzers.IsEmpty);
 
         TextDocument = document;
         Span = span;
-        Analyzers = analyzers;
+        ProjectAnalyzers = projectAnalyzers;
+        HostAnalyzers = hostAnalyzers;
         Kind = kind;
 
         _lazyAdditionalFile = new Lazy<AdditionalText>(ComputeAdditionalFile);
@@ -37,7 +41,8 @@ internal sealed class DocumentAnalysisScope
 
     public TextDocument TextDocument { get; }
     public TextSpan? Span { get; }
-    public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
+    public ImmutableArray<DiagnosticAnalyzer> ProjectAnalyzers { get; }
+    public ImmutableArray<DiagnosticAnalyzer> HostAnalyzers { get; }
     public AnalysisKind Kind { get; }
 
     /// <summary>
@@ -55,8 +60,8 @@ internal sealed class DocumentAnalysisScope
     }
 
     public DocumentAnalysisScope WithSpan(TextSpan? span)
-        => new(TextDocument, span, Analyzers, Kind);
+        => new(TextDocument, span, ProjectAnalyzers, HostAnalyzers, Kind);
 
-    public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        => new(TextDocument, Span, analyzers, Kind);
+    public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers)
+        => new(TextDocument, Span, projectAnalyzers, hostAnalyzers, Kind);
 }

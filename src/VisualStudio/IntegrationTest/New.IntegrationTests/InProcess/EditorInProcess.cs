@@ -941,7 +941,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
             foreach (var action in actionSet.Actions)
             {
                 if (action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction &&
-                    fixAllSuggestedAction.CodeAction.FixAllState.Scope == fixAllScope)
+                    fixAllSuggestedAction.CodeAction.RefactorOrFixAllState.Scope == fixAllScope)
                 {
                     return fixAllSuggestedAction;
                 }

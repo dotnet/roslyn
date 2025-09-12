@@ -104,17 +104,17 @@ internal sealed class UnifiedSuggestedActionsSource
         var nonSupressionCodeFixes = fixes.WhereAsArray(f => !IsTopLevelSuppressionAction(f.Action));
         var supressionCodeFixes = fixes.WhereAsArray(f => IsTopLevelSuppressionAction(f.Action));
 
-        await AddCodeActionsAsync(project, map, order, fixCollection, GetFixAllSuggestedActionSetAsync, nonSupressionCodeFixes).ConfigureAwait(false);
+        await AddCodeActionsAsync(project, map, order, fixCollection, GetFlavorsAsync, nonSupressionCodeFixes).ConfigureAwait(false);
 
         // Add suppression fixes to the end of a given SuggestedActionSet so that they
         // always show up last in a group.
-        await AddCodeActionsAsync(project, map, order, fixCollection, GetFixAllSuggestedActionSetAsync, supressionCodeFixes).ConfigureAwait(false);
+        await AddCodeActionsAsync(project, map, order, fixCollection, GetFlavorsAsync, supressionCodeFixes).ConfigureAwait(false);
 
         return;
 
         // Local functions
-        Task<UnifiedSuggestedActionSet?> GetFixAllSuggestedActionSetAsync(CodeAction codeAction)
-            => GetUnifiedFixAllSuggestedActionSetAsync(
+        Task<UnifiedSuggestedActionFlavors?> GetFlavorsAsync(CodeAction codeAction)
+            => GetUnifiedSuggestedActionFlavorsAsync(
                 codeAction, fixCount, fixCollection.FixAllState, fixCollection.SupportedScopes, fixCollection.Diagnostics, cancellationToken);
     }
 
@@ -123,7 +123,7 @@ internal sealed class UnifiedSuggestedActionsSource
         IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
         ArrayBuilder<CodeFixGroupKey> order,
         CodeFixCollection fixCollection,
-        Func<CodeAction, Task<UnifiedSuggestedActionSet?>> getFixAllSuggestedActionSetAsync,
+        Func<CodeAction, Task<UnifiedSuggestedActionFlavors?>> getFixAllSuggestedActionSetAsync,
         ImmutableArray<CodeFix> codeFixes)
     {
         foreach (var fix in codeFixes)
@@ -153,16 +153,14 @@ internal sealed class UnifiedSuggestedActionsSource
                     priority: action.Priority,
                     applicableToSpan: fix.Diagnostics.First().Location.SourceSpan);
 
-                return new UnifiedSuggestedActionWithNestedActions(
-                    action, action.Priority, fixCollection.Provider, [set]);
+                return UnifiedSuggestedAction.CreateWithNestedActionSets(
+                    action, action.Priority, fixCollection.Provider, codeRefactoringKind: null, diagnostics: [], [set]);
             }
             else
             {
-                return new UnifiedSuggestedActionWithNestedFlavors(
-                    action, action.Priority, fixCollection.Provider,
-                    await getFixAllSuggestedActionSetAsync(action).ConfigureAwait(false),
-                    codeRefactoringKind: null,
-                    fix.Diagnostics);
+                return UnifiedSuggestedAction.CreateWithFlavors(
+                    action, action.Priority, fixCollection.Provider, codeRefactoringKind: null, fix.Diagnostics,
+                    await getFixAllSuggestedActionSetAsync(action).ConfigureAwait(false));
             }
         }
     }
@@ -201,7 +199,7 @@ internal sealed class UnifiedSuggestedActionsSource
     // If the provided fix all context is non-null and the context's code action Id matches
     // the given code action's Id, returns the set of fix all occurrences actions associated
     // with the code action.
-    private static async Task<UnifiedSuggestedActionSet?> GetUnifiedFixAllSuggestedActionSetAsync(
+    private static async Task<UnifiedSuggestedActionFlavors?> GetUnifiedSuggestedActionFlavorsAsync(
         CodeAction action,
         int actionCount,
         IRefactorOrFixAllState? fixAllState,
@@ -219,7 +217,7 @@ internal sealed class UnifiedSuggestedActionsSource
             return null;
 
         var textDocument = fixAllState.Document!;
-        using var fixAllSuggestedActionsDisposer = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
+        using var _ = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
         foreach (var scope in supportedScopes)
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
@@ -242,19 +240,13 @@ internal sealed class UnifiedSuggestedActionsSource
             }
 
             var fixAllStateForScope = fixAllState.With(scope: scope, codeActionEquivalenceKey: action.EquivalenceKey);
-            var fixAllSuggestedAction = new UnifiedRefactorOrFixAllSuggestedAction(
-                action, action.Priority, fixAllStateForScope, fixAllState.Provider,
-                codeRefactoringKind: null, diagnostics);
+            var fixAllSuggestedAction = UnifiedSuggestedAction.CreateRefactorOrFixAll(
+                action, action.Priority, codeRefactoringKind: null, diagnostics, fixAllStateForScope);
 
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }
 
-        return new UnifiedSuggestedActionSet(
-            categoryName: null,
-            actions: fixAllSuggestedActions.ToImmutable(),
-            title: CodeFixesResources.Fix_all_occurrences_in,
-            priority: CodeActionPriority.Lowest,
-            applicableToSpan: null);
+        return new(CodeFixesResources.Fix_all_occurrences_in, fixAllSuggestedActions.ToImmutableAndClear());
     }
 
     /// <summary>
@@ -281,14 +273,14 @@ internal sealed class UnifiedSuggestedActionsSource
         {
             var actions = map[groupKey];
 
-            var nonSuppressionActions = actions.WhereAsArray(a => !IsTopLevelSuppressionAction(a.OriginalCodeAction));
+            var nonSuppressionActions = actions.WhereAsArray(a => !IsTopLevelSuppressionAction(a.CodeAction));
             AddUnifiedSuggestedActionsSet(text, nonSuppressionActions, groupKey, nonSuppressionSets);
 
-            var suppressionActions = actions.WhereAsArray(a => IsTopLevelSuppressionAction(a.OriginalCodeAction) &&
-                !IsBulkConfigurationAction(a.OriginalCodeAction));
+            var suppressionActions = actions.WhereAsArray(a => IsTopLevelSuppressionAction(a.CodeAction) &&
+                !IsBulkConfigurationAction(a.CodeAction));
             AddUnifiedSuggestedActionsSet(text, suppressionActions, groupKey, suppressionSets);
 
-            bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.OriginalCodeAction)));
+            bulkConfigurationActions.AddRange(actions.Where(a => IsBulkConfigurationAction(a.CodeAction)));
         }
 
         var sets = nonSuppressionSets.ToImmutable();
@@ -315,10 +307,12 @@ internal sealed class UnifiedSuggestedActionsSource
             // This doesn't actually get used as this top level action is just a container for the nested actions
             // and is never invoked itself.
             var provider = suppressionSets[0].Actions[0].Provider;
-            var wrappingSuggestedAction = new UnifiedSuggestedActionWithNestedActions(
+            var wrappingSuggestedAction = UnifiedSuggestedAction.CreateWithNestedActionSets(
                 suppressOrConfigureCodeAction,
                 suppressOrConfigureCodeAction.Priority,
                 provider,
+                codeRefactoringKind: null,
+                diagnostics: [],
                 suppressionSets.ToImmutable());
 
             // Combine the spans and the category of each of the nested suggested actions
@@ -389,13 +383,13 @@ internal sealed class UnifiedSuggestedActionsSource
             var priority = group.Key;
 
             // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
-            var category = GetFixCategory(groupKey.Item1.Severity);
+            var category = GetFixCategory(groupKey.diagnostic.Severity);
             sets.Add(new UnifiedSuggestedActionSet(
                 category,
                 [.. group],
                 title: null,
                 priority,
-                applicableToSpan: groupKey.Item1.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
+                applicableToSpan: groupKey.diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
         }
     }
 
@@ -542,8 +536,8 @@ internal sealed class UnifiedSuggestedActionsSource
                     priority: codeAction.Priority,
                     applicableToSpan: applicableToSpan);
 
-                return new UnifiedSuggestedActionWithNestedActions(
-                    codeAction, codeAction.Priority, refactoring.Provider, [set]);
+                return UnifiedSuggestedAction.CreateWithNestedActionSets(
+                    codeAction, codeAction.Priority, refactoring.Provider, codeRefactoringKind: null, diagnostics: [], [set]);
             }
             else
             {
@@ -551,9 +545,9 @@ internal sealed class UnifiedSuggestedActionsSource
                     refactoring.CodeActions.Length, document as Document, selection, refactoring.Provider,
                     refactoring.FixAllProviderInfo, cancellationToken).ConfigureAwait(false);
 
-                return new UnifiedSuggestedActionWithNestedFlavors(
-                    codeAction, codeAction.Priority, refactoring.Provider, fixAllSuggestedActionSet,
-                    refactoring.Provider.Kind, diagnostics: []);
+                return UnifiedSuggestedAction.CreateWithFlavors(
+                    codeAction, codeAction.Priority, refactoring.Provider, refactoring.Provider.Kind,
+                    diagnostics: [], fixAllSuggestedActionSet);
             }
         }
     }
@@ -561,7 +555,7 @@ internal sealed class UnifiedSuggestedActionsSource
     // If the provided fix all context is non-null and the context's code action Id matches
     // the given code action's Id, returns the set of fix all occurrences actions associated
     // with the code action.
-    private static async Task<UnifiedSuggestedActionSet?> GetUnifiedFixAllSuggestedActionSetAsync(
+    private static async Task<UnifiedSuggestedActionFlavors?> GetUnifiedFixAllSuggestedActionSetAsync(
         CodeAction action,
         int actionCount,
         Document? document,
@@ -571,19 +565,15 @@ internal sealed class UnifiedSuggestedActionsSource
         CancellationToken cancellationToken)
     {
         if (fixAllProviderInfo == null || document == null)
-        {
             return null;
-        }
 
         // If the provider registered more than one code action, but provided a null equivalence key
         // we have no way to distinguish between which registered actions to apply or ignore for FixAll.
         // So, we just bail out for this case.
         if (actionCount > 1 && action.EquivalenceKey == null)
-        {
             return null;
-        }
 
-        using var fixAllSuggestedActionsDisposer = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
+        using var _ = ArrayBuilder<UnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
         foreach (var scope in fixAllProviderInfo.SupportedScopes)
         {
             var fixAllState = new RefactorAllState(
@@ -600,19 +590,13 @@ internal sealed class UnifiedSuggestedActionsSource
                     continue;
             }
 
-            var fixAllSuggestedAction = new UnifiedRefactorOrFixAllSuggestedAction(
-                action, action.Priority, fixAllState, provider,
-                provider.Kind, diagnostics: []);
+            var fixAllSuggestedAction = UnifiedSuggestedAction.CreateRefactorOrFixAll(
+                action, action.Priority, provider.Kind, diagnostics: [], fixAllState);
 
             fixAllSuggestedActions.Add(fixAllSuggestedAction);
         }
 
-        return new UnifiedSuggestedActionSet(
-            categoryName: null,
-            actions: fixAllSuggestedActions.ToImmutable(),
-            title: CodeFixesResources.Fix_all_occurrences_in,
-            priority: CodeActionPriority.Lowest,
-            applicableToSpan: null);
+        return new(CodeFixesResources.Fix_all_occurrences_in, fixAllSuggestedActions.ToImmutableAndClear());
     }
 
     /// <summary>
@@ -713,9 +697,9 @@ internal sealed class UnifiedSuggestedActionsSource
         foreach (var action in actionSet.Actions)
         {
             // Only inline if the underlying code action allows it.
-            if (action is UnifiedSuggestedActionWithNestedActions { OriginalCodeAction.IsInlinable: true, NestedActionSets: var nestedActionsSets })
+            if (action is { CodeAction.IsInlinable: true, NestedActionSets.Length: > 0 })
             {
-                newActions.AddRange(nestedActionsSets.SelectMany(set => set.Actions));
+                newActions.AddRange(action.NestedActionSets.SelectMany(set => set.Actions));
             }
             else
             {
@@ -755,7 +739,7 @@ internal sealed class UnifiedSuggestedActionsSource
 
         foreach (var action in set.Actions)
         {
-            if (seenTitles.Add(action.OriginalCodeAction.Title))
+            if (seenTitles.Add(action.CodeAction.Title))
             {
                 actions.Add(action);
             }

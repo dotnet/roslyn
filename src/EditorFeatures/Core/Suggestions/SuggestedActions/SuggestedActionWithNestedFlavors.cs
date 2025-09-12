@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,7 +19,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -38,7 +38,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
     object provider,
     CodeAction codeAction,
     SuggestedActionSet? fixAllFlavors,
-    Diagnostic? diagnostic)
+    ImmutableArray<Diagnostic> diagnostics)
     : SuggestedAction(threadingContext,
         sourceProvider,
         originalDocument.Project.Solution,
@@ -47,7 +47,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
         codeAction), ISuggestedActionWithFlavors, ITelemetryDiagnosticID<string?>
 {
     private readonly SuggestedActionSet? _fixAllFlavors = fixAllFlavors;
-    private readonly Diagnostic? _diagnostic = diagnostic;
+    private readonly ImmutableArray<Diagnostic> _diagnostics = diagnostics;
 
     private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
@@ -85,17 +85,12 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
 
     private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavorsAsync(CancellationToken cancellationToken)
     {
-        var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
+        using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var builder);
 
-        var primarySuggestedActionSet = await GetPrimarySuggestedActionSetAsync(cancellationToken).ConfigureAwait(false);
-        builder.Add(primarySuggestedActionSet);
+        builder.Add(await GetPrimarySuggestedActionSetAsync(cancellationToken).ConfigureAwait(false));
+        builder.AddIfNotNull(_fixAllFlavors);
 
-        if (_fixAllFlavors != null)
-        {
-            builder.Add(_fixAllFlavors);
-        }
-
-        return builder.ToImmutableAndFree();
+        return builder.ToImmutableAndClear();
     }
 
     private async Task<SuggestedActionSet> GetPrimarySuggestedActionSetAsync(CancellationToken cancellationToken)
@@ -143,7 +138,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
 
             return CreateTrivialAction(
                 this, new RefineUsingCopilotCodeAction(
-                    this.OriginalSolution, this.CodeAction, _diagnostic, copilotService));
+                    this.OriginalSolution, this.CodeAction, _diagnostics.FirstOrDefault(), copilotService));
         }
     }
 
@@ -197,10 +192,10 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
         // GetPreviewPane() needs to run on the UI thread.
         this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        var diagnosticData = DiagnosticData.Create(_diagnostic, this.OriginalDocument.Project);
+        var diagnosticData = DiagnosticData.Create(_diagnostics.FirstOrDefault(), this.OriginalDocument.Project);
         return previewPaneService.GetPreviewPane(diagnosticData, previewContents!);
     }
 
     public string? GetDiagnosticID()
-        => _diagnostic?.GetTelemetryDiagnosticID();
+        => _diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID();
 }

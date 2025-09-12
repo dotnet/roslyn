@@ -769,6 +769,19 @@ public static class E
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("{ A = 43 }"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80250")]
+    public void Cls()
+    {
+        var src = """
+            [assembly: System.CLSCompliant(true)]
+            public static class Extensions
+            {
+                extension(object) { }
+            }
+            """;
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
     [Fact]
     public void Attribute_01()
     {

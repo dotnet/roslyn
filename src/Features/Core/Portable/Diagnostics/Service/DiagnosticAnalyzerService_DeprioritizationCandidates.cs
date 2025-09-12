@@ -44,7 +44,11 @@ internal sealed partial class DiagnosticAnalyzerService
     public async Task<bool> IsAnyDeprioritizedDiagnosticIdInProcessAsync(
         Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken)
     {
+<<<<<<< HEAD
         CompilationWithAnalyzers? compilationWithAnalyzers = null;
+=======
+        CompilationWithAnalyzersPair? compilationWithAnalyzers = null;
+>>>>>>> upstream/main
 
         var analyzers = GetProjectAnalyzers_OnlyCallInProcess(project);
         foreach (var analyzer in analyzers)

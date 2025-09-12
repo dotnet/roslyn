@@ -97,12 +97,12 @@ internal static class CodeActionHelpers
         // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
         // Exceptions are made for ExtractClass and ExtractInterface because we have OptionsServices which
         // provide reasonable defaults without user interaction.
-        => (suggestedAction.OriginalCodeAction is CodeActionWithOptions
-            && suggestedAction.OriginalCodeAction is not ExtractInterfaceCodeAction
-            && suggestedAction.OriginalCodeAction is not ExtractClassWithDialogCodeAction)
+        => (suggestedAction.CodeAction is CodeActionWithOptions
+            && suggestedAction.CodeAction is not ExtractInterfaceCodeAction
+            && suggestedAction.CodeAction is not ExtractClassWithDialogCodeAction)
         // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
         // https://github.com/dotnet/roslyn/issues/48698
-        || suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
+        || suggestedAction.CodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
 
     /// <summary>
     /// Generate the matching code actions for <paramref name="suggestedAction"/>. If it contains nested code actions, flatten them into an array.
@@ -112,7 +112,7 @@ internal static class CodeActionHelpers
         UnifiedSuggestedAction suggestedAction,
         LSP.CodeActionKind codeActionKind)
     {
-        var codeAction = suggestedAction.OriginalCodeAction;
+        var codeAction = suggestedAction.CodeAction;
         var diagnosticsForFix = GetApplicableDiagnostics(request.Context, suggestedAction);
 
         using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var builder);
@@ -146,17 +146,17 @@ internal static class CodeActionHelpers
         ImmutableArray<string> pathOfParentAction,
         bool isTopLevelCodeAction = false)
     {
-        var codeAction = suggestedAction.OriginalCodeAction;
+        var codeAction = suggestedAction.CodeAction;
         using var _1 = ArrayBuilder<LSP.CodeAction>.GetInstance(out var nestedCodeActions);
 
-        if (suggestedAction is UnifiedSuggestedActionWithNestedActions unifiedSuggestedActions)
+        if (!suggestedAction.NestedActionSets.IsEmpty)
         {
-            foreach (var actionSet in unifiedSuggestedActions.NestedActionSets)
+            foreach (var actionSet in suggestedAction.NestedActionSets)
             {
                 foreach (var action in actionSet.Actions)
                 {
                     nestedCodeActions.AddRange(CollectNestedActions(request, codeActionKind,
-                        diagnosticsForFix, action, pathOfParentAction.Add(action.OriginalCodeAction.Title)));
+                        diagnosticsForFix, action, pathOfParentAction.Add(action.CodeAction.Title)));
                 }
             }
         }
@@ -196,9 +196,9 @@ internal static class CodeActionHelpers
             Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, fixAllFlavors: null, nestedCodeActions)
         });
 
-        if (suggestedAction is UnifiedSuggestedActionWithNestedFlavors { FixAllFlavors: { } fixAllFlavors })
+        if (suggestedAction is UnifiedSuggestedAction { Flavors: { } fixAllFlavors })
         {
-            var flavorStrings = fixAllFlavors.Actions.OfType<UnifiedRefactorOrFixAllSuggestedAction>().Select(action => action.FixAllState.Scope.ToString());
+            var flavorStrings = fixAllFlavors.Actions.Select(a => a.RefactorOrFixAllState?.Scope.ToString()).WhereNotNull();
             var fixAllTitle = string.Format(FeaturesResources.Fix_All_0, title);
             var command = new LSP.Command
             {
@@ -228,7 +228,7 @@ internal static class CodeActionHelpers
         ImmutableArray<string> codeActionPathList,
         ref int currentHighestSetNumber)
     {
-        var codeAction = suggestedAction.OriginalCodeAction;
+        var codeAction = suggestedAction.CodeAction;
 
         var diagnosticsForFix = GetApplicableDiagnostics(request.Context, suggestedAction);
         codeActionPathList = codeActionPathList.Add(codeAction.Title);
@@ -255,13 +255,11 @@ internal static class CodeActionHelpers
             ref int currentHighestSetNumber,
             ImmutableArray<string> codeActionPath)
         {
-            if (suggestedAction is not UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
-            {
+            if (suggestedAction.NestedActionSets.IsEmpty)
                 return [];
-            }
 
             using var _ = ArrayBuilder<VSInternalCodeAction>.GetInstance(out var nestedActions);
-            foreach (var nestedActionSet in suggestedActionWithNestedActions.NestedActionSets)
+            foreach (var nestedActionSet in suggestedAction.NestedActionSets)
             {
                 // Nested code action sets should each have a unique set number that is not yet assigned to any set.
                 var nestedSetNumber = ++currentHighestSetNumber;
@@ -281,7 +279,7 @@ internal static class CodeActionHelpers
 
     private static LSP.Diagnostic[]? GetApplicableDiagnostics(CodeActionContext context, UnifiedSuggestedAction action)
     {
-        if (action is UnifiedSuggestedActionWithNestedFlavors { Diagnostics.Length: > 0 } codeFixAction && context.Diagnostics != null)
+        if (action is UnifiedSuggestedAction { Diagnostics.Length: > 0 } codeFixAction && context.Diagnostics != null)
         {
             // Associate the diagnostics from the request that match the diagnostic fixed by the code action by ID.
             // The request diagnostics are already restricted to the code fix location by the request.
@@ -348,42 +346,36 @@ internal static class CodeActionHelpers
     /// </summary>
     private static CodeAction GetNestedActionsFromActionSet(UnifiedSuggestedAction suggestedAction, string? fixAllScope)
     {
-        var codeAction = suggestedAction.OriginalCodeAction;
-        if (suggestedAction is not UnifiedSuggestedActionWithNestedActions suggestedActionWithNestedActions)
-        {
+        var codeAction = suggestedAction.CodeAction;
+        if (suggestedAction.NestedActionSets.IsEmpty)
             return codeAction;
-        }
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
-        foreach (var actionSet in suggestedActionWithNestedActions.NestedActionSets)
+        foreach (var actionSet in suggestedAction.NestedActionSets)
         {
             foreach (var action in actionSet.Actions)
             {
                 nestedActions.Add(GetNestedActionsFromActionSet(action, fixAllScope));
                 if (fixAllScope != null)
-                {
                     GetFixAllActionsFromActionSet(action, nestedActions, fixAllScope);
-                }
             }
         }
 
         return CodeAction.Create(
-            codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
+            codeAction.Title, nestedActions.ToImmutableAndClear(), codeAction.IsInlinable, codeAction.Priority);
     }
 
     private static void GetFixAllActionsFromActionSet(UnifiedSuggestedAction suggestedAction, ArrayBuilder<CodeAction> codeActions, string? fixAllScope)
     {
-        var codeAction = suggestedAction.OriginalCodeAction;
-        if (suggestedAction is not UnifiedSuggestedActionWithNestedFlavors { FixAllFlavors: not null } unifiedCodeFixSuggestedAction)
-        {
+        var codeAction = suggestedAction.CodeAction;
+        if (suggestedAction.Flavors is null)
             return;
-        }
 
         // Retrieves the fix all code action based on the scope that was selected. 
         // Creates a FixAllCodeAction type so that we can get the correct operations for the selected scope.
-        var fixAllFlavor = unifiedCodeFixSuggestedAction.FixAllFlavors.Actions.OfType<UnifiedRefactorOrFixAllSuggestedAction>().Where(action => action.FixAllState.Scope.ToString() == fixAllScope).First();
+        var fixAllFlavor = suggestedAction.Flavors.Value.Actions.Where(a => a.RefactorOrFixAllState != null && a.RefactorOrFixAllState.Scope.ToString() == fixAllScope).First();
         codeActions.Add(new RefactorOrFixAllCodeAction(
-            fixAllFlavor.FixAllState, showPreviewChangesDialog: false, title: codeAction.Title));
+            fixAllFlavor.RefactorOrFixAllState!, showPreviewChangesDialog: false, title: codeAction.Title));
     }
 
     private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(

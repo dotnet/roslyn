@@ -94,7 +94,7 @@ public sealed partial class PreviewTests
         var suggestedAction = new SuggestedActionWithNestedFlavors(
             workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
             workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
-            document, textBuffer, provider, codeActions.First(), fixAllFlavors: null, diagnostic: null);
+            document, textBuffer, provider, codeActions.First(), fixAllFlavors: null, diagnostics: []);
         return suggestedAction;
     }
 
