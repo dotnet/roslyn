@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol;
 internal class DocumentSymbolParams
     : ITextDocumentParams, IWorkDoneProgressParams,
 #pragma warning disable CS0618 // SymbolInformation is obsolete but this class is not
-      IPartialResultParams<SumType<SymbolInformation[], DocumentSymbol[]>>
+      IPartialResultParams<SumType<DocumentSymbol[], SymbolInformation[]>>
 #pragma warning restore CS0618
 {
     /// <summary>
@@ -38,6 +38,6 @@ internal class DocumentSymbolParams
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 #pragma warning disable CS0618 // SymbolInformation is obsolete but this property is not
-    public IProgress<SumType<SymbolInformation[], DocumentSymbol[]>>? PartialResultToken { get; set; }
+    public IProgress<SumType<DocumentSymbol[], SymbolInformation[]>>? PartialResultToken { get; set; }
 #pragma warning restore CS0618
 }

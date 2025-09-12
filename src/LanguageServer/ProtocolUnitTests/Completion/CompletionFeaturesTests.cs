@@ -125,7 +125,8 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-        var completionResult = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        var completionResultSumType = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, SumType<LSP.CompletionItem[], LSP.CompletionList>>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        var completionResult = completionResultSumType.Second;
         Assert.NotNull(completionResult.ItemDefaults.EditRange);
         Assert.NotNull(completionResult.ItemDefaults.Data);
         Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
@@ -165,11 +166,12 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Null(resolvedItem.Command);
         Assert.Null(resolvedItem.Detail);
 
-        var expectedDocumentation = new MarkupContent()
-        {
-            Kind = LSP.MarkupKind.PlainText,
-            Value = "(awaitable) class System.Threading.Tasks.Task"
-        };
+        var expectedDocumentation = new SumType<string, MarkupContent>(
+            new MarkupContent()
+            {
+                Kind = LSP.MarkupKind.PlainText,
+                Value = "(awaitable) class System.Threading.Tasks.Task"
+            });
         AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
     }
 
@@ -212,7 +214,8 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-        var completionResult = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        var completionResultSumType = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, SumType<LSP.CompletionItem[], LSP.CompletionList>>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        var completionResult = completionResultSumType.Second;
         Assert.NotNull(completionResult.ItemDefaults.EditRange);
         Assert.NotNull(completionResult.ItemDefaults.Data);
         Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
@@ -249,11 +252,12 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Null(resolvedItem.Command);
         Assert.Null(resolvedItem.Detail);
 
-        var expectedDocumentation = new MarkupContent()
-        {
-            Kind = LSP.MarkupKind.PlainText,
-            Value = "(extension) bool object.ExtensionMethod()"
-        };
+        var expectedDocumentation = new SumType<string, MarkupContent>(
+            new MarkupContent()
+            {
+                Kind = LSP.MarkupKind.PlainText,
+                Value = "(extension) bool object.ExtensionMethod()"
+            });
         AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
     }
 
@@ -537,7 +541,8 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-        var completionResult = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        var completionResultSumType = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, SumType<LSP.CompletionItem[], LSP.CompletionList>>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None).ConfigureAwait(false);
+        var completionResult = completionResultSumType.Second;
         Assert.NotNull(completionResult.ItemDefaults.EditRange);
         Assert.NotNull(completionResult.ItemDefaults.Data);
         Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
@@ -572,11 +577,12 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Null(resolvedItem.Command);
         Assert.Null(resolvedItem.Detail);
 
-        var expectedDocumentation = new MarkupContent()
-        {
-            Kind = LSP.MarkupKind.PlainText,
-            Value = "[deprecated] class ObsoleteType"
-        };
+        var expectedDocumentation = new SumType<string, MarkupContent>(
+            new MarkupContent()
+            {
+                Kind = LSP.MarkupKind.PlainText,
+                Value = "[deprecated] class ObsoleteType"
+            });
         AssertJsonEquals(expectedDocumentation, resolvedItem.Documentation);
     }
 

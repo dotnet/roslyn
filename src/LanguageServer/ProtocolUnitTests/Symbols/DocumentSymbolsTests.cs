@@ -158,7 +158,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
 
-        var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+        var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer).ConfigureAwait(false);
         Assert.NotNull(results);
 #pragma warning disable CS0618 // Type or member is obsolete
         Assert.Equal(".", results.First().Name);
@@ -170,7 +170,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
 
-        var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
+        var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
         Assert.NotNull(results);
         Assert.Empty(results);
     }
@@ -219,6 +219,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
     }
 
     private static async Task<TReturn?> RunGetDocumentSymbolsAsync<TReturn>(TestLspServer testLspServer)
+        where TReturn : class
     {
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
         var request = new LSP.DocumentSymbolParams
@@ -226,8 +227,10 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
             TextDocument = CreateTextDocumentIdentifier(document.GetURI())
         };
 
-        return await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, TReturn>(LSP.Methods.TextDocumentDocumentSymbolName,
+        var result = await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, LSP.SumType<LSP.DocumentSymbol[], LSP.SymbolInformation[]>>(LSP.Methods.TextDocumentDocumentSymbolName,
             request, CancellationToken.None);
+
+        return (TReturn?)result.Value;
     }
 
     private static void AssertDocumentSymbolEquals(LSP.DocumentSymbol expected, LSP.DocumentSymbol actual)
