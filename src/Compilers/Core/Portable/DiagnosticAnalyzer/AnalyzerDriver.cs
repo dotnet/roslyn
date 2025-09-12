@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var newOnAnalyzerException = (Exception ex, DiagnosticAnalyzer analyzer, Diagnostic diagnostic, CancellationToken cancellationToken) =>
             {
                 // Note: in this callback, it's fine/correct to use analysisOptions.Options instead of any diagnostic analyzer
-                // specific options. Thaat's because the options are only used for filtering/determing-severities.  But we 
+                // specific options. That's because the options are only used for filtering/determining-severities.  But we 
                 // do not allow analyzers to control the filtering/severity around the reporting of analyzer exceptions themselves.
                 // These are always passed through and reported to the user.
                 var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, options, _severityFilter, suppressedDiagnosticIds, cancellationToken);
