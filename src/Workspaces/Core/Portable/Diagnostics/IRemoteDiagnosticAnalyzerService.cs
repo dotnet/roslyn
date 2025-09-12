@@ -17,25 +17,16 @@ internal interface IRemoteDiagnosticAnalyzerService
     ValueTask<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Returns the analyzers that are candidates to be de-prioritized to
-    /// <see cref="CodeActionRequestPriority.Low"/> priority for improvement in analyzer
-    /// execution performance for priority buckets above 'Low' priority.
-    /// Based on performance measurements, currently only analyzers which register SymbolStart/End actions
-    /// or SemanticModel actions are considered candidates to be de-prioritized. However, these semantics
-    /// could be changed in future based on performance measurements.
-    /// </summary>
-    ValueTask<ImmutableHashSet<string>> GetDeprioritizationCandidatesAsync(
-        Checksum solutionChecksum, ProjectId projectId, ImmutableHashSet<string> analyzerIds, CancellationToken cancellationToken);
+    ValueTask<bool> IsAnyDiagnosticIdDeprioritizedAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
 
-    ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
-        Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
-        ImmutableHashSet<string> allAnalyzerIds,
-        ImmutableHashSet<string> syntaxAnalyzersIds,
-        ImmutableHashSet<string> semanticSpanAnalyzersIds,
-        ImmutableHashSet<string> semanticDocumentAnalyzersIds,
-        bool incrementalAnalysis,
-        bool logPerformanceInfo,
+    ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+        Checksum solutionChecksum,
+        DocumentId documentId,
+        TextSpan? range,
+        DiagnosticIdFilter diagnosticIdFilter,
+        CodeActionRequestPriority? priority,
+        DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(

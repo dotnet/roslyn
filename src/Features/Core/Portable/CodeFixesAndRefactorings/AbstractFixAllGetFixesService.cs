@@ -22,7 +22,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         string fixAllTopLevelHeader,
         Glyph glyph);
 
-    public async Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext)
+    public async Task<Solution?> GetFixAllChangedSolutionAsync(IRefactorOrFixAllContext fixAllContext)
     {
         var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
         if (codeAction == null)
@@ -35,7 +35,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
     }
 
     public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-        IFixAllContext fixAllContext, bool showPreviewChangesDialog)
+        IRefactorOrFixAllContext fixAllContext, bool showPreviewChangesDialog)
     {
         var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
         if (codeAction == null)
@@ -51,7 +51,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         CodeAction codeAction,
         bool showPreviewChangesDialog,
         IProgress<CodeAnalysisProgress> progressTracker,
-        IFixAllState fixAllState,
+        IRefactorOrFixAllState fixAllState,
         CancellationToken cancellationToken)
     {
         // We have computed the fix all occurrences code fix.
@@ -153,7 +153,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         }
     }
 
-    private static async Task<CodeAction?> GetFixAllCodeActionAsync(IFixAllContext fixAllContext)
+    private static async Task<CodeAction?> GetFixAllCodeActionAsync(IRefactorOrFixAllContext fixAllContext)
     {
         var fixAllKind = fixAllContext.State.FixAllKind;
         var functionId = fixAllKind switch
@@ -175,7 +175,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             CodeAction? action = null;
             try
             {
-                action = await fixAllContext.State.FixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                action = await fixAllContext.State.FixAllProvider.GetCodeActionAsync(fixAllContext).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

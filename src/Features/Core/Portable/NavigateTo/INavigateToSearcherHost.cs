@@ -54,7 +54,7 @@ internal sealed class DefaultNavigateToSearchHost(
 
     public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
     {
-        var workspaceService = _solution.Workspace.Services.GetService<IWorkspaceNavigateToSearcherHostService>();
+        var workspaceService = _solution.Services.GetService<IWorkspaceNavigateToSearcherHostService>();
         if (workspaceService != null)
             return await workspaceService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 

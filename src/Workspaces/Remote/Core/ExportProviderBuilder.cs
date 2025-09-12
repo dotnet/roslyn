@@ -11,12 +11,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -48,9 +45,6 @@ internal abstract class ExportProviderBuilder(
         return exportProvider;
     }
 
-    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2538903: keep a list of first chance exceptions
-    private readonly List<Exception> _firstChanceExceptions = new List<Exception>();
-
     private async Task<IExportProviderFactory> GetCompositionConfigurationAsync(CancellationToken cancellationToken)
     {
         // Determine the path to the MEF composition cache file for the given assembly paths.
@@ -65,8 +59,9 @@ internal abstract class ExportProviderBuilder(
 
                 CachedComposition cachedComposition = new();
                 using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
+                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, Resolver, cancellationToken).ConfigureAwait(false);
 
-                return await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, Resolver, cancellationToken).ConfigureAwait(false);
+                return exportProviderFactory;
             }
         }
         catch (Exception ex)
@@ -77,9 +72,6 @@ internal abstract class ExportProviderBuilder(
 
         LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", AssemblyPaths)}.");
 
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2538903: Subscribe to first-chance exceptions in case an exception in our loading is being swallowed somewhere.
-        AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-
         var discovery = PartDiscovery.Combine(
             Resolver,
             new AttributedPartDiscovery(Resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
@@ -87,13 +79,8 @@ internal abstract class ExportProviderBuilder(
 
         var parts = await discovery.CreatePartsAsync(AssemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
 
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2538903: we expect to have lots of parts
-        if (parts.Parts.Count < 500)
-            Environment.FailFast("Unexpected number of MEF parts: " + parts.Parts.Count);
-
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2538903: fail on any discovery errors
-        if (parts.DiscoveryErrors.Any())
-            Environment.FailFast("Unexpected MEF discovery errors: " + string.Join(Environment.NewLine, parts.DiscoveryErrors.Select(e => e.ToString())));
+        // Work around https://github.com/microsoft/vs-mef/issues/620 -- parts might be incomplete if the cancellationToken was cancelled
+        cancellationToken.ThrowIfCancellationRequested();
 
         var catalog = ComposableCatalog.Create(Resolver)
             .AddParts(parts)
@@ -101,19 +88,6 @@ internal abstract class ExportProviderBuilder(
 
         // Assemble the parts into a valid graph.
         var config = CompositionConfiguration.Create(catalog);
-        var exportProviderFactory = config.CreateExportProviderFactory();
-
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2538903: see if we can actually use this composition; do this before we cache it
-        var exportProvider = exportProviderFactory.CreateExportProvider();
-
-        try
-        {
-            new AdhocWorkspace(VisualStudioMefHostServices.Create(exportProvider));
-        }
-        catch
-        {
-            Environment.FailFast("Failed to create AdhocWorkspace with MEF composition");
-        }
 
         // Check if we have errors, and report them accordingly.
         if (!CheckForAndReportCompositionErrors(config, catalog))
@@ -123,23 +97,8 @@ internal abstract class ExportProviderBuilder(
             _ = WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken).ReportNonFatalErrorAsync();
         }
 
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2538903: add some GC.KeepAlives to ensure we don't GC any of objects that might be the
-        // source of our issue.
-        GC.KeepAlive(parts);
-        GC.KeepAlive(catalog);
-        GC.KeepAlive(config);
-
-        AppDomain.CurrentDomain.FirstChanceException -= CurrentDomain_FirstChanceException;
-
-        return exportProviderFactory;
-    }
-
-    private void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
-    {
-        lock (_firstChanceExceptions)
-        {
-            _firstChanceExceptions.Add(e.Exception);
-        }
+        // Prepare an ExportProvider factory based on this graph.
+        return config.CreateExportProviderFactory();
     }
 
     /// <summary>

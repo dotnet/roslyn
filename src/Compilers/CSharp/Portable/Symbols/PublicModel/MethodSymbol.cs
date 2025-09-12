@@ -332,6 +332,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         DllImportData IMethodSymbol.GetDllImportData() => _underlying.GetDllImportData();
 
+#nullable enable
+        IMethodSymbol? IMethodSymbol.AssociatedExtensionImplementation
+        {
+            get
+            {
+                if (!_underlying.IsDefinition || !_underlying.GetIsNewExtensionMember())
+                {
+                    return null;
+                }
+
+                return _underlying.TryGetCorrespondingExtensionImplementationMethod().GetPublicSymbol();
+            }
+        }
+#nullable disable
+
         #region ISymbol Members
 
         protected override void Accept(SymbolVisitor visitor)

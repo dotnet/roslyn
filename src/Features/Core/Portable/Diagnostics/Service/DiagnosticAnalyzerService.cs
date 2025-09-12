@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -121,10 +122,40 @@ internal sealed partial class DiagnosticAnalyzerService
     public readonly struct TestAccessor(DiagnosticAnalyzerService service)
     {
         public ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(Project project)
-            => service.GetProjectAnalyzers(project);
+            => service.GetProjectAnalyzers_OnlyCallInProcess(project);
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectInProcessAsync(
             Project project, CompilationWithAnalyzersPair compilationWithAnalyzers, bool logPerformanceInfo, bool getTelemetryInfo, CancellationToken cancellationToken)
             => service.AnalyzeInProcessAsync(documentAnalysisScope: null, project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+
+        public async Task<ImmutableArray<DiagnosticAnalyzer>> GetDeprioritizedAnalyzersAsync(Project project)
+        {
+            using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var builder);
+
+            foreach (var analyzer in service.GetProjectAnalyzers_OnlyCallInProcess(project))
+            {
+                if (await service.IsDeprioritizedAnalyzerAsync(project, analyzer, CancellationToken.None).ConfigureAwait(false))
+                    builder.Add(analyzer);
+            }
+
+            return builder.ToImmutableAndClear();
+        }
+
+        public async Task<ImmutableHashSet<string>> GetDeprioritizedDiagnosticIdsAsync(Project project)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<string>();
+
+            await service.PopulateDeprioritizedDiagnosticIdMapAsync(project, CancellationToken.None).ConfigureAwait(false);
+
+            foreach (var analyzer in service.GetProjectAnalyzers_OnlyCallInProcess(project))
+            {
+                Contract.ThrowIfFalse(DiagnosticAnalyzerService.s_analyzerToDeprioritizedDiagnosticIds.TryGetValue(analyzer, out var set));
+                if (set != null)
+                    builder.UnionWith(set);
+            }
+
+            return builder.ToImmutableHashSet();
+
+        }
     }
 }

@@ -214,7 +214,7 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
             document, range,
             // Compute diagnostics for everything that is *NOT* an IDE analyzer
             DiagnosticIdFilter.Exclude(IDEDiagnosticIdToOptionMappingHelper.KnownIDEDiagnosticIds),
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+            priority: null,
             DiagnosticKind.All,
             cancellationToken).ConfigureAwait(false);
 

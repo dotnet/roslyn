@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [CompilerTrait(CompilerFeature.AsyncMain)]
+    [CompilerTrait(CompilerFeature.AsyncMain, CompilerFeature.Async)]
     public class CodeGenAsyncMainTests : EmitMetadataTestBase
     {
         [Fact]

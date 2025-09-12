@@ -55,7 +55,7 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
         }
     }
 
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => AllRefactorAllScopes;
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -184,7 +184,7 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
         return root.ReplaceNode(parent, updatedParent);
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

@@ -32,6 +32,16 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         Project project, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Returns <see langword="true"/> if any of the given diagnostic IDs belong to an analyzer that is considered
+    /// 'deprioritized'.  Deprioritized analyzers are ones that are considered expensive, due to registering symbol-end
+    /// and semantic-model actions.  Because of their high cost, we want to avoid running them in the <see
+    /// cref="CodeActionRequestPriority.Default"/> priority case, and only run them in the <see
+    /// cref="CodeActionRequestPriority.Low"/> case.
+    /// </summary>
+    Task<bool> IsAnyDiagnosticIdDeprioritizedAsync(
+        Project project, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Gets document diagnostics of the given diagnostic ids and/or analyzers from the given project.
     /// All diagnostics returned should be up-to-date with respect to the given solution snapshot.
     /// Use <see cref="GetProjectDiagnosticsForIdsAsync"/> if you want to fetch only project diagnostics
@@ -79,7 +89,7 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document, TextSpan? range,
         DiagnosticIdFilter diagnosticIdFilter,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        CodeActionRequestPriority? priority,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
@@ -108,12 +118,12 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
     /// </para>
     /// </summary>
-    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
-        TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
+    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+        this IDiagnosticAnalyzerService service, TextDocument document, TextSpan? range, DiagnosticKind diagnosticKind, CancellationToken cancellationToken)
         => service.GetDiagnosticsForSpanAsync(
             document, range,
             diagnosticId: null,
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+            priority: null,
             diagnosticKind,
             cancellationToken);
 
@@ -127,15 +137,15 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     /// </summary>
     public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
         TextDocument document, TextSpan? range, string? diagnosticId,
-        ICodeActionRequestPriorityProvider priorityProvider,
+        CodeActionRequestPriority? priority,
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken)
     {
         var filter = diagnosticId != null
             ? DiagnosticIdFilter.Include([diagnosticId])
             : DiagnosticIdFilter.All;
-        return service.GetDiagnosticsForSpanAsync(document, range, filter,
-            priorityProvider, diagnosticKind, cancellationToken);
+        return service.GetDiagnosticsForSpanAsync(
+            document, range, filter, priority, diagnosticKind, cancellationToken);
     }
 
     public static Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(

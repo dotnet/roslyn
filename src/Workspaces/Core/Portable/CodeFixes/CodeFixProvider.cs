@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// Implement this type to provide fixes for source code problems.
 /// Remember to use <see cref="ExportCodeFixProviderAttribute"/> so the host environment can offer your fixes in a UI.
 /// </summary>
-public abstract class CodeFixProvider
+public abstract class CodeFixProvider : IRefactorOrFixProvider
 {
     private protected ImmutableArray<string> CustomTags = [];
 

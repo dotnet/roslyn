@@ -74,7 +74,7 @@ internal sealed partial class DiagnosticAnalyzerService
     /// <summary>
     /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>. 
     /// </summary>
-    public ImmutableArray<DiagnosticAnalyzer> GetProjectAnalyzers(Project project)
+    private ImmutableArray<DiagnosticAnalyzer> GetProjectAnalyzers_OnlyCallInProcess(Project project)
     {
         if (!s_projectToAnalyzers.TryGetValue(project, out var lazyAnalyzers))
         {
@@ -94,15 +94,15 @@ internal sealed partial class DiagnosticAnalyzerService
 
         ImmutableArray<DiagnosticAnalyzer> ComputeProjectAnalyzers()
         {
-            var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo(project);
-            var projectAnalyzerInfo = GetOrCreateProjectAnalyzerInfo(project);
+            var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project);
+            var projectAnalyzerInfo = GetOrCreateProjectAnalyzerInfo_OnlyCallInProcess(project);
             return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
         }
     }
 
-    private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(Project project)
+    private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(Project project)
     {
-        var projectAnalyzerInfo = GetOrCreateProjectAnalyzerInfo(project);
+        var projectAnalyzerInfo = GetOrCreateProjectAnalyzerInfo_OnlyCallInProcess(project);
 
         var solution = project.Solution;
         var key = new HostAnalyzerInfoKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, solution.SolutionState.Analyzers.HostAnalyzerReferences);

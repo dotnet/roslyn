@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -19,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -104,12 +104,6 @@ internal sealed partial class SuggestedActionsSourceProvider
 
                 try
                 {
-                    // Keep track of the diagnostic analyzers that have been deprioritized across calls to the
-                    // diagnostic engine.  We'll run them once we get around to the low-priority bucket.  We want to
-                    // keep track of this *across* calls to each priority. So we create this set outside of the loop and
-                    // then pass it continuously from one priority group to the next.
-                    var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
-
                     using var _2 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total");
 
                     // Collectors are in priority order.  So just walk them from highest to lowest.
@@ -121,8 +115,7 @@ internal sealed partial class SuggestedActionsSourceProvider
 
                             var allSets = GetCodeFixesAndRefactoringsAsync(
                                 state, requestedActionCategories, document,
-                                range, selection,
-                                new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzerData),
+                                range, selection, priority,
                                 currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             await foreach (var set in allSets)
@@ -198,15 +191,15 @@ internal sealed partial class SuggestedActionsSourceProvider
             TextDocument document,
             SnapshotSpan range,
             TextSpan? selection,
-            ICodeActionRequestPriorityProvider priorityProvider,
+            CodeActionRequestPriority? priority,
             int currentActionCount,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var target = state.Target;
             var owner = target.Owner;
             var subjectBuffer = target.SubjectBuffer;
-            var workspace = document.Project.Solution.Workspace;
-            var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
+            var solution = document.Project.Solution;
+            var supportsFeatureService = solution.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
             var fixesTask = GetCodeFixesAsync();
             var refactoringsTask = GetRefactoringsAsync();
@@ -226,7 +219,7 @@ internal sealed partial class SuggestedActionsSourceProvider
 
             async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync()
             {
-                using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
+                using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
 
                 if (owner._codeFixService == null ||
                     !supportsFeatureService.SupportsCodeFixes(target.SubjectBuffer) ||
@@ -236,13 +229,13 @@ internal sealed partial class SuggestedActionsSourceProvider
                 }
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-                    workspace, owner._codeFixService, document, range.Span.ToTextSpan(),
-                    priorityProvider, cancellationToken).ConfigureAwait(false);
+                    owner._codeFixService, document, range.Span.ToTextSpan(),
+                    priority, cancellationToken).ConfigureAwait(false);
             }
 
             async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
             {
-                using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
+                using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
 
                 if (!selection.HasValue)
                 {
@@ -260,7 +253,7 @@ internal sealed partial class SuggestedActionsSourceProvider
 
                 // 'CodeActionRequestPriority.Lowest' is reserved for suppression/configuration code fixes.
                 // No code refactoring should have this request priority.
-                if (priorityProvider.Priority == CodeActionRequestPriority.Lowest)
+                if (priority == CodeActionRequestPriority.Lowest)
                     return [];
 
                 // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
@@ -268,19 +261,12 @@ internal sealed partial class SuggestedActionsSourceProvider
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority,
+                    owner._codeRefactoringService, document, selection.Value, priority,
                     filterOutsideSelection, cancellationToken).ConfigureAwait(false);
             }
 
-            [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]
-            SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet, TextDocument originalDocument)
+            SuggestedActionSet ConvertToSuggestedActionSet(UnifiedSuggestedActionSet unifiedSuggestedActionSet, TextDocument originalDocument)
             {
-                // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
-                if (unifiedSuggestedActionSet == null)
-                    return null;
-
-                var originalSolution = unifiedSuggestedActionSet.OriginalSolution;
-
                 return new SuggestedActionSet(
                     unifiedSuggestedActionSet.CategoryName,
                     unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
@@ -288,40 +274,53 @@ internal sealed partial class SuggestedActionsSourceProvider
                     ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
                     unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
 
-                ISuggestedAction ConvertToSuggestedAction(IUnifiedSuggestedAction unifiedSuggestedAction)
-                    => unifiedSuggestedAction switch
-                    {
-                        UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
-                            _threadingContext, owner, codeFixAction.Workspace, originalDocument, subjectBuffer,
-                            codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.OriginalCodeAction,
-                            ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument)),
-                        UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
-                            _threadingContext, owner, codeRefactoringAction.Workspace, originalDocument, subjectBuffer,
-                            codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
-                            ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
-                        UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
-                            _threadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
-                            fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
-                        UnifiedFixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new FixAllCodeRefactoringSuggestedAction(
-                            _threadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
-                            fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
-                        UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                            _threadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
-                            nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
-                            nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
-                        _ => throw ExceptionUtilities.Unreachable()
-                    };
-            }
-
-            static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(CodeActionPriority priority)
-                => priority switch
+                ISuggestedAction ConvertToSuggestedAction(UnifiedSuggestedAction action)
                 {
-                    CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
-                    CodeActionPriority.Low => SuggestedActionSetPriority.Low,
-                    CodeActionPriority.Default => SuggestedActionSetPriority.Medium,
-                    CodeActionPriority.High => SuggestedActionSetPriority.High,
-                    _ => throw ExceptionUtilities.Unreachable(),
-                };
+                    if (action.RefactorOrFixAllState != null)
+                    {
+                        return new RefactorOrFixAllSuggestedAction(
+                            _threadingContext, owner, originalDocument.Project.Solution, subjectBuffer,
+                            action.RefactorOrFixAllState, action.CodeAction,
+                            action.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID());
+                    }
+                    else if (!action.NestedActionSets.IsEmpty)
+                    {
+                        return new SuggestedActionWithNestedActions(
+                           _threadingContext, owner, document.Project.Solution, subjectBuffer,
+                           action.Provider, action.CodeAction,
+                           action.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument)));
+                    }
+                    else
+                    {
+                        return new SuggestedActionWithNestedFlavors(
+                            _threadingContext, owner, originalDocument, subjectBuffer, action.Provider, action.CodeAction,
+                            ConvertFlavors(action.Flavors), action.Diagnostics);
+                    }
+                }
+
+                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(CodeActionPriority priority)
+                    => priority switch
+                    {
+                        CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
+                        CodeActionPriority.Low => SuggestedActionSetPriority.Low,
+                        CodeActionPriority.Default => SuggestedActionSetPriority.Medium,
+                        CodeActionPriority.High => SuggestedActionSetPriority.High,
+                        _ => throw ExceptionUtilities.Unreachable(),
+                    };
+
+                SuggestedActionSet? ConvertFlavors(UnifiedSuggestedActionFlavors? flavors)
+                {
+                    if (flavors is null)
+                        return null;
+
+                    return new(
+                        categoryName: null,
+                        actions: flavors.Value.Actions.SelectAsArray(a => ConvertToSuggestedAction(a)),
+                        title: flavors.Value.Title,
+                        priority: SuggestedActionSetPriority.Low,
+                        applicableToSpan: null);
+                }
+            }
         }
     }
 }

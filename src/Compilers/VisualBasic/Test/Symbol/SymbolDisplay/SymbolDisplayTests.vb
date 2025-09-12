@@ -6066,7 +6066,7 @@ static class E
             End If
 
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
-            Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
+            Dim extension = e.GetMembers().OfType(Of INamedTypeSymbol).Single()
 
             Assert.True(extension.IsExtension)
             AssertEx.Equal("E.<M>$119AA281C143547563250CAF89B48A76", SymbolDisplay.ToDisplayString(extension, format))
@@ -6121,7 +6121,7 @@ static class E
             End If
 
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
-            Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
+            Dim extension = e.GetMembers().OfType(Of INamedTypeSymbol).Single()
 
             ' Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, the arity should not be included in the extension type name
             Assert.True(extension.IsExtension)

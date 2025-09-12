@@ -26,7 +26,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         IProgress<CodeAnalysisProgress> progressTracker,
         string progressTrackerDescription,
         Func<TFixAllContext, Func<Document, Document?, ValueTask>, Task> getFixedDocumentsAsync)
-        where TFixAllContext : IFixAllContext
+        where TFixAllContext : IRefactorOrFixAllContext
     {
         var cancellationToken = originalFixAllContext.CancellationToken;
 

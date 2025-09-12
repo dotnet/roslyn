@@ -62,16 +62,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed class CapturedToExpressionSymbolReplacement : CapturedSymbolReplacement
+    internal sealed class CapturedToExpressionSymbolReplacement<THoistedSymbolType> : CapturedSymbolReplacement
+        where THoistedSymbolType : Symbol
     {
         private readonly BoundExpression _replacement;
-        public readonly ImmutableArray<StateMachineFieldSymbol> HoistedFields;
+        public readonly ImmutableArray<THoistedSymbolType> HoistedSymbols;
 
-        public CapturedToExpressionSymbolReplacement(BoundExpression replacement, ImmutableArray<StateMachineFieldSymbol> hoistedFields, bool isReusable)
+        public CapturedToExpressionSymbolReplacement(BoundExpression replacement, ImmutableArray<THoistedSymbolType> hoistedSymbols, bool isReusable)
             : base(isReusable)
         {
             _replacement = replacement;
-            this.HoistedFields = hoistedFields;
+            this.HoistedSymbols = hoistedSymbols;
         }
 
         public override BoundExpression Replacement<TArg>(SyntaxNode node, Func<NamedTypeSymbol, TArg, BoundExpression> makeFrame, TArg arg)

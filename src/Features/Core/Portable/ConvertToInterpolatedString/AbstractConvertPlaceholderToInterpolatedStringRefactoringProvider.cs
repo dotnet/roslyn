@@ -47,7 +47,7 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
 
     protected abstract TExpressionSyntax ParseExpression(string text);
 
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; } = AllFixAllScopes;
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes { get; } = AllRefactorAllScopes;
 
     private InvocationData? AnalyzeInvocation(
         Document document,
@@ -251,7 +251,7 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         }
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

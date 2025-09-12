@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Returns false for methods in <c>extension()</c> blocks.
         /// To check if a method is a "new" extension method (a member of an <c>extension()</c> block),
-        /// check <see cref="ITypeSymbol.IsExtension"/> on the method's <see cref="ISymbol.ContainingType"/>.
+        /// check <see cref="INamedTypeSymbol.IsExtension"/> on the method's <see cref="ISymbol.ContainingType"/>.
         /// </remarks>
         bool IsExtensionMethod { get; }
 
@@ -304,5 +304,25 @@ namespace Microsoft.CodeAnalysis
         /// Returns <see langword="true"/> if this method is a source method implemented as an iterator (either sync or async)
         /// </summary>
         bool IsIterator { get; }
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, add support for constructed symbols
+        /// <summary>
+        /// For a method/accessor/operator in an extension block, returns the corresponding implementation method if one exists.
+        /// Returns null otherwise.
+        /// 
+        /// For example, considering:
+        /// <code>
+        /// static class E
+        /// {
+        ///     extension(int i)
+        ///     {
+        ///         public void M() { }
+        ///     }
+        /// }
+        /// </code>
+        /// When given the method symbol for <c>E.extension(int i).M()</c>,
+        /// it will return the corresponding static implementation method <c>E.M(this int i)</c>.
+        /// </summary>
+        IMethodSymbol? AssociatedExtensionImplementation { get; }
     }
 }

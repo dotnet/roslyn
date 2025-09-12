@@ -234,7 +234,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         }
 
         private TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
-            => _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(language).GetRequiredService<TLanguageService>();
+            => _document.Project.Solution.GetRequiredLanguageService<TLanguageService>(language);
 
         private bool ClashesWithExistingConstructor()
         {

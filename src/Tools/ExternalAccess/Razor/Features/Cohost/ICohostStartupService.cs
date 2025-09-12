@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[Obsolete("Please move to AbstractRazorCohostLifecycleService. This will be removed in a future release.")]
 internal interface ICohostStartupService
 {
     Task StartupAsync(string serializedClientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken);

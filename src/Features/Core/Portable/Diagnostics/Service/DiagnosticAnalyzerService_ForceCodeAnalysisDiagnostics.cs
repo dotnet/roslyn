@@ -22,7 +22,7 @@ internal sealed partial class DiagnosticAnalyzerService
         //
         // As such, we are very intentionally not calling into this.GetDefaultAnalyzerFilter
         // here.  We want to control the rules entirely when this is called.
-        var analyzers = GetProjectAnalyzers(project);
+        var analyzers = GetProjectAnalyzers_OnlyCallInProcess(project);
         var filteredAnalyzers = analyzers.WhereAsArray(ShouldIncludeAnalyzer);
 
         // Compute document and project diagnostics in parallel.

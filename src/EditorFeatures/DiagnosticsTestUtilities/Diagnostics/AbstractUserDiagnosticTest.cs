@@ -157,7 +157,7 @@ public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logge
                 document,
                 diagnostic.Location.SourceSpan,
                 [diagnostic],
-                (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
+                (a, d) => fixes.Add(new CodeFix(a, d)),
                 CancellationToken.None);
 
             await fixer.RegisterCodeFixesAsync(context);

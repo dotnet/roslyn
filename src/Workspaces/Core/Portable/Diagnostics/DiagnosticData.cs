@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -202,10 +203,27 @@ internal sealed class DiagnosticData(
         }
     }
 
-    public static DiagnosticData Create(Diagnostic diagnostic, Project project)
-        => Create(diagnostic, project.Id, project.Language,
+    [return: NotNullIfNotNull(nameof(diagnostic))]
+    public static DiagnosticData? Create(Diagnostic? diagnostic, Project project)
+    {
+        if (diagnostic is null)
+            return null;
+
+        var document = project.GetDocument(diagnostic.Location.SourceTree);
+        if (document != null)
+            return Create(diagnostic, document);
+
+        if (diagnostic.Location.Kind == LocationKind.ExternalFile)
+        {
+            document = project.Documents.FirstOrDefault(d => d.FilePath == diagnostic.Location.GetLineSpan().Path);
+            if (document != null)
+                return Create(diagnostic, document);
+        }
+
+        return Create(diagnostic, project.Id, project.Language,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(project.FilePath ?? project.Solution.FilePath ?? "", span: default)),
             additionalLocations: default, additionalProperties: null);
+    }
 
     public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
     {
