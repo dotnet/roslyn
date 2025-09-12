@@ -12,33 +12,16 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// Similar to SuggestedActionSet, but in a location that can be used
 /// by both local Roslyn and LSP.
 /// </summary>
-internal sealed class UnifiedSuggestedActionSet
+internal sealed class UnifiedSuggestedActionSet(
+    string? categoryName,
+    ImmutableArray<UnifiedSuggestedAction> actions,
+    object? title,
+    CodeActionPriority priority,
+    TextSpan? applicableToSpan)
 {
-    public Solution OriginalSolution { get; }
-
-    public string? CategoryName { get; }
-
-    public ImmutableArray<IUnifiedSuggestedAction> Actions { get; }
-
-    public object? Title { get; }
-
-    public CodeActionPriority Priority { get; }
-
-    public TextSpan? ApplicableToSpan { get; }
-
-    public UnifiedSuggestedActionSet(
-        Solution originalSolution,
-        string? categoryName,
-        ImmutableArray<IUnifiedSuggestedAction> actions,
-        object? title,
-        CodeActionPriority priority,
-        TextSpan? applicableToSpan)
-    {
-        OriginalSolution = originalSolution;
-        CategoryName = categoryName;
-        Actions = actions;
-        Title = title;
-        Priority = priority;
-        ApplicableToSpan = applicableToSpan;
-    }
+    public readonly string? CategoryName = categoryName;
+    public readonly ImmutableArray<UnifiedSuggestedAction> Actions = actions;
+    public readonly object? Title = title;
+    public readonly CodeActionPriority Priority = priority;
+    public readonly TextSpan? ApplicableToSpan = applicableToSpan;
 }

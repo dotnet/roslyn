@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return value;
         }
 
-        internal override ConstantValue? ExplicitDefaultConstantValue
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -568,6 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _lazyDefaultValue;
             }
         }
+
+        internal sealed override ConstantValue? DefaultValueFromAttributes => null;
 
         private ConstantValue? GetDefaultDecimalOrDateTimeValue()
         {

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
@@ -590,6 +591,130 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (4,39): error CS8821: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //     public object P => F(static () => field);
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(4, 39));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_03()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class DemoCscBreaks
+                {
+                    public List<string> WillBreak => MethodReturningLambda(() => field ?? new List<string>());
+
+                    private T MethodReturningLambda<T>(Func<T> thisGet) => thisGet();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+            var fieldType = model.GetTypeInfo(fieldExpression);
+            AssertEx.Equal("System.Collections.Generic.List<System.String!>?", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, fieldType.Type.NullableAnnotation);
+
+            // Note that the member symbol does not expose the inferred nullable annotation via 'FieldSymbol.TypeWithAnnotations'.
+            var fieldSymbol = comp.GetMember<FieldSymbol>("DemoCscBreaks.<WillBreak>k__BackingField");
+            Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+            var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_04()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class Program
+                {
+                    public List<string> Prop
+                    {
+                        get => M(() => field);
+                        set => M(() => field = value ?? new List<string>());
+                    }
+
+                    private T M<T>(Func<T> fn) => fn();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,25): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public List<string> Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 25));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpressions = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().ToArray();
+            Assert.Equal(2, fieldExpressions.Length);
+            verify(fieldExpressions[0]);
+            // https://github.com/dotnet/roslyn/issues/77215: a setter should have a maybe-null initial state for the 'field'.
+            verify(fieldExpressions[1]);
+
+            void verify(FieldExpressionSyntax fieldExpression)
+            {
+                var fieldType = model.GetTypeInfo(fieldExpression);
+                AssertEx.Equal("System.Collections.Generic.List<System.String!>!", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, fieldType.Type.NullableAnnotation);
+
+                var fieldSymbol = comp.GetMember<FieldSymbol>("Program.<Prop>k__BackingField");
+                Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.NotAnnotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+                var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+                Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78932")]
+        public void Lambda_05()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                using System;
+
+                public class Program
+                {
+                    public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+
+                    private T M<T>(Func<T> fn) => fn();
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,26): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 26),
+                // (7,58): warning CS8602: Dereference of a possibly null reference.
+                //     public List<string?> Prop => M(() => (List<string?>)[field[0].ToString()]);
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field[0]").WithLocation(7, 58));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+            var fieldType = model.GetTypeInfo(fieldExpression);
+            AssertEx.Equal("System.Collections.Generic.List<System.String?>!", fieldType.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, fieldType.Type.NullableAnnotation);
+
+            var fieldSymbol = comp.GetMember<FieldSymbol>("Program.<Prop>k__BackingField");
+            Assert.Equal(NullableAnnotation.NotAnnotated, fieldSymbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, ((SynthesizedBackingFieldSymbol)fieldSymbol).GetInferredNullableAnnotation());
+
+            var publicFieldSymbol = fieldSymbol.GetPublicSymbol();
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated, publicFieldSymbol.NullableAnnotation);
         }
 
         [Fact]
@@ -12709,6 +12834,155 @@ class C<T>
 
             var comp = CreateCompilation([source1, source2]);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        [InlineData("""get { return field + "a"; }""")]
+        [InlineData("""get => field + "a";""")]
+        public void PublicAPI_01(string accessor)
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        {{accessor}}
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Equal("System.String C.<Prop>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        [InlineData("""set { field = value; }""")]
+        [InlineData("""set => field = value;""")]
+        public void PublicAPI_02(string accessor)
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        {{accessor}}
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Equal("System.String C.<Prop>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void PublicAPI_03()
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0103: The name 'field' does not exist in the current context
+                //         get => field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 16));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<FieldExpressionSyntax>());
+            var fieldExpression = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(node => node.ToString() == "field").Single();
+            var symbolInfo = model.GetSymbolInfo(fieldExpression);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79201")]
+        public void PublicAPI_04()
+        {
+            var source = $$"""
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            comp.VerifyAnalyzerDiagnostics(analyzers: [new TestAnalyzer1()],
+                expected: [Diagnostic("TEST_Field", "field").WithLocation(5, 16)]);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0103: The name 'field' does not exist in the current context
+                //         get => field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 16));
+            comp.VerifyAnalyzerDiagnostics(analyzers: [new TestAnalyzer1()],
+                expected: [Diagnostic("TEST_Invalid", "field").WithLocation(5, 16)]);
+        }
+
+        private class TestAnalyzer1 : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Descriptor_Field = new(id: "TEST_Field", title: "Test", messageFormat: "", category: "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            public static readonly DiagnosticDescriptor Descriptor_Invalid = new(id: "TEST_Invalid", title: "Test", messageFormat: "", category: "", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor_Field, Descriptor_Invalid];
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(context =>
+                {
+                    foreach (var block in context.OperationBlocks)
+                    {
+                        var walker = new OperationWalker1();
+                        walker.Visit(block);
+
+                        if (walker.FieldReference is not null)
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor_Field, walker.FieldReference.Syntax.Location));
+
+                        if (walker.Invalid is not null)
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor_Invalid, walker.Invalid.Syntax.Location));
+                    }
+                });
+            }
+        }
+
+        private class OperationWalker1 : OperationWalker
+        {
+            public IOperation FieldReference = null;
+            public IOperation Invalid = null;
+
+            public override void VisitFieldReference(IFieldReferenceOperation operation)
+            {
+                FieldReference = operation;
+                base.VisitFieldReference(operation);
+            }
+
+            public override void VisitInvalid(IInvalidOperation operation)
+            {
+                Invalid = operation;
+                base.VisitInvalid(operation);
+            }
         }
     }
 }

@@ -15,7 +15,9 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -149,6 +151,42 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         AssertEx.Empty(results2);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDiagnosticsReportsSourceGeneratorDiagnosticInAdditionalFile(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var additionaFilePath = @"C:\File.razor";
+        var workspaceXml =
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
+                    <Document FilePath="C:\C.cs"></Document>
+                    <AdditionalDocument FilePath="{additionaFilePath}">Hello</AdditionalDocument>
+                </Project>
+            </Workspace>
+            """;
+
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+        // Add a generator to the solution that reports a source generator diagnostic in an additional file.
+        var generator = new DiagnosticProducingGenerator(context =>
+        {
+            return Location.Create(additionaFilePath, TextSpan.FromBounds(0, 1), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 1)));
+        });
+
+        testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+            testLspServer.GetCurrentSolution().Projects.Single().Id,
+            new TestGeneratorReference(generator));
+        await testLspServer.WaitForSourceGeneratorsAsync();
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        AssertEx.Equal(
+        [
+            @"C:\C.cs: []",
+            @$"C:\File.razor: [{DiagnosticProducingGenerator.Descriptor.Id}, {MockAdditionalFileDiagnosticAnalyzer.Id}]",
+            @"C:\CSProj1.csproj: []"
+        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
     }
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer), typeof(TestAdditionalFileDocumentSourceProvider));

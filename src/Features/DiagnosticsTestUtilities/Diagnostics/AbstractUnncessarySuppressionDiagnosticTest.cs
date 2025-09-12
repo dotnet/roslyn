@@ -40,7 +40,7 @@ public abstract class AbstractUnnecessarySuppressionDiagnosticTest(ITestOutputHe
     {
         AddAnalyzersToWorkspace(workspace);
         var document = GetDocumentAndSelectSpan(workspace, out var span);
-        return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
+        return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
     }
 
     internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
@@ -51,7 +51,7 @@ public abstract class AbstractUnnecessarySuppressionDiagnosticTest(ITestOutputHe
         GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
         // Include suppressed diagnostics as they are needed by unnecessary suppressions analyzer.
-        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true, parameters.includeNonLocalDocumentDiagnostics);
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: true);
         var diagnostics = await testDriver.GetAllDiagnosticsAsync(document, span);
 
         // Filter out suppressed diagnostics before invoking code fix.

@@ -38,7 +38,14 @@ internal sealed partial class ManagedEditAndContinueLanguageServiceBridge(EditAn
 
     [Obsolete]
     public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    {
+        // StreamJsonRpc may use this overload when the method is invoked with empty parameters. Call the new implementation instead.
+
+        if (!runningProjects.IsEmpty)
+            throw new NotImplementedException();
+
+        return GetUpdatesAsync(ImmutableArray<RunningProjectInfo>.Empty, cancellationToken);
+    }
 
     public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
         => service.GetUpdatesAsync(runningProjects, cancellationToken);

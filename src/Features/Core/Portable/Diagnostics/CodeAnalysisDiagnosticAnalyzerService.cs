@@ -6,10 +6,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -43,8 +45,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// </summary>
         private readonly ConcurrentSet<ProjectId> _clearedProjectIds = [];
 
-        public CodeAnalysisDiagnosticAnalyzerService(
-            Workspace workspace)
+        public CodeAnalysisDiagnosticAnalyzerService(Workspace workspace)
         {
             _workspace = workspace;
             _diagnosticAnalyzerService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
@@ -88,8 +89,8 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
             Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
-            // Execute force analysis for the project.
-            var diagnostics = await _diagnosticAnalyzerService.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await _diagnosticAnalyzerService.ForceRunCodeAnalysisDiagnosticsAsync(
+                project, cancellationToken).ConfigureAwait(false);
 
             // Add the given project to the analyzed projects list **after** analysis has completed.
             // We need this ordering to ensure that 'HasProjectBeenAnalyzed' call above functions correctly.

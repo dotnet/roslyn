@@ -106,16 +106,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
         {
             // Nullability (and conversions) are ignored.
-            return GetInferredReturnType(conversions: null, nullableState: null, ref useSiteInfo, out inferredFromFunctionType);
+            return GetInferredReturnType(conversions: null, nullableState: null, getterNullResilienceData: null, ref useSiteInfo, out inferredFromFunctionType);
         }
 
         /// <summary>
         /// Infer return type. If `nullableState` is non-null, nullability is also inferred and `NullableWalker.Analyze`
         /// uses that state to set the inferred nullability of variables in the enclosing scope. `conversions` is
         /// only needed when nullability is inferred.
+        ///
+        /// If 'getterNullResilienceData' is non-null, it is propagated down to the child analysis pass,
+        /// so that it does not attempt to infer the field's nullable annotation, while a parent pass is also attempting to infer that.
         /// </summary>
-        public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
+        public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
         {
+            // Cannot pass 'getterNullResilienceData' without also passing 'nullableState'.
+            Debug.Assert(getterNullResilienceData is null || nullableState is not null);
+
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
                 useSiteInfo.AddDiagnostics(InferredReturnType.UseSiteDiagnostics);
@@ -151,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        diagnostics,
                                        delegateInvokeMethodOpt: delegateType?.DelegateInvokeMethod,
                                        initialState: nullableState,
-                                       returnTypes);
+                                       returnTypes,
+                                       getterNullResilienceData);
                 diagnostics.Free();
                 inferredReturnType = InferReturnType(returnTypes, node: this, Binder, delegateType, Symbol.IsAsync, conversions);
                 returnTypes.Free();
@@ -386,6 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class UnboundLambda
     {
         private readonly NullableWalker.VariableState? _nullableState;
+        private readonly NullableWalker.GetterNullResilienceData? _getterNullResilienceData;
 
         public static UnboundLambda Create(
             CSharpSyntaxNode syntax,
@@ -417,16 +425,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambda;
         }
 
-        private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, FunctionTypeSymbol? functionType, bool withDependencies, NullableWalker.VariableState? nullableState, bool hasErrors) :
+        private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, FunctionTypeSymbol? functionType, bool withDependencies, NullableWalker.VariableState? nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData, bool hasErrors) :
             this(syntax, state, functionType, withDependencies, hasErrors)
         {
             this._nullableState = nullableState;
+            this._getterNullResilienceData = getterNullResilienceData;
         }
 
-        internal UnboundLambda WithNullableState(NullableWalker.VariableState nullableState)
+        internal UnboundLambda WithNullabilityInfo(NullableWalker.VariableState nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData)
         {
             var data = Data.WithCaching(true);
-            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, nullableState, HasErrors);
+            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, nullableState, getterNullResilienceData, HasErrors);
             data.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -439,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, _nullableState, HasErrors);
+            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, _nullableState, _getterNullResilienceData, HasErrors);
             data.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -482,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
-            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, out inferredFromFunctionType);
+            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, _getterNullResilienceData, ref useSiteInfo, out inferredFromFunctionType);
 
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public ScopedKind DeclaredScope(int index) { return Data.DeclaredScope(index); }

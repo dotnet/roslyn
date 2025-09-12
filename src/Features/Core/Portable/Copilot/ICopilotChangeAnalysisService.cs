@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -32,11 +31,11 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 {
     /// <summary>
     /// Kicks of work to analyze a change that copilot suggested making to a document. <paramref name="document"/> is
-    /// the state of the document prior to the edits, and <paramref name="changes"/> are the changes Copilot wants to
-    /// make to it.  <paramref name="changes"/> must be sorted and normalized before calling this.
+    /// the state of the document prior to the edits, and <paramref name="normalizedChanges"/> are the changes Copilot wants to
+    /// make to it.  <paramref name="normalizedChanges"/> must be sorted and normalized before calling this.
     /// </summary>
     Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
-        Document document, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 [ExportWorkspaceService(typeof(ICopilotChangeAnalysisService)), Shared]
@@ -51,13 +50,12 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
         Document document,
-        ImmutableArray<TextChange> changes,
+        ImmutableArray<TextChange> normalizedChanges,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
-        Contract.ThrowIfTrue(!changes.IsSorted(static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
-        Contract.ThrowIfTrue(new NormalizedTextSpanCollection(changes.Select(c => c.Span)).Count != changes.Length, "'changes' was not normalized.");
+        CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
 
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
@@ -67,20 +65,20 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 // Don't need to sync the entire solution over.  Just the cone of projects this document it contained within.
                 document.Project,
                 (service, checksum, cancellationToken) => service.AnalyzeChangeAsync(
-                    checksum, document.Id, changes, cancellationToken),
+                    checksum, document.Id, normalizedChanges, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return value.HasValue ? value.Value : default;
         }
         else
         {
             return await AnalyzeChangeInCurrentProcessAsync(
-                document, changes, cancellationToken).ConfigureAwait(false);
+                document, normalizedChanges, cancellationToken).ConfigureAwait(false);
         }
     }
 
     private async Task<CopilotChangeAnalysis> AnalyzeChangeInCurrentProcessAsync(
         Document document,
-        ImmutableArray<TextChange> changes,
+        ImmutableArray<TextChange> normalizedChanges,
         CancellationToken cancellationToken)
     {
         // Keep track of how long our analysis takes entirely.
@@ -91,24 +89,14 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
         // move to in the forked doucment, as that is what we will want to analyze.
         var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var newText = oldText.WithChanges(changes);
 
-        var newDocument = document.WithText(newText);
+        var (newText, newSpans) = CopilotUtilities.GetNewTextAndChangedSpans(oldText, normalizedChanges);
 
-        // Get the semantic model and keep it alive so none of the work we do causes it to be dropped.
-        var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var forkingTime = forkingTimeStopWatch.Elapsed;
 
-        var totalDelta = 0;
-        using var _ = ArrayBuilder<TextSpan>.GetInstance(out var newSpans);
-
-        foreach (var change in changes)
-        {
-            var newTextLength = change.NewText!.Length;
-
-            newSpans.Add(new TextSpan(change.Span.Start + totalDelta, newTextLength));
-            totalDelta += newTextLength - change.Span.Length;
-        }
+        // Get the semantic model and keep it alive so none of the work we do causes it to be dropped.
+        var newDocument = document.WithText(newText);
+        var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // First, determine the diagnostics produced in the edits that copilot makes.  Done non-concurrently with
         // ComputeCodeFixAnalysisAsync as we want good data on just how long it takes to even compute the varying
@@ -139,7 +127,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
             Succeeded: true,
             OldDocumentLength: oldText.Length,
             NewDocumentLength: newText.Length,
-            TextChangeDelta: totalDelta,
+            TextChangeDelta: newText.Length - oldText.Length,
             ProjectDocumentCount: projectDocumentCount,
             ProjectSourceGeneratedDocumentCount: projectSourceGeneratedDocumentCount,
             ProjectConeCount: projectConeCount,
@@ -173,7 +161,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     private static Task<ImmutableArray<CopilotDiagnosticAnalysis>> ComputeAllDiagnosticAnalysesAsync(
         Document newDocument,
-        ArrayBuilder<TextSpan> newSpans,
+        ImmutableArray<TextSpan> newSpans,
         CancellationToken cancellationToken)
     {
         // Compute the data in parallel for each diagnostic kind.
@@ -213,7 +201,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         static Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
            Document newDocument,
-           ArrayBuilder<TextSpan> newSpans,
+           ImmutableArray<TextSpan> newSpans,
            DiagnosticKind diagnosticKind,
            CancellationToken cancellationToken)
         {
@@ -244,7 +232,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     private async Task<CopilotCodeFixAnalysis> ComputeCodeFixAnalysisAsync(
         Document newDocument,
-        ArrayBuilder<TextSpan> newSpans,
+        ImmutableArray<TextSpan> newSpans,
         CancellationToken cancellationToken)
     {
         // Determine how long it would be to even compute code fixes for these changed regions.
@@ -296,7 +284,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
                 await foreach (var (codeFixCollection, success, applicationTime) in values.ConfigureAwait(false))
                 {
-                    var diagnosticId = codeFixCollection.FirstDiagnostic.Id;
+                    var diagnosticId = codeFixCollection.Diagnostics.First().Id;
                     var providerName = GetProviderName(codeFixCollection);
 
                     IncrementCount(diagnosticIdToCount, diagnosticId);
@@ -362,9 +350,9 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                         if (codeFixCollection is
                             {
                                 Provider: not IConfigurationFixProvider,
-                                Fixes: [var codeFix, ..],
+                                Fixes: [{ Diagnostics: [var primaryDiagnostic, ..] }, ..],
                             } &&
-                            IsVisibleDiagnostic(codeFix.PrimaryDiagnostic.IsSuppressed, codeFix.PrimaryDiagnostic.Severity) &&
+                            IsVisibleDiagnostic(primaryDiagnostic.IsSuppressed, primaryDiagnostic.Severity) &&
                             (codeFixCollection.Provider.GetType().Namespace ?? "").StartsWith(RoslynPrefix))
                         {
                             callback(codeFixCollection);

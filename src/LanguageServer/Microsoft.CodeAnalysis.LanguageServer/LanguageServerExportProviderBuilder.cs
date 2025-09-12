@@ -74,8 +74,8 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         return exportProvider;
     }
 
-    protected override void LogError(string message)
-        => _logger.LogError(message);
+    protected override void LogError(string message, Exception exception)
+        => _logger.LogError(exception, message);
 
     protected override void LogTrace(string message)
         => _logger.LogTrace(message);

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Deleted definitions must be emitted before PrivateImplementationDetails are frozen since
                 // it may add new members to it. All changes to PrivateImplementationDetails are additions,
                 // so we don't need to create deleted method defs for those.
-                moduleBeingBuiltOpt.CreateDeletedMethodDefinitions(diagnostics.DiagnosticBag);
+                moduleBeingBuiltOpt.CreateDeletedMemberDefinitions(diagnostics.DiagnosticBag);
 
                 // all threads that were adding methods must be finished now, we can freeze the class:
                 var privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails();
@@ -774,8 +774,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!loweredBody.HasErrors)
                         {
-                            AsyncStateMachine asyncStateMachine;
-                            loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                            AsyncStateMachine asyncStateMachine = null;
+                            if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                            {
+                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                            }
+                            else
+                            {
+                                loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                            }
 
                             Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                             stateMachine = stateMachine ?? asyncStateMachine;
@@ -1577,10 +1584,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutIterators;
                 }
 
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
-                    out AsyncStateMachine asyncStateMachine);
+                BoundStatement bodyWithoutAsync;
+                AsyncStateMachine asyncStateMachine = null;
+                if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                {
+                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
+                }
+                else
+                {
+                    bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
+                       out asyncStateMachine);
+                }
 
-                Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
+                Debug.Assert(iteratorStateMachine is null || asyncStateMachine is null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
                 return bodyWithoutAsync;

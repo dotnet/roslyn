@@ -567,7 +567,10 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                     || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
-                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference)
+                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
+                    )
                 {
                     Assert.Null(symbol); // Not available
                 }
@@ -657,6 +660,7 @@ namespace System
                     case WellKnownType.System_Runtime_InteropServices_CollectionsMarshal:
                     case WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal:
                     case WellKnownType.System_Runtime_CompilerServices_HotReloadException:
+                    case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -917,7 +921,7 @@ namespace System
             }
 
             // There were 200 well-known types prior to CSharp7
-            Assert.Equal(200, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
+            Assert.Equal(200, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First - 1 /* WellKnownTypes.ExtSentinel is before CSharp7Sentinel */));
         }
 
         [Fact]
@@ -1078,6 +1082,7 @@ namespace System
                     case WellKnownMember.System_Span_T__ctor_ref_T:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T:
                     case WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32:
+                    case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor:
                         // Not always available.
                         continue;
                 }

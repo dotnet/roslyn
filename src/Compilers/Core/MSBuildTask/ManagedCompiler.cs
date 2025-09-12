@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         private CancellationTokenSource? _sharedCompileCts;
-        internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         internal abstract RequestLanguage Language { get; }
 

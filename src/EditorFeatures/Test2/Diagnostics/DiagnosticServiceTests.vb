@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.CSharp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Serialization
 Imports Microsoft.CodeAnalysis.SolutionCrawler
@@ -534,8 +535,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Empty(diagnostics)
 
                 diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                    project, documentIds:=Nothing, diagnosticIds:=Nothing, AnalyzerFilter.All,
+                    includeLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Dim diagnostic = diagnostics.First()
                 Assert.True(diagnostic.Id = "AD0001")
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message, StringComparison.Ordinal)
@@ -605,8 +606,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                     Dim document = project.Documents.Single()
                     Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                        project, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                        includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                        project, documentIds:=Nothing, diagnosticIds:=Nothing, AnalyzerFilter.All,
+                        includeLocalDocumentDiagnostics:=True, CancellationToken.None)
                     Assert.Equal(1, diagnostics.Length)
                     Dim diagnostic = diagnostics.First()
                     Assert.Equal(OperationAnalyzer.Descriptor.Id, diagnostic.Id)
@@ -803,9 +804,9 @@ class AnonymousFunctions
                 ' Test "GetDiagnosticsForIdsAsync" does force computation of compilation end diagnostics.
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
                 Dim projectDiagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project, documentId:=Nothing,
-                    diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                    project, documentIds:=Nothing,
+                    diagnosticIds:=Nothing, AnalyzerFilter.All,
+                    includeLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.Equal(2, projectDiagnostics.Length)
 
                 Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) d.DataLocation.DocumentId Is Nothing)
@@ -954,8 +955,8 @@ class AnonymousFunctions
                 ' Verify no duplicate analysis/diagnostics.
                 Dim document = project.Documents.Single()
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)).
+                    project, documentIds:=Nothing, diagnosticIds:=Nothing, AnalyzerFilter.All,
+                    includeLocalDocumentDiagnostics:=True, CancellationToken.None)).
                     Select(Function(d) d.Id = NamedTypeAnalyzer.DiagDescriptor.Id)
 
                 Assert.Equal(1, diagnostics.Count)
@@ -1049,8 +1050,8 @@ class AnonymousFunctions
 
                 ' Verify project diagnostics contains diagnostics reported on both partial definitions.
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                    project, documentIds:=Nothing, diagnosticIds:=Nothing, AnalyzerFilter.All,
+                    includeLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.Equal(2, diagnostics.Length)
                 Dim file1HasDiag = False, file2HasDiag = False
                 For Each diagnostic In diagnostics
@@ -2141,7 +2142,7 @@ class MyClass
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Get cached project diagnostics.
-                Dim diagnostics = Await diagnosticService.ForceAnalyzeProjectAsync(
+                Dim diagnostics = Await diagnosticService.ForceRunCodeAnalysisDiagnosticsAsync(
                     project, CancellationToken.None)
 
                 ' in v2, solution crawler never creates non-local hidden diagnostics.
@@ -2151,8 +2152,8 @@ class MyClass
 
                 ' Get diagnostics explicitly
                 Dim hiddenDiagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                    project, documentIds:=Nothing, diagnosticIds:=Nothing, AnalyzerFilter.All,
+                    includeLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.Equal(1, hiddenDiagnostics.Length)
                 Assert.Equal(analyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
             End Using
@@ -2238,8 +2239,8 @@ class C
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                    project, documentIds:=Nothing, diagnosticIds:=Nothing, AnalyzerFilter.All,
+                    includeLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.Empty(diagnostics)
             End Using
         End Function
