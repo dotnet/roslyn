@@ -18,7 +18,7 @@ internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Cached data from a <see cref="ProjectState"/> to the <see cref="CompilationWithAnalyzers"/>s
-    /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
+    /// we've created for it.  Note: the CompilationWithAnalyzers instance is dependent on the set of <see
     /// cref="DiagnosticAnalyzer"/>s passed along with the project.
     /// <para/>
     /// The value of the table is a SmallDictionary that maps from the 
