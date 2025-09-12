@@ -5459,9 +5459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """,
                 options: null,
-                // (3,15): error CS1001: Identifier expected
+                // (3,15): error CS1525: Invalid expression term 'switch'
                 //     List<Type>
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 15),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("switch").WithLocation(3, 15),
                 // (3,15): error CS1002: ; expected
                 //     List<Type>
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 15),
@@ -5492,24 +5492,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.Block);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.GreaterThanExpression);
                         {
-                            N(SyntaxKind.GenericName);
+                            N(SyntaxKind.LessThanExpression);
                             {
-                                N(SyntaxKind.IdentifierToken, "List");
-                                N(SyntaxKind.TypeArgumentList);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Type");
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
+                                    N(SyntaxKind.IdentifierToken, "List");
+                                }
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
                                 }
                             }
-                            M(SyntaxKind.VariableDeclarator);
+                            N(SyntaxKind.GreaterThanToken);
+                            M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }

@@ -8404,8 +8404,8 @@ done:
             if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
             {
                 // In the case of something like:
-                // List<SomeType>
-                // if
+                //     List<SomeType>
+                //     if
                 // we know that we're in an error case, as the following keyword must be the start of a new statement.
                 // We'd prefer to assume that this is an incomplete local declaration over an expression, as it's more likely
                 // the user is just in the middle of writing a local declaration, and not an expression.
@@ -8937,7 +8937,6 @@ done:
                 case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
-                case SyntaxKind.SwitchKeyword:
                 case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.UsingKeyword:
                 case SyntaxKind.WhileKeyword:
@@ -8964,6 +8963,7 @@ done:
                 case SyntaxKind.CheckedKeyword:
                 case SyntaxKind.UncheckedKeyword:
                 case SyntaxKind.ThrowKeyword:
+                case SyntaxKind.SwitchKeyword:
                 case SyntaxKind.OpenBraceToken:
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.StaticKeyword:
