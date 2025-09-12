@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+namespace Microsoft.CodeAnalysis.Suggestions;
 
 using CodeFixGroupKey = (DiagnosticData diagnostic, CodeActionPriority firstPriority, CodeActionPriority? secondPriority);
 

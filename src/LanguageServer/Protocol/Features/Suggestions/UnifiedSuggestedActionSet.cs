@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+namespace Microsoft.CodeAnalysis.Suggestions;
 
 /// <summary>
 /// Similar to SuggestedActionSet, but in a location that can be used

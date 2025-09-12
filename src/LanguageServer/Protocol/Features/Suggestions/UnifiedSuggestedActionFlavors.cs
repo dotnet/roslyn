@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+namespace Microsoft.CodeAnalysis.Suggestions;
 
 internal readonly record struct UnifiedSuggestedActionFlavors(
     string Title,

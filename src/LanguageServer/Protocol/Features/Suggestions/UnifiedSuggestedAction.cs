@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+namespace Microsoft.CodeAnalysis.Suggestions;
 
 /// <summary>
 /// Similar to SuggestedAction, but in a location that can be used by

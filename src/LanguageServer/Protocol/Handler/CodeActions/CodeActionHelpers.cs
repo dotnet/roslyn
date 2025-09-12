@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnifiedSuggestions;
+using Microsoft.CodeAnalysis.Suggestions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
