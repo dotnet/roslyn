@@ -230,6 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_InvalidExperimentalDiagID, attrArgumentLocation);
                 }
             }
+            else if (arguments.Attribute.IsTargetAttribute(AttributeDescription.MetadataUpdateDeletedAttribute))
+            {
+                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_AttributeCannotBeAppliedManually, arguments.AttributeSyntaxOpt!.Location, args: [AttributeDescription.MetadataUpdateDeletedAttribute.FullName]);
+            }
 
             DecodeWellKnownAttributeImpl(ref arguments);
         }

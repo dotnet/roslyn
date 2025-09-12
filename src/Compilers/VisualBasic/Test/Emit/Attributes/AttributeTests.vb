@@ -3224,6 +3224,76 @@ Public Delegate Function D(<C>a As Integer, <C>ByRef b As Integer) As <B> Intege
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
+        <Fact>
+        Public Sub MetadataUpdateDeletedAttribute_ErrorWhenManuallyApplied()
+            Dim source As String = "
+<Assembly: System.Runtime.CompilerServices.MetadataUpdateDeleted>
+<Module: System.Runtime.CompilerServices.MetadataUpdateDeleted>
+
+Namespace System.Runtime.CompilerServices
+    <MetadataUpdateDeleted> Class TestClass(Of T)
+        <MetadataUpdateDeleted> Sub New()
+            field = 1
+            RaiseEvent E1()
+        End Sub
+
+        <MetadataUpdateDeleted> Public field As Integer
+
+        <MetadataUpdateDeleted> Property P As Integer
+            <MetadataUpdateDeleted> Get
+                Return 1
+            End Get
+            <MetadataUpdateDeleted> Set
+            End Set
+        End Property
+
+        <MetadataUpdateDeleted> ReadOnly Property Item(a As Integer) As Integer
+            Get
+                Return a
+            End Get
+        End Property
+
+        <MetadataUpdateDeleted> Function M(<MetadataUpdateDeleted> x As Integer) _
+            As <MetadataUpdateDeleted> Integer
+            Return x
+        End Function
+
+        <MetadataUpdateDeleted> Public Event E1 As Action
+
+        <MetadataUpdateDeleted> Public Custom Event E2 As Action
+            <MetadataUpdateDeleted> AddHandler(value As Action) : End AddHandler
+            <MetadataUpdateDeleted> RemoveHandler(value As Action) : End RemoveHandler
+            <MetadataUpdateDeleted> RaiseEvent() : End RaiseEvent
+        End Event
+    End Class
+
+    <AttributeUsage(AttributeTargets.All, AllowMultiple:=False, Inherited:=False)>
+    Public NotInheritable Class MetadataUpdateDeletedAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+"
+            Dim compilation = CreateCompilation(source)
+            compilation.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "Assembly: System.Runtime.CompilerServices.MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(2, 2),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "Module: System.Runtime.CompilerServices.MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(3, 2),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(6, 6),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(7, 10),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(12, 10),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(14, 10),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(15, 14),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(18, 14),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(22, 10),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(28, 10),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(28, 45),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(29, 17),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(33, 10),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(35, 10),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(36, 14),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(37, 14),
+                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(38, 14))
+        End Sub
+
 #End Region
 
         ''' <summary>
