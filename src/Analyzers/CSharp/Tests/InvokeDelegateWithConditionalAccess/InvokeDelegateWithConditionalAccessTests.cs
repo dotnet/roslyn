@@ -22,9 +22,8 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
         => (new InvokeDelegateWithConditionalAccessAnalyzer(), new InvokeDelegateWithConditionalAccessCodeFixProvider());
 
     [Fact]
-    public async Task Test1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task Test1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -51,12 +50,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
-    public async Task Test1_TopLevel()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Test1_TopLevel()
+        => TestInRegularAndScriptAsync(
             """
             var v = () => {};
             [||]if (v != null)
@@ -68,12 +65,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
             var v = () => {};
             v?.Invoke();
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
-    public async Task Test2_TopLevel()
-    {
-        await TestAsync(
+    public Task Test2_TopLevel()
+        => TestAsync(
             """
             Action a = null;
             [||]var v = a;
@@ -86,13 +81,11 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
             Action a = null;
 
             a?.Invoke();
-            """, parseOptions: CSharpParseOptions.Default);
-    }
+            """, new(parseOptions: CSharpParseOptions.Default));
 
     [Fact]
-    public async Task TestOnIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnIf()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -119,12 +112,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnInvoke()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnInvoke()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -151,12 +142,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestMissingBeforeCSharp6()
-    {
-        await TestMissingAsync(
+    public Task TestMissingBeforeCSharp6()
+        => TestMissingAsync(
             """
             class C
             {
@@ -172,12 +161,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
-    }
 
     [Fact]
-    public async Task TestInvertedIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInvertedIf()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -204,12 +191,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfWithNoBraces()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIfWithNoBraces()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -234,12 +219,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithComplexExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithComplexExpression()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -268,12 +251,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithElseClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWithElseClause()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -292,12 +273,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnDeclarationWithMultipleVariables()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnDeclarationWithMultipleVariables()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -313,16 +292,14 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// With multiple variables in the same declaration, the fix _is not_ offered on the declaration
     /// itself, but _is_ offered on the invocation pattern.
     /// </remarks>
     [Fact]
-    public async Task TestLocationWhereOfferedWithMultipleVariables()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLocationWhereOfferedWithMultipleVariables()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -350,16 +327,14 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// If we have a variable declaration and if it is read/written outside the delegate 
     /// invocation pattern, the fix is not offered on the declaration.
     /// </remarks>
     [Fact]
-    public async Task TestMissingOnDeclarationIfUsedOutside()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnDeclarationIfUsedOutside()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -377,7 +352,6 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// If we have a variable declaration and if it is read/written outside the delegate 
@@ -385,9 +359,8 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
     /// the invocation pattern itself.
     /// </remarks>
     [Fact]
-    public async Task TestLocationWhereOfferedIfUsedOutside()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLocationWhereOfferedIfUsedOutside()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -419,12 +392,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleForm1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleForm1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -454,12 +425,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleForm2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimpleForm2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -489,12 +458,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInElseClause1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInElseClause1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -533,12 +500,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInElseClause2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestInElseClause2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -572,12 +537,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -604,12 +567,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -635,12 +596,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51563")]
-    public async Task TestTrivia3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -666,12 +625,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51563")]
-    public async Task TestTrivia4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTrivia4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -694,15 +651,13 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// tests locations where the fix is offered.
     /// </remarks>
     [Fact]
-    public async Task TestFixOfferedOnIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixOfferedOnIf()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -729,15 +684,13 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// tests locations where the fix is offered.
     /// </remarks>
     [Fact]
-    public async Task TestFixOfferedInsideIf()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixOfferedInsideIf()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -764,12 +717,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConditionalInvocation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnConditionalInvocation()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -782,12 +733,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConditionalInvocation2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnConditionalInvocation2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -800,12 +749,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnConditionalInvocation3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnConditionalInvocation3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -817,12 +764,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNonNullCheckExpressions()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNonNullCheckExpressions()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -838,12 +783,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNonNullCheckExpressions2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnNonNullCheckExpressions2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -859,16 +802,14 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// if local declaration is not immediately preceding the invocation pattern, 
     /// the fix is not offered on the declaration.
     /// </remarks>
     [Fact]
-    public async Task TestLocalNotImmediatelyPrecedingNullCheckAndInvokePattern()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestLocalNotImmediatelyPrecedingNullCheckAndInvokePattern()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -885,16 +826,14 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     /// <remarks>
     /// if local declaration is not immediately preceding the invocation pattern, 
     /// the fix is not offered on the declaration but is offered on the invocation pattern itself.
     /// </remarks>
     [Fact]
-    public async Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -924,12 +863,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnFunc()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnFunc()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -945,12 +882,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestWithLambdaInitializer()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithLambdaInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -978,12 +913,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestWithLambdaInitializer2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithLambdaInitializer2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1011,12 +944,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestForWithAnonymousMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForWithAnonymousMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1044,12 +975,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13226")]
-    public async Task TestWithMethodReference()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithMethodReference()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1077,12 +1006,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31827")]
-    public async Task TestWithExplicitInvokeCall1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithExplicitInvokeCall1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1110,12 +1037,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 event EventHandler Event;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31827")]
-    public async Task TestWithExplicitInvokeCall2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestWithExplicitInvokeCall2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1142,12 +1067,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
-    public async Task TestWithExplicitInvokeCall2_TopLevel()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithExplicitInvokeCall2_TopLevel()
+        => TestInRegularAndScriptAsync(
             """
             var v = () => {};
             [||]if (v != null)
@@ -1159,12 +1082,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
             var v = () => {};
             v?.Invoke();
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50976")]
-    public async Task TestMissingOnFunctionPointer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnFunctionPointer()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1177,12 +1098,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76422")]
-    public async Task TestInvokeMethodOnNonDelegate()
-    {
-        await TestMissingAsync(
+    public Task TestInvokeMethodOnNonDelegate()
+        => TestMissingAsync(
             """
             class C
             {
@@ -1201,12 +1120,10 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 public void Invoke() { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76422")]
-    public async Task TestInvokeMethodOnNonDelegate_TopLevel()
-    {
-        await TestMissingAsync(
+    public Task TestInvokeMethodOnNonDelegate_TopLevel()
+        => TestMissingAsync(
             """
             var v = new C();
             [||]if (v != null)
@@ -1219,5 +1136,4 @@ public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutput
                 public void Invoke() { }
             }
             """);
-    }
 }

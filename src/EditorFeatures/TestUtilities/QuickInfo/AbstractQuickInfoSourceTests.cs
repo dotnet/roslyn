@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,23 +23,23 @@ public abstract class AbstractQuickInfoSourceTests
         return string.Concat(System.Environment.NewLine, formattedCode);
     }
 
-    protected async Task TestInMethodAndScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)
+    protected async Task TestInMethodAndScriptAsync(string code, string expectedContent, string? expectedDocumentationComment = null)
     {
         await TestInMethodAsync(code, expectedContent, expectedDocumentationComment);
         await TestInScriptAsync(code, expectedContent, expectedDocumentationComment);
     }
 
-    protected abstract Task TestInClassAsync(string code, string expectedContent, string expectedDocumentationComment = null);
+    protected abstract Task TestInClassAsync(string code, string expectedContent, string? expectedDocumentationComment = null);
 
-    protected abstract Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null);
+    protected abstract Task TestInMethodAsync(string code, string expectedContent, string? expectedDocumentationComment = null);
 
-    protected abstract Task TestInScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null);
+    protected abstract Task TestInScriptAsync(string code, string expectedContent, string? expectedDocumentationComment = null);
 
     protected abstract Task TestAsync(
         string code,
         string expectedContent,
-        string expectedDocumentationComment = null,
-        CSharpParseOptions parseOptions = null);
+        string? expectedDocumentationComment = null,
+        CSharpParseOptions? parseOptions = null);
 
     protected abstract Task AssertNoContentAsync(
         EditorTestWorkspace workspace,
@@ -53,5 +51,5 @@ public abstract class AbstractQuickInfoSourceTests
         Document document,
         int position,
         string expectedContent,
-        string expectedDocumentationComment = null);
+        string? expectedDocumentationComment = null);
 }

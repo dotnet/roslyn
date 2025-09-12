@@ -149,5 +149,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
+
+        private ThreeState _runtimeAsyncMethodGenerationSetting;
+        public ThreeState RuntimeAsyncMethodGenerationSetting
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _runtimeAsyncMethodGenerationSetting;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _runtimeAsyncMethodGenerationSetting = value;
+                SetDataStored();
+            }
+        }
     }
 }

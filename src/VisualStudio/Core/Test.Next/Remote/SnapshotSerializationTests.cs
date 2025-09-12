@@ -565,17 +565,19 @@ public sealed class SnapshotSerializationTests(AssemblyLoadTestFixture testFixtu
         var tempDir = tempRoot.CreateDirectory();
         var tempCorlib = tempDir.CopyFile(mscorlibLocation);
         var tempCorlibXml = tempDir.CreateFile(Path.ChangeExtension(tempCorlib.Path, "xml"));
-        tempCorlibXml.WriteAllText(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<doc>
-  <assembly>
-    <name>mscorlib</name>
-  </assembly>
-  <members>
-    <member name=""T:System.Object"">
-      <summary>Supports all classes in the .NET Framework class hierarchy and provides low-level services to derived classes. This is the ultimate base class of all classes in the .NET Framework; it is the root of the type hierarchy.To browse the .NET Framework source code for this type, see the Reference Source.</summary>
-    </member>
-  </members>
-</doc>");
+        tempCorlibXml.WriteAllText("""
+            <?xml version="1.0" encoding="utf-8"?>
+            <doc>
+              <assembly>
+                <name>mscorlib</name>
+              </assembly>
+              <members>
+                <member name="T:System.Object">
+                  <summary>Supports all classes in the .NET Framework class hierarchy and provides low-level services to derived classes. This is the ultimate base class of all classes in the .NET Framework; it is the root of the type hierarchy.To browse the .NET Framework source code for this type, see the Reference Source.</summary>
+                </member>
+              </members>
+            </doc>
+            """);
 
         using var workspace = CreateWorkspace();
         var solution = workspace.CurrentSolution

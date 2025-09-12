@@ -36,40 +36,32 @@ public sealed class EditorConfigOptionParserTests
     InlineData("none", BinaryOperatorSpacingOptions.Remove),
     InlineData("before_and_after", BinaryOperatorSpacingOptions.Single)]
     public void TestParseEditorConfigSpacingAroundBinaryOperatorTrue(string value, BinaryOperatorSpacingOptions expectedResult)
-    {
-        Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == (BinaryOperatorSpacingOptionsInternal)expectedResult,
+        => Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == (BinaryOperatorSpacingOptionsInternal)expectedResult,
                     $"Expected option {value} to be parsed as set.");
-    }
 
     [Theory,
     InlineData("ignore,"),
     InlineData("non"),
     InlineData("before_and_after,ignore")]
     public void TestParseEditorConfigSpacingAroundBinaryOperatorFalse(string value)
-    {
-        Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == BinaryOperatorSpacingOptionsInternal.Single,
+        => Assert.True(CSharpFormattingOptions2.ParseEditorConfigSpacingAroundBinaryOperator(value) == BinaryOperatorSpacingOptionsInternal.Single,
                     $"Expected option {value} to be parsed as default option.");
-    }
 
     [Theory,
     InlineData("flush_left", LabelPositionOptions.LeftMost),
     InlineData("no_change", LabelPositionOptions.NoIndent),
     InlineData("one_less_than_current", LabelPositionOptions.OneLess)]
     public void TestParseEditorConfigLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
-    {
-        Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == (LabelPositionOptionsInternal)expectedValue,
+        => Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == (LabelPositionOptionsInternal)expectedValue,
                     $"Expected option {value} to be parsed as set.");
-    }
 
     [Theory,
     InlineData("left_most,"),
     InlineData("*"),
     InlineData("one_less_thancurrent")]
     public void TestParseEditorConfigLabelPositioningFalse(string value)
-    {
-        Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == LabelPositionOptionsInternal.NoIndent,
+        => Assert.True(CSharpFormattingOptions2.ParseEditorConfigLabelPositioning(value) == LabelPositionOptionsInternal.NoIndent,
                     $"Expected option {value} to be parsed default");
-    }
 
     [Theory]
     [InlineData("all",
@@ -113,18 +105,14 @@ public sealed class EditorConfigOptionParserTests
     InlineData(" ignore"),
     InlineData(" ignore ")]
     public void TestDetermineIfIgnoreSpacesAroundVariableDeclarationIsSetTrue(string value)
-    {
-        Assert.True(CSharpFormattingOptions2.DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
+        => Assert.True(CSharpFormattingOptions2.DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
                     $"Expected option {value} to be set");
-    }
 
     [Theory,
     InlineData("do_not_ignore"),
     InlineData(", "),
     InlineData(" ignor ")]
     public void TestDetermineIfIgnoreSpacesAroundVariableDeclarationIsSetFalse(string value)
-    {
-        Assert.False(CSharpFormattingOptions2.DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
+        => Assert.False(CSharpFormattingOptions2.DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(value),
                     $"Expected option {value} to be un-set");
-    }
 }

@@ -19,9 +19,8 @@ public sealed class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTes
         => typeof(RegionHighlighter);
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -32,12 +31,10 @@ public sealed class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTes
                 [|#endregion|]
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_2()
-    {
-        await TestAsync(
+    public Task TestExample1_2()
+        => TestAsync(
             """
             class C
             {
@@ -48,12 +45,10 @@ public sealed class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTes
                 {|Cursor:[|#endregion|]|}
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_1()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -66,12 +61,10 @@ public sealed class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTes
                 [|#endregion|]
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_2()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_2()
+        => TestAsync(
             """
             class C
             {
@@ -84,12 +77,10 @@ public sealed class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTes
                 #endregion
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_3()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_3()
+        => TestAsync(
             """
             class C
             {
@@ -102,12 +93,10 @@ public sealed class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTes
                 #endregion
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedExample1_4()
-    {
-        await TestAsync(
+    public Task TestNestedExample1_4()
+        => TestAsync(
             """
             class C
             {
@@ -120,5 +109,4 @@ public sealed class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTes
                 {|Cursor:[|#endregion|]|}
             }
             """);
-    }
 }

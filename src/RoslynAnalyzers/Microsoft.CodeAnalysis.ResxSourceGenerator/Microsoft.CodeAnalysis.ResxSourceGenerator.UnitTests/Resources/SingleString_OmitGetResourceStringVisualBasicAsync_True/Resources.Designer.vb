@@ -4,11 +4,17 @@ Imports System.Reflection
 
 
 Namespace Global.TestProject
+    ''' <summary>
+    '''   A strongly-typed resource class, for looking up localized strings, etc.
+    ''' </summary>
     Friend Partial Class Resources
         Private Sub New
         End Sub
         
         Private Shared s_resourceManager As Global.System.Resources.ResourceManager
+        ''' <summary>
+        '''   Returns the cached ResourceManager instance used by this class.
+        ''' </summary>
         Public Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
             Get
                 If s_resourceManager Is Nothing Then

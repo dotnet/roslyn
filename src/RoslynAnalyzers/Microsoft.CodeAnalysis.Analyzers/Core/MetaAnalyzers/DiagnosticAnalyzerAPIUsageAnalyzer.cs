@@ -161,22 +161,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             {
                                 // Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'
                                 rule = DoNotUseTypesFromAssemblyDirectRule;
-                                args = new[]
-                                {
+                                args =
+                                [
                                     declaredType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                                     string.Join(", ", violatingTypeNamesBuilder)
-                                };
+                                ];
                             }
                             else
                             {
                                 // Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'
                                 rule = DoNotUseTypesFromAssemblyIndirectRule;
-                                args = new[]
-                                {
+                                args =
+                                [
                                     declaredType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                                     string.Join(", ", violatingUsedTypeNamesBuilder),
                                     string.Join(", ", violatingTypeNamesBuilder)
-                                };
+                                ];
                             }
 
                             Diagnostic diagnostic = declaredType.CreateDiagnostic(rule, args);

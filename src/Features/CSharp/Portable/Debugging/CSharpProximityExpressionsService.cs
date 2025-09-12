@@ -103,10 +103,6 @@ internal sealed partial class CSharpProximityExpressionsService : IProximityExpr
     public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         => new Worker(syntaxTree, position).Do(cancellationToken);
 
-    [Obsolete($"Use {nameof(GetProximityExpressions)}.")]
-    private static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        => new Worker(syntaxTree, position).Do(cancellationToken);
-
     private static void AddRelevantExpressions(
         StatementSyntax statement,
         IList<string> expressions,

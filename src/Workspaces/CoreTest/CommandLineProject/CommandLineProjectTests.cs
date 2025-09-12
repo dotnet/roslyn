@@ -44,9 +44,8 @@ public sealed class CommandLineProjectTests : TestBase
     [Fact]
     public void TestCreateWithRequiredServices()
     {
-        var commandLine = @"goo.cs";
         var ws = new AdhocWorkspace();
-        _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
+        _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, @"goo.cs", @"C:\ProjectDirectory", ws);
     }
 
     [Fact]

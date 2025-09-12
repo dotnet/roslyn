@@ -33,7 +33,7 @@ public abstract partial class Workspace
     /// <summary>
     /// Registers a handler that is fired whenever the current solution is changed.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterWorkspaceChangedHandler(Action<WorkspaceChangeEventArgs> handler, WorkspaceEventOptions? options = null)
+    public WorkspaceEventRegistration RegisterWorkspaceChangedHandler(Action<WorkspaceChangeEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.WorkspaceChange, handler, options);
 
     /// <summary>
@@ -42,45 +42,45 @@ public abstract partial class Workspace
     /// regardless of the preferences indicated by the passed in options. This thread my vary depending
     /// on the workspace.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterWorkspaceChangedImmediateHandler(Action<WorkspaceChangeEventArgs> handler, WorkspaceEventOptions? options = null)
+    public WorkspaceEventRegistration RegisterWorkspaceChangedImmediateHandler(Action<WorkspaceChangeEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.WorkspaceChangedImmediate, handler, options);
 
     /// <summary>
     /// Registers a handler that is fired whenever the workspace or part of its solution model
     /// fails to access a file or other external resource.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterWorkspaceFailedHandler(Action<WorkspaceDiagnosticEventArgs> handler, WorkspaceEventOptions? options = null)
+    public WorkspaceEventRegistration RegisterWorkspaceFailedHandler(Action<WorkspaceDiagnosticEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.WorkspaceFailed, handler, options);
 
     /// <summary>
     /// Registers a handler that is fired when a <see cref="Document"/> is opened in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentOpenedHandler(Action<DocumentEventArgs> handler, WorkspaceEventOptions? options = null)
+    public WorkspaceEventRegistration RegisterDocumentOpenedHandler(Action<DocumentEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.DocumentOpened, handler, options);
 
     /// <summary>
     /// Registers a handler that is fired when a <see cref="Document"/> is closed in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentClosedHandler(Action<DocumentEventArgs> handler, WorkspaceEventOptions? options = null)
+    public WorkspaceEventRegistration RegisterDocumentClosedHandler(Action<DocumentEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.DocumentClosed, handler, options);
 
     /// <summary>
     /// Registers a handler that is fired when any <see cref="TextDocument"/> is opened in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterTextDocumentOpenedHandler(Action<TextDocumentEventArgs> handler, WorkspaceEventOptions? options = null)
+    public WorkspaceEventRegistration RegisterTextDocumentOpenedHandler(Action<TextDocumentEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.TextDocumentOpened, handler, options);
 
     /// <summary>
     /// Registers a handler that is fired when any <see cref="TextDocument"/> is closed in the editor.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterTextDocumentClosedHandler(Action<TextDocumentEventArgs> handler, WorkspaceEventOptions? options = null)
+    public WorkspaceEventRegistration RegisterTextDocumentClosedHandler(Action<TextDocumentEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.TextDocumentClosed, handler, options);
 
     /// <summary>
     /// Registers a handler that is fired when the active context document associated with a buffer 
     /// changes.
     /// </summary>
-    internal WorkspaceEventRegistration RegisterDocumentActiveContextChangedHandler(Action<DocumentActiveContextChangedEventArgs> handler, WorkspaceEventOptions? options = null)
+    public WorkspaceEventRegistration RegisterDocumentActiveContextChangedHandler(Action<DocumentActiveContextChangedEventArgs> handler, WorkspaceEventOptions? options = null)
         => RegisterHandler(WorkspaceEventType.DocumentActiveContextChanged, handler, options);
 
     private WorkspaceEventRegistration RegisterHandler<TEventArgs>(WorkspaceEventType eventType, Action<TEventArgs> handler, WorkspaceEventOptions? options = null)

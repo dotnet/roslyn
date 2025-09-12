@@ -408,6 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             throw ExceptionUtilities.Unreachable();
@@ -473,6 +475,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
 
             internal override bool IsMetadataOut => RefKind == RefKind.Out;
+
+#nullable enable
+            internal override ConstantValue? DefaultValueFromAttributes => null;
+#nullable disable
 
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

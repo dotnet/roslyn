@@ -110,6 +110,6 @@ internal sealed class FileLogger : ILogger
             File.AppendAllText(_logFilePath, buffer.ToString());
         });
 
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

@@ -22,30 +22,26 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UseImplicitObjectCreationTests
 {
     [Fact]
-    public async Task TestMissingBeforeCSharp9()
-    {
-        var source = """
+    public Task TestMissingBeforeCSharp9()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            TestCode = """
                 class C
                 {
                     C c = new C();
                 }
-                """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-            TestCode = source,
+                """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAfterCSharp9()
-    {
-        await new VerifyCS.Test
+    public Task TestAfterCSharp9()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C c = new [|C|]();
+                    C c = [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -56,17 +52,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithObjectInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestWithObjectInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C c = new [|C|]() { };
+                    C c = [|new|] C() { };
                 }
                 """,
             FixedCode = """
@@ -77,17 +71,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithObjectInitializerWithoutArguments()
-    {
-        await new VerifyCS.Test
+    public Task TestWithObjectInitializerWithoutArguments()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C c = new [|C|] { };
+                    C c = [|new|] C { };
                 }
                 """,
             FixedCode = """
@@ -98,17 +90,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithTriviaAfterNew()
-    {
-        await new VerifyCS.Test
+    public Task TestWithTriviaAfterNew()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C c = new /*x*/ [|C|]();
+                    C c = [|new|] /*x*/ C();
                 }
                 """,
             FixedCode = """
@@ -119,12 +109,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithDifferentTypes()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithDifferentTypes()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -134,12 +122,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithErrorTypes()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithErrorTypes()
+        => new VerifyCS.Test
         {
             TestState = {
                 Sources =
@@ -161,12 +147,10 @@ public sealed class UseImplicitObjectCreationTests
             },
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithDynamic()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithDynamic()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -176,12 +160,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithArrayTypes()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithArrayTypes()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -191,17 +173,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithTypeParameter()
-    {
-        await new VerifyCS.Test
+    public Task TestWithTypeParameter()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C<T> where T : new()
                 {
-                    T t = new [|T|]();
+                    T t = [|new|] T();
                 }
                 """,
             FixedCode = """
@@ -212,19 +192,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithLocalWhenUserDoesNotPreferVar()
-    {
-        await new VerifyCS.Test
+    public Task TestWithLocalWhenUserDoesNotPreferVar()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
                     void M()
                     {
-                        C c = new [|C|]();
+                        C c = [|new|] C();
                     }
                 }
                 """,
@@ -243,12 +221,10 @@ public sealed class UseImplicitObjectCreationTests
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.FalseWithSuggestionEnforcement },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithLocalWhenUserDoesPreferVar()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithLocalWhenUserDoesPreferVar()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -265,19 +241,17 @@ public sealed class UseImplicitObjectCreationTests
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithForVariable()
-    {
-        await new VerifyCS.Test
+    public Task TestWithForVariable()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
                     void M()
                     {
-                        for (C c = new [|C|]();;)
+                        for (C c = [|new|] C();;)
                         {
                         }
                     }
@@ -296,19 +270,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithLocalFunctionExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestWithLocalFunctionExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
                     void M()
                     {
-                        C Func() => new [|C|]();
+                        C Func() => [|new|] C();
                     }
                 }
                 """,
@@ -323,17 +295,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithMethodExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestWithMethodExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C Func() => new [|C|]();
+                    C Func() => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -344,17 +314,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithConversionExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestWithConversionExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    public static implicit operator C(int i) => new [|C|]();
+                    public static implicit operator C(int i) => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -365,17 +333,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithOperatorExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestWithOperatorExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    public static C operator +(C c1, C c2) => new [|C|]();
+                    public static C operator +(C c1, C c2) => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -386,17 +352,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithPropertyExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestWithPropertyExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C P => new [|C|]();
+                    C P => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -407,17 +371,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithPropertyAccessorExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestWithPropertyAccessorExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C P { get => new [|C|](); }
+                    C P { get => [|new|] C(); }
                 }
                 """,
             FixedCode = """
@@ -428,12 +390,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithPropertySetAccessorExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithPropertySetAccessorExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -443,17 +403,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithIndexerExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestWithIndexerExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C this[int i] => new [|C|]();
+                    C this[int i] => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -464,17 +422,15 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithIndexerAccessorExpressionBody()
-    {
-        await new VerifyCS.Test
+    public Task TestWithIndexerAccessorExpressionBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
                 {
-                    C this[int i] { get => new [|C|](); }
+                    C this[int i] { get => [|new|] C(); }
                 }
                 """,
             FixedCode = """
@@ -485,12 +441,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithMethodBlockBody()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithMethodBlockBody()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -500,12 +454,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInNonApparentCode1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInNonApparentCode1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -516,12 +468,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInNonApparentCode2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInNonApparentCode2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -535,18 +485,16 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestQualifiedUnqualified1()
-    {
-        await new VerifyCS.Test
+    public Task TestQualifiedUnqualified1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
                 class C
                 {
-                    List<int> list = new [|System.Collections.Generic.List<int>|]();
+                    List<int> list = [|new|] System.Collections.Generic.List<int>();
                 }
                 """,
             FixedCode = """
@@ -558,18 +506,16 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestQualifiedUnqualified2()
-    {
-        await new VerifyCS.Test
+    public Task TestQualifiedUnqualified2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
                 class C
                 {
-                    System.Collections.Generic.List<int> list = new [|List<int>|]();
+                    System.Collections.Generic.List<int> list = [|new|] List<int>();
                 }
                 """,
             FixedCode = """
@@ -581,19 +527,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAlias()
-    {
-        await new VerifyCS.Test
+    public Task TestAlias()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
                 using X = System.Collections.Generic.List<int>;
                 class C
                 {
-                    System.Collections.Generic.List<int> list = new [|X|]();
+                    System.Collections.Generic.List<int> list = [|new|] X();
                 }
                 """,
             FixedCode = """
@@ -606,12 +550,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -620,9 +562,9 @@ public sealed class UseImplicitObjectCreationTests
                     public C() { }
                     public C(Action action) { }
 
-                    C c1 = new [|C|](() =>
+                    C c1 = [|new|] C(() =>
                     {
-                        C c2 = new [|C|]();
+                        C c2 = [|new|] C();
                     });
                 }
                 """,
@@ -641,18 +583,16 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49291")]
-    public async Task TestListOfTuplesWithLabels()
-    {
-        await new VerifyCS.Test
+    public Task TestListOfTuplesWithLabels()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
                 class C
                 {
-                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int SomeName, int SomeOtherName, int YetAnotherName)>|]();
+                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = [|new|] List<(int SomeName, int SomeOtherName, int YetAnotherName)>();
                 }
                 """,
             FixedCode = """
@@ -664,18 +604,16 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49291")]
-    public async Task TestListOfTuplesWithoutLabels()
-    {
-        await new VerifyCS.Test
+    public Task TestListOfTuplesWithoutLabels()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
                 class C
                 {
-                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
+                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = [|new|] List<(int, int, int)>();
                 }
                 """,
             FixedCode = """
@@ -687,12 +625,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49291")]
-    public async Task TestListOfTuplesWithoutLabelsAsLocal()
-    {
-        await new VerifyCS.Test
+    public Task TestListOfTuplesWithoutLabelsAsLocal()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -700,7 +636,7 @@ public sealed class UseImplicitObjectCreationTests
                 {
                     void M()
                     {
-                        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
+                        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = [|new|] List<(int, int, int)>();
                     }
                 }
                 """,
@@ -716,34 +652,29 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57777")]
-    public async Task TestMissingOnNullableStruct()
-    {
-        var source = """
+    public Task TestMissingOnNullableStruct()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            TestCode = """
                 class C
                 {
                     int? i = new int?();
                 }
-                """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
-            TestCode = source,
+                """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57777")]
-    public async Task TestOnNullableReferenceType()
-    {
-        await new VerifyCS.Test
+    public Task TestOnNullableReferenceType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
                 class C
                 {
-                    C? c = new [|C|]();
+                    C? c = [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -755,19 +686,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestOnSingleDimensionalCollectionConstruction1()
-    {
-        await new VerifyCS.Test
+    public Task TestOnSingleDimensionalCollectionConstruction1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
 
                 class C
                 {
-                    IList<C> list = new List<C> { new [|C|]() };
+                    IList<C> list = new List<C> { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -780,19 +709,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestOnSingleDimensionalCollectionConstruction2()
-    {
-        await new VerifyCS.Test
+    public Task TestOnSingleDimensionalCollectionConstruction2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
 
                 class C
                 {
-                    IList<C> list = new List<C>() { new [|C|]() };
+                    IList<C> list = new List<C>() { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -805,19 +732,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestOnSingleDimensionalCollectionConstruction3()
-    {
-        await new VerifyCS.Test
+    public Task TestOnSingleDimensionalCollectionConstruction3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
 
                 class C
                 {
-                    List<C> list = new [|List<C>|]() { new [|C|]() };
+                    List<C> list = [|new|] List<C>() { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -830,12 +755,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestNotOnSingleDimensionalImplicitCollectionConstruction2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnSingleDimensionalImplicitCollectionConstruction2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -847,12 +770,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestNotOnMultiDimensionalImplicitCollectionConstruction2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnMultiDimensionalImplicitCollectionConstruction2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -864,19 +785,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestOnSingleDimensionalArrayConstruction1()
-    {
-        await new VerifyCS.Test
+    public Task TestOnSingleDimensionalArrayConstruction1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
 
                 class C
                 {
-                    C[] list = new C[] { new [|C|]() };
+                    C[] list = new C[] { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -889,19 +808,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestOnSingleDimensionalArrayConstruction2()
-    {
-        await new VerifyCS.Test
+    public Task TestOnSingleDimensionalArrayConstruction2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
 
                 class C
                 {
-                    C[] list = { new [|C|]() };
+                    C[] list = { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -914,12 +831,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestNotOnSingleDimensionalImplicitArrayConstruction2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnSingleDimensionalImplicitArrayConstruction2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -931,12 +846,10 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestNotOnTwoDimensionalArrayConstruction1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnTwoDimensionalArrayConstruction1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -948,19 +861,17 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57789")]
-    public async Task TestOnInnerJaggedArray1()
-    {
-        await new VerifyCS.Test
+    public Task TestOnInnerJaggedArray1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
 
                 class C
                 {
-                    C[][] list = new C[][] { new C[] { new [|C|]() } };
+                    C[][] list = new C[][] { new C[] { [|new|] C() } };
                 }
                 """,
             FixedCode = """
@@ -973,5 +884,4 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 }

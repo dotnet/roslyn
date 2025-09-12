@@ -21,54 +21,48 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestGetFoldingRangeAsync_Imports(bool mutatingLspWorkspace)
-    {
-        var markup =
-            """
+    public Task TestGetFoldingRangeAsync_Imports(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
             using {|imports:System;
             using System.Linq;|}
-            """;
-        await AssertFoldingRanges(mutatingLspWorkspace, markup);
-    }
+            """);
 
     [Theory(Skip = "GetFoldingRangeAsync does not yet support comments."), CombinatorialData]
-    public async Task TestGetFoldingRangeAsync_Comments(bool mutatingLspWorkspace)
-    {
-        var markup =
-            """
+    public Task TestGetFoldingRangeAsync_Comments(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
             {|foldingRange:// A comment|}
             {|foldingRange:/* A multiline
             comment */|}
-            """;
-        await AssertFoldingRanges(mutatingLspWorkspace, markup);
-    }
+            """);
 
     [Theory, CombinatorialData]
-    public async Task TestGetFoldingRangeAsync_Regions(bool mutatingLspWorkspace)
-    {
-        var markup =
-            """
+    public Task TestGetFoldingRangeAsync_Regions(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
             {|region:#region ARegion
             #endregion|}
-            """;
-        await AssertFoldingRanges(mutatingLspWorkspace, markup, "ARegion");
-    }
+            """, "ARegion");
 
     [Theory, CombinatorialData]
-    public async Task TestGetFoldingRangeAsync_Members(bool mutatingLspWorkspace)
-    {
-        var markup =
-            """
+    public Task TestGetFoldingRangeAsync_Members(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
             class C{|foldingRange:
             {
                 public void M(){|implementation:
                 {
                 }|}
             }|}
-            """;
+            """);
 
-        await AssertFoldingRanges(mutatingLspWorkspace, markup);
-    }
+    [Theory, CombinatorialData]
+    public Task TestGetFoldingRangeAsync_AutoCollapse(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
+            class C{|foldingRange:
+            {
+                private Action<int> Foo(){|implementation: => i =>{|foldingRange:
+                {
+                };|}|}
+            }|}
+            """);
 
     private async Task AssertFoldingRanges(bool mutatingLspWorkspace, string markup, string collapsedText = null)
     {
@@ -76,6 +70,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
         var expected = testLspServer.GetLocations()
             .SelectMany(kvp => kvp.Value.Select(location => CreateFoldingRange(kvp.Key, location.Range, collapsedText ?? "...")))
             .OrderByDescending(range => range.StartLine)
+            .ThenByDescending(range => range.StartCharacter)
             .ToArray();
 
         var results = await RunGetFoldingRangeAsync(testLspServer);

@@ -55,7 +55,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
 {
     private static readonly MethodInfo s_processQueueCoreAsync = typeof(RequestExecutionQueue<TRequestContext>)
-        .GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ProcessQueueCoreAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
+        .GetMethod(nameof(RequestExecutionQueue<>.ProcessQueueCoreAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
     protected readonly ILspLogger _logger;
     protected readonly AbstractHandlerProvider _handlerProvider;
@@ -290,7 +290,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             var message = $"Error occurred processing queue: {ex.Message}.";
             if (lspServices is not null)
             {
-                await _languageServer.ShutdownAsync("Error processing queue, shutting down").ConfigureAwait(false);
+                await _languageServer.ShutdownAsync(message).ConfigureAwait(false);
                 await _languageServer.ExitAsync().ConfigureAwait(false);
             }
 

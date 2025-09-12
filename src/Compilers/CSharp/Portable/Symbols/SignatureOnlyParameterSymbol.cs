@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get { return false; } }
 
+        internal override ScopedKind DeclaredScope => throw ExceptionUtilities.Unreachable();
+
         internal override ScopedKind EffectiveScope
             => ParameterHelpers.IsRefScopedByDefault(this) ? ScopedKind.ScopedRef : ScopedKind.None;
 
@@ -75,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsMetadataOptional { get { throw ExceptionUtilities.Unreachable(); } }
 
         internal override ConstantValue ExplicitDefaultConstantValue { get { throw ExceptionUtilities.Unreachable(); } }
+
+        internal override ConstantValue DefaultValueFromAttributes { get { throw ExceptionUtilities.Unreachable(); } }
 
         internal override bool IsIDispatchConstant { get { throw ExceptionUtilities.Unreachable(); } }
 

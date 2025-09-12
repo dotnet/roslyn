@@ -12,13 +12,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     public abstract class EnableConcurrentExecutionFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(EnableConcurrentExecutionAnalyzer.Rule.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [EnableConcurrentExecutionAnalyzer.Rule.Id];
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;

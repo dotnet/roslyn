@@ -42,7 +42,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
     }
 
-    public static async Task SendProjectInitializationCompleteNotificationAsync()
+    public static async ValueTask SendProjectInitializationCompleteNotificationAsync()
     {
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
@@ -113,7 +113,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         {
             _logger.LogDebug("Devkit project initialization completed");
             VSCodeRequestTelemetryLogger.ReportProjectInitializationComplete();
-            _ = SendProjectInitializationCompleteNotificationAsync().ReportNonFatalErrorAsync();
+            _ = SendProjectInitializationCompleteNotificationAsync().AsTask().ReportNonFatalErrorAsync();
         }
     }
 }

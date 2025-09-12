@@ -31,9 +31,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTests
 {
     [Fact]
-    public async Task FixAll_ParseSuccessfully()
-    {
-        await new CustomCompositionCSharpTest
+    public Task FixAll_ParseSuccessfully()
+        => new CustomCompositionCSharpTest
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
@@ -176,7 +175,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }
         .WithMockCopilotService(copilotService =>
         {
-            copilotService.SetupFixAll = (Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, CancellationToken cancellationToken) =>
+            copilotService.SetupFixAll = (document, memberReferences, cancellationToken) =>
             {
                 // Create a map of method/property implementations
                 var implementationMap = new Dictionary<string, string>
@@ -197,15 +196,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             };
         })
         .RunAsync();
-    }
 
     [Theory]
     [InlineData("Failed to receive implementation from Copilot service")]
     [InlineData("Generated implementation doesn't match the original method signature.")]
     [InlineData("The generated implementation isn't a valid method or property.")]
-    public async Task NullReplacementNode_MethodHasCommentsInVariousForms_PrintsMessageAsComment(string copilotErrorMessage)
-    {
-        await new CustomCompositionCSharpTest
+    public Task NullReplacementNode_MethodHasCommentsInVariousForms_PrintsMessageAsComment(string copilotErrorMessage)
+        => new CustomCompositionCSharpTest
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
@@ -382,12 +379,10 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             };
         })
         .RunAsync();
-    }
 
     [Fact]
-    public async Task HandleInvalidCode_SuggestsAsComment()
-    {
-        await new CustomCompositionCSharpTest
+    public Task HandleInvalidCode_SuggestsAsComment()
+        => new CustomCompositionCSharpTest
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
@@ -447,18 +442,15 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             };
         })
         .RunAsync();
-    }
 
     [Fact]
-    public async Task ReplacementNode_Null_NotifiesWithComment()
-    {
-        await TestHandlesInvalidReplacementNode(
+    public Task ReplacementNode_Null_NotifiesWithComment()
+        => TestHandlesInvalidReplacementNode(
             new()
             {
                 ReplacementNode = null,
                 Message = "Custom Error Message",
             });
-    }
 
     [Theory]
     [InlineData("class MyClass { }", typeof(ClassDeclarationSyntax))]

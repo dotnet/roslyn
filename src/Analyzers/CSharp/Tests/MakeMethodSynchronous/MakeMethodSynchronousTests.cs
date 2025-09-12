@@ -20,9 +20,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class MakeMethodSynchronousTests
 {
     [Fact]
-    public async Task TestTaskReturnType()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTaskReturnType()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -43,12 +42,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTaskOfTReturnType()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTaskOfTReturnType()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -71,12 +68,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSecondModifier()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestSecondModifier()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -97,12 +92,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFirstModifier()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFirstModifier()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -123,12 +116,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrailingTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestTrailingTrivia()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -150,12 +141,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRenameMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestRenameMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -176,12 +165,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestRenameMethod1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestRenameMethod1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -212,25 +199,10 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestParenthesizedLambda()
     {
-        var source =
-            """
-            using System;
-            using System.Threading.Tasks;
-
-            class C
-            {
-                void Goo()
-                {
-                    Func<Task> f =
-                        async () {|CS1998:=>|} { };
-                }
-            }
-            """;
         var expected =
             """
             using System;
@@ -248,7 +220,19 @@ public sealed class MakeMethodSynchronousTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void Goo()
+                {
+                    Func<Task> f =
+                        async () {|CS1998:=>|} { };
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -264,20 +248,6 @@ public sealed class MakeMethodSynchronousTests
     [Fact]
     public async Task TestSimpleLambda()
     {
-        var source =
-            """
-            using System;
-            using System.Threading.Tasks;
-
-            class C
-            {
-                void Goo()
-                {
-                    Func<string, Task> f =
-                        async a {|CS1998:=>|} { };
-                }
-            }
-            """;
         var expected =
             """
             using System;
@@ -295,7 +265,19 @@ public sealed class MakeMethodSynchronousTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void Goo()
+                {
+                    Func<string, Task> f =
+                        async a {|CS1998:=>|} { };
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -311,20 +293,6 @@ public sealed class MakeMethodSynchronousTests
     [Fact]
     public async Task TestLambdaWithExpressionBody()
     {
-        var source =
-            """
-            using System;
-            using System.Threading.Tasks;
-
-            class C
-            {
-                void Goo()
-                {
-                    Func<string, Task<int>> f =
-                        async a {|CS1998:=>|} 1;
-                }
-            }
-            """;
         var expected =
             """
             using System;
@@ -342,7 +310,19 @@ public sealed class MakeMethodSynchronousTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void Goo()
+                {
+                    Func<string, Task<int>> f =
+                        async a {|CS1998:=>|} 1;
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -360,20 +340,6 @@ public sealed class MakeMethodSynchronousTests
     [Fact]
     public async Task TestAnonymousMethod()
     {
-        var source =
-            """
-            using System;
-            using System.Threading.Tasks;
-
-            class C
-            {
-                void Goo()
-                {
-                    Func<Task> f =
-                        async {|CS1998:delegate|} { };
-                }
-            }
-            """;
         var expected =
             """
             using System;
@@ -391,7 +357,19 @@ public sealed class MakeMethodSynchronousTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void Goo()
+                {
+                    Func<Task> f =
+                        async {|CS1998:delegate|} { };
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -405,9 +383,8 @@ public sealed class MakeMethodSynchronousTests
     }
 
     [Fact]
-    public async Task TestFixAll()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFixAll()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -442,14 +419,31 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCaller1()
     {
-        var source =
+        var expected =
             """
+            using System.Threading.Tasks;
+
+            public class Class1
+            {
+                void Goo()
+                {
+                }
+
+                async void {|CS1998:BarAsync|}()
+                {
+                    Goo();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System.Threading.Tasks;
 
             public class Class1
@@ -463,27 +457,7 @@ public sealed class MakeMethodSynchronousTests
                     await GooAsync();
                 }
             }
-            """;
-        var expected =
-            """
-            using System.Threading.Tasks;
-
-            public class Class1
-            {
-                void Goo()
-                {
-                }
-
-                async void {|CS1998:BarAsync|}()
-                {
-                    Goo();
-                }
-            }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -497,22 +471,6 @@ public sealed class MakeMethodSynchronousTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCaller2()
     {
-        var source =
-            """
-            using System.Threading.Tasks;
-
-            public class Class1
-            {
-                async Task {|CS1998:GooAsync|}()
-                {
-                }
-
-                async void BarAsync()
-                {
-                    await GooAsync().ConfigureAwait(false);
-                }
-            }
-            """;
         var expected =
             """
             using System.Threading.Tasks;
@@ -532,7 +490,21 @@ public sealed class MakeMethodSynchronousTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            using System.Threading.Tasks;
+
+            public class Class1
+            {
+                async Task {|CS1998:GooAsync|}()
+                {
+                }
+
+                async void BarAsync()
+                {
+                    await GooAsync().ConfigureAwait(false);
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -546,8 +518,26 @@ public sealed class MakeMethodSynchronousTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCaller3()
     {
-        var source =
+        var expected =
             """
+            using System.Threading.Tasks;
+
+            public class Class1
+            {
+                void Goo()
+                {
+                }
+
+                async void {|CS1998:BarAsync|}()
+                {
+                    this.Goo();
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System.Threading.Tasks;
 
             public class Class1
@@ -561,27 +551,7 @@ public sealed class MakeMethodSynchronousTests
                     await this.GooAsync();
                 }
             }
-            """;
-        var expected =
-            """
-            using System.Threading.Tasks;
-
-            public class Class1
-            {
-                void Goo()
-                {
-                }
-
-                async void {|CS1998:BarAsync|}()
-                {
-                    this.Goo();
-                }
-            }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -595,22 +565,6 @@ public sealed class MakeMethodSynchronousTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCaller4()
     {
-        var source =
-            """
-            using System.Threading.Tasks;
-
-            public class Class1
-            {
-                async Task {|CS1998:GooAsync|}()
-                {
-                }
-
-                async void BarAsync()
-                {
-                    await this.GooAsync().ConfigureAwait(false);
-                }
-            }
-            """;
         var expected =
             """
             using System.Threading.Tasks;
@@ -630,7 +584,21 @@ public sealed class MakeMethodSynchronousTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+            using System.Threading.Tasks;
+
+            public class Class1
+            {
+                async Task {|CS1998:GooAsync|}()
+                {
+                }
+
+                async void BarAsync()
+                {
+                    await this.GooAsync().ConfigureAwait(false);
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -644,8 +612,27 @@ public sealed class MakeMethodSynchronousTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCallerNested1()
     {
-        var source =
+        var expected =
             """
+            using System.Threading.Tasks;
+
+            public class Class1
+            {
+                int Goo(int i)
+                {
+                    return 1;
+                }
+
+                async void {|CS1998:BarAsync|}()
+                {
+                    this.Goo(this.Goo(0));
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System.Threading.Tasks;
 
             public class Class1
@@ -660,7 +647,20 @@ public sealed class MakeMethodSynchronousTests
                     await this.GooAsync(await this.GooAsync(0));
                 }
             }
-            """;
+            """,
+            FixedState =
+            {
+                Sources = { expected },
+                MarkupHandling = MarkupMode.Allow,
+            },
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+        }.RunAsync();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
+    public async Task TestRemoveAwaitFromCallerNested()
+    {
         var expected =
             """
             using System.Threading.Tasks;
@@ -681,22 +681,7 @@ public sealed class MakeMethodSynchronousTests
 
         await new VerifyCS.Test
         {
-            TestCode = source,
-            FixedState =
-            {
-                Sources = { expected },
-                MarkupHandling = MarkupMode.Allow,
-            },
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
-        }.RunAsync();
-    }
-
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
-    public async Task TestRemoveAwaitFromCallerNested()
-    {
-        var source =
-            """
+            TestCode = """
             using System.Threading.Tasks;
 
             public class Class1
@@ -711,28 +696,7 @@ public sealed class MakeMethodSynchronousTests
                     await this.GooAsync(await this.GooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
                 }
             }
-            """;
-        var expected =
-            """
-            using System.Threading.Tasks;
-
-            public class Class1
-            {
-                int Goo(int i)
-                {
-                    return 1;
-                }
-
-                async void {|CS1998:BarAsync|}()
-                {
-                    this.Goo(this.Goo(0));
-                }
-            }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             FixedState =
             {
                 Sources = { expected },
@@ -744,9 +708,8 @@ public sealed class MakeMethodSynchronousTests
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14133")]
-    public async Task RemoveAsyncInLocalFunction()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveAsyncInLocalFunction()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
 
@@ -773,7 +736,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("Task<C>", "C")]
@@ -782,9 +744,8 @@ public sealed class MakeMethodSynchronousTests
     [InlineData("void", "void")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
-    public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
+        => VerifyCS.VerifyCodeFixAsync(
             $$"""
             using System;
             using System.Threading.Tasks;
@@ -818,7 +779,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("", "Task<C>", "\r\n    C")]
@@ -831,9 +791,8 @@ public sealed class MakeMethodSynchronousTests
     [InlineData("public", "void", " void")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
-    public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
+        => VerifyCS.VerifyCodeFixAsync(
             $$"""
             using System;
             using System.Threading.Tasks;
@@ -860,7 +819,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task MethodWithUsingAwait()
@@ -892,9 +850,8 @@ public sealed class MakeMethodSynchronousTests
     }
 
     [Fact]
-    public async Task MethodWithUsingNoAwait()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MethodWithUsingNoAwait()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -919,7 +876,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task MethodWithAwaitForEach()
@@ -945,9 +901,8 @@ public sealed class MakeMethodSynchronousTests
     }
 
     [Fact]
-    public async Task MethodWithForEachNoAwait()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MethodWithForEachNoAwait()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -970,7 +925,6 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task MethodWithForEachVariableAwait()
@@ -996,9 +950,8 @@ public sealed class MakeMethodSynchronousTests
     }
 
     [Fact]
-    public async Task MethodWithForEachVariableNoAwait()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task MethodWithForEachVariableNoAwait()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -1021,13 +974,13 @@ public sealed class MakeMethodSynchronousTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIAsyncEnumerableReturnType()
-    {
-        var source =
-            """
+    public Task TestIAsyncEnumerableReturnType()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
@@ -1038,9 +991,8 @@ public sealed class MakeMethodSynchronousTests
                     yield return 1;
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
@@ -1051,21 +1003,15 @@ public sealed class MakeMethodSynchronousTests
                     yield return 1;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
-    {
-        var source =
-            """
+    public Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
@@ -1079,9 +1025,8 @@ public sealed class MakeMethodSynchronousTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
@@ -1095,13 +1040,6 @@ public sealed class MakeMethodSynchronousTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
-    }
 }

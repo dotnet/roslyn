@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -299,7 +300,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     {
                         symbol = propertyReference.Property;
                         indices = !propertyReference.Arguments.IsEmpty ?
-                            CreateAbstractIndices(propertyReference.Arguments.Select(a => a.Value).ToImmutableArray()) :
+                            CreateAbstractIndices(propertyReference.Arguments.SelectAsArray(a => a.Value)) :
                             ImmutableArray<AbstractIndex>.Empty;
                     }
 

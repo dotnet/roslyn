@@ -26,43 +26,45 @@ public class CSharpSignatureHelp : AbstractEditorTest
     [IdeFact]
     public async Task MethodSignatureHelp()
     {
-        await SetUpEditorAsync(@"
-using System;
-class C
-{
-    void M()
-    {
-       GenericMethod<string, int>(null, 1);       
-       $$
-    }
-    C Method(int i) { return null; }
-    
-    /// <summary>
-    /// Hello World 2.0!
-    /// </summary>
-    /// <param name=""i"">an integer, preferably 42.</param>
-    /// <param name=""i2"">an integer, anything you like.</param>
-    /// <returns>returns an object of type C</returns>
-    C Method(int i, int i2) { return null; }
+        await SetUpEditorAsync("""
 
-    /// <summary>
-    /// Hello Generic World!
-    /// </summary>
-    /// <typeparam name=""T1"">Type Param 1</typeparam>
-    /// <param name=""i"">Param 1 of type T1</param>
-    /// <returns>Null</returns>
-    C GenericMethod<T1>(T1 i) { return null; }
-    C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
+            using System;
+            class C
+            {
+                void M()
+                {
+                   GenericMethod<string, int>(null, 1);       
+                   $$
+                }
+                C Method(int i) { return null; }
+                
+                /// <summary>
+                /// Hello World 2.0!
+                /// </summary>
+                /// <param name="i">an integer, preferably 42.</param>
+                /// <param name="i2">an integer, anything you like.</param>
+                /// <returns>returns an object of type C</returns>
+                C Method(int i, int i2) { return null; }
 
-    /// <summary>
-    /// Complex Method Params
-    /// </summary>
-    /// <param name=""strings"">Jagged MultiDimensional Array</param>
-    /// <param name=""outArr"">Out Array</param>
-    /// <param name=""d"">Dynamic and Params param</param>
-    /// <returns>Null</returns>
-    void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
-}", HangMitigatingCancellationToken);
+                /// <summary>
+                /// Hello Generic World!
+                /// </summary>
+                /// <typeparam name="T1">Type Param 1</typeparam>
+                /// <param name="i">Param 1 of type T1</param>
+                /// <returns>Null</returns>
+                C GenericMethod<T1>(T1 i) { return null; }
+                C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
+
+                /// <summary>
+                /// Complex Method Params
+                /// </summary>
+                /// <param name="strings">Jagged MultiDimensional Array</param>
+                /// <param name="outArr">Out Array</param>
+                /// <param name="d">Dynamic and Params param</param>
+                /// <returns>Null</returns>
+                void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("var m = Method(1,", HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeSignatureHelpAsync(HangMitigatingCancellationToken);
@@ -121,42 +123,44 @@ class C
     [IdeFact]
     public async Task GenericMethodSignatureHelp1()
     {
-        await SetUpEditorAsync(@"
-using System;
-class C
-{
-    void M()
-    {
-       GenericMethod<$$string, int>(null, 1);       
-    }
-    C Method(int i) { return null; }
-    
-    /// <summary>
-    /// Hello World 2.0!
-    /// </summary>
-    /// <param name=""i"">an integer, preferably 42.</param>
-    /// <param name=""i2"">an integer, anything you like.</param>
-    /// <returns>returns an object of type C</returns>
-    C Method(int i, int i2) { return null; }
+        await SetUpEditorAsync("""
 
-    /// <summary>
-    /// Hello Generic World!
-    /// </summary>
-    /// <typeparam name=""T1"">Type Param 1</typeparam>
-    /// <param name=""i"">Param 1 of type T1</param>
-    /// <returns>Null</returns>
-    C GenericMethod<T1>(T1 i) { return null; }
-    C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
+            using System;
+            class C
+            {
+                void M()
+                {
+                   GenericMethod<$$string, int>(null, 1);       
+                }
+                C Method(int i) { return null; }
+                
+                /// <summary>
+                /// Hello World 2.0!
+                /// </summary>
+                /// <param name="i">an integer, preferably 42.</param>
+                /// <param name="i2">an integer, anything you like.</param>
+                /// <returns>returns an object of type C</returns>
+                C Method(int i, int i2) { return null; }
 
-    /// <summary>
-    /// Complex Method Params
-    /// </summary>
-    /// <param name=""strings"">Jagged MultiDimensional Array</param>
-    /// <param name=""outArr"">Out Array</param>
-    /// <param name=""d"">Dynamic and Params param</param>
-    /// <returns>Null</returns>
-    void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
-}", HangMitigatingCancellationToken);
+                /// <summary>
+                /// Hello Generic World!
+                /// </summary>
+                /// <typeparam name="T1">Type Param 1</typeparam>
+                /// <param name="i">Param 1 of type T1</param>
+                /// <returns>Null</returns>
+                C GenericMethod<T1>(T1 i) { return null; }
+                C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
+
+                /// <summary>
+                /// Complex Method Params
+                /// </summary>
+                /// <param name="strings">Jagged MultiDimensional Array</param>
+                /// <param name="outArr">Out Array</param>
+                /// <param name="d">Dynamic and Params param</param>
+                /// <returns>Null</returns>
+                void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeSignatureHelpAsync(HangMitigatingCancellationToken);
         var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
@@ -184,42 +188,44 @@ class C
     [IdeFact]
     public async Task GenericMethodSignatureHelp2()
     {
-        await SetUpEditorAsync(@"
-using System;
-class C
-{
-    void M()
-    {
-       GenericMethod<string, int>($$null, 1);       
-    }
-    C Method(int i) { return null; }
-    
-    /// <summary>
-    /// Hello World 2.0!
-    /// </summary>
-    /// <param name=""i"">an integer, preferably 42.</param>
-    /// <param name=""i2"">an integer, anything you like.</param>
-    /// <returns>returns an object of type C</returns>
-    C Method(int i, int i2) { return null; }
+        await SetUpEditorAsync("""
 
-    /// <summary>
-    /// Hello Generic World!
-    /// </summary>
-    /// <typeparam name=""T1"">Type Param 1</typeparam>
-    /// <param name=""i"">Param 1 of type T1</param>
-    /// <returns>Null</returns>
-    C GenericMethod<T1>(T1 i) { return null; }
-    C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
+            using System;
+            class C
+            {
+                void M()
+                {
+                   GenericMethod<string, int>($$null, 1);       
+                }
+                C Method(int i) { return null; }
+                
+                /// <summary>
+                /// Hello World 2.0!
+                /// </summary>
+                /// <param name="i">an integer, preferably 42.</param>
+                /// <param name="i2">an integer, anything you like.</param>
+                /// <returns>returns an object of type C</returns>
+                C Method(int i, int i2) { return null; }
 
-    /// <summary>
-    /// Complex Method Params
-    /// </summary>
-    /// <param name=""strings"">Jagged MultiDimensional Array</param>
-    /// <param name=""outArr"">Out Array</param>
-    /// <param name=""d"">Dynamic and Params param</param>
-    /// <returns>Null</returns>
-    void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
-}", HangMitigatingCancellationToken);
+                /// <summary>
+                /// Hello Generic World!
+                /// </summary>
+                /// <typeparam name="T1">Type Param 1</typeparam>
+                /// <param name="i">Param 1 of type T1</param>
+                /// <returns>Null</returns>
+                C GenericMethod<T1>(T1 i) { return null; }
+                C GenericMethod<T1, T2>(T1 i, T2 i2) { return null; }
+
+                /// <summary>
+                /// Complex Method Params
+                /// </summary>
+                /// <param name="strings">Jagged MultiDimensional Array</param>
+                /// <param name="outArr">Out Array</param>
+                /// <param name="d">Dynamic and Params param</param>
+                /// <returns>Null</returns>
+                void OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d) {outArr = null;}
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeSignatureHelpAsync(HangMitigatingCancellationToken);
         var signature = await TestServices.Editor.GetCurrentSignatureAsync(HangMitigatingCancellationToken);
@@ -247,19 +253,21 @@ class C
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/42484")]
     public async Task ExplicitSignatureHelpDismissesCompletion()
     {
-        await SetUpEditorAsync(@"
-class C
-{
-    void M()
-    {
-       Test$$
-    }
+        await SetUpEditorAsync("""
 
-    void Test() { }
-    void Test(int x) { }
-    void Test(int x, int y) { }
-    void Test(int x, int y, int z) { }    
-}", HangMitigatingCancellationToken);
+            class C
+            {
+                void M()
+                {
+                   Test$$
+                }
+
+                void Test() { }
+                void Test(int x) { }
+                void Test(int x, int y) { }
+                void Test(int x, int y, int z) { }    
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, true, HangMitigatingCancellationToken);
 

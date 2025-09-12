@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -21,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
 internal static class SemanticTokensHelpers
 {
-    private static readonly ObjectPool<List<int>> s_tokenListPool = new(() => new List<int>(capacity: 1000));
-
     /// <param name="ranges">The ranges to get semantic tokens for.  If <c>null</c> then the entire document will be
     /// processed.</param>
     internal static async Task<int[]> HandleRequestHelperAsync(
@@ -94,7 +91,7 @@ internal static class SemanticTokensHelpers
         using var _2 = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
         var textSpans = spans.SelectAsArray(static (span, text) => text.Lines.GetTextSpan(span), text);
-        await GetClassifiedSpansForDocumentAsync(
+        await AddClassifiedSpansForDocumentAsync(
             classifiedSpans, document, textSpans, options, cancellationToken).ConfigureAwait(false);
 
         // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
@@ -111,7 +108,7 @@ internal static class SemanticTokensHelpers
         return ComputeTokens(text.Lines, updatedClassifiedSpans, supportsVisualStudioExtensions, tokenTypesToIndex);
     }
 
-    private static async Task GetClassifiedSpansForDocumentAsync(
+    private static async Task AddClassifiedSpansForDocumentAsync(
         SegmentedList<ClassifiedSpan> classifiedSpans,
         Document document,
         ImmutableArray<TextSpan> textSpans,
@@ -124,13 +121,11 @@ internal static class SemanticTokensHelpers
         // then the semantic token classifications will override them.
 
         // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
-        var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-            document, textSpans, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
+        await ClassifierHelper.AddClassifiedSpansAsync(
+            classifiedSpans, document, textSpans, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
 
         // Some classified spans may not be relevant and should be filtered out before we convert to tokens.
-        var filteredSpans = spans.Where(s => !ShouldFilterClassification(s));
-
-        classifiedSpans.AddRange(filteredSpans);
+        classifiedSpans.RemoveAll(static s => ShouldFilterClassification(s));
     }
 
     private static bool ShouldFilterClassification(ClassifiedSpan s)
@@ -241,12 +236,7 @@ internal static class SemanticTokensHelpers
         var lastStartCharacter = 0;
 
         var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
-
-        using var pooledData = s_tokenListPool.GetPooledObject();
-        var data = pooledData.Object;
-
-        // Items in the pool may not have been cleared
-        data.Clear();
+        var data = AllocateTokenArray(classifiedSpans);
 
         for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
         {
@@ -263,7 +253,31 @@ internal static class SemanticTokensHelpers
             data.Add(tokenModifiers);
         }
 
-        return [.. data];
+        return data.MoveToArray();
+    }
+
+    // This method allocates an array of integers to hold the semantic tokens data.
+    // NOTE: The number of items in the array is based on the number of unique classified spans
+    // in the provided list and is closely tied with how ComputeNextToken's loop works
+    private static FixedSizeArrayBuilder<int> AllocateTokenArray(SegmentedList<ClassifiedSpan> classifiedSpans)
+    {
+        if (classifiedSpans.Count == 0)
+            return new FixedSizeArrayBuilder<int>(0);
+
+        var uniqueSpanCount = 1;
+        var lastSpan = classifiedSpans[0].TextSpan;
+
+        for (var index = 1; index < classifiedSpans.Count; index++)
+        {
+            var currentSpan = classifiedSpans[index].TextSpan;
+            if (currentSpan != lastSpan)
+            {
+                uniqueSpanCount++;
+                lastSpan = currentSpan;
+            }
+        }
+
+        return new FixedSizeArrayBuilder<int>(5 * uniqueSpanCount);
     }
 
     private static int ComputeNextToken(
@@ -315,6 +329,8 @@ internal static class SemanticTokensHelpers
         var tokenTypeIndex = 0;
 
         // Classified spans with the same text span should be combined into one token.
+        // NOTE: The update of currentClassifiedSpanIndex is closely tied to the allocation
+        // of the data array in AllocateTokenArray.
         while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
         {
             var classificationType = classifiedSpans[currentClassifiedSpanIndex].ClassificationType;

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,378 +23,381 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacter(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    ///{|type:|}
-    void M()
-    {
-    }
-}";
-        var expected =
-@"class A
-{
-    /// <summary>
-/// $0
-/// </summary>
-    void M()
-    {
-    }
-}";
-        await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_CommentCharacter(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("/", """
+            class A
+            {
+                ///{|type:|}
+                void M()
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// $0
+                /// </summary>
+                void M()
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacter_WithComment(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    ///{|type:|} This is an existing comment
-    void M()
-    {
-    }
-}";
-        var expected =
-@"class A
-{
-    /// <summary>
-/// $0This is an existing comment
-/// </summary>
-    void M()
-    {
-    }
-}";
-        await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_CommentCharacter_WithComment(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("/", """
+            class A
+            {
+                ///{|type:|} This is an existing comment
+                void M()
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// $0This is an existing comment
+                /// </summary>
+                void M()
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacter_WithComment_NoSpace(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    ///{|type:|}This is an existing comment
-    void M()
-    {
-    }
-}";
-        var expected =
-@"class A
-{
-    /// <summary>
-/// $0This is an existing comment
-/// </summary>
-    void M()
-    {
-    }
-}";
-        await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_CommentCharacter_WithComment_NoSpace(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("/", """
+            class A
+            {
+                ///{|type:|}This is an existing comment
+                void M()
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// $0This is an existing comment
+                /// </summary>
+                void M()
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacter_VB(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"Class A
-    '''{|type:|}
-    Sub M()
-    End Sub
-End Class";
-        var expected =
-@"Class A
-    ''' <summary>
-''' $0
-''' </summary>
-    Sub M()
-    End Sub
-End Class";
-        await VerifyMarkupAndExpected("'", markup, expected, mutatingLspWorkspace, languageName: LanguageNames.VisualBasic);
-    }
+    public Task OnAutoInsert_CommentCharacter_VB(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("'", """
+            Class A
+                '''{|type:|}
+                Sub M()
+                End Sub
+            End Class
+            """, """
+            Class A
+                ''' <summary>
+                ''' $0
+                ''' </summary>
+                Sub M()
+                End Sub
+            End Class
+            """, mutatingLspWorkspace, languageName: LanguageNames.VisualBasic);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_ParametersAndReturns(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    ///{|type:|}
-    string M(int foo, bool bar)
-    {
-    }
-}";
-        var expected =
-@"class A
-{
-    /// <summary>
-/// $0
-/// </summary>
-/// <param name=""foo""></param>
-/// <param name=""bar""></param>
-/// <returns></returns>
-    string M(int foo, bool bar)
-    {
-    }
-}";
-        await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_ParametersAndReturns(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("/", """
+            class A
+            {
+                ///{|type:|}
+                string M(int foo, bool bar)
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// $0
+                /// </summary>
+                /// <param name="foo"></param>
+                /// <param name="bar"></param>
+                /// <returns></returns>
+                string M(int foo, bool bar)
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacterInsideMethod_Ignored(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        ///{|type:|}
-    }
-}";
-        await VerifyNoResult("/", markup, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_CommentCharacterInsideMethod_Ignored(bool mutatingLspWorkspace)
+        => VerifyNoResult("/", """
+            class A
+            {
+                void M()
+                {
+                    ///{|type:|}
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_VisualBasicCommentCharacter_Ignored(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    '''{|type:|}
-    void M()
-    {
-    }
-}";
-        await VerifyNoResult("'", markup, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_VisualBasicCommentCharacter_Ignored(bool mutatingLspWorkspace)
+        => VerifyNoResult("'", """
+            class A
+            {
+                '''{|type:|}
+                void M()
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_EnterKey(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    /// <summary>
-    /// Foo
-    /// </summary>
-{|type:|}
-    void M()
-    {
-    }
-}";
-        var expected =
-@"class A
-{
-    /// <summary>
-    /// Foo
-    /// </summary>
-    /// $0
-    void M()
-    {
-    }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_EnterKey(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                /// <summary>
+                /// Foo
+                /// </summary>
+            {|type:|}
+                void M()
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// Foo
+                /// </summary>
+                /// $0
+                void M()
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_EnterKey2(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    /// <summary>
-    /// Foo
-{|type:|}
-    /// </summary>
-    void M()
-    {
-    }
-}";
-        var expected =
-@"class A
-{
-    /// <summary>
-    /// Foo
-    /// $0
-    /// </summary>
-    void M()
-    {
-    }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_EnterKey2(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                /// <summary>
+                /// Foo
+            {|type:|}
+                /// </summary>
+                void M()
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// Foo
+                /// $0
+                /// </summary>
+                void M()
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    ///
-{|type:|}
-    string M(int foo, bool bar)
-    {
-    }
-}";
-        var expected =
-@"class A
-{
-    /// <summary>
-    /// $0
-    /// </summary>
-    /// <param name=""foo""></param>
-    /// <param name=""bar""></param>
-    /// <returns></returns>
-    string M(int foo, bool bar)
-    {
-    }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                ///
+            {|type:|}
+                string M(int foo, bool bar)
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// $0
+                /// </summary>
+                /// <param name="foo"></param>
+                /// <param name="bar"></param>
+                /// <returns></returns>
+                string M(int foo, bool bar)
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_BraceFormatting(bool mutatingLspWorkspace)
-    {
-        // The test starts with the closing brace already on a new line.
-        // In LSP, hitting enter will first trigger a didChange event for the new line character
-        // (bringing the server text to the form below) and then trigger OnAutoInsert
-        // for the new line character.
-        var markup =
-@"class A
-{
-    void M() {{|type:|}
-    }
-}";
-        var expected =
-@"class A
-{
-    void M()
-    {
-        $0
-    }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
-    }
+    public Task OnAutoInsert_BraceFormatting(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                void M() {{|type:|}
+                }
+            }
+            """, """
+            class A
+            {
+                void M()
+                {
+                    $0
+                }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_BraceFormattingWithTabs(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M() {{|type:|}
-    }
-}";
-        // Use show whitespace when modifying the expected value.
-        // The method braces and caret location should be indented with tabs.
-        var expected =
-@"class A
-{
-    void M()
-	{
-		$0
-	}
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
-    }
+    public Task OnAutoInsert_BraceFormattingWithTabs(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                void M() {{|type:|}
+                }
+            }
+            """, """
+            class A
+            {
+                void M()
+            	{
+            		$0
+            	}
+            }
+            """, mutatingLspWorkspace, insertSpaces: false, tabSize: 4, useVSCapabilities: false);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_BraceFormattingInsideMethod(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        if (true) {{|type:|}
-        }
-    }
-}";
-        var expected =
-@"class A
-{
-    void M()
-    {
-        if (true)
-        {
-            $0
-        }
-    }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
-    }
+    public Task OnAutoInsert_BraceFormattingInsideMethod(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                void M()
+                {
+                    if (true) {{|type:|}
+                    }
+                }
+            }
+            """, """
+            class A
+            {
+                void M()
+                {
+                    if (true)
+                    {
+                        $0
+                    }
+                }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_BraceFormattingNoResultInInterpolation(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    void M()
-    {
-        var s = $""Hello {{|type:|}
-        }
-}";
-        await VerifyNoResult("\n", markup, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_BraceFormattingNoResultInInterpolation(bool mutatingLspWorkspace)
+        => VerifyNoResult("\n", """
+            class A
+            {
+                void M()
+                {
+                    var s = $"Hello {{|type:|}
+                    }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
-    public async Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines(bool mutatingLspWorkspace)
-    {
-        // The test starts with the closing brace already on a new line.
-        // In LSP, hitting enter will first trigger a didChange event for the new line character
-        // (bringing the server text to the form below) and then trigger OnAutoInsert
-        // for the new line character.
-        var markup =
-@"class A
-{
-    void M()
-    {
-        
-        {|type:|}
-    }
-}";
-        await VerifyNoResult("\n", markup, mutatingLspWorkspace);
-    }
+    public Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines(bool mutatingLspWorkspace)
+        => VerifyNoResult("\n", """
+            class A
+            {
+                void M()
+                {
+
+                    {|type:|}
+                }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
-    public async Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces(bool mutatingLspWorkspace)
-    {
-        // The test starts with the closing brace already on a new line.
-        // In LSP, hitting enter will first trigger a didChange event for the new line character
-        // (bringing the server text to the form below) and then trigger OnAutoInsert
-        // for the new line character.
-        var markup =
-@"class A
-{
-    void M()
-    {{|type:|}
+    public Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces(bool mutatingLspWorkspace)
+        => VerifyNoResult("\n", """
+            class A
+            {
+                void M()
+                {{|type:|}
 
 
-    }
-}";
-        await VerifyNoResult("\n", markup, mutatingLspWorkspace);
-    }
+                }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: false);
 
-    private async Task VerifyMarkupAndExpected(
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_BraceFormattingOnNewLine(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                void M() {{|type:|}
+                    
+                }
+            }
+            """, """
+            class A
+            {
+                void M()
+                {
+                    $0
+                }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: false);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_NoBraceFormattingForVS(bool mutatingLspWorkspace)
+        => VerifyNoResult("\n", """
+            class A
+            {
+                void M() {{|type:|}
+                }
+            }
+            """, mutatingLspWorkspace, useVSCapabilities: true);
+
+    [Theory, CombinatorialData]
+    public Task OnAutoInsert_BraceFormattingForRazorVS(bool mutatingLspWorkspace, bool useVSCapabilities)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                void M() {{|type:|}
+                }
+            }
+            """, """
+            class A
+            {
+                void M()
+                {
+                    $0
+                }
+            }
+            """, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer, useVSCapabilities: useVSCapabilities);
+
+    private async Task VerifyCSharpMarkupAndExpected(
         string characterTyped,
-        string markup,
-        string expected,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
         bool mutatingLspWorkspace,
         bool insertSpaces = true,
         int tabSize = 4,
         string languageName = LanguageNames.CSharp,
-        WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
+        WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
+        bool useVSCapabilities = true)
     {
+        var capbilities = GetCapabilities(useVSCapabilities);
         Task<TestLspServer> testLspServerTask;
         if (languageName == LanguageNames.CSharp)
         {
-            testLspServerTask = CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions, ServerKind = serverKind });
+            testLspServerTask = CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = capbilities, ServerKind = serverKind });
         }
         else if (languageName == LanguageNames.VisualBasic)
         {
-            testLspServerTask = CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions, ServerKind = serverKind });
+            testLspServerTask = CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = capbilities, ServerKind = serverKind });
         }
         else
         {
@@ -414,9 +418,21 @@ End Class";
         Assert.Equal(expected, actualText);
     }
 
-    private async Task VerifyNoResult(string characterTyped, string markup, bool mutatingLspWorkspace, bool insertSpaces = true, int tabSize = 4)
+    private async Task VerifyNoResult(
+        string characterTyped,
+        string markup,
+        bool mutatingLspWorkspace,
+        bool insertSpaces = true,
+        int tabSize = 4,
+        WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
+        bool useVSCapabilities = true)
     {
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var initilizationOptions = new InitializationOptions
+        {
+            ClientCapabilities = GetCapabilities(useVSCapabilities),
+            ServerKind = serverKind
+        };
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, initilizationOptions);
         var locationTyped = testLspServer.GetLocations("type").Single();
         var documentText = await (await testLspServer.GetDocumentAsync(locationTyped.DocumentUri)).GetTextAsync();
 

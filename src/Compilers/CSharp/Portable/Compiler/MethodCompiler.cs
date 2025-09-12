@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Deleted definitions must be emitted before PrivateImplementationDetails are frozen since
                 // it may add new members to it. All changes to PrivateImplementationDetails are additions,
                 // so we don't need to create deleted method defs for those.
-                moduleBeingBuiltOpt.CreateDeletedMethodDefinitions(diagnostics.DiagnosticBag);
+                moduleBeingBuiltOpt.CreateDeletedMemberDefinitions(diagnostics.DiagnosticBag);
 
                 // all threads that were adding methods must be finished now, we can freeze the class:
                 var privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails();
@@ -498,6 +498,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var members = containingType.GetMembers();
+
+            if (containingType.IsExtension && ((SourceNamedTypeSymbol)containingType).TryGetOrCreateExtensionMarker() is { } marker)
+            {
+                // The marker method is not among the members of the type, so we need to compile it separately.
+                Binder.ProcessedFieldInitializers processedInitializers = default;
+                CompileMethod(marker, -1, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+            }
+
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
@@ -766,8 +774,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!loweredBody.HasErrors)
                         {
-                            AsyncStateMachine asyncStateMachine;
-                            loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                            AsyncStateMachine asyncStateMachine = null;
+                            if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                            {
+                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                            }
+                            else
+                            {
+                                loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                            }
 
                             Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                             stateMachine = stateMachine ?? asyncStateMachine;
@@ -1166,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
-                            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
+                            // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
                             _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
                                 _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
@@ -1569,10 +1584,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutIterators;
                 }
 
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
-                    out AsyncStateMachine asyncStateMachine);
+                BoundStatement bodyWithoutAsync;
+                AsyncStateMachine asyncStateMachine = null;
+                if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                {
+                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
+                }
+                else
+                {
+                    bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
+                       out asyncStateMachine);
+                }
 
-                Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
+                Debug.Assert(iteratorStateMachine is null || asyncStateMachine is null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
                 return bodyWithoutAsync;

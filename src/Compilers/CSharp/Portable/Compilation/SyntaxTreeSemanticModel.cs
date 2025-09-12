@@ -801,7 +801,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.RecordDeclaration:
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                         {
                             var typeDecl = (TypeDeclarationSyntax)memberDecl;
 
@@ -872,7 +871,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.RecordDeclaration:
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                         {
                             var typeDecl = (TypeDeclarationSyntax)memberDecl;
                             return typeDecl.ParameterList is object &&
@@ -1091,7 +1089,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                     {
                         SynthesizedPrimaryConstructor symbol = TryGetSynthesizedPrimaryConstructor((TypeDeclarationSyntax)node);
 

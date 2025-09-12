@@ -14,6 +14,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
+
 public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
     public WorkspaceProjectDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)

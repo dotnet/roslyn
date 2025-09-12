@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,26 +19,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
-    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer()
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId,
+        EnforceOnBuildValues.RemoveUnnecessaryNullableDirective,
+        option: null,
+        fadingOption: null,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId,
-               EnforceOnBuildValues.RemoveUnnecessaryNullableDirective,
-               option: null,
-               fadingOption: null,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-    {
-        context.RegisterCompilationStartAction(AnalyzeCompilation);
-    }
+        => context.RegisterCompilationStartAction(AnalyzeCompilation);
 
     private void AnalyzeCompilation(CompilationStartAnalysisContext context)
     {

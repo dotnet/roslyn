@@ -5,6 +5,7 @@
 using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
+
 internal sealed class GlobalizationUtilities
 {
     /// <summary>

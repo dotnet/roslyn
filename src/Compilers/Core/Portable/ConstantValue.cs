@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         //       It appears that in all cases so far we considered isDefaultValue, and not about value being 
         //       arithmetic zero (especially when definition is ambiguous).
 
-        public const ConstantValue NotAvailable = null;
+        public const ConstantValue? NotAvailable = null;
 
         public static ConstantValue Bad { get { return ConstantValueBad.Instance; } }
         public static ConstantValue Null { get { return ConstantValueNull.Instance; } }
@@ -359,10 +359,10 @@ namespace Microsoft.CodeAnalysis
             return Create(value, discriminator);
         }
 
-        public static ConstantValue CreateSizeOf(SpecialType st)
+        public static ConstantValue? CreateSizeOf(SpecialType st)
         {
             int size = st.SizeInBytes();
-            return (size == 0) ? ConstantValue.NotAvailable : ConstantValue.Create(size);
+            return (size == 0) ? null : ConstantValue.Create(size);
         }
 
         public static ConstantValue Create(object value, ConstantValueTypeDiscriminator discriminator)

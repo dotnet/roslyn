@@ -15,117 +15,96 @@ public sealed class ExtensionKeywordRecommenderTests : KeywordRecommenderTests
     private static readonly CSharpParseOptions s_options = CSharpNextParseOptions;
 
     [Fact]
-    public async Task NotInRoot()
-    {
-        await VerifyAbsenceAsync(@"$$", s_options);
-    }
+    public Task NotInRoot()
+        => VerifyAbsenceAsync(@"$$", s_options);
 
     [Fact]
-    public async Task NotInNormalClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task NotInNormalClass()
+        => VerifyAbsenceAsync("""
             class C
             {
                 $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task InStaticClass()
-    {
-        await VerifyKeywordAsync("""
+    public Task InStaticClass()
+        => VerifyKeywordAsync("""
             static class C
             {
                 $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task NotAfterAccessibilityInStaticClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task NotAfterAccessibilityInStaticClass()
+        => VerifyAbsenceAsync("""
             static class C
             {
                 public $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task NotAfterModifierInStaticClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task NotAfterModifierInStaticClass()
+        => VerifyAbsenceAsync("""
             static class C
             {
                 unsafe $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task NotAfterPartialInStaticClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task NotAfterPartialInStaticClass()
+        => VerifyAbsenceAsync("""
             static class C
             {
                 partial $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task NotInStaticStructClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task NotInStaticStructClass()
+        => VerifyAbsenceAsync("""
             static struct C
             {
                 $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task AfterMethodInStaticClass()
-    {
-        await VerifyKeywordAsync("""
+    public Task AfterMethodInStaticClass()
+        => VerifyKeywordAsync("""
             static class C
             {
                 void M() { }
                 $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task AfterClassInStaticClass()
-    {
-        await VerifyKeywordAsync("""
+    public Task AfterClassInStaticClass()
+        => VerifyKeywordAsync("""
             static class C
             {
                 class M { }
                 $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task AfterExtensionInStaticClass()
-    {
-        await VerifyKeywordAsync("""
+    public Task AfterExtensionInStaticClass()
+        => VerifyKeywordAsync("""
             static class C
             {
                 extension E() { }
                 $$
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task NotInClassInStaticClass()
-    {
-        await VerifyAbsenceAsync("""
+    public Task NotInClassInStaticClass()
+        => VerifyAbsenceAsync("""
             static class C
             {
                 class C
@@ -134,12 +113,10 @@ public sealed class ExtensionKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """, s_options);
-    }
 
     [Fact]
-    public async Task TestWithinExtension()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestWithinExtension()
+        => VerifyAbsenceAsync(
             """
                 static class C
                 {
@@ -149,5 +126,4 @@ public sealed class ExtensionKeywordRecommenderTests : KeywordRecommenderTests
                     }
                 }
                 """, CSharpNextParseOptions);
-    }
 }

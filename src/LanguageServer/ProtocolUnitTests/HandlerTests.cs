@@ -110,12 +110,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task ThrowsOnInvalidLanguageSpecificHandler(bool mutatingLspWorkspace)
-    {
-        // Arrange
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace,
+    public Task ThrowsOnInvalidLanguageSpecificHandler(bool mutatingLspWorkspace)
+        => Assert.ThrowsAsync<InvalidOperationException>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace,
             composition: Composition.AddParts(typeof(TestDuplicateLanguageSpecificHandler))));
-    }
 
     [Theory, CombinatorialData]
     public async Task ThrowsIfDeserializationFails(bool mutatingLspWorkspace)

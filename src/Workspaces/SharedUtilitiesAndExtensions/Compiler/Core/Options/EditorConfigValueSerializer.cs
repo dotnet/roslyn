@@ -128,7 +128,7 @@ internal static class EditorConfigValueSerializer
     {
         var map = new BidirectionalMap<string, T>(entries, StringComparer.OrdinalIgnoreCase);
         var alternativeMap = ImmutableDictionary<string, T>.Empty.WithComparers(keyComparer: StringComparer.OrdinalIgnoreCase)
-            .AddRange(alternativeEntries.Select(static p => KeyValuePairUtil.Create(p.name, p.value)));
+            .AddRange(alternativeEntries.Select(static p => KeyValuePair.Create(p.name, p.value)));
 
         return CreateSerializerForEnum(map, alternativeMap);
     }

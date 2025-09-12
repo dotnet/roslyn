@@ -561,7 +561,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                 // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
                 log.Write($"Syntax errors found in '{filePath}'");
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
             }
 
             // Disallow modification of a file with experimental features enabled.
@@ -569,7 +569,21 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             if (ExperimentalFeaturesEnabled(newTree))
             {
                 log.Write($"Experimental features enabled in '{filePath}'");
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, span: default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+            }
+
+            // Changes in parse options might change the meaning of the code even if nothing else changed.
+            // If we allowed changing parse options such as preprocessor directives, enabled features, or language version
+            // it would lead to degraded experience for the user -- the parts of the source file that haven't changed
+            // since the option changed would have different semantics than the parts that have changed.
+            //
+            // Skip further analysis of the document if we detect any such change (classified as rude edits) in parse options.
+            if (GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
+            {
+                log.Write($"Parse options differ for '{filePath}'");
+
+                // All rude edits related to project-level setting changes will be reported during delta emit.
+                return DocumentAnalysisResults.Blocked(documentId, filePath, rudeEdits: [], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
             var capabilities = new EditAndContinueCapabilitiesGrantor(await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
@@ -578,13 +592,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // If the document has changed at all, lets make sure Edit and Continue is supported
             if (!capabilities.Grant(EditAndContinueCapabilities.Baseline))
             {
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
-
-            // TODO: https://github.com/dotnet/roslyn/issues/78486
-            // Changes in parse options might change the meaning of the code even if nothing else changed.
-            // The IDE should disallow changing the options during debugging session. 
-            Debug.Assert(oldTree.Options.Equals(newTree.Options));
 
             // We are in break state when there are no active statements.
             var inBreakState = !oldActiveStatementMap.IsEmpty;
@@ -681,7 +690,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 hasBlockingRudeEdits ? default : capabilities.GrantedCapabilities,
                 analysisStopwatch.Elapsed,
                 hasChanges: true,
-                hasSyntaxErrors: false,
+                analysisBlocked: false,
                 hasBlockingRudeEdits);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -694,8 +703,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: [filePath])
                 : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: [filePath, e.ToString()]);
 
-            // Report as "syntax error" - we can't analyze the document
-            return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+            return DocumentAnalysisResults.Blocked(documentId, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
         }
 
         void LogRudeEdits(ImmutableArray<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
@@ -815,6 +823,117 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         }
 
         return map;
+    }
+
+    protected static Diagnostic CreateProjectRudeEdit(ProjectSettingKind kind, string oldValue, string newValue)
+        => Diagnostic.Create(
+            EditAndContinueDiagnosticDescriptors.GetDescriptor(kind),
+            Location.None,
+            [kind.ToString(), oldValue, newValue]);
+
+    protected virtual IEnumerable<Diagnostic> GetParseOptionsRudeEdits(ParseOptions oldOptions, ParseOptions newOptions)
+    {
+        if (!FeaturesEqual(oldOptions.Features, newOptions.Features))
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.Features, ToDisplay(oldOptions.Features), ToDisplay(newOptions.Features));
+        }
+
+        static string ToDisplay(IReadOnlyDictionary<string, string> features)
+            => string.Join(",", features.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={kvp.Value}"));
+
+        static bool FeaturesEqual(IReadOnlyDictionary<string, string> features, IReadOnlyDictionary<string, string> other)
+        {
+            if (ReferenceEquals(features, other))
+            {
+                return true;
+            }
+
+            if (features.Count != other.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, value) in features)
+            {
+                if (!other.TryGetValue(key, out var otherValue) || value != otherValue)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    protected static string DefaultProjectSettingValue
+        => $"<{FeaturesResources.@default}>";
+
+    protected virtual IEnumerable<Diagnostic> GetCompilationOptionsRudeEdits(CompilationOptions oldOptions, CompilationOptions newOptions)
+    {
+        if (oldOptions.CheckOverflow != newOptions.CheckOverflow)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.CheckForOverflowUnderflow, oldOptions.CheckOverflow.ToString(), newOptions.CheckOverflow.ToString());
+        }
+
+        if (oldOptions.OutputKind != newOptions.OutputKind)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.OutputType, ToProjectPropertyValue(oldOptions.OutputKind), ToProjectPropertyValue(newOptions.OutputKind));
+
+            static string ToProjectPropertyValue(OutputKind kind)
+                => kind switch
+                {
+                    OutputKind.ConsoleApplication => "Exe",
+                    OutputKind.WindowsApplication => "WinExe",
+                    OutputKind.DynamicallyLinkedLibrary => "Library",
+                    OutputKind.NetModule => "Module",
+                    OutputKind.WindowsRuntimeApplication => "AppContainerExe",
+                    OutputKind.WindowsRuntimeMetadata => "WinMDObj",
+                    _ => throw ExceptionUtilities.UnexpectedValue(kind)
+                };
+        }
+
+        if (oldOptions.Platform != newOptions.Platform)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.Platform, oldOptions.Platform.ToString(), newOptions.Platform.ToString());
+        }
+
+        if (oldOptions.MainTypeName != newOptions.MainTypeName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.StartupObject, oldOptions.MainTypeName ?? DefaultProjectSettingValue, newOptions.MainTypeName ?? DefaultProjectSettingValue);
+        }
+
+        if (oldOptions.ModuleName != newOptions.ModuleName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.ModuleAssemblyName, oldOptions.ModuleName ?? DefaultProjectSettingValue, newOptions.ModuleName ?? DefaultProjectSettingValue);
+        }
+
+        if (oldOptions.OptimizationLevel != newOptions.OptimizationLevel)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.OptimizationLevel, oldOptions.OptimizationLevel.ToString(), newOptions.OptimizationLevel.ToString());
+        }
+    }
+
+    public IEnumerable<Diagnostic> GetProjectSettingRudeEdits(Project oldProject, Project newProject)
+    {
+        Contract.ThrowIfNull(oldProject.ParseOptions);
+        Contract.ThrowIfNull(newProject.ParseOptions);
+        Contract.ThrowIfNull(oldProject.CompilationOptions);
+        Contract.ThrowIfNull(newProject.CompilationOptions);
+
+        foreach (var rudeEdit in GetParseOptionsRudeEdits(oldProject.ParseOptions, newProject.ParseOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        foreach (var rudeEdit in GetCompilationOptionsRudeEdits(oldProject.CompilationOptions, newProject.CompilationOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        if (oldProject.AssemblyName != newProject.AssemblyName)
+        {
+            yield return CreateProjectRudeEdit(ProjectSettingKind.AssemblyName, oldProject.AssemblyName, newProject.AssemblyName);
+        }
     }
 
     #endregion
@@ -1156,8 +1275,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
             // Updating an entry point, a method marked with RestartRequiredOnMetadataUpdateAttribute,
             // a static constructor or a static member with an initializer will most likely have no effect,
-            // unless the update is in a lambda body.
-            if (IsRestartRequired(oldMember, oldDeclaration, oldModel.Compilation, newMember, newDeclaration, cancellationToken))
+            // unless the update is in a lambda body or the member body is an active frame.
+            if (!bodyHasActiveStatement && IsRestartRequired(oldMember, oldDeclaration, oldModel.Compilation, newMember, newDeclaration, cancellationToken))
             {
                 var oldTokens = oldMemberBody?.GetUserCodeTokens(DescendantTokensIgnoringLambdaBodies) ?? [];
                 var newTokens = newMemberBody?.GetUserCodeTokens(DescendantTokensIgnoringLambdaBodies) ?? [];
@@ -1623,7 +1742,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             if (activeNode.NewTrackedNode != null)
             {
                 lazyKnownMatches ??= [];
-                lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
+                lazyKnownMatches.Add(KeyValuePair.Create(activeNode.OldNode, activeNode.NewTrackedNode));
             }
         }
 
@@ -2425,6 +2544,12 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     protected static bool ParameterTypesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters, bool exact)
         => oldParameters.SequenceEqual(newParameters, exact, ParameterTypesEquivalent);
 
+    protected static bool ParameterDefaultValuesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
+        => oldParameters.SequenceEqual(newParameters, ParameterDefaultValuesEquivalent);
+
+    protected static bool LambdaParametersEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
+        => oldParameters.SequenceEqual(newParameters, LambdaParameterEquivalent);
+
     protected static bool CustomModifiersEquivalent(CustomModifier oldModifier, CustomModifier newModifier, bool exact)
         => oldModifier.IsOptional == newModifier.IsOptional &&
            TypesEquivalent(oldModifier.Modifier, newModifier.Modifier, exact);
@@ -2462,6 +2587,20 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
 
     protected static bool ParameterTypesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter, bool exact)
         => (exact ? s_exactSymbolEqualityComparer : s_runtimeSymbolEqualityComparer).ParameterEquivalenceComparer.Equals(oldParameter, newParameter);
+
+    protected static bool ParameterDefaultValuesEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter)
+        => oldParameter.HasExplicitDefaultValue == newParameter.HasExplicitDefaultValue &&
+           (!oldParameter.HasExplicitDefaultValue || Equals(oldParameter.ExplicitDefaultValue, newParameter.ExplicitDefaultValue));
+
+    /// <summary>
+    /// Lambda parameters are equivallent if the type of the lambda as emitted to IL doesn't change.
+    /// Tuple element names, dynamic, etc. do not affect lambda natural type. 
+    /// Default values and "params" do.
+    /// </summary>
+    protected static bool LambdaParameterEquivalent(IParameterSymbol oldParameter, IParameterSymbol newParameter)
+        => ParameterTypesEquivalent(oldParameter, newParameter, exact: false) &&
+           ParameterDefaultValuesEquivalent(oldParameter, newParameter) &&
+           oldParameter.IsParams == newParameter.IsParams;
 
     protected static bool TypeParameterConstraintsEquivalent(ITypeParameterSymbol oldParameter, ITypeParameterSymbol newParameter, bool exact)
         => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
@@ -2795,6 +2934,17 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                     continue;
                                 }
 
+                                if (oldSymbol is { ContainingType.IsExtension: true })
+                                {
+                                    // This is inside a new extension declaration, and not currently supported.
+                                    // https://github.com/dotnet/roslyn/issues/78959
+                                    diagnosticContext.Report(RudeEditKind.Update,
+                                        oldDeclaration,
+                                        cancellationToken,
+                                        [FeaturesResources.extension_block]);
+                                    continue;
+                                }
+
                                 ReportDeletedMemberActiveStatementsRudeEdits();
 
                                 var rudeEditKind = RudeEditKind.Delete;
@@ -2948,6 +3098,18 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                     if (!hasAssociatedSymbolInsert && IsMember(newSymbol))
                                     {
                                         ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol, newDeclaration, insertingIntoExistingContainingType: oldContainingType != null);
+                                    }
+
+                                    if (newContainingType.IsExtension)
+                                    {
+                                        // This is a new extension declaration, and not currently supported.
+                                        // https://github.com/dotnet/roslyn/issues/78959
+                                        diagnosticContext.Report(RudeEditKind.Update,
+                                            cancellationToken,
+                                            GetDiagnosticSpan(newDeclaration, EditKind.Insert),
+                                            [FeaturesResources.extension_block]);
+
+                                        continue;
                                     }
 
                                     if (oldContainingType == null)
@@ -4106,6 +4268,14 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         hasGeneratedAttributeChange = false;
         hasGeneratedReturnTypeAttributeChange = false;
 
+        if (IsOrIsContainedInNewExtension(oldSymbol) || IsOrIsContainedInNewExtension(newSymbol))
+        {
+            // https://github.com/dotnet/roslyn/issues/78959
+            // Currently not supported
+            diagnosticContext.Report(RudeEditKind.Update, cancellationToken, arguments: [FeaturesResources.extension_block]);
+            return;
+        }
+
         if (oldSymbol.Kind != newSymbol.Kind)
         {
             rudeEdit = (oldSymbol.Kind == SymbolKind.Field || newSymbol.Kind == SymbolKind.Field) ? RudeEditKind.FieldKindUpdate : RudeEditKind.Update;
@@ -4371,8 +4541,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     hasGeneratedAttributeChange = true;
                 }
 
-                if (oldParameter.HasExplicitDefaultValue != newParameter.HasExplicitDefaultValue ||
-                    oldParameter.HasExplicitDefaultValue && !Equals(oldParameter.ExplicitDefaultValue, newParameter.ExplicitDefaultValue))
+                if (!ParameterDefaultValuesEquivalent(oldParameter, newParameter))
                 {
                     rudeEdit = RudeEditKind.InitializerUpdate;
                 }
@@ -4409,6 +4578,23 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         if (rudeEdit != RudeEditKind.None)
         {
             diagnosticContext.Report(rudeEdit, cancellationToken);
+        }
+
+        bool IsOrIsContainedInNewExtension(ISymbol symbol)
+        {
+            var current = symbol;
+            do
+            {
+                if (current is INamedTypeSymbol { IsExtension: true })
+                {
+                    return true;
+                }
+
+                current = current.ContainingType;
+            }
+            while (current != null);
+
+            return false;
         }
     }
 
@@ -6453,8 +6639,12 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var newLambdaSymbol = (IMethodSymbol)diagnosticContext.RequiredNewSymbol;
 
         // signature validation:
-        if (!ParameterTypesEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, exact: false))
+        if (!LambdaParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters))
         {
+            // If a delegate type for the lambda is synthesized (anonymous) changing default parameter value changes the synthesized delegate type.
+            // If the delegate type is not synthesized the default value is ignored and warning is reported by the compiler.
+            // Technically, the runtime rude edit does not need to be reported in the latter case but we report it anyway for simplicity.
+
             runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingLambdaParameters, cancellationToken);
             return;
         }
@@ -6466,7 +6656,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         }
 
         if (!TypeParametersEquivalent(oldLambdaSymbol.TypeParameters, newLambdaSymbol.TypeParameters, exact: false) ||
-                 !oldLambdaSymbol.TypeParameters.SequenceEqual(newLambdaSymbol.TypeParameters, static (p, q) => p.Name == q.Name))
+            !oldLambdaSymbol.TypeParameters.SequenceEqual(newLambdaSymbol.TypeParameters, static (p, q) => p.Name == q.Name))
         {
             runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingTypeParameters, cancellationToken);
             return;

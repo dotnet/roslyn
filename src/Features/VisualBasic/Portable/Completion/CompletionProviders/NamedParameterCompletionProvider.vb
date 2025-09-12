@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -194,39 +193,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return Nothing
         End Function
-
-        Private Shared Sub GetInvocableNode(token As SyntaxToken, ByRef invocableNode As SyntaxNode, ByRef argumentList As ArgumentListSyntax)
-            Dim current = token.Parent
-
-            While current IsNot Nothing
-                If TypeOf current Is AttributeSyntax Then
-                    invocableNode = current
-                    argumentList = (DirectCast(current, AttributeSyntax)).ArgumentList
-                    Return
-                End If
-
-                If TypeOf current Is InvocationExpressionSyntax Then
-                    invocableNode = current
-                    argumentList = (DirectCast(current, InvocationExpressionSyntax)).ArgumentList
-                    Return
-                End If
-
-                If TypeOf current Is ObjectCreationExpressionSyntax Then
-                    invocableNode = current
-                    argumentList = (DirectCast(current, ObjectCreationExpressionSyntax)).ArgumentList
-                    Return
-                End If
-
-                If TypeOf current Is TypeArgumentListSyntax Then
-                    Exit While
-                End If
-
-                current = current.Parent
-            End While
-
-            invocableNode = Nothing
-            argumentList = Nothing
-        End Sub
 
         Protected Overrides Function GetTextChangeAsync(selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             Dim symbolItem = selectedItem

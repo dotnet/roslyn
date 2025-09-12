@@ -22,5 +22,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 </Project>

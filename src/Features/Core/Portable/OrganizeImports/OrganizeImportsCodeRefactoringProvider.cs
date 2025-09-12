@@ -24,13 +24,19 @@ namespace Microsoft.CodeAnalysis.OrganizeImports;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => [FixAllScope.Project, FixAllScope.Solution];
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => [RefactorAllScope.Project, RefactorAllScope.Solution];
 
     /// <summary>
     /// Matches 'remove unnecessary imports' code fix.  This way we don't show 'sort imports' above it.
     /// </summary>
     protected override CodeActionRequestPriority ComputeRequestPriority()
         => CodeActionRequestPriority.Low;
+
+    /// <summary>
+    /// This refactoring provider touches syntax only.  So we can speed up fix all by having it only clean syntax
+    /// and not semantics.
+    /// </summary>
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
 
     private static async Task<(SyntaxNode oldRoot, SyntaxNode newRoot)> RemoveImportsAsync(
         Document document, CancellationToken cancellationToken)
@@ -45,7 +51,7 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
         return (oldRoot, newRoot);
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document, ImmutableArray<TextSpan> fixAllSpans, SyntaxEditor editor, string? equivalenceKey, CancellationToken cancellationToken)
     {
         var (oldRoot, newRoot) = await RemoveImportsAsync(document, cancellationToken).ConfigureAwait(false);

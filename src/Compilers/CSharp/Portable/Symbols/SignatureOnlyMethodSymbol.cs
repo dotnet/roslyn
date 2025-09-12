@@ -124,6 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() { throw ExceptionUtilities.Unreachable(); }
 
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations { get { throw ExceptionUtilities.Unreachable(); } }

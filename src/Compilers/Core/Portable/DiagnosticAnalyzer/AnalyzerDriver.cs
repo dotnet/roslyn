@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -35,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // NOTE: These methods are on hot paths and cause large allocation hit if removed.
         private static readonly Func<DiagnosticAnalyzer, bool> s_IsCompilerAnalyzerFunc = IsCompilerAnalyzer;
         private static readonly Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> s_getTopmostNodeForAnalysis = GetTopmostNodeForAnalysis;
+
+        /// <summary>
+        /// Separate pool for diagnostic analyzers as these collections commonly exceed ArrayBuilder's size threshold
+        /// </summary>
+        private static readonly ObjectPool<ArrayBuilder<DiagnosticAnalyzer>> s_diagnosticAnalyzerPool = new ObjectPool<ArrayBuilder<DiagnosticAnalyzer>>(() => new ArrayBuilder<DiagnosticAnalyzer>());
 
         private readonly Func<SyntaxTree, CancellationToken, bool> _isGeneratedCode;
 
@@ -1824,7 +1828,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var success = true;
-            var completedAnalyzers = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
+            ArrayBuilder<DiagnosticAnalyzer> completedAnalyzers = s_diagnosticAnalyzerPool.Allocate();
             var processedAnalyzers = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
             try
             {
@@ -1877,7 +1881,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             finally
             {
                 processedAnalyzers.Free();
-                completedAnalyzers.Free();
+
+                // Do not call completedAnalyzers.Free, as the ArrayBuilder isn't associated with our pool and even if it were, we don't
+                // want the default freeing behavior of limiting pooled array size to ArrayBuilder.PooledArrayLengthLimitExclusive.
+                // Instead, we need to explicitly add this item back to our pool.
+                completedAnalyzers.Clear();
+                s_diagnosticAnalyzerPool.Free(completedAnalyzers);
             }
         }
 

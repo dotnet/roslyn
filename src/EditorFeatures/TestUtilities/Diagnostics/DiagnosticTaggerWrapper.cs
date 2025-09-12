@@ -55,7 +55,7 @@ internal sealed class DiagnosticTaggerWrapper<TProvider, TTag>
         {
             if (_taggerProvider == null)
             {
-                WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider, TTag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<,>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
                 if (typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                 {
@@ -73,14 +73,12 @@ internal sealed class DiagnosticTaggerWrapper<TProvider, TTag>
         }
     }
 
-    public async Task WaitForTags()
-    {
-        await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
+    public Task WaitForTags()
+        => _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
             _workspace,
             FeatureAttribute.Workspace,
             FeatureAttribute.SolutionCrawlerLegacy,
             FeatureAttribute.DiagnosticService,
             FeatureAttribute.ErrorSquiggles,
             FeatureAttribute.Classification);
-    }
 }

@@ -7,20 +7,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
-internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
+internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
+    protected abstract string GetTitle();
     protected abstract ISyntaxFormatting GetSyntaxFormatting();
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds
         => [RemoveUnnecessaryImportsConstants.DiagnosticFixableId];
 
-    public sealed override FixAllProvider GetFixAllProvider()
-        => WellKnownFixAllProviders.BatchFixer;
+#if !CODE_STYLE
+    // We don't need to perform any cleanup for this code fix.  It simply removes code, leaving
+    // things in the state it already needs to be in.
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.None;
+#endif
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -37,13 +42,20 @@ internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFi
         return Task.CompletedTask;
     }
 
-    protected abstract string GetTitle();
-
     private static Task<Document> RemoveUnnecessaryImportsAsync(
         Document document,
         CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
         return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
+    }
+
+    protected sealed override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var newDocument = await RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+        var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        editor.ReplaceNode(editor.OriginalRoot, newRoot);
     }
 }

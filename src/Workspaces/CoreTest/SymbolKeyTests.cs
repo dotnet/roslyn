@@ -26,35 +26,34 @@ public sealed class SymbolKeyTests : TestBase
     [Fact]
     public void TestVersionMismatch()
     {
-        var source = @"
+        var source = """
+            public class C
+            {
+                public class B { };
+                public delegate int D(int v);
 
-public class C
-{
-    public class B { };
-    public delegate int D(int v);
-
-    public int F;
-    public B F2;
-    public int P { get; set;}
-    public B P2 { get; set; }
-    public void M() { };
-    public void M(int a) { };
-    public void M(int a, string b) { };
-    public void M(string a, int b) { };
-    public void M(B b) { };
-    public int M2() { return 0; }
-    public int M2(int a) { return 0; }
-    public int M2(int a, string b) { return 0; }
-    public int M2(string a, int b) { return 0; }
-    public B M3() { return default(B); }
-    public int this[int index] { get { return 0; } }
-    public int this[int a, int b] { get { return 0; } }
-    public B this[B b] { get { return b; } }
-    public event D E;
-    public event D E2 { add; remove; }
-    public delegate*<C, B> Ptr;
-}
-";
+                public int F;
+                public B F2;
+                public int P { get; set;}
+                public B P2 { get; set; }
+                public void M() { };
+                public void M(int a) { };
+                public void M(int a, string b) { };
+                public void M(string a, int b) { };
+                public void M(B b) { };
+                public int M2() { return 0; }
+                public int M2(int a) { return 0; }
+                public int M2(int a, string b) { return 0; }
+                public int M2(string a, int b) { return 0; }
+                public B M3() { return default(B); }
+                public int this[int index] { get { return 0; } }
+                public int this[int a, int b] { get { return 0; } }
+                public B this[B b] { get { return b; } }
+                public event D E;
+                public event D E2 { add; remove; }
+                public delegate*<C, B> Ptr;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         foreach (var symbol in GetDeclaredSymbols(compilation))
         {
@@ -82,34 +81,33 @@ public class C
     [Fact]
     public void TestMemberDeclarations()
     {
-        var source = @"
+        var source = """
+            public class C
+            {
+                public class B { };
+                public delegate int D(int v);
 
-public class C
-{
-    public class B { };
-    public delegate int D(int v);
-
-    public int F;
-    public B F2;
-    public int P { get; set;}
-    public B P2 { get; set; }
-    public void M() { };
-    public void M(int a) { };
-    public void M(int a, string b) { };
-    public void M(string a, int b) { };
-    public void M(B b) { };
-    public int M2() { return 0; }
-    public int M2(int a) { return 0; }
-    public int M2(int a, string b) { return 0; }
-    public int M2(string a, int b) { return 0; }
-    public B M3() { return default(B); }
-    public int this[int index] { get { return 0; } }
-    public int this[int a, int b] { get { return 0; } }
-    public B this[B b] { get { return b; } }
-    public event D E;
-    public event D E2 { add; remove; }
-}
-";
+                public int F;
+                public B F2;
+                public int P { get; set;}
+                public B P2 { get; set; }
+                public void M() { };
+                public void M(int a) { };
+                public void M(int a, string b) { };
+                public void M(string a, int b) { };
+                public void M(B b) { };
+                public int M2() { return 0; }
+                public int M2(int a) { return 0; }
+                public int M2(int a, string b) { return 0; }
+                public int M2(string a, int b) { return 0; }
+                public B M3() { return default(B); }
+                public int this[int index] { get { return 0; } }
+                public int this[int a, int b] { get { return 0; } }
+                public B this[B b] { get { return b; } }
+                public event D E;
+                public event D E2 { add; remove; }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
     }
@@ -117,14 +115,13 @@ public class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70782")]
     public async Task TestNintNuint()
     {
-        var source = @"
-
-public class C
-{
-    void M(nint x);
-    void N(nuint x);
-}
-";
+        var source = """
+            public class C
+            {
+                void M(nint x);
+                void N(nuint x);
+            }
+            """;
         var netstandardReferences = await ReferenceAssemblies.NetStandard.NetStandard20.ResolveAsync(LanguageNames.CSharp, cancellationToken: default);
         var netcoreReferences = await ReferenceAssemblies.Net.Net70.ResolveAsync(LanguageNames.CSharp, cancellationToken: default);
 
@@ -139,13 +136,12 @@ public class C
     [Fact]
     public void TestMissingField1_CSharp()
     {
-        var source = @"
-
-public class C
-{
-    const int;
-}
-";
+        var source = """
+            public class C
+            {
+                const int;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -155,13 +151,12 @@ public class C
     [Fact]
     public void TestMissingField2_CSharp()
     {
-        var source = @"
-
-public class C
-{
-    int a,;
-}
-";
+        var source = """
+            public class C
+            {
+                int a,;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -171,13 +166,12 @@ public class C
     [Fact]
     public void TestMissingField3_CSharp()
     {
-        var source = @"
-
-public class C
-{
-    const;
-}
-";
+        var source = """
+            public class C
+            {
+                const;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -187,12 +181,11 @@ public class C
     [Fact]
     public void TestMissingField1_VisualBasic()
     {
-        var source = @"
-
-public class C
-    constant as integer
-end class
-";
+        var source = """
+            public class C
+                constant as integer
+            end class
+            """;
         var compilation = GetCompilation(source, LanguageNames.VisualBasic);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -202,12 +195,11 @@ end class
     [Fact]
     public void TestMissingField2_VisualBasic()
     {
-        var source = @"
-
-public class C
-    dim a, 
-end class
-";
+        var source = """
+            public class C
+                dim a, 
+            end class
+            """;
         var compilation = GetCompilation(source, LanguageNames.VisualBasic);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -217,12 +209,11 @@ end class
     [Fact]
     public void TestMissingField3_VisualBasic()
     {
-        var source = @"
-
-public class C
-    dim a, as integer
-end class
-";
+        var source = """
+            public class C
+                dim a, as integer
+            end class
+            """;
         var compilation = GetCompilation(source, LanguageNames.VisualBasic);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -232,12 +223,11 @@ end class
     [Fact]
     public void TestMissingField4_VisualBasic()
     {
-        var source = @"
-
-public class C
-    dim a as integer, 
-end class
-";
+        var source = """
+            public class C
+                dim a as integer, 
+            end class
+            """;
         var compilation = GetCompilation(source, LanguageNames.VisualBasic);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -247,12 +237,11 @@ end class
     [Fact]
     public void TestMissingField5_VisualBasic()
     {
-        var source = @"
-
-public class C
-    constant
-end class
-";
+        var source = """
+            public class C
+                constant
+            end class
+            """;
         var compilation = GetCompilation(source, LanguageNames.VisualBasic);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -262,12 +251,11 @@ end class
     [Fact]
     public void TestMissingField6_VisualBasic()
     {
-        var source = @"
-
-public class C
-    constant a,
-end class
-";
+        var source = """
+            public class C
+                constant a,
+            end class
+            """;
         var compilation = GetCompilation(source, LanguageNames.VisualBasic);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
@@ -277,13 +265,12 @@ end class
     [Fact]
     public void TestMissingEvent1_CSharp()
     {
-        var source = @"
-
-public class C
-{
-    event System.Action;
-}
-";
+        var source = """
+            public class C
+            {
+                event System.Action;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.True(symbols.Any(s => s is IEventSymbol { MetadataName: "" }));
@@ -293,13 +280,12 @@ public class C
     [Fact]
     public void TestMissingEvent2_CSharp()
     {
-        var source = @"
-
-public class C
-{
-    event System.Action a,;
-}
-";
+        var source = """
+            public class C
+            {
+                event System.Action a,;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.True(symbols.Any(s => s is IEventSymbol { MetadataName: "" }));
@@ -309,11 +295,11 @@ public class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14364")]
     public void TestVBParameterizedEvent()
     {
-        var source = @"
-Module M
-    Event E(x As Object)
-End Module
-";
+        var source = """
+            Module M
+                Event E(x As Object)
+            End Module
+            """;
         var compilation = GetCompilation(source, LanguageNames.VisualBasic);
         TestRoundTrip(GetAllSymbols(compilation.GetSemanticModel(compilation.SyntaxTrees.Single())), compilation);
     }
@@ -321,13 +307,13 @@ End Module
     [Fact]
     public void TestNamespaceDeclarations()
     {
-        var source = @"
-namespace N { }
-namespace A.B { }
-namespace A { namespace B.C { } }
-namespace A { namespace B { namespace C { } } }
-namespace A { namespace N { } }
-";
+        var source = """
+            namespace N { }
+            namespace A.B { }
+            namespace A { namespace B.C { } }
+            namespace A { namespace B { namespace C { } } }
+            namespace A { namespace N { } }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation);
         Assert.Equal(5, symbols.Count);
@@ -339,22 +325,22 @@ namespace A { namespace N { } }
     [Fact]
     public void TestConstructedTypeReferences()
     {
-        var source = @"
-using System.Collections.Generic;
+        var source = """
+            using System.Collections.Generic;
 
-public class C
-{
-    public List<int> G1;
-    public List<List<int>> G2;
-    public Dictionary<string, int> G3;
-    public int[] A1;
-    public int[,] A2;
-    public int[,,] A3;
-    public List<int>[] A4;
-    public int* P1;
-    public int** p2;
-}
-";
+            public class C
+            {
+                public List<int> G1;
+                public List<List<int>> G2;
+                public Dictionary<string, int> G3;
+                public int[] A1;
+                public int[,] A2;
+                public int[,,] A3;
+                public List<int>[] A4;
+                public int* P1;
+                public int** p2;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         TestRoundTrip(GetDeclaredSymbols(compilation).OfType<IFieldSymbol>().Select(fs => fs.Type), compilation);
     }
@@ -362,17 +348,17 @@ public class C
     [Fact]
     public void TestErrorTypeReferences()
     {
-        var source = @"
-using System.Collections.Generic;
+        var source = """
+            using System.Collections.Generic;
 
-public class C
-{
-    public T E1;
-    public List<T> E2;
-    public T<int> E3;
-    public T<A> E4;
-}
-";
+            public class C
+            {
+                public T E1;
+                public List<T> E2;
+                public T<int> E3;
+                public T<A> E4;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         TestRoundTrip(GetDeclaredSymbols(compilation).OfType<IFieldSymbol>().Select(fs => fs.Type), compilation, s => s.ToDisplayString());
     }
@@ -380,20 +366,20 @@ public class C
     [Fact]
     public void TestParameterDeclarations()
     {
-        var source = @"
-using System.Collections.Generic;
+        var source = """
+            using System.Collections.Generic;
 
-public class C
-{
-    public void M(int p) { }
-    public void M(int p1, int p2) { }
-    public void M<T>(T p) { }
-    public void M<T>(T[] p) { }
-    public void M<T>(List<T> p) { }
-    public void M<T>(T* p) { }
-    public void M(ref int p)  { }
-}
-";
+            public class C
+            {
+                public void M(int p) { }
+                public void M(int p1, int p2) { }
+                public void M<T>(T p) { }
+                public void M<T>(T[] p) { }
+                public void M<T>(List<T> p) { }
+                public void M<T>(T* p) { }
+                public void M(ref int p)  { }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         TestRoundTrip(GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => ms.Parameters), compilation);
     }
@@ -401,18 +387,18 @@ public class C
     [Fact]
     public void TestParameterRename()
     {
-        var source1 = @"
-public class C
-{
-    public void M(int a, int b, int c) { }
-}
-";
-        var source2 = @"
-public class C
-{
-    public void M(int a, int x, int c) { }
-}
-";
+        var source1 = """
+            public class C
+            {
+                public void M(int a, int b, int c) { }
+            }
+            """;
+        var source2 = """
+            public class C
+            {
+                public void M(int a, int x, int c) { }
+            }
+            """;
         var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
         var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
 
@@ -425,18 +411,18 @@ public class C
     [Fact]
     public void TestParameterReorder()
     {
-        var source1 = @"
-public class C
-{
-    public void M(int a, int b, int c) { }
-}
-";
-        var source2 = @"
-public class C
-{
-    public void M(int b, int a, int c) { }
-}
-";
+        var source1 = """
+            public class C
+            {
+                public void M(int a, int b, int c) { }
+            }
+            """;
+        var source2 = """
+            public class C
+            {
+                public void M(int b, int a, int c) { }
+            }
+            """;
         var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
         var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
 
@@ -449,60 +435,60 @@ public class C
     [Fact]
     public void TestTypeParameters()
     {
-        var source = @"
-public class C
-{
-    public void M() { }
-    public void M<A>(A a) { }
-    public void M<A>(int i) { }
-    public void M<A, B>(A a, B b) { }
-    public void M<A, B>(A a, int i) { }
-    public void M<A, B>(int i, B b) { }
-    public void M<A, B>(B b, A a) { }
-    public void M<A, B>(B b, int i) { }
-    public void M<A, B>(int i, A a) { }
-    public void M<A, B>(int i, int j) { }
-    public void M(C c) { }
-    public int GetInt() { return 0 ; }
-    public A GetA<A>(A a) { return a; }
-    public A GetA<A, B>(A a, B b) { return a; }
-    public B GetB<A, B>(A a, B b) { return b; }
-    public C GetC() { return default(C); }
-}
+        var source = """
+            public class C
+            {
+                public void M() { }
+                public void M<A>(A a) { }
+                public void M<A>(int i) { }
+                public void M<A, B>(A a, B b) { }
+                public void M<A, B>(A a, int i) { }
+                public void M<A, B>(int i, B b) { }
+                public void M<A, B>(B b, A a) { }
+                public void M<A, B>(B b, int i) { }
+                public void M<A, B>(int i, A a) { }
+                public void M<A, B>(int i, int j) { }
+                public void M(C c) { }
+                public int GetInt() { return 0 ; }
+                public A GetA<A>(A a) { return a; }
+                public A GetA<A, B>(A a, B b) { return a; }
+                public B GetB<A, B>(A a, B b) { return b; }
+                public C GetC() { return default(C); }
+            }
 
-public class C<T>
-{
-    public void M() { }
-    public void M(T t) { }
-    public void M<A>(A a) { }
-    public void M<A>(T t, A a) { }
-    public void M<A, B>(A a, B b) { }
-    public void M<A, B>(B b, A a) { }
-    public void M(C<T> c) { }
-    public void M(C<int> c) { }
-    public T GetT() { return default(T); }
-    public C<T> GetCT() { return default(C<T>); }
-    public C<int> GetCInt() { return default(C<int>); }
-    public C<A> GetCA<A>() { return default(C<A>); }
-}
+            public class C<T>
+            {
+                public void M() { }
+                public void M(T t) { }
+                public void M<A>(A a) { }
+                public void M<A>(T t, A a) { }
+                public void M<A, B>(A a, B b) { }
+                public void M<A, B>(B b, A a) { }
+                public void M(C<T> c) { }
+                public void M(C<int> c) { }
+                public T GetT() { return default(T); }
+                public C<T> GetCT() { return default(C<T>); }
+                public C<int> GetCInt() { return default(C<int>); }
+                public C<A> GetCA<A>() { return default(C<A>); }
+            }
 
-public class C<S, T>
-{
-    public void M() { }
-    public void M(T t, S s) { }
-    public void M<A>(A a) { }
-    public void M<A>(T t, S s, A a) { }
-    public void M<A>(A a, T t, S s) { }
-    public void M<A, B>(A a, B b) { }
-    public void M<A, B>(T t, S s, A a, B b) { }
-    public void M<A, B>(A a, B b, T t, S s) { }
-    public T GetT() { return default(T); } 
-    public S GetS() { return default(S); }
-    public C<S, T> GetCST() { return default(C<S,T>); }
-    public C<T, S> GetCTS() { return default(C<T, S>); }
-    public C<T, A> GetCTA<A>() { return default(C<T, A>); }
-}
-";
+            public class C<S, T>
+            {
+                public void M() { }
+                public void M(T t, S s) { }
+                public void M<A>(A a) { }
+                public void M<A>(T t, S s, A a) { }
+                public void M<A>(A a, T t, S s) { }
+                public void M<A, B>(A a, B b) { }
+                public void M<A, B>(T t, S s, A a, B b) { }
+                public void M<A, B>(A a, B b, T t, S s) { }
+                public T GetT() { return default(T); } 
+                public S GetS() { return default(S); }
+                public C<S, T> GetCST() { return default(C<S,T>); }
+                public C<T, S> GetCTS() { return default(C<T, S>); }
+                public C<T, A> GetCTA<A>() { return default(C<T, A>); }
+            }
+            """;
 
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
@@ -511,33 +497,33 @@ public class C<S, T>
     [Fact]
     public void TestLocals()
     {
-        var source = @"
-using System.Collections.Generic;
+        var source = """
+            using System.Collections.Generic;
 
-public class C
-{
-    public void M() {
-        int a, b;
-        if (a > b) {
-           int c = a + b;
-        }
+            public class C
+            {
+                public void M() {
+                    int a, b;
+                    if (a > b) {
+                       int c = a + b;
+                    }
 
-        {
-            string d = "";
-        }
+                    {
+                        string d = ";
+                    }
 
-        {
-            double d = 0.0;
-        }
+                    {
+                        double d = 0.0;
+                    }
 
-        {
-            bool d = false;
-        }
+                    {
+                        bool d = false;
+                    }
 
-        var q = new { };
-    }
-}
-";
+                    var q = new { };
+                }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => GetInteriorSymbols(ms, compilation).OfType<ILocalSymbol>()).ToList();
         Assert.Equal(7, symbols.Count);
@@ -547,19 +533,19 @@ public class C
     [Fact]
     public void TestLabels()
     {
-        var source = @"
-using System.Collections.Generic;
+        var source = """
+            using System.Collections.Generic;
 
-public class C
-{
-    public void M() {
-        start: goto end;
-        end: goto start;
-        end: ; // duplicate label
-        }
-    }
-}
-";
+            public class C
+            {
+                public void M() {
+                    start: goto end;
+                    end: goto start;
+                    end: ; // duplicate label
+                    }
+                }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => GetInteriorSymbols(ms, compilation).OfType<ILabelSymbol>()).ToList();
         Assert.Equal(3, symbols.Count);
@@ -569,24 +555,24 @@ public class C
     [Fact]
     public void TestRangeVariables()
     {
-        var source = @"
-using System.Collections.Generic;
+        var source = """
+            using System.Collections.Generic;
 
-public class C
-{
-    public void M() {
-        int[] xs = new int[] { 1, 2, 3, 4 };
-        
-        {
-            var q = from x in xs where x > 2 select x;
-        }
+            public class C
+            {
+                public void M() {
+                    int[] xs = new int[] { 1, 2, 3, 4 };
 
-        {
-            var q2 = from x in xs where x < 4 select x;
-        }
-    }
-}
-";
+                    {
+                        var q = from x in xs where x > 2 select x;
+                    }
+
+                    {
+                        var q2 = from x in xs where x < 4 select x;
+                    }
+                }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>().SelectMany(ms => GetInteriorSymbols(ms, compilation).OfType<IRangeVariableSymbol>()).ToList();
         Assert.Equal(2, symbols.Count);
@@ -596,24 +582,24 @@ public class C
     [Fact]
     public void TestMethodReferences()
     {
-        var source = @"
-public class C
-{
-    public void M() { }
-    public void M(int x) { }
-    public void M2<T>() { }
-    public void M2<T>(T t) { }
-    public T M3<T>(T t) { return default(T); }
-   
-    public void Test() {
-        M():
-        M(0);
-        M2<string>();
-        M2(0);
-        var tmp = M3(0);
-    }
-}
-";
+        var source = """
+            public class C
+            {
+                public void M() { }
+                public void M(int x) { }
+                public void M2<T>() { }
+                public void M2<T>(T t) { }
+                public T M3<T>(T t) { return default(T); }
+
+                public void Test() {
+                    M():
+                    M(0);
+                    M2<string>();
+                    M2(0);
+                    var tmp = M3(0);
+                }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree);
@@ -624,32 +610,32 @@ public class C
     [Fact]
     public void TestExtensionMethodReferences()
     {
-        var source = @"
-using System;
-using System.Collections.Generic;
+        var source = """
+            using System;
+            using System.Collections.Generic;
 
-public static class E 
-{
-    public static void Z(this C c) { }
-    public static void Z(this C c, int x) { }
-    public static void Z<T>(this T t, string y) { }
-    public static void Z<T>(this T t, T t2) { }
-    public static void Y<T, S>(this T t, S other) { }
-    public static TResult Select<TSource, TResult>(this IEnumerable<TSource> collection, Func<TSource, TResult> selector) { return null;}
-}
+            public static class E 
+            {
+                public static void Z(this C c) { }
+                public static void Z(this C c, int x) { }
+                public static void Z<T>(this T t, string y) { }
+                public static void Z<T>(this T t, T t2) { }
+                public static void Y<T, S>(this T t, S other) { }
+                public static TResult Select<TSource, TResult>(this IEnumerable<TSource> collection, Func<TSource, TResult> selector) { return null;}
+            }
 
-public class C
-{
-    public void M() {
-        this.Z();
-        this.Z(1);
-        this.Z(""test"");
-        this.Z(this);
-        this.Y(1.0);
-        new[] { 1, 2, 3 }.Select(
-    }
-}
-";
+            public class C
+            {
+                public void M() {
+                    this.Z();
+                    this.Z(1);
+                    this.Z("test");
+                    this.Z(this);
+                    this.Y(1.0);
+                    new[] { 1, 2, 3 }.Select(
+                }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree);
@@ -662,16 +648,16 @@ public class C
     [Fact]
     public void TestAliasSymbols()
     {
-        var source = @"
-using G=System.Collections.Generic;
-using GL=System.Collections.Generic.List<int>;
+        var source = """
+            using G=System.Collections.Generic;
+            using GL=System.Collections.Generic.List<int>;
 
-public class C
-{
-    public G.List<int> F;
-    public GL F2;
-}
-";
+            public class C
+            {
+                public G.List<int> F;
+                public GL F2;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree);
@@ -690,13 +676,13 @@ public class C
     [Fact]
     public void TestDynamicSymbols()
     {
-        var source = @"
-public class C
-{
-    public dynamic F;
-    public dynamic[] F2;
-}
-";
+        var source = """
+            public class C
+            {
+                public dynamic F;
+                public dynamic[] F2;
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree);
@@ -709,12 +695,12 @@ public class C
     [Fact]
     public void TestSelfReferentialGenericMethod()
     {
-        var source = @"
-public class C
-{
-    public void M<S, T>() { }
-}
-";
+        var source = """
+            public class C
+            {
+                public void M<S, T>() { }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree);
@@ -728,11 +714,11 @@ public class C
     [Fact]
     public void TestSelfReferentialGenericType()
     {
-        var source = @"
-public class C<S, T>
-{
-}
-";
+        var source = """
+            public class C<S, T>
+            {
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree);
@@ -746,13 +732,14 @@ public class C<S, T>
     [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
     public void TestNestedGenericType()
     {
-        var source = @"
-public class A<TOuter>
-{
-    public class B<TInner>
-    {
-    }
-}";
+        var source = """
+            public class A<TOuter>
+            {
+                public class B<TInner>
+                {
+                }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree);
@@ -766,16 +753,17 @@ public class A<TOuter>
     [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=235912&_a=edit")]
     public void TestNestedGenericType1()
     {
-        var source = @"
-using System.Collections.Generic;
+        var source = """
+            using System.Collections.Generic;
 
-public class A<T1>
-{
-    public class B<T2>
-    {
-        void M<T3>(T1 t1, T2, T3 t3, List<int> l1, List<T3> l2) { }
-    }
-}";
+            public class A<T1>
+            {
+                public class B<T2>
+                {
+                    void M<T3>(T1 t1, T2, T3 t3, List<int> l1, List<T3> l2) { }
+                }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var tree = compilation.SyntaxTrees.First();
         var model = compilation.GetSemanticModel(tree);
@@ -845,19 +833,19 @@ public class A<T1>
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11193")]
     public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel()
     {
-        var markup = @"
-class C
-{
-    void goo()
-    {
-        System.Func<int> lambda = () => 
-        {
-        int x;
-        $$
-        }
-    }
-}";
-        MarkupTestFile.GetPosition(markup, out var text, out int position);
+        MarkupTestFile.GetPosition("""
+            class C
+            {
+                void goo()
+                {
+                    System.Func<int> lambda = () => 
+                    {
+                    int x;
+                    $$
+                    }
+                }
+            }
+            """, out var text, out int position);
 
         var sourceText = SourceText.From(text);
         var workspace = new AdhocWorkspace();
@@ -889,22 +877,22 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11193")]
     public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel_InProperty()
     {
-        var markup = @"
-class C
-{
-    int Prop
-    {
-        get
-        {
-            System.Func<int> lambda = () => 
+        MarkupTestFile.GetPosition("""
+            class C
             {
-                int x;
-                $$
+                int Prop
+                {
+                    get
+                    {
+                        System.Func<int> lambda = () => 
+                        {
+                            int x;
+                            $$
+                        }
+                    }
+                }
             }
-        }
-    }
-}";
-        MarkupTestFile.GetPosition(markup, out var text, out int position);
+            """, out var text, out int position);
 
         var sourceText = SourceText.From(text);
         var workspace = new AdhocWorkspace();
@@ -936,18 +924,18 @@ class C
     [Fact]
     public void TestGenericMethodTypeParameterMissing1()
     {
-        var source1 = @"
-public class C
-{
-    void M<T>(T t) { }
-}
-";
+        var source1 = """
+            public class C
+            {
+                void M<T>(T t) { }
+            }
+            """;
 
-        var source2 = @"
-public class C
-{
-}
-";
+        var source2 = """
+            public class C
+            {
+            }
+            """;
 
         var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
         var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
@@ -963,19 +951,20 @@ public class C
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
     public void TestConstructedMethodInsideLocalFunctionWithTypeParameters()
     {
-        var source = @"
-using System.Linq;
+        var source = """
+            using System.Linq;
 
-class C
-{
-    void Method()
-    {
-        object LocalFunction<T>()
-        {
-            return Enumerable.Empty<T>();
-        }
-    }
-}";
+            class C
+            {
+                void Method()
+                {
+                    object LocalFunction<T>()
+                    {
+                        return Enumerable.Empty<T>();
+                    }
+                }
+            }
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var symbols = GetAllSymbols(
             compilation.GetSemanticModel(compilation.SyntaxTrees.Single()),
@@ -1004,15 +993,16 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17702")]
     public void TestTupleWithLocalTypeReferences1()
     {
-        var source = @"
-using System.Linq;
+        var source = """
+            using System.Linq;
 
-class C
-{
-    void Method((C, int) t)
-    {
-    }
-}";
+            class C
+            {
+                void Method((C, int) t)
+                {
+                }
+            }
+            """;
         // Tuples store locations along with them.  But we can only recover those locations
         // if we're re-resolving into a compilation with the same files.
         var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs");
@@ -1041,15 +1031,16 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17702")]
     public void TestTupleWithLocalTypeReferences2()
     {
-        var source = @"
-using System.Linq;
+        var source = """
+            using System.Linq;
 
-class C
-{
-    void Method((C a, int b) t)
-    {
-    }
-}";
+            class C
+            {
+                void Method((C a, int b) t)
+                {
+                }
+            }
+            """;
         // Tuples store locations along with them.  But we can only recover those locations
         // if we're re-resolving into a compilation with the same files.
         var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs");
@@ -1078,11 +1069,12 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
     public void TestErrorType_CSharp()
     {
-        var source = @"
-class C
-{
-    int i { get; }
-}";
+        var source = """
+            class C
+            {
+                int i { get; }
+            }
+            """;
 
         // We don't add metadata references, so even `int` will be an error type.
         var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", []);
@@ -1114,10 +1106,11 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
     public void TestErrorType_VB()
     {
-        var source = @"
-class C
-    public readonly property i as integer
-end class";
+        var source = """
+            class C
+                public readonly property i as integer
+            end class
+            """;
 
         // We don't add metadata references, so even `int` will be an error type.
         var compilation1 = GetCompilation(source, LanguageNames.VisualBasic, "File1.vb", []);
@@ -1149,20 +1142,22 @@ end class";
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
     public void TestErrorTypeInNestedNamespace()
     {
-        var source1 = @"
-public class C
-{
-    public System.Collections.IEnumerable I { get; }
-}";
+        var source1 = """
+            public class C
+            {
+                public System.Collections.IEnumerable I { get; }
+            }
+            """;
 
-        var source2 = @"
-class X
-{
-    void M()
-    {
-        new C().I;
-    }
-}";
+        var source2 = """
+            class X
+            {
+                void M()
+                {
+                    new C().I;
+                }
+            }
+            """;
 
         // We don't add metadata to the second compilation, so even `System.Collections.IEnumerable` will be an
         // error type.
@@ -1199,17 +1194,19 @@ class X
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14365")]
     public void TestErrorTypeInNestedNamespace_VB()
     {
-        var source1 = @"
-public class C
-    public readonly property I as System.Collections.IEnumerable
-end class";
+        var source1 = """
+            public class C
+                public readonly property I as System.Collections.IEnumerable
+            end class
+            """;
 
-        var source2 = @"
-class X
-    sub M()
-        dim y = new C().I;
-    end sub
-end class";
+        var source2 = """
+            class X
+                sub M()
+                    dim y = new C().I;
+                end sub
+            end class
+            """;
 
         // We don't add metadata to the second compilation, so even `System.Collections.IEnumerable` will be an
         // error type.
@@ -1246,12 +1243,13 @@ end class";
     [Fact]
     public void TestFunctionPointerTypeSymbols()
     {
-        var source = @"
-class C
-{
-    public delegate*<ref string, out int, in C, ref C> ptr1;
-    public delegate*<ref readonly C> ptr1;
-}";
+        var source = """
+            class C
+            {
+                public delegate*<ref string, out int, in C, ref C> ptr1;
+                public delegate*<ref readonly C> ptr1;
+            }
+            """;
 
         var comp = GetCompilation(source, LanguageNames.CSharp);
         var fields = GetDeclaredSymbols(comp).OfType<IFieldSymbol>().Select(f => f.Type);
@@ -1261,11 +1259,12 @@ class C
     [Fact]
     public void TestGenericErrorType()
     {
-        var source1 = @"
-public class C
-{
-    public Goo<X> G() { }
-}";
+        var source1 = """
+            public class C
+            {
+                public Goo<X> G() { }
+            }
+            """;
 
         // We don't add metadata to the second compilation, so even `System.Collections.IEnumerable` will be an
         // error type.
@@ -1324,81 +1323,81 @@ public class C
     [Fact]
     public void TestBodySymbolsWithEdits()
     {
-        var source = @"
-using System.Collections.Generic;
-using System.Linq;
+        var source = """
+            using System.Collections.Generic;
+            using System.Linq;
 
-public class C
-{
-    public void M()
-    {
-        void InteriorMethod()
-        {
-            int a, b;
-            if (a > b) {
-               int c = a + b;
-            }
-
+            public class C
             {
-                string d = "";
-            }
-
-            {
-                double d = 0.0;
-            }
-
-            {
-                bool d = false;
-            }
-
-            var q = new { };
-
-            int[] xs = new int[] { 1, 2, 3, 4 };
-
-            {
-                var q = from x in xs where x > 2 select x;
-            }
-
-            {
-                var q2 = from x in xs where x < 4 select x;
-            }
-
-            start: goto end;
-            end: goto start;
-            end: ; // duplicate label
-
-            DeepLocalFunction();
-
-            void DeepLocalFunction()
-            {
-                int[] xs = new int[] { 1, 2, 3, 4 };
-
+                public void M()
                 {
-                    string d = "";
-                }
+                    void InteriorMethod()
+                    {
+                        int a, b;
+                        if (a > b) {
+                           int c = a + b;
+                        }
 
-                {
-                    double d = 0.0;
-                }
+                        {
+                            string d = ";
+                        }
 
-                {
-                    bool d = false;
-                }
+                        {
+                            double d = 0.0;
+                        }
 
-                {
-                    var q = from x in xs where x > 2 select x;
-                }
+                        {
+                            bool d = false;
+                        }
 
-                {
-                    var q2 = from x in xs where x < 4 select x;
-                }
+                        var q = new { };
 
-                InteriorMethod();
+                        int[] xs = new int[] { 1, 2, 3, 4 };
+
+                        {
+                            var q = from x in xs where x > 2 select x;
+                        }
+
+                        {
+                            var q2 = from x in xs where x < 4 select x;
+                        }
+
+                        start: goto end;
+                        end: goto start;
+                        end: ; // duplicate label
+
+                        DeepLocalFunction();
+
+                        void DeepLocalFunction()
+                        {
+                            int[] xs = new int[] { 1, 2, 3, 4 };
+
+                            {
+                                string d = ";
+                            }
+
+                            {
+                                double d = 0.0;
+                            }
+
+                            {
+                                bool d = false;
+                            }
+
+                            {
+                                var q = from x in xs where x > 2 select x;
+                            }
+
+                            {
+                                var q2 = from x in xs where x < 4 select x;
+                            }
+
+                            InteriorMethod();
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-";
+            """;
         var compilation = GetCompilation(source, LanguageNames.CSharp);
         var methods = GetDeclaredSymbols(compilation).OfType<IMethodSymbol>();
         var symbols = methods.SelectMany(ms => GetInteriorSymbols(ms, compilation)).Where(s => SymbolKey.IsBodyLevelSymbol(s)).ToList();

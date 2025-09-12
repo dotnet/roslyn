@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
@@ -23,44 +24,43 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 [Name("OnTheFlyDocsElement converter")]
 [TypeConversion(from: typeof(QuickInfoOnTheFlyDocsElement), to: typeof(UIElement))]
 [Order(Before = "Default")]
-internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class OnTheFlyDocsViewFactory(
+    IViewElementFactoryService factoryService,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    IAsyncQuickInfoBroker asyncQuickInfoBroker,
+    IThreadingContext threadingContext,
+    SVsServiceProvider serviceProvider) : IViewElementFactory
 {
-    private readonly IViewElementFactoryService _factoryService;
-    private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-    private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
-    private readonly IThreadingContext _threadingContext;
-    private readonly IServiceProvider _serviceProvider;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IAsynchronousOperationListenerProvider listenerProvider,
-        IAsyncQuickInfoBroker asyncQuickInfoBroker, IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
-    {
-        _factoryService = factoryService;
-        _listenerProvider = listenerProvider;
-        _asyncQuickInfoBroker = asyncQuickInfoBroker;
-        _threadingContext = threadingContext;
-        _serviceProvider = serviceProvider;
-    }
+    private readonly IViewElementFactoryService _factoryService = factoryService;
+    private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
+    private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker = asyncQuickInfoBroker;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
 
     public TView? CreateViewElement<TView>(ITextView textView, object model) where TView : class
     {
-        if (typeof(TView) != typeof(UIElement))
+        try
         {
-            throw new InvalidOperationException("TView must be UIElement");
+            return CreateViewElementWorker<TView>(textView, model);
         }
+        catch (Exception e) when (FatalError.ReportAndCatch(e))
+        {
+            return null;
+        }
+    }
+
+    private TView? CreateViewElementWorker<TView>(ITextView textView, object model) where TView : class
+    {
+        if (typeof(TView) != typeof(UIElement))
+            throw new InvalidOperationException("TView must be UIElement");
 
         var onTheFlyDocsElement = (QuickInfoOnTheFlyDocsElement)model;
 
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, logLevel: LogLevel.Information);
 
-        var quickInfoSession = _asyncQuickInfoBroker.GetSession(textView);
-
-        if (quickInfoSession is null)
-        {
-            throw new InvalidOperationException("QuickInfoSession is null");
-        }
-
+        var quickInfoSession = _asyncQuickInfoBroker.GetSession(textView) ?? throw new InvalidOperationException("QuickInfoSession is null");
         OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLink();
 
         if (onTheFlyDocsElement.Info.HasComments)

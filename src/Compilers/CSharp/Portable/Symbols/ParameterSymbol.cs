@@ -255,6 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract ConstantValue? ExplicitDefaultConstantValue { get; }
 
         /// <summary>
+        /// Returns the default value from attributes on the parameter,
+        /// for symbols from source or derived from source symbols.
+        /// Returns null when not applicable.
+        /// </summary>
+        internal abstract ConstantValue? DefaultValueFromAttributes { get; }
+
+        /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
         public sealed override SymbolKind Kind
@@ -429,6 +436,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <c>UnscopedRefAttribute</c>.
         /// </summary>
         internal abstract ScopedKind EffectiveScope { get; }
+
+        /// <summary>
+        /// Only valid for parameters declared in source.
+        /// </summary>
+        internal abstract ScopedKind DeclaredScope { get; }
 
         internal abstract bool HasUnscopedRefAttribute { get; }
 

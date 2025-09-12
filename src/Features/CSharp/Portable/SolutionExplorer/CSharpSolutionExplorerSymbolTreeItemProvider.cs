@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;

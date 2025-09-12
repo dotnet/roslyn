@@ -13,137 +13,108 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class OperatorKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestAfterImplicit()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterImplicit()
+        => VerifyKeywordAsync(
             """
             class Goo {
                 public static implicit $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterExplicit()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterExplicit()
+        => VerifyKeywordAsync(
             """
             class Goo {
                 public static explicit $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterType()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterType()
+        => VerifyAbsenceAsync(
             """
             class Goo {
                 int $$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
-    public async Task TestAfterPublicStaticType()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterPublicStaticType()
+        => VerifyAbsenceAsync(
             """
             class Goo {
                 public static int $$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
-    public async Task TestAfterPublicStaticExternType()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterPublicStaticExternType()
+        => VerifyAbsenceAsync(
             """
             class Goo {
                 public static extern int $$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542271")]
-    public async Task TestAfterGenericType()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestAfterGenericType()
+        => VerifyAbsenceAsync(
             """
             class Goo {
                 public static IList<int> $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInInterface()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInInterface()
+        => VerifyAbsenceAsync(
             """
             interface Goo {
                 public static int $$
             """);
-    }
 
     [Fact]
-    public async Task TestWithinExtension1()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestWithinExtension1()
+        => VerifyAbsenceAsync(
             """
             static class C
             {
@@ -153,12 +124,10 @@ public sealed class OperatorKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """, CSharpNextParseOptions);
-    }
 
     [Fact]
-    public async Task TestWithinExtension2()
-    {
-        await VerifyKeywordAsync(
+    public Task TestWithinExtension2()
+        => VerifyKeywordAsync(
             """
             static class C
             {
@@ -170,5 +139,4 @@ public sealed class OperatorKeywordRecommenderTests : KeywordRecommenderTests
             """,
             CSharpNextParseOptions,
             CSharpNextScriptParseOptions);
-    }
 }

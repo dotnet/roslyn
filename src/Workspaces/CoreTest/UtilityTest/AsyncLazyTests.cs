@@ -183,7 +183,7 @@ public sealed partial class AsyncLazyTests
         try
         {
             doGetValue(lazy, cancellationTokenSource.Token);
-            AssertEx.Fail(nameof(AsyncLazy<object>.GetValue) + " did not throw an exception.");
+            AssertEx.Fail(nameof(AsyncLazy<>.GetValue) + " did not throw an exception.");
         }
         catch (OperationCanceledException oce)
         {
@@ -211,7 +211,7 @@ public sealed partial class AsyncLazyTests
         try
         {
             task.Wait();
-            AssertEx.Fail(nameof(AsyncLazy<object>.GetValueAsync) + " did not throw an exception.");
+            AssertEx.Fail(nameof(AsyncLazy<>.GetValueAsync) + " did not throw an exception.");
         }
         catch (AggregateException ex)
         {

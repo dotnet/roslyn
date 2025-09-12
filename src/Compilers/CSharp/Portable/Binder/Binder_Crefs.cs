@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -222,30 +223,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Symbol> BindExtensionMemberCref(ExtensionMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/78967 : cref, handle extension operators
             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
 
-            if (containerOpt is not NamedTypeSymbol namedContainer)
-            {
-                ambiguityWinner = null;
-                return ImmutableArray<Symbol>.Empty;
-            }
-
-            ImmutableArray<Symbol> sortedSymbols = default;
             int arity = 0;
             TypeArgumentListSyntax? typeArgumentListSyntax = null;
             CrefParameterListSyntax? parameters = null;
+            string? memberName = null;
 
             if (syntax.Member is NameMemberCrefSyntax { Name: SimpleNameSyntax simpleName } nameMember)
             {
                 arity = simpleName.Arity;
                 typeArgumentListSyntax = simpleName is GenericNameSyntax genericName ? genericName.TypeArgumentList : null;
                 parameters = nameMember.Parameters;
-
-                TypeArgumentListSyntax? extensionTypeArguments = syntax.TypeArgumentList;
-                int extensionArity = extensionTypeArguments?.Arguments.Count ?? 0;
-                sortedSymbols = computeSortedAndFilteredCrefExtensionMembers(namedContainer, simpleName.Identifier.ValueText, extensionArity, arity, extensionTypeArguments, diagnostics, syntax);
+                memberName = simpleName.Identifier.ValueText;
             }
+            else if (syntax.Member is OperatorMemberCrefSyntax operatorSyntax)
+            {
+                memberName = GetOperatorMethodName(operatorSyntax);
+                parameters = operatorSyntax.Parameters;
+            }
+
+            if (memberName == null)
+            {
+                ambiguityWinner = null;
+                return ImmutableArray<Symbol>.Empty;
+            }
+
+            TypeArgumentListSyntax? extensionTypeArguments = syntax.TypeArgumentList;
+            int extensionArity = extensionTypeArguments?.Arguments.Count ?? 0;
+            ImmutableArray<Symbol> sortedSymbols = computeSortedAndFilteredCrefExtensionMembers(containerOpt, memberName, extensionArity, arity, extensionTypeArguments, diagnostics, syntax);
 
             if (sortedSymbols.IsDefaultOrEmpty)
             {
@@ -257,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return ProcessCrefMemberLookupResults(sortedSymbols, arity, syntax, typeArgumentListSyntax, parameters, out ambiguityWinner, diagnostics);
 
-            ImmutableArray<Symbol> computeSortedAndFilteredCrefExtensionMembers(NamedTypeSymbol container, string name, int extensionArity, int arity, TypeArgumentListSyntax? extensionTypeArguments, BindingDiagnosticBag diagnostics, ExtensionMemberCrefSyntax syntax)
+            ImmutableArray<Symbol> computeSortedAndFilteredCrefExtensionMembers(NamespaceOrTypeSymbol? containerOpt, string name, int extensionArity, int arity, TypeArgumentListSyntax? extensionTypeArguments, BindingDiagnosticBag diagnostics, ExtensionMemberCrefSyntax syntax)
             {
                 Debug.Assert(name is not null);
 
@@ -284,9 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 ArrayBuilder<Symbol>? sortedSymbolsBuilder = null;
 
-                foreach (var nested in container.GetTypeMembers())
+                foreach (var nested in candidateTypes(containerOpt))
                 {
-                    if (!nested.IsExtension || nested.Arity != extensionArity || nested.ExtensionParameter is null)
+                    if (!nested.IsExtension
+                        || nested.Arity != extensionArity
+                        || nested.ExtensionParameter is null
+                        || nested is not { ContainingType: { ContainingType: null } }) // only consider extension blocks in top-level types
                     {
                         continue;
                     }
@@ -353,6 +362,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return sortedSymbolsBuilder.ToImmutableAndFree();
+
+                ImmutableArray<NamedTypeSymbol> candidateTypes(NamespaceOrTypeSymbol? containerOpt)
+                {
+                    if (containerOpt is NamedTypeSymbol namedType)
+                    {
+                        return namedType.GetTypeMembers("");
+                    }
+
+                    NamedTypeSymbol? containingType = ContainingType;
+                    if (containingType is null)
+                    {
+                        return [];
+                    }
+
+                    NamedTypeSymbol? enclosingType = containingType.IsExtension ? containingType.ContainingType : containingType;
+                    return enclosingType?.GetTypeMembers("") ?? [];
+                }
             }
         }
 
@@ -362,7 +388,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const int arity = 0;
 
-            CrefParameterListSyntax? parameterListSyntax = syntax.Parameters;
+            string? memberName = GetOperatorMethodName(syntax);
+
+            if (memberName == null)
+            {
+                ambiguityWinner = null;
+                return ImmutableArray<Symbol>.Empty;
+            }
+
+            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, memberNameText: memberName, arity, syntax.Parameters != null, diagnostics);
+
+            if (sortedSymbols.IsEmpty)
+            {
+                ambiguityWinner = null;
+                return ImmutableArray<Symbol>.Empty;
+            }
+
+            return ProcessCrefMemberLookupResults(
+                sortedSymbols,
+                arity,
+                syntax,
+                typeArgumentListSyntax: null,
+                parameterListSyntax: syntax.Parameters,
+                ambiguityWinner: out ambiguityWinner,
+                diagnostics: diagnostics);
+        }
+
+        private static string? GetOperatorMethodName(OperatorMemberCrefSyntax syntax)
+        {
             bool isChecked = syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword);
 
             SyntaxKind operatorTokenKind = syntax.OperatorToken.Kind();
@@ -374,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                CrefParameterListSyntax? parameterListSyntax = syntax.Parameters;
+
                 // NOTE: Prefer binary to unary, unless there is exactly one parameter.
                 // CONSIDER: we're following dev11 by never using a binary operator name if there's
                 // exactly one parameter, but doing so would allow us to match single-parameter constructors.
@@ -394,29 +449,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (memberName == null ||
+            if (memberName != null &&
                 (isChecked && !syntax.OperatorToken.IsMissing && !SyntaxFacts.IsCheckedOperator(memberName))) // the operator cannot be checked
             {
-                ambiguityWinner = null;
-                return ImmutableArray<Symbol>.Empty;
+                memberName = null;
             }
 
-            ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, memberNameText: memberName, arity, syntax.Parameters != null, diagnostics);
-
-            if (sortedSymbols.IsEmpty)
-            {
-                ambiguityWinner = null;
-                return ImmutableArray<Symbol>.Empty;
-            }
-
-            return ProcessCrefMemberLookupResults(
-                sortedSymbols,
-                arity,
-                syntax,
-                typeArgumentListSyntax: null,
-                parameterListSyntax: parameterListSyntax,
-                ambiguityWinner: out ambiguityWinner,
-                diagnostics: diagnostics);
+            return memberName;
         }
 
         // NOTE: not guaranteed to be a method (e.g. class op_Implicit)

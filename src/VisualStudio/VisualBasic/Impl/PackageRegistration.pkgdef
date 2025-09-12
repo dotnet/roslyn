@@ -32,11 +32,6 @@
 "Name"="Visual Basic Project System Shim"
 "IsAsyncQueryable"=dword:00000001
 
-[$RootKey$\Services\{8df9750d-069b-4b81-973a-152e97420c5c}]
-@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-"Name"="Visual Basic TempPE Compiler Factory Service"
-"IsAsyncQueryable"=dword:00000001
-
 [$RootKey$\AutomationProperties\TextEditor\Basic-Specific]
 @="#104"
 "Description"="#106"

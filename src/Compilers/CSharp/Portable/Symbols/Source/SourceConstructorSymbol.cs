@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -46,8 +47,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
-                // This is probably a method declaration with the type missing.
-                diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
+                if (syntax.Identifier.Text == "extension")
+                {
+                    bool reported = !MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
+                    Debug.Assert(reported);
+                }
+                else
+                {
+                    // This is probably a method declaration with the type missing.
+                    diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
+                }
             }
 
             bool hasAnyBody = syntax.HasAnyBody();

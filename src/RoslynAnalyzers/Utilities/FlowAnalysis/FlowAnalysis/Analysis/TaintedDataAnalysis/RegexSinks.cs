@@ -26,10 +26,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ( "IsMatch", new[] { "pattern" }),
-                    ( "Match", new[] { "pattern" }),
-                    ( "Matches", new[] { "pattern" }),
-                    ( "Replace", new[] { "pattern" }),
-                    ( "Split", new[] { "pattern" }),
+                    ( "Match", ["pattern"]),
+                    ( "Matches", ["pattern"]),
+                    ( "Replace", ["pattern"]),
+                    ( "Split", ["pattern"]),
                 });
 
             SinkInfos = builder.ToImmutableAndFree();

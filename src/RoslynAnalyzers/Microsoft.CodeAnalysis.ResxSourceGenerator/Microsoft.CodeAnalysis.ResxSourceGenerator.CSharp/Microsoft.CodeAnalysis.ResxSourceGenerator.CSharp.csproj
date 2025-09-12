@@ -9,10 +9,20 @@
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+        <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj" />

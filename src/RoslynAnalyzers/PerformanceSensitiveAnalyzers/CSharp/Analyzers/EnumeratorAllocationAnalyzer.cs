@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                 if ((enumerator == null || enumerator.IsEmpty) && typeInfo.Type.Interfaces != null)
                 {
                     // 2nd fallback, now we try and find the IEnumerable Interface explicitly
-                    var iEnumerable = typeInfo.Type.Interfaces.Where(i => i.Name == "IEnumerable").ToImmutableArray();
+                    var iEnumerable = typeInfo.Type.Interfaces.WhereAsArray(i => i.Name == "IEnumerable");
                     if (iEnumerable != null && !iEnumerable.IsEmpty)
                     {
                         enumerator = iEnumerable[0].GetMembers("GetEnumerator");

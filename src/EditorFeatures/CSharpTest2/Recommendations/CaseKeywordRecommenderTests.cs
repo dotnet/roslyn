@@ -12,148 +12,117 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class CaseKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterExpr()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterExpr()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = goo $$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterDottedName()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterDottedName()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = goo.Current $$"));
-    }
 
     [Fact]
-    public async Task TestAfterSwitch()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterSwitch()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterCase()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterCase()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 case 0:
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterDefault()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterDefault()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterPatternCase()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterPatternCase()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 case String s:
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterOneStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterOneStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                   Console.WriteLine();
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterOneStatementPatternCase()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterOneStatementPatternCase()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 case String s:
                   Console.WriteLine();
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterTwoStatements()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterTwoStatements()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
@@ -161,36 +130,30 @@ public sealed class CaseKeywordRecommenderTests : KeywordRecommenderTests
                   Console.WriteLine();
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterBlock()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default: {
                 }
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterBlockPatternCase()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterBlockPatternCase()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 case String s: {
                 }
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterIfElse()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterIfElse()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
@@ -199,35 +162,29 @@ public sealed class CaseKeywordRecommenderTests : KeywordRecommenderTests
                   }
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterIncompleteStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterIncompleteStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                    Console.WriteLine(
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotInsideBlock()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInsideBlock()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             switch (expr) {
                 default: {
                   $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterIf()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterIf()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
@@ -235,24 +192,20 @@ public sealed class CaseKeywordRecommenderTests : KeywordRecommenderTests
                     Console.WriteLine();
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterIf()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterIf()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                   if (goo)
                     $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterWhile()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterWhile()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
@@ -260,23 +213,18 @@ public sealed class CaseKeywordRecommenderTests : KeywordRecommenderTests
                   }
                 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterGotoInSwitch()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterGotoInSwitch()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (expr) {
                 default:
                   goto $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterGotoOutsideSwitch()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterGotoOutsideSwitch()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"goto $$"));
-    }
 }

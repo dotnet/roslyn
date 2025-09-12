@@ -300,6 +300,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal override string ExtensionGroupingName
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override string ExtensionMarkerName
+            => throw ExceptionUtilities.Unreachable();
+
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
         {
             private readonly NativeIntegerTypeSymbol _type;
@@ -368,11 +374,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
+        {
+            if (UnderlyingMethod.TryGetThisParameter(out ParameterSymbol? underlyingThisParameter))
+            {
+                thisParameter = underlyingThisParameter != null
+                    ? new ThisParameterSymbol(this, _container)
+                    : null;
+                return true;
+            }
+
+            thisParameter = null;
+            return false;
+        }
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => UnderlyingMethod.RefCustomModifiers;
 
         internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => UnderlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
 
         public override Symbol? AssociatedSymbol => _associatedSymbol;
 

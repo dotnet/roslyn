@@ -16,9 +16,8 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
     protected override string SnippetIdentifier => "foreach";
 
     [Fact]
-    public async Task InsertForEachSnippetInMethodTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetInMethodTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -38,12 +37,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertForEachSnippetInMethodItemUsedTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetInMethodItemUsedTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -65,12 +62,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertForEachSnippetInGlobalContextTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetInGlobalContextTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             foreach (var {|0:item|} in {|1:collection|})
@@ -78,12 +73,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertForEachSnippetInConstructorTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetInConstructorTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -103,12 +96,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertForEachSnippetWithCollectionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetWithCollectionTest()
+        => VerifySnippetAsync("""
             using System.Collections.Generic;
 
             class Program
@@ -134,12 +125,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertForEachSnippetInLocalFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetInLocalFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -167,12 +156,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertForEachSnippetInAnonymousFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetInAnonymousFunctionTest()
+        => VerifySnippetAsync("""
             public delegate void Print(int value);
 
             static void Main(string[] args)
@@ -196,12 +183,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 };
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertForEachSnippetInParenthesizedLambdaExpressionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetInParenthesizedLambdaExpressionTest()
+        => VerifySnippetAsync("""
             using System;
 
             Func<int, int, bool> testForEquality = (x, y) =>
@@ -221,13 +206,11 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 return x == y;
             };
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType)
+        => VerifySnippetAsync($$"""
             class C
             {
                 void M({{collectionType}} enumerable)
@@ -247,12 +230,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineForEachSnippetForIncorrectTypeTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineForEachSnippetForIncorrectTypeTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 void M(int arg)
@@ -261,12 +242,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineForEachSnippetWhenNotDirectlyExpressionStatementTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineForEachSnippetWhenNotDirectlyExpressionStatementTest()
+        => VerifySnippetIsAbsentAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -278,15 +257,13 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("// comment")]
     [InlineData("/* comment */")]
     [InlineData("#region test")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 void M(int[] arr)
@@ -308,15 +285,13 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("#if true")]
     [InlineData("#pragma warning disable CS0108")]
     [InlineData("#nullable enable")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 void M(int[] arr)
@@ -338,14 +313,12 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("// comment")]
     [InlineData("/* comment */")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+        => VerifySnippetAsync($$"""
             {{trivia}}
             (new int[10]).$$
             """, $$"""
@@ -355,16 +328,14 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("#region test")]
     [InlineData("#if true")]
     [InlineData("#pragma warning disable CS0108")]
     [InlineData("#nullable enable")]
-    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
-    {
-        await VerifySnippetAsync($$"""
+    public Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+        => VerifySnippetAsync($$"""
             {{trivia}}
             (new int[10]).$$
             """, $$"""
@@ -375,14 +346,12 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("")]
     [InlineData("async ")]
-    public async Task InsertForEachSnippetAfterSingleAwaitKeywordInMethodBodyTest(string asyncKeyword)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertForEachSnippetAfterSingleAwaitKeywordInMethodBodyTest(string asyncKeyword)
+        => VerifySnippetAsync($$"""
             class C
             {
                 {{asyncKeyword}}void M()
@@ -403,12 +372,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
-    }
 
     [Fact]
-    public async Task InsertForEachSnippetAfterSingleAwaitKeywordInGlobalStatementTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertForEachSnippetAfterSingleAwaitKeywordInGlobalStatementTest()
+        => VerifySnippetAsync("""
             await $$
             """, """
             await foreach (var {|0:item|} in {|1:collection|})
@@ -417,23 +384,19 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
-    }
 
     [Fact]
-    public async Task NoForEachStatementAfterAwaitKeywordWhenWontResultInStatementTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoForEachStatementAfterAwaitKeywordWhenWontResultInStatementTest()
+        => VerifySnippetIsAbsentAsync("""
             var result = await $$
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
-    }
 
     [Theory]
     [InlineData("")]
     [InlineData("async ")]
-    public async Task PreferAsyncEnumerableVariableInScopeForAwaitForEachTest(string asyncKeyword)
-    {
-        await VerifySnippetAsync($$"""
+    public Task PreferAsyncEnumerableVariableInScopeForAwaitForEachTest(string asyncKeyword)
+        => VerifySnippetAsync($$"""
             using System.Collections.Generic;
             
             class C
@@ -464,14 +427,12 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
-    }
 
     [Theory]
     [InlineData("")]
     [InlineData("async ")]
-    public async Task InsertAwaitForEachSnippetForPostfixAsyncEnumerableTest(string asyncKeyword)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertAwaitForEachSnippetForPostfixAsyncEnumerableTest(string asyncKeyword)
+        => VerifySnippetAsync($$"""
             using System.Collections.Generic;
             
             class C
@@ -496,12 +457,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-    public async Task InsertInlineForEachSnippetWhenDottingBeforeContextualKeywordTest1()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineForEachSnippetWhenDottingBeforeContextualKeywordTest1()
+        => VerifySnippetAsync("""
             using System.Collections.Generic;
 
             class C
@@ -527,12 +486,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-    public async Task InsertInlineForEachSnippetWhenDottingBeforeContextualKeywordTest2()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineForEachSnippetWhenDottingBeforeContextualKeywordTest2()
+        => VerifySnippetAsync("""
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
@@ -560,15 +517,13 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
     [InlineData("Task")]
     [InlineData("Task<int>")]
     [InlineData("System.Threading.Tasks.Task<int>")]
-    public async Task InsertInlineForEachSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineForEachSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        => VerifySnippetAsync($$"""
             using System.Threading.Tasks;
             using System.Collections.Generic;
 
@@ -596,12 +551,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertInlineForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
+        => VerifySnippetAsync("""
             using System;
 
             class C
@@ -627,12 +580,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
+        => VerifySnippetIsAbsentAsync("""
             using System;
 
             class C
@@ -643,12 +594,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoInlineForEachSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineForEachSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
+        => VerifySnippetIsAbsentAsync("""
             using System;
 
             class C
@@ -659,12 +608,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-    public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordTest1()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordTest1()
+        => VerifySnippetAsync("""
             using System.Collections.Generic;
             
             class C
@@ -691,12 +638,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-    public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordTest2()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordTest2()
+        => VerifySnippetAsync("""
             using System.Threading.Tasks;
             using System.Collections.Generic;
             
@@ -725,15 +670,13 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
     [InlineData("Task")]
     [InlineData("Task<int>")]
     [InlineData("System.Threading.Tasks.Task<int>")]
-    public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineAwaitForEachSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        => VerifySnippetAsync($$"""
             using System.Threading.Tasks;
             using System.Collections.Generic;
             
@@ -762,12 +705,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
-    }
 
     [Fact]
-    public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertInlineAwaitForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
+        => VerifySnippetAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -796,12 +737,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net80);
-    }
 
     [Fact]
-    public async Task NoInlineAwaitForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineAwaitForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
+        => VerifySnippetIsAbsentAsync("""
             using System.Collections.Generic;
 
             class C
@@ -813,12 +752,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net80);
-    }
 
     [Fact]
-    public async Task NoInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
+        => VerifySnippetIsAbsentAsync("""
             using System.Collections.Generic;
 
             class C
@@ -830,13 +767,11 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net80);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineForEachSnippetForTypeItselfTest(string collectionType)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineForEachSnippetForTypeItselfTest(string collectionType)
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M()
@@ -845,13 +780,11 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineForEachSnippetForTypeItselfTest_Parenthesized(string collectionType)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineForEachSnippetForTypeItselfTest_Parenthesized(string collectionType)
+        => VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M()
@@ -860,13 +793,11 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineForEachSnippetForTypeItselfTest_BeforeContextualKeyword(string collectionType)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task NoInlineForEachSnippetForTypeItselfTest_BeforeContextualKeyword(string collectionType)
+        => VerifySnippetIsAbsentAsync($$"""
             using System.Threading.Tasks;
 
             class C
@@ -878,15 +809,13 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("ArrayList")]
     [InlineData("IEnumerable")]
     [InlineData("MyCollection")]
-    public async Task InsertInlineForEachSnippetForVariableNamedLikeTypeTest(string typeAndVariableName)
-    {
-        await VerifySnippetAsync($$"""
+    public Task InsertInlineForEachSnippetForVariableNamedLikeTypeTest(string typeAndVariableName)
+        => VerifySnippetAsync($$"""
             using System.Collections;
             using System.Collections.Generic;
 
@@ -926,5 +855,4 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 IEnumerator IEnumerable.GetEnumerator() = null;
             }
             """);
-    }
 }

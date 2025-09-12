@@ -836,6 +836,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
                 return builder.ToString();
             }
+#if !ROSLYN_4_12_OR_LOWER
             else if (memberDeclaration is ExtensionBlockDeclarationSyntax extensionDeclaration)
             {
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
@@ -847,6 +848,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
                 AppendParameterList(builder, extensionDeclaration.ParameterList);
                 return builder.ToString();
             }
+#endif
             else
             {
                 Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);
@@ -872,6 +874,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
             }
         }
 
+#if !ROSLYN_4_12_OR_LOWER
         void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
         {
             if (parameterList != null)
@@ -881,6 +884,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
                 builder.Append(')');
             }
         }
+#endif
     }
 
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
@@ -1659,6 +1663,13 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         openParen = parenthesizedExpression.OpenParenToken;
         expression = parenthesizedExpression.Expression;
         closeParen = parenthesizedExpression.CloseParenToken;
+    }
+
+    public void GetPartsOfPostfixUnaryExpression(SyntaxNode node, out SyntaxNode operand, out SyntaxToken operatorToken)
+    {
+        var postfixUnaryExpression = (PostfixUnaryExpressionSyntax)node;
+        operand = postfixUnaryExpression.Operand;
+        operatorToken = postfixUnaryExpression.OperatorToken;
     }
 
     public void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand)

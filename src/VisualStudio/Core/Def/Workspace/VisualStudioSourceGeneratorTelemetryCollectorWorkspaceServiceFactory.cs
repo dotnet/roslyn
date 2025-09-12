@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,9 +11,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices;
 
@@ -22,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices;
 /// </summary>
 [Export]
 [ExportWorkspaceServiceFactory(typeof(ISourceGeneratorTelemetryCollectorWorkspaceService)), Shared]
-internal sealed class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory, IVsSolutionEvents
+internal sealed class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory, ISourceGeneratorTelemetryReporterWorkspaceService
 {
     /// <summary>
     /// The collector that's used to collect all the telemetry for operations within <see
@@ -39,26 +42,32 @@ internal sealed class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServ
     /// </summary>
     private readonly SourceGeneratorTelemetryCollectorWorkspaceService _otherWorkspacesInstance = new();
 
+    private readonly AsyncBatchingWorkQueue _workQueue;
     private readonly IThreadingContext _threadingContext;
-    private readonly IAsyncServiceProvider _serviceProvider;
-    private volatile int _subscribedToSolutionEvents;
+
+    private readonly Lazy<VisualStudioWorkspace> _visualStudioWorkspace;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+    public VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory(IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider, Lazy<VisualStudioWorkspace> visualStudioWorkspace)
     {
         _threadingContext = threadingContext;
-        _serviceProvider = (IAsyncServiceProvider)serviceProvider;
+        _visualStudioWorkspace = visualStudioWorkspace;
+
+        // We will report telemetry every five minutes, if we have any to report
+        _workQueue = new AsyncBatchingWorkQueue(
+            TimeSpan.FromMinutes(5),
+            SendSourceGeneratorTelemetryAsync,
+            listenerProvider.GetListener(FeatureAttribute.Telemetry),
+            _threadingContext.DisposalToken);
     }
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
         // We will record all generators for the main workspace in one bucket, and any other generators running in other
-        // workspaces (interactive, for example) will be put in a different bucket. This allows us to report the telemetry
-        // from the primary workspace on solution closed, while not letting the unrelated runs pollute those numbers.
+        // workspaces (interactive, for example) will be put in a different bucket.
         if (workspaceServices.Workspace is VisualStudioWorkspace)
         {
-            EnsureSubscribedToSolutionEvents();
             return _visualStudioWorkspaceInstance;
         }
         else
@@ -67,41 +76,40 @@ internal sealed class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServ
         }
     }
 
-    private void EnsureSubscribedToSolutionEvents()
+    public void QueueReportingOfTelemetry()
     {
-        if (Interlocked.CompareExchange(ref _subscribedToSolutionEvents, 1, 0) == 0)
+        _workQueue.AddWork();
+    }
+
+    private async ValueTask SendSourceGeneratorTelemetryAsync(CancellationToken cancellationToken)
+    {
+        ReportData(FunctionId.SourceGenerator_SolutionInProcStatistics, _visualStudioWorkspaceInstance.FetchKeysAndAndClear());
+        ReportData(FunctionId.SourceGenerator_OtherWorkspaceSessionStatistics, _otherWorkspacesInstance.FetchKeysAndAndClear());
+
+        var client = await RemoteHostClient.TryGetClientAsync(_visualStudioWorkspace.Value, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
         {
-            Task.Run(async () =>
+            // We'll still report this telemetry in-process, which gives it the benefit of being scoped under the same telemetry context
+            // that is associated with the current open solution. This would allow for better correlation of the telemetry to the size of the solutions, etc.
+            var remoteTelemetryData = await client.TryInvokeAsync(static (IRemoteSourceGenerationService service, CancellationToken ct) => service.FetchAndClearTelemetryKeyValuePairsAsync(ct), cancellationToken).ConfigureAwait(false);
+            if (remoteTelemetryData.HasValue)
+                ReportData(FunctionId.SourceGenerator_SolutionStatistics, remoteTelemetryData.Value);
+        }
+
+        void ReportData(FunctionId functionId, ImmutableArray<ImmutableDictionary<string, object?>> data)
+        {
+            // Don't send empty events if we don't have any data
+            if (data.Length != 0)
             {
-                var shellService = await _serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>(_threadingContext.DisposalToken).ConfigureAwait(true);
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-                shellService.AdviseSolutionEvents(this, out _);
-            }, _threadingContext.DisposalToken);
+                foreach (var map in data)
+                {
+                    Logger.Log(functionId, KeyValueLogMessage.Create(map =>
+                    {
+                        foreach (var kvp in map)
+                            map[kvp.Key] = kvp.Value;
+                    }));
+                }
+            }
         }
     }
-
-    public void ReportOtherWorkspaceTelemetry()
-    {
-        _otherWorkspacesInstance.ReportStatisticsAndClear(FunctionId.SourceGenerator_OtherWorkspaceSessionStatistics);
-    }
-
-    int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) => VSConstants.E_NOTIMPL;
-    int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) => VSConstants.E_NOTIMPL;
-    int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) => VSConstants.E_NOTIMPL;
-    int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy) => VSConstants.E_NOTIMPL;
-    int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel) => VSConstants.E_NOTIMPL;
-    int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) => VSConstants.E_NOTIMPL;
-    int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution) => VSConstants.E_NOTIMPL;
-    int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel) => VSConstants.E_NOTIMPL;
-
-    int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
-    {
-        // Report the telemetry now before the solution is closed; since this will be reported per solution session ID, it means
-        // we can distinguish how many solutions have generators versus just overall sessions.
-        _visualStudioWorkspaceInstance.ReportStatisticsAndClear(FunctionId.SourceGenerator_SolutionStatistics);
-
-        return VSConstants.S_OK;
-    }
-
-    int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved) => VSConstants.E_NOTIMPL;
 }

@@ -11,7 +11,7 @@
     <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildSourceOnly != true -->
     <SQLitePCLRawVersion>1.1.2</SQLitePCLRawVersion>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
   </PropertyGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
@@ -27,6 +27,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(MicrosoftBuildTasksCoreVersionForMetrics)" ExcludeAssets="Runtime" />
+    <PackageReference Include="System.Text.Json" VersionOverride="$(SystemTextJsonVersionForMetrics)" />
 
     <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
     <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
@@ -46,4 +48,7 @@
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared" />
 </Project>

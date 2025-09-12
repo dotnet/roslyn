@@ -5,19 +5,12 @@
 Imports System.IO
 Imports System.Text
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Debugging
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
     <Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>

@@ -23,10 +23,9 @@ internal sealed class MockEditAndContinueService() : IEditAndContinueService
     public Func<Solution, IManagedHotReloadService, IPdbMatchingSourceTextProvider, ImmutableArray<DocumentId>, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
 
     public Action? EndDebuggingSessionImpl;
-    public Func<Solution, ImmutableDictionary<ProjectId, RunningProjectInfo>, ActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
+    public Func<Solution, ImmutableDictionary<ProjectId, RunningProjectOptions>, ActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
     public Action<Document>? OnSourceFileUpdatedImpl;
     public Action? CommitSolutionUpdateImpl;
-    public Action<Solution, ImmutableArray<ProjectId>>? UpdateBaselinesImpl;
     public Action<bool?>? BreakStateOrCapabilitiesChangedImpl;
     public Action? DiscardSolutionUpdateImpl;
     public Func<Document, ActiveStatementSpanProvider, ImmutableArray<Diagnostic>>? GetDocumentDiagnosticsImpl;
@@ -40,10 +39,7 @@ internal sealed class MockEditAndContinueService() : IEditAndContinueService
     public void DiscardSolutionUpdate(DebuggingSessionId sessionId)
         => DiscardSolutionUpdateImpl?.Invoke();
 
-    public void UpdateBaselines(DebuggingSessionId sessionId, Solution solution, ImmutableArray<ProjectId> rebuiltProjects)
-        => UpdateBaselinesImpl?.Invoke(solution, rebuiltProjects);
-
-    public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+    public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         => new((EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, runningProjects, activeStatementSpanProvider));
 
     public void EndDebuggingSession(DebuggingSessionId sessionId)

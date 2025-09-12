@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.Commanding.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing

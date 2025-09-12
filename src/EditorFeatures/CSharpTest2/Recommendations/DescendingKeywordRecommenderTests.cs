@@ -12,130 +12,102 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class DescendingKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestAfterOrderByExpr()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterOrderByExpr()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterSecondExpr()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterSecondExpr()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x, y $$
             """));
-    }
 
     [Fact]
-    public async Task TestBetweenExprs()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestBetweenExprs()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x, y $$, z
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterDot()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterDot()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x.$$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterComma()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterComma()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x, $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterCloseParen()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterCloseParen()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x.ToString() $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterCloseBracket()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterCloseBracket()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       orderby x.ToString()[0] $$
             """));
-    }
 }

@@ -4,8 +4,8 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 

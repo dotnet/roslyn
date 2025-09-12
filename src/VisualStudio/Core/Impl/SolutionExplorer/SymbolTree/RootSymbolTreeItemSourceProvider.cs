@@ -124,7 +124,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         }
 
         // Update all the affected documents in parallel.
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             sources,
             cancellationToken,
             async (source, cancellationToken) =>

@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 

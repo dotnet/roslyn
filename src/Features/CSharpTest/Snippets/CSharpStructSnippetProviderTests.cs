@@ -15,9 +15,8 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
     protected override string SnippetIdentifier => "struct";
 
     [Fact]
-    public async Task InsertStructSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructSnippetInBlockNamespaceTest()
+        => VerifySnippetAsync("""
             namespace Namespace
             {
                 $$
@@ -31,12 +30,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertStructSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructSnippetInFileScopedNamespaceTest()
+        => VerifySnippetAsync("""
             namespace Namespace;
 
             $$
@@ -48,12 +45,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertStructSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructSnippetTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             struct {|0:MyStruct|}
@@ -61,12 +56,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertStructTopLevelSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructTopLevelSnippetTest()
+        => VerifySnippetAsync("""
             System.Console.WriteLine();
             $$
             """, """
@@ -76,12 +69,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertStructSnippetInClassTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructSnippetInClassTest()
+        => VerifySnippetAsync("""
             class MyClass
             {
                 $$
@@ -95,12 +86,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertStructSnippetInRecordTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructSnippetInRecordTest()
+        => VerifySnippetAsync("""
             record MyRecord
             {
                 $$
@@ -114,12 +103,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertStructSnippetInStructTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructSnippetInStructTest()
+        => VerifySnippetAsync("""
             struct MyStruct
             {
                 $$
@@ -133,12 +120,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertStructSnippetInInterfaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructSnippetInInterfaceTest()
+        => VerifySnippetAsync("""
             interface MyInterface
             {
                 $$
@@ -152,12 +137,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertStructSnippetWithModifiersTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertStructSnippetWithModifiersTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             public struct {|0:MyStruct|}
@@ -171,23 +154,19 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact]
-    public async Task NoStructSnippetInEnumTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoStructSnippetInEnumTest()
+        => VerifySnippetIsAbsentAsync("""
             enum MyEnum
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoStructSnippetInMethodTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoStructSnippetInMethodTest()
+        => VerifySnippetIsAbsentAsync("""
             struct Program
             {
                 public void Method()
@@ -196,12 +175,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoStructSnippetInConstructorTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoStructSnippetInConstructorTest()
+        => VerifySnippetIsAbsentAsync("""
             struct Program
             {
                 public Program()
@@ -210,13 +187,11 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertStructSnippetAfterAccessibilityModifier(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertStructSnippetAfterAccessibilityModifier(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
             {{modifier}} struct {|0:MyStruct|}
@@ -224,13 +199,11 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 $$
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertStructSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertStructSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
             {{modifier}} struct {|0:MyStruct|}
@@ -244,15 +217,13 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Theory]
     [InlineData("ref")]
     [InlineData("readonly")]
     [InlineData("unsafe")]
-    public async Task InsertStructSnippetAfterValidModifiersTest(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertStructSnippetAfterValidModifiersTest(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
             {{modifier}} struct {|0:MyStruct|}
@@ -260,24 +231,20 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("abstract")]
     [InlineData("sealed")]
     [InlineData("static")]
-    public async Task NoStructSnippetAfterInvalidModifiersTest(string modifier)
-    {
-        await VerifySnippetIsAbsentAsync($"""
+    public Task NoStructSnippetAfterInvalidModifiersTest(string modifier)
+        => VerifySnippetIsAbsentAsync($"""
             {modifier} $$
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} partial $$
             """, $$"""
             {{modifier}} partial struct {|0:MyStruct|}
@@ -291,12 +258,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
-    public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
+        => VerifySnippetAsync("""
             partial $$
             """, """
             public partial struct {|0:MyStruct|}
@@ -310,12 +275,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
-    public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest_InvalidPreferredModifiersList()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderAfterPartialKeywordTest_InvalidPreferredModifiersList()
+        => VerifySnippetAsync("""
             partial $$
             """, """
             public partial struct {|0:MyStruct|}
@@ -331,12 +294,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             
             csharp_preferred_modifier_order = invalid!
             """);
-    }
 
     [Fact]
-    public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers()
+        => VerifySnippetAsync("""
             readonly ref $$
             """, """
             public readonly ref struct {|0:MyStruct|}
@@ -352,12 +313,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             
             csharp_preferred_modifier_order = public,readonly,ref
             """);
-    }
 
     [Fact]
-    public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers_NotAllModifiersInTheList()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers_NotAllModifiersInTheList()
+        => VerifySnippetAsync("""
             readonly ref $$
             """, """
             public readonly ref struct {|0:MyStruct|}
@@ -373,12 +332,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             
             csharp_preferred_modifier_order = public,readonly
             """);
-    }
 
     [Fact]
-    public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBetweenOthers()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBetweenOthers()
+        => VerifySnippetAsync("""
             readonly ref $$
             """, """
             readonly public ref struct {|0:MyStruct|}
@@ -394,12 +351,10 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             
             csharp_preferred_modifier_order = readonly,public,ref
             """);
-    }
 
     [Fact]
-    public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierAfterAllOthers()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierAfterAllOthers()
+        => VerifySnippetAsync("""
             readonly ref $$
             """, """
             readonly ref public struct {|0:MyStruct|}
@@ -415,5 +370,4 @@ public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProv
             
             csharp_preferred_modifier_order = readonly,ref,public
             """);
-    }
 }

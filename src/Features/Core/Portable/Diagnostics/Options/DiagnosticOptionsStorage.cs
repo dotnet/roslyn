@@ -10,7 +10,4 @@ internal sealed class DiagnosticOptionsStorage
 {
     public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
         "dotnet_log_telemetry_for_background_analyzer_execution", defaultValue: false);
-
-    public static readonly Option2<bool> LightbulbSkipExecutingDeprioritizedAnalyzers = new(
-        "dotnet_lightbulb_skip_executing_deprioritized_analyzers", defaultValue: false);
 }

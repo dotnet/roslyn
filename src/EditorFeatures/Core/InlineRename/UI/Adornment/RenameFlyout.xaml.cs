@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -147,7 +146,8 @@ internal partial class RenameFlyout : InlineRenameAdornment
         MaxWidth = _textView.ViewportRight;
         MinWidth = Math.Min(DefaultMinWidth, _textView.ViewportWidth);
 
-        Canvas.SetTop(this, Math.Max(0, top));
+        // Top can be negative if the viewport is scrolled up, but not left
+        Canvas.SetTop(this, top);
         Canvas.SetLeft(this, Math.Max(0, left));
     }
 

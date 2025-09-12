@@ -30,9 +30,8 @@ public sealed class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderB
         => Option(RegexOptionsStorage.ReportInvalidRegexPatterns, true);
 
     [Fact]
-    public async Task TestWarning1()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task TestWarning1()
+        => TestDiagnosticInfoAsync("""
             using System.Text.RegularExpressions;
 
             class Program
@@ -47,12 +46,10 @@ public sealed class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderB
             diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
-    }
 
     [Fact]
-    public async Task TestWarning2()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task TestWarning2()
+        => TestDiagnosticInfoAsync("""
             using System.Text.RegularExpressions;
 
             class Program
@@ -67,12 +64,10 @@ public sealed class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderB
             diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning,
             diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
-    }
 
     [Fact]
-    public async Task TestWarningMissing1()
-    {
-        await TestDiagnosticMissingAsync("""
+    public Task TestWarningMissing1()
+        => TestDiagnosticMissingAsync("""
             using System.Text.RegularExpressions;
 
             class Program
@@ -83,5 +78,4 @@ public sealed class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderB
                 }     
             }
             """);
-    }
 }

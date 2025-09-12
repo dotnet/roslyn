@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
-internal abstract partial class AbstractImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax>
 {
     private sealed partial class ImplementInterfaceGenerator
     {

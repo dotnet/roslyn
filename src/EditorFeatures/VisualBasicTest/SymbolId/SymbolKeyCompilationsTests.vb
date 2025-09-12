@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 

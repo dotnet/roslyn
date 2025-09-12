@@ -1603,6 +1603,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else
+                {
+                    switch (op1)
+                    {
+                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet, ReceiverOpt: var receiver } when propSet.GetIsNewExtensionMember():
+                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, receiver, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
+                            handleExtensionSetter(in methodInvocationInfo);
+                            return;
+                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.GetIsNewExtensionMember():
+                            methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(indexer);
+                            Debug.Assert(ReferenceEquals(methodInvocationInfo.MethodInfo.Method, indexerSet));
+                            handleExtensionSetter(in methodInvocationInfo);
+                            return;
+                    }
+                }
 
                 if (!hasErrors && op1.Type.IsRefLikeOrAllowsRefLikeType())
                 {
@@ -1628,6 +1643,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(false);
                 return "";
+            }
+
+            void handleExtensionSetter(ref readonly MethodInvocationInfo methodInvocationInfo)
+            {
+                // Analyze as if this is a call to the setter directly, not an assignment.
+                var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
+                Debug.Assert(methodInvocationInfo.MethodInfo.Method is not null);
+                CheckInvocationArgMixing(node, in localMethodInvocationInfo, _localScopeDepth, methodInvocationInfo.MethodInfo.Method, diagnostics);
             }
         }
     }
@@ -2723,8 +2746,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
-                Debug.Assert(resultKind == LookupResultKind.Empty, "How could overload resolution fail if a user-defined true operator was found?");
-                Debug.Assert(originalUserDefinedOperators.IsEmpty, "How could overload resolution fail if a user-defined true operator was found?");
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
                 return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }

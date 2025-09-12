@@ -29,7 +29,7 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
     private readonly object _guard = new();
 
     private bool _isActive;
-    private int _baselineSolutionVersion;
+    private int _baselineSolutionContentVersion;
     private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = [];
     private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
@@ -84,12 +84,12 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
         // The file checksum is no longer available from the latter, so capture it at this moment.
         if (oldDocument.State.TextAndVersionSource.CanReloadText && !newDocument.State.TextAndVersionSource.CanReloadText)
         {
-            var oldSolutionVersion = oldDocument.Project.Solution.WorkspaceVersion;
+            var oldSolutionVersion = oldDocument.Project.Solution.SolutionStateContentVersion;
 
             lock (_guard)
             {
                 // ignore updates to a document that we have already seen this session:
-                if (_isActive && oldSolutionVersion >= _baselineSolutionVersion && !_documentsWithChangedLoaderByPath.ContainsKey(oldDocument.FilePath))
+                if (_isActive && oldSolutionVersion >= _baselineSolutionContentVersion && !_documentsWithChangedLoaderByPath.ContainsKey(oldDocument.FilePath))
                 {
                     _documentsWithChangedLoaderByPath.Add(oldDocument.FilePath, (oldDocument.DocumentState, oldSolutionVersion));
                 }
@@ -104,7 +104,7 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
     {
         lock (_guard)
         {
-            _baselineSolutionVersion = solution.WorkspaceVersion;
+            _baselineSolutionContentVersion = solution.SolutionStateContentVersion;
         }
     }
 

@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE

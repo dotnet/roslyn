@@ -21,17 +21,12 @@ using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToTopLevelStatementsCodeRe
 public sealed class ConvertToTopLevelStatementsRefactoringTests
 {
     [Fact]
-    public async Task TestNotOnEmptyFile()
-    {
-        var code = """
-            $$
-            """;
-
-        // default preference is to prefer top level namespaces.  As such, we should not have the refactoring here
-        // since the analyzer will take over.
-        await new VerifyCS.Test
+    public Task TestNotOnEmptyFile()
+        => new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            $$
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             ExpectedDiagnostics =
@@ -40,12 +35,12 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 DiagnosticResult.CompilerError("CS5001"),
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToTopLevelStatementsWithDefaultTopLevelStatementPreference()
-    {
-        var code = """
+    public Task TestConvertToTopLevelStatementsWithDefaultTopLevelStatementPreference()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 static void $$Main(string[] args)
@@ -53,23 +48,14 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                     System.Console.WriteLine(args[0]);
                 }
             }
-            """;
-
-        // default preference is to prefer top level namespaces.  As such, we should not have the refactoring here
-        // since the analyzer will take over.
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToTopLevelStatementsWithProgramMainPreferenceSuggestion()
-    {
-        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
-        await new VerifyCS.Test
+    public Task TestConvertToTopLevelStatementsWithProgramMainPreferenceSuggestion()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Program
@@ -91,12 +77,12 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOfferedInLibrary()
-    {
-        var code = """
+    public Task TestNotOfferedInLibrary()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 static void $$Main(string[] args)
@@ -104,23 +90,19 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                     System.Console.WriteLine(args[0]);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNonViableType()
-    {
-        var code = """
+    public Task TestNotWithNonViableType()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 void $$Main(string[] args)
@@ -128,11 +110,7 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                     System.Console.WriteLine(args[0]);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -145,12 +123,12 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 DiagnosticResult.CompilerError("CS5001"),
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoConvertToTopLevelStatementsWithProgramMainPreferenceSuggestionBeforeCSharp9()
-    {
-        var code = """
+    public Task TestNoConvertToTopLevelStatementsWithProgramMainPreferenceSuggestionBeforeCSharp9()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 static void $$Main(string[] args)
@@ -158,12 +136,7 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                     System.Console.WriteLine(args[0]);
                 }
             }
-            """;
-
-        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -171,12 +144,12 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoConvertToTopLevelStatementsWithTopLevelStatementsPreferenceSuggestion()
-    {
-        var code = """
+    public Task TestNoConvertToTopLevelStatementsWithTopLevelStatementsPreferenceSuggestion()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 static void $$Main(string[] args)
@@ -184,10 +157,7 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                     System.Console.WriteLine(args[0]);
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -195,12 +165,12 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoConvertToTopLevelStatementsWithTopLevelStatementsPreferenceSilent()
-    {
-        var code = """
+    public Task TestNoConvertToTopLevelStatementsWithTopLevelStatementsPreferenceSilent()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 static void $$Main(string[] args)
@@ -208,10 +178,7 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                     System.Console.WriteLine(args[0]);
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -219,13 +186,10 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Silent },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToTopLevelStatementWithTopLevelStatementPreferenceSuppress()
-    {
-        // if the user has the analyzer suppressed, then we want to supply teh refactoring.
-        await new VerifyCS.Test
+    public Task TestConvertToTopLevelStatementWithTopLevelStatementPreferenceSuppress()
+        => new VerifyCS.Test
         {
             TestCode = """
             internal class Program
@@ -247,12 +211,10 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.None },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
-    public async Task TestPreserveStatementDirectives1()
-    {
-        await new VerifyCS.Test
+    public Task TestPreserveStatementDirectives1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -286,12 +248,10 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
-    public async Task TestPreserveStatementDirectives2()
-    {
-        await new VerifyCS.Test
+    public Task TestPreserveStatementDirectives2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -332,12 +292,10 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
-    public async Task TestPreserveStatementDirectives3()
-    {
-        await new VerifyCS.Test
+    public Task TestPreserveStatementDirectives3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -374,12 +332,10 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
-    public async Task TestPreserveStatementDirectives4()
-    {
-        await new VerifyCS.Test
+    public Task TestPreserveStatementDirectives4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -426,5 +382,4 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 }

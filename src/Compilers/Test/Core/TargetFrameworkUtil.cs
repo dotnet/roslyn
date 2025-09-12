@@ -89,6 +89,7 @@ namespace Roslyn.Test.Utilities
         Net70,
         Net80,
         Net90,
+        Net100,
     }
 
     /// <summary>
@@ -306,6 +307,7 @@ namespace Roslyn.Test.Utilities
             TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.References.All),
             TargetFramework.Net80 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net80")),
             TargetFramework.Net90 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net90")),
+            TargetFramework.Net100 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net100")),
             TargetFramework.NetFramework => NetFramework.References,
             TargetFramework.NetLatest => NetLatest,
             TargetFramework.Standard => StandardReferences,

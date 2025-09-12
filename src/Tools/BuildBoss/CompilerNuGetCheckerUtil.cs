@@ -11,7 +11,6 @@ using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
@@ -181,7 +180,10 @@ namespace BuildBoss
                 excludeFunc: relativeFileName =>
                     relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.DiaSymReader.Native", PathComparison) ||
                     relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll", PathComparison) ||
-                    (relativeFileName.StartsWith(@"tasks\netcore\binfx\", PathComparison) && relativeFileName.EndsWith(".targets", PathComparison)),
+                    (relativeFileName.StartsWith(@"tasks\netcore\binfx\", PathComparison) && relativeFileName.EndsWith(".targets", PathComparison)) ||
+                    relativeFileName.Equals(@"tasks\netcore\bincore\csc.exe", PathComparison) ||
+                    relativeFileName.Equals(@"tasks\netcore\bincore\vbc.exe", PathComparison) ||
+                    relativeFileName.Equals(@"tasks\netcore\bincore\VBCSCompiler.exe", PathComparison),
                 (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("vbc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),

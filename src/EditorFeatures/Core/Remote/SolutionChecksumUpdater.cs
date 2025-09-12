@@ -3,17 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -60,8 +58,13 @@ internal sealed class SolutionChecksumUpdater
 
         _shutdownToken = shutdownToken;
 
+        // A time span of Short is chosen here to ensure that the batching favors fewer but larger batches.
+        // During solution load a large number of WorkspaceChange events might be raised over a few seconds,
+        // and in performance tests a 50ms delay was found to be causing a lot of extra memory churn synchronizing
+        // things OOP. Short didn't cause a similar issue; it's possible this will need to be fine tuned for something in
+        // the middle.
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
-            DelayTimeSpan.NearImmediate,
+            DelayTimeSpan.Short,
             SynchronizePrimaryWorkspaceAsync,
             listener,
             shutdownToken);
@@ -105,11 +108,24 @@ internal sealed class SolutionChecksumUpdater
 
     private void OnWorkspaceChangedImmediate(WorkspaceChangeEventArgs e)
     {
-        if (e.Kind == WorkspaceChangeKind.DocumentChanged)
+        if (e.Kind is WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.AdditionalDocumentChanged)
         {
             var documentId = e.DocumentId!;
-            var oldDocument = e.OldSolution.GetRequiredDocument(documentId);
-            var newDocument = e.NewSolution.GetRequiredDocument(documentId);
+            TextDocument oldDocument;
+            TextDocument newDocument;
+
+            if (e.Kind == WorkspaceChangeKind.DocumentChanged)
+            {
+                oldDocument = e.OldSolution.GetRequiredDocument(documentId);
+                newDocument = e.NewSolution.GetRequiredDocument(documentId);
+            }
+            else
+            {
+                Debug.Assert(e.Kind == WorkspaceChangeKind.AdditionalDocumentChanged);
+
+                oldDocument = e.OldSolution.GetRequiredAdditionalDocument(documentId);
+                newDocument = e.NewSolution.GetRequiredAdditionalDocument(documentId);
+            }
 
             // Fire-and-forget to dispatch notification of this document change event to the remote side
             // and return to the caller as quickly as possible.
@@ -160,8 +176,8 @@ internal sealed class SolutionChecksumUpdater
     }
 
     private async Task DispatchSynchronizeTextChangesAsync(
-        Document oldDocument,
-        Document newDocument)
+        TextDocument oldDocument,
+        TextDocument newDocument)
     {
         // Explicitly force a yield point here to ensure this method returns to the caller immediately and that
         // all work is done off the calling thread.

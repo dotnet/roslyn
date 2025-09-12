@@ -12,196 +12,154 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class IntoKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
     [Fact]
-    public async Task TestNotInSelectMemberExpressionOnlyADot()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInSelectMemberExpressionOnlyADot()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var y = from x in new [] { 1,2,3 } select x.$$"));
-    }
     [Fact]
-    public async Task TestNotInSelectMemberExpression()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInSelectMemberExpression()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var y = from x in new [] { 1,2,3 } select x.i$$"));
-    }
     [Fact]
-    public async Task TestAfterJoinRightExpr()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterJoinRightExpr()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       join a in e on o1 equals o2 $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterJoinRightExpr_NotAfterInto()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterJoinRightExpr_NotAfterInto()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       join a.b c in o1 equals o2 into $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterEquals()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterEquals()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       join a.b c in o1 equals $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterSelectClause()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterSelectClause()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       select z
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterSelectClauseWithMemberExpression()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterSelectClauseWithMemberExpression()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       select z.i
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterSelectClause_NotAfterInto()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterSelectClause_NotAfterInto()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       select z
                       into $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterGroupClause()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterGroupClause()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             var q = from x in y
                       group z by w
                       $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterGroupClause_NotAfterInto()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterGroupClause_NotAfterInto()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       group z by w
                       into $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterSelect()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterSelect()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       select $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterGroupKeyword()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterGroupKeyword()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       group $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterGroupExpression()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterGroupExpression()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       group x $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterGroupBy()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterGroupBy()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             var q = from x in y
                       group x by $$
             """));
-    }
 }

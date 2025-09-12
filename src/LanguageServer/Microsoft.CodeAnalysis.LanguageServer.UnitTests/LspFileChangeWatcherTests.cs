@@ -102,10 +102,8 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         Assert.Empty(dynamicCapabilitiesRpcTarget.Registrations);
     }
 
-    private static async Task WaitForFileWatcherAsync(TestLspServer testLspServer)
-    {
-        await testLspServer.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-    }
+    private static Task WaitForFileWatcherAsync(TestLspServer testLspServer)
+        => testLspServer.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
     private static FileSystemWatcher GetSingleFileWatcher(DynamicCapabilitiesRpcTarget dynamicCapabilities)
     {

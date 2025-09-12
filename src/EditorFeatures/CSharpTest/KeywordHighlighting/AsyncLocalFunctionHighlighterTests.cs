@@ -18,9 +18,8 @@ public sealed class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHi
         => typeof(AsyncAwaitHighlighter);
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public async Task TestLocalFunction()
-    {
-        await TestAsync(
+    public Task TestLocalFunction()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -46,5 +45,4 @@ public sealed class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHi
                 }
             }
             """);
-    }
 }

@@ -32,16 +32,18 @@ public class CSharpImmediate : AbstractEditorTest
     [IdeFact]
     public async Task DumpLocalVariableValue()
     {
-        await TestServices.Editor.SetTextAsync(@"
-class Program
-{
-    static void Main(string[] args)
-    {
-        int n1Var = 42;
-        int n2Var = 43;
-    }
-}
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int n1Var = 42;
+                    int n2Var = 43;
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, "Program.cs", "}", HangMitigatingCancellationToken);

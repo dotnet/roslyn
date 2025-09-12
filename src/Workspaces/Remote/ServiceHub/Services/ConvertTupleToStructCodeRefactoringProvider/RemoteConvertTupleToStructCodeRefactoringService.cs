@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 

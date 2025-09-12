@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.Differencing
@@ -88,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                                source.IndexOf(s_endSpanMark, start, length, StringComparison.Ordinal))
                 End If
 
-                Yield KeyValuePairUtil.Create(position, span)
+                Yield KeyValuePair.Create(position, span)
                 i = [end] + 1
             End While
         End Function
@@ -481,7 +480,7 @@ End Class
                 Dim baseActiveStatements = New ActiveStatementsMap(
                     ImmutableDictionary.CreateRange(
                     {
-                        KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
+                        KeyValuePair.Create(newDocument.FilePath, ImmutableArray.Create(
                             New ActiveStatement(
                                 New ActiveStatementId(0),
                                 ActiveStatementFlags.LeafFrame,
@@ -523,8 +522,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
 
                 Assert.False(result.HasChanges)
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -555,8 +555,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 Assert.False(result.HasChanges)
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -579,8 +580,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
 
                 Assert.False(result.HasChanges)
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -613,8 +615,9 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 ' no declaration errors (error in method body is only reported when emitting)
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 
@@ -646,8 +649,9 @@ End Class
 
                 ' No errors reported: EnC analyzer is resilient against semantic errors.
                 ' They will be reported by 1) compiler diagnostic analyzer 2) when emitting delta - if still present.
-                Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndSyntaxErrors)
+                Assert.False(result.AnalysisBlocked)
+                Assert.False(result.HasBlockingRudeEdits)
+                Assert.Null(result.SyntaxError)
             End Using
         End Function
 

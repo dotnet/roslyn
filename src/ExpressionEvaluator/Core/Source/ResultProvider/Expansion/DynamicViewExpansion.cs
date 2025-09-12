@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;

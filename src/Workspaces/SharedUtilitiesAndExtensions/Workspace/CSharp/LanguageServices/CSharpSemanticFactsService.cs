@@ -33,24 +33,25 @@ internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFacts
     protected override SyntaxToken ToIdentifierToken(string identifier)
         => identifier.ToIdentifierToken();
 
-    protected override IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
+    protected override IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode? container, CancellationToken cancellationToken)
     {
         // Get all the symbols visible to the current location.
         var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
 
         // Local function parameter is allowed to shadow variables since C# 8.
-        if (semanticModel.Compilation.LanguageVersion().MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+        // Similarly, a nested primary constructor parameter list can shadow outer parameters in outer types.
+        var languageVersion = semanticModel.Compilation.LanguageVersion().MapSpecifiedToEffectiveVersion();
+        var isLanguageVersionGreaterOrEqualToCSharp8 = languageVersion >= LanguageVersion.CSharp8;
+        if (isLanguageVersionGreaterOrEqualToCSharp8 &&
+            SyntaxFacts.IsParameterList(container))
         {
-            if (SyntaxFacts.IsParameterList(container) && SyntaxFacts.IsLocalFunctionStatement(container.Parent))
-            {
+            if (container.Parent is LocalFunctionStatementSyntax or TypeDeclarationSyntax)
                 visibleSymbols = visibleSymbols.WhereAsArray(s => !s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter));
-            }
         }
 
         // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
         // E.g. symbols inside if statements / try catch statements.
-        var symbolsInBlock = semanticModel.GetAllDeclaredSymbols(container, cancellationToken,
-            descendInto: n => ShouldDescendInto(n));
+        var symbolsInBlock = semanticModel.GetAllDeclaredSymbols(container, cancellationToken, descendInto: ShouldDescendInto);
 
         return symbolsInBlock.Concat(visibleSymbols);
 
@@ -60,10 +61,7 @@ internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFacts
         //     b) Symbols declared inside the local function do not cause collisions with symbols declared outside them, so avoid considering those symbols.
         // Exclude lambdas as well when the language version is C# 8 or higher because symbols declared inside no longer collide with outer variables.
         bool ShouldDescendInto(SyntaxNode node)
-        {
-            var isLanguageVersionGreaterOrEqualToCSharp8 = (semanticModel.Compilation as CSharpCompilation)?.LanguageVersion >= LanguageVersion.CSharp8;
-            return isLanguageVersionGreaterOrEqualToCSharp8 ? !SyntaxFacts.IsAnonymousOrLocalFunction(node) : !SyntaxFacts.IsLocalFunctionStatement(node);
-        }
+            => isLanguageVersionGreaterOrEqualToCSharp8 ? !SyntaxFacts.IsAnonymousOrLocalFunction(node) : !SyntaxFacts.IsLocalFunctionStatement(node);
     }
 
     public bool IsExpressionContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)

@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;

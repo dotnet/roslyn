@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -99,7 +100,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             return;
         }
 
-        await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
+        await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
         {
             if (scope != null && !scope.Contains(document))
                 continue;
@@ -599,152 +600,8 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         FindReferencesDocumentState state,
         CancellationToken cancellationToken)
     {
-        var syntaxFacts = state.SyntaxFacts;
-        var semanticFacts = state.SemanticFacts;
-        var semanticModel = state.SemanticModel;
-
-        var topNameNode = node;
-        while (syntaxFacts.IsQualifiedName(topNameNode.Parent))
-            topNameNode = topNameNode.Parent;
-
-        var isInNamespaceNameContext = syntaxFacts.IsBaseNamespaceDeclaration(topNameNode.Parent);
-        return syntaxFacts.IsInNamespaceOrTypeContext(topNameNode)
-            ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
-            : GetSymbolUsageInfoCommon();
-
-        // Local functions.
-        TypeOrNamespaceUsageInfo GetTypeOrNamespaceUsageInfo()
-        {
-            var usageInfo = IsNodeOrAnyAncestorLeftSideOfDot(node, syntaxFacts) || syntaxFacts.IsLeftSideOfExplicitInterfaceSpecifier(node)
-                ? TypeOrNamespaceUsageInfo.Qualified
-                : TypeOrNamespaceUsageInfo.None;
-
-            if (isInNamespaceNameContext)
-            {
-                usageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
-            }
-            else if (node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsUsingOrExternOrImport(node), syntaxFacts) != null)
-            {
-                usageInfo |= TypeOrNamespaceUsageInfo.Import;
-            }
-
-            while (syntaxFacts.IsQualifiedName(node.Parent))
-                node = node.Parent;
-
-            if (syntaxFacts.IsTypeArgumentList(node.Parent))
-            {
-                usageInfo |= TypeOrNamespaceUsageInfo.TypeArgument;
-            }
-            else if (syntaxFacts.IsTypeConstraint(node.Parent))
-            {
-                usageInfo |= TypeOrNamespaceUsageInfo.TypeConstraint;
-            }
-            else if (syntaxFacts.IsBaseTypeList(node.Parent) ||
-                syntaxFacts.IsBaseTypeList(node.Parent?.Parent))
-            {
-                usageInfo |= TypeOrNamespaceUsageInfo.Base;
-            }
-            else if (syntaxFacts.IsTypeOfObjectCreationExpression(node))
-            {
-                usageInfo |= TypeOrNamespaceUsageInfo.ObjectCreation;
-            }
-
-            return usageInfo;
-        }
-
-        SymbolUsageInfo GetSymbolUsageInfoCommon()
-        {
-            if (semanticFacts.IsInOutContext(semanticModel, node, cancellationToken))
-            {
-                return SymbolUsageInfo.Create(ValueUsageInfo.WritableReference);
-            }
-            else if (semanticFacts.IsInRefContext(semanticModel, node, cancellationToken))
-            {
-                return SymbolUsageInfo.Create(ValueUsageInfo.ReadableWritableReference);
-            }
-            else if (semanticFacts.IsInInContext(semanticModel, node, cancellationToken))
-            {
-                return SymbolUsageInfo.Create(ValueUsageInfo.ReadableReference);
-            }
-            else if (semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
-            {
-                return SymbolUsageInfo.Create(ValueUsageInfo.Write);
-            }
-            else
-            {
-                var operation = semanticModel.GetOperation(node, cancellationToken);
-                if (operation is IObjectCreationOperation)
-                    return SymbolUsageInfo.Create(TypeOrNamespaceUsageInfo.ObjectCreation);
-
-                switch (operation?.Parent)
-                {
-                    case INameOfOperation:
-                    case ITypeOfOperation:
-                    case ISizeOfOperation:
-                        return SymbolUsageInfo.Create(ValueUsageInfo.Name);
-                }
-
-                if (node.IsPartOfStructuredTrivia())
-                {
-                    return SymbolUsageInfo.Create(ValueUsageInfo.Name);
-                }
-
-                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken);
-                if (symbolInfo.Symbol != null)
-                {
-                    switch (symbolInfo.Symbol.Kind)
-                    {
-                        case SymbolKind.Namespace:
-                            var namespaceUsageInfo = TypeOrNamespaceUsageInfo.None;
-                            if (isInNamespaceNameContext)
-                                namespaceUsageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
-
-                            if (IsNodeOrAnyAncestorLeftSideOfDot(node, syntaxFacts))
-                                namespaceUsageInfo |= TypeOrNamespaceUsageInfo.Qualified;
-
-                            return SymbolUsageInfo.Create(namespaceUsageInfo);
-
-                        case SymbolKind.NamedType:
-                            var typeUsageInfo = TypeOrNamespaceUsageInfo.None;
-                            if (IsNodeOrAnyAncestorLeftSideOfDot(node, syntaxFacts))
-                                typeUsageInfo |= TypeOrNamespaceUsageInfo.Qualified;
-
-                            return SymbolUsageInfo.Create(typeUsageInfo);
-
-                        case SymbolKind.Method:
-                        case SymbolKind.Property:
-                        case SymbolKind.Field:
-                        case SymbolKind.Event:
-                        case SymbolKind.Parameter:
-                        case SymbolKind.Local:
-                            var valueUsageInfo = ValueUsageInfo.Read;
-                            if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
-                                valueUsageInfo |= ValueUsageInfo.Write;
-
-                            return SymbolUsageInfo.Create(valueUsageInfo);
-                    }
-                }
-
-                return SymbolUsageInfo.None;
-            }
-        }
-    }
-
-    private static bool IsNodeOrAnyAncestorLeftSideOfDot(SyntaxNode node, ISyntaxFactsService syntaxFacts)
-    {
-        if (syntaxFacts.IsLeftSideOfDot(node))
-        {
-            return true;
-        }
-
-        if (syntaxFacts.IsRightOfQualifiedName(node) ||
-            syntaxFacts.IsNameOfSimpleMemberAccessExpression(node) ||
-            syntaxFacts.IsNameOfMemberBindingExpression(node))
-        {
-            return syntaxFacts.IsLeftSideOfDot(node.Parent);
-        }
-
-        return false;
+        return SymbolUsageInfo.GetSymbolUsageInfo(
+            state.SemanticFacts, state.SemanticModel, node, cancellationToken);
     }
 
     internal static ImmutableArray<(string key, string value)> GetAdditionalFindUsagesProperties(
@@ -872,7 +729,7 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
     {
         using var result = TemporaryArray<string>.Empty;
 
-        await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
+        await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
         {
             var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             foreach (var alias in index.GetGlobalAliases(name, arity))

@@ -19,12 +19,11 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
 public sealed class UseImplicitlyTypedLambdaExpressionTests
 {
-    private static readonly LanguageVersion CSharp14 = LanguageVersionExtensions.CSharpNext;
+    private static readonly LanguageVersion CSharp14 = LanguageVersion.CSharp14;
 
     [Fact]
-    public async Task TestAssignedToObject()
-    {
-        await new VerifyCS.Test
+    public Task TestAssignedToObject()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -39,12 +38,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastedToDelegate()
-    {
-        await new VerifyCS.Test
+    public Task TestCastedToDelegate()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -59,12 +56,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
             """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastedToObject()
-    {
-        await new VerifyCS.Test
+    public Task TestCastedToObject()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -79,12 +74,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
             """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAssignedToDelegate()
-    {
-        await new VerifyCS.Test
+    public Task TestAssignedToDelegate()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -99,12 +92,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAssignedToVar()
-    {
-        await new VerifyCS.Test
+    public Task TestAssignedToVar()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -119,12 +110,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAssignedToStronglyTypedDelegate()
-    {
-        await new VerifyCS.Test
+    public Task TestAssignedToStronglyTypedDelegate()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -150,12 +139,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExplicitReturnType()
-    {
-        await new VerifyCS.Test
+    public Task TestExplicitReturnType()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -170,12 +157,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithDefaultVAlue()
-    {
-        await new VerifyCS.Test
+    public Task TestWithDefaultVAlue()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -190,12 +175,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCastToStronglyTypedDelegate()
-    {
-        await new VerifyCS.Test
+    public Task TestCastToStronglyTypedDelegate()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -221,12 +204,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCreationOfStronglyTypedDelegate()
-    {
-        await new VerifyCS.Test
+    public Task TestCreationOfStronglyTypedDelegate()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -252,12 +233,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestArgument()
-    {
-        await new VerifyCS.Test
+    public Task TestArgument()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -283,12 +262,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOverloadResolution()
-    {
-        await new VerifyCS.Test
+    public Task TestOverloadResolution()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -307,12 +284,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestModifier_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task TestModifier_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -329,12 +304,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestModifier_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task TestModifier_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -364,12 +337,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNested()
-    {
-        await new VerifyCS.Test
+    public Task TestNested()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -401,12 +372,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParams()
-    {
-        await new VerifyCS.Test
+    public Task TestParams()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -436,12 +405,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiLine()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLine()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -473,12 +440,10 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAttribute()
-    {
-        await new VerifyCS.Test
+    public Task TestAttribute()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -512,5 +477,4 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 }

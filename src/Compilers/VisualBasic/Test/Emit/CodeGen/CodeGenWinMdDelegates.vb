@@ -6,8 +6,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports System.Xml.Linq
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenWinMdDelegates

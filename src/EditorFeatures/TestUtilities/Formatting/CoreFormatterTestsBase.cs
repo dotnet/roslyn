@@ -31,7 +31,6 @@ using Microsoft.VisualStudio.Text.Projection;
 using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 

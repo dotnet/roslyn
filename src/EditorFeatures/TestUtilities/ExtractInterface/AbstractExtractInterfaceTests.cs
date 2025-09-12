@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 [UseExportProvider]
 public abstract class AbstractExtractInterfaceTests
 {
-    public static async Task TestExtractInterfaceCommandCSharpAsync(
+    public static Task TestExtractInterfaceCommandCSharpAsync(
         string markup,
         bool expectedSuccess,
         string expectedMemberName = null,
@@ -28,8 +28,7 @@ public abstract class AbstractExtractInterfaceTests
         string expectedUpdatedOriginalDocumentCode = null,
         string expectedInterfaceCode = null,
         ParseOptions parseOptions = null)
-    {
-        await TestExtractInterfaceCommandAsync(
+        => TestExtractInterfaceCommandAsync(
             markup,
             LanguageNames.CSharp,
             expectedSuccess,
@@ -40,19 +39,16 @@ public abstract class AbstractExtractInterfaceTests
             expectedUpdatedOriginalDocumentCode,
             expectedInterfaceCode,
             parseOptions: parseOptions);
-    }
 
-    public static async Task TestExtractInterfaceCodeActionCSharpAsync(
+    public static Task TestExtractInterfaceCodeActionCSharpAsync(
         string markup,
         string expectedMarkup)
-    {
-        await TestExtractInterfaceCodeActionAsync(
+        => TestExtractInterfaceCodeActionAsync(
             markup,
             LanguageNames.CSharp,
             expectedMarkup);
-    }
 
-    public static async Task TestExtractInterfaceCommandVisualBasicAsync(
+    public static Task TestExtractInterfaceCommandVisualBasicAsync(
         string markup,
         bool expectedSuccess,
         string expectedMemberName = null,
@@ -62,8 +58,7 @@ public abstract class AbstractExtractInterfaceTests
         string expectedUpdatedOriginalDocumentCode = null,
         string expectedInterfaceCode = null,
         string rootNamespace = null)
-    {
-        await TestExtractInterfaceCommandAsync(
+        => TestExtractInterfaceCommandAsync(
             markup,
             LanguageNames.VisualBasic,
             expectedSuccess,
@@ -74,17 +69,14 @@ public abstract class AbstractExtractInterfaceTests
             expectedUpdatedOriginalDocumentCode,
             expectedInterfaceCode,
             new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
-    }
 
-    public static async Task TestExtractInterfaceCodeActionVisualBasicAsync(
+    public static Task TestExtractInterfaceCodeActionVisualBasicAsync(
         string markup,
         string expectedMarkup)
-    {
-        await TestExtractInterfaceCodeActionAsync(
+        => TestExtractInterfaceCodeActionAsync(
             markup,
             LanguageNames.VisualBasic,
             expectedMarkup);
-    }
 
     private static async Task TestExtractInterfaceCommandAsync(
         string markup,

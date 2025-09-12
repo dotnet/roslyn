@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -24,11 +23,12 @@ public sealed class AnalyzersTests : TestBase
     public async Task RuleSet_GeneralOption_CPS()
     {
         var ruleSetFile = Temp.CreateFile().WriteAllText(
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Error"" />
-</RuleSet>
-");
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Error" />
+            </RuleSet>
+            """);
         using var environment = new TestEnvironment();
         using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
         var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
@@ -48,14 +48,15 @@ public sealed class AnalyzersTests : TestBase
     public async Task RuleSet_SpecificOptions_CPS()
     {
         var ruleSetFile = Temp.CreateFile().WriteAllText(
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Warning"" />
-  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
-    <Rule Id=""CA1012"" Action=""Error"" />
-  </Rules>
-</RuleSet>
-");
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <RuleSet Name="Ruleset1" Description="Test"  ToolsVersion="12.0">
+              <IncludeAll Action="Warning" />
+              <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
+                <Rule Id="CA1012" Action="Error" />
+              </Rules>
+            </RuleSet>
+            """);
 
         using var environment = new TestEnvironment();
         using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");

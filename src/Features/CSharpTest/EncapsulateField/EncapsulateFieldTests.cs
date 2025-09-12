@@ -43,13 +43,12 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
         options ??= new OptionsCollection(GetLanguage());
         options.AddRange(AllOptionsOff);
 
-        return TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, options, testHost: host);
+        return TestAsync(initialMarkup, expectedMarkup, new TestParameters(parseOptions, compilationOptions, index: index, options: options, testHost: host));
     }
 
     [Theory, CombinatorialData]
-    public async Task PrivateFieldToPropertyIgnoringReferences(TestHost host)
-    {
-        var text = """
+    public Task PrivateFieldToPropertyIgnoringReferences(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 private int b[|a|]r;
@@ -59,9 +58,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bar;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int bar;
@@ -84,14 +81,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bar;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 1);
-    }
+            """, index: 1);
 
     [Theory, CombinatorialData]
-    public async Task PrivateNullableFieldToPropertyIgnoringReferences(TestHost host)
-    {
-        var text = """
+    public Task PrivateNullableFieldToPropertyIgnoringReferences(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             #nullable enable
             class goo
             {
@@ -102,9 +96,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bar;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             #nullable enable
             class goo
             {
@@ -128,14 +120,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bar;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 1);
-    }
+            """, index: 1);
 
     [Theory, CombinatorialData]
-    public async Task PrivateFieldToPropertyUpdatingReferences(TestHost host)
-    {
-        var text = """
+    public Task PrivateFieldToPropertyUpdatingReferences(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 private int b[|a|]r;
@@ -145,9 +134,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = Bar;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int bar;
@@ -170,14 +157,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = Bar;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, CombinatorialData]
-    public async Task TestCodeStyle1(TestHost host)
-    {
-        var text = """
+    public Task TestCodeStyle1(TestHost host)
+        => TestInRegularAndScriptAsync("""
             class goo
             {
                 private int b[|a|]r;
@@ -187,9 +171,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = Bar;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int bar;
@@ -212,20 +194,17 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = Bar;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected,
-            options: new OptionsCollection(GetLanguage())
+            """,
+            new(options: new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent }
             },
-            testHost: host);
-    }
+            testHost: host));
 
     [Theory, CombinatorialData]
-    public async Task TestCodeStyle2(TestHost host)
-    {
-        var text = """
+    public Task TestCodeStyle2(TestHost host)
+        => TestInRegularAndScriptAsync("""
             class goo
             {
                 private int b[|a|]r;
@@ -235,9 +214,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = Bar;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int bar;
@@ -249,19 +226,16 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = Bar;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected,
-            options: new OptionsCollection(GetLanguage())
+            """,
+            new(options: new OptionsCollection(GetLanguage())
             {
                 {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             },
-            testHost: host);
-    }
+            testHost: host));
 
     [Theory, CombinatorialData]
-    public async Task PublicFieldIntoPublicPropertyIgnoringReferences(TestHost host)
-    {
-        var text = """
+    public Task PublicFieldIntoPublicPropertyIgnoringReferences(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 public int b[|a|]r;
@@ -271,9 +245,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bar;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int bar;
@@ -296,14 +268,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bar;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 1);
-    }
+            """, index: 1);
 
     [Theory, CombinatorialData]
-    public async Task PublicFieldIntoPublicPropertyUpdatingReferences(TestHost host)
-    {
-        var text = """
+    public Task PublicFieldIntoPublicPropertyUpdatingReferences(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 public int b[|a|]r;
@@ -313,9 +282,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bar;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int bar;
@@ -338,21 +305,16 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = Bar;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, CombinatorialData]
-    public async Task StaticPreserved(TestHost host)
-    {
-        var text = """
+    public Task StaticPreserved(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class Program
             {
                 static int [|goo|];
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 static int goo;
@@ -370,22 +332,17 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected);
-    }
+            """);
 
     [Theory, CombinatorialData]
-    public async Task UniqueNameGenerated(TestHost host)
-    {
-        var text = """
+    public Task UniqueNameGenerated(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class Program
             {
                 [|int goo|];
                 string Goo;
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 int goo;
@@ -404,21 +361,16 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected);
-    }
+            """);
 
     [Theory, CombinatorialData]
-    public async Task GenericField(TestHost host)
-    {
-        var text = """
+    public Task GenericField(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class C<T>
             {
                 private [|T goo|];
             }
-            """;
-
-        var expected = """
+            """, """
             class C<T>
             {
                 private T goo;
@@ -436,22 +388,17 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected);
-    }
+            """);
 
     [Theory, CombinatorialData]
-    public async Task NewFieldNameIsUnique(TestHost host)
-    {
-        var text = """
+    public Task NewFieldNameIsUnique(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 public [|int X|];
                 private string x;
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int x1;
@@ -470,21 +417,16 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, CombinatorialData]
-    public async Task RespectReadonly(TestHost host)
-    {
-        var text = """
+    public Task RespectReadonly(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 private readonly [|int x|];
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private readonly int x;
@@ -497,14 +439,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, CombinatorialData]
-    public async Task PreserveNewAndConsiderBaseMemberNames(TestHost host)
-    {
-        var text = """
+    public Task PreserveNewAndConsiderBaseMemberNames(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class c
             {
                 protected int goo;
@@ -516,9 +455,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
             {
                 protected new int [|goo|];
             }
-            """;
-
-        var expected = """
+            """, """
             class c
             {
                 protected int goo;
@@ -543,14 +480,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, CombinatorialData]
-    public async Task EncapsulateMultiplePrivateFields(TestHost host)
-    {
-        var text = """
+    public Task EncapsulateMultiplePrivateFields(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 private int [|x, y|];
@@ -561,9 +495,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     y = 2;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int x, y;
@@ -600,14 +532,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     Y = 2;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, CombinatorialData]
-    public async Task EncapsulateMultiplePrivateFields2(TestHost host)
-    {
-        var text = """
+    public Task EncapsulateMultiplePrivateFields2(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 [|private int x;
@@ -619,9 +548,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     y = 2;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 private int x;
@@ -659,14 +586,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     Y = 2;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, CombinatorialData]
-    public async Task EncapsulateSinglePublicFieldInMultipleVariableDeclarationAndUpdateReferences(TestHost host)
-    {
-        var text = """
+    public Task EncapsulateSinglePublicFieldInMultipleVariableDeclarationAndUpdateReferences(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class goo
             {
                 public int [|x|], y;
@@ -677,9 +601,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     y = 2;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class goo
             {
                 public int y;
@@ -704,21 +626,16 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     y = 2;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057"), CombinatorialData]
-    public async Task ConstFieldNoGetter(TestHost host)
-    {
-        var text = """
+    public Task ConstFieldNoGetter(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class Program
             {
                 private const int [|bar|] = 3;
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 private const int bar = 3;
@@ -731,21 +648,16 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276"), CombinatorialData]
-    public async Task EncapsulateFieldNamedValue(TestHost host)
-    {
-        var text = """
+    public Task EncapsulateFieldNamedValue(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class Program
             {
                 private const int [|bar|] = 3;
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 private const int bar = 3;
@@ -758,21 +670,16 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276"), CombinatorialData]
-    public async Task PublicFieldNamed__(TestHost host)
-    {
-        var text = """
+    public Task PublicFieldNamed__(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class Program
             {
                 public int [|__|];
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 private int __1;
@@ -790,34 +697,25 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046"), CombinatorialData]
-    public async Task AvailableNotJustOnVariableName(TestHost host)
-    {
-        var text = """
+    public Task AvailableNotJustOnVariableName(TestHost host)
+        => TestActionCountAsync("""
             class Program
             {
                 pri[||]vate int x;
             }
-            """;
-
-        await TestActionCountAsync(text, 2, new TestParameters(testHost: host));
-    }
+            """, 2, new TestParameters(testHost: host));
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898"), CombinatorialData]
-    public async Task CopyFieldAccessibility(TestHost host)
-    {
-        var text = """
+    public Task CopyFieldAccessibility(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class Program
             {
                 protected const int [|bar|] = 3;
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 private const int bar = 3;
@@ -830,14 +728,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, CombinatorialData]
-    public async Task UpdateReferencesCrossProject(TestHost host)
-    {
-        var text = """
+    public Task UpdateReferencesCrossProject(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -861,9 +756,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -900,21 +793,16 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     </Document>
                 </Project>
             </Workspace>
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe);
-    }
+            """, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269"), CombinatorialData]
-    public async Task PreserveUnsafe(TestHost host)
-    {
-        var text = """
+    public Task PreserveUnsafe(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class C
             {
                 unsafe int* [|goo|];
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 unsafe int* goo;
@@ -932,14 +820,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240"), CombinatorialData]
-    public async Task ConsiderReturnTypeAccessibility(TestHost host)
-    {
-        var text = """
+    public Task ConsiderReturnTypeAccessibility(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             public class Program
             {
                 private State [|state|];
@@ -949,9 +834,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
             {
                 WA
             }
-            """;
-
-        var expected = """
+            """, """
             public class Program
             {
                 private State state;
@@ -974,14 +857,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
             {
                 WA
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191"), CombinatorialData]
-    public async Task DoNotReferToReadOnlyPropertyInConstructor(TestHost host)
-    {
-        var text = """
+    public Task DoNotReferToReadOnlyPropertyInConstructor(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class Program
             {
                 public readonly int [|Field|];
@@ -991,9 +871,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     this.Field = f;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 private readonly int field;
@@ -1011,14 +889,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191"), CombinatorialData]
-    public async Task DoNotReferToStaticReadOnlyPropertyInConstructor(TestHost host)
-    {
-        var text = """
+    public Task DoNotReferToStaticReadOnlyPropertyInConstructor(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class Program
             {
                 public static readonly int [|Field|];
@@ -1028,9 +903,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     Field = 3;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 private static readonly int field;
@@ -1048,21 +921,17 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 0);
-    }
+            """, index: 0);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959"), CombinatorialData]
-    public async Task GenerateInTheCorrectPart(TestHost host)
-    {
-        var text = """
+    public Task GenerateInTheCorrectPart(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             partial class Program {}
 
             partial class Program {
                private int [|x|];
             }
-            """;
-        var expected = """
+            """, """
             partial class Program {}
 
             partial class Program {
@@ -1081,41 +950,30 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected);
-    }
+            """);
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829178"), CombinatorialData]
-    public async Task ErrorTolerance(TestHost host)
-    {
-        var text = """
+    public Task ErrorTolerance(TestHost host)
+        => TestActionCountAsync("""
             class Program 
             {
                 a b c [|b|]
             }
-            """;
-
-        await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
-    }
+            """, count: 2, new TestParameters(testHost: host));
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072"), CombinatorialData]
-    public async Task DuplicateFieldErrorTolerance(TestHost host)
-    {
-        var text = """
+    public Task DuplicateFieldErrorTolerance(TestHost host)
+        => TestActionCountAsync("""
             class Program
             {
                 public const string [|s|] = "S";
                 public const string s = "S";
             }
-            """;
-
-        await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
-    }
+            """, count: 2, new TestParameters(testHost: host));
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517"), CombinatorialData]
-    public async Task Trivia(TestHost host)
-    {
-        var text = """
+    public Task Trivia(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             namespace ConsoleApplication1
             {
                 class Program
@@ -1124,9 +982,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     public int myI[||]nt;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             namespace ConsoleApplication1
             {
                 class Program
@@ -1148,10 +1004,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     }
                 }
             }
-            """;
-
-        await TestAllOptionsOffAsync(host, text, expected);
-    }
+            """);
 
     [Theory, WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282"), CombinatorialData]
     public async Task DoNotEncapsulateOutsideTypeDeclaration(TestHost host)
@@ -1347,9 +1200,8 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
     }
 
     [Theory, CombinatorialData]
-    public async Task TestEncapsulateEscapedIdentifier(TestHost host)
-    {
-        await TestAllOptionsOffAsync(host, """
+    public Task TestEncapsulateEscapedIdentifier(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class C
             {
                 int [|@class|];
@@ -1373,12 +1225,10 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEncapsulateEscapedIdentifierAndQualifiedAccess(TestHost host)
-    {
-        await TestAllOptionsOffAsync(host, """
+    public Task TestEncapsulateEscapedIdentifierAndQualifiedAccess(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class C
             {
                 int [|@class|];
@@ -1402,12 +1252,10 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """, options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/7090"), CombinatorialData]
-    public async Task ApplyCurrentThisPrefixStyle(TestHost host)
-    {
-        await TestAllOptionsOffAsync(host,
+    public Task ApplyCurrentThisPrefixStyle(TestHost host)
+        => TestAllOptionsOffAsync(host,
             """
             class C
             {
@@ -1433,12 +1281,10 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """, options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
-    }
 
     [Theory, CombinatorialData, CompilerTrait(CompilerFeature.Tuples)]
-    public async Task TestTuple(TestHost host)
-    {
-        var text = """
+    public Task TestTuple(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class C
             {
                 private (int, string) b[|o|]b;
@@ -1448,9 +1294,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bob;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 private (int, string) bob;
@@ -1473,14 +1317,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bob;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 1);
-    }
+            """, index: 1);
 
     [Theory, CombinatorialData, CompilerTrait(CompilerFeature.Tuples)]
-    public async Task TupleWithNames(TestHost host)
-    {
-        var text = """
+    public Task TupleWithNames(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class C
             {
                 private (int a, string b) b[|o|]b;
@@ -1490,9 +1331,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bob.b;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 private (int a, string b) bob;
@@ -1515,14 +1354,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = bob.b;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 1);
-    }
+            """, index: 1);
 
     [Theory, CombinatorialData, CompilerTrait(CompilerFeature.FunctionPointers)]
-    public async Task FunctionPointer(TestHost host)
-    {
-        var text = """
+    public Task FunctionPointer(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             unsafe class C
             {
                 private delegate*<int, string> f[|i|]eld;
@@ -1532,9 +1368,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = field;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             unsafe class C
             {
                 private delegate*<int, string> f[|i|]eld;
@@ -1557,14 +1391,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = field;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 1);
-    }
+            """, index: 1);
 
     [Theory, CombinatorialData, CompilerTrait(CompilerFeature.FunctionPointers)]
-    public async Task FunctionPointerWithPrivateTypeParameter(TestHost host)
-    {
-        var text = """
+    public Task FunctionPointerWithPrivateTypeParameter(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             unsafe class C
             {
                 private struct S { }
@@ -1575,9 +1406,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = field;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             unsafe class C
             {
                 private struct S { }
@@ -1601,14 +1430,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = field;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 1);
-    }
+            """, index: 1);
 
     [Theory, CombinatorialData, CompilerTrait(CompilerFeature.FunctionPointers)]
-    public async Task FunctionPointerWithPrivateTypeReturnValue(TestHost host)
-    {
-        var text = """
+    public Task FunctionPointerWithPrivateTypeReturnValue(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             unsafe class C
             {
                 private struct S { }
@@ -1619,9 +1445,7 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = field;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             unsafe class C
             {
                 private struct S { }
@@ -1645,14 +1469,11 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                     var q = field;
                 }
             }
-            """;
-        await TestAllOptionsOffAsync(host, text, expected, index: 1);
-    }
+            """, index: 1);
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75210")]
-    public async Task PrimaryConstructor(TestHost host, bool andUseProperty)
-    {
-        await TestAllOptionsOffAsync(host, """
+    public Task PrimaryConstructor(TestHost host, bool andUseProperty)
+        => TestAllOptionsOffAsync(host, """
             public class C(object o)
             {
                 public readonly int [|A|] = 1;
@@ -1672,5 +1493,4 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
             }
             """,
             index: andUseProperty ? 0 : 1);
-    }
 }

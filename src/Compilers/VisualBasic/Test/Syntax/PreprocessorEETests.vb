@@ -3,12 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.Utilities
-Imports ERRID = Microsoft.CodeAnalysis.VisualBasic.ERRID
 
 Public Class PreprocessorEETests
 

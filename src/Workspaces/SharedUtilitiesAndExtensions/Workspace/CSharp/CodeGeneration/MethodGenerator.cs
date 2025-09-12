@@ -375,9 +375,6 @@ internal static class MethodGenerator
 
                 if (method.IsVirtual)
                     tokens.Add(VirtualKeyword);
-
-                if (CodeGenerationMethodInfo.GetIsPartial(method) && !method.IsAsync)
-                    tokens.Add(PartialKeyword);
             }
             else if (destination is CodeGenerationDestination.CompilationUnit)
             {
@@ -398,7 +395,7 @@ internal static class MethodGenerator
                 tokens.Add(AsyncKeyword);
         }
 
-        if (CodeGenerationMethodInfo.GetIsPartial(method) && method.IsAsync)
+        if (CodeGenerationMethodInfo.GetIsPartial(method))
             tokens.Add(PartialKeyword);
 
         return [.. tokens];

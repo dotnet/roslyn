@@ -62,12 +62,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
                 Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
-                Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, metadataAssembly)
+                Dim matchToMetadata = New VisualBasicSymbolMatcher(
+                    sourceAssembly:=sourceAssembly,
+                    otherAssembly:=metadataAssembly,
+                    otherSynthesizedTypes:=initialBaseline.LazyMetadataSymbols.SynthesizedTypes)
 
                 Dim previousSourceToMetadata = New VisualBasicSymbolMatcher(
-                metadataSymbols.SynthesizedTypes,
-                previousSourceAssembly,
-                metadataAssembly)
+                    sourceAssembly:=previousSourceAssembly,
+                    otherAssembly:=metadataAssembly,
+                    otherSynthesizedTypes:=metadataSymbols.SynthesizedTypes)
 
                 Dim previousSourceToCurrentSource As VisualBasicSymbolMatcher = Nothing
                 If baseline.Ordinal > 0 Then
@@ -76,9 +79,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     previousSourceToCurrentSource = New VisualBasicSymbolMatcher(
                         sourceAssembly:=sourceAssembly,
                         otherAssembly:=previousSourceAssembly,
-                        baseline.SynthesizedTypes,
-                        otherSynthesizedMembersOpt:=baseline.SynthesizedMembers,
-                        otherDeletedMembersOpt:=baseline.DeletedMembers)
+                        otherSynthesizedTypes:=baseline.SynthesizedTypes,
+                        otherSynthesizedMembers:=baseline.SynthesizedMembers,
+                        otherDeletedMembers:=baseline.DeletedMembers)
                 End If
 
                 definitionMap = New VisualBasicDefinitionMap(edits, metadataDecoder, previousSourceToMetadata, matchToMetadata, previousSourceToCurrentSource, baseline)
@@ -162,53 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 String.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)))
 
             Return False
-        End Function
-
-        Friend Function MapToCompilation(
-            compilation As VisualBasicCompilation,
-            moduleBeingBuilt As PEDeltaAssemblyBuilder) As EmitBaseline
-
-            Dim previousGeneration = moduleBeingBuilt.PreviousGeneration
-            Debug.Assert(previousGeneration.Compilation IsNot compilation)
-
-            If previousGeneration.Ordinal = 0 Then
-                ' Initial generation, nothing to map. (Since the initial generation
-                ' is always loaded from metadata in the context of the current
-                ' compilation, there's no separate mapping step.)
-                Return previousGeneration
-            End If
-
-            Dim synthesizedTypes = moduleBeingBuilt.GetSynthesizedTypes()
-            Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
-            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers
-
-            ' Mapping from previous compilation to the current.
-            Dim previousSourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-
-            Dim matcher = New VisualBasicSymbolMatcher(
-                previousSourceAssembly,
-                compilation.SourceAssembly,
-                synthesizedTypes,
-                currentSynthesizedMembers,
-                currentDeletedMembers)
-
-            Dim mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping:=False)
-            Dim mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping:=True)
-
-            ' TODO can we reuse some data from the previous matcher?
-            Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
-                previousSourceAssembly,
-                compilation.SourceAssembly,
-                synthesizedTypes,
-                mappedSynthesizedMembers,
-                mappedDeletedMembers)
-
-            Return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
-                previousGeneration,
-                compilation,
-                moduleBeingBuilt,
-                mappedSynthesizedMembers,
-                mappedDeletedMembers)
         End Function
     End Module
 End Namespace

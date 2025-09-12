@@ -31,9 +31,9 @@ internal static class IDEDiagnosticIdToOptionMappingHelper
     public static bool TryGetMappedFadingOption(string diagnosticId, [NotNullWhen(true)] out PerLanguageOption2<bool>? fadingOption)
         => s_diagnosticIdToFadingOptionMap.TryGetValue(diagnosticId, out fadingOption);
 
-    public static bool IsKnownIDEDiagnosticId(string diagnosticId)
-        => s_diagnosticIdToOptionMap.ContainsKey(diagnosticId) ||
-           s_diagnosticIdToLanguageSpecificOptionsMap.Values.Any(map => map.ContainsKey(diagnosticId));
+    public static ImmutableHashSet<string> KnownIDEDiagnosticIds
+        => [.. s_diagnosticIdToOptionMap.Keys,
+            .. s_diagnosticIdToLanguageSpecificOptionsMap.Values.SelectMany(map => map.Keys)];
 
     public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IOption2> options)
     {

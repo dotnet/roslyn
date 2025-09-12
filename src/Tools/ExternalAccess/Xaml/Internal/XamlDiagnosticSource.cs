@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 internal sealed class XamlDiagnosticSource(IXamlDiagnosticSource xamlDiagnosticSource, TextDocument document) : IDiagnosticSource
 {
-    bool IDiagnosticSource.IsLiveSource() => true;
     Project IDiagnosticSource.GetProject() => document.Project;
     ProjectOrDocumentId IDiagnosticSource.GetId() => new(document.Id);
     TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => new() { DocumentUri = document.GetURI() };
@@ -26,7 +25,7 @@ internal sealed class XamlDiagnosticSource(IXamlDiagnosticSource xamlDiagnosticS
     {
         var xamlRequestContext = XamlRequestContext.FromRequestContext(context);
         var diagnostics = await xamlDiagnosticSource.GetDiagnosticsAsync(xamlRequestContext, cancellationToken).ConfigureAwait(false);
-        var result = diagnostics.Select(e => DiagnosticData.Create(e, document)).ToImmutableArray();
+        var result = diagnostics.SelectAsArray(e => DiagnosticData.Create(e, document));
         return result;
     }
 }

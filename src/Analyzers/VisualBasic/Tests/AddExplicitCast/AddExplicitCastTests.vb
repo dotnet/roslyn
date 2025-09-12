@@ -511,7 +511,7 @@ Public Class TestOverloadAttribute
 End Class
 Public Enum TestEnum
     One = 1
-End Enum", compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=OptionStrict.Off))
+End Enum", New TestParameters(compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionStrict:=OptionStrict.Off)))
         End Function
 
         <Fact>
@@ -2971,10 +2971,10 @@ Class Program
     End Class
 End Class"
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=0,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived")))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=1,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived2"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived2")))
         End Function
 
         <Fact>
@@ -3037,10 +3037,10 @@ Class Program
     End Class
 End Class"
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=0,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived")))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=1,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived2"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived2")))
         End Function
 
         <Fact>
@@ -3232,13 +3232,13 @@ Class Program
 End Class"
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CStr(b)"), index:=0,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "String"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "String")))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CType(b, Derived)"), index:=1,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived")))
 
             Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CType(b, Derived2)"), index:=2,
-                title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived2"))
+                New TestParameters(title:=String.Format(CodeFixesResources.Convert_type_to_0, "Derived2")))
         End Function
 
         <Fact>

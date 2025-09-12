@@ -20,9 +20,9 @@ using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
@@ -112,7 +112,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var fixData = await reference.TryGetFixDataAsync(document, node, options.CleanupOptions, cancellationToken).ConfigureAwait(false);
+                            var fixData = await reference.TryGetFixDataAsync(
+                                document, node, options.CleanupDocument, options.CleanupOptions, cancellationToken).ConfigureAwait(false);
                             result.AddIfNotNull(fixData);
 
                             if (result.Count > maxResults)
@@ -142,7 +143,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // Caches so we don't produce the same data multiple times while searching 
         // all over the solution.
         var project = document.Project;
-        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
+        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
         var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
 
         var finder = new SymbolReferenceFinder(
@@ -167,7 +168,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         => project.Solution.WorkspaceKind is WorkspaceKind.Host or WorkspaceKind.RemoteWorkspace;
 
     private async Task<ImmutableArray<Reference>> FindResultsAsync(
-        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
         ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
         Project project,
         int maxResults,
@@ -212,7 +213,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     }
 
     private static async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
-        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
         Project project, ConcurrentQueue<Reference> allSymbolReferences, int maxResults,
         SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
     {
@@ -351,7 +352,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         IAsyncEnumerable<ImmutableArray<SymbolReference>> reader,
         CancellationTokenSource linkedTokenSource)
     {
-        await foreach (var symbolReferences in reader)
+        await foreach (var symbolReferences in reader.ConfigureAwait(false))
         {
             linkedTokenSource.Token.ThrowIfCancellationRequested();
             AddRange(allSymbolReferences, symbolReferences);
@@ -480,9 +481,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     protected static bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
     {
         if (receiver == null || method == null)
-        {
             return false;
-        }
 
         // It's possible that the 'method' we're looking at is from a different language than
         // the language we're currently in.  For example, we might find the extension method
@@ -495,9 +494,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // to just always consider such methods viable.
 
         if (receiver.Language != method.Language)
-        {
             return false;
-        }
+
+        // Uniformly check classic and modern extension methods.
+        if (method.IsClassicOrModernInstanceExtensionMethod(out var classicMethod))
+            method = classicMethod;
 
         return method.ReduceExtensionMethod(receiver) != null;
     }
@@ -571,8 +572,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         // Get the diagnostics that indicate a missing import.
         var diagnostics = semanticModel.GetDiagnostics(span, cancellationToken)
-           .Where(diagnostic => diagnosticIds.Contains(diagnostic.Id))
-           .ToImmutableArray();
+           .WhereAsArray(diagnostic => diagnosticIds.Contains(diagnostic.Id));
 
         var getFixesForDiagnosticsTasks = diagnostics
             .GroupBy(diagnostic => diagnostic.Location.SourceSpan)

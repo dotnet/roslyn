@@ -234,7 +234,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private readonly SourceGeneratedFileManager _fileManager;
         private readonly ITextBuffer _textBuffer;
         private readonly SourceGeneratedDocumentIdentity _documentIdentity;
-        private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
         /// <summary>
         /// A read-only region that we create across the entire file to prevent edits unless we are the one making them.
@@ -270,7 +269,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             _fileManager = fileManager;
             _textBuffer = textBuffer;
             _documentIdentity = documentIdentity;
-            _workspaceConfigurationService = this.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
             // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
             // while we're doing edits.

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -74,7 +75,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         var fieldType = TypeParameters.IsEmpty ? delegateType : TypeMap.SubstituteType(delegateType).Type;
         var fieldName = GeneratedNames.DelegateCacheContainerFieldName(_delegateFields.Count, targetMethod.Name);
 
-        field = new SynthesizedFieldSymbol(this, fieldType, fieldName, isPublic: true, isStatic: true);
+        field = new SynthesizedFieldSymbol(this, fieldType, fieldName, DeclarationModifiers.Public, isStatic: true);
         factory.AddField(this, field);
 
         if (!TypeParameters.IsEmpty)

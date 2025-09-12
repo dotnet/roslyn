@@ -9,5 +9,5 @@ internal interface ITestFrameworkMetadata
     /// <summary>
     /// Determines if the input attribute token name matches known test method attribute names.
     /// </summary>
-    public bool MatchesAttributeSyntacticName(string attributeSyntacticName);
+    bool MatchesAttributeSyntacticName(string attributeSyntacticName);
 }

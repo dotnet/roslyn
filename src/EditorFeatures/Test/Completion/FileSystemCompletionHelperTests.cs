@@ -18,7 +18,9 @@ public sealed class FileSystemCompletionHelperTests
         AssertEx.Equal(
             expected,
             actual.Select(c => $"'{c.DisplayText}', {string.Join(", ", c.Tags)}, '{c.GetProperty(CommonCompletionItem.DescriptionProperty)}'"),
-            itemInspector: c => $"@\"{c}\"");
+            itemInspector: c => $"""
+            @"{c}"
+            """);
 
         Assert.True(actual.All(i => i.Rules == TestFileSystemCompletionHelper.CompletionRules));
     }

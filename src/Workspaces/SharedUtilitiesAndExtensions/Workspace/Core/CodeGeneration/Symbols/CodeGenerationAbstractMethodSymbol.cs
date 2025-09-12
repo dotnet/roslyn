@@ -99,7 +99,11 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
 
     public bool IsConditional => false;
 
+#if !ROSLYN_4_12_OR_LOWER
     public bool IsIterator => false;
+
+    public IMethodSymbol AssociatedExtensionImplementation => null;
+#endif
 
     public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
 

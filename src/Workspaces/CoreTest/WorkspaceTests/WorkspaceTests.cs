@@ -4,13 +4,13 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Xunit;
-using System;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 

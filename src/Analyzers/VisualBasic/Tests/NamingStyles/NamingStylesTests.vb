@@ -37,7 +37,7 @@ end module",
     sub M(x as integer)
     end sub
 end module",
-                options:=s_options.ParameterNamesAreCamelCase)
+                New TestParameters(options:=s_options.ParameterNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -53,7 +53,7 @@ end module",
         dim x = 0
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -69,7 +69,7 @@ end module",
         dim X as integer, y, Z as string
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -85,7 +85,7 @@ end module",
         dim x(0 to 4) as integer, Y as new object(), Z%? as integer
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -101,7 +101,7 @@ end module",
         dim X(0 to 4) as integer, y as new object(), Z%? as integer
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -117,7 +117,7 @@ end module",
         dim X(0 to 4) as integer, Y as new object(), z%? as integer
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -135,7 +135,7 @@ end module",
         end using
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -153,7 +153,7 @@ end module",
         end using
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact(Skip:="Implicit declarations cannot be found by syntax. Requires https://github.com/dotnet/roslyn/issues/14061")>
@@ -171,7 +171,7 @@ end module",
         next
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -201,7 +201,7 @@ end module",
         next
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact(Skip:="Implicit declarations cannot be found by syntax. Requires https://github.com/dotnet/roslyn/issues/14061")>
@@ -219,7 +219,7 @@ end module",
         next
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -249,7 +249,7 @@ end module",
         next
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -271,7 +271,7 @@ module C
         end try
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -302,7 +302,7 @@ end module",
         System.Console.WriteLine(value)
     end sub
 end module",
-                options:=s_options.LocalNamesAreCamelCase)
+                New TestParameters(options:=s_options.LocalNamesAreCamelCase))
         End Function
 
         <Fact>
@@ -404,7 +404,7 @@ end module",
 "module C
     const FIELD = 0
 end module",
-                options:=s_options.ConstantsAreUpperCase)
+                New TestParameters(options:=s_options.ConstantsAreUpperCase))
         End Function
 
         <Fact>
@@ -420,7 +420,7 @@ end module",
         const local1 = 0, LOCAL2 as integer = 0
     end sub
 end module",
-                options:=s_options.ConstantsAreUpperCase)
+                New TestParameters(options:=s_options.ConstantsAreUpperCase))
         End Function
 
         <Fact>
@@ -454,7 +454,7 @@ end module",
         const PASCALCASE = 0
     end sub
 end module",
-                options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase)
+                New TestParameters(options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase))
         End Function
 
         <Fact>
@@ -470,7 +470,7 @@ end module",
         dim pascalCase = 0
     end sub
 end module",
-                options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase)
+                New TestParameters(options:=s_options.LocalsAreCamelCaseConstantsAreUpperCase))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38513")>
@@ -480,7 +480,7 @@ end module",
 End Interface",
 "Interface ITest
 End Interface",
-                options:=s_options.InterfaceNamesStartWithI)
+                New TestParameters(options:=s_options.InterfaceNamesStartWithI))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38513")>
@@ -490,7 +490,7 @@ End Interface",
 End Class",
 "Public Class classHolder(Of TType)
 End Class",
-                options:=s_options.TypeParameterNamesStartWithT)
+                New TestParameters(options:=s_options.TypeParameterNamesStartWithT))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51727")>

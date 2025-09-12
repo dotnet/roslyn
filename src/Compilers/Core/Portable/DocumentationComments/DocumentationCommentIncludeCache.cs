@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 using (XmlReader reader = XmlReader.Create(stream, s_xmlSettings))
                 {
                     var document = XDocument.Load(reader, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
-                    return KeyValuePairUtil.Create(resolvedPath, document);
+                    return KeyValuePair.Create(resolvedPath, document);
                 }
             }
         }

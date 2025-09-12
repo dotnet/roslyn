@@ -5,10 +5,8 @@
     <NonShipping>true</NonShipping>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup>
-    <DefineConstants>TEST_UTILITIES</DefineConstants>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <DefineConstants>$(DefineConstants),TEST_UTILITIES</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" />
@@ -50,4 +48,7 @@
   <Import Project="..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
   <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+
+  <Import Project="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared"/>
+  <Import Project="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
 </Project>

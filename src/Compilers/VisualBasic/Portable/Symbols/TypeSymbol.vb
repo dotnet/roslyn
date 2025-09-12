@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
         ''' </summary>
-        Public Overridable ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
+        Public Overridable ReadOnly Property ExtendedSpecialType As ExtendedSpecialType Implements ITypeSymbolInternal.ExtendedSpecialType
             Get
                 Return Nothing
             End Get
@@ -782,17 +782,5 @@ Done:
         Private Function ITypeSymbolInternal_GetITypeSymbol() As ITypeSymbol Implements ITypeSymbolInternal.GetITypeSymbol
             Return Me
         End Function
-
-        Public ReadOnly Property IsExtension As Boolean Implements ITypeSymbol.IsExtension
-            Get
-                Return False
-            End Get
-        End Property
-
-        Public ReadOnly Property ExtensionParameter As IParameterSymbol Implements ITypeSymbol.ExtensionParameter
-            Get
-                Return Nothing
-            End Get
-        End Property
     End Class
 End Namespace

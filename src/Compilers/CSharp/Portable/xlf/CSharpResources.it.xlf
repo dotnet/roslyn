@@ -227,9 +227,29 @@
         <target state="translated">Non è possibile usare una raccolta di tipo dinamico in un'istruzione foreach asincrona</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadExtensionBinaryOperatorSignature">
+        <source>One of the parameters of a binary operator must be the extended type.</source>
+        <target state="new">One of the parameters of a binary operator must be the extended type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadExtensionContainingType">
         <source>Extensions must be declared in a top-level, non-generic, static class</source>
         <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionIncDecSignature">
+        <source>The parameter type for ++ or -- operator must be the extended type.</source>
+        <target state="new">The parameter type for ++ or -- operator must be the extended type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionShiftOperatorSignature">
+        <source>The first operand of an overloaded shift operator must have the same type as the extended type</source>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the extended type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionUnaryOperatorSignature">
+        <source>The parameter of a unary operator must be the extended type.</source>
+        <target state="new">The parameter of a unary operator must be the extended type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -732,6 +752,11 @@
         <target state="translated">Un albero delle espressioni non può contenere un'espressione di raccolta.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator">
+        <source>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</source>
+        <target state="new">An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
         <target state="new">An expression tree may not contain an extension property access</target>
@@ -785,6 +810,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">Un albero delle espressioni non può contenere un'espressione with.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionBlockCollision">
+        <source>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</source>
+        <target state="new">This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
@@ -845,6 +875,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
         <target state="translated">La funzionalità '{0}' non è disponibile in C# 13.0. Usare la versione del linguaggio {1} o successiva.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion14">
+        <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1102,6 +1137,16 @@
         <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceOperatorExtensionWrongReceiverType">
+        <source>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</source>
+        <target state="new">Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceOperatorStructExtensionWrongReceiverRefKind">
+        <source>Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</source>
+        <target state="new">Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Le proprietà di istanza nelle interfacce non possono avere inizializzatori.</target>
@@ -1207,11 +1252,6 @@
         <target state="translated">Non è possibile intercettare: la compilazione non contiene un file con percorso '{0}'. Forse volevi usare il percorso '{1}'?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
-        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
-        <target state="translated">Non è possibile intercettare: Il percorso '{0}' non è mappato. Previsto percorso mappato '{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterceptorPositionBadToken">
         <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
         <target state="translated">La riga e il numero di caratteri specificati non fanno riferimento a un nome di metodo intercettabile, ma al token '{0}'.</target>
@@ -1276,6 +1316,11 @@
         <source>The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</source>
         <target state="translated">Il formato di InterpolatedStringHandlerArgumentAttribute applicato al parametro '{0}' non è valido e non può essere interpretato. Costruire manualmente un'istanza di '{1}'.</target>
         <note>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</note>
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerArgumentDisallowed">
+        <source>Interpolated string handler arguments are not allowed in this context.</source>
+        <target state="new">Interpolated string handler arguments are not allowed in this context.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
         <source>Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</source>
@@ -1467,9 +1512,19 @@
         <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberNameSameAsExtendedType">
+        <source>'{0}': extension member names cannot be the same as their extended type</source>
+        <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Nessun overload per '{0}' corrisponde al puntatore a funzione '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
@@ -1653,7 +1708,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
-        <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
+        <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
         <target state="translated">'{0}' non è un metodo di istanza. Il ricevitore non può essere un argomento del gestore di stringhe interpolate.</target>
         <note />
       </trans-unit>
@@ -1700,6 +1755,11 @@
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">Impossibile dichiarare controllato l'operatore '{0}' definito dall'utente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorInExtensionOfStaticClass">
+        <source>An extension block extending a static class cannot contain user-defined operators</source>
+        <target state="new">An extension block extending a static class cannot contain user-defined operators</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMismatchOnOverride">
@@ -2282,11 +2342,6 @@
         <target state="translated">Il membro di record '{0}' deve restituire '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
-        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
-        <target state="translated">Non è possibile specificare /main se è presente un'unità di compilazione con istruzioni di primo livello.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SimpleProgramIsEmpty">
         <source>At least one top-level statement must be non-empty.</source>
         <target state="translated">Almeno un'istruzione di primo livello deve essere non vuota.</target>
@@ -2515,6 +2570,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="translated">'{0}' richiede la funzionalità del compilatore '{1}', che non è supportata da questa versione del compilatore C#.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
+        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -2990,16 +3050,6 @@
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
         <target state="translated">L'argomento deve essere passato con la parola chiave 'ref' o 'in'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed">
-        <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">Non è possibile usare il tipo '{0}' in questo contesto perché non può essere rappresentato nei metadati.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
-        <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
-        <target state="translated">Non è possibile usare il tipo in questo contesto perché non può essere rappresentato nei metadati.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
@@ -3919,6 +3969,7 @@
                               each error
 -preferreduilang              Specify the preferred output language name.
 -nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
@@ -3937,7 +3988,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Opzioni del Compilatore Visual C#
 
                        - FILE DI OUTPUT -
@@ -6403,11 +6454,6 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <target state="translated">L'espressione switch o l'etichetta case deve essere un tipo bool, char, string, integrale, enum o un tipo nullable corrispondente in C# 6 e versioni precedenti.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IntegralTypeValueExpected">
-        <source>A value of an integral type expected</source>
-        <target state="translated">È previsto un valore di tipo integrale</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateCaseLabel">
         <source>The switch statement contains multiple cases with the label value '{0}'</source>
         <target state="translated">L'istruzione switch contiene più usi di maiuscole/minuscole con il valore di etichetta '{0}'</target>
@@ -7607,7 +7653,7 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <target state="translated">Il tipo predefinito '{0}' non è definito né importato</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">Il tipo predefinito '{0}' è dichiarato in più assembly di riferimento: '{1}' e '{2}'</target>
         <note />
@@ -9276,11 +9322,6 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <target state="translated">'{0}' non contiene un metodo 'Main' statico appropriato</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MainClassIsImport">
-        <source>Cannot use '{0}' for Main method because it is imported</source>
-        <target state="translated">Non è possibile usare '{0}' per il metodo Main perché è importato</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OutputNeedsName">
         <source>Outputs without source must have the /out option specified</source>
         <target state="translated">Per gli output senza origine occorre specificare l'opzione /out</target>
@@ -10011,21 +10052,6 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <target state="translated">Questo avviso viene visualizzato quando prova a chiamare un metodo, una proprietà o un indicizzatore su un membro di una classe derivante da MarshalByRefObject e tale membro è un tipo valore. Il marshalling degli oggetti che ereditano da MarshalByRefObject viene in genere effettuato per riferimento in un dominio applicazione. Qualora un codice provi ad accedere direttamente al membro di tipo valore di tale oggetto in un dominio applicazione, si verificherà un'eccezione in fase di esecuzione. Per risolvere il problema, copiare innanzitutto il membro in una variabile locale e chiamare il metodo su tale variabile.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber">
-        <source>'{0}' is not a valid warning number</source>
-        <target state="translated">'{0}' non è un numero di avviso valido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Title">
-        <source>Not a valid warning number</source>
-        <target state="translated">Non è un numero di avviso valido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadWarningNumber_Description">
-        <source>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</source>
-        <target state="translated">Un numero che è stato passato alla direttiva per il preprocessore di avvisi #pragma non corrisponde a un numero di avviso valido. Verificare che il numero rappresenti un avviso e non un errore.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_InvalidNumber">
         <source>Invalid number</source>
         <target state="translated">Numero non valido</target>
@@ -10034,16 +10060,6 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       <trans-unit id="WRN_InvalidNumber_Title">
         <source>Invalid number</source>
         <target state="translated">Numero non valido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong">
-        <source>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</source>
-        <target state="translated">Il nome di file specificato per la direttiva per il preprocessore non è valido. È troppo lungo o non è un nome di file valido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileNameTooLong_Title">
-        <source>Invalid filename specified for preprocessor directive</source>
-        <target state="translated">Il nome file specificato per la direttiva per il preprocessore non è valido</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPChecksum">
@@ -10484,11 +10500,6 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
       <trans-unit id="ERR_VarArgsInExpressionTree">
         <source>An expression tree lambda may not contain a method with variable arguments</source>
         <target state="translated">Un'espressione lambda dell'albero delle espressioni non può contenere un metodo con argomenti variabili</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MemGroupInExpressionTree">
-        <source>An expression tree lambda may not contain a method group</source>
-        <target state="translated">Un'espressione lambda dell'albero delle espressioni non può contenere un gruppo di metodi</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
@@ -12557,11 +12568,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_UnclosedExpressionHole">
         <source>Missing close delimiter '}' for interpolated expression started with '{'.</source>
         <target state="translated">Manca il delimitatore '}' di chiusura per l'espressione interpolata che inizia con '{'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineCommentInExpressionHole">
-        <source>A single-line comment may not be used in an interpolated string.</source>
-        <target state="translated">Non è possibile usare un commento su una sola riga in una stringa interpolata.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InsufficientStack">
