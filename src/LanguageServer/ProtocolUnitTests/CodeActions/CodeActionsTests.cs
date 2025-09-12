@@ -218,9 +218,9 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         };
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        Assert.Equal(9, results.Length);
-        Assert.Equal("Suppress or configure issues", results[8].Title);
-        var data = GetCodeActionResolveData(results[8]);
+        Assert.Equal(10, results.Length);
+        Assert.Equal("Suppress or configure issues", results[9].Title);
+        var data = GetCodeActionResolveData(results[9]);
         Assert.NotNull(data);
 
         // Asserts that there are NestedActions present
