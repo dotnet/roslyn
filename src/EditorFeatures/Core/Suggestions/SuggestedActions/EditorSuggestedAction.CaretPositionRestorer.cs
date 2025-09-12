@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
-internal partial class SuggestedAction
+internal partial class EditorSuggestedAction
 {
     internal sealed class CaretPositionRestorer : IDisposable
     {

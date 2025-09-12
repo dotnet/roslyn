@@ -278,21 +278,21 @@ internal sealed partial class SuggestedActionsSourceProvider
                 {
                     if (action.RefactorOrFixAllState != null)
                     {
-                        return new RefactorOrFixAllSuggestedAction(
+                        return new EditorSuggestedActionActionForRefactorOrFixAll(
                             _threadingContext, owner, originalDocument.Project.Solution, subjectBuffer,
                             action.RefactorOrFixAllState, action.CodeAction,
                             action.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID());
                     }
                     else if (!action.NestedActionSets.IsEmpty)
                     {
-                        return new SuggestedActionWithNestedActions(
+                        return new EditorSuggestedActionWithNestedActions(
                            _threadingContext, owner, document.Project.Solution, subjectBuffer,
                            action.Provider, action.CodeAction,
                            action.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument)));
                     }
                     else
                     {
-                        return new SuggestedActionWithNestedFlavors(
+                        return new EditorSuggestedActionWithNestedFlavors(
                             _threadingContext, owner, originalDocument, subjectBuffer, action.Provider, action.CodeAction,
                             ConvertFlavors(action.Flavors), action.Diagnostics);
                     }
