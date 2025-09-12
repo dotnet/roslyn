@@ -165,21 +165,17 @@ internal sealed partial class DiagnosticAnalyzerService
 
             async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsInProcessAsync(TextSpan? span)
             {
-                RoslynDebug.Assert(analyzer.IsCompilerAnalyzer());
-                RoslynDebug.Assert(_compilationWithAnalyzers != null);
-                RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));
-                RoslynDebug.Assert(AnalysisScope.TextDocument is Document);
+                Contract.ThrowIfFalse(analyzer.IsCompilerAnalyzer());
+                Contract.ThrowIfNull(_compilationWithAnalyzers);
+                Contract.ThrowIfFalse(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));
+                Contract.ThrowIfFalse(AnalysisScope.TextDocument is Document);
 
-                var analysisScope = _compilationBasedAnalyzersInAnalysisScope.Contains(analyzer)
-                    ? AnalysisScope.WithAnalyzers([analyzer]).WithSpan(span)
-                    : AnalysisScope.WithAnalyzers([]).WithSpan(span);
+                var analysisScope = AnalysisScope.WithAnalyzers([analyzer]).WithSpan(span);
                 var analysisResult = await GetAnalysisResultInProcessAsync(analysisScope).ConfigureAwait(false);
-                if (!analysisResult.TryGetValue(analyzer, out var result))
-                {
-                    return [];
-                }
 
-                return result.GetDocumentDiagnostics(analysisScope.TextDocument.Id, analysisScope.Kind);
+                return analysisResult.TryGetValue(analyzer, out var result)
+                    ? result.GetDocumentDiagnostics(analysisScope.TextDocument.Id, analysisScope.Kind)
+                    : [];
             }
 
             async Task<ImmutableArray<DiagnosticData>> GetSyntaxDiagnosticsInProcessAsync()
