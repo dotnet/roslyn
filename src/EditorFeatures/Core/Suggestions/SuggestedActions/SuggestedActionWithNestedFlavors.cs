@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -37,7 +38,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
     object provider,
     CodeAction codeAction,
     SuggestedActionSet? fixAllFlavors,
-    Diagnostic? diagnostic)
+    ImmutableArray<Diagnostic> diagnostics)
     : SuggestedAction(threadingContext,
         sourceProvider,
         originalDocument.Project.Solution,
@@ -46,7 +47,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
         codeAction), ISuggestedActionWithFlavors, ITelemetryDiagnosticID<string?>
 {
     private readonly SuggestedActionSet? _fixAllFlavors = fixAllFlavors;
-    private readonly Diagnostic? _diagnostic = diagnostic;
+    private readonly ImmutableArray<Diagnostic> _diagnostics = diagnostics;
 
     private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
@@ -137,7 +138,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
 
             return CreateTrivialAction(
                 this, new RefineUsingCopilotCodeAction(
-                    this.OriginalSolution, this.CodeAction, _diagnostic, copilotService));
+                    this.OriginalSolution, this.CodeAction, _diagnostics.FirstOrDefault(), copilotService));
         }
     }
 
@@ -191,10 +192,10 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
         // GetPreviewPane() needs to run on the UI thread.
         this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        var diagnosticData = DiagnosticData.Create(_diagnostic, this.OriginalDocument.Project);
+        var diagnosticData = DiagnosticData.Create(_diagnostics.FirstOrDefault(), this.OriginalDocument.Project);
         return previewPaneService.GetPreviewPane(diagnosticData, previewContents!);
     }
 
     public string? GetDiagnosticID()
-        => _diagnostic?.GetTelemetryDiagnosticID();
+        => _diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID();
 }

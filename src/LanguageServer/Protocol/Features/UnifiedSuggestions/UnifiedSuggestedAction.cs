@@ -31,7 +31,7 @@ internal sealed class UnifiedSuggestedAction
     /// Priority that this action should be presented with.  Higher priority actions should be presented more
     /// prominently to the user.
     /// </summary>
-    public CodeActionPriority CodeActionPriority { get; }
+    internal CodeActionPriority CodeActionPriority { get; }
 
     /// <summary>
     /// If this is a code refactoring, what sort of code refactoring it is.  Used to present different sorts of UI
@@ -106,6 +106,7 @@ internal sealed class UnifiedSuggestedAction
         ImmutableArray<Diagnostic> diagnostics,
         ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
     {
+        Contract.ThrowIfTrue(nestedActionSets.IsDefaultOrEmpty);
         return new(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics, flavors: null, nestedActionSets, refactorOrFixAllState: null);
     }
 
@@ -116,6 +117,7 @@ internal sealed class UnifiedSuggestedAction
         ImmutableArray<Diagnostic> diagnostics,
         IRefactorOrFixAllState refactorOrFixAllState)
     {
+        Contract.ThrowIfNull(refactorOrFixAllState);
         return new(codeAction, codeActionPriority, refactorOrFixAllState.Provider, codeRefactoringKind, diagnostics, flavors: null, nestedActionSets: [], refactorOrFixAllState);
     }
 }

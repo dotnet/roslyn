@@ -357,14 +357,12 @@ internal static class CodeActionHelpers
             {
                 nestedActions.Add(GetNestedActionsFromActionSet(action, fixAllScope));
                 if (fixAllScope != null)
-                {
                     GetFixAllActionsFromActionSet(action, nestedActions, fixAllScope);
-                }
             }
         }
 
         return CodeAction.Create(
-            codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
+            codeAction.Title, nestedActions.ToImmutableAndClear(), codeAction.IsInlinable, codeAction.Priority);
     }
 
     private static void GetFixAllActionsFromActionSet(UnifiedSuggestedAction suggestedAction, ArrayBuilder<CodeAction> codeActions, string? fixAllScope)

@@ -293,10 +293,8 @@ internal sealed partial class SuggestedActionsSourceProvider
                     else
                     {
                         return new SuggestedActionWithNestedFlavors(
-                            _threadingContext, owner, originalDocument, subjectBuffer,
-                            action.Provider, action.CodeAction,
-                            ConvertFlavors(action.Flavors),
-                            action.Diagnostics.FirstOrDefault());
+                            _threadingContext, owner, originalDocument, subjectBuffer, action.Provider, action.CodeAction,
+                            ConvertFlavors(action.Flavors), action.Diagnostics);
                     }
                 }
 

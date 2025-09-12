@@ -383,13 +383,13 @@ internal sealed class UnifiedSuggestedActionsSource
             var priority = group.Key;
 
             // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
-            var category = GetFixCategory(groupKey.Item1.Severity);
+            var category = GetFixCategory(groupKey.diagnostic.Severity);
             sets.Add(new UnifiedSuggestedActionSet(
                 category,
                 [.. group],
                 title: null,
                 priority,
-                applicableToSpan: groupKey.Item1.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
+                applicableToSpan: groupKey.diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
         }
     }
 
