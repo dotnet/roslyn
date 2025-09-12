@@ -10807,11 +10807,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetResultType(right, rightResultOpt.Value);
             }
             var rightResult = ResultType;
-
             var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
-            var deconstructMethod = invocation?.Method;
 
-            if (deconstructMethod is object && !invocation!.IsErroneousNode)
+            if (invocation is { Method: { } deconstructMethod, IsErroneousNode: false })
             {
                 Debug.Assert(invocation is object);
                 Debug.Assert(rightResult.Type is object);
