@@ -194,11 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor));
             }
 
-            if (this.IsParamsArray && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            if (this.IsParamsArray)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
-            else if (this.IsParamsCollection && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            else if (this.IsParamsCollection)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(this));
             }
@@ -363,6 +363,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(isParams || !refCustomModifiers.IsEmpty || baseParameterForAttributes is object || defaultValue is not null || hasUnscopedRefAttribute);
             Debug.Assert(baseParameterForAttributes is null || baseParameterForAttributes.ExplicitDefaultConstantValue == defaultValue);
             Debug.Assert(baseParameterForAttributes is null || baseParameterForAttributes.RefKind == refKind);
+            Debug.Assert(!isParams || container is SynthesizedDelegateInvokeMethod or SynthesizedClosureMethod,
+                "If this fails, make sure we don't synthesize ParamsArrayAttribute for symbols we don't intend to.");
 
             _refCustomModifiers = refCustomModifiers;
             _baseParameterForAttributes = baseParameterForAttributes;

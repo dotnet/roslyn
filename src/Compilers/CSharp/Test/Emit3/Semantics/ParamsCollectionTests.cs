@@ -20,15 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class ParamsCollectionTests : CompilingTestBase
     {
-        private const string ParamCollectionAttributeSource = @"
-namespace System.Runtime.CompilerServices
-{
-    public sealed class ParamCollectionAttribute : Attribute
-    {
-        public ParamCollectionAttribute() { }
-    }
-}
-";
+        private static string ParamCollectionAttributeSource => TestSources.ParamsCollectionAttribute;
 
         private static void VerifyParamsAndAttribute(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
         {
@@ -2741,10 +2733,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
-
-                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics(
                     // (7,72): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
@@ -2797,8 +2787,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
+                    AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics(
                     // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
                     //         System.Action<long[]> l = (params long[] x) => {};
@@ -2943,10 +2933,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
-                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
-
-                    Assert.Empty(((NamespaceSymbol)m.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2992,8 +2980,8 @@ class Program
                 symbolValidator: (m) =>
                 {
                     MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__local|0_0");
-                    AssertEx.Equal("void Program.<Main>g__local|0_0(System.Int64[] x)", l1.ToTestDisplayString());
-                    VerifyParamsAndAttribute(l1.Parameters.Last());
+                    AssertEx.Equal("void Program.<Main>g__local|0_0(params System.Int64[] x)", l1.ToTestDisplayString());
+                    VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics();
         }
 
@@ -3078,7 +3066,7 @@ format:
   IL_006c:  ldloca.s   V_0
   IL_006e:  ldc.i4.2
   IL_006f:  call       ""System.ReadOnlySpan<CustomHandler> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<CustomHandler>, CustomHandler>(in <>y__InlineArray2<CustomHandler>, int)""
-  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(scoped System.ReadOnlySpan<CustomHandler>)""
+  IL_0074:  call       ""void Program.<<Main>$>g__M|0_0(params System.ReadOnlySpan<CustomHandler>)""
   IL_0079:  ret
 }
 ");
@@ -4533,15 +4521,13 @@ class Program
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
                         VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
-                        // Note, no attributes on lambdas
-
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_0");
-                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(scoped System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l1.Parameters.Last());
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<Main>b__0_1");
-                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l2.Parameters.Last());
+                        AssertEx.Equal("void Program.<>c.<Main>b__0_1(params System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -4686,15 +4672,13 @@ class Program
                         AssertEx.Equal("void <>f__AnonymousDelegate1<T1>.Invoke(params T1[] arg)", delegateInvokeMethod2.ToTestDisplayString());
                         VerifyParamsAndAttribute(delegateInvokeMethod2.Parameters.Last(), isParamArray: true);
 
-                        // Note, no attributes on local functions
-
                         MethodSymbol l1 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test1|0_0");
-                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(scoped System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l1.Parameters.Last());
+                        AssertEx.Equal("void Program.<Main>g__Test1|0_0(params System.ReadOnlySpan<System.Int64> a)", l1.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
 
                         MethodSymbol l2 = m.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>g__Test2|0_1");
-                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(System.Int64[] a)", l2.ToTestDisplayString());
-                        VerifyParamsAndAttribute(l2.Parameters.Last());
+                        AssertEx.Equal("void Program.<Main>g__Test2|0_1(params System.Int64[] a)", l2.ToTestDisplayString());
+                        VerifyParamsAndAttribute(l2.Parameters.Last(), isParamArray: true);
 
                         if (attributeIsEmbedded)
                         {
@@ -12970,9 +12954,9 @@ class Program
                 src,
                 "<>f__AnonymousDelegate0.Invoke",
                 "void <>f__AnonymousDelegate0.Invoke(params System.Collections.Generic.IEnumerable<System.Int64> arg)",
-                // (7,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
-                //         var x1 = Test1;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test1").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(7, 18)
+                // (11,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         void Test1(params IEnumerable<long> a) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IEnumerable<long> a").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(11, 20)
                 );
         }
 
