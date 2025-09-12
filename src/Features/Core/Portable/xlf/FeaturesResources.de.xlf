@@ -2560,6 +2560,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Das Entfernen von {0}, die eine aktive Anweisung enthält, erfordert einen Neustart der Anwendung.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_files_to_match_types_within">
+        <source>Rename files to match types within</source>
+        <target state="new">Rename files to match types within</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">Das Umbenennen von {0} erfordert einen Neustart der Anwendung.</target>

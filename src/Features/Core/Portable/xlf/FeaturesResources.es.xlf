@@ -2560,6 +2560,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Para quitar {0} que contiene una instrucción de acción es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_files_to_match_types_within">
+        <source>Rename files to match types within</source>
+        <target state="new">Rename files to match types within</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">Para cambiar el nombre de {0} es necesario reiniciar la aplicación.</target>

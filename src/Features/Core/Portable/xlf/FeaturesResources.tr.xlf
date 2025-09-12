@@ -2560,6 +2560,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Etkin bir deyim içeren {0} öğesinin kaldırılması, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_files_to_match_types_within">
+        <source>Rename files to match types within</source>
+        <target state="new">Rename files to match types within</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">{0} öğesinin yeniden adlandırılması, uygulamanın yeniden başlatılmasını gerektirir.</target>

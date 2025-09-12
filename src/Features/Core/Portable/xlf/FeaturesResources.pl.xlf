@@ -2560,6 +2560,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Usuwanie elementu {0}, który zawiera aktywną instrukcję, wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_files_to_match_types_within">
+        <source>Rename files to match types within</source>
+        <target state="new">Rename files to match types within</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
         <source>Renaming {0} requires restarting the application.</source>
         <target state="translated">Zmiana nazwy elementu {0} wymaga ponownego uruchomienia aplikacji.</target>
