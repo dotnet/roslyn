@@ -19,6 +19,12 @@
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
+
+    <!--
+      Tell the VMR to produce non-final packages for prereleases.  This ensures the build number is appended to the package version,
+      which we require to differentiate between prereleases when they span a single VS preview.
+    -->
+    <SuppressFinalPackageVersion Condition="'$(DotNetFinalVersionKind)' == 'prerelease'">true</SuppressFinalPackageVersion>
   </PropertyGroup>
   <!--
     The maintenance-packages dependency versions need to be conditionally selected:
@@ -118,7 +124,6 @@
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
     <UsingToolPdbConverter>false</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
-    <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <!-- Avoid attempting IBC on platforms where ngen won't work, or the IBC tooling won't work -->
     <UsingToolIbcOptimization Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolIbcOptimization>
     <UsingToolVisualStudioIbcTraining Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVisualStudioIbcTraining>
