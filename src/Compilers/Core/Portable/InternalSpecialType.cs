@@ -124,6 +124,15 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ICriticalNotifyCompletion,
 
         /// <summary>
+        /// Indicates that this type is the System.Runtime.InteropServices.ExtendedLayoutAttribute type from the COR library.
+        /// </summary>
+        System_Runtime_InteropServices_ExtendedLayoutAttribute,
+        /// <summary>
+        /// Indicates that this type is the System.Runtime.InteropServices.ExtendedLayoutKind type from the COR library.
+        /// </summary>
+        System_Runtime_InteropServices_ExtendedLayoutKind,
+
+        /// <summary>
         /// This item should be kept last and it doesn't represent any specific type.
         /// </summary>
         NextAvailable
