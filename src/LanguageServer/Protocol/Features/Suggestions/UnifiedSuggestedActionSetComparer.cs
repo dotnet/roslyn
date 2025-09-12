@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Suggestions;
 
-internal sealed class UnifiedSuggestedActionSetComparer : IComparer<UnifiedSuggestedActionSet>
+internal sealed class UnifiedSuggestedActionSetComparer : IComparer<SuggestedActionSet>
 {
     private readonly TextSpan? _targetSpan;
 
@@ -49,7 +49,7 @@ internal sealed class UnifiedSuggestedActionSetComparer : IComparer<UnifiedSugge
         return startsDistance + endsDistance;
     }
 
-    public int Compare(UnifiedSuggestedActionSet x, UnifiedSuggestedActionSet y)
+    public int Compare(SuggestedActionSet x, SuggestedActionSet y)
     {
         if (!_targetSpan.HasValue || !x.ApplicableToSpan.HasValue || !y.ApplicableToSpan.HasValue)
         {

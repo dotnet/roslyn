@@ -100,7 +100,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                 // items should be pushed higher up, and less important items shouldn't take up that much space.
                 var currentActionCount = 0;
 
-                using var _ = PooledDictionary<CodeActionRequestPriority, ArrayBuilder<SuggestedActionSet>>.GetInstance(out var pendingActionSets);
+                using var _ = PooledDictionary<CodeActionRequestPriority, ArrayBuilder<VisualStudio.Language.Intellisense.SuggestedActionSet>>.GetInstance(out var pendingActionSets);
 
                 try
                 {
@@ -135,7 +135,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                                 // this set for later, and place it in that priority group once we get there.
                                 if (actualSetPriority < priority)
                                 {
-                                    var builder = pendingActionSets.GetOrAdd(actualSetPriority, _ => ArrayBuilder<SuggestedActionSet>.GetInstance());
+                                    var builder = pendingActionSets.GetOrAdd(actualSetPriority, _ => ArrayBuilder<VisualStudio.Language.Intellisense.SuggestedActionSet>.GetInstance());
                                     builder.Add(set);
                                 }
                                 else
@@ -185,7 +185,7 @@ internal sealed partial class SuggestedActionsSourceProvider
             }
         }
 
-        private async IAsyncEnumerable<SuggestedActionSet> GetCodeFixesAndRefactoringsAsync(
+        private async IAsyncEnumerable<VisualStudio.Language.Intellisense.SuggestedActionSet> GetCodeFixesAndRefactoringsAsync(
             ReferenceCountedDisposable<State> state,
             ISuggestedActionCategorySet requestedActionCategories,
             TextDocument document,
@@ -217,7 +217,7 @@ internal sealed partial class SuggestedActionsSourceProvider
 
             yield break;
 
-            async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync()
+            async Task<ImmutableArray<CodeAnalysis.Suggestions.SuggestedActionSet>> GetCodeFixesAsync()
             {
                 using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
 
@@ -233,7 +233,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                     priority, cancellationToken).ConfigureAwait(false);
             }
 
-            async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
+            async Task<ImmutableArray<CodeAnalysis.Suggestions.SuggestedActionSet>> GetRefactoringsAsync()
             {
                 using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
 
@@ -265,16 +265,16 @@ internal sealed partial class SuggestedActionsSourceProvider
                     filterOutsideSelection, cancellationToken).ConfigureAwait(false);
             }
 
-            SuggestedActionSet ConvertToSuggestedActionSet(UnifiedSuggestedActionSet unifiedSuggestedActionSet, TextDocument originalDocument)
+            VisualStudio.Language.Intellisense.SuggestedActionSet ConvertToSuggestedActionSet(CodeAnalysis.Suggestions.SuggestedActionSet unifiedSuggestedActionSet, TextDocument originalDocument)
             {
-                return new SuggestedActionSet(
+                return new VisualStudio.Language.Intellisense.SuggestedActionSet(
                     unifiedSuggestedActionSet.CategoryName,
                     unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
                     unifiedSuggestedActionSet.Title,
                     ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
                     unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
 
-                ISuggestedAction ConvertToSuggestedAction(UnifiedSuggestedAction action)
+                ISuggestedAction ConvertToSuggestedAction(SuggestedAction action)
                 {
                     if (action.RefactorOrFixAllState != null)
                     {
@@ -308,7 +308,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                         _ => throw ExceptionUtilities.Unreachable(),
                     };
 
-                SuggestedActionSet? ConvertFlavors(UnifiedSuggestedActionFlavors? flavors)
+                VisualStudio.Language.Intellisense.SuggestedActionSet? ConvertFlavors(SuggestedActionFlavors? flavors)
                 {
                     if (flavors is null)
                         return null;
