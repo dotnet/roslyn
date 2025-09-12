@@ -8412,9 +8412,6 @@ struct S
             });
 
             verifier.VerifyDiagnostics(
-                // (14,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(14, 23),
                 // (16,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         M();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "M()").WithLocation(16, 9)
@@ -8506,11 +8503,7 @@ struct S
                     """
             });
 
-            verifier.VerifyDiagnostics(
-                // (7,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async Task M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(7, 16)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("S.M()", """
                 {
                   // Code size       16 (0x10)
@@ -8578,11 +8571,7 @@ struct S
                     """
             });
 
-            verifier.VerifyDiagnostics(
-                // (26,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         public async Task M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(26, 27)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Extensions.M<T>(this T)", """
                 {
                   // Code size       15 (0xf)
@@ -8637,10 +8626,7 @@ struct S
             var expectedDiagnostics = new[] {
                 // (26,27): error CS1988: Async methods cannot have ref, in or out parameters
                 //         public async Task M()
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "M").WithLocation(26, 27),
-                // (26,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         public async Task M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(26, 27)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "M").WithLocation(26, 27)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
@@ -8694,10 +8680,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "T").WithLocation(24, 22),
                 // (26,27): error CS1988: Async methods cannot have ref, in or out parameters
                 //         public async Task M()
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "M").WithLocation(26, 27),
-                // (26,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         public async Task M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(26, 27)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "M").WithLocation(26, 27)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
