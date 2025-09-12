@@ -132,8 +132,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder)
         {
             if (!originalMethods.IsEmpty)
+            {
                 resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
+            }
+            else
+            {
+                Debug.Assert(method.OriginalDefinition is ErrorMethodSymbol);
+            }
 
+            Debug.Assert(resultKind is not LookupResultKind.Viable);
             Debug.Assert(arguments.IsDefaultOrEmpty || (object)receiverOpt != (object)arguments[0]);
 
             return new BoundCall(
@@ -153,6 +160,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalMethodsOpt: originalMethods,
                 type: method.ReturnType,
                 hasErrors: true);
+        }
+
+        public bool IsErroneousNode => ResultKind is not LookupResultKind.Viable;
+
+        private partial void Validate()
+        {
+            Debug.Assert(ResultKind is not LookupResultKind.MemberGroup);
+            Debug.Assert(ResultKind is not LookupResultKind.StaticInstanceMismatch);
+            Debug.Assert(ResultKind is LookupResultKind.Viable || HasErrors);
+
+            /* Tracking issue: https://github.com/dotnet/roslyn/issues/79426
+            Debug.Assert(ResultKind is LookupResultKind.Viable ||
+                         new StackTrace(fNeedFileInfo: false).GetFrame(2)?.GetMethod() switch
+                         {
+                             { Name: nameof(ErrorCall), DeclaringType: { } declaringType } => declaringType == typeof(BoundCall),
+                             { Name: nameof(Update), DeclaringType: { } declaringType } => declaringType == typeof(BoundCall),
+                             _ => false
+                         });
+            */
         }
 
         public BoundCall Update(ImmutableArray<BoundExpression> arguments)
