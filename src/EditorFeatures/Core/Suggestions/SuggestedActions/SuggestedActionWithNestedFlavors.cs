@@ -171,8 +171,8 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
 
         // after this point, this method should only return at GetPreviewPane. otherwise, DifferenceViewer will leak
         // since there is no one to close the viewer
-        var preferredDocumentId = this.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext()?.Id;
-        var preferredProjectId = preferredDocumentId?.ProjectId;
+        var preferredDocumentId = this.OriginalDocument.Id;
+        var preferredProjectId = preferredDocumentId.ProjectId;
 
         var extensionManager = this.OriginalSolution.Services.GetRequiredService<IExtensionManager>();
         var previewContents = await extensionManager.PerformFunctionAsync(Provider, async cancellationToken =>
@@ -197,7 +197,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
         // GetPreviewPane() needs to run on the UI thread.
         this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        var diagnosticData = _diagnostic is null ? null : CodeFix.GetDiagnosticData(this.OriginalDocument.Project, _diagnostic);
+        var diagnosticData = DiagnosticData.Create(_diagnostic, this.OriginalDocument.Project);
         return previewPaneService.GetPreviewPane(diagnosticData, previewContents!);
     }
 

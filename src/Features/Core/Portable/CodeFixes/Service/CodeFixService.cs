@@ -682,7 +682,7 @@ internal sealed partial class CodeFixService : ICodeFixService
                         // name metadata.
                         action.AddCustomTagAndTelemetryInfo(fixerMetadata, fixer);
 
-                        fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
+                        fixes.Add(new CodeFix(action, applicableDiagnostics));
                     }
                 }
             },
