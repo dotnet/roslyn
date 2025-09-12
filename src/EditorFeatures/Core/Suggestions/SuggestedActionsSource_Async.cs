@@ -6,14 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -201,8 +198,8 @@ internal sealed partial class SuggestedActionsSourceProvider
             var target = state.Target;
             var owner = target.Owner;
             var subjectBuffer = target.SubjectBuffer;
-            var workspace = document.Project.Solution.Workspace;
-            var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
+            var solution = document.Project.Solution;
+            var supportsFeatureService = solution.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
             var fixesTask = GetCodeFixesAsync();
             var refactoringsTask = GetRefactoringsAsync();
@@ -268,15 +265,8 @@ internal sealed partial class SuggestedActionsSourceProvider
                     filterOutsideSelection, cancellationToken).ConfigureAwait(false);
             }
 
-            [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]
-            SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet, TextDocument originalDocument)
+            SuggestedActionSet ConvertToSuggestedActionSet(UnifiedSuggestedActionSet unifiedSuggestedActionSet, TextDocument originalDocument)
             {
-                // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
-                if (unifiedSuggestedActionSet == null)
-                    return null;
-
-                var originalSolution = unifiedSuggestedActionSet.OriginalSolution;
-
                 return new SuggestedActionSet(
                     unifiedSuggestedActionSet.CategoryName,
                     unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
@@ -284,36 +274,55 @@ internal sealed partial class SuggestedActionsSourceProvider
                     ConvertToSuggestedActionSetPriority(unifiedSuggestedActionSet.Priority),
                     unifiedSuggestedActionSet.ApplicableToSpan?.ToSpan());
 
-                ISuggestedAction ConvertToSuggestedAction(UnifiedSuggestedAction unifiedSuggestedAction)
-                    => unifiedSuggestedAction switch
-                    {
-                        UnifiedSuggestedActionWithNestedFlavors codeFixAction => new SuggestedActionWithNestedFlavors(
-                            _threadingContext, owner, originalDocument, subjectBuffer,
-                            codeFixAction.Provider, codeFixAction.CodeAction,
-                            ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument),
-                            codeFixAction.Diagnostics.FirstOrDefault()),
-                        UnifiedRefactorOrFixAllSuggestedAction refactorOrFixAllAction
-                            => new RefactorOrFixAllSuggestedAction(
-                                _threadingContext, owner, originalSolution, subjectBuffer,
-                                refactorOrFixAllAction.FixAllState, refactorOrFixAllAction.CodeAction,
-                                refactorOrFixAllAction.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID()),
-                        UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                            _threadingContext, owner, originalSolution, subjectBuffer,
-                            nestedAction.Provider, nestedAction.CodeAction,
-                            nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
-                        _ => throw ExceptionUtilities.Unreachable()
-                    };
-            }
-
-            static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(CodeActionPriority priority)
-                => priority switch
+                ISuggestedAction ConvertToSuggestedAction(UnifiedSuggestedAction action)
                 {
-                    CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
-                    CodeActionPriority.Low => SuggestedActionSetPriority.Low,
-                    CodeActionPriority.Default => SuggestedActionSetPriority.Medium,
-                    CodeActionPriority.High => SuggestedActionSetPriority.High,
-                    _ => throw ExceptionUtilities.Unreachable(),
-                };
+                    if (action.RefactorOrFixAllState != null)
+                    {
+                        return new RefactorOrFixAllSuggestedAction(
+                            _threadingContext, owner, originalDocument.Project.Solution, subjectBuffer,
+                            action.RefactorOrFixAllState, action.CodeAction,
+                            action.Diagnostics.FirstOrDefault()?.GetTelemetryDiagnosticID());
+                    }
+                    else if (!action.NestedActionSets.IsDefaultOrEmpty)
+                    {
+                        return new SuggestedActionWithNestedActions(
+                           _threadingContext, owner, document.Project.Solution, subjectBuffer,
+                           action.Provider, action.CodeAction,
+                           action.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument)));
+                    }
+                    else
+                    {
+                        return new SuggestedActionWithNestedFlavors(
+                            _threadingContext, owner, originalDocument, subjectBuffer,
+                            action.Provider, action.CodeAction,
+                            ConvertFlavors(action.Flavors),
+                            action.Diagnostics.FirstOrDefault());
+                    }
+                }
+
+                static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(CodeActionPriority priority)
+                    => priority switch
+                    {
+                        CodeActionPriority.Lowest => SuggestedActionSetPriority.None,
+                        CodeActionPriority.Low => SuggestedActionSetPriority.Low,
+                        CodeActionPriority.Default => SuggestedActionSetPriority.Medium,
+                        CodeActionPriority.High => SuggestedActionSetPriority.High,
+                        _ => throw ExceptionUtilities.Unreachable(),
+                    };
+
+                SuggestedActionSet? ConvertFlavors(UnifiedSuggestedActionFlavors? flavors)
+                {
+                    if (flavors is null)
+                        return null;
+
+                    return new(
+                        categoryName: null,
+                        actions: flavors.Value.Actions.SelectAsArray(a => ConvertToSuggestedAction(a)),
+                        title: flavors.Value.Title,
+                        priority: SuggestedActionSetPriority.Low,
+                        applicableToSpan: null);
+                }
+            }
         }
     }
 }

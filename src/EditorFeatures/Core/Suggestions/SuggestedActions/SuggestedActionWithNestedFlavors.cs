@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -83,17 +84,12 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
 
     private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavorsAsync(CancellationToken cancellationToken)
     {
-        var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
+        using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var builder);
 
-        var primarySuggestedActionSet = await GetPrimarySuggestedActionSetAsync(cancellationToken).ConfigureAwait(false);
-        builder.Add(primarySuggestedActionSet);
+        builder.Add(await GetPrimarySuggestedActionSetAsync(cancellationToken).ConfigureAwait(false));
+        builder.AddIfNotNull(_fixAllFlavors);
 
-        if (_fixAllFlavors != null)
-        {
-            builder.Add(_fixAllFlavors);
-        }
-
-        return builder.ToImmutableAndFree();
+        return builder.ToImmutableAndClear();
     }
 
     private async Task<SuggestedActionSet> GetPrimarySuggestedActionSetAsync(CancellationToken cancellationToken)
@@ -169,8 +165,8 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
 
         // after this point, this method should only return at GetPreviewPane. otherwise, DifferenceViewer will leak
         // since there is no one to close the viewer
-        var preferredDocumentId = this.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext()?.Id;
-        var preferredProjectId = preferredDocumentId?.ProjectId;
+        var preferredDocumentId = this.OriginalDocument.Id;
+        var preferredProjectId = preferredDocumentId.ProjectId;
 
         var extensionManager = this.OriginalSolution.Services.GetRequiredService<IExtensionManager>();
         var previewContents = await extensionManager.PerformFunctionAsync(Provider, async cancellationToken =>
@@ -195,7 +191,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
         // GetPreviewPane() needs to run on the UI thread.
         this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        var diagnosticData = _diagnostic is null ? null : CodeFix.GetDiagnosticData(this.OriginalDocument.Project, _diagnostic);
+        var diagnosticData = DiagnosticData.Create(_diagnostic, this.OriginalDocument.Project);
         return previewPaneService.GetPreviewPane(diagnosticData, previewContents!);
     }
 

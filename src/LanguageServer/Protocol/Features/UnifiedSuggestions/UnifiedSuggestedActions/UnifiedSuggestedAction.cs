@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
@@ -41,11 +42,14 @@ internal sealed class UnifiedSuggestedAction
 
     /// <summary>
     /// If this was created to fix specific diagnostics, these are those diagnostics. This may be empty if the action
-    /// represents a code fix and not a code refactoring.
+    /// represents a code refactoring and not a code fix.
     /// </summary>
     public ImmutableArray<Diagnostic> Diagnostics { get; }
 
     public UnifiedSuggestedActionFlavors? Flavors { get; }
+
+    public ImmutableArray<UnifiedSuggestedActionSet> NestedActionSets { get; }
+    public IRefactorOrFixAllState? RefactorOrFixAllState { get; }
 
     private UnifiedSuggestedAction(
         CodeAction codeAction,
@@ -53,7 +57,9 @@ internal sealed class UnifiedSuggestedAction
         object provider,
         CodeRefactoringKind? codeRefactoringKind,
         ImmutableArray<Diagnostic> diagnostics,
-        UnifiedSuggestedActionFlavors? flavors)
+        UnifiedSuggestedActionFlavors? flavors,
+        ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets,
+        IRefactorOrFixAllState? refactorOrFixAllState)
     {
         Provider = provider;
         CodeAction = codeAction;
@@ -61,6 +67,8 @@ internal sealed class UnifiedSuggestedAction
         CodeRefactoringKind = codeRefactoringKind;
         Diagnostics = diagnostics;
         Flavors = flavors;
+        NestedActionSets = nestedActionSets;
+        RefactorOrFixAllState = refactorOrFixAllState;
     }
 
     public static UnifiedSuggestedAction CreateWithFlavors(
@@ -71,7 +79,28 @@ internal sealed class UnifiedSuggestedAction
         ImmutableArray<Diagnostic> diagnostics,
         UnifiedSuggestedActionFlavors? flavors)
     {
-        return new(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics, flavors);
+        return new(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics, flavors, nestedActionSets: default, refactorOrFixAllState: null);
+    }
+
+    public static UnifiedSuggestedAction CreateWithNestedActionSets(
+        CodeAction codeAction,
+        CodeActionPriority codeActionPriority,
+        object provider,
+        CodeRefactoringKind? codeRefactoringKind,
+        ImmutableArray<Diagnostic> diagnostics,
+        ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
+    {
+        return new(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics, flavors: null, nestedActionSets, refactorOrFixAllState: null);
+    }
+
+    public static UnifiedSuggestedAction CreateRefactorOrFixAll(
+        CodeAction codeAction,
+        CodeActionPriority codeActionPriority,
+        CodeRefactoringKind? codeRefactoringKind,
+        ImmutableArray<Diagnostic> diagnostics,
+        IRefactorOrFixAllState refactorOrFixAllState)
+    {
+        return new(codeAction, codeActionPriority, refactorOrFixAllState.Provider, codeRefactoringKind, diagnostics, flavors: null, nestedActionSets: default, refactorOrFixAllState);
     }
 }
 
