@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var hasParamsParam = implementingMember.HasParamsParameter();
-            var interfaceMethod = implementingMember as MethodSymbol;
+            var implementingMethod = implementingMember as MethodSymbol;
 
             foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
             {
@@ -263,13 +263,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                if (interfaceMethod != null &&
+                if (interfaceMember is MethodSymbol interfaceMethod &&
                     (interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator)
                 {
                     continue;
                 }
 
-                if (interfaceMethod != null &&
+                if (implementingMethod != null &&
                     !MemberSignatureComparer.SloppyExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
                 {
                     continue;
@@ -311,9 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CONSIDER: we may wish to suppress these errors in the event that another error
                 // has been reported about the signature.
 
-                if (interfaceMethod != null && foundSloppyMatchingMember)
+                if (implementingMethod != null && foundSloppyMatchingMember)
                 {
-                    var returnTypeLocation = interfaceMethod.ExtractReturnTypeSyntax().Location;
+                    var returnTypeLocation = implementingMethod.ExtractReturnTypeSyntax().Location;
                     var returnType = sloppyMatchingMember.GetTypeOrReturnType();
                     diagnostics.Add(ErrorCode.ERR_InterfaceMemberReturnTypeMismatch, returnTypeLocation, returnType, implementingMember);
                 }
