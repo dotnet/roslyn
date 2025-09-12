@@ -178,8 +178,8 @@ internal abstract partial class SuggestedAction(
         if (CodeAction is RefactorOrFixAllCodeAction fixSome)
         {
             // fix all correlation info
-            map[FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
-            map[FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
+            map[FixAllLogger.CorrelationId] = fixSome.RefactorOrFixAllState.CorrelationId;
+            map[FixAllLogger.FixAllScope] = fixSome.RefactorOrFixAllState.Scope.ToString();
         }
 
         if (TryGetTelemetryId(out var telemetryId))

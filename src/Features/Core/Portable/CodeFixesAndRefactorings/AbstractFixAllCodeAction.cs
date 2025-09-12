@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// a <see cref="CodeFixes.CodeFixProvider"/> or a <see cref="CodeRefactorings.CodeRefactoringProvider"/>.
 /// </summary>
 internal sealed class RefactorOrFixAllCodeAction(
-    IRefactorOrFixAllState fixAllState,
+    IRefactorOrFixAllState refactorOrFixAllState,
     bool showPreviewChangesDialog,
     string? title = null,
     string? message = null) : CodeAction
@@ -34,7 +34,7 @@ internal sealed class RefactorOrFixAllCodeAction(
 
     private bool _showPreviewChangesDialog = showPreviewChangesDialog;
 
-    public IRefactorOrFixAllState FixAllState { get; } = fixAllState;
+    public IRefactorOrFixAllState RefactorOrFixAllState { get; } = refactorOrFixAllState;
 
     // We don't need to post process changes here as the inner code action created for Fix multiple code fix already executes.
     internal sealed override CodeActionCleanup Cleanup => CodeActionCleanup.None;
@@ -53,14 +53,14 @@ internal sealed class RefactorOrFixAllCodeAction(
     }
 
     public override string Title
-        => title ?? (this.FixAllState.Scope switch
+        => title ?? (this.RefactorOrFixAllState.Scope switch
         {
             FixAllScope.Document => FeaturesResources.Document,
             FixAllScope.Project => FeaturesResources.Project,
             FixAllScope.Solution => FeaturesResources.Solution,
             FixAllScope.ContainingMember => FeaturesResources.Containing_Member,
             FixAllScope.ContainingType => FeaturesResources.Containing_Type,
-            _ => throw ExceptionUtilities.UnexpectedValue(this.FixAllState.Scope),
+            _ => throw ExceptionUtilities.UnexpectedValue(this.RefactorOrFixAllState.Scope),
         });
 
     internal override string Message => message ?? FeaturesResources.Computing_fix_all_occurrences_code_fix;
@@ -69,11 +69,11 @@ internal sealed class RefactorOrFixAllCodeAction(
         IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        FixAllLogger.LogState(FixAllState, IsInternalProvider(FixAllState));
+        FixAllLogger.LogState(RefactorOrFixAllState, IsInternalProvider(RefactorOrFixAllState));
 
-        var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
+        var service = RefactorOrFixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
-        var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
+        var fixAllContext = CreateFixAllContext(RefactorOrFixAllState, progressTracker, cancellationToken);
         progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultTitle()));
 
         return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
@@ -83,11 +83,11 @@ internal sealed class RefactorOrFixAllCodeAction(
         IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        FixAllLogger.LogState(FixAllState, IsInternalProvider(FixAllState));
+        FixAllLogger.LogState(RefactorOrFixAllState, IsInternalProvider(RefactorOrFixAllState));
 
-        var service = FixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
+        var service = RefactorOrFixAllState.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
-        var fixAllContext = CreateFixAllContext(FixAllState, progressTracker, cancellationToken);
+        var fixAllContext = CreateFixAllContext(RefactorOrFixAllState, progressTracker, cancellationToken);
         progressTracker.Report(CodeAnalysisProgress.Description(fixAllContext.GetDefaultTitle()));
 
         return service.GetFixAllChangedSolutionAsync(fixAllContext);
