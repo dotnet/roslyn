@@ -5493,7 +5493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 derivedType = derivedType.StrippedType();
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var conversion = _conversions.ClassifyBuiltInConversion(derivedType, baseType, isChecked: false, ref discardedUseSiteInfo);
-                if (conversion.Exists && !conversion.IsExplicit)
+                if (conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference)
                 {
                     return derivedType;
                 }
