@@ -8196,4 +8196,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</value>
     <remarks>'MethodImplAttribute.Async' and 'async' are not localizable.</remarks>
   </data>
+  <data name="ERR_InterfaceMemberReturnTypeMismatch" xml:space="preserve">
+    <value>Explicit implementation must have return type '{0}' for '{1}'</value>
+  </data>
 </root>
