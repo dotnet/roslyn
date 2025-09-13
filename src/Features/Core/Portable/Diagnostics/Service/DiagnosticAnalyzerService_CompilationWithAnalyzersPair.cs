@@ -92,8 +92,6 @@ internal sealed partial class DiagnosticAnalyzerService
             if (analyzers.IsEmpty)
                 return null;
 
-            var projectAnalyzers = analyzers.Where(a => !hostAnalyzerInfo.IsHostAnalyzer(a)).ToSet();
-
             var (sharedOptions, analyzerSpecificOptionsFactory) = GetOptions();
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -124,6 +122,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
             (AnalyzerOptions sharedOptions, Func<DiagnosticAnalyzer, AnalyzerConfigOptionsProvider>? analyzerSpecificOptionsFactory) GetOptions()
             {
+                var projectAnalyzers = analyzers.Where(a => !hostAnalyzerInfo.IsHostAnalyzer(a)).ToSet();
+
                 // If we're all host analyzers and no project analyzers (which we can check if we just have 0 project
                 // analyzers), we can just return the options for host analyzers and not need any special logic.
                 //
