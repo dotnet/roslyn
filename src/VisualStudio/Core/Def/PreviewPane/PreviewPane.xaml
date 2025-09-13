@@ -7,7 +7,7 @@
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:pp="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane"
              x:ClassModifier="internal" mc:Ignorable="d"
-             Focusable="True" IsTabStop="False" TextOptions.TextFormattingMode="Display"
+             Focusable="True" IsTabStop="False" TextOptions.TextFormattingMode="Ideal"
              Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.PanelTextBrushKey}}"
              d:DesignHeight="300" d:DesignWidth="400" 
              x:Name="ThisPane"
