@@ -133,7 +133,13 @@ internal sealed partial class DiagnosticAnalyzerService
 
         async Task<ImmutableArray<Diagnostic>> GetPragmaSuppressionAnalyzerDiagnosticsAsync()
         {
-            var hostAnalyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
+            var hostAnalyzerInfo = this.GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project);
+            var analyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
+
+            // NOTE: It is unclear why we filter down to host analyzers here, instead of just using all the specified
+            // analyzers.  This behavior is historical, and we are preserving it for now.  However, it may be incorrect
+            // and could be changed in the future if we find a scenario that requires it.
+            var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
 
             var suppressionAnalyzer = hostAnalyzers.OfType<IPragmaSuppressionsAnalyzer>().FirstOrDefault();
             if (suppressionAnalyzer == null)
