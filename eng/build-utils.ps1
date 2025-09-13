@@ -8,7 +8,6 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
-$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
@@ -22,19 +21,21 @@ function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [s
   return Join-Path $ArtifactsDir "bin\$projectName\$configuration\$tfm\$ridDir$publishDir$fileName"
 }
 
-function GetPublishData() {
+function GetPublishData([string]$branchName) {
   if (Test-Path variable:global:_PublishData) {
     return $global:_PublishData
   }
 
-  Write-Host "Downloading $PublishDataUrl"
-  $content = (Invoke-WebRequest -Uri $PublishDataUrl -UseBasicParsing).Content
+  $publishDataFile = Join-Path $PSScriptRoot "config\PublishData.json"
+
+  Write-Host "Reading $publishDataFile"
+  $content = Get-Content -Path $publishDataFile -Raw
 
   return $global:_PublishData = ConvertFrom-Json $content
 }
 
 function GetBranchPublishData([string]$branchName) {
-  $data = GetPublishData
+  $data = GetPublishData $branchName
 
   if (Get-Member -InputObject $data.branches -Name $branchName) {
     return $data.branches.$branchName
@@ -48,10 +49,10 @@ function GetFeedPublishData() {
   return $data.feeds
 }
 
-function GetPackagesPublishData([string]$packageFeeds) {
+function GetPackageFeedOverrideData() {
   $data = GetPublishData
-  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
-    return $data.packages.$packageFeeds
+  if (Get-Member -InputObject $data.packageFeedOverride) {
+    return $data.packageFeedOverride
   } else {
     return $null
   }
