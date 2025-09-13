@@ -6,22 +6,22 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+namespace Microsoft.CodeAnalysis.Suggestions;
 
 /// <summary>
 /// Similar to SuggestedActionSet, but in a location that can be used
 /// by both local Roslyn and LSP.
 /// </summary>
-internal sealed class UnifiedSuggestedActionSet(
+internal sealed class SuggestedActionSet(
     string? categoryName,
-    ImmutableArray<UnifiedSuggestedAction> actions,
-    object? title,
+    ImmutableArray<SuggestedAction> actions,
+    string? title,
     CodeActionPriority priority,
     TextSpan? applicableToSpan)
 {
     public readonly string? CategoryName = categoryName;
-    public readonly ImmutableArray<UnifiedSuggestedAction> Actions = actions;
-    public readonly object? Title = title;
+    public readonly ImmutableArray<SuggestedAction> Actions = actions;
+    public readonly string? Title = title;
     public readonly CodeActionPriority Priority = priority;
     public readonly TextSpan? ApplicableToSpan = applicableToSpan;
 }

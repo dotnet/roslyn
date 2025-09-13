@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+namespace Microsoft.CodeAnalysis.Suggestions;
 
 /// <summary>
 /// Similar to SuggestedAction, but in a location that can be used by
 /// both local Roslyn and LSP.
 /// </summary>
-internal sealed class UnifiedSuggestedAction
+internal sealed class SuggestedAction
 {
     /// <summary>
     /// Original provider that created this suggested action. This is only used for extension exception management. If
@@ -52,14 +52,14 @@ internal sealed class UnifiedSuggestedAction
     /// cref="NestedActionSets"/> will be empty and <see cref="RefactorOrFixAllCodeAction"/> will be <see
     /// langword="null"/>.
     /// </summary>
-    public UnifiedSuggestedActionFlavors? Flavors { get; }
+    public SuggestedActionFlavors? Flavors { get; }
 
     /// <summary>
     /// Nested actions that should ideally be shown in a sub-menu under this item.  This action will not itself be
     /// invocable, and serves only as a named container for these sub-actions.  If this is non-empty, then <see
     /// cref="Flavors"/> and <see cref="RefactorOrFixAllState"/> will be <see langword="null"/>.
     /// </summary>
-    public ImmutableArray<UnifiedSuggestedActionSet> NestedActionSets { get; }
+    public ImmutableArray<SuggestedActionSet> NestedActionSets { get; }
 
     /// <summary>
     /// Non-null if this is a fix-all or refactor-all action.  If this is non-null, then <see cref="Flavors"/> will be
@@ -67,14 +67,14 @@ internal sealed class UnifiedSuggestedAction
     /// </summary>
     public IRefactorOrFixAllState? RefactorOrFixAllState { get; }
 
-    private UnifiedSuggestedAction(
+    private SuggestedAction(
         CodeAction codeAction,
         CodeActionPriority codeActionPriority,
         object provider,
         CodeRefactoringKind? codeRefactoringKind,
         ImmutableArray<Diagnostic> diagnostics,
-        UnifiedSuggestedActionFlavors? flavors,
-        ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets,
+        SuggestedActionFlavors? flavors,
+        ImmutableArray<SuggestedActionSet> nestedActionSets,
         IRefactorOrFixAllState? refactorOrFixAllState)
     {
         Provider = provider;
@@ -87,30 +87,30 @@ internal sealed class UnifiedSuggestedAction
         RefactorOrFixAllState = refactorOrFixAllState;
     }
 
-    public static UnifiedSuggestedAction CreateWithFlavors(
+    public static SuggestedAction CreateWithFlavors(
         CodeAction codeAction,
         CodeActionPriority codeActionPriority,
         object provider,
         CodeRefactoringKind? codeRefactoringKind,
         ImmutableArray<Diagnostic> diagnostics,
-        UnifiedSuggestedActionFlavors? flavors)
+        SuggestedActionFlavors? flavors)
     {
         return new(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics, flavors, nestedActionSets: [], refactorOrFixAllState: null);
     }
 
-    public static UnifiedSuggestedAction CreateWithNestedActionSets(
+    public static SuggestedAction CreateWithNestedActionSets(
         CodeAction codeAction,
         CodeActionPriority codeActionPriority,
         object provider,
         CodeRefactoringKind? codeRefactoringKind,
         ImmutableArray<Diagnostic> diagnostics,
-        ImmutableArray<UnifiedSuggestedActionSet> nestedActionSets)
+        ImmutableArray<SuggestedActionSet> nestedActionSets)
     {
         Contract.ThrowIfTrue(nestedActionSets.IsDefaultOrEmpty);
         return new(codeAction, codeActionPriority, provider, codeRefactoringKind, diagnostics, flavors: null, nestedActionSets, refactorOrFixAllState: null);
     }
 
-    public static UnifiedSuggestedAction CreateRefactorOrFixAll(
+    public static SuggestedAction CreateRefactorOrFixAll(
         CodeAction codeAction,
         CodeActionPriority codeActionPriority,
         CodeRefactoringKind? codeRefactoringKind,

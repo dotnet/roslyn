@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// 
 /// Supports 'preview changes' for all changes.
 /// </summary>
-internal sealed partial class SuggestedActionWithNestedFlavors(
+internal sealed partial class EditorSuggestedActionWithNestedFlavors(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
     TextDocument originalDocument,
@@ -39,7 +37,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
     CodeAction codeAction,
     SuggestedActionSet? fixAllFlavors,
     ImmutableArray<Diagnostic> diagnostics)
-    : SuggestedAction(threadingContext,
+    : EditorSuggestedAction(threadingContext,
         sourceProvider,
         originalDocument.Project.Solution,
         subjectBuffer,
@@ -105,7 +103,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
         // Note that flavored suggested actions for Fix All operations are added in a separate
         // suggested action set by our caller, we don't add them here.
 
-        using var _ = ArrayBuilder<SuggestedAction>.GetInstance(out var suggestedActions);
+        using var _ = ArrayBuilder<EditorSuggestedAction>.GetInstance(out var suggestedActions);
         var previewChangesAction = CreateTrivialAction(
             this, new PreviewChangesCodeAction(this.CodeAction, this.GetPreviewResultAsync));
         suggestedActions.Add(previewChangesAction);
@@ -119,7 +117,7 @@ internal sealed partial class SuggestedActionWithNestedFlavors(
 
         return new SuggestedActionSet(categoryName: null, actions: suggestedActions.ToImmutable());
 
-        async Task<SuggestedAction?> TryCreateRefineSuggestedActionAsync()
+        async Task<EditorSuggestedAction?> TryCreateRefineSuggestedActionAsync()
         {
             if (this.OriginalDocument is not Document originalDocument)
                 return null;

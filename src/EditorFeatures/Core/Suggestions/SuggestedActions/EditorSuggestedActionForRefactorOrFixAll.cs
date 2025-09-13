@@ -6,9 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Suggested action for fix all occurrences for a code fix or a code refactoring.
 /// </summary>
-internal sealed class RefactorOrFixAllSuggestedAction(
+internal sealed class EditorSuggestedActionForRefactorOrFixAll(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
     Solution originalSolution,
@@ -27,7 +25,7 @@ internal sealed class RefactorOrFixAllSuggestedAction(
     IRefactorOrFixAllState fixAllState,
     CodeAction originalCodeAction,
     string? diagnosticTelemetryId)
-    : SuggestedAction(threadingContext,
+    : EditorSuggestedAction(threadingContext,
         sourceProvider,
         originalSolution,
         subjectBuffer,
