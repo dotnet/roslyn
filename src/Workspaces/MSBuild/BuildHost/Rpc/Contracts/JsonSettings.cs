@@ -12,7 +12,7 @@ internal static class JsonSettings
 {
     public static readonly Encoding StreamEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
-    public static readonly JsonSerializerSettings SingleLineSerializerSettings = new JsonSerializerSettings
+    public static readonly JsonSerializerSettings SingleLineSerializerSettings = new()
     {
         // Setting Formatting.None ensures each is serialized to it's own line, which we implicitly rely on
         Formatting = Newtonsoft.Json.Formatting.None,

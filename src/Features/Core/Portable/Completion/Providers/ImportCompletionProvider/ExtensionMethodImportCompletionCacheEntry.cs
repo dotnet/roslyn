@@ -35,7 +35,7 @@ internal sealed class ExtensionMethodImportCompletionCacheEntry
         private readonly Checksum _checksum = checksum;
         private readonly string _language = langauge;
 
-        private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder = new MultiDictionary<string, DeclaredSymbolInfo>(comparer);
+        private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder = new(comparer);
 
         public ExtensionMethodImportCompletionCacheEntry ToCacheEntry()
         {

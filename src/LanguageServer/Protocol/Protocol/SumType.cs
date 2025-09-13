@@ -62,7 +62,7 @@ internal struct SumType<T1, T2> : ISumType, IEquatable<SumType<T1, T2>>
     /// Implicitly wraps a value of type <typeparamref name="T1"/> with a <see cref="SumType{T1, T2}"/>.
     /// </summary>
     /// <param name="val">Value to be wrapped.</param>
-    public static implicit operator SumType<T1, T2>(T1 val) => new SumType<T1, T2>(val);
+    public static implicit operator SumType<T1, T2>(T1 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T1?"/> with a <see cref="SumType{T1, T2}"/>.
@@ -74,7 +74,7 @@ internal struct SumType<T1, T2> : ISumType, IEquatable<SumType<T1, T2>>
     /// Implicitly wraps a value of type <typeparamref name="T2"/> with a <see cref="SumType{T1, T2}"/>.
     /// </summary>
     /// <param name="val">Value to be wrapped.</param>
-    public static implicit operator SumType<T1, T2>(T2 val) => new SumType<T1, T2>(val);
+    public static implicit operator SumType<T1, T2>(T2 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T2?"/> with a <see cref="SumType{T1, T2}"/>.
@@ -270,7 +270,7 @@ internal struct SumType<T1, T2, T3> : ISumType, IEquatable<SumType<T1, T2, T3>>
     /// Implicitly wraps a value of type <typeparamref name="T1"/> with a <see cref="SumType{T1, T2, T3}"/>.
     /// </summary>
     /// <param name="val">Value to be wrap.</param>
-    public static implicit operator SumType<T1, T2, T3>(T1 val) => new SumType<T1, T2, T3>(val);
+    public static implicit operator SumType<T1, T2, T3>(T1 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T1?"/> with a <see cref="SumType{T1, T2, T3}"/>.
@@ -282,7 +282,7 @@ internal struct SumType<T1, T2, T3> : ISumType, IEquatable<SumType<T1, T2, T3>>
     /// Implicitly wraps a value of type <typeparamref name="T2"/> with a <see cref="SumType{T1, T2, T3}"/>.
     /// </summary>
     /// <param name="val">Value to be wrap.</param>
-    public static implicit operator SumType<T1, T2, T3>(T2 val) => new SumType<T1, T2, T3>(val);
+    public static implicit operator SumType<T1, T2, T3>(T2 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T2?"/> with a <see cref="SumType{T1, T2, T3}"/>.
@@ -294,7 +294,7 @@ internal struct SumType<T1, T2, T3> : ISumType, IEquatable<SumType<T1, T2, T3>>
     /// Implicitly wraps a value of type <typeparamref name="T3"/> with a <see cref="SumType{T1, T2, T3}"/>.
     /// </summary>
     /// <param name="val">Value to be wrap.</param>
-    public static implicit operator SumType<T1, T2, T3>(T3 val) => new SumType<T1, T2, T3>(val);
+    public static implicit operator SumType<T1, T2, T3>(T3 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T3?"/> with a <see cref="SumType{T1, T2, T3}"/>.
@@ -570,7 +570,7 @@ internal struct SumType<T1, T2, T3, T4> : ISumType, IEquatable<SumType<T1, T2, T
     /// Implicitly wraps a value of type <typeparamref name="T1"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
     /// </summary>
     /// <param name="val">Value to be wrap.</param>
-    public static implicit operator SumType<T1, T2, T3, T4>(T1 val) => new SumType<T1, T2, T3, T4>(val);
+    public static implicit operator SumType<T1, T2, T3, T4>(T1 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T1?"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
@@ -582,7 +582,7 @@ internal struct SumType<T1, T2, T3, T4> : ISumType, IEquatable<SumType<T1, T2, T
     /// Implicitly wraps a value of type <typeparamref name="T2"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
     /// </summary>
     /// <param name="val">Value to be wrap.</param>
-    public static implicit operator SumType<T1, T2, T3, T4>(T2 val) => new SumType<T1, T2, T3, T4>(val);
+    public static implicit operator SumType<T1, T2, T3, T4>(T2 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T2?"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
@@ -594,7 +594,7 @@ internal struct SumType<T1, T2, T3, T4> : ISumType, IEquatable<SumType<T1, T2, T
     /// Implicitly wraps a value of type <typeparamref name="T3"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
     /// </summary>
     /// <param name="val">Value to be wrap.</param>
-    public static implicit operator SumType<T1, T2, T3, T4>(T3 val) => new SumType<T1, T2, T3, T4>(val);
+    public static implicit operator SumType<T1, T2, T3, T4>(T3 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T3?"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
@@ -606,7 +606,7 @@ internal struct SumType<T1, T2, T3, T4> : ISumType, IEquatable<SumType<T1, T2, T
     /// Implicitly wraps a value of type <typeparamref name="T4"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.
     /// </summary>
     /// <param name="val">Value to be wrap.</param>
-    public static implicit operator SumType<T1, T2, T3, T4>(T4 val) => new SumType<T1, T2, T3, T4>(val);
+    public static implicit operator SumType<T1, T2, T3, T4>(T4 val) => new(val);
 
     /// <summary>
     /// Implicitly wraps a value of type <typeparamref name="T4?"/> with a <see cref="SumType{T1, T2, T3, T4}"/>.

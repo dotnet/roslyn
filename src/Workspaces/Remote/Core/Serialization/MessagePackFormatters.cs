@@ -54,7 +54,7 @@ internal sealed class MessagePackFormatters
         /// to only serialize or deserialize it's DebugName once. Additionally, this cache allows
         /// the Deserialization code to only construct the ProjectID a single time.
         /// </summary>
-        private readonly ConcurrentDictionary<Guid, ProjectId> _projectIds = new ConcurrentDictionary<Guid, ProjectId>();
+        private readonly ConcurrentDictionary<Guid, ProjectId> _projectIds = new();
 
         public ProjectId? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

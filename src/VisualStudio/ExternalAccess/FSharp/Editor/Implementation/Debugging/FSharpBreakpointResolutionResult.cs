@@ -21,8 +21,8 @@ internal sealed class FSharpBreakpointResolutionResult
     public bool IsLineBreakpoint => UnderlyingObject.IsLineBreakpoint;
 
     public static FSharpBreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
-        => new FSharpBreakpointResolutionResult(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
+        => new(BreakpointResolutionResult.CreateSpanResult(document, textSpan, locationNameOpt));
 
     public static FSharpBreakpointResolutionResult CreateLineResult(Document document, string? locationNameOpt = null)
-        => new FSharpBreakpointResolutionResult(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
+        => new(BreakpointResolutionResult.CreateLineResult(document, locationNameOpt));
 }

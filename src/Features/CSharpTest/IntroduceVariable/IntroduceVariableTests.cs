@@ -28,7 +28,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         => GetNestedActions(actions);
 
-    private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+    private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
 
     // specify all options explicitly to override defaults.
     private OptionsCollection ImplicitTypingEverywhere()
