@@ -214,7 +214,7 @@ public sealed class DiagnosticAnalyzerDriverTests
         private const string ID = "SyntaxDiagnostic";
 
         private static readonly DiagnosticDescriptor s_syntaxDiagnosticDescriptor =
-            new DiagnosticDescriptor(ID, title: "Syntax", messageFormat: "Syntax", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            new(ID, title: "Syntax", messageFormat: "Syntax", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

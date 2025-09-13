@@ -731,7 +731,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 public static readonly DiagnosticDescriptor Decsciptor =
-                    new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                    new("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
@@ -845,7 +845,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 private readonly DiagnosticDescriptor _descriptor =
-                    new DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.Error, isEnabledByDefault: true);
+                    new("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
@@ -910,7 +910,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 private readonly DiagnosticDescriptor _descriptor =
-                    new DiagnosticDescriptor("@~DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                    new("@~DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
@@ -959,7 +959,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
         private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Decsciptor =
-                new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                new("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {

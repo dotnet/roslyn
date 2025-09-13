@@ -4,8 +4,8 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
+namespace Microsoft.CodeAnalysis.Suggestions;
 
-internal readonly record struct UnifiedSuggestedActionFlavors(
+internal readonly record struct SuggestedActionFlavors(
     string Title,
-    ImmutableArray<UnifiedSuggestedAction> Actions);
+    ImmutableArray<SuggestedAction> Actions);

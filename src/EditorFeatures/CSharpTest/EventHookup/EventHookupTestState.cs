@@ -48,7 +48,7 @@ internal sealed class EventHookupTestState : AbstractCommandHandlerTestState
     }
 
     public static EventHookupTestState CreateTestState(string markup, OptionsCollection options = null)
-        => new EventHookupTestState(GetWorkspaceXml(markup), options);
+        => new(GetWorkspaceXml(markup), options);
 
     public static XElement GetWorkspaceXml(string markup)
         => XElement.Parse(string.Format("""

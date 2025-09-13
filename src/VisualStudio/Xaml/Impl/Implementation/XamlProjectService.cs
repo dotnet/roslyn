@@ -35,7 +35,7 @@ internal sealed partial class XamlProjectService : IDisposable
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
     private readonly IThreadingContext _threadingContext;
     private readonly Dictionary<IVsHierarchy, ProjectSystemProject> _xamlProjects = [];
-    private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new ConcurrentDictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new(StringComparer.OrdinalIgnoreCase);
     private readonly WorkspaceEventRegistration _documentClosedHandlerDisposer;
 
     private RunningDocumentTable? _rdt;

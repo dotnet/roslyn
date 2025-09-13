@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting;
 [Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
 public sealed class DocCommentFormattingTests
 {
-    private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
-    private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
+    private readonly CSharpDocumentationCommentFormattingService _csharpService = new();
+    private readonly VisualBasicDocumentationCommentFormattingService _vbService = new();
 
     private void TestFormat(string xmlFragment, string expectedCSharp, string expectedVB)
     {

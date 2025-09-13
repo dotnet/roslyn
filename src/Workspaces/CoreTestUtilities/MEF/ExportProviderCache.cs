@@ -24,8 +24,8 @@ public static class ExportProviderCache
     private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty
         .AddAssemblies(MefHostServices.DefaultAssemblies)
         .AddParts(typeof(TestSerializerService.Factory));
-    private static readonly Scope _localCompositionScope = new Scope("local");
-    private static readonly Scope _remoteCompositionScope = new Scope("remote");
+    private static readonly Scope _localCompositionScope = new("local");
+    private static readonly Scope _remoteCompositionScope = new("remote");
 
     internal static bool Enabled { get; private set; }
 

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// Lightbulb item that has child items that should be displayed as 'menu items'
 /// (as opposed to 'flavor items').
 /// </summary>
-internal sealed class SuggestedActionWithNestedActions(
+internal sealed class EditorSuggestedActionWithNestedActions(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
     Solution originalSolution,
@@ -28,7 +28,7 @@ internal sealed class SuggestedActionWithNestedActions(
     object provider,
     CodeAction codeAction,
     ImmutableArray<SuggestedActionSet> nestedActionSets)
-    : SuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction)
+    : EditorSuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction)
 {
     public readonly ImmutableArray<SuggestedActionSet> NestedActionSets = nestedActionSets;
 
@@ -42,8 +42,8 @@ internal sealed class SuggestedActionWithNestedActions(
         // A code action with nested actions is itself never invokable.  So just do nothing if this ever gets asked.
         // Report a message in debug and log a watson exception so that if this is hit we can try to narrow down how
         // this happened.
-        Debug.Fail($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}");
-        FatalError.ReportAndCatch(new InvalidOperationException($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}"), ErrorSeverity.Critical);
+        Debug.Fail($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(EditorSuggestedActionWithNestedActions)}");
+        FatalError.ReportAndCatch(new InvalidOperationException($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(EditorSuggestedActionWithNestedActions)}"), ErrorSeverity.Critical);
 
         return Task.CompletedTask;
     }

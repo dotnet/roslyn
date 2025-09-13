@@ -32,7 +32,7 @@ internal sealed class SolutionEventsBatchScopeCreator
     /// A lock for mutating all objects in this object. This class isn't expected to have any "interesting" locking requirements, so this should just be acquired
     /// in all methods.
     /// </summary>
-    private readonly object _gate = new object();
+    private readonly object _gate = new();
     private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = [];
 
     /// <summary>

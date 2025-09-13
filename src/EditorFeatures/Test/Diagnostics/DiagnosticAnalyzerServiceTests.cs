@@ -39,7 +39,7 @@ public sealed class DiagnosticAnalyzerServiceTests
     private static readonly TestComposition s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
     private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
-        => new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
+        => new(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
 
     private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
         => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
@@ -967,9 +967,9 @@ public sealed class DiagnosticAnalyzerServiceTests
 
     private sealed class Analyzer : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-        internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-        internal static readonly DiagnosticDescriptor s_compilationRule = new DiagnosticDescriptor("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_syntaxRule = new("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_semanticRule = new("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_compilationRule = new("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule, s_semanticRule, s_compilationRule];
 
@@ -983,9 +983,9 @@ public sealed class DiagnosticAnalyzerServiceTests
 
     private sealed class DisabledByDefaultAnalyzer : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
-        internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
-        internal static readonly DiagnosticDescriptor s_compilationRule = new DiagnosticDescriptor("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
+        internal static readonly DiagnosticDescriptor s_syntaxRule = new("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
+        internal static readonly DiagnosticDescriptor s_semanticRule = new("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
+        internal static readonly DiagnosticDescriptor s_compilationRule = new("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule, s_semanticRule, s_compilationRule];
 
@@ -1008,7 +1008,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
     private sealed class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("leak", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_syntaxRule = new("leak", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule];
 
