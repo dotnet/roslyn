@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(constructorArguments.Length == 1);
                         if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName))
                         {
-                            var parameters = ContainingSymbol.GetParameters();
+                            var parameters = ContainingSymbol.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
                             for (int i = 0; i < parameters.Length; i++)
                             {
                                 if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS8963: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, ParameterSyntax.Identifier.ValueText);
             }
-            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == Ordinal)
+            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == this.GetOrdinalIncludingExtensionParameter())
             {
                 // CS8965: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, ParameterSyntax.Identifier.ValueText);
