@@ -77,7 +77,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
                               DirectCast(Me, IServiceContainer).AddService(
                                   GetType(IVbTempPECompilerFactory),
-                                  Function(_1, _2) New TempPECompilerFactory(Me.ComponentModel.GetService(Of VisualStudioWorkspace)()))
+                                  Function(_1, _2) New TempPECompilerFactory(Me.ComponentModel.GetService(Of VisualStudioWorkspace)()),
+                                  promote:=True)
                           Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
                               Throw ExceptionUtilities.Unreachable
                           End Try
