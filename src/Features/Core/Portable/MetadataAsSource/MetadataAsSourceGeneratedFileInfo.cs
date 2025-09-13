@@ -21,16 +21,21 @@ internal sealed class MetadataAsSourceGeneratedFileInfo
     public static Encoding Encoding => Encoding.UTF8;
     public static SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithms.Default;
 
-    public MetadataAsSourceGeneratedFileInfo(string rootPath, Workspace sourceWorkspace, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly)
+    public DocumentId DocumentId { get; }
+
+    public MetadataAsSourceGeneratedFileInfo(Workspace sourceWorkspace, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly, IMetadataDocumentPersister persister)
     {
         this.SourceProjectId = sourceProject.Id;
         this.Workspace = sourceWorkspace;
         this.LanguageName = signaturesOnly ? sourceProject.Language : LanguageNames.CSharp;
         this.SignaturesOnly = signaturesOnly;
 
+        var projectId = ProjectId.CreateNewId();
+        this.DocumentId = DocumentId.CreateNewId(projectId);
+
         this.Extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
 
-        var directoryName = Guid.NewGuid().ToString("N");
-        this.TemporaryFilePath = Path.Combine(rootPath, directoryName, topLevelNamedType.Name + Extension);
+        var directoryName = Guid.NewGuid();
+        this.TemporaryFilePath = persister.GenerateDocumentPath(directoryName, DecompilationMetadataAsSourceFileProvider.ProviderName, topLevelNamedType.Name + Extension);
     }
 }
