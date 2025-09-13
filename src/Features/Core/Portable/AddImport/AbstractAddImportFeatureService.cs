@@ -500,7 +500,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         if (method.IsClassicOrModernInstanceExtensionMethod(out var classicMethod))
             method = classicMethod;
 
-        return method.ReduceExtensionMethod(receiver) != null;
+        var reducedMethod = method.ReduceExtensionMethod(receiver);
+        return reducedMethod != null;
     }
 
     private static bool NotGlobalNamespace(SymbolReference reference)

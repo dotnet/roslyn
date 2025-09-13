@@ -1510,7 +1510,7 @@ public sealed partial class AddUsingTests
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
     [InlineData("object")]
     [InlineData("int")]
-    public Task TestModernExtension1(string sourceType)
+    public Task TestModernExtension_Method(string sourceType)
         => TestInRegularAndScriptAsync(
             $$"""
             namespace M
@@ -1562,6 +1562,62 @@ public sealed partial class AddUsingTests
                         public void M1()
                         {
                         }
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_Property(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        var v = [|o.M1;|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public int M1 => 0;
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        var v = o.M1;
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public int M1 => 0;
                     }
                 }
             }

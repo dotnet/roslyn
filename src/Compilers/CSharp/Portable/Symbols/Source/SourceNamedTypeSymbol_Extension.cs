@@ -1160,6 +1160,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CodeAnalysis.CodeGen.PrivateImplementationDetails.HashToHex(hash);
         }
 
+        internal static bool IsExtensionCompatibleWithReceiverType(CSharpCompilation compilation, NamedTypeSymbol extension, TypeSymbol receiverType)
+        {
+            if (extension.ExtensionParameter is null)
+            {
+                return false;
+            }
+
+            if (extension.IsDefinition)
+            {
+                NamedTypeSymbol? constructedExtension = inferExtensionTypeArguments(extension, receiverType, compilation);
+                if (constructedExtension is null)
+                {
+                    return false;
+                }
+
+                extension = constructedExtension;
+            }
+
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            Conversion conversion = compilation.Conversions.ConvertExtensionMethodThisArg(parameterType: extension.ExtensionParameter.Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
+            return conversion.Exists;
+        }
+
         internal static Symbol? GetCompatibleSubstitutedMember(CSharpCompilation compilation, Symbol extensionMember, TypeSymbol receiverType)
         {
             Debug.Assert(extensionMember.GetIsNewExtensionMember());

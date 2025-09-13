@@ -365,6 +365,15 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     {
                         var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
+                        // If we find any properties, convert those to their underlying get/set methods. That way, if
+                        // this is an extension property, we can see if that property is applicable to the receiver
+                        // (checked in GetViableExtensionMethods).
+                        symbols = symbols.SelectAsArray(result =>
+                        {
+                            var propertyMethod = result.Symbol is IPropertySymbol property ? property.GetMethod ?? property.SetMethod : null;
+                            return result.WithSymbol(propertyMethod ?? result.Symbol);
+                        });
+
                         var methodSymbols = OfType<IMethodSymbol>(symbols);
 
                         var extensionMethodSymbols = GetViableExtensionMethods(
@@ -615,9 +624,6 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
-        {
-            return symbols.WhereAsArray(s => s.Symbol is T)
-                          .SelectAsArray(s => s.WithSymbol((T)s.Symbol));
-        }
+            => symbols.SelectAsArray(s => s.Symbol is T, s => s.WithSymbol((T)s.Symbol));
     }
 }
