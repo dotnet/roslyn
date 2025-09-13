@@ -3833,12 +3833,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInQuery" xml:space="preserve">
     <value>The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause</value>
   </data>
-  <data name="WRN_AsyncLacksAwaits" xml:space="preserve">
-    <value>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</value>
-  </data>
-  <data name="WRN_AsyncLacksAwaits_Title" xml:space="preserve">
-    <value>Async method lacks 'await' operators and will run synchronously</value>
-  </data>
   <data name="WRN_UnobservedAwaitableExpression" xml:space="preserve">
     <value>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</value>
   </data>

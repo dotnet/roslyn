@@ -7580,8 +7580,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<S1>.F = new S1 { F1 = 123 };
@@ -7923,8 +7921,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<C1>.F = new C1 { F1 = 123 };
@@ -17101,8 +17097,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<S1>.F = new S1 { F1 = 123 };
@@ -17532,8 +17526,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<C1>.F = new C1 { F1 = 123 };
@@ -18342,8 +18334,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<S1>.F = new S1 { F1 = 123 };
@@ -18700,8 +18690,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<C1>.F = new C1 { F1 = 123 };
@@ -20124,8 +20112,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<S1>.F = new S1 { F1 = 123 };
@@ -20478,8 +20464,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<C1>.F = new C1 { F1 = 123 };
@@ -21106,8 +21090,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<S1>.F = new S1 { F1 = 123 };
@@ -21389,8 +21371,6 @@ class Program<T>
 
 class Program
 {
-// https://github.com/dotnet/roslyn/issues/79416 - remove the pragma once fixed
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     static async Task Main()
     {
         Program<C1>.F = new C1 { F1 = 123 };

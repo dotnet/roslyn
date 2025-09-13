@@ -386,12 +386,6 @@ class Driver
 ";
             var comp = CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (16,62): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         dynamic f = (await GetVal((Func<Task<int>>)(async () => 1)))();
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(16, 62),
-                // (20,69): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         dynamic ff = new Func<Task<int>>((Func<Task<int>>)(async () => 1));
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(20, 69),
                 // (17,13): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
                 //         if (await f == 1)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await f").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create"));

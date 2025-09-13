@@ -5866,7 +5866,6 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         public void AsyncForeach_StructEnumerator()
         {
             var compilation = CreateCompilation(@"
-#pragma warning disable CS1998 // async method lacks awaits
 using System.Threading.Tasks;
 class C
 {
@@ -5990,7 +5989,6 @@ Block[B5] - Exit
         public void AsyncForeach_StructEnumerator_ExplicitAsyncDisposeInterface()
         {
             var compilation = CreateCompilation(@"
-#pragma warning disable CS1998 // async method lacks awaits
 using System.Threading.Tasks;
 class C
 {
