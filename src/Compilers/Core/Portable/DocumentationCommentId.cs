@@ -387,12 +387,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     _builder.Append('.');
                     _builder.Append(symbol.ExtensionMarkerName);
-
-                    if (symbol.Arity != 0)
-                    {
-                        _builder.Append('`');
-                        _builder.Append(symbol.Arity);
-                    }
                 }
             }
 
@@ -576,9 +570,6 @@ namespace Microsoft.CodeAnalysis
                 if (symbol is INamedTypeSymbol { IsExtension: true } extension)
                 {
                     _builder.Append(EncodeName(extension.ExtensionGroupingName));
-                    AppendArityOrTypeArguments(extension);
-                    _builder.Append('.');
-                    _builder.Append(EncodeName(extension.ExtensionMarkerName));
                 }
                 else
                 {
@@ -606,6 +597,13 @@ namespace Microsoft.CodeAnalysis
             {
                 this.BuildDottedName(symbol);
                 AppendArityOrTypeArguments(symbol);
+
+                if (symbol.IsExtension)
+                {
+                    _builder.Append('.');
+                    _builder.Append(symbol.ExtensionMarkerName);
+                }
+
                 return true;
             }
 

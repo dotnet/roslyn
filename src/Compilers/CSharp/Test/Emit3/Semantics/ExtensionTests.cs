@@ -239,7 +239,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -250,10 +250,10 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method private hidebysig specialname static
                 void '<Extension>$' (
                     !T ''
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -264,7 +264,7 @@ public static class Extensions
                 IL_0000: ret
             } // end of method '<M>$01CE3801593377B4E240F33E20D30D50'::'<Extension>$'
         } // end of class <M>$01CE3801593377B4E240F33E20D30D50
-    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -327,7 +327,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$BCF902721DDD961E5243C324D8379E5C'<valuetype .ctor ([mscorlib]System.ValueType) $T0>
+    .class nested public auto ansi sealed specialname '<G>$BCF902721DDD961E5243C324D8379E5C`1'<valuetype .ctor ([mscorlib]System.ValueType) $T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -352,7 +352,7 @@ public static class Extensions
                 IL_0000: ret
             } // end of method '<M>$B865B3ED3C68CE2EBBC104FFAF3CFF93'::'<Extension>$'
         } // end of class <M>$B865B3ED3C68CE2EBBC104FFAF3CFF93
-    } // end of class <G>$BCF902721DDD961E5243C324D8379E5C
+    } // end of class <G>$BCF902721DDD961E5243C324D8379E5C`1
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -609,7 +609,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -624,10 +624,10 @@ public static class Extensions
                     01 00 01 00 00
                 )
             // Methods
-            .method private hidebysig specialname static 
+            .method private hidebysig specialname static
                 void '<Extension>$' (
                     !T ''
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
                     01 00 01 00 00
@@ -641,7 +641,7 @@ public static class Extensions
                 IL_0000: ret
             } // end of method '<M>$C7A07C3975E80DE5DBC93B5392C6C922'::'<Extension>$'
         } // end of class <M>$C7A07C3975E80DE5DBC93B5392C6C922
-    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
@@ -6778,7 +6778,7 @@ public class C<T>(string v)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -6789,10 +6789,10 @@ public class C<T>(string v)
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method public hidebysig specialname static
                 void '<Extension>$' (
                     class C`1<!T> o
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -6804,11 +6804,11 @@ public class C<T>(string v)
             } // end of method '<M>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
         } // end of class <M>$D884D1E13988E83801B7574694E1C2C5
         // Methods
-        .method public hidebysig 
+        .method public hidebysig
             instance string M<U> (
                 !$T0 t,
                 !!U u
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 44 38 38 34 44 31 45 31 33
@@ -6820,15 +6820,15 @@ public class C<T>(string v)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string M<T, U> (
             class C`1<!!T> o,
             !!T t,
             !!U u
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -7033,7 +7033,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -7075,8 +7075,8 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
         extends [mscorlib]System.ValueType
     {
@@ -7322,7 +7322,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -7364,8 +7364,8 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
         extends [mscorlib]System.Object
     {
@@ -7595,7 +7595,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -7637,8 +7637,8 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     .class nested private auto ansi sealed beforefieldinit '<M>d__1`2'<T, U>
         extends [mscorlib]System.Object
         implements class [mscorlib]System.Collections.Generic.IEnumerable`1<string>,
@@ -7998,7 +7998,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -8040,8 +8040,8 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9'::M
-    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9
+        } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
+    } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     .class nested private auto ansi sealed beforefieldinit '<M>d__1`2'<T, U>
         extends [mscorlib]System.ValueType
         implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
@@ -10825,7 +10825,7 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -10864,8 +10864,8 @@ class C1
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<local>O__1_0`3'<T, U, V>
         extends [mscorlib]System.Object
     {
@@ -10990,7 +10990,7 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -11029,8 +11029,8 @@ class C1
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
         extends [mscorlib]System.Object
     {
@@ -11305,7 +11305,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -11316,10 +11316,10 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static 
+            .method private hidebysig specialname static
                 void '<Extension>$' (
                     !T o
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -11331,8 +11331,8 @@ public static class Extensions
             } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
         } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
-        .method private hidebysig 
-            instance class [mscorlib]System.Action M2 () cil managed 
+        .method private hidebysig
+            instance class [mscorlib]System.Action M2 () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
@@ -11344,8 +11344,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
         extends [mscorlib]System.Object
     {
@@ -11356,10 +11356,10 @@ public static class Extensions
         .field public static class [mscorlib]System.Action '<0>__local'
     } // end of class <>O__1_0`1
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         class [mscorlib]System.Action M2<T> (
             !!T o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -11378,8 +11378,8 @@ public static class Extensions
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
-        void '<M2>g__local|1_0'<T> () cil managed 
+    .method assembly hidebysig static
+        void '<M2>g__local|1_0'<T> () cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -11624,7 +11624,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -11635,10 +11635,10 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method public hidebysig specialname static
                 void '<Extension>$' (
                     !T o
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -11650,8 +11650,8 @@ public static class Extensions
             } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
         } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
-        .method public hidebysig 
-            instance void M2<U> () cil managed 
+        .method public hidebysig
+            instance void M2<U> () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
@@ -11663,8 +11663,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__0|1`3'<T, U, V>
         extends [mscorlib]System.Object
     {
@@ -11675,10 +11675,10 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T, !U, !V>> '<>p__0'
     } // end of class <>o__0|1`3
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         void M2<T, U> (
             !!T o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -11702,13 +11702,13 @@ public static class Extensions
         IL_001a: call void Extensions::'<M2>g__local|1_0'<!!T, !!U, int64>(object, !!0, !!1, !!2)
         IL_001f: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         void '<M2>g__local|1_0'<T, U, V> (
             object d,
             !!T t,
             !!U u,
             !!V v
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -11831,7 +11831,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -11842,10 +11842,10 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static 
+            .method public hidebysig specialname static
                 void '<Extension>$' (
                     !T o
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -11857,8 +11857,8 @@ public static class Extensions
             } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
         } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
-        .method public hidebysig 
-            instance void M2 () cil managed 
+        .method public hidebysig
+            instance void M2 () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
@@ -11870,8 +11870,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB'::M2
-    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
+        } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1`1'<T>
         extends [mscorlib]System.Object
     {
@@ -11882,10 +11882,10 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T>> '<>p__0'
     } // end of class <>o__1`1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         void M2<T> (
             !!T o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -11895,11 +11895,11 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         void '<M2>g__local|1_0'<T> (
             object d,
             !!T t
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -33223,7 +33223,7 @@ class C<T, S> {}
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$373395272A45479DE48E8BB1CCB2C42B'<$T0, $T1>
+    .class nested public auto ansi sealed specialname '<G>$373395272A45479DE48E8BB1CCB2C42B`2'<$T0, $T1>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -33234,10 +33234,10 @@ class C<T, S> {}
             extends [mscorlib]System.Object
         {
             // Methods
-            .method assembly hidebysig specialname static 
+            .method assembly hidebysig specialname static
                 void '<Extension>$' (
                     class C`2<!T, !S> c
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -33249,8 +33249,8 @@ class C<T, S> {}
             } // end of method '<M>$80D5112A03B26C94C628316C4DA793B2'::'<Extension>$'
         } // end of class <M>$80D5112A03B26C94C628316C4DA793B2
         // Methods
-        .method assembly hidebysig 
-            instance void M1 () cil managed 
+        .method assembly hidebysig
+            instance void M1 () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 38 30 44 35 31 31 32 41 30
@@ -33262,9 +33262,9 @@ class C<T, S> {}
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$373395272A45479DE48E8BB1CCB2C42B'::M1
-    } // end of class <G>$373395272A45479DE48E8BB1CCB2C42B
-    .class nested public auto ansi sealed specialname '<G>$6D4255504AB27A230E5AB4858D9E46EB'<$T0, $T1>
+        } // end of method '<G>$373395272A45479DE48E8BB1CCB2C42B`2'::M1
+    } // end of class <G>$373395272A45479DE48E8BB1CCB2C42B`2
+    .class nested public auto ansi sealed specialname '<G>$6D4255504AB27A230E5AB4858D9E46EB`2'<$T0, $T1>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -33275,10 +33275,10 @@ class C<T, S> {}
             extends [mscorlib]System.Object
         {
             // Methods
-            .method assembly hidebysig specialname static 
+            .method assembly hidebysig specialname static
                 void '<Extension>$' (
                     class C`2<!S, !T> c
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -33290,8 +33290,8 @@ class C<T, S> {}
             } // end of method '<M>$2237E852D2E9F48E0CC6BF2FD528DA2A'::'<Extension>$'
         } // end of class <M>$2237E852D2E9F48E0CC6BF2FD528DA2A
         // Methods
-        .method assembly hidebysig 
-            instance void M1 () cil managed 
+        .method assembly hidebysig
+            instance void M1 () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 32 32 33 37 45 38 35 32 44
@@ -33303,13 +33303,13 @@ class C<T, S> {}
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$6D4255504AB27A230E5AB4858D9E46EB'::M1
-    } // end of class <G>$6D4255504AB27A230E5AB4858D9E46EB
+        } // end of method '<G>$6D4255504AB27A230E5AB4858D9E46EB`2'::M1
+    } // end of class <G>$6D4255504AB27A230E5AB4858D9E46EB`2
     // Methods
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         void M1<T, S> (
             class C`2<!!T, !!S> c
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -33319,10 +33319,10 @@ class C<T, S> {}
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions1::M1
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         void M1<T, S> (
             class C`2<!!S, !!T> c
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -49982,9 +49982,9 @@ static class E
 """, e.GetDocumentationCommentXml());
 
         var extension = e.GetTypeMembers().Single();
-        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
         AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -50042,7 +50042,7 @@ static class E
         <member name="M:E.get_P``1(``0)">
             <inheritdoc cref="P:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.P"/>
         </member>
-        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>Summary for extension block</summary>
             <typeparam name="T">Description for T</typeparam>
             <param name="t">Description for t</param>
@@ -50133,7 +50133,7 @@ static class E
 
         var extension = e.GetTypeMembers().Single();
         AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -50309,7 +50309,7 @@ static class E
 
         var extensions = e.GetTypeMembers();
         AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
     <typeparam name="T">First description for T</typeparam>
     <param name="t">First description for t</param>
@@ -50321,7 +50321,7 @@ static class E
 """, extensions[0].GetDocumentationCommentXml());
 
         AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
     <typeparam name="T">First description for T</typeparam>
     <param name="t">First description for t</param>
@@ -50345,7 +50345,7 @@ static class E
         <member name="M:E.M``1(System.String)">
             <inheritdoc cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.String)"/>
         </member>
-        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <typeparam name="T">First description for T</typeparam>
             <param name="t">First description for t</param>
@@ -50393,7 +50393,7 @@ static class E
         foreach (var extension in extensions)
         {
             AssertEx.Equal("""
-<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+<member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
     <summary>First summary for extension block</summary>
     <summary>Second summary for extension block</summary>
 </member>
@@ -50408,7 +50408,7 @@ static class E
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+        <member name="T:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
@@ -50452,7 +50452,7 @@ static class E
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var nestedExtension = e.GetTypeMembers().Single().GetTypeMembers().First();
-        AssertEx.Equal("T:E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1",
+        AssertEx.Equal("T:E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
             nestedExtension.GetDocumentationCommentId());
 
         var expected = """
@@ -50462,14 +50462,14 @@ static class E
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
         <member name="M:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)">
             <summary>method</summary>
         </member>
-        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+        <member name="T:E.&lt;G&gt;$C43E2675C7BBF9284AF22FB8A9BF0280.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
@@ -50521,7 +50521,7 @@ static class E1
         <member name="M:E1.E2.M``1(System.Int32)">
             <inheritdoc cref="M:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)"/>
         </member>
-        <member name="T:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+        <member name="T:E1.E2.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
             <summary>Second summary for extension block</summary>
         </member>
@@ -50567,13 +50567,13 @@ extension<T>(T t)
         <name>test</name>
     </assembly>
     <members>
-        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>First summary for extension block</summary>
         </member>
         <member name="M:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M(System.Int32)">
             <summary>method</summary>
         </member>
-        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F`1">
+        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
             <summary>Second summary for extension block</summary>
         </member>
     </members>
@@ -50811,7 +50811,7 @@ public static class E
 
         var extension = libComp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Debug.Assert(extension.IsExtension);
-        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("P:E.<G>$8048A6C8BE30A622530249B904B537EB`1.P", p.GetDocumentationCommentId());
@@ -50820,7 +50820,7 @@ public static class E
 
         extension = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Debug.Assert(extension.IsExtension);
-        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F`1", extension.GetDocumentationCommentId());
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
 
         p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("P:E.<G>$8048A6C8BE30A622530249B904B537EB`1.P", p.GetDocumentationCommentId());

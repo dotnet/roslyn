@@ -2689,14 +2689,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
 #nullable enable
         internal override string? ExtensionGroupingName
-        {
-            get { return IsExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.MetadataName : null; }
-        }
+            => IsExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.Name : null;
 
         internal override string? ExtensionMarkerName
-        {
-            get { return IsExtension ? MetadataName : null; }
-        }
+            => IsExtension ? _name : null;
 #nullable disable
 
         public override bool IsReadOnly

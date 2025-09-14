@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool IDefinition.IsEncDeleted => false;
 
-            bool INamedTypeReference.MangleName => false;
+            public abstract bool MangleName { get; }
 
             string? INamedTypeReference.AssociatedFileIdentifier => null;
 
@@ -759,6 +759,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override IEnumerable<INestedTypeDefinition> NestedTypes => ExtensionMarkerTypes;
 
+            public override bool MangleName => GenericParameterCount != 0;
+
             protected override IEnumerable<IPropertyDefinition> GetProperties(EmitContext context)
             {
                 foreach (var marker in ExtensionMarkerTypes)
@@ -897,6 +899,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             protected override IEnumerable<INestedTypeDefinition> NestedTypes => SpecializedCollections.EmptyEnumerable<INestedTypeDefinition>();
+
+            public override bool MangleName => false;
 
             protected override IEnumerable<IPropertyDefinition> GetProperties(EmitContext context) => SpecializedCollections.EmptyEnumerable<IPropertyDefinition>();
 

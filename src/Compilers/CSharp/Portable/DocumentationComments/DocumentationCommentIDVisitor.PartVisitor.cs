@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        builder.Append('{');
+                        builder.Append('{'); // TODO2 test this path
 
                         bool needsComma = false;
 

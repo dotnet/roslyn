@@ -345,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                 {
+                    // TODO2
                     // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, display grouping and marker names, with arity or type arguments as appropriate
                     Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, symbol.ExtensionGroupingName));
                 }

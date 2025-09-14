@@ -74,12 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Append('.');
                 builder.Append(symbol.ExtensionMarkerName);
-
-                if (symbol.Arity != 0)
-                {
-                    builder.Append('`');
-                    builder.Append(symbol.Arity);
-                }
             }
 
             return null;
