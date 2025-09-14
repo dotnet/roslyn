@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -555,31 +554,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// with 'System.IntPtr' and 'System.UIntPtr'.
         /// </summary>
         internal virtual bool IsNativeIntegerWrapperType => false;
-
-#nullable enable
-        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
-        public virtual bool IsExtension
-            => TypeKind == TypeKind.Extension;
-
-        /// <summary>
-        /// For extensions, returns the synthesized identifier for the grouping type.
-        /// Returns null otherwise.
-        /// </summary>
-        internal abstract string? ExtensionGroupingName { get; }
-
-        /// <summary>
-        /// For extensions, returns the synthesized identifier for the marker type.
-        /// Returns null otherwise.
-        /// </summary>
-        internal abstract string? ExtensionMarkerName { get; }
-
-        /// <summary>
-        /// For the type representing an extension declaration, returns the receiver parameter symbol.
-        /// It may be unnamed.
-        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
-        /// </summary>
-        internal abstract ParameterSymbol? ExtensionParameter { get; }
-#nullable disable
 
         internal bool IsNativeIntegerType => IsNativeIntegerWrapperType
             || (SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr && this.ContainingAssembly.RuntimeSupportsNumericIntPtr);

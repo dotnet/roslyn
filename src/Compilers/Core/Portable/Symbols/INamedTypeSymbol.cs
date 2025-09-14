@@ -205,8 +205,15 @@ namespace Microsoft.CodeAnalysis
         bool IsExtension { get; }
 
         /// <summary>
+        /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
+        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
+        /// </summary>
+        IParameterSymbol? ExtensionParameter { get; }
+
+        /// <summary>
         /// For extensions, returns the synthesized identifier for the grouping type.
         /// Returns null otherwise.
+        /// Note: the metadata name for generic grouping types includes an arity suffix, so differs from the ExtensionGroupingName property.
         /// </summary>
         string? ExtensionGroupingName { get; }
 
@@ -215,11 +222,5 @@ namespace Microsoft.CodeAnalysis
         /// Returns null otherwise.
         /// </summary>
         string? ExtensionMarkerName { get; }
-
-        /// <summary>
-        /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
-        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
-        /// </summary>
-        IParameterSymbol? ExtensionParameter { get; }
     }
 }

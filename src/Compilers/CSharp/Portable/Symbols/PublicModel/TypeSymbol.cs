@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ITypeSymbol ITypeSymbol.WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            if (UnderlyingTypeSymbol.IsExtension)
+            if (UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsExtension: true })
             {
                 throw new System.NotSupportedException();
             }

@@ -194,7 +194,10 @@ public static class Extensions
         AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.MetadataName);
 
         var member = symbol.ContainingType.GetMembers().Single();
-        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", member.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280", member.ToTestDisplayString());
+        var underlying = (SourceNamedTypeSymbol)((Symbols.PublicModel.NamedTypeSymbol)member).UnderlyingNamedTypeSymbol;
+        AssertEx.Equal("extension(System.Object)", underlying.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension(System.Object)", underlying.ComputeExtensionMarkerRawName());
 
         var format = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         AssertEx.Equal("Extensions.extension(System.Object)", symbol.ToDisplayString(format));
@@ -206,7 +209,7 @@ public static class Extensions
         AssertEx.Equal("extension(Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat(compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
-        AssertEx.Equal("<G>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToDisplayString(format));
+        AssertEx.Equal("<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToDisplayString(format));
 
         var comp5 = CreateCompilation(src);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
@@ -287,18 +290,18 @@ public static class Extensions
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol.MetadataName);
 
         var member = symbol.ContainingType.GetMembers().Single();
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", member.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", member.ToTestDisplayString());
 
         var constructed = symbol.Construct(comp.GetSpecialType(SpecialType.System_Int32));
         Assert.True(constructed.IsExtension);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>", constructed.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>.<M>$01CE3801593377B4E240F33E20D30D50", constructed.ToTestDisplayString());
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", constructed.MetadataName);
         Assert.NotSame(symbol, constructed);
         Assert.Same(symbol, constructed.OriginalDefinition);
         Assert.Same(symbol, constructed.ConstructedFrom);
 
         var unbound = symbol.ConstructUnboundGenericType();
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<>", unbound.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<>.<M>$01CE3801593377B4E240F33E20D30D50", unbound.ToTestDisplayString());
         Assert.True(unbound.IsUnboundGenericType);
         Assert.NotSame(symbol, unbound);
         Assert.Same(symbol, unbound.OriginalDefinition);
@@ -517,7 +520,7 @@ public static class Extensions<T>
 
         var container = symbol.ContainingType;
         var substitutedExtension = (INamedTypeSymbol)container.Construct(comp.GetSpecialType(SpecialType.System_Int32)).GetMembers().Single();
-        AssertEx.Equal("Extensions<System.Int32>.<G>$8048A6C8BE30A622530249B904B537EB<T>", substitutedExtension.ToTestDisplayString());
+        AssertEx.Equal("Extensions<System.Int32>.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", substitutedExtension.ToTestDisplayString());
         Assert.True(substitutedExtension.IsExtension);
     }
 
@@ -674,7 +677,10 @@ public static class Extensions<T>
         AssertExtensionDeclaration(symbol);
         Assert.True(symbol.IsGenericType);
         var members = symbol.ContainingType.GetMembers();
-        AssertEx.SequenceEqual(["Extensions<T>.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", "void Extensions<T>.M()"], members.ToTestDisplayStrings());
+        AssertEx.SequenceEqual([
+            "Extensions<T>.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280",
+            "void Extensions<T>.M()"
+            ], members.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -701,7 +707,7 @@ extension(object) { public static void M() { } }
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
         Assert.Null(symbol.ContainingType);
-        AssertEx.Equal("<G>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToTestDisplayString());
+        AssertEx.Equal("<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -743,7 +749,10 @@ public static class Extensions
         AssertExtensionDeclaration(nestedExtensionSymbol);
         AssertEx.Equal("Extensions.Extensions2", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
         var members = nestedExtensionSymbol.ContainingType.GetMembers();
-        AssertEx.SequenceEqual(["Extensions.Extensions2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", "void Extensions.Extensions2.M()"], members.ToTestDisplayStrings());
+        AssertEx.SequenceEqual([
+            "Extensions.Extensions2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280",
+            "void Extensions.Extensions2.M()"
+            ], members.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -791,8 +800,12 @@ public static class Extensions
 
         var nestedExtensionSymbol = model.GetDeclaredSymbol(nestedExtension);
         AssertExtensionDeclaration(nestedExtensionSymbol);
-        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
-        AssertEx.SequenceEqual(["void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()", "Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<G>$34505F560D9EACF86A87F3ED1F85E448"], nestedExtensionSymbol.ContainingType.GetMembers().ToTestDisplayStrings());
+        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280",
+            nestedExtensionSymbol.ContainingType.ToTestDisplayString());
+        AssertEx.SequenceEqual([
+            "void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Method()",
+            "Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<G>$34505F560D9EACF86A87F3ED1F85E448.<M>$34505F560D9EACF86A87F3ED1F85E448"
+            ], nestedExtensionSymbol.ContainingType.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -931,7 +944,7 @@ public static partial class Extensions
         var symbol1 = model1.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$D1693D81A12E8DED4ED68FE22D9E856F", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", sourceExtension1.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$D1693D81A12E8DED4ED68FE22D9E856F", sourceExtension1.ToTestDisplayString());
 
         var tree2 = comp.SyntaxTrees[1];
         var extension2 = tree2.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
@@ -939,7 +952,7 @@ public static partial class Extensions
         var symbol2 = model2.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$38DD3033A2145E0D2274BCCB48D8434F", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", sourceExtension2.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>.<M>$38DD3033A2145E0D2274BCCB48D8434F", sourceExtension2.ToTestDisplayString());
     }
 
     [Fact]
@@ -964,12 +977,12 @@ public static partial class Extensions
         var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         AssertEx.Equal("<M>$0A2F70F0BFFD1BC7F8C8E0A6CD0B0194", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>.<M>$0A2F70F0BFFD1BC7F8C8E0A6CD0B0194", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -992,13 +1005,13 @@ public static class Extensions
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1296,7 +1309,7 @@ public static class Extensions
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<G>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99", symbol1.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99.<M>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99", symbol1.ToTestDisplayString());
     }
 
     [Fact]
@@ -1473,7 +1486,7 @@ public static class IntExt
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.MetadataName);
-        AssertEx.Equal("IntExt.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.ToTestDisplayString());
+        AssertEx.Equal("IntExt.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.ToTestDisplayString());
     }
 
     [Fact]
@@ -1647,7 +1660,7 @@ public static class IntExt
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.MetadataName);
-        AssertEx.Equal("IntExt.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.ToTestDisplayString());
+        AssertEx.Equal("IntExt.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", symbol1.ToTestDisplayString());
     }
 
     [Fact]
@@ -1671,13 +1684,13 @@ public static class Extensions
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1704,13 +1717,13 @@ extension<T>(T) { }
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol2.MetadataName);
-        AssertEx.Equal("<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1733,13 +1746,13 @@ public static class Extensions
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$38DD3033A2145E0D2274BCCB48D8434F", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$B6FEF98A1719AAFE96009C5CC65441CB<T1, T2>.<M>$38DD3033A2145E0D2274BCCB48D8434F", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1761,13 +1774,13 @@ public static class Extensions
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", symbol1.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>", symbol1.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", symbol1.ToTestDisplayString());
 
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$0F0A7F439039332917C923D7DF48FA4C", symbol2.MetadataName);
-        AssertEx.Equal("Extensions.<G>$BCF902721DDD961E5243C324D8379E5C<T1>", symbol2.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$BCF902721DDD961E5243C324D8379E5C<T1>.<M>$0F0A7F439039332917C923D7DF48FA4C", symbol2.ToTestDisplayString());
     }
 
     [Fact]
@@ -1800,7 +1813,7 @@ public static class Extensions
         var symbol = model.GetDeclaredSymbol(extension);
         var sourceExtension = symbol.GetSymbol<SourceNamedTypeSymbol>();
         AssertEx.Equal("<M>$9B08A69343790083B512FC2D1C4929FC", symbol.MetadataName);
-        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T11>", symbol.ToTestDisplayString());
+        AssertEx.Equal("Extensions.<G>$8048A6C8BE30A622530249B904B537EB<T11>.<M>$9B08A69343790083B512FC2D1C4929FC", symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -4819,12 +4832,6 @@ unsafe static class E
         Assert.False(e.IsExtension);
         Assert.Null(e.ExtensionGroupingName);
         Assert.Null(e.ExtensionMarkerName);
-
-        var pointerType = e.GetTypeMembers().Single().ExtensionParameter.Type;
-        Assert.IsType<PointerTypeSymbol>(pointerType);
-        Assert.False(pointerType.IsExtension);
-        Assert.Null(pointerType.ExtensionGroupingName);
-        Assert.Null(pointerType.ExtensionMarkerName);
     }
 
     [Fact]
@@ -51355,9 +51362,9 @@ static class E
             "M -> void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()",
             "Attr3 -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
             "P -> System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
-            "T -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
-            "Attr -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
-            "extension -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>"],
+            "T -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$4294E9E080371DCE7DAC7C951C4773A1",
+            "Attr -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$4294E9E080371DCE7DAC7C951C4773A1",
+            "extension -> E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$4294E9E080371DCE7DAC7C951C4773A1"],
             analyzer._results.ToArray());
     }
 
@@ -51420,11 +51427,11 @@ static class E
 
         AssertEx.SetEqual([
             "E",
-            "E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
+            "E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
             "System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
             "T t",
-            "E.<G>$865F3E9780C1FF12019ECA0B40816384",
-            "E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280",
+            "E.<G>$865F3E9780C1FF12019ECA0B40816384.<M>$865F3E9780C1FF12019ECA0B40816384",
+            "E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$64C7DA4F599E1426EA88DEA0AE9DC8CD",
             "System.Object o1",
             "void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
             "System.Int32 i",
@@ -51520,14 +51527,14 @@ static class E
 
         AssertEx.SetEqual([
             "Start: E",
-            "Start: E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
+            "Start: E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
             "Start: void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
             "Start: System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
             "Start: System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P.get",
             "End: System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P { get; }",
             "End: System.Int32 E.<G>$8048A6C8BE30A622530249B904B537EB<T>.P.get",
             "End: void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M(System.Int32 i)",
-            "End: E.<G>$8048A6C8BE30A622530249B904B537EB<T>",
+            "End: E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
             "End: E"],
             analyzer._results.ToArray());
     }

@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                var sourceNamedType = (SourceNamedTypeSymbol)type;
-                var groupingMetadataName = sourceNamedType.ExtensionGroupingName;
-
+                string groupingMetadataName = type.ExtensionGroupingName;
                 MultiDictionary<string, SourceNamedTypeSymbol>? markerMap;
 
                 if (!groupingMap.TryGetValue(groupingMetadataName, out markerMap))
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     groupingMap.Add(groupingMetadataName, markerMap);
                 }
 
-                markerMap.Add(sourceNamedType.ExtensionMarkerName, sourceNamedType);
+                markerMap.Add(type.ExtensionMarkerName, (SourceNamedTypeSymbol)type);
             }
 
             var builder = ArrayBuilder<ExtensionGroupingType>.GetInstance(groupingMap.Count);
@@ -537,7 +535,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool IDefinition.IsEncDeleted => false;
 
-            public abstract bool MangleName { get; }
+            bool INamedTypeReference.MangleName => MangleName;
+
+            protected abstract bool MangleName { get; }
 
             string? INamedTypeReference.AssociatedFileIdentifier => null;
 
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override IEnumerable<INestedTypeDefinition> NestedTypes => ExtensionMarkerTypes;
 
-            public override bool MangleName => GenericParameterCount != 0;
+            protected override bool MangleName => GenericParameterCount != 0;
 
             protected override IEnumerable<IPropertyDefinition> GetProperties(EmitContext context)
             {
@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override IEnumerable<INestedTypeDefinition> NestedTypes => SpecializedCollections.EmptyEnumerable<INestedTypeDefinition>();
 
-            public override bool MangleName => false;
+            protected override bool MangleName => false;
 
             protected override IEnumerable<IPropertyDefinition> GetProperties(EmitContext context) => SpecializedCollections.EmptyEnumerable<IPropertyDefinition>();
 

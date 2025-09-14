@@ -1095,9 +1095,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
-        public override bool IsExtension => base.IsExtension;
-
         internal override string? ExtensionGroupingName
         {
             get

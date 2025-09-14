@@ -4107,7 +4107,7 @@ int.M();
         var comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyEmitDiagnostics();
         var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ToTestDisplayString());
+        AssertEx.Equal("E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ToTestDisplayString());
         AssertEx.SetEqual([], extension.GetAttributes().Select(a => a.ToString()));
         Assert.Equal("", extension.Name);
         AssertEx.Equal("<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.MetadataName);
@@ -4134,11 +4134,12 @@ int.M();
 
         var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Assert.True(extension.IsExtension);
-        AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB<T>", extension.ToTestDisplayString());
+        Assert.Equal("<G>$8048A6C8BE30A622530249B904B537EB", extension.ExtensionGroupingName);
+        Assert.Equal("<M>$01CE3801593377B4E240F33E20D30D50", extension.ExtensionMarkerName);
+        AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", extension.ToTestDisplayString());
         Assert.Equal("", extension.Name);
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", extension.MetadataName);
         Assert.False(extension.MangleName);
-        // TODO2 verify metadata
     }
 
     [Fact]
@@ -31484,15 +31485,15 @@ public static class E
             // extension
             var extension = e.GetTypeMembers().Single().GetPublicSymbol();
             Assert.True(extension.IsExtension);
-            // TODO2 is CreateReferenceId expected to produce identifiers that can be used in CREF?
             AssertEx.Equal("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", DocumentationCommentId.CreateReferenceId(extension));
-            // TODO2 are expecting that CreateDeclarationId identifiers could be used in CREF?
             AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", DocumentationCommentId.CreateDeclarationId(extension));
             Assert.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ExtensionGroupingName);
             Assert.Equal("<M>$531E7AC45D443AE2243E7FFAB9455D60", extension.ExtensionMarkerName);
             AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", extension.GetDocumentationCommentId());
-            AssertEx.Equal([], // TODO2 should find the extension block
-                DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).ToTestDisplayStrings());
+            var found = (INamedTypeSymbol)DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).Single();
+            Assert.True(found.IsExtension);
+            AssertEx.Equal("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", found.ToTestDisplayString());
+            // TODO2 test             if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes))
 
             // extension member
             var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
@@ -31557,15 +31558,17 @@ public static class E
             // extension
             var extension = e.GetTypeMembers().Single().GetPublicSymbol();
             Assert.True(extension.IsExtension);
-            // TODO2 is CreateReferenceId expected to produce identifiers that can be used in CREF?
             AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", DocumentationCommentId.CreateReferenceId(extension));
-            // TODO2 are expecting that CreateDeclarationId identifiers could be used in CREF?
             AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", DocumentationCommentId.CreateDeclarationId(extension));
             Assert.Equal("<G>$8048A6C8BE30A622530249B904B537EB", extension.ExtensionGroupingName);
             Assert.Equal("<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.ExtensionMarkerName);
             AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
-            AssertEx.Equal([], // TODO2 should find the extension block
-                DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).ToTestDisplayStrings());
+            var found = (INamedTypeSymbol)DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).Single();
+            Assert.True(found.IsExtension);
+            AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$D1693D81A12E8DED4ED68FE22D9E856F", found.ToTestDisplayString());
+
+            AssertEx.Equal("E+<G>$8048A6C8BE30A622530249B904B537EB<T>+<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+                found.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames | SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes)));
 
             // extension member
             var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
@@ -31619,18 +31622,20 @@ public static class E
     .method public hidebysig static void M<T> ( !!T t ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        ldarg.0
+        box !!T
+        call void [mscorlib]System.Console::Write(object)
         ret
     }
 }
-""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]") + ExtensionMarkerAttributeIL;
+""" + ExtensionMarkerAttributeIL;
 
         var src = """
 42.M();
 """;
         var comp = CreateCompilationWithIL(src, ilSrc);
-        comp.VerifyEmitDiagnostics(); // TODO2 execute?
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
         validate(comp);
-        // TODO2 verify constructed symbols
 
         static void validate(CSharpCompilation comp)
         {
@@ -31647,8 +31652,9 @@ public static class E
             Assert.Equal("GroupingType", extension.ExtensionGroupingName);
             Assert.Equal("MarkerType", extension.ExtensionMarkerName);
             AssertEx.Equal("T:E.GroupingType`1.MarkerType", extension.GetDocumentationCommentId());
-            AssertEx.Equal([], // TODO2
-                DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).ToTestDisplayStrings());
+            var found = (INamedTypeSymbol)DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).Single();
+            Assert.True(found.IsExtension);
+            AssertEx.Equal("E.GroupingType<T>.MarkerType", found.ToTestDisplayString());
 
             // extension member
             var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();

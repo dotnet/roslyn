@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis
                             if (arity > 0)
                             {
                                 // only types have arity
-                                GetMatchingTypes(containers, name, arity, results);
+                                GetMatchingTypes(containers, name, arity, isTerminal: false, results);
                             }
                             else if (kind == SymbolKind.Namespace)
                             {
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis
                             GetMatchingMethods(id, ref index, containers, name, arity, compilation, results);
                             break;
                         case SymbolKind.NamedType:
-                            GetMatchingTypes(containers, name, arity, results);
+                            GetMatchingTypes(containers, name, arity, isTerminal: true, results);
                             break;
                         case SymbolKind.Property:
                             GetMatchingProperties(id, ref index, containers, name, compilation, results);
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (arity != 0 || PeekNextChar(id, index) != '.')
                         {
-                            GetMatchingTypes(containers, name, arity, results);
+                            GetMatchingTypes(containers, name, arity, isTerminal: false, results);
 
                             if (arity != 0 && typeArguments != null && typeArguments.Count != 0)
                             {
@@ -1175,16 +1175,24 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            private static void GetMatchingTypes(List<INamespaceOrTypeSymbol> containers, string memberName, int arity, List<ISymbol> results)
+            private static void GetMatchingTypes(List<INamespaceOrTypeSymbol> containers, string memberName, int arity, bool isTerminal, List<ISymbol> results)
             {
                 for (int i = 0, n = containers.Count; i < n; i++)
                 {
-                    GetMatchingTypes(containers[i], memberName, arity, results);
+                    GetMatchingTypes(containers[i], memberName, arity, isTerminal: isTerminal, results);
                 }
             }
 
-            private static void GetMatchingTypes(INamespaceOrTypeSymbol container, string memberName, int arity, List<ISymbol> results)
+            private static void GetMatchingTypes(INamespaceOrTypeSymbol container, string memberName, int arity, bool isTerminal, List<ISymbol> results)
             {
+                if (isTerminal
+                    && container is INamedTypeSymbol { IsExtension: true } extension
+                    && extension.ExtensionMarkerName == memberName)
+                {
+                    results.Add(extension);
+                    return;
+                }
+
                 var members = container.GetMembers(memberName);
 
                 foreach (var symbol in members)

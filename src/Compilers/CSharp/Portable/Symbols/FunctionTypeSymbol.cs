@@ -99,10 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsValueType => false;
 
-        internal sealed override ParameterSymbol? ExtensionParameter => null;
-        internal sealed override string? ExtensionGroupingName => null;
-        internal sealed override string? ExtensionMarkerName => null;
-
         public override TypeKind TypeKind => TypeKindInternal.FunctionType;
 
         public override bool IsRefLikeType => false;

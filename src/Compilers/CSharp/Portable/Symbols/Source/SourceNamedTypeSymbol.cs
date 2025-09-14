@@ -1826,9 +1826,13 @@ next:;
         {
             get
             {
-                return IsExtension
-                    ? ExtensionMarkerName
-                    : base.MetadataName;
+                if (IsExtension)
+                {
+                    Debug.Assert(ExtensionMarkerName is not null);
+                    return ExtensionMarkerName;
+                }
+
+                return base.MetadataName;
             }
         }
 
