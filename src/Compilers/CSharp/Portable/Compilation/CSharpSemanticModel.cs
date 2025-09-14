@@ -4344,6 +4344,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ImmutableArray<Symbol> myMethodGroup = memberGroup;
 
                         symbols = OneOrMany.Create(((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myMethodGroup) => myMethodGroup.Contains(sym), myMethodGroup));
+                        if (!symbols.Any())
+                        {
+                            symbols = OneOrMany.Create(myMethodGroup.WhereAsArray(static (g, symbols) => symbols.Any(static (sym, g) => sym.Equals((g as MethodSymbol)?.ReducedFrom), g), ((BoundBadExpression)boundNodeForSyntacticParent).Symbols));
+                        }
+
                         if (symbols.Any())
                         {
                             resultKind = ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind;

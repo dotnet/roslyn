@@ -679,6 +679,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
 
+                if (result.Kind == BoundKind.BadExpression)
+                {
+                    outPlaceholders = default;
+                    return result;
+                }
+
                 // Verify all the parameters (except "this" for extension methods) are out parameters.
                 // This prevents, for example, an unused params parameter after the out parameters.
                 var deconstructMethod = ((BoundCall)result).Method;

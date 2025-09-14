@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private partial void Validate()
         {
             Debug.Assert(LengthOrCountAccess is BoundPropertyAccess or BoundArrayLength or BoundLocal or BoundBadExpression);
-            Debug.Assert(IndexerOrSliceAccess is BoundIndexerAccess or BoundCall or BoundArrayAccess);
+            Debug.Assert(IndexerOrSliceAccess is BoundIndexerAccess or BoundCall or BoundArrayAccess or BoundBadExpression);
         }
     }
 }

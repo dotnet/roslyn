@@ -219,6 +219,8 @@
 
     <!-- Any child bound nodes that we need to preserve are put here. -->
     <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
   </Node>
 
   <!-- This node is used when we can't create a real statement because things are too broken. -->
