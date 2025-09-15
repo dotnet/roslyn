@@ -31992,7 +31992,7 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetValue().F").WithArguments("1", "ref").WithLocation(11, 11));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
         public void Repro_80244_NetCoreApp()
         {
             var comp = CreateCompilation("""
@@ -32030,8 +32030,9 @@ Block[B2] - Exit
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
-        public void Repro_80244_NetStandard()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        [InlineData(LanguageVersion.CSharp8), InlineData(LanguageVersion.CSharp14)]
+        public void Repro_80244_NetStandard(LanguageVersion consumerLanguageVersion)
         {
             var spanCompilation = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8);
             var spanReference = spanCompilation.EmitToImageReference();
@@ -32086,12 +32087,12 @@ Block[B2] - Exit
                 """;
             var comp = CreateCompilation([source0, source1],
                 references: [spanReference],
-                parseOptions: TestOptions.Regular8, // TODO: also test 14
+                parseOptions: TestOptions.Regular.WithLanguageVersion(consumerLanguageVersion),
                 targetFramework: TargetFramework.NetStandard20);
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
         public void Repro_80244_Simple()
         {
             var source0 = """
