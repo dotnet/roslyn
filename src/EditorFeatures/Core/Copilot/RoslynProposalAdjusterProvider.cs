@@ -37,9 +37,13 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
     public override Task<ProposalBase> AdjustProposalAfterAcceptAsync(ProposalBase proposal, string providerName, CancellationToken cancellationToken)
         => AdjustProposalAsync(proposal, providerName, before: false, cancellationToken);
 
-    private static void SetDefaultTelemetryProperties(Dictionary<string, object?> map, string providerName, bool before, TimeSpan elapsedTime)
+    private static void SetDefaultTelemetryProperties(
+        Dictionary<string, object?> map, string? proposalId, string providerName, bool before, TimeSpan elapsedTime)
     {
         // Common properties that all adjustments will log.
+        if (proposalId != null)
+            map["ProposalId"] = proposalId;
+
         map["ProviderName"] = providerName;
         map["AdjustProposalBeforeDisplay"] = before;
         map["ComputationTime"] = elapsedTime.TotalMilliseconds.ToString("G17", CultureInfo.InvariantCulture);
@@ -58,11 +62,11 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
             // If we can't find a solution, then we can't adjust the proposal.  Log telemetry and return the original proposal.
             Logger.LogBlock(FunctionId.Copilot_AdjustProposal, KeyValueLogMessage.Create(static (d, args) =>
             {
-                var (providerName, before, failureReason, elapsedTime) = args;
-                SetDefaultTelemetryProperties(d, providerName, before, elapsedTime);
+                var (proposal, providerName, before, failureReason, elapsedTime) = args;
+                SetDefaultTelemetryProperties(d, proposal.ProposalId, providerName, before, elapsedTime);
                 d["SolutionAcquisitionFailure"] = failureReason;
             },
-            args: (providerName, before, failureReason, stopwatch.Elapsed)),
+            args: (proposal, providerName, before, failureReason, stopwatch.Elapsed)),
             cancellationToken).Dispose();
 
             return proposal;
@@ -99,7 +103,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
                 // for example, if it thinks they would interfere with the caret, or if edits intersect other edits.
                 var adjustmentsAccepted = newProposal != proposal;
 
-                SetDefaultTelemetryProperties(d, providerName, before, elapsedTime);
+                SetDefaultTelemetryProperties(d, proposal.ProposalId, providerName, before, elapsedTime);
 
                 d["AdjustmentsProposed"] = adjustmentsProposed;
                 d["AdjustmentsAccepted"] = adjustmentsAccepted;
@@ -128,8 +132,8 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
 
             Logger.LogBlock(FunctionId.Copilot_AdjustProposal, KeyValueLogMessage.Create(static (d, args) =>
             {
-                var (providerName, before, ex, elapsedTime) = args;
-                SetDefaultTelemetryProperties(d, providerName, before, elapsedTime);
+                var (proposal, providerName, before, ex, elapsedTime) = args;
+                SetDefaultTelemetryProperties(d, proposal.ProposalId, providerName, before, elapsedTime);
                 d["AdjustmentsProposed"] = false;
 
                 if (ex is OperationCanceledException)
@@ -142,7 +146,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
                     d["Failed"] = true;
                 }
             },
-            args: (providerName, before, ex, stopwatch.Elapsed)),
+            args: (proposal, providerName, before, ex, stopwatch.Elapsed)),
             cancellationToken).Dispose();
 
             return true;
