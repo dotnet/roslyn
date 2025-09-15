@@ -616,29 +616,6 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
         return (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
     }
 
-    //protected override bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-    //{
-    //    var leftExpression = syntaxFacts.IsMemberAccessExpression(expression)
-    //        ? syntaxFacts.GetExpressionOfMemberAccessExpression(expression)
-    //        : syntaxFacts.GetTargetOfMemberBinding(expression);
-    //    if (leftExpression == null)
-    //    {
-    //        if (expression.IsKind(SyntaxKind.CollectionInitializerExpression))
-    //        {
-    //            leftExpression = expression.GetAncestor<ObjectCreationExpressionSyntax>();
-    //        }
-    //        else
-    //        {
-    //            return false;
-    //        }
-    //    }
-
-    //    var semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken);
-    //    var leftExpressionType = semanticInfo.Type;
-
-    //    return IsViableExtensionMethod(method, leftExpressionType);
-    //}
-
     protected override bool IsAddMethodContext(
         SyntaxNode node, SemanticModel semanticModel, out SyntaxNode objectCreationExpression)
     {
