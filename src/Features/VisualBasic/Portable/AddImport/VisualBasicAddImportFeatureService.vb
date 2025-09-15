@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return node.CanAddImportsStatements(allowInHiddenRegions, cancellationToken)
         End Function
 
-        Protected Overrides Function CanAddImportForMethod(
+        Protected Overrides Function CanAddImportForMember(
                 diagnosticId As String,
                 syntaxFacts As ISyntaxFacts,
                 node As SyntaxNode,

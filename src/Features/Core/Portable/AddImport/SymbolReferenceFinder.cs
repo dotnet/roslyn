@@ -288,7 +288,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
+            if (_owner.CanAddImportForMember(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                 nameNode != null)
             {
                 // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
@@ -352,7 +352,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
+            if (_owner.CanAddImportForMember(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                 nameNode != null)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -420,7 +420,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out _) &&
+            if (_owner.CanAddImportForMember(_diagnosticId, _syntaxFacts, _node, out _) &&
                 !_syntaxFacts.IsSimpleName(_node) &&
                 _owner.IsAddMethodContext(_node, _semanticModel))
             {

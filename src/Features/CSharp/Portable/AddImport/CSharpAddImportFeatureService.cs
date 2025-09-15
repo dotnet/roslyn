@@ -40,7 +40,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
     protected override bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken)
         => node.CanAddUsingDirectives(allowInHiddenRegions, cancellationToken);
 
-    protected override bool CanAddImportForMethod(
+    protected override bool CanAddImportForMember(
         string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out SimpleNameSyntax nameNode)
     {
         nameNode = null;

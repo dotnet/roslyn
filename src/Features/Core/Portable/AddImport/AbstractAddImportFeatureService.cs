@@ -39,7 +39,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
     protected abstract bool IsWithinImport(SyntaxNode node);
     protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
-    protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
+    protected abstract bool CanAddImportForMember(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
     protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
     protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
     protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
