@@ -32470,7 +32470,6 @@ public static class E
             var found = (INamedTypeSymbol)DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).Single();
             Assert.True(found.IsExtension);
             AssertEx.Equal("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", found.ToTestDisplayString());
-            // TODO2 test             if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes))
 
             // extension member
             var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
