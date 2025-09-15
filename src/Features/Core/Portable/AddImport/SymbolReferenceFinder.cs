@@ -365,16 +365,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                     if (name != null)
                     {
-                        var expression = nameNode.GetRequiredParent();
-                        var leftExpression =
-                            _syntaxFacts.IsMemberAccessExpression(expression) ? _syntaxFacts.GetExpressionOfMemberAccessExpression(expression, allowImplicitTarget: true) :
-                            _syntaxFacts.IsMemberBindingExpression(expression) ? _syntaxFacts.GetTargetOfMemberBinding(expression) : null;
-                        if (leftExpression == null)
-                            return [];
-
-                        var semanticInfo = _semanticModel.GetTypeInfo(leftExpression, cancellationToken);
-                        var leftExpressionType = semanticInfo.Type;
-                        if (leftExpressionType is null)
+                        var receiverType = GetReceiverType();
+                        if (receiverType is null)
                             return [];
 
                         var symbols = await searchScope.FindDeclarationsAsync(
@@ -393,10 +385,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 #endif
 
-
-
                         var classicExtensionMethods = OfType<IMethodSymbol>(symbols)
-                            .WhereAsArray(s => IsViableClassicExtensionMethod(s.Symbol, leftExpressionType, predicate: null));
+                            .WhereAsArray(s => IsViableClassicExtensionMethod(s.Symbol, receiverType, predicate: null));
 
                         var extensionMemberSymbols = classicExtensionMethods;
                         //var extensionMethodSymbols = GetViableExtensionMembers(
@@ -409,6 +399,22 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
 
             return [];
+
+            ITypeSymbol? GetReceiverType()
+            {
+                var expression = nameNode.GetRequiredParent();
+                if (_syntaxFacts.IsInvocationExpression(expression))
+                    return _semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken);
+
+                var leftExpression =
+                    _syntaxFacts.IsMemberAccessExpression(expression) ? _syntaxFacts.GetExpressionOfMemberAccessExpression(expression, allowImplicitTarget: true) :
+                    _syntaxFacts.IsMemberBindingExpression(expression) ? _syntaxFacts.GetTargetOfMemberBinding(expression) : null;
+                if (leftExpression == null)
+                    return null;
+
+                var semanticInfo = _semanticModel.GetTypeInfo(leftExpression, cancellationToken);
+                return semanticInfo.Type;
+            }
         }
 
         private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(
