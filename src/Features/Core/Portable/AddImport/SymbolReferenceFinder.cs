@@ -366,9 +366,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     if (name != null)
                     {
                         var expression = nameNode.GetRequiredParent();
-                        var leftExpression = _syntaxFacts.IsMemberAccessExpression(expression)
-                            ? _syntaxFacts.GetExpressionOfMemberAccessExpression(expression, allowImplicitTarget: true)
-                            : _syntaxFacts.GetTargetOfMemberBinding(expression);
+                        var leftExpression =
+                            _syntaxFacts.IsMemberAccessExpression(expression) ? _syntaxFacts.GetExpressionOfMemberAccessExpression(expression, allowImplicitTarget: true) :
+                            _syntaxFacts.IsMemberBindingExpression(expression) ? _syntaxFacts.GetTargetOfMemberBinding(expression) : null;
                         if (leftExpression == null)
                             return [];
 
