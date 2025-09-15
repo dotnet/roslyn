@@ -229,7 +229,7 @@ internal abstract class LanguageServerProjectLoader
             var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (remoteProjectLoadResult is null)
             {
-                // Note that this is a fairly common condition, e.g. for VB projects.
+                // Note that this is a fairly common condition, e.g. for VB projects, or for file-based programs when sufficiently new SDK is not available.
                 // In the file-based programs primordial case, no 'LoadedProject' is produced for the project,
                 // and therefore no reloading is performed for it after failing to load it once (in this code path).
                 _logger.LogWarning($"Unable to load project '{projectPath}'.");
