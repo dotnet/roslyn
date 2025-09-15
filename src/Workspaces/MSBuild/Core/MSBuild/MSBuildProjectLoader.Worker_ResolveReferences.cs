@@ -342,8 +342,10 @@ public partial class MSBuildProjectLoader
 
         private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectFilePath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
-            var buildHost = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, cancellationToken).ConfigureAwait(false);
-            var outputFilePath = await buildHost.TryGetProjectOutputPathAsync(projectFilePath, cancellationToken).ConfigureAwait(false);
+            var outputFilePath = await _projectFileInfoLoader
+                .TryGetProjectOutputPathAsync(projectFilePath, cancellationToken)
+                .ConfigureAwait(false);
+
             return outputFilePath != null
                 && builder.Contains(outputFilePath)
                 && File.Exists(outputFilePath);
@@ -352,7 +354,9 @@ public partial class MSBuildProjectLoader
         private async Task<bool> VerifyProjectOutputExistsAsync(string projectFilePath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
         {
             // Note: Load the project, but don't report failures.
-            var projectFileInfos = await LoadProjectFileInfosAsync(projectFilePath, DiagnosticReportingOptions.IgnoreAll, cancellationToken).ConfigureAwait(false);
+            var projectFileInfos = await _projectFileInfoLoader
+                .LoadProjectFileInfosAsync(projectFilePath, DiagnosticReportingOptions.IgnoreAll, cancellationToken)
+                .ConfigureAwait(false);
 
             foreach (var projectFileInfo in projectFileInfos)
             {

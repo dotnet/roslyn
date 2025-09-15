@@ -187,14 +187,15 @@ public partial class MSBuildProjectLoader
 
         var operationRunner = new ProjectLoadOperationRunner(progress);
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
-        await using var _ = buildHostProcessManager.ConfigureAwait(false);
+        var projectFileInfoLoader = new BuildHostProjectFileInfoLoader(
+            _diagnosticReporter, _projectFileExtensionRegistry, operationRunner, Properties, loggerFactory: _loggerFactory);
+        await using var _ = projectFileInfoLoader.ConfigureAwait(false);
 
         var worker = new Worker(
             _solutionServices,
             _diagnosticReporter,
             _projectFileExtensionRegistry,
-            buildHostProcessManager,
+            projectFileInfoLoader,
             projectMap: null,
             operationRunner,
             discoveredProjectOptions: reportingOptions,
@@ -245,14 +246,15 @@ public partial class MSBuildProjectLoader
 
         var operationRunner = new ProjectLoadOperationRunner(progress);
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
-        await using var _ = buildHostProcessManager.ConfigureAwait(false);
+        var projectFileInfoLoader = new BuildHostProjectFileInfoLoader(
+            _diagnosticReporter, _projectFileExtensionRegistry, operationRunner, Properties, loggerFactory: _loggerFactory);
+        await using var _ = projectFileInfoLoader.ConfigureAwait(false);
 
         var worker = new Worker(
             _solutionServices,
             _diagnosticReporter,
             _projectFileExtensionRegistry,
-            buildHostProcessManager,
+            projectFileInfoLoader,
             projectMap,
             operationRunner,
             discoveredProjectOptions,
