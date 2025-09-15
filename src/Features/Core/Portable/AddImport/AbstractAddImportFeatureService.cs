@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -56,7 +57,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, AddImportPlacementOptions options, CancellationToken cancellationToken);
     protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, AddImportPlacementOptions options, CancellationToken cancellationToken);
 
-    protected abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
+    protected abstract bool IsAddMethodContext(
+        SyntaxNode node, SemanticModel semanticModel, [NotNullWhen(true)] out SyntaxNode? objectCreationExpression);
 
     protected abstract string GetDescription(IReadOnlyList<string> nameParts);
     protected abstract (string description, bool hasExistingImport) GetDescription(Document document, AddImportPlacementOptions options, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
@@ -495,10 +497,6 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         if (receiver.Language != method.Language)
             return false;
-
-        // Uniformly check classic and modern extension methods.
-        if (method.IsClassicOrModernInstanceExtensionMethod(out var classicMethod))
-            method = classicMethod;
 
         var reducedMethod = method.ReduceExtensionMethod(receiver);
         return reducedMethod != null;

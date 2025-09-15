@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -638,19 +639,16 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
         return IsViableExtensionMethod(method, leftExpressionType);
     }
 
-    protected override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
+    protected override bool IsAddMethodContext(
+        SyntaxNode node, SemanticModel semanticModel, out SyntaxNode objectCreationExpression)
     {
         if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
         {
-            var objectCreationExpressionSyntax = node.GetAncestor<ObjectCreationExpressionSyntax>();
-            if (objectCreationExpressionSyntax == null)
-            {
-                return false;
-            }
-
-            return true;
+            objectCreationExpression = node.GetAncestor<ObjectCreationExpressionSyntax>();
+            return objectCreationExpression != null;
         }
 
+        objectCreationExpression = null;
         return false;
     }
 }

@@ -353,16 +353,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return IsViableExtensionMethod(method, leftExpressionType)
         End Function
 
-        Protected Overrides Function IsAddMethodContext(node As SyntaxNode, semanticModel As SemanticModel) As Boolean
+        Protected Overrides Function IsAddMethodContext(
+                node As SyntaxNode,
+                semanticModel As SemanticModel,
+                ByRef objectCreateExpression As SyntaxNode) As Boolean
             If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
-                Dim objectCreateExpression = node.GetAncestor(Of ObjectCreationExpressionSyntax)
-                If objectCreateExpression Is Nothing Then
-                    Return False
-                End If
-
-                Return True
+                objectCreateExpression = node.GetAncestor(Of ObjectCreationExpressionSyntax)
+                Return objectCreateExpression IsNot Nothing
             End If
 
+            objectCreateExpression = Nothing
             Return False
         End Function
     End Class

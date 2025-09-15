@@ -271,8 +271,13 @@ internal static partial class ISymbolExtensions
         => symbol is { Kind: SymbolKind.Field, ContainingType.TypeKind: TypeKind.Enum };
 
     /// <inheritdoc cref="IMethodSymbol.IsExtensionMethod"/>
-    public static bool IsExtensionMethod(this ISymbol symbol)
+    public static bool IsExtensionMethod([NotNullWhen(true)] this ISymbol? symbol)
         => symbol is IMethodSymbol { IsExtensionMethod: true };
+
+#if !ROSLYN_4_12_OR_LOWER
+    public static bool IsClassicOrModernExtensionMember([NotNullWhen(true)] this ISymbol? symbol)
+        => symbol.IsExtensionMethod() || symbol is { ContainingType: INamedTypeSymbol { IsExtension: true } };
+#endif 
 
     public static bool IsLocalFunction([NotNullWhen(true)] this ISymbol? symbol)
         => symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction };

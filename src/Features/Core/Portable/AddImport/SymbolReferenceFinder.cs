@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -363,18 +364,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                     if (name != null)
                     {
-                        var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
+                        var symbols = await searchScope.FindDeclarationsAsync(
+                            name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
-                        symbols = symbols.SelectAsArray(result =>
-                        {
-                            var propertyMethod = result.Symbol is IPropertySymbol property ? property.GetMethod ?? property.SetMethod : null;
-                            return result.WithSymbol(propertyMethod ?? result.Symbol);
-                        });
-
-                        var methodSymbols = OfType<IMethodSymbol>(symbols);
-
-                        var extensionMethodSymbols = GetViableExtensionMethods(
-                            methodSymbols, nameNode.GetRequiredParent(), cancellationToken);
+                        var extensionMethodSymbols = GetViableExtensionMembers(
+                            symbols, nameNode.GetRequiredParent(), cancellationToken);
 
                         var namespaceSymbols = extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
                         return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
@@ -385,19 +379,15 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             return [];
         }
 
-        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethods(
-            ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols,
-            SyntaxNode expression, CancellationToken cancellationToken)
+        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMembers(
+            ImmutableArray<SymbolResult<ISymbol>> memberSymbols,
+            SyntaxNode expression,
+            CancellationToken cancellationToken)
         {
+            memberSymbols = memberSymbols.WhereAsArray(s => s.Symbol.IsClassicOrModernExtensionMember());
+
             return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
                 s => _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, cancellationToken));
-        }
-
-        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethods(
-            ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols, ITypeSymbol typeSymbol)
-        {
-            return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                s => IsViableExtensionMethod(s.Symbol, typeSymbol));
         }
 
         private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(
@@ -419,21 +409,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             cancellationToken.ThrowIfCancellationRequested();
             if (_owner.CanAddImportForMember(_diagnosticId, _syntaxFacts, _node, out _) &&
                 !_syntaxFacts.IsSimpleName(_node) &&
-                _owner.IsAddMethodContext(_node, _semanticModel))
+                _owner.IsAddMethodContext(_node, _semanticModel, out var objectCreationExpression))
             {
-                var symbols = await searchScope.FindDeclarationsAsync(
-                    nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
-
-                // Note: there is no desiredName for these search results.  We're searching for
-                // extension methods called "Add", but we have no intention of renaming any 
-                // of the existing user code to that name.
-                var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
-
-                var viableMethods = GetViableExtensionMethods(
-                    methodSymbols, _node.GetRequiredParent(), cancellationToken);
-
-                return GetNamespaceSymbolReferences(searchScope,
-                    viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
+                var objectCreationType = _semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type;
+                return await GetReferencesForExtensionMethodAsync(
+                    searchScope, nameof(IList.Add), objectCreationType, predicate: null, cancellationToken).ConfigureAwait(false);
             }
 
             return [];
@@ -476,13 +456,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _syntaxFacts, _node))
             {
                 var type = GetAwaitInfo(_semanticModel, _syntaxFacts, _node);
-                if (type != null)
-                {
-                    return await GetReferencesForExtensionMethodAsync(
-                        searchScope, WellKnownMemberNames.GetAwaiter, type,
-                        static m => m.IsValidGetAwaiter(),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                return await GetReferencesForExtensionMethodAsync(
+                    searchScope, WellKnownMemberNames.GetAwaiter, type,
+                    static m => m.IsValidGetAwaiter(),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return [];
@@ -501,13 +478,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (_owner.CanAddImportForGetEnumerator(_diagnosticId, _syntaxFacts, _node))
             {
                 var type = GetCollectionExpressionType(_semanticModel, _syntaxFacts, _node);
-                if (type != null)
-                {
-                    return await GetReferencesForExtensionMethodAsync(
-                        searchScope, WellKnownMemberNames.GetEnumeratorMethodName, type,
-                        static m => m.IsValidGetEnumerator(),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                return await GetReferencesForExtensionMethodAsync(
+                    searchScope, WellKnownMemberNames.GetEnumeratorMethodName, type,
+                    static m => m.IsValidGetEnumerator(),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return [];
@@ -526,13 +500,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (_owner.CanAddImportForGetAsyncEnumerator(_diagnosticId, _syntaxFacts, _node))
             {
                 var type = GetCollectionExpressionType(_semanticModel, _syntaxFacts, _node);
-                if (type != null)
-                {
-                    return await GetReferencesForExtensionMethodAsync(
-                        searchScope, WellKnownMemberNames.GetAsyncEnumeratorMethodName, type,
-                        static m => m.IsValidGetAsyncEnumerator(),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                return await GetReferencesForExtensionMethodAsync(
+                    searchScope, WellKnownMemberNames.GetAsyncEnumeratorMethodName, type,
+                    static m => m.IsValidGetAsyncEnumerator(),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return [];
@@ -566,8 +537,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         private async Task<ImmutableArray<SymbolReference>> GetReferencesForExtensionMethodAsync(
-            SearchScope searchScope, string name, ITypeSymbol type, Func<IMethodSymbol, bool>? predicate, CancellationToken cancellationToken)
+            SearchScope searchScope, string name, ITypeSymbol? type, Func<IMethodSymbol, bool>? predicate, CancellationToken cancellationToken)
         {
+            if (type is null)
+                return [];
+
             var symbols = await searchScope.FindDeclarationsAsync(
                 name, nameNode: null, filter: SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
@@ -575,16 +549,14 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // renames of the user code.  We're just looking for an extension method called 
             // "Select", but that name has no bearing on the code in question that we're
             // trying to fix up.
-            var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
-            var viableExtensionMethods = GetViableExtensionMethods(methodSymbols, type);
-
-            if (predicate != null)
-            {
-                viableExtensionMethods = viableExtensionMethods.WhereAsArray(s => predicate(s.Symbol));
-            }
+            var viableExtensionMethods = OfType<IMethodSymbol>(symbols).SelectAsArray(
+                s => s.Symbol.IsClassicOrModernInstanceExtensionMethod(out var classicMethod) &&
+                     classicMethod.IsAccessibleWithin(_semanticModel.Compilation.Assembly) &&
+                     IsViableExtensionMethod(classicMethod, type) &&
+                     predicate?.Invoke(classicMethod) is not false,
+                s => s.WithDesiredName(null));
 
             var namespaceSymbols = viableExtensionMethods.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
-
             return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
         }
 
