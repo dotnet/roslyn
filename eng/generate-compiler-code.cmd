@@ -1,3 +1,3 @@
 @echo off
-dotnet run "%~dp0\generate-compiler-code.cs" %* 
+call "%~dp0\common\dotnet.cmd" run "%~dp0\generate-compiler-code.cs" %* 
 
