@@ -4,11 +4,13 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
 public sealed partial class AddUsingTests
 {
     [Fact]
