@@ -365,7 +365,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                     if (name != null)
                     {
-                        var receiverType = GetReceiverType();
+                        var (receiverType, isStatic) = GetReceiverType();
                         if (receiverType is null)
                             return [];
 
@@ -376,7 +376,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                             .WhereAsArray(s => IsViableClassicExtensionMethod(s.Symbol, receiverType, predicate: null));
 
                         var modernExtensionMembers = symbols
-                            .WhereAsArray(s => IsViableModernExtensionMember(s.Symbol, receiverType));
+                            .WhereAsArray(s => IsViableModernExtensionMember(s.Symbol, receiverType) && s.Symbol.IsStatic == isStatic);
 
                         var classicExtensionNamespaces = classicExtensionMethods.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace));
                         var modernExtensionNamespaces = modernExtensionMembers.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace));
@@ -389,20 +389,21 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
             return [];
 
-            ITypeSymbol? GetReceiverType()
+            (ITypeSymbol? receiverType, bool isStatic) GetReceiverType()
             {
                 var expression = nameNode.GetRequiredParent();
                 if (_syntaxFacts.IsInvocationExpression(expression))
-                    return _semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken);
+                    return (_semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken), isStatic: false);
 
                 var leftExpression =
                     _syntaxFacts.IsMemberAccessExpression(expression) ? _syntaxFacts.GetExpressionOfMemberAccessExpression(expression, allowImplicitTarget: true) :
                     _syntaxFacts.IsMemberBindingExpression(expression) ? _syntaxFacts.GetTargetOfMemberBinding(expression) : null;
                 if (leftExpression == null)
-                    return null;
+                    return default;
 
+                var symbol = _semanticModel.GetSymbolInfo(leftExpression, cancellationToken).GetAnySymbol();
                 var semanticInfo = _semanticModel.GetTypeInfo(leftExpression, cancellationToken);
-                return semanticInfo.Type;
+                return (semanticInfo.Type, isStatic: symbol is ITypeSymbol);
             }
         }
 
