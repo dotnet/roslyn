@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Elfie.Model;
@@ -364,6 +365,18 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                     if (name != null)
                     {
+                        var expression = nameNode.GetRequiredParent();
+                        var leftExpression = _syntaxFacts.IsMemberAccessExpression(expression)
+                            ? _syntaxFacts.GetExpressionOfMemberAccessExpression(expression)
+                            : _syntaxFacts.GetTargetOfMemberBinding(expression);
+                        if (leftExpression == null)
+                            return [];
+
+                        var semanticInfo = _semanticModel.GetTypeInfo(leftExpression, cancellationToken);
+                        var leftExpressionType = semanticInfo.Type;
+                        if (leftExpressionType is null)
+                            return [];
+
                         var symbols = await searchScope.FindDeclarationsAsync(
                             name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
@@ -380,12 +393,16 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 #endif
 
-                        var classicExtensionMethods = 
 
-                        var extensionMethodSymbols = GetViableExtensionMembers(
-                            symbols, nameNode.GetRequiredParent(), cancellationToken);
 
-                        var namespaceSymbols = extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+                        var classicExtensionMethods = OfType<IMethodSymbol>(symbols)
+                            .WhereAsArray(s => IsViableClassicExtensionMethod(s.Symbol, leftExpressionType, predicate: null));
+
+                        var extensionMemberSymbols = classicExtensionMethods;
+                        //var extensionMethodSymbols = GetViableExtensionMembers(
+                        //    symbols, nameNode.GetRequiredParent(), cancellationToken);
+
+                        var namespaceSymbols = extensionMemberSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
                         return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
                     }
                 }
@@ -554,13 +571,19 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // question that we're trying to fix up.
             var methodSymbols = OfType<IMethodSymbol>(symbols);
             var namespaceSymbols = methodSymbols.SelectAsArray(
-                s => s.Symbol.IsExtensionMethod &&
-                     s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) &&
-                     IsViableExtensionMethod(s.Symbol, type) &&
-                     predicate?.Invoke(s.Symbol) is not false,
+                s => IsViableClassicExtensionMethod(s.Symbol, type, predicate),
                 s => s.WithDesiredName(null).WithSymbol(s.Symbol.ContainingNamespace));
 
             return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
+        }
+
+        private bool IsViableClassicExtensionMethod(
+            IMethodSymbol method, ITypeSymbol type, Func<IMethodSymbol, bool>? predicate)
+        {
+            return method.IsExtensionMethod &&
+                method.IsAccessibleWithin(_semanticModel.Compilation.Assembly) &&
+                IsViableExtensionMethod(method, type) &&
+                predicate?.Invoke(method) is not false;
         }
 
         private bool ExpressionBinds(

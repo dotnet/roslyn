@@ -325,33 +325,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 SyntaxFactory.QualifiedName(CreateNameSyntax(nameSpaceParts, index - 1), namePiece))
         End Function
 
-        Protected Overrides Function IsViableExtensionMethod(
-                method As IMethodSymbol,
-                expression As SyntaxNode,
-                semanticModel As SemanticModel,
-                syntaxFacts As ISyntaxFacts,
-                cancellationToken As CancellationToken) As Boolean
-            Dim leftExpressionType As ITypeSymbol
-            If syntaxFacts.IsInvocationExpression(expression) Then
-                leftExpressionType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken)
-            Else
-                Dim leftExpression As SyntaxNode
-                If TypeOf expression Is ObjectCreationExpressionSyntax Then
-                    leftExpression = expression
-                Else
-                    leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(
-                        expression, allowImplicitTarget:=True)
-                    If leftExpression Is Nothing Then
-                        Return False
-                    End If
-                End If
+        'Protected Overrides Function IsViableExtensionMethod(
+        '        method As IMethodSymbol,
+        '        expression As SyntaxNode,
+        '        semanticModel As SemanticModel,
+        '        syntaxFacts As ISyntaxFacts,
+        '        cancellationToken As CancellationToken) As Boolean
+        '    Dim leftExpressionType As ITypeSymbol
+        '    If syntaxFacts.IsInvocationExpression(expression) Then
+        '        leftExpressionType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken)
+        '    Else
+        '        Dim leftExpression As SyntaxNode
+        '        If TypeOf expression Is ObjectCreationExpressionSyntax Then
+        '            leftExpression = expression
+        '        Else
+        '            leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(
+        '                expression, allowImplicitTarget:=True)
+        '            If leftExpression Is Nothing Then
+        '                Return False
+        '            End If
+        '        End If
 
-                Dim semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken)
-                leftExpressionType = semanticInfo.Type
-            End If
+        '        Dim semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken)
+        '        leftExpressionType = semanticInfo.Type
+        '    End If
 
-            Return IsViableExtensionMethod(method, leftExpressionType)
-        End Function
+        '    Return IsViableExtensionMethod(method, leftExpressionType)
+        'End Function
 
         Protected Overrides Function IsAddMethodContext(
                 node As SyntaxNode,
