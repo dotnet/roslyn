@@ -115,7 +115,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             tasks.Add(GetReferencesForMatchingTypesAsync(searchScope, cancellationToken));
             tasks.Add(GetReferencesForMatchingNamespacesAsync(searchScope, cancellationToken));
             tasks.Add(GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope, cancellationToken));
-            tasks.Add(GetReferencesForMatchingExtensionMethodsAsync(searchScope, cancellationToken));
+            tasks.Add(GetReferencesForMatchingExtensionMembersAsync(searchScope, cancellationToken));
 
             // Searching for things like "Add" (for collection initializers) and "Select"
             // (for extension methods) should only be done when doing an 'exact' search.
@@ -184,7 +184,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 out var name, out var arity, out var inAttributeContext,
                 out var hasIncompleteParentMember, out var looksGeneric);
 
-            if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: cancellationToken))
+            if (ExpressionBinds(nameNode, checkForExtensionMembers: false, cancellationToken: cancellationToken))
             {
                 // If the expression bound, there's nothing to do.
                 return [];
@@ -266,7 +266,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
 
                 if (arity == 0 &&
-                    !ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken))
+                    !ExpressionBinds(nameNode, checkForExtensionMembers: false, cancellationToken))
                 {
                     var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
                     var namespaceSymbols = OfType<INamespaceSymbol>(symbols);
@@ -344,11 +344,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         /// <summary>
-        /// Searches for extension methods that match the name the user has written.  Returns
-        /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
-        /// the static classes that those extension methods are contained in.
+        /// Searches for extension members that match the name the user has written.  Returns <see
+        /// cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain the static classes that those
+        /// extension methods are contained in.
         /// </summary>
-        private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingExtensionMethodsAsync(
+        private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingExtensionMembersAsync(
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -358,16 +358,13 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // See if the name binds.  If it does, there's nothing further we need to do.
-                if (!ExpressionBinds(nameNode, checkForExtensionMethods: true, cancellationToken))
+                if (!ExpressionBinds(nameNode, checkForExtensionMembers: true, cancellationToken))
                 {
                     _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                     if (name != null)
                     {
                         var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
-                        // If we find any properties, convert those to their underlying get/set methods. That way, if
-                        // this is an extension property, we can see if that property is applicable to the receiver
-                        // (checked in GetViableExtensionMethods).
                         symbols = symbols.SelectAsArray(result =>
                         {
                             var propertyMethod = result.Symbol is IPropertySymbol property ? property.GetMethod ?? property.SetMethod : null;
@@ -592,13 +589,13 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         private bool ExpressionBinds(
-            TSimpleNameSyntax nameNode, bool checkForExtensionMethods, CancellationToken cancellationToken)
+            TSimpleNameSyntax nameNode, bool checkForExtensionMembers, CancellationToken cancellationToken)
         {
             // See if the name binds to something other then the error type. If it does, there's nothing further we need to do.
             // For extension methods, however, we will continue to search if there exists any better matched method.
             cancellationToken.ThrowIfCancellationRequested();
             var symbolInfo = _semanticModel.GetSymbolInfo(nameNode, cancellationToken);
-            if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !checkForExtensionMethods)
+            if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !checkForExtensionMembers)
             {
                 return true;
             }
