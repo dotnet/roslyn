@@ -20,7 +20,7 @@ internal sealed class BuildHost : IBuildHost
 {
     private readonly BuildHostLogger _logger;
     private readonly RpcServer _server;
-    private readonly object _gate = new object();
+    private readonly object _gate = new();
     private ProjectBuildManager? _buildManager;
 
     /// <summary>

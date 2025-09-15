@@ -110,7 +110,7 @@ public sealed class GetTextDocumentWithContextHandlerTests : AbstractLanguageSer
     }
 
     private static LSP.VSGetProjectContextsParams CreateGetProjectContextParams(DocumentUri uri)
-        => new LSP.VSGetProjectContextsParams()
+        => new()
         {
             TextDocument = new LSP.TextDocumentItem { DocumentUri = uri }
         };

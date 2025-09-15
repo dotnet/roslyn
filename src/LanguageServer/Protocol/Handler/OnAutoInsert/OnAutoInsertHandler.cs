@@ -57,7 +57,12 @@ internal sealed class OnAutoInsertHandler(
         var servicesForDocument = _braceCompletionServices.SelectAsArray(s => s.Metadata.Language == document.Project.Language, s => s.Value);
         var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
-        return GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, isRazorRequest, cancellationToken);
+        var supportsVSExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
+
+        // We want adjust the braces after enter for razor and non-VS clients.
+        // We don't do this via on type formatting as it does not support snippets.
+        var includeNewLineBraceFormatting = isRazorRequest || !supportsVSExtensions;
+        return GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, includeNewLineBraceFormatting, cancellationToken);
     }
 
     internal static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetOnAutoInsertResponseAsync(
@@ -67,7 +72,7 @@ internal sealed class OnAutoInsertHandler(
         LinePosition linePosition,
         string character,
         LSP.FormattingOptions lspFormattingOptions,
-        bool isRazorRequest,
+        bool includeNewLineBraceFormatting,
         CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
@@ -92,7 +97,8 @@ internal sealed class OnAutoInsertHandler(
         // Only support this for razor as LSP doesn't support overtype yet.
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1165179/
         // Once LSP supports overtype we can move all of brace completion to LSP.
-        if (character == "\n" && isRazorRequest)
+
+        if (character == "\n" && includeNewLineBraceFormatting)
         {
             var indentationOptions = new IndentationOptions(formattingOptions)
             {
@@ -125,7 +131,7 @@ internal sealed class OnAutoInsertHandler(
 
         var result = character == "\n"
             ? service.GetDocumentationCommentSnippetOnEnterTyped(parsedDocument, position, options, cancellationToken)
-            : service.GetDocumentationCommentSnippetOnCharacterTyped(parsedDocument, position, options, cancellationToken, addIndentation: false);
+            : service.GetDocumentationCommentSnippetOnCharacterTyped(parsedDocument, position, options, cancellationToken, addIndentation: true);
 
         if (result == null)
             return null;
@@ -194,6 +200,7 @@ internal sealed class OnAutoInsertHandler(
 
         var textChange = await GetCollapsedChangeAsync(textChanges, document, cancellationToken).ConfigureAwait(false);
         var newText = GetTextChangeTextWithCaretAtLocation(newSourceText, textChange, desiredCaretLinePosition);
+
         var autoInsertChange = new LSP.VSInternalDocumentOnAutoInsertResponseItem
         {
             TextEditFormat = LSP.InsertTextFormat.Snippet,

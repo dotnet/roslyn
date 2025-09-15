@@ -33,7 +33,7 @@ public sealed class SyntaxEditorTests
     }
 
     private SyntaxEditor GetEditor(SyntaxNode root)
-        => new SyntaxEditor(root, EmptyWorkspace.Services.SolutionServices);
+        => new(root, EmptyWorkspace.Services.SolutionServices);
 
     [Fact]
     public void TestReplaceNode()

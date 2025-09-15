@@ -53,7 +53,7 @@ public sealed class SimplifyMethodTests : AbstractLanguageServerProtocolTests
     }
 
     private static SimplifyMethodParams CreateSimplifyMethodParams(LSP.Location location, string newText)
-        => new SimplifyMethodParams()
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
             TextEdit = new TextEdit() { Range = location.Range, NewText = newText },

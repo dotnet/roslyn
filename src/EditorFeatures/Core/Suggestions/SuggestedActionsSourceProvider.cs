@@ -42,9 +42,9 @@ internal sealed partial class SuggestedActionsSourceProvider : ISuggestedActions
 {
     public static readonly ImmutableArray<string> Orderings = [DefaultOrderings.Highest, DefaultOrderings.Default, DefaultOrderings.Low, DefaultOrderings.Lowest];
 
-    private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
-    private static readonly Guid s_visualBasicSourceGuid = new Guid("4de30e93-3e0c-40c2-a4ba-1124da4539f6");
-    private static readonly Guid s_xamlSourceGuid = new Guid("a0572245-2eab-4c39-9f61-06a6d8c5ddda");
+    private static readonly Guid s_CSharpSourceGuid = new("b967fea8-e2c3-4984-87d4-71a38f49e16a");
+    private static readonly Guid s_visualBasicSourceGuid = new("4de30e93-3e0c-40c2-a4ba-1124da4539f6");
+    private static readonly Guid s_xamlSourceGuid = new("a0572245-2eab-4c39-9f61-06a6d8c5ddda");
 
     private readonly IThreadingContext _threadingContext;
     private readonly ICodeRefactoringService _codeRefactoringService;

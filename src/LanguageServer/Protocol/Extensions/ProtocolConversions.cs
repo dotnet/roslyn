@@ -351,16 +351,16 @@ internal static partial class ProtocolConversions
     }
 
     public static TextChange TextEditToTextChange(LSP.TextEdit edit, SourceText oldText)
-        => new TextChange(RangeToTextSpan(edit.Range, oldText), edit.NewText);
+        => new(RangeToTextSpan(edit.Range, oldText), edit.NewText);
 
     public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
-        => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
+        => new(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
 
     public static LSP.Position LinePositionToPosition(LinePosition linePosition)
-        => new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
+        => new() { Line = linePosition.Line, Character = linePosition.Character };
 
     public static LSP.Range LinePositionToRange(LinePositionSpan linePositionSpan)
-        => new LSP.Range { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
+        => new() { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
 
     public static LSP.Range TextSpanToRange(TextSpan textSpan, SourceText text)
     {
