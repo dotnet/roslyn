@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static string UnescapeSectionName(string sectionName)
         {
-            var sb = new StringBuilder();
+            var sb = PooledStringBuilder.GetInstance();
             SectionNameLexer lexer = new SectionNameLexer(sectionName);
             while (!lexer.IsDone)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                     throw ExceptionUtilities.UnexpectedValue(tokenKind);
                 }
             }
-            return sb.ToString();
+            return sb.ToStringAndFree();
         }
 
         /// <summary>
