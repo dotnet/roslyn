@@ -268,7 +268,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
+                if (!MemberSignatureComparer.ExplicitImplementationWithoutReturnTypeComparer.Equals(implementingMember, interfaceMember))
+                {
+                    continue;
+                }
+
+                var implementingMemberTypeMap = MemberSignatureComparer.GetTypeMap(implementingMember);
+                var interfaceMemberTypeMap = MemberSignatureComparer.GetTypeMap(interfaceMember);
+                if (MemberSignatureComparer.HaveSameReturnTypes(
+                    implementingMember,
+                    implementingMemberTypeMap,
+                    interfaceMember,
+                    interfaceMemberTypeMap,
+                    TypeCompareKind.AllIgnoreOptions))
                 {
                     foundMatchingMember = true;
                     // Cannot implement accessor directly unless
@@ -294,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
                 }
-                else if (MemberSignatureComparer.ExplicitImplementationWithoutReturnTypeComparer.Equals(implementingMember, interfaceMember))
+                else
                 {
                     foundMatchingMemberWithoutReturnTypeComparer = true;
                     matchingMemberWithoutReturnTypeComparer = interfaceMember;
