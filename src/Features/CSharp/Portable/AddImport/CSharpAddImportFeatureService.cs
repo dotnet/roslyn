@@ -47,6 +47,18 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
 
         switch (diagnosticId)
         {
+            case CS0117:
+                // We have a name off a type.  like int.X
+                //
+                // This can only add usings for modern static extension methods.  This is only allowed in the `type.Name` case, nothing else.
+                if (node.Parent is not MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) simpleMemberAccess ||
+                    simpleMemberAccess.Name != node)
+                {
+                    return false;
+                }
+
+                break;
+
             case CS7036:
             case CS0308:
             case CS0428:
