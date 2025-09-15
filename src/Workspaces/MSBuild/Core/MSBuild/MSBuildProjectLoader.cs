@@ -185,6 +185,8 @@ public partial class MSBuildProjectLoader
             SetSolutionProperties(absoluteSolutionFilePath);
         }
 
+        var operationRunner = new ProjectLoadOperationRunner(progress);
+
         var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
@@ -194,7 +196,7 @@ public partial class MSBuildProjectLoader
             _projectFileExtensionRegistry,
             buildHostProcessManager,
             projectMap: null,
-            progress,
+            operationRunner,
             discoveredProjectOptions: reportingOptions,
             preferMetadataForReferencesOfDiscoveredProjects: false);
 
@@ -241,6 +243,8 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
+        var operationRunner = new ProjectLoadOperationRunner(progress);
+
         var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
@@ -250,7 +254,7 @@ public partial class MSBuildProjectLoader
             _projectFileExtensionRegistry,
             buildHostProcessManager,
             projectMap,
-            progress,
+            operationRunner,
             discoveredProjectOptions,
             this.LoadMetadataForReferencedProjects);
 

@@ -1,11 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -33,10 +32,7 @@ public partial class MSBuildProjectLoader
         /// </summary>
         private readonly ProjectMap _projectMap;
 
-        /// <summary>
-        /// Progress reporter.
-        /// </summary>
-        private readonly IProgress<ProjectLoadProgress>? _progress;
+        private readonly ProjectLoadOperationRunner _operationRunner;
 
         /// <summary>
         /// Provides options for how failures should be reported when loading any discovered project files.
@@ -58,7 +54,7 @@ public partial class MSBuildProjectLoader
             ProjectFileExtensionRegistry projectFileExtensionRegistry,
             BuildHostProcessManager buildHostProcessManager,
             ProjectMap? projectMap,
-            IProgress<ProjectLoadProgress>? progress,
+            ProjectLoadOperationRunner operationRunner,
             DiagnosticReportingOptions discoveredProjectOptions,
             bool preferMetadataForReferencesOfDiscoveredProjects)
         {
@@ -67,7 +63,7 @@ public partial class MSBuildProjectLoader
             _projectFileExtensionRegistry = projectFileExtensionRegistry;
             _buildHostProcessManager = buildHostProcessManager;
             _projectMap = projectMap ?? ProjectMap.Create();
-            _progress = progress;
+            _operationRunner = operationRunner;
             _discoveredProjectOptions = discoveredProjectOptions;
             _preferMetadataForReferencesOfDiscoveredProjects = preferMetadataForReferencesOfDiscoveredProjects;
             _projectIdToFileInfoMap = [];
@@ -77,29 +73,6 @@ public partial class MSBuildProjectLoader
 
         private PathResolver GetPathResolver(string? baseDirectory)
             => new(_diagnosticReporter, baseDirectory);
-
-        private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
-        {
-            var watch = _progress != null
-                ? Stopwatch.StartNew()
-                : null;
-
-            TResult result;
-            try
-            {
-                result = await doFunc().ConfigureAwait(false);
-            }
-            finally
-            {
-                if (_progress != null && watch != null)
-                {
-                    watch.Stop();
-                    _progress.Report(new ProjectLoadProgress(projectPath ?? string.Empty, operation, targetFramework, watch.Elapsed));
-                }
-            }
-
-            return result;
-        }
 
         /// <summary>
         /// Loads the <see cref="ProjectInfo"/> from the given list of project files and all referenced projects.
@@ -169,7 +142,7 @@ public partial class MSBuildProjectLoader
 
             var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectFilePath);
             var (buildHost, actualBuildHostKind) = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectFilePath, cancellationToken).ConfigureAwait(false);
-            var projectFile = await DoOperationAndReportProgressAsync(
+            var projectFile = await _operationRunner.DoOperationAndReportProgressAsync(
                 ProjectLoadOperation.Evaluate,
                 projectFilePath,
                 targetFramework: null,
@@ -185,7 +158,7 @@ public partial class MSBuildProjectLoader
                 return [ProjectFileInfo.CreateEmpty(languageName, projectFilePath)];
             }
 
-            var projectFileInfos = await DoOperationAndReportProgressAsync(
+            var projectFileInfos = await _operationRunner.DoOperationAndReportProgressAsync(
                 ProjectLoadOperation.Build,
                 projectFilePath,
                 targetFramework: null,
@@ -303,7 +276,7 @@ public partial class MSBuildProjectLoader
                         parseOptions: parseOptions));
             }
 
-            return DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
+            return _operationRunner.DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
             {
                 var projectDirectory = Path.GetDirectoryName(projectPath);
 
