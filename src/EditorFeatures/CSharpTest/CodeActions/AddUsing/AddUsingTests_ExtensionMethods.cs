@@ -1570,6 +1570,64 @@ public sealed partial class AddUsingTests
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
     [InlineData("object")]
     [InlineData("int")]
+    public Task TestModernExtension_StaticMethod(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        [|{{sourceType}}.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}}.M1();
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
     public Task TestModernExtension_Property(string sourceType)
         => TestInRegularAndScriptAsync(
             $$"""
@@ -1607,6 +1665,60 @@ public sealed partial class AddUsingTests
                     {
                         {{sourceType}} o = new();
                         var v = o.M1;
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public int M1 => 0;
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_StaticProperty(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        [|{{sourceType}}.M1;|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static int M1 => 0;
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}}.M1;
                     }
                 }
             }
