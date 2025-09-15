@@ -115,11 +115,6 @@ Erweiterte Farben verwenden;Editor-Farbschema;Vererbungsspielraum;Richtlinien im
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Einstellungen der Vervollständigungsliste ändern;Vorauswahl des zuletzt verwendeten Members</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">Visual Basic-Komponenten, die in der IDE verwendet werden. Abhängig von Ihrem Projekttyp und den zugehörigen Einstellungen kann eine andere Version des Compilers verwendet werden.</target>
