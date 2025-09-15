@@ -372,28 +372,17 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                         var symbols = await searchScope.FindDeclarationsAsync(
                             name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
-#if false
-        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMembers(
-            ImmutableArray<SymbolResult<ISymbol>> memberSymbols,
-            SyntaxNode expression,
-            CancellationToken cancellationToken)
-        {
-            memberSymbols = memberSymbols.WhereAsArray(s => s.Symbol.IsClassicOrModernExtensionMember());
-
-            return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                s => _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, cancellationToken));
-        }
-#endif
-
                         var classicExtensionMethods = OfType<IMethodSymbol>(symbols)
                             .WhereAsArray(s => IsViableClassicExtensionMethod(s.Symbol, receiverType, predicate: null));
 
-                        var extensionMemberSymbols = classicExtensionMethods;
-                        //var extensionMethodSymbols = GetViableExtensionMembers(
-                        //    symbols, nameNode.GetRequiredParent(), cancellationToken);
+                        var modernExtensionMembers = symbols
+                            .WhereAsArray(s => IsViableModernExtensionMember(s.Symbol, receiverType));
 
-                        var namespaceSymbols = extensionMemberSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
-                        return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
+                        var classicExtensionNamespaces = classicExtensionMethods.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+                        var modernExtensionNamespaces = modernExtensionMembers.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+                        var allExtensionNamespaces = classicExtensionNamespaces.Concat(modernExtensionNamespaces).ToImmutableArray();
+
+                        return GetNamespaceSymbolReferences(searchScope, allExtensionNamespaces);
                     }
                 }
             }
@@ -584,12 +573,64 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         private bool IsViableClassicExtensionMethod(
-            IMethodSymbol method, ITypeSymbol type, Func<IMethodSymbol, bool>? predicate)
+            IMethodSymbol? method, ITypeSymbol? receiver, Func<IMethodSymbol, bool>? predicate)
         {
-            return method.IsExtensionMethod &&
-                method.IsAccessibleWithin(_semanticModel.Compilation.Assembly) &&
-                IsViableExtensionMethod(method, type) &&
-                predicate?.Invoke(method) is not false;
+            if (receiver == null || method == null)
+                return false;
+
+            if (!method.IsExtensionMethod)
+                return false;
+
+            // It's possible that the 'method' we're looking at is from a different language than
+            // the language we're currently in.  For example, we might find the extension method
+            // in an unreferenced VB project while we're in C#.  However, in order to 'reduce'
+            // the extension method, the compiler requires both the method and receiver to be 
+            // from the same language.
+            //
+            // So, if they're not from the same language, we simply can't proceed.  Now in this 
+            // case we decide that the method is not viable.  But we could, in the future, decide
+            // to just always consider such methods viable.
+
+            if (receiver.Language != method.Language)
+                return false;
+
+            if (!method.IsAccessibleWithin(_semanticModel.Compilation.Assembly))
+                return false;
+
+            var reducedMethod = method.ReduceExtensionMethod(receiver);
+            if (reducedMethod is null)
+                return false;
+
+            return predicate?.Invoke(method) is not false;
+        }
+
+        private bool IsViableModernExtensionMember(
+            ISymbol? member, ITypeSymbol? receiver)
+        {
+            if (member is null || receiver is null)
+                return false;
+
+            if (member is INamedTypeSymbol)
+                return false;
+
+            if (!member.ContainingType.IsExtension)
+                return false;
+
+            if (member.ContainingType.ExtensionParameter is not { Type: { } extensionParameterType })
+                return false;
+
+            if (!member.IsAccessibleWithin(_semanticModel.Compilation.Assembly))
+                return false;
+
+            // TODO: https://github.com/dotnet/roslyn/issues/80273
+            // There is not api yet to know for certain if a modern extension is compatible with a receiver type.
+            // For now, put in a poor man's approach for this.
+
+            receiver = receiver.OriginalDefinition;
+            extensionParameterType = extensionParameterType.OriginalDefinition;
+
+            var conversion = _semanticModel.Compilation.ClassifyCommonConversion(receiver, extensionParameterType);
+            return conversion.Exists && conversion.IsImplicit;
         }
 
         private bool ExpressionBinds(

@@ -480,28 +480,6 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             allSymbolReferences.Enqueue(reference);
     }
 
-    protected static bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
-    {
-        if (receiver == null || method == null)
-            return false;
-
-        // It's possible that the 'method' we're looking at is from a different language than
-        // the language we're currently in.  For example, we might find the extension method
-        // in an unreferenced VB project while we're in C#.  However, in order to 'reduce'
-        // the extension method, the compiler requires both the method and receiver to be 
-        // from the same language.
-        //
-        // So, if they're not from the same language, we simply can't proceed.  Now in this 
-        // case we decide that the method is not viable.  But we could, in the future, decide
-        // to just always consider such methods viable.
-
-        if (receiver.Language != method.Language)
-            return false;
-
-        var reducedMethod = method.ReduceExtensionMethod(receiver);
-        return reducedMethod != null;
-    }
-
     private static bool NotGlobalNamespace(SymbolReference reference)
     {
         var symbol = reference.SymbolResult.Symbol;
