@@ -15,14 +15,6 @@ namespace Microsoft.RoslynTools.VS;
 
 internal static class VSBranchInfo
 {
-    public static IProduct[] AllProducts =
-    [
-        new Roslyn(),
-        new Razor(),
-        new TypeScript(),
-        new FSharp(),
-    ];
-
     public static async Task<int> GetInfoAsync(string gitVersion, GitVersionType gitVersionType, string product, bool showArtifacts, RoslynToolsSettings settings, ILogger logger)
     {
         try
@@ -31,7 +23,7 @@ internal static class VSBranchInfo
             var devdivConnection = remoteConnections.DevDivConnection;
             var dncengConnection = remoteConnections.DncEngConnection;
 
-            foreach (var productConfig in AllProducts)
+            foreach (var productConfig in Product.AllProducts)
             {
                 if (product.Equals("all", StringComparison.OrdinalIgnoreCase) ||
                     product.Equals(productConfig.Name, StringComparison.OrdinalIgnoreCase))

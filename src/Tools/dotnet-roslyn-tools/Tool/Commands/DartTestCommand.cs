@@ -5,14 +5,14 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
-using Microsoft.RoslynTools.VS;
 
 namespace Microsoft.RoslynTools.Commands;
 
 internal static class DartTestCommand
 {
-    private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.DartLabPipelineName != null).Select(p => p.Name.ToLower())];
+    private static readonly string[] s_allProductNames = [.. Product.AllProducts.Where(p => p.DartLabPipelineName != null).Select(p => p.Name.ToLower())];
 
     private static readonly DartTestCommandDefaultHandler s_dartTestCommandHandler = new();
     internal static readonly Option<int> PrNumberOption = new("--prNumber", "-n")

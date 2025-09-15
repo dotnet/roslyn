@@ -4,8 +4,8 @@
 
 using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
-using Microsoft.RoslynTools.VS;
 
 namespace Microsoft.RoslynTools.Validation;
 
@@ -22,7 +22,7 @@ internal static class PRValidation
         try
         {
             var cancellationToken = CancellationToken.None;
-            var product = VSBranchInfo.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
+            var product = Product.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
 
             // If the user doesn't pass the SHA, retrieve the most recent from the PR.
             if (sha is null)

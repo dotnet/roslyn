@@ -9,7 +9,7 @@ internal class Razor : IProduct
     public string Name => "Razor";
 
     public string RepoHttpBaseUrl => "https://github.com/dotnet/razor";
-    public string InternalRepoBaseUrl => "";
+    public string InternalRepoBaseUrl => "https://dnceng.visualstudio.com/internal/_git/dotnet-razor";
 
     public string RepoSshBaseUrl => "git@github.com:dotnet/razor.git";
     public string GitUserName => "dotnet bot";

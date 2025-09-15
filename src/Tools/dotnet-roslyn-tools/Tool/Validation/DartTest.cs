@@ -3,14 +3,11 @@
 // See the License.txt file in the project root for more information.
 
 using System.Diagnostics;
-using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json.Nodes;
 using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
-using Microsoft.RoslynTools.VS;
 
 namespace Microsoft.RoslynTools.Validation;
 
@@ -28,7 +25,7 @@ internal static class DartTest
         {
             var cancellationToken = CancellationToken.None;
             var azureBranchName = $"dart-test/{prNumber}";
-            var product = VSBranchInfo.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
+            var product = Product.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
 
             // If the user doesn't pass the SHA, retrieve the most recent from the PR.
             if (sha is null)

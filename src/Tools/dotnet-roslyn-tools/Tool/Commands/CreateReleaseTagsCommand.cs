@@ -4,8 +4,8 @@
 
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
-using Microsoft.RoslynTools.VS;
 
 namespace Microsoft.RoslynTools.Commands;
 
@@ -16,7 +16,7 @@ internal class CreateReleaseTagsCommand
     private static readonly CreateReleaseTagsCommandDefaultHandler s_defaultHandler = new();
 
     // Filter the product to only those with git credentials, as we need to be able to commit to the repo to add tags
-    private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.GitUserName.Length > 0).Select(p => p.Name.ToLower())];
+    private static readonly string[] s_allProductNames = [.. Product.AllProducts.Where(p => p.GitUserName.Length > 0).Select(p => p.Name.ToLower())];
 
     internal static readonly Option<string> ProductOption = new("--product", "-p")
     {
