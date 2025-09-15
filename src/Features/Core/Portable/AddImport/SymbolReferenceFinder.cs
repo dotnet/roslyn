@@ -367,6 +367,21 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                         var symbols = await searchScope.FindDeclarationsAsync(
                             name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
+#if false
+        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMembers(
+            ImmutableArray<SymbolResult<ISymbol>> memberSymbols,
+            SyntaxNode expression,
+            CancellationToken cancellationToken)
+        {
+            memberSymbols = memberSymbols.WhereAsArray(s => s.Symbol.IsClassicOrModernExtensionMember());
+
+            return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
+                s => _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, cancellationToken));
+        }
+#endif
+
+                        var classicExtensionMethods = 
+
                         var extensionMethodSymbols = GetViableExtensionMembers(
                             symbols, nameNode.GetRequiredParent(), cancellationToken);
 
@@ -377,17 +392,6 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
 
             return [];
-        }
-
-        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMembers(
-            ImmutableArray<SymbolResult<ISymbol>> memberSymbols,
-            SyntaxNode expression,
-            CancellationToken cancellationToken)
-        {
-            memberSymbols = memberSymbols.WhereAsArray(s => s.Symbol.IsClassicOrModernExtensionMember());
-
-            return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                s => _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, cancellationToken));
         }
 
         private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(
@@ -545,18 +549,17 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var symbols = await searchScope.FindDeclarationsAsync(
                 name, nameNode: null, filter: SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
-            // Note: there is no "desiredName" when doing this.  We're not going to do any
-            // renames of the user code.  We're just looking for an extension method called 
-            // "Select", but that name has no bearing on the code in question that we're
-            // trying to fix up.
-            var viableExtensionMethods = OfType<IMethodSymbol>(symbols).SelectAsArray(
-                s => s.Symbol.IsClassicOrModernInstanceExtensionMethod(out var classicMethod) &&
-                     classicMethod.IsAccessibleWithin(_semanticModel.Compilation.Assembly) &&
-                     IsViableExtensionMethod(classicMethod, type) &&
-                     predicate?.Invoke(classicMethod) is not false,
-                s => s.WithDesiredName(null));
+            // Note: there is no "desiredName" when doing this.  We're not going to do any renames of the user code.
+            // We're just looking for an extension method called "Select", but that name has no bearing on the code in
+            // question that we're trying to fix up.
+            var methodSymbols = OfType<IMethodSymbol>(symbols);
+            var namespaceSymbols = methodSymbols.SelectAsArray(
+                s => s.Symbol.IsExtensionMethod &&
+                     s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) &&
+                     IsViableExtensionMethod(s.Symbol, type) &&
+                     predicate?.Invoke(s.Symbol) is not false,
+                s => s.WithDesiredName(null).WithSymbol(s.Symbol.ContainingNamespace));
 
-            var namespaceSymbols = viableExtensionMethods.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
             return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
         }
 
