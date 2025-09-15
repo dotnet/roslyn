@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Security.Cryptography;
 using System.Runtime.Serialization;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -49,23 +50,40 @@ internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<Sou
         // dynamic assembly they produced at runtime and passed us that via a custom AnalyzerReference.
         var assemblyNameToHash = generatorIdentity.AssemblyPath ?? generatorIdentity.AssemblyName;
 
-        using var _ = ArrayBuilder<byte>.GetInstance(capacity: (assemblyNameToHash.Length + 1 + generatorIdentity.TypeName.Length + 1 + hintName.Length) * 2 + projectIdBytes.Length, out var hashInput);
-        hashInput.AddRange(projectIdBytes);
+        var hashInputLength = projectIdBytes.Length
+            + Encoding.Unicode.GetByteCount(assemblyNameToHash)
+            + 2
+            + Encoding.Unicode.GetByteCount(generatorIdentity.TypeName)
+            + 2
+            + Encoding.Unicode.GetByteCount(hintName);
+
+        var hashInput = new byte[hashInputLength];
+
+        Array.Copy(projectIdBytes, 0, hashInput, 0, projectIdBytes.Length);
+        var byteIndex = projectIdBytes.Length;
 
         // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
         // we'll use a UTF-16 null just to make sure there's absolutely no risk of collision.
-        hashInput.AddRange(Encoding.Unicode.GetBytes(assemblyNameToHash));
-        hashInput.AddRange(0, 0);
-        hashInput.AddRange(Encoding.Unicode.GetBytes(generatorIdentity.TypeName));
-        hashInput.AddRange(0, 0);
-        hashInput.AddRange(Encoding.Unicode.GetBytes(hintName));
+        byteIndex += Encoding.Unicode.GetBytes(assemblyNameToHash, 0, assemblyNameToHash.Length, hashInput, byteIndex);
+        byteIndex += 2;
+        byteIndex += Encoding.Unicode.GetBytes(generatorIdentity.TypeName, 0, generatorIdentity.TypeName.Length, hashInput, byteIndex);
+        byteIndex += 2;
+        byteIndex += Encoding.Unicode.GetBytes(hintName, 0, hintName.Length, hashInput, byteIndex);
 
         // The particular choice of crypto algorithm here is arbitrary and can be always changed as necessary. The only requirement
         // is it must be collision resistant, and provide enough bits to fill a GUID.
-        using var crytpoAlgorithm = System.Security.Cryptography.SHA256.Create();
-        var hash = crytpoAlgorithm.ComputeHash(hashInput.ToArray());
+#if NET
+        Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
+        SHA256.HashData(hashInput, hash);
+
+        var guid = new Guid(hash[..16]);
+#else
+        using var crytpoAlgorithm = SHA256.Create();
+        var hash = crytpoAlgorithm.ComputeHash(hashInput);
+
         Array.Resize(ref hash, 16);
         var guid = new Guid(hash);
+#endif
 
         var documentId = DocumentId.CreateFromSerialized(projectId, guid, isSourceGenerated: true, hintName);
 
