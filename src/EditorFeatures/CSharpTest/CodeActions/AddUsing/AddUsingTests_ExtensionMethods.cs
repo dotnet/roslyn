@@ -1731,7 +1731,40 @@ public sealed partial class AddUsingTests
                 {
                     extension(object o)
                     {
-                        public int M1 => 0;
+                        public static int M1 => 0;
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_TypeParameter(string sourceType)
+        // Will work once we get an API from https://github.com/dotnet/roslyn/issues/80273
+        => TestMissingAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        [|o.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension<T>(T t)
+                    {
+                        public void M1()
+                        {
+                        }
                     }
                 }
             }
