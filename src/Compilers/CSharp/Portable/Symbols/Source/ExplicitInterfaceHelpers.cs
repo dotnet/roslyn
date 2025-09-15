@@ -252,7 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var hasParamsParam = implementingMember.HasParamsParameter();
-            var implementingMethod = implementingMember as MethodSymbol;
 
             foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
             {
@@ -295,8 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
                 }
-                else if (implementingMethod != null &&
-                    MemberSignatureComparer.ExplicitImplementationWithoutReturnTypeComparer.Equals(implementingMember, interfaceMember))
+                else if (MemberSignatureComparer.ExplicitImplementationWithoutReturnTypeComparer.Equals(implementingMember, interfaceMember))
                 {
                     foundMatchingMemberWithoutReturnTypeComparer = true;
                     matchingMemberWithoutReturnTypeComparer = interfaceMember;
@@ -308,11 +306,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CONSIDER: we may wish to suppress these errors in the event that another error
                 // has been reported about the signature.
 
-                if (implementingMethod != null && foundMatchingMemberWithoutReturnTypeComparer)
+                if (foundMatchingMemberWithoutReturnTypeComparer)
                 {
-                    var returnTypeLocation = implementingMethod.ExtractReturnTypeSyntax().Location;
+                    var errorType = implementingMember.Kind is SymbolKind.Method
+                        ? ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
+                        : ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch;
                     var returnType = matchingMemberWithoutReturnTypeComparer.GetTypeOrReturnType();
-                    diagnostics.Add(ErrorCode.ERR_InterfaceMemberReturnTypeMismatch, returnTypeLocation, returnType, implementingMember);
+                    diagnostics.Add(errorType, memberLocation, implementingMember, returnType, matchingMemberWithoutReturnTypeComparer);
                 }
                 else
                 {
