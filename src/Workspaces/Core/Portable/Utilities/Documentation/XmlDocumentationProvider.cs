@@ -79,7 +79,7 @@ public abstract class XmlDocumentationProvider : DocumentationProvider
                                 }
                             }
                         }
- 
+
                         _docComments = comments;
                     }
                 }
