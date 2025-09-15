@@ -37,7 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                string groupingMetadataName = type.ExtensionGroupingName;
+                var sourceNamedType = (SourceNamedTypeSymbol)type;
+                Debug.Assert(sourceNamedType.ExtensionGroupingName is not null);
+                var groupingMetadataName = sourceNamedType.ExtensionGroupingName;
+
                 MultiDictionary<string, SourceNamedTypeSymbol>? markerMap;
 
                 if (!groupingMap.TryGetValue(groupingMetadataName, out markerMap))
@@ -46,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     groupingMap.Add(groupingMetadataName, markerMap);
                 }
 
-                markerMap.Add(type.ExtensionMarkerName, (SourceNamedTypeSymbol)type);
+                Debug.Assert(sourceNamedType.ExtensionMarkerName is not null);
+                markerMap.Add(sourceNamedType.ExtensionMarkerName, sourceNamedType);
             }
 
             var builder = ArrayBuilder<ExtensionGroupingType>.GetInstance(groupingMap.Count);

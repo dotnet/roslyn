@@ -1183,11 +1183,16 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            /// <param name="isTerminal">Indicates that we're looking at the last segment in a dotted chain.
+            /// If we're in terminal position, we need to recognize the extension marker name so that
+            /// `ContainingType.ExtensionGroupingName.ExtensionMarkerName` can be matched to the extension type.
+            /// </param>
             private static void GetMatchingTypes(INamespaceOrTypeSymbol container, string memberName, int arity, bool isTerminal, List<ISymbol> results)
             {
                 if (isTerminal
                     && container is INamedTypeSymbol { IsExtension: true } extension
-                    && extension.ExtensionMarkerName == memberName)
+                    && extension.ExtensionMarkerName == memberName
+                    && arity == 0)
                 {
                     results.Add(extension);
                     return;
@@ -1235,6 +1240,11 @@ namespace Microsoft.CodeAnalysis
 
             private static void GetMatchingExtensions(INamespaceOrTypeSymbol container, string memberName, int arity, List<ISymbol> results)
             {
+                if (container.IsNamespace)
+                {
+                    return;
+                }
+
                 ImmutableArray<INamedTypeSymbol> unnamedNamedTypes = container.GetTypeMembers("");
                 foreach (var namedType in unnamedNamedTypes)
                 {

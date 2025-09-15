@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub AddExtensionMarkerName(extension As INamedTypeSymbol)
             Debug.Assert(extension.IsExtension)
             AddNestedTypeSeparator()
-            Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, extension, extension.ExtensionMarkerName, True))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, extension, extension.ExtensionMarkerName, False))
         End Sub
     End Class
 End Namespace

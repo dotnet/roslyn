@@ -32452,6 +32452,17 @@ public static class E
         var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
         validate(comp2);
 
+        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: [comp.EmitToImageReference()]);
+        var vbGroupingType = vbComp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.False(vbGroupingType.IsExtension);
+        AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", vbGroupingType.GetDocumentationCommentId());
+        var vbM = vbGroupingType.GetMember<IMethodSymbol>("M");
+        AssertEx.Equal("M:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M", vbM.GetDocumentationCommentId());
+        var vbMarkerType = vbGroupingType.GetTypeMembers().Single();
+        Assert.False(vbMarkerType.IsExtension);
+        AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60",
+            vbMarkerType.GetDocumentationCommentId());
+
         static void validate(CSharpCompilation comp)
         {
             var e = comp.GlobalNamespace.GetTypeMember("E");
@@ -32523,6 +32534,17 @@ public static class E
 
         var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
         validate(comp2);
+
+        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: [comp.EmitToImageReference()]);
+        var vbGroupingType = vbComp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.False(vbGroupingType.IsExtension);
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1", vbGroupingType.GetDocumentationCommentId());
+        var vbM = vbGroupingType.GetMember<IMethodSymbol>("M");
+        AssertEx.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", vbM.GetDocumentationCommentId());
+        var vbMarkerType = vbGroupingType.GetTypeMembers().Single();
+        Assert.False(vbMarkerType.IsExtension);
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+            vbMarkerType.GetDocumentationCommentId());
 
         static void validate(CSharpCompilation comp)
         {
@@ -32613,6 +32635,18 @@ public static class E
         CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
         validate(comp);
 
+        MetadataReference ilReference = CompileIL(ilSrc);
+        var allReferences = TargetFrameworkUtil.GetReferences(targetFramework: TargetFramework.Standard).Add(ilReference);
+        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: allReferences);
+        var vbGroupingType = vbComp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.False(vbGroupingType.IsExtension);
+        AssertEx.Equal("T:E.GroupingType`1", vbGroupingType.GetDocumentationCommentId());
+        var vbM = vbGroupingType.GetMember<IMethodSymbol>("M");
+        AssertEx.Equal("M:E.GroupingType`1.M", vbM.GetDocumentationCommentId());
+        var vbMarkerType = vbGroupingType.GetTypeMembers().Single();
+        Assert.False(vbMarkerType.IsExtension);
+        AssertEx.Equal("T:E.GroupingType`1.MarkerType", vbMarkerType.GetDocumentationCommentId());
+
         static void validate(CSharpCompilation comp)
         {
             var e = comp.GlobalNamespace.GetTypeMember("E");
@@ -32649,6 +32683,50 @@ public static class E
             AssertEx.Equal("void E.M<T>(this T t)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
             AssertEx.Equal(["void E.M<T>(this T t)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
         }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
+    public void DocumentationCommentId_04()
+    {
+        // grouping and marker type names from metadata are VB-escapable
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname 'Rem'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname 'New'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( object o ) cil managed
+            {
+                ret
+            }
+        }
+        .method public hidebysig instance void M () cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 03 4e 65 77 00 00
+            )
+            ldnull
+            throw
+        }
+    }
+    .method public hidebysig static void M ( object o ) cil managed
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var comp = CreateCompilationWithIL("", ilSrc);
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetPublicSymbol();
+        Assert.True(extension.IsExtension);
+        Assert.Equal("E.[Rem].[New]", VisualBasic.SymbolDisplay.ToDisplayString(extension));
     }
 }
 
