@@ -61,7 +61,7 @@ internal class PRFinder
         }
 
         var remotes = repo.Network.Remotes.ToDictionary(remote => remote.Name);
-        if (!remotes.TryGetValue("internal", out var remote)
+        if (!remotes.TryGetValue("upstream", out var remote)
             && !remotes.TryGetValue("origin", out remote))
         {
             remote = remotes.Values.FirstOrDefault();
