@@ -42,6 +42,7 @@ object DebugBuild : BuildType({
         powerShell {
             name = "Prepare the Docker image"
             id = "PrepareImage"
+            param("TimeOut", "7200")
             scriptMode = file {
                 path = "DockerBuild.ps1"
             }
@@ -51,6 +52,7 @@ object DebugBuild : BuildType({
         powerShell {
             name = "Build"
             id = "Build"
+            
             scriptMode = file {
                 path = "DockerBuild.ps1"
             }
@@ -114,6 +116,7 @@ object ReleaseBuild : BuildType({
         powerShell {
             name = "Prepare the Docker image"
             id = "PrepareImage"
+            param("TimeOut", "7200")
             scriptMode = file {
                 path = "DockerBuild.ps1"
             }
@@ -123,6 +126,7 @@ object ReleaseBuild : BuildType({
         powerShell {
             name = "Build"
             id = "Build"
+            
             scriptMode = file {
                 path = "DockerBuild.ps1"
             }
@@ -177,6 +181,7 @@ object PublicBuild : BuildType({
         powerShell {
             name = "Prepare the Docker image"
             id = "PrepareImage"
+            param("TimeOut", "7200")
             scriptMode = file {
                 path = "DockerBuild.ps1"
             }
@@ -186,6 +191,7 @@ object PublicBuild : BuildType({
         powerShell {
             name = "Build"
             id = "Build"
+            
             scriptMode = file {
                 path = "DockerBuild.ps1"
             }
@@ -240,6 +246,7 @@ object PublicDeployment : BuildType({
         powerShell {
             name = "Publish"
             id = "Publish"
+            
             scriptMode = file {
                 path = "Build.ps1"
             }
