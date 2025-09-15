@@ -4,6 +4,7 @@
 
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.VS;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 
@@ -15,7 +16,7 @@ internal class VSBranchInfoCommand
 {
     private static readonly VSBranchInfoCommandDefaultHandler s_vsBranchInfoCommandHandler = new();
 
-    private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()), .. new[] { "all" }];
+    private static readonly string[] s_allProductNames = [.. Product.AllProducts.Select(p => p.Name.ToLower()), .. new[] { "all" }];
 
     internal static readonly Option<string> BranchOption = new("--branch", "-b")
     {

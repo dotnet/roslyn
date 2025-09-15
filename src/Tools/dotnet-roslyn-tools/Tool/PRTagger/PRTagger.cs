@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Extensions;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
-using Microsoft.RoslynTools.VS;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Newtonsoft.Json;
@@ -56,7 +55,7 @@ internal static class PRTagger
         // 1. All the VS build has been checked.
         // 2. If some errors happens.
         // 3. If we found the issue with the same title has been created. It means the issue is created because the last run of the tagger.
-        foreach (var product in VSBranchInfo.AllProducts)
+        foreach (var product in Product.AllProducts)
         {
             // We currently only support creating issues for GitHub repos
             if (!product.IsGitHubRepo())

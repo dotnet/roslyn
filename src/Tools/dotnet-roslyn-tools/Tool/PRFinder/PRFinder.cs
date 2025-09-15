@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 
 internal class PRFinder
@@ -60,7 +61,7 @@ internal class PRFinder
         }
 
         var remotes = repo.Network.Remotes.ToDictionary(remote => remote.Name);
-        if (!remotes.TryGetValue("upstream", out var remote)
+        if (!remotes.TryGetValue("internal", out var remote)
             && !remotes.TryGetValue("origin", out remote))
         {
             remote = remotes.Values.FirstOrDefault();
@@ -78,6 +79,10 @@ internal class PRFinder
             repoUrl = remote.Url.EndsWith(".git")
                 ? remote.Url[..^4]
                 : remote.Url;
+
+            // Remove username if included in the URL
+            if (repoUrl.IndexOf('@') is int atIndex && atIndex >= 0)
+                repoUrl = "https://" + repoUrl[(atIndex + 1)..];
         }
         else if (remote.Url.StartsWith("git@")) // git@github.com:dotnet/roslyn.git
         {
@@ -92,6 +97,9 @@ internal class PRFinder
             return 1;
         }
 
+        var product = Product.GetProductByRepoUrl(repoUrl);
+        var isGitHubMirror = product is not null && product.InternalRepoBaseUrl is not null && product.IsGitHubRepo();
+
         var isGitHub = repoUrl.Contains("github.com");
         var isAzure = repoUrl.Contains("azure.com");
         if (!isGitHub && !isAzure)
@@ -102,8 +110,8 @@ internal class PRFinder
 
         builder ??= new();
 
-        IRepositoryHost host = isGitHub
-            ? new Hosts.GitHub(repoUrl, connections, logger)
+        IRepositoryHost host = isGitHub || isGitHubMirror
+            ? new Hosts.GitHub(product?.RepoHttpBaseUrl ?? repoUrl, connections, logger)
             : new Hosts.Azure(repoUrl);
 
         var formatter = format switch

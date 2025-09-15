@@ -5,14 +5,14 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
-using Microsoft.RoslynTools.VS;
 
 namespace Microsoft.RoslynTools.Commands;
 
 internal static class PRValidationSuiteCommand
 {
-    private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.PRValidationPipelineName != null && p.DartLabPipelineName != null).Select(p => p.Name.ToLower())];
+    private static readonly string[] s_allProductNames = [.. Product.AllProducts.Where(p => p.PRValidationPipelineName != null && p.DartLabPipelineName != null).Select(p => p.Name.ToLower())];
 
     private static readonly PRValidationSuiteCommandDefaultHandler s_prValidationSuiteCommandHandler = new();
     internal static readonly Option<int> PrNumberOption = new("--prNumber", "-n")

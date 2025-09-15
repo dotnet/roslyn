@@ -16,8 +16,7 @@ internal static partial class CreateReleaseTags
 {
     public static async Task<int> CreateReleaseTagsAsync(string productName, RemoteConnections connections, ILogger logger)
     {
-        var product = VSBranchInfo.AllProducts
-            .Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
+        var product = Product.GetProductByName(productName)!;
 
         logger.LogInformation("Opening {ProductName} repo and gathering tags...", product.Name);
 
