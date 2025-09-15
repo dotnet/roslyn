@@ -24,6 +24,7 @@ public partial class MSBuildProjectLoader
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
+    private readonly IProjectFileInfoLoaderFactory _projectFileInfoLoaderFactory;
 
     // used to protect access to the following mutable state
     private readonly NonReentrantLock _dataGuard = new();
@@ -33,12 +34,14 @@ public partial class MSBuildProjectLoader
         DiagnosticReporter diagnosticReporter,
         Microsoft.Extensions.Logging.ILoggerFactory loggerFactory,
         ProjectFileExtensionRegistry projectFileExtensionRegistry,
-        ImmutableDictionary<string, string>? properties)
+        ImmutableDictionary<string, string>? properties,
+        IProjectFileInfoLoaderFactory? projectFileInfoLoaderFactory = null)
     {
         _solutionServices = solutionServices;
         _diagnosticReporter = diagnosticReporter;
         _loggerFactory = loggerFactory;
         _projectFileExtensionRegistry = projectFileExtensionRegistry;
+        _projectFileInfoLoaderFactory = projectFileInfoLoaderFactory ?? BuildHostProjectFileInfoLoaderFactory.Instance;
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -55,11 +58,20 @@ public partial class MSBuildProjectLoader
     /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
     /// These are the same properties that are passed to MSBuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
     public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
+        : this(workspace, properties, projectFileInfoLoaderFactory: null)
+    {
+    }
+
+    internal MSBuildProjectLoader(
+        Workspace workspace,
+        ImmutableDictionary<string, string>? properties,
+        IProjectFileInfoLoaderFactory? projectFileInfoLoaderFactory)
     {
         _solutionServices = workspace.Services.SolutionServices;
         _diagnosticReporter = new DiagnosticReporter(workspace);
         _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(_solutionServices, _diagnosticReporter);
+        _projectFileInfoLoaderFactory = projectFileInfoLoaderFactory ?? BuildHostProjectFileInfoLoaderFactory.Instance;
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -187,8 +199,8 @@ public partial class MSBuildProjectLoader
 
         var operationRunner = new ProjectLoadOperationRunner(progress);
 
-        var projectFileInfoLoader = new BuildHostProjectFileInfoLoader(
-            _diagnosticReporter, _projectFileExtensionRegistry, operationRunner, Properties, loggerFactory: _loggerFactory);
+        var projectFileInfoLoader = _projectFileInfoLoaderFactory.Create(
+            Properties, _projectFileExtensionRegistry, operationRunner, _diagnosticReporter, loggerFactory: _loggerFactory);
         await using var _ = projectFileInfoLoader.ConfigureAwait(false);
 
         var worker = new Worker(
@@ -246,8 +258,8 @@ public partial class MSBuildProjectLoader
 
         var operationRunner = new ProjectLoadOperationRunner(progress);
 
-        var projectFileInfoLoader = new BuildHostProjectFileInfoLoader(
-            _diagnosticReporter, _projectFileExtensionRegistry, operationRunner, Properties, loggerFactory: _loggerFactory);
+        var projectFileInfoLoader = _projectFileInfoLoaderFactory.Create(
+            Properties, _projectFileExtensionRegistry, operationRunner, _diagnosticReporter, loggerFactory: _loggerFactory);
         await using var _ = projectFileInfoLoader.ConfigureAwait(false);
 
         var worker = new Worker(

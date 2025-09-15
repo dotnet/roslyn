@@ -25,7 +25,7 @@ public partial class MSBuildProjectLoader
         private readonly SolutionServices _solutionServices;
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
-        private readonly BuildHostProjectFileInfoLoader _projectFileInfoLoader;
+        private readonly ProjectFileInfoLoader _projectFileInfoLoader;
 
         /// <summary>
         /// Map of <see cref="ProjectId"/>s, project paths, and output file paths.
@@ -52,7 +52,7 @@ public partial class MSBuildProjectLoader
             SolutionServices services,
             DiagnosticReporter diagnosticReporter,
             ProjectFileExtensionRegistry projectFileExtensionRegistry,
-            BuildHostProjectFileInfoLoader projectFileInfoLoader,
+            ProjectFileInfoLoader projectFileInfoLoader,
             ProjectMap? projectMap,
             ProjectLoadOperationRunner operationRunner,
             DiagnosticReportingOptions discoveredProjectOptions,
