@@ -325,7 +325,7 @@ extends:
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
             titlePrefix: ${{ parameters.OptionalTitlePrefix }}
             sourceBranch: $(ComponentBranchName)
-            publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+            publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
         # Arcade is done so we can set BuildNumber back
