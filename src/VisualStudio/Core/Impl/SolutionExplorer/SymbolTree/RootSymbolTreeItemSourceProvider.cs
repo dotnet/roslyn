@@ -144,7 +144,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private async ValueTask UpdateCollectionSourcesAsync(
         ImmutableSegmentedList<string> updatedFilePaths, CancellationToken cancellationToken)
     {
-        using var _1 = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
+        using var _ = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
 
         lock (_filePathToCollectionSources)
         {
