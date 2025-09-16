@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
-internal interface ICopilotProposalAdjusterService : IWorkspaceService
+internal interface ICopilotProposalAdjusterService : ILanguageService
 {
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
     ValueTask<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalAsync(
@@ -32,11 +32,11 @@ internal interface IRemoteCopilotProposalAdjusterService
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
-[ExportWorkspaceService(typeof(ICopilotProposalAdjusterService), ServiceLayer.Default), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposalAdjusterService
+internal abstract class AbstractCopilotProposalAdjusterService() : ICopilotProposalAdjusterService
 {
+    protected abstract Task<ImmutableArray<TextChange>> AddMissingTokensIfAppropriateAsync(
+        Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+
     public async ValueTask<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalAsync(
         Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
@@ -59,7 +59,7 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         }
     }
 
-    private static async Task<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalInCurrentProcessAsync(
+    private async Task<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalInCurrentProcessAsync(
         Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
         CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
@@ -67,6 +67,16 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
         // move to in the forked doucment, as that is what we will want to analyze.
         var oldText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        var changesWhenMissingTokens = await AddMissingTokensIfAppropriateAsync(
+            originalDocument, normalizedChanges, cancellationToken).ConfigureAwait(false);
+
+        var format = false;
+        if (!changesWhenMissingTokens.IsDefault)
+        {
+            normalizedChanges = changesWhenMissingTokens;
+            format = true;
+        }
 
         var (newText, newSpans) = CopilotUtilities.GetNewTextAndChangedSpans(oldText, normalizedChanges);
 
@@ -86,7 +96,7 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         // Return the add-import changes concatenated with the original changes.  This way we ensure
         // that the copilot changes themselves are not themselves modified by the add-import changes.
         var totalChanges = addImportChanges.Concat(normalizedChanges);
-        return (totalChanges, format: false);
+        return (totalChanges, format);
     }
 
     private static async Task<(bool success, ImmutableArray<TextChange> addImportChanges)> TryGetAddImportTextChangesAsync(
