@@ -60,11 +60,9 @@ object DebugBuild : BuildType({
             scriptArgs = "-ImageName metalamacompiler-2026.0 -NoBuildImage test --configuration Debug --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
     }
-
     failureConditions {
          stopBuildOnFailure = true
          param("executionTimeoutMin", "%TimeOut%")
-        }
     }
 
     requirements {
@@ -127,11 +125,9 @@ object ReleaseBuild : BuildType({
             scriptArgs = "-ImageName metalamacompiler-2026.0 -NoBuildImage test --configuration Release --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
     }
-
     failureConditions {
          stopBuildOnFailure = true
          param("executionTimeoutMin", "%TimeOut%")
-        }
     }
 
     requirements {
@@ -185,11 +181,9 @@ object PublicBuild : BuildType({
             scriptArgs = "-ImageName metalamacompiler-2026.0 -NoBuildImage test --configuration Public --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
     }
-
     failureConditions {
          stopBuildOnFailure = true
          param("executionTimeoutMin", "%TimeOut%")
-        }
     }
 
     requirements {
@@ -233,11 +227,9 @@ object PublicDeployment : BuildType({
             scriptArgs = "publish --configuration Public %PublishArguments%"
         }
     }
-
     failureConditions {
          stopBuildOnFailure = true
          param("executionTimeoutMin", "%TimeOut%")
-        }
     }
 
     requirements {
