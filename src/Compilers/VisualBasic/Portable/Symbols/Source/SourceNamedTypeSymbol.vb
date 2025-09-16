@@ -124,6 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             cancellationToken.ThrowIfCancellationRequested()
             CheckEmbeddedAttributeImplementation()
+
+            cancellationToken.ThrowIfCancellationRequested()
+            CheckLayoutAttributes()
         End Sub
 #End Region
 
@@ -1729,10 +1732,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
+            m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                    StateFlags.ReportedCodeAnalysisEmbeddedAttributeDiagnostics,
                                                                    0,
-                                                                   diagnostics) Then
+                                                                   diagnostics)
+
+            diagnostics?.Free()
+        End Sub
+
+        Private Sub CheckLayoutAttributes()
+            If (m_lazyState And StateFlags.ReportedLayoutAttributeDiagnostics) <> 0 Then
+                Return
+            End If
+
+            Dim diagnostics As BindingDiagnosticBag = Nothing
+            If Me.HasStructLayoutAttribute AndAlso Me.HasExtendedLayoutAttribute Then
+                diagnostics = BindingDiagnosticBag.GetInstance()
+                diagnostics.Add(ERRID.ERR_StructLayoutAndExtendedLayout, TypeDeclaration.Declarations(0).Location)
+            End If
+
+            If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
+                                                       StateFlags.ReportedLayoutAttributeDiagnostics,
+                                                       0,
+                                                       diagnostics) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
 
@@ -2323,6 +2345,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Me.IsGenericType Then
                         diagnostics.Add(ERRID.ERR_StructLayoutAttributeNotAllowed, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                     End If
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute) Then
+
+                    If attrData.AttributeClass.ExtendedSpecialType = InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute Then
+                        arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasExtendedLayoutAttribute = True
+                    Else
+                        diagnostics.Add(ERRID.ERR_InvalidExtendedLayoutAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
+                    End If
 
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
@@ -2495,6 +2524,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property Layout As TypeLayout
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
+
+                If data IsNot Nothing AndAlso data.HasExtendedLayoutAttribute Then
+                    Return New TypeLayout(MetadataHelpers.LayoutKindExtended, 0, alignment:=0)
+                End If
+
                 If data IsNot Nothing AndAlso data.HasStructLayoutAttribute Then
                     Return data.Layout
                 End If
@@ -2516,6 +2550,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasStructLayoutAttribute
+            End Get
+        End Property
+
+        Friend ReadOnly Property HasExtendedLayoutAttribute As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExtendedLayoutAttribute
             End Get
         End Property
 

@@ -570,6 +570,7 @@ namespace System
                     || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
+                    || special == SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
                     )
                 {
                     Assert.Null(symbol); // Not available
@@ -650,6 +651,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:

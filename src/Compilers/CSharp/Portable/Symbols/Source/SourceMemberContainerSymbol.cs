@@ -3035,7 +3035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckSequentialOnPartialType(BindingDiagnosticBag diagnostics)
         {
-            if (!IsPartial || this.Layout.Kind != LayoutKind.Sequential)
+            if (!IsPartial || this.Layout.Kind is not (LayoutKind.Sequential or MetadataHelpers.LayoutKindExtended))
             {
                 return;
             }
