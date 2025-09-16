@@ -17166,6 +17166,57 @@ class C
                 .Verify();
         }
 
+        [Theory]
+        [InlineData("")]
+        [InlineData("public delegate void Action(System.Exception arg);")]
+        [InlineData("public delegate void Action<S,T>(T arg);")]
+        [InlineData("public delegate int Action<T>(T arg);")]
+        [InlineData("public delegate void Action<T>(int arg);")]
+        [InlineData("public delegate void Action<T>(in T arg);")]
+        [InlineData("public delegate void Action<T>(ref T arg);")]
+        [InlineData("public delegate void Action<T>(out T arg);")]
+        [InlineData("public delegate void Action<T>(T arg, int x);")]
+        public void Method_Delete_SynthesizedHotReloadException_MissingOrBadActionType(string actionDef)
+        {
+            var libs = $$"""
+                namespace System
+                {
+                    public class Exception(string message);
+                    {{actionDef}}
+                }
+                namespace System.Runtime.InteropServices
+                {
+                    public class InAttribute;
+                }
+                """;
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F() {}
+                        }
+                        """ + libs)
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                        }
+                        """ + libs,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    expectedErrors:
+                    [
+                        // error CS7043: Cannot emit update; method 'void System.Action<T>.Invoke(T arg)' is missing.
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("method", "void System.Action<T>.Invoke(T arg)").WithLocation(1, 1)
+                    ])
+                .Verify();
+        }
+
         [Fact]
         public void Method_Delete_SynthesizedHotReloadException_MissingCompilerGeneratedAttribute()
         {
