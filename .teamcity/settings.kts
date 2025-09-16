@@ -59,7 +59,6 @@ object DebugBuild : BuildType({
         }
     }
     failureConditions {
-         stopBuildOnFailure = true
          executionTimeoutMin = 60
     }
 
@@ -122,7 +121,6 @@ object ReleaseBuild : BuildType({
         }
     }
     failureConditions {
-         stopBuildOnFailure = true
          executionTimeoutMin = 60
     }
 
@@ -176,7 +174,6 @@ object PublicBuild : BuildType({
         }
     }
     failureConditions {
-         stopBuildOnFailure = true
          executionTimeoutMin = 60
     }
 
@@ -221,7 +218,6 @@ object PublicDeployment : BuildType({
         }
     }
     failureConditions {
-         stopBuildOnFailure = true
          executionTimeoutMin = 30
     }
 
