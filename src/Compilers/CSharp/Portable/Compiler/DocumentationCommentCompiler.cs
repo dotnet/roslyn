@@ -263,18 +263,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             void appendContainedExtensions(NamedTypeSymbol containingType)
             {
                 Debug.Assert(!_isForSingleSymbol);
-                ExtensionGroupingInfo extensionGroupingInfo = ((SourceMemberContainerTypeSymbol)containingType).GetExtensionGroupingInfo();
-
-                foreach (ImmutableArray<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
+                if (containingType is SourceMemberContainerTypeSymbol sourceContainingType)
                 {
-                    appendMergedExtensionBlocks(extensions);
+                    ExtensionGroupingInfo extensionGroupingInfo = sourceContainingType.GetExtensionGroupingInfo();
 
-                    foreach (var extension in extensions)
+                    foreach (ImmutableArray<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
                     {
-                        foreach (Symbol member in extension.GetMembers())
+                        appendMergedExtensionBlocks(extensions);
+
+                        foreach (var extension in extensions)
                         {
-                            _cancellationToken.ThrowIfCancellationRequested();
-                            member.Accept(this);
+                            foreach (Symbol member in extension.GetMembers())
+                            {
+                                _cancellationToken.ThrowIfCancellationRequested();
+                                member.Accept(this);
+                            }
                         }
                     }
                 }

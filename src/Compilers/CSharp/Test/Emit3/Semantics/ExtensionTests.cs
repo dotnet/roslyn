@@ -50831,6 +50831,33 @@ static class E
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(4, 18));
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80294")]
+    public void XmlDoc_17(bool withDocumentationProvider)
+    {
+        string source = """
+public static class E
+{
+    extension(int i)
+    {
+        public void M() { }
+    }
+}
+""" + ExtensionMarkerAttributeDefinition;
+
+        var moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+        var moduleRef = moduleComp.EmitToImageReference(documentation: withDocumentationProvider ? new TestDocumentationProvider() : null);
+
+        var comp = CreateCompilation("", references: [moduleRef]);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        Assert.Equal("", e.GetDocumentationCommentXml());
+
+        var extension = e.GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        Assert.Equal("", extension.GetDocumentationCommentXml());
+    }
+
     [Fact]
     public void XmlDoc_Param_01()
     {
