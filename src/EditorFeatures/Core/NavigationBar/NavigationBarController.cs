@@ -195,7 +195,7 @@ internal sealed partial class NavigationBarController : IDisposable
         _cancellationTokenSource.Cancel();
     }
 
-    public TestAccessor GetTestAccessor() => new TestAccessor(this);
+    public TestAccessor GetTestAccessor() => new(this);
 
     private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
     {

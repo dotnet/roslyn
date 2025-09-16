@@ -20,7 +20,7 @@ public abstract class AbstractTextStructureNavigatorTests
     protected abstract string ContentType { get; }
     protected abstract EditorTestWorkspace CreateWorkspace(string code);
 
-    protected StringBuilder result = new StringBuilder();
+    protected StringBuilder result = new();
 
     protected void AssertExtent(string code)
     {

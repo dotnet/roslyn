@@ -290,7 +290,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             var message = $"Error occurred processing queue: {ex.Message}.";
             if (lspServices is not null)
             {
-                await _languageServer.ShutdownAsync("Error processing queue, shutting down").ConfigureAwait(false);
+                await _languageServer.ShutdownAsync(message).ConfigureAwait(false);
                 await _languageServer.ExitAsync().ConfigureAwait(false);
             }
 

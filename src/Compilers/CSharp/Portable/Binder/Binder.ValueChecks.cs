@@ -3056,7 +3056,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     escapeValues.Add(new EscapeValue(parameter, argument, EscapeLevel.CallingMethod, isRefEscape: false));
                 }
 
-                if (parameter.RefKind != RefKind.None)
+                // https://github.com/dotnet/csharpstandard/blob/0ad29bf615b18ae463d92ef64f557eeb007b76f1/standard/variables.md#9723-parameter-ref-safe-context
+                // For a parameter `p`:
+                // - If `p` is a reference or input parameter, its ref-safe-context is the caller-context. If `p` is an input parameter, it can’t be returned as a writable `ref` but can be returned as `ref readonly`.
+                // - If `p` is an output parameter, its ref-safe-context is the caller-context.
+                // - Otherwise, if `p` is the `this` parameter of a struct type, its ref-safe-context is the function-member.
+                // - Otherwise, the parameter is a value parameter, and its ref-safe-context is the function-member.
+                if (parameter.RefKind != RefKind.None && !parameter.IsThis)
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, EscapeLevel.CallingMethod, isRefEscape: true));
                 }
@@ -4706,6 +4712,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalReceiver:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
+                    return localScopeDepth;
+
+                case BoundKind.ArgList:
+                    // Only possible in error scenarios in runtime async (arglist operators are disallowed in runtime async methods)
                     return localScopeDepth;
 
                 case BoundKind.ConvertedSwitchExpression:

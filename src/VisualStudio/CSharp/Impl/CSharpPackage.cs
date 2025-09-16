@@ -75,7 +75,7 @@ internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLangu
             {
                 var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
                 return new TempPECompilerService(workspace.Services.GetService<IMetadataService>());
-            });
+            }, promote: true);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
         {

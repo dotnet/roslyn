@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims;
 
 internal class LiveShareInitializeHandler : ILspRequestHandler<InitializeParams, InitializeResult, Solution>
 {
-    private static readonly InitializeResult s_initializeResult = new InitializeResult
+    private static readonly InitializeResult s_initializeResult = new()
     {
         Capabilities = new ServerCapabilities
         {

@@ -161,10 +161,10 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
             """, description, []);
     }
 
-    private static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,
+    private static async Task AssertContentIsAsync(Document document, int position, string expectedDescription,
         ImmutableArray<TextSpan> relatedSpans)
     {
-        var info = await GetQuickinfo(workspace, document, position);
+        var info = await GetQuickInfo(document, position);
         var description = info?.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
         Assert.NotNull(description);
         Assert.Equal(expectedDescription, description.Text);
@@ -172,17 +172,16 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
             [.. info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan)))]);
     }
 
-    private static async Task<QuickInfoItem> GetQuickinfo(EditorTestWorkspace workspace, Document document, int position)
+    private static async Task<QuickInfoItem> GetQuickInfo(Document document, int position)
     {
-        var sharedGlobalCache = workspace.ExportProvider.GetExportedValue<DiagnosticAnalyzerInfoCache.SharedGlobalCache>();
-        var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(sharedGlobalCache);
+        var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider();
         var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, SymbolDescriptionOptions.Default, CancellationToken.None));
         return info;
     }
 
-    private static async Task AssertNoContentAsync(EditorTestWorkspace workspace, Document document, int position)
+    private static async Task AssertNoContentAsync(Document document, int position)
     {
-        var info = await GetQuickinfo(workspace, document, position);
+        var info = await GetQuickInfo(document, position);
         Assert.Null(info);
     }
 
@@ -201,11 +200,11 @@ public sealed class DiagnosticAnalyzerQuickInfoSourceTests
         var document = workspace.CurrentSolution.Projects.First().Documents.First();
         if (string.IsNullOrEmpty(expectedDescription))
         {
-            await AssertNoContentAsync(workspace, document, position);
+            await AssertNoContentAsync(document, position);
         }
         else
         {
-            await AssertContentIsAsync(workspace, document, position, expectedDescription, relatedSpans);
+            await AssertContentIsAsync(document, position, expectedDescription, relatedSpans);
         }
     }
 

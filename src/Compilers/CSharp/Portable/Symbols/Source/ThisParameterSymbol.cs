@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override ConstantValue? DefaultValueFromAttributes
+        {
+            get { return null; }
+        }
+
         internal sealed override bool IsMetadataOptional
         {
             get { return false; }

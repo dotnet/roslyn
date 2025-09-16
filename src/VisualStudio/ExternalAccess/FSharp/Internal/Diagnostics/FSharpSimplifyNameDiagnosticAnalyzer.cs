@@ -39,7 +39,7 @@ internal class FSharpSimplifyNameDiagnosticAnalyzerService : ILanguageService
 internal class FSharpSimplifyNameDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
 {
     private readonly DiagnosticDescriptor _descriptor =
-        new DiagnosticDescriptor(
+        new(
                 IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                 ExternalAccessFSharpResources.SimplifyName,
                 ExternalAccessFSharpResources.NameCanBeSimplified,

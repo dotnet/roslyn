@@ -376,6 +376,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+        {
+            if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
+
+            foreach (var nestedType in GetTypeMembersUnordered())
+            {
+                if (nestedType.IsExtension)
+                {
+                    extensions.Add(nestedType);
+                }
+            }
+        }
+
         public virtual MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
         {
             throw ExceptionUtilities.Unreachable();

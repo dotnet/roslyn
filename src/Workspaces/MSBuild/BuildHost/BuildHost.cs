@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -18,17 +19,23 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal sealed class BuildHost : IBuildHost
 {
     private readonly BuildHostLogger _logger;
-    private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
-    private readonly string? _binaryLogPath;
     private readonly RpcServer _server;
-    private readonly object _gate = new object();
+    private readonly object _gate = new();
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(BuildHostLogger logger, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
+    /// <summary>
+    /// The global properties to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
+    /// </summary>
+    private ImmutableDictionary<string, string>? _globalMSBuildProperties;
+
+    /// <summary>
+    /// The binary log path to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
+    /// </summary>
+    private string? _binaryLogPath;
+
+    public BuildHost(BuildHostLogger logger, RpcServer server)
     {
         _logger = logger;
-        _globalMSBuildProperties = globalMSBuildProperties;
-        _binaryLogPath = binaryLogPath;
         _server = server;
     }
 
@@ -122,6 +129,9 @@ internal sealed class BuildHost : IBuildHost
             if (_buildManager != null)
                 return;
 
+            if (_globalMSBuildProperties is null)
+                throw new InvalidOperationException($"{nameof(ConfigureGlobalState)} should have been called first to set up global state.");
+
             BinaryLogger? logger = null;
 
             if (_binaryLogPath != null)
@@ -148,6 +158,18 @@ internal sealed class BuildHost : IBuildHost
     private void EnsureMSBuildLoaded(string projectFilePath)
     {
         Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
+    }
+
+    public void ConfigureGlobalState(ImmutableDictionary<string, string> globalProperties, string? binlogPath)
+    {
+        lock (_gate)
+        {
+            if (_buildManager != null)
+                throw new InvalidOperationException($"{nameof(_buildManager)} has already been initialized and cannot be changed");
+
+            _globalMSBuildProperties = globalProperties;
+            _binaryLogPath = binlogPath;
+        }
     }
 
     /// <summary>

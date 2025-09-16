@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the property is static or if the receiver is of kind "Base" or "this", then we can just generate prop = prop + value
             if (receiverOpt == null || propertyOrEvent.IsStatic || !CanChangeValueBetweenReads(receiverOpt))
             {
-                return receiverOpt;
+                return VisitExpression(receiverOpt);
             }
 
             Debug.Assert(receiverOpt.Kind != BoundKind.TypeExpression);

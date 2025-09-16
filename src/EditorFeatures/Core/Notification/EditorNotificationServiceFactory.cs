@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification;
 [Shared]
 internal sealed class EditorNotificationServiceFactory : IWorkspaceServiceFactory
 {
-    private static readonly object s_gate = new object();
+    private static readonly object s_gate = new();
 
     private static EditorDialogService s_singleton;
 

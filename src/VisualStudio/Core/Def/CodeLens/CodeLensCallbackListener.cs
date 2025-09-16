@@ -8,12 +8,14 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.CodeLens;
@@ -43,6 +45,7 @@ internal sealed class CodeLensCallbackListener :
     private const string CodeLensMaxSearchResults = nameof(CodeLensMaxSearchResults);
 
     private readonly VisualStudioWorkspaceImpl _workspace;
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly IServiceProvider _serviceProvider;
     private readonly IThreadingContext _threadingContext;
 
@@ -53,11 +56,13 @@ internal sealed class CodeLensCallbackListener :
     public CodeLensCallbackListener(
         IThreadingContext threadingContext,
         SVsServiceProvider serviceProvider,
-        VisualStudioWorkspaceImpl workspace)
+        VisualStudioWorkspaceImpl workspace,
+        IGlobalOptionService globalOptionService)
     {
         _threadingContext = threadingContext;
         _serviceProvider = serviceProvider;
         _workspace = workspace;
+        _globalOptionService = globalOptionService;
     }
 
     public async Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(ImmutableArray<Guid> projectGuids, CancellationToken cancellationToken)
@@ -86,12 +91,12 @@ internal sealed class CodeLensCallbackListener :
             return null;
 
         var solution = _workspace.CurrentSolution;
-        var (documentId, node) = await GetDocumentIdAndNodeAsync(
+        var (document, node) = await GetDocumentAndNodeAsync(
             solution, descriptor.ProjectGuid, descriptor.FilePath,
             descriptorContext.ApplicableSpan.Value.ToTextSpan(),
             GetSourceGeneratorDocumentId(descriptorContext.Properties),
             cancellationToken).ConfigureAwait(false);
-        if (documentId == null)
+        if (document == null)
         {
             return null;
         }
@@ -100,7 +105,7 @@ internal sealed class CodeLensCallbackListener :
         if (previousCount is not null)
         {
             // Avoid calculating results if we already have a result for the current project version
-            var currentProjectVersion = await service.GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
+            var currentProjectVersion = await service.GetProjectCodeLensVersionAsync(solution, document.Project.Id, cancellationToken).ConfigureAwait(false);
             if (previousCount.Value.Version == currentProjectVersion.ToString())
             {
                 return previousCount;
@@ -108,7 +113,7 @@ internal sealed class CodeLensCallbackListener :
         }
 
         var maxSearchResults = await GetMaxResultCapAsync(cancellationToken).ConfigureAwait(false);
-        return await service.GetReferenceCountAsync(solution, documentId, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
+        return await service.GetReferenceCountAsync(solution, document.Id, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?> FindReferenceLocationsAsync(
@@ -118,25 +123,25 @@ internal sealed class CodeLensCallbackListener :
             return null;
 
         var solution = _workspace.CurrentSolution;
-        var (documentId, node) = await GetDocumentIdAndNodeAsync(
+        var (document, node) = await GetDocumentAndNodeAsync(
             solution, descriptor.ProjectGuid, descriptor.FilePath,
             descriptorContext.ApplicableSpan.Value.ToTextSpan(),
             GetSourceGeneratorDocumentId(descriptorContext.Properties),
             cancellationToken).ConfigureAwait(false);
-        if (documentId == null)
+        if (document == null)
         {
             return null;
         }
 
         var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
-        var references = await service.FindReferenceLocationsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
+        var references = await service.FindReferenceLocationsAsync(solution, document.Id, node, cancellationToken).ConfigureAwait(false);
         if (!references.HasValue)
         {
             return null;
         }
 
-        var projectVersion = await service.GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
-        return (projectVersion.ToString(), references.Value);
+        var projectVersion = await service.GetProjectCodeLensVersionAsync(solution, document.Id.ProjectId, cancellationToken).ConfigureAwait(false);
+        return (projectVersion.ToString(), await service.MapReferenceLocationsAsync(solution, references.Value, _globalOptionService.GetClassificationOptions(document.Project.Language), cancellationToken).ConfigureAwait(false));
     }
 
     public async Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
@@ -157,18 +162,18 @@ internal sealed class CodeLensCallbackListener :
         Guid projectGuid, string filePath, TextSpan span, DocumentId? sourceGeneratorDocumentId, CancellationToken cancellationToken)
     {
         var solution = _workspace.CurrentSolution;
-        var (documentId, node) = await GetDocumentIdAndNodeAsync(
+        var (document, node) = await GetDocumentAndNodeAsync(
             solution, projectGuid, filePath, span, sourceGeneratorDocumentId, cancellationToken).ConfigureAwait(false);
-        if (documentId == null)
+        if (document == null)
         {
             return null;
         }
 
         var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
-        return await service.FindReferenceMethodsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
+        return await service.FindReferenceMethodsAsync(solution, document.Id, node, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<(DocumentId?, SyntaxNode?)> GetDocumentIdAndNodeAsync(
+    private async Task<(Document?, SyntaxNode?)> GetDocumentAndNodeAsync(
         Solution solution, Guid projectGuid, string filePath, TextSpan textSpan, DocumentId? sourceGeneratorDocumentId, CancellationToken cancellationToken)
     {
 
@@ -188,7 +193,7 @@ internal sealed class CodeLensCallbackListener :
             return default;
         }
 
-        return (document.Id, root.FindNode(textSpan));
+        return (document, root.FindNode(textSpan));
     }
 
     private async Task<int> GetMaxResultCapAsync(CancellationToken cancellationToken)

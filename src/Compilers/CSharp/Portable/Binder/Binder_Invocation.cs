@@ -265,6 +265,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasErrors = analyzedArguments.HasErrors;
 
+            if (IsInAsyncMethod() && Compilation.IsRuntimeAsyncEnabledIn(ContainingMemberOrLambda))
+            {
+                // Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
+                diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, node, ContainingMemberOrLambda);
+            }
+
             // We allow names, oddly enough; M(__arglist(x : 123)) is legal. We just ignore them.
             TypeSymbol objType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             for (int i = 0; i < analyzedArguments.Arguments.Count; ++i)
@@ -742,6 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol> originalMethods;
                 LookupResultKind resultKind;
                 ImmutableArray<TypeWithAnnotations> typeArguments;
+                BoundExpression receiverOpt = methodGroup.ReceiverOpt;
+
                 if (resolution.OverloadResolutionResult != null)
                 {
                     originalMethods = GetOriginalMethods(resolution.OverloadResolutionResult);
@@ -753,12 +761,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalMethods = methodGroup.Methods;
                     resultKind = methodGroup.ResultKind;
                     typeArguments = methodGroup.TypeArgumentsOpt;
+
+                    if (originalMethods.IsEmpty && methodGroup.LookupSymbolOpt is { })
+                    {
+                        Debug.Assert(methodGroup.LookupSymbolOpt is not MethodSymbol);
+
+                        // Create receiver as BindMemberAccessBadResult does
+                        receiverOpt = new BoundBadExpression(
+                            methodGroup.Syntax,
+                            methodGroup.ResultKind,
+                            [methodGroup.LookupSymbolOpt],
+                            receiverOpt == null ? [] : [receiverOpt],
+                            GetNonMethodMemberType(methodGroup.LookupSymbolOpt));
+                    }
                 }
 
                 result = CreateBadCall(
                     syntax,
                     methodName,
-                    methodGroup.ReceiverOpt,
+                    receiverOpt,
                     originalMethods,
                     resultKind,
                     typeArguments,

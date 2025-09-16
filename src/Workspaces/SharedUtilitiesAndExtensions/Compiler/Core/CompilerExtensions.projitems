@@ -23,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SharedStopwatch.cs" Link="InternalUtilities\SharedStopwatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Syntax\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\BitVector.cs" Link="Collections\BitVector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\SmallDictionary.cs" Link="Collections\SmallDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceGeneration\GeneratedCodeUtilities.cs" Link="SourceGeneration\GeneratedCodeUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs" />
@@ -542,7 +543,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)CodeCleanup\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\" />
   </ItemGroup>

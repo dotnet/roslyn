@@ -20,7 +20,10 @@ using RoslynEnumerableExtensions = Microsoft.CodeAnalysis.Editor.EditorConfigSet
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer;
 
-internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>
+internal sealed class AnalyzerSettingsProvider
+    : SettingsProviderBase<AnalyzerSetting, AnalyzerSettingsUpdater, AnalyzerSetting, ReportDiagnostic>,
+    // So we can unify descriptors across VB/C# to create single settings that apply to both languages.
+    IEqualityComparer<DiagnosticDescriptor>
 {
     public AnalyzerSettingsProvider(
         IThreadingContext threadingContext,
@@ -43,7 +46,6 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
         {
             foreach (var analyzerReference in project.AnalyzerReferences)
                 analyzerReferenceToSomeReferencingProject[analyzerReference] = project;
-
         }
 
         foreach (var analyzerReference in analyzerReferences)
@@ -60,33 +62,16 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
     {
         var solution = someReferencingProject.Solution;
         var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var map = await service.GetLanguageKeyedDiagnosticDescriptorsAsync(
-            solution, someReferencingProject.Id, analyzerReference, cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<AnalyzerSetting>.GetInstance(out var allSettings);
+        var csharpDescriptors = await service.GetDiagnosticDescriptorsAsync(solution, someReferencingProject.Id, analyzerReference, LanguageNames.CSharp, cancellationToken).ConfigureAwait(false);
+        var vbDescriptors = await service.GetDiagnosticDescriptorsAsync(solution, someReferencingProject.Id, analyzerReference, LanguageNames.VisualBasic, cancellationToken).ConfigureAwait(false);
 
-        foreach (var (languages, descriptors) in map)
-            allSettings.AddRange(ToAnalyzerSettings(descriptors, ConvertToLanguage(languages)));
+        var dotnetDescriptors = csharpDescriptors.Intersect(vbDescriptors, this).ToImmutableArray();
 
-        return allSettings.ToImmutableAndClear();
-
-        Language ConvertToLanguage(ImmutableArray<string> languages)
-        {
-            Contract.ThrowIfTrue(languages.Length == 0);
-            var language = (Language)0;
-
-            foreach (var languageString in languages)
-            {
-                language |= languageString switch
-                {
-                    LanguageNames.CSharp => Language.CSharp,
-                    LanguageNames.VisualBasic => Language.VisualBasic,
-                    _ => throw new ArgumentException($"Unsupported language: {languageString}")
-                };
-            }
-
-            return language;
-        }
+        return [
+            .. ToAnalyzerSettings(csharpDescriptors.Except(dotnetDescriptors), Language.CSharp),
+            .. ToAnalyzerSettings(vbDescriptors.Except(dotnetDescriptors), Language.VisualBasic),
+            .. ToAnalyzerSettings(dotnetDescriptors, Language.CSharp | Language.VisualBasic)];
 
         IEnumerable<AnalyzerSetting> ToAnalyzerSettings(
             IEnumerable<DiagnosticDescriptor> descriptors, Language language)
@@ -104,4 +89,10 @@ internal sealed class AnalyzerSettingsProvider : SettingsProviderBase<AnalyzerSe
                 });
         }
     }
+
+    bool IEqualityComparer<DiagnosticDescriptor>.Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
+        => x.Id == y.Id;
+
+    int IEqualityComparer<DiagnosticDescriptor>.GetHashCode(DiagnosticDescriptor obj)
+        => obj.Id.GetHashCode();
 }

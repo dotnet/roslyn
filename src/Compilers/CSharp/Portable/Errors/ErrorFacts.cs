@@ -638,6 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
+                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -2534,6 +2535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_MemberNameSameAsExtendedType
                 or ErrorCode.ERR_FeatureNotAvailableInVersion14
                 or ErrorCode.ERR_ExtensionBlockCollision
+                or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

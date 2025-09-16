@@ -313,6 +313,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if this method should be processed with runtime async handling instead
+        /// of compiler async state machine generation.
+        /// </summary>
+        internal bool IsRuntimeAsyncEnabledIn(Symbol? symbol)
+        {
+            if (!Assembly.RuntimeSupportsAsyncMethods)
+            {
+                return false;
+            }
+
+            if (symbol is not MethodSymbol method)
+            {
+                return false;
+            }
+
+            Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
+
+            var methodReturn = method.ReturnType.OriginalDefinition;
+            if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
+                    InternalSpecialType.System_Threading_Tasks_Task or
+                    InternalSpecialType.System_Threading_Tasks_Task_T or
+                    InternalSpecialType.System_Threading_Tasks_ValueTask or
+                    InternalSpecialType.System_Threading_Tasks_ValueTask_T))
+            {
+                return false;
+            }
+
+            return symbol switch
+            {
+                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
+                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
+                _ => Feature("runtime-async") == "on"
+            };
+        }
+
+        /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>
         public LanguageVersion LanguageVersion
@@ -2204,12 +2240,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = method.ExtractReturnTypeSyntax();
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
-            BoundExpression? result;
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out BoundExpression? result, out BoundCall? runtimeAwaitCall, syntax, diagnostics);
 
             RoslynDebug.Assert(!namedType.IsDynamic());
-            return success &&
-                (result!.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
+            if (!success)
+            {
+                return false;
+            }
+
+            Debug.Assert(result is { Type: not null } || runtimeAwaitCall is { Type: not null });
+            var returnType = result?.Type ?? runtimeAwaitCall!.Type;
+            return returnType.IsVoidType() || returnType.SpecialType == SpecialType.System_Int32;
         }
 
         /// <summary>
@@ -3589,8 +3630,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private protected override EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt)
-            => EmitHelpers.MapToCompilation(this, (PEDeltaAssemblyBuilder)moduleBeingBuilt);
+        private protected override SymbolMatcher CreatePreviousToCurrentSourceAssemblyMatcher(
+            EmitBaseline previousGeneration,
+            SynthesizedTypeMaps otherSynthesizedTypes,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherDeletedMembers)
+        {
+            return new CSharpSymbolMatcher(
+                sourceAssembly: ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
+                SourceAssembly,
+                otherSynthesizedTypes,
+                otherSynthesizedMembers,
+                otherDeletedMembers);
+        }
 
         private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
         {

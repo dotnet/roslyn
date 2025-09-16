@@ -137,7 +137,7 @@ public abstract class AbstractSuppressionAllCodeTests : IEqualityComparer<Diagno
     internal sealed class Analyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private readonly DiagnosticDescriptor _descriptor =
-            new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            new("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public bool IsHighPriority => false;
 

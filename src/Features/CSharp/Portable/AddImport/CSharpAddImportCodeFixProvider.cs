@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,6 +19,11 @@ internal static class AddImportDiagnosticIds
     /// name does not exist in context
     /// </summary>
     public const string CS0103 = nameof(CS0103);
+
+    /// <summary>
+    /// 'X' does not contain a definition for 'Y'
+    /// </summary>
+    public const string CS0117 = nameof(CS0117);
 
     /// <summary>
     /// The type or namespace name 'X' does not exist in the namespace 'Y' (are you missing an assembly reference?)
@@ -152,27 +156,36 @@ internal static class AddImportDiagnosticIds
     /// </summary>
     public const string CS8415 = nameof(CS8415);
 
-    public static ImmutableArray<string> FixableTypeIds =
-        [CS0103, CS0234, CS0246, CS0305, CS0308, CS0122, CS0307, CS0616, CS1580, CS1581, CS8129, IDEDiagnosticIds.UnboundIdentifierId];
-
-    public static ImmutableArray<string> FixableDiagnosticIds =
-        [.. FixableTypeIds,
-            CS1061,
-            CS1935,
-            CS1501,
-            CS1503,
-            CS1574,
-            CS1584,
-            CS1929,
-            CS1955,
-            CS0428,
-            CS7036,
-            CS0281,
-            CS4036,
-            CS1579,
-            CS8414,
-            CS8411,
-            CS8415];
+    public static ImmutableArray<string> FixableDiagnosticIds = [
+        CS0103,
+        CS0117,
+        CS0234,
+        CS0246,
+        CS0305,
+        CS0308,
+        CS0122,
+        CS0307,
+        CS0616,
+        CS1580,
+        CS1581,
+        CS8129,
+        CS1061,
+        CS1935,
+        CS1501,
+        CS1503,
+        CS1574,
+        CS1584,
+        CS1929,
+        CS1955,
+        CS0428,
+        CS7036,
+        CS0281,
+        CS4036,
+        CS1579,
+        CS8414,
+        CS8411,
+        CS8415,
+        IDEDiagnosticIds.UnboundIdentifierId];
 }
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]
