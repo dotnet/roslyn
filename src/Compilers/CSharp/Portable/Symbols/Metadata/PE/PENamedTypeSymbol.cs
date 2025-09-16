@@ -1824,6 +1824,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        private void SetExtensionGroupingTypeNestedTypes(ArrayBuilder<PENamedTypeSymbol> groupingNestedTypes)
+        {
+            var exchangeResult = Interlocked.CompareExchange(ref _lazyNestedTypes, GroupByName(groupingNestedTypes), null);
+            Debug.Assert(exchangeResult == null);
+        }
+
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             EnsureNestedTypesAreLoaded();
@@ -2221,9 +2227,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         yield break;
                     }
 
+                    var groupingNestedTypes = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
+
                     foreach (var markerRid in markerTypeDefs)
                     {
                         var marker = PENamedTypeSymbol.Create(moduleSymbol, type, markerRid);
+                        groupingNestedTypes.Add(marker);
 
                         // Tracked by https://github.com/dotnet/roslyn/issues/78963 : test effect of every condition here
                         if (marker.HasSpecialName && marker.IsStatic && marker.DeclaredAccessibility == Accessibility.Public &&
@@ -2239,6 +2248,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             }
                         }
                     }
+
+                    type.SetExtensionGroupingTypeNestedTypes(groupingNestedTypes);
+                    groupingNestedTypes.Free();
 
                     continue;
                 }
@@ -2696,6 +2708,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.MetadataName;
+            }
+        }
+
+        internal PENamedTypeSymbol ExtensionGroupingType
+        {
+            get
+            {
+                if (!IsExtension)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                return _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol;
             }
         }
 
