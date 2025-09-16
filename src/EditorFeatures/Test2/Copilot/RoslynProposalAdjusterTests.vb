@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                 Dim tuple = Await service.TryAdjustProposalAsync(
                     originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
 
-                Dim adjustedChanges = tuple.textChanges
-                Dim format = tuple.format
+                Dim adjustedChanges = tuple.TextChanges
+                Dim format = tuple.Format
                 Dim originalDocumentText = Await originalDocument.GetTextAsync()
                 Dim adjustedDocumentTextAndFinalSpans = CopilotUtilities.GetNewTextAndChangedSpans(originalDocumentText, adjustedChanges)
                 Dim adjustedDocumentText = adjustedDocumentTextAndFinalSpans.newText
