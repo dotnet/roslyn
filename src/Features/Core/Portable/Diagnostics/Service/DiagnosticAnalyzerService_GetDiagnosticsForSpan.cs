@@ -27,7 +27,7 @@ internal sealed partial class DiagnosticAnalyzerService
         CancellationToken cancellationToken)
     {
         using var _ = PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.GetInstance(out var builder);
-        foreach (var analyzer in executor.AnalysisScope.ProjectAnalyzers.ConcatFast(executor.AnalysisScope.HostAnalyzers))
+        foreach (var analyzer in executor.AnalysisScope.Analyzers)
         {
             var diagnostics = await executor.ComputeDiagnosticsInProcessAsync(analyzer, cancellationToken).ConfigureAwait(false);
             builder.Add(analyzer, diagnostics);
@@ -312,9 +312,7 @@ internal sealed partial class DiagnosticAnalyzerService
             Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
             Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-            var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
-            var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
-            var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
+            var analysisScope = new DocumentAnalysisScope(document, span, analyzers, kind);
             var executor = new DocumentAnalysisExecutor(this, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
             var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
