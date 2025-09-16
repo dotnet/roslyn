@@ -204,6 +204,15 @@
       "vsBranch": "main",
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[dNext]"
+    },
+    "dev/dibarbet/publish_data_branch": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[test]"
     }
   }
 }
