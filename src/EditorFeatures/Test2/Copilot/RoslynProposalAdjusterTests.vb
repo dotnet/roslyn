@@ -256,6 +256,32 @@ class C
 ")
         End Function
 
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace3() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+
+    public void N() { }
+}
+", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+
+    public void N() { }
+}
+")
+        End Function
+
 #End Region
 
 #Region "Visual Basic"
