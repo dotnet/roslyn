@@ -34,7 +34,16 @@ What this actually looks like:
 
 SDK GA releases align with VS Minor versions.  So going from `11.0.100` to `11.0.200` means a new VS Minor version, hence incrementing the Roslyn package minor version.
 
-However, SDK prereleases do not always correspond to new VS Minor or VS preview versions.  For example, while `11.0.100-preview.4` might produce Roslyn `5.6.0-2-25465.101`, the subsequent `11.0.100-preview.5` could produce Roslyn `5.6.0-2-25503.114` without any change to the VS minor or preview version.  In these cases, we need to include the VMR build number to differentiate between packages.  This typically occurs with early SDK versions or during extended VS preview cycles (such as preview 1 for a new VS major version).
+However, SDK prereleases do not always correspond to new VS Minor or VS preview versions.  For example, while `11.0.100-preview.4` might produce Roslyn `5.6.0-2.25465.101`, the subsequent `11.0.100-preview.5` could produce Roslyn `5.6.0-2.25503.114` without any change to the VS minor or preview version.  In these cases, we need to include the VMR build number to differentiate between packages.  This typically occurs with early SDK versions or during extended VS preview cycles (such as preview 1 for a new VS major version).
+
+Additionally, very early in the SDK preview cycle, Roslyn main is consumed by the new SDK preview and the prior SDK feature band.  The SDK preview releases will publish the prerelease packages for a specific version, and the feature band release will end up publishing the GA packages for that version.
+
+| SDK Version | Roslyn Package version |
+|---|---|
+| 11.0.100-preview1 | 5.6.0-2.25465.10 |
+| 10.0.200 | 5.6.0 |
+
+By the later previews for .NET 11, the feature bands for 10 will be locked to an older branch of Roslyn associated with an older VS minor version, hence the GA packages for the next SDK will always have a higher minor version than any GA packages for the prior feature band release.  See also https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs#supported-net-versions
 
 ### Past Versions
 
