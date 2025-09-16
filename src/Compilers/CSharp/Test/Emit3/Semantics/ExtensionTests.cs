@@ -22076,7 +22076,7 @@ static class E
             .VerifyDiagnostics();
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78433"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78433"), WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     [CombinatorialData]
     public void InterpolationHandler_ReceiverParameter_ByRef_WithConstantReceiver(bool useMetadataRef)
     {
@@ -22112,7 +22112,12 @@ static class E
             """;
 
         var expectedDiagnostic = new DiagnosticDescription[] {
-            // To be filled in when test is unskipped
+            // (1,1): error CS1510: A ref or out value must be an assignable variable
+            // 1.M($"");
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(1, 1),
+            // (2,5): error CS1620: Argument 1 must be passed with the 'ref' keyword
+            // E.M(3, $"");
+            Diagnostic(ErrorCode.ERR_BadArgRef, "3").WithArguments("1", "ref").WithLocation(2, 5)
         };
         CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostic);
 

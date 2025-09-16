@@ -3767,6 +3767,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var call = (BoundCall)expr;
 
+                        if (call.IsErroneousNode)
+                        {
+                            return SafeContext.CallingMethod;
+                        }
+
                         var methodSymbol = call.Method;
                         if (methodSymbol.RefKind == RefKind.None)
                         {
@@ -3826,6 +3831,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return SafeContext.CallingMethod;
 
                         case BoundCall call:
+                            if (call.IsErroneousNode)
+                            {
+                                return SafeContext.CallingMethod;
+                            }
+
                             var methodSymbol = call.Method;
                             if (methodSymbol.RefKind == RefKind.None)
                             {
@@ -4049,6 +4059,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var call = (BoundCall)expr;
 
+                        if (call.IsErroneousNode)
+                        {
+                            return true;
+                        }
+
                         var methodSymbol = call.Method;
                         if (methodSymbol.RefKind == RefKind.None)
                         {
@@ -4114,6 +4129,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
 
                         case BoundCall call:
+                            if (call.IsErroneousNode)
+                            {
+                                return true;
+                            }
+
                             var methodSymbol = call.Method;
                             if (methodSymbol.RefKind == RefKind.None)
                             {
@@ -4411,6 +4431,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var call = (BoundCall)expr;
 
+                        if (call.IsErroneousNode)
+                        {
+                            return SafeContext.CallingMethod;
+                        }
+
                         return GetInvocationEscapeScope(
                             MethodInvocationInfo.FromCall(call),
                             localScopeDepth,
@@ -4457,6 +4482,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return localScopeDepth;
 
                         case BoundCall call:
+                            if (call.IsErroneousNode)
+                            {
+                                return SafeContext.CallingMethod;
+                            }
+
                             return GetInvocationEscapeScope(
                                 MethodInvocationInfo.FromCall(call, implicitIndexerAccess.Receiver),
                                 localScopeDepth,
@@ -5088,6 +5118,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     {
                         var call = (BoundCall)expr;
+                        if (call.IsErroneousNode)
+                        {
+                            return true;
+                        }
+
                         var methodSymbol = call.Method;
 
                         return CheckInvocationEscape(
@@ -5152,6 +5187,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
 
                         case BoundCall call:
+                            if (call.IsErroneousNode)
+                            {
+                                return true;
+                            }
+
                             var methodSymbol = call.Method;
 
                             return CheckInvocationEscape(
@@ -5826,7 +5866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var part in interpolatedString.Parts)
                 {
-                    if (part is not BoundCall call)
+                    if (part is not BoundCall { IsErroneousNode: false } call)
                     {
                         // Dynamic calls cannot have ref struct parameters.
                         continue;
@@ -5868,7 +5908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var part in interpolatedString.Parts)
                 {
-                    if (part is not BoundCall call)
+                    if (part is not BoundCall { IsErroneousNode: false } call)
                     {
                         // Dynamic calls cannot have ref struct parameters.
                         continue;
