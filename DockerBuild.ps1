@@ -68,10 +68,35 @@ if (-not (Test-Path $nugetCacheDir))
 # Define static Git system directory for mapping
 $gitSystemDir = "$BuildAgentPath\system\git"
 
+# Prepare volume mappings
+$volumeMappings = @("-v", "${SourceDirName}:${SourceDirName}", "-v", "${nugetCacheDir}:c:\packages")
+$MountPoints = @($SourceDirName, "c:\packages")
+if (Test-Path $gitSystemDir)
+{
+    $volumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
+    $MountPoints += $gitSystemDir
+}
+
+
+# Execute auto-generated DockerMounts script in current context
+$dockerMountsScript = Join-Path $EngPath 'DockerMounts.g.ps1'
+if (Test-Path $dockerMountsScript) {
+    Write-Host "Importing Docker mount points from $dockerMountsScript" -ForegroundColor Cyan
+    . $dockerMountsScript
+}
+
+
+$mountPointsArg = $MountPoints -Join ";"
+
+
+Write-Host "Volume mappings: " @volumeMappings -ForegroundColor Gray
+Write-Host "Mount points: " $mountPointsArg -ForegroundColor Gray
+
+# Building the image.
 if (-not $NoBuildImage)
 {
     Write-Host "Building the image." -ForegroundColor Green
-    Get-Content -Raw Dockerfile | docker build -t $ImageName -f - $dockerContextDirectory
+    Get-Content -Raw Dockerfile | docker build -t $ImageName  --build-arg SRC_DIR="$SourceDirName"  --build-arg MOUNTPOINTS="$mountPointsArg"  -f - $dockerContextDirectory
     if ($LASTEXITCODE -ne 0)
     {
         Write-Host "Docker build failed with exit code $LASTEXITCODE" -ForegroundColor Red
@@ -83,19 +108,8 @@ else
     Write-Host "Skipping image build (-NoBuildImage specified)." -ForegroundColor Yellow
 }
 
-# Prepare volume mappings
-$volumeMappings = @("-v", "${SourceDirName}:${SourceDirName}", "-v", "${nugetCacheDir}:c:\packages")
-Get-Content -Raw Dockerfile | docker build -t $ImageName  --build-arg SRC_DIR="$SourceDirName" -f - $dockerContextDirectory
 
-# Create Git system directory on host if it doesn't exist and add volume mapping
-if (Test-Path $gitSystemDir)
-{
-    $volumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
-}
-
-Write-Host "Volume mappings: " @volumeMappings -ForegroundColor Gray
-
-
+# Run the build within the container
 if (-not $BuildImage)
 {
     if ($Interactive)
