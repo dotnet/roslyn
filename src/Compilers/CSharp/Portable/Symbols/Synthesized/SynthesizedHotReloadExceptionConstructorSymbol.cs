@@ -53,12 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var delegateInvoke = (containingType.CreatedActionField.Type as NamedTypeSymbol)?.DelegateInvokeMethod;
-            if (delegateInvoke is null)
+            if (delegateInvoke is null ||
+                delegateInvoke.ReturnType.SpecialType != SpecialType.System_Void ||
+                delegateInvoke.GetParameters() is not [{ RefKind: RefKind.None } parameter] ||
+                !parameter.Type.Equals(exceptionConstructor.ContainingType))
             {
                 diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
                     Location.None,
                     CodeAnalysisResources.Method,
-                    "System.Delegate.Invoke");
+                    "void System.Action<T>.Invoke(T arg)");
 
                 factory.CloseMethod(factory.Block());
                 return;
