@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal sealed class AlwaysThrowAnalyzerAssemblyLoader
-        : IAnalyzerAssemblyLoader
+    : IAnalyzerAssemblyLoader
 {
     public static readonly AlwaysThrowAnalyzerAssemblyLoader Instance = new();
 
