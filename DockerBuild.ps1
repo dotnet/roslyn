@@ -1,9 +1,9 @@
-
 [CmdletBinding(PositionalBinding=$false)]
 param(
 	[switch]$Interactive,
 	[switch]$BuildImage,
 	[switch]$NoBuildImage,
+  [switch]$NoClean,
 	[string]$ImageName,
 	[string]$EngPath = 'eng-Metalama',
 	[string]$BuildAgentPath = 'C:\BuildAgent',
@@ -26,7 +26,7 @@ if ([string]::IsNullOrEmpty($ImageName)) {
 
 # When building locally (as opposed as on the build agent), we must do a complete cleanup because 
 # obj files may point to the host filesystem.
-if (-not $env:IS_TEAMCITY_AGENT) {
+if (-not $env:IS_TEAMCITY_AGENT -and -not $NoClean) {
     Write-Host "Cleaning up." -ForegroundColor Green
     if (Test-Path "artifacts") {
         Remove-Item artifacts -Force -Recurse -ProgressAction SilentlyContinue
@@ -34,11 +34,19 @@ if (-not $env:IS_TEAMCITY_AGENT) {
     Get-ChildItem @("bin","obj") -Recurse | Remove-Item -Force -Recurse -ProgressAction SilentlyContinue
 }
 
+# Get the source directory name from $PSScriptRoot
+$SourceDirName = $PSScriptRoot
 
 # Start timing the entire process except cleaning
 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 $dockerContextDirectory = "$EngPath/docker-context"
+
+# Ensure docker context directory exists and contains at least one file
+if (-not (Test-Path $dockerContextDirectory)) {
+    Write-Error "Docker context directory '$dockerContextDirectory' does not exist."
+    exit 1
+}
 
 # Create local NuGet cache directory if it doesn't exist
 $nugetCacheDir = Join-Path $env:USERPROFILE ".nuget\packages"
@@ -58,23 +66,24 @@ if (-not $NoBuildImage) {
         exit $LASTEXITCODE
     }
 } else {
-    Write-Host "Skipping image build (NoBuildImage specified)." -ForegroundColor Yellow
+    Write-Host "Skipping image build (-NoBuildImage specified)." -ForegroundColor Yellow
 }
 
 # Prepare volume mappings
-$volumeMappings = @("-v", "${PWD}:c:\src", "-v", "${nugetCacheDir}:c:\nuget")
-Write-Host "Adding source code volume mapping: ${PWD}:c:\src" -ForegroundColor Cyan
-Write-Host "Adding NuGet cache volume mapping: ${nugetCacheDir}:c:\nuget" -ForegroundColor Cyan
+$volumeMappings = @("-v", "${SourceDirName}:${SourceDirName}", "-v", "${nugetCacheDir}:c:\packages")
+     Get-Content -Raw Dockerfile | docker build -t $ImageName  --build-arg SRC_DIR="$SourceDirName" -f - $dockerContextDirectory
 
 # Create Git system directory on host if it doesn't exist and add volume mapping
 if (Test-Path $gitSystemDir) {
     $volumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
-    Write-Host "Adding Git system directory volume mapping (read-only): ${gitSystemDir}:${gitSystemDir}:ro" -ForegroundColor Cyan
 } 
+
+Write-Host "Volume mappings: " @volumeMappings -ForegroundColor Gray
+
 
 if (-not $BuildImage) {
     if ($Interactive) {
-    	docker run --rm -it --memory=12g @volumeMappings -w c:\src $ImageName pwsh
+    	docker run --rm -it --memory=12g @volumeMappings -w $SourceDirName $ImageName pwsh
     	if ($LASTEXITCODE -ne 0) {
     		Write-Host "Docker run (interactive) failed with exit code $LASTEXITCODE" -ForegroundColor Red
     		exit $LASTEXITCODE
@@ -84,12 +93,12 @@ if (-not $BuildImage) {
       Write-Host "Building the product in the container." -ForegroundColor Green
     	
     	# Prepare Build.ps1 arguments
-    	$buildCommand = "c:\src\Build.ps1"
-      $buildArgsString = ($BuildArgs | ForEach-Object { "'$_'" }) -join " "
+    	$buildCommand = "$SourceDirName\Build.ps1"
+     	$buildArgsString = $BuildArgs -join " "
       $buildCommand += " $buildArgsString"
-      Write-Host "Passing arguments to Build.ps1: $buildArgsString" -ForegroundColor Cyan
+      Write-Host "Passing arguments to Build.ps1: `"$buildArgsString`"." -ForegroundColor Cyan
 
-    	docker run --rm --memory=12g @volumeMappings -w c:\src $ImageName pwsh -Command $buildCommand
+    	docker run --rm --memory=12g @volumeMappings -w $SourceDirName $ImageName pwsh -NonInteractive -Command $buildCommand
     	if ($LASTEXITCODE -ne 0) {
     		Write-Host "Docker run (build) failed with exit code $LASTEXITCODE" -ForegroundColor Red
     		exit $LASTEXITCODE
@@ -100,7 +109,6 @@ if (-not $BuildImage) {
 }
 
 # Stop timing and display results
-$stopwatch.Stop()
 $elapsed = $stopwatch.Elapsed
 Write-Host ""
 Write-Host "Total build time: $($elapsed.ToString('hh\:mm\:ss\.fff'))" -ForegroundColor Cyan

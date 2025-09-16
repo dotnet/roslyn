@@ -53,11 +53,13 @@ ENV PSExecutionPolicyPreference=Bypass
 ENV POWERSHELL_UPDATECHECK=FALSE
 
 # Create NuGet cache directory and set environment variable
-RUN New-Item -ItemType Directory -Path C:\nuget -Force | Out-Null
-ENV NUGET_PACKAGES=C:\nuget
+RUN New-Item -ItemType Directory -Path C:\packages -Force | Out-Null
+ENV NUGET_PACKAGES=c:\packages
 
 
 # Configure git
-RUN New-Item -ItemType Directory -Path C:\src -Force | Out-Null; `
-    git config --global --add safe.directory C:/src/; `
+ARG SRC_DIR
+RUN Write-Host "SRC_DIR=$env:SRC_DIR";`
+    New-Item -ItemType Directory -Path $env:SRC_DIR -Force | Out-Null; `
+    git config --global --add safe.directory $env:SRC_DIR/; `
     New-Item -ItemType Directory -Path C:\BuildAgent\system\git -Force | Out-Null
