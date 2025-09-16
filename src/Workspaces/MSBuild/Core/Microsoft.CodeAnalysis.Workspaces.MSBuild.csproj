@@ -57,7 +57,7 @@
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="InternalUtilities\NamedPipeUtil.cs" />
-    <Compile Include="..\BuildHost\Rpc\Contracts\*.cs" Link="Rpc\Contracts\%(FileName).cs"/>
+    <Compile Include="..\BuildHost\Rpc\Contracts\*.cs" Link="Rpc\Contracts\%(FileName).cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BuildHost\Rpc\Readme.md" Link="Rpc\Readme.md" />
@@ -71,6 +71,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.Experimental" Key="$(MicrosoftSharedPublicKey)" />
+
+    <RestrictedInternalsVisibleTo Include="dotnet-watch" Partner="Watch" Key="$(AspNetCoreKey)" />
   </ItemGroup>
   <!--
     Include certain project reference binaries into this package in lib/ regular library.
