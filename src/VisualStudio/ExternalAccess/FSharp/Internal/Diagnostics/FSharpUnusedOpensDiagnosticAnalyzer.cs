@@ -39,7 +39,7 @@ internal class FSharpUnusedOpensDiagnosticAnalyzerService : ILanguageService
 internal class FSharpUnusedOpensDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
 {
     private readonly DiagnosticDescriptor _descriptor =
-        new DiagnosticDescriptor(
+        new(
                 IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
                 ExternalAccessFSharpResources.RemoveUnusedOpens,
                 ExternalAccessFSharpResources.UnusedOpens,

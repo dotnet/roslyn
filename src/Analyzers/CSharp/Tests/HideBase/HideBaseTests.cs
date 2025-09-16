@@ -150,7 +150,7 @@ public sealed class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDia
 
     [Fact]
     public async Task TestAddNewToDisorderedModifiers()
-        => await TestInRegularAndScript1Async(
+        => await TestInRegularAndScriptAsync(
             """
             class Application
             {
@@ -176,7 +176,7 @@ public sealed class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDia
 
     [Fact]
     public async Task TestAddNewToOrderedModifiersWithTrivia()
-        => await TestInRegularAndScript1Async(
+        => await TestInRegularAndScriptAsync(
             """
             class Application
             {

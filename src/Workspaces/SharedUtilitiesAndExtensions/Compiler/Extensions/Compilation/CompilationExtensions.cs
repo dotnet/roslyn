@@ -123,6 +123,9 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
 
+    public static INamedTypeSymbol? IFormattableType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IFormattable).FullName!);
+
     public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
 
@@ -293,6 +296,12 @@ internal static class CompilationExtensions
 
     public static INamedTypeSymbol? InterpolatedStringHandlerAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerAttribute).FullName!);
+
+    public static INamedTypeSymbol? DateOnlyType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.DateOnly");
+
+    public static INamedTypeSymbol? TimeOnlyType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.TimeOnly");
 
     /// <summary>
     /// Gets a type by its metadata name to use for code analysis within a <see cref="Compilation"/>. This method

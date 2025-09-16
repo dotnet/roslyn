@@ -71,7 +71,7 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 public Z(int a{|Navigation:)|} => this.a = a;
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
 
     [Fact]
     public Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
@@ -94,7 +94,7 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 public Z(int a{|Navigation:)|} => this.a = a;
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
 
     [Fact]
     public Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
@@ -123,7 +123,7 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """,
-            options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+            new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
 
     [Fact]
     public Task TestMultipleFields()
@@ -517,7 +517,7 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 public int A { get; private set; }
                 public string B { get; private set; }
             }
-            """, options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
+            """, new TestParameters(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error)));
 
     [Fact]
     public Task TestStruct()
@@ -908,7 +908,7 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13944")]
     public Task TestGetter_Only_Auto_Props()
@@ -933,7 +933,7 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 public int Number { get; }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13944")]
     public Task TestAbstract_Getter_Only_Auto_Props()
@@ -1390,7 +1390,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 public int Prop { get; set; }
             }
             """,
-            options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement));
+            new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOption2.TrueWithSuggestionEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17643")]
     public Task TestWithDialogNoBackingField()
@@ -1531,7 +1531,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
     public Task TestPartialFieldSelectionBeforeIdentifier()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1552,7 +1552,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
     public Task TestPartialFieldSelectionAfterIdentifier()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class Z
             {
@@ -1710,7 +1710,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     a = p_a;
                 }
             }
-            """, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+            """, new TestParameters(options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
     public Task TestCommonFieldNamingStyle()
@@ -1731,7 +1731,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     s_a = p_a;
                 }
             }
-            """, options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix);
+            """, new TestParameters(options: options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
     public Task TestSpecifiedNamingStyle()
@@ -1752,7 +1752,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     field_a = p_a_End;
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
+            """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
     public Task TestSpecifiedAndCommonFieldNamingStyle()
@@ -1773,7 +1773,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     field_s_a = p_a_End;
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
+            """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
     public Task TestSpecifiedAndCommonFieldNamingStyle2()
@@ -1794,7 +1794,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     s_field_a = p_a_End;
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix));
+            """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36741")]
     public Task TestBaseNameEmpty()
@@ -1827,7 +1827,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     s_field_a = p_a;
                 }
             }
-            """, options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+            """, new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45808")]
     public Task TestUnsafeField()
@@ -1848,7 +1848,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     this.a = a;
                 }
             }
-            """, compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+            """, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45808")]
     public Task TestUnsafeFieldInUnsafeClass()
@@ -1869,7 +1869,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                     this.a = a;
                 }
             }
-            """, compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
+            """, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53467")]
     public Task TestMissingWhenTypeNotInCompilation()

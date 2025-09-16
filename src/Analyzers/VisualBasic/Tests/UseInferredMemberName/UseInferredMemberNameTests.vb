@@ -38,7 +38,7 @@ Class C
         Dim t = (a, 2)
     End Sub
 End Class
-", parseOptions:=s_parseOptions)
+", New TestParameters(parseOptions:=s_parseOptions))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")>
@@ -87,7 +87,7 @@ Class C
         Dim t = (1, a)
     End Sub
 End Class
-", parseOptions:=s_parseOptions)
+", New TestParameters(parseOptions:=s_parseOptions))
         End Function
 
         <Fact>
@@ -110,7 +110,7 @@ Class C
         Dim t = (a, b)
     End Sub
 End Class
-", parseOptions:=s_parseOptions)
+", New TestParameters(parseOptions:=s_parseOptions))
         End Function
 
         <Fact>
@@ -131,7 +131,7 @@ Class C
         Dim t = New With {a, .b = 2}
     End Sub
 End Class
-", parseOptions:=s_parseOptions)
+", New TestParameters(parseOptions:=s_parseOptions))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24480")>
@@ -167,8 +167,7 @@ Class C
         Dim t = New With {a, b}
     End Sub
 End Class
-", parseOptions:=s_parseOptions)
+", New TestParameters(parseOptions:=s_parseOptions))
         End Function
-
     End Class
 End Namespace

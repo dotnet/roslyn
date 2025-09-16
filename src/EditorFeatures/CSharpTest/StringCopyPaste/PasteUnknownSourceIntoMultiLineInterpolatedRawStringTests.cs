@@ -11,8 +11,7 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
 {
     [WpfFact]
     public void TestNewLineIntoMultiLineRawString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: "\n",
             """"
             var x = $"""
@@ -22,12 +21,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             "var x = $\"\"\"\r\n    \n    [||]\r\n    \"\"\"",
             afterUndo:
             "var x = $\"\"\"\r\n    \n[||]\r\n    \"\"\"");
-    }
 
     [WpfFact]
     public void TestNewLineIntoMultiLineRawString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
 
 
@@ -50,12 +47,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             [||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestSpacesIntoMultiLineRawString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """    """,
             """"
             var x = $"""
@@ -73,12 +68,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 [||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestSpacesIntoMultiLineRawString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
                 
 
@@ -101,12 +94,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             [||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestSingleQuoteIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """'""",
             """"
             var x = $"""
@@ -124,12 +115,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 [||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestDoubleQuoteIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             "
             """,
@@ -149,12 +138,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 [||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestTripleQuoteIntoMultiLineRawString1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """"
             """
             """",
@@ -174,12 +161,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 """[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestTripleQuoteIntoMultiLineRawString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """"
             """
             """",
@@ -199,12 +184,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 """[||]
                 """  
             """");
-    }
 
     [WpfFact]
     public void TestTripleQuoteIntoMultiLineRawString3()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """"
             """
             """",
@@ -224,12 +207,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 """"[||]
                 """  
             """"");
-    }
 
     [WpfFact]
     public void TestTripleQuoteIntoMultiLineRawString4()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """"
             """
             """",
@@ -249,12 +230,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 """"[||]"  
                 """  
             """"");
-    }
 
     [WpfFact]
     public void TestTripleQuoteIntoMultiLineRawString5()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """"
             """
             """",
@@ -274,12 +253,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 """[||]"
                 """  
             """");
-    }
 
     [WpfFact]
     public void TestQuadrupleQuoteIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """""
             """"
             """"",
@@ -299,12 +276,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 """"[||]
                 """
             """"");
-    }
 
     [WpfFact]
     public void TestOpenBraceIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{""",
             """"
             var x = $"""
@@ -322,12 +297,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 {[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestTripleOpenBraceIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{{""",
             """"
             var x = $"""
@@ -345,12 +318,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 {{{[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestTripleOpenBraceIntoMultiLineRawString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{{""",
             """"
             var x = $$"""
@@ -368,12 +339,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 {{{[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestOpenBraceIntoMultiLineRawString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{""",
             """"
             var x = $$$"""  
@@ -391,12 +360,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 {{[||]{
                 """  
             """");
-    }
 
     [WpfFact]
     public void TestInterpolationIntoMultiLineRawString3()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{0}""",
             """"
             var x = $"""  
@@ -414,12 +381,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 [||]
                 """  
             """");
-    }
 
     [WpfFact]
     public void TestOpenCloseIntoMultiLineRawString4()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{}""",
             """"
             var x = $"""  
@@ -437,12 +402,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 {}[||]  
                 """  
             """");
-    }
 
     [WpfFact]
     public void TestOpenCloseBraceIntoMultiLineRawString5()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{}""",
             """"
             var x = $$"""  
@@ -460,12 +423,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 {{}[||]
                 """  
             """");
-    }
 
     [WpfFact]
     public void TestOpenCloseBraceIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{}}""",
             """"
             var x = $"""
@@ -483,12 +444,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 {}}[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestOpenCloseBraceIntoMultiLineRawString2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """{{}}""",
             """"
             var x = $"""
@@ -506,12 +465,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 {{}}[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestTripleQuoteTripleOpenBraceIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """"
             """{{{
             """",
@@ -531,12 +488,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 """{{{[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestComplexStringIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """  ""  """,
             """"
             var x = $"""
@@ -554,12 +509,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                   ""  [||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawString()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """abc""",
             """"
             var x = $"""
@@ -577,12 +530,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 [||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -605,12 +556,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             def[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -633,12 +582,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             def[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine3()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -662,12 +609,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
 
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine4()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -690,12 +635,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             def[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine5()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -718,12 +661,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             def[||]bar
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine6()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -749,12 +690,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             [||]bar
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine7()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
                 def
@@ -780,12 +719,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             ghi[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine7_B()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
                 def
@@ -811,12 +748,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             ghi[||]
                       """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine8()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
                 def
@@ -840,12 +775,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 [||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine9()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
                 abc
                 def
@@ -871,12 +804,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 ghi[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine10()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
                     abc
                 def
@@ -902,12 +833,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 ghi[||]
                 """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine11()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -928,12 +857,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             var x = $"""abc
             def[||]"""
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine12()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -957,12 +884,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             def
             [||]"""
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringMultiLine13()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             abc
             def
@@ -983,12 +908,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             var x = $"""abc
             def[||]   """
             """");
-    }
 
     [WpfFact]
     public void TestNormalTextIntoMultiLineRawStringHeader1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """bar""",
             """"
             var x = $"""[||]
@@ -1007,12 +930,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
                 goo
                 """
             """");
-    }
 
     [WpfFact]
     public void TestQuotesIntoHeader1()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """
             ""
             """,
@@ -1030,12 +951,10 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             """"""
             var x = $"""""[||]"""
             """""");
-    }
 
     [WpfFact]
     public void TestQuotesIntoHeader2()
-    {
-        TestPasteUnknownSource(
+        => TestPasteUnknownSource(
             pasteText: """"
             """
             """",
@@ -1053,5 +972,4 @@ public sealed class PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests
             """""""
             var x = $""""""[||]"""
             """"""");
-    }
 }

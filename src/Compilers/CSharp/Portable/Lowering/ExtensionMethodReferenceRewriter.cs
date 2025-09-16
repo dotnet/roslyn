@@ -109,13 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (receiverRefKind != RefKind.None)
                         {
                             var builder = ArrayBuilder<RefKind>.GetInstance(method.ParameterCount, RefKind.None);
-                            builder[0] = argumentRefKindFromReceiverRefKind(receiverRefKind);
+                            builder[0] = ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind);
                             argumentRefKinds = builder.ToImmutableAndFree();
                         }
                     }
                     else
                     {
-                        argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind));
+                        argumentRefKinds = argumentRefKinds.Insert(0, ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind));
                     }
 
                     invokedAsExtensionMethod = true;
@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundCall.ResultKind,
                     originalMethodsOpt,
                     type);
-
-                static RefKind argumentRefKindFromReceiverRefKind(RefKind receiverRefKind)
-                {
-                    return SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false);
-                }
             }
+        }
+
+        public static RefKind ReceiverArgumentRefKindFromReceiverRefKind(RefKind receiverRefKind)
+        {
+            return SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false);
         }
 
         [return: NotNullIfNotNull(nameof(method))]
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             method.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue) == (object)method.OriginalDefinition,
                              { Name: nameof(VisitUserDefinedConditionalLogicalOperator) } => !method.IsExtensionMethod, // Expression tree context. At the moment an operator cannot be an extension method
                              { Name: nameof(VisitCollectionElementInitializer) } => !method.IsExtensionMethod, // Expression tree context. At the moment an extension method cannot be used in expression tree here.
-                             { Name: nameof(VisitAwaitableInfo) } => method is { Name: "GetResult", IsExtensionMethod: false }, // Cannot be an extension method
+                             { Name: nameof(VisitAwaitableInfo) } => method is { Name: "GetResult" or "Await" or "AwaitAwaiter" or "UnsafeAwaitAwaiter", IsExtensionMethod: false }, // Cannot be an extension method
                              { Name: nameof(VisitMethodSymbolWithExtensionRewrite), DeclaringType: { } declaringType } => declaringType == typeof(ExtensionMethodReferenceRewriter),
                              _ => false
                          });
@@ -194,9 +194,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
-            MethodSymbol method = node.Method;
-            Debug.Assert(method.IsDefinition); // Tracked by https://github.com/dotnet/roslyn/issues/78962 : From the code coverage and other instrumentations perspective, should we remap the index to the implementation symbol? 
-            TypeSymbol? type = this.VisitType(node.Type);
+            return VisitMethodDefIndex(this, node);
+        }
+
+        public static BoundNode VisitMethodDefIndex(BoundTreeRewriter rewriter, BoundMethodDefIndex node)
+        {
+            MethodSymbol method = VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method);
+            TypeSymbol? type = rewriter.VisitType(node.Type);
             return node.Update(method, type);
         }
 

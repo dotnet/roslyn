@@ -2133,7 +2133,7 @@ public sealed class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """, parseOptions: null);
+            """, new(parseOptions: null));
 
     [Fact]
     public Task QueryInForEachWithSelectIdentifierButNotVariable()
@@ -2196,7 +2196,7 @@ public sealed class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """, parseOptions: null);
+            """, new(parseOptions: null));
 
     [Fact]
     public Task IQueryable()
@@ -3866,7 +3866,7 @@ public sealed class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTes
                     Action<int> myLambda = enumerable => { };
                 }
             }
-            """, parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp7_3));
+            """, new(parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp7_3)));
 
     [Fact]
     public Task EnumerableFunctionCanUseLambdaParameterNameInCSharp8()
@@ -3906,7 +3906,7 @@ public sealed class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTes
                     Action<int> myLambda = enumerable => { };
                 }
             }
-            """, parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp8));
+            """, new(parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp8)));
 
     #endregion
 

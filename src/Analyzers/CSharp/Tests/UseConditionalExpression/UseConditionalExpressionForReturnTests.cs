@@ -28,7 +28,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestOnSimpleReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -57,7 +57,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnSimpleReturn_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -86,7 +86,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnSimpleReturn_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -175,7 +175,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestOnSimpleReturnNoBlocks()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -200,7 +200,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestOnSimpleReturnNoBlocks_NotInBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -327,7 +327,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestWithNoElseBlockButFollowingReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -354,7 +354,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestWithNoElseBlockButFollowingReturn_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -381,7 +381,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestWithNoElseBlockButFollowingReturn_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -491,7 +491,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return checked(x == y) ? 0 : 1;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithUncheckedInIf()
@@ -524,7 +524,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return unchecked(x == y) ? 0 : 1;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithCheckedInTrueStatement()
@@ -557,7 +557,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return x == y ? checked(x - y) : 1;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithUncheckedInTrueStatement()
@@ -590,7 +590,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return x == y ? unchecked(x - y) : 1;
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithCheckedInFalseStatement()
@@ -623,7 +623,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return x == y ? 1 : checked(x - y);
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
     public Task TestMissingWithUncheckedInFalseStatement()
@@ -656,7 +656,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return x == y ? 1 : unchecked(x - y);
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70750")]
     public Task TestMissingWithUnchecked()
@@ -729,7 +729,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? "a" : "b";
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact]
     public Task TestConversion1_CSharp9()
@@ -758,7 +758,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? "a" : "b";
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion1_Throw1_CSharp8()
@@ -787,7 +787,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? throw new System.Exception() : (object)"b";
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion1_Throw1_CSharp9()
@@ -816,7 +816,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? throw new System.Exception() : (object)"b";
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion1_Throw2_CSharp8()
@@ -845,7 +845,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? (object)"a" : throw new System.Exception();
                 }
             }
-            """, parseOptions: CSharp8);
+            """, new(parseOptions: CSharp8));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion1_Throw2_CSharp9()
@@ -874,11 +874,11 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     return true ? (object)"a" : throw new System.Exception();
                 }
             }
-            """, parseOptions: CSharp9);
+            """, new(parseOptions: CSharp9));
 
     [Fact]
     public Task TestConversion2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -909,7 +909,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
     [InlineData(LanguageVersion.CSharp8, "(string)null")]
     [InlineData(LanguageVersion.CSharp9, "null")]
     public Task TestConversion2_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -940,7 +940,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestConversion2_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -971,7 +971,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
     [InlineData(LanguageVersion.CSharp8, "(string)null")]
     [InlineData(LanguageVersion.CSharp9, "null")]
     public Task TestConversion3(LanguageVersion languageVersion, string expectedFalseExpression)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1004,7 +1004,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
     [InlineData(LanguageVersion.CSharp8, "(string)null")]
     [InlineData(LanguageVersion.CSharp9, "null")]
     public Task TestConversion3_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1037,7 +1037,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
     [InlineData(LanguageVersion.CSharp8, "(string)null")]
     [InlineData(LanguageVersion.CSharp9, "null")]
     public Task TestConversion3_Throw2(LanguageVersion languageVersion, string expectedTrue)
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1068,7 +1068,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestKeepTriviaAroundIf()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1099,7 +1099,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1137,7 +1137,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestMultiLine1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1170,7 +1170,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestMultiLine2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1203,7 +1203,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestMultiLine3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1238,7 +1238,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestElseIfWithBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1276,7 +1276,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestElseIfWithBlock_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1314,7 +1314,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestElseIfWithBlock_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1352,7 +1352,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestElseIfWithoutBlock()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1377,7 +1377,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestRefReturns1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1446,7 +1446,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
     public Task TestOnYieldReturn()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1476,7 +1476,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnYieldReturn_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1506,7 +1506,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestOnYieldReturn_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1535,7 +1535,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
     public Task TestOnYieldReturn_IEnumerableReturnType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1650,7 +1650,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27960")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestWithNoElseBlockButFollowingYieldReturn_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1717,7 +1717,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestReturnTrueFalse1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1746,7 +1746,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestReturnTrueFalse1_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1775,7 +1775,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestReturnTrueFalse1_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1804,7 +1804,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestReturnTrueFalse2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1833,7 +1833,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestReturnTrueFalse2_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1862,7 +1862,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestReturnTrueFalse2_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1891,7 +1891,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestReturnTrueFalse3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1918,7 +1918,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestReturnTrueFalse3_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1945,7 +1945,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestReturnTrueFalse3_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1972,7 +1972,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestReturnTrueFalse4()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2005,7 +2005,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestReturnTrueFalse4_Throw1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2038,7 +2038,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43291")]
     public Task TestReturnTrueFalse4_Throw2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -2124,11 +2124,11 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     throw new NotImplementedException();
                 }
             }
-            """, title: AnalyzersResources.Simplify_check);
+            """, new(title: AnalyzersResources.Simplify_check));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38879")]
     public Task TesSuppressionOperator()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             #nullable enable
 
             class Program
@@ -2157,7 +2157,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact]
     public Task TestWithCollectionExpressions()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2186,7 +2186,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
     public Task UnnecessaryWithinConditionalBranch2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             public class IssueClass
             {

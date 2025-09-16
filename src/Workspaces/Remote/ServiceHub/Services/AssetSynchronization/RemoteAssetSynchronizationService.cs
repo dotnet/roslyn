@@ -50,7 +50,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
     {
         var documentTrackingService = GetWorkspace().Services.GetRequiredService<IDocumentTrackingService>() as RemoteDocumentTrackingService;
         documentTrackingService?.SetActiveDocument(documentId);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask SynchronizeTextChangesAsync(

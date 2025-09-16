@@ -35,8 +35,7 @@ public sealed partial class CodeCleanupTests
 {
     [Fact]
     public Task RemoveUsings()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
             internal class Program
             {
@@ -56,12 +55,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
     public Task RemoveUsings_NotWithSyntaxError()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
             using System.Collections.Generic;
             internal class Program
@@ -82,12 +79,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
     public Task RemoveUsings_WithSemanticError()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
             internal class Program
             {
@@ -107,12 +102,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
     public Task RemoveUsings_WithMergeMarker_NoSyntaxError()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
             internal class Program
             {
@@ -136,12 +129,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79463")]
     public Task RemoveUsings_WithMergeMarker_SyntaxError()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
             using System.Collections.Generic;
             internal class Program
@@ -166,12 +157,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task SortUsings()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
             using System.Collections.Generic;
             internal class Program
@@ -194,12 +183,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task SortGlobalUsings()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             global using System;
             global using System.Collections.Generic;
             using System.Threading;
@@ -230,12 +217,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36984")]
     public Task GroupUsings()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using M;
 
             using System;
@@ -273,12 +258,10 @@ public sealed partial class CodeCleanupTests
                 public class Goo { }
             }
             """, systemUsingsFirst: false, separateUsingGroups: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36984")]
     public Task SortAndGroupUsings()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
 
             using M;
@@ -316,12 +299,10 @@ public sealed partial class CodeCleanupTests
                 public class Goo { }
             }
             """, systemUsingsFirst: true, separateUsingGroups: true);
-    }
 
     [Fact]
     public Task FixAddRemoveBraces()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             internal class Program
             {
                 private int Method()
@@ -348,12 +329,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task RemoveUnusedVariable()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             internal class Program
             {
                 private void Method()
@@ -369,12 +348,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task FixAccessibilityModifiers()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             internal class Program
             {
                 private void Method()
@@ -390,12 +367,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task FixUsingPlacementPreferOutside()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
 
             namespace A
@@ -422,12 +397,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task FixUsingPlacementPreferInside()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             namespace A
             {
                 using System;
@@ -454,7 +427,6 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """, InsideNamespaceOption);
-    }
 
     [Fact]
     public Task FixUsingPlacementPreferInsidePreserve()
@@ -504,8 +476,7 @@ public sealed partial class CodeCleanupTests
 
     [Fact]
     public Task FixUsingPlacementMixedPreferOutside()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             using System;
             using System.Collections.Generic;
 
@@ -539,12 +510,10 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """, OutsideNamespaceOption);
-    }
 
     [Fact]
     public Task FixUsingPlacementMixedPreferInside()
-    {
-        return AssertCodeCleanupResult("""
+        => AssertCodeCleanupResult("""
             namespace A
             {
                 using System;
@@ -578,7 +547,6 @@ public sealed partial class CodeCleanupTests
                 }
             }
             """, InsideNamespaceOption);
-    }
 
     [Fact]
     public Task FixUsingPlacementMixedPreferInsidePreserve()

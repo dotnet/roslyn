@@ -281,10 +281,8 @@ namespace Analyzer.Utilities.Extensions
                 if (IsDisposeImplementation(method, iDisposable) ||
                     (SymbolEqualityComparer.Default.Equals(method.ContainingType, iDisposable) &&
                      method.HasDisposeMethodSignature())
-#if CODEANALYSIS_V3_OR_BETTER
                     || (method.ContainingType.IsRefLikeType &&
                      method.HasDisposeSignatureByConvention())
-#endif
                 )
                 {
                     return DisposeMethodKind.Dispose;

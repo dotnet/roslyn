@@ -254,7 +254,7 @@ internal partial class SyntacticClassificationTaggerProvider
             CancellationToken cancellationToken)
         {
             if (lastProcessedDocument is null)
-                return ValueTaskFactory.FromResult<TextChangeRange?>(null);
+                return ValueTask.FromResult<TextChangeRange?>(null);
 
             if (lastProcessedRoot != null)
             {
@@ -262,7 +262,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 if (currentRoot is not null)
                     return new(classificationService.ComputeSyntacticChangeRange(solutionServices, lastProcessedRoot, currentRoot, _diffTimeout, cancellationToken));
                 else
-                    return ValueTaskFactory.FromResult<TextChangeRange?>(null);
+                    return ValueTask.FromResult<TextChangeRange?>(null);
             }
             else
             {

@@ -3637,6 +3637,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function RemoveCommentLines(syntaxList As SyntaxTriviaList) As SyntaxTriviaList
             Return syntaxList.Where(Function(s) Not IsRegularOrDocComment(s)).ToSyntaxTriviaList()
         End Function
+
+        Friend Overrides Function ExtensionBlockDeclaration(extensionParameter As SyntaxNode, typeParameters As IEnumerable(Of SyntaxNode), members As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Throw New NotSupportedException("Extension blocks are not supported in Visual Basic")
+        End Function
+
 #End Region
 
     End Class

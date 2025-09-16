@@ -455,15 +455,11 @@ internal sealed class CommittedSolution
         }
     }
 
-    public void CommitChanges(Solution solution, ImmutableDictionary<ProjectId, Guid>? staleProjects, ImmutableArray<ProjectId>? projectsToUnstale = null)
+    public void CommitChanges(Solution solution, ImmutableDictionary<ProjectId, Guid> staleProjects)
     {
-        Contract.ThrowIfTrue(staleProjects is null && projectsToUnstale is null);
-
         lock (_guard)
         {
             _solution = solution;
-
-            staleProjects ??= _staleProjects.RemoveRange(projectsToUnstale!);
 
             var oldStaleProjects = _staleProjects;
             _staleProjects = staleProjects;

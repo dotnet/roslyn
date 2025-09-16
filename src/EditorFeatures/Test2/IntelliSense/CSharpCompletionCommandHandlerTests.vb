@@ -12889,7 +12889,7 @@ public class Class1
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendTypeChars(" "c)
                 Await state.AssertCompletionSession()
@@ -12918,7 +12918,7 @@ public class Class1
     }
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendTypeChars(" "c)
                 Await state.AssertCompletionSession()
@@ -12939,7 +12939,7 @@ public class Class1
                     }
                 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("string", displayTextSuffix:="")
@@ -12958,7 +12958,7 @@ public class Class1
                     }
                 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("customer", displayTextSuffix:="")
@@ -12978,7 +12978,7 @@ public class Class1
                     }
                 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("T", displayTextSuffix:="")
@@ -13000,7 +13000,7 @@ public class Class1
                     }
                 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("String", displayTextSuffix:="")
@@ -13022,7 +13022,7 @@ public class Class1
                     }
                 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("String", displayTextSuffix:="")
@@ -13045,7 +13045,7 @@ public class Class1
                     }
                 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("EM", displayTextSuffix:="")
@@ -13071,7 +13071,7 @@ public class Class1
                     }
                 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp14)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain("EM", displayTextSuffix:="")

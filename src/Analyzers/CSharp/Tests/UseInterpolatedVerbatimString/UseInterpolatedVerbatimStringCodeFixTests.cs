@@ -27,7 +27,7 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
 
     [Fact]
     public Task Simple()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -45,7 +45,7 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
                     var s = $@"hello";
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
     public Task AfterString()
@@ -58,11 +58,11 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
                     var s = @$"hello"[||];
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
     public Task InCall()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -80,11 +80,11 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
                     var s = M($@"hello");
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
     public Task FixAllInDocument()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -104,7 +104,7 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
                     var s2 = $@"hello";
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
     public Task MissingOnInterpolatedVerbatimString()
@@ -117,7 +117,7 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
                     var s = $[||]@"hello";
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
 
     [Fact]
     public Task MissingInCSharp8()
@@ -130,5 +130,5 @@ public sealed class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCS
                     var s = @[||]$"hello";
                 }
             }
-            """, parameters: new TestParameters().WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp8)));
+            """, parameters: TestParameters.Default.WithParseOptions(new CSharpParseOptions(LanguageVersion.CSharp8)));
 }

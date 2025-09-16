@@ -1095,6 +1095,19 @@ return reply;
             Assert.Equal("partial", result.GetType().Name);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79146")]
+        public void ScriptInstantiation()
+        {
+            var parseOptions = CSharpParseOptions.Default.WithKind(SourceCodeKind.Script);
+            var compilation = CSharpCompilation.CreateScriptCompilation("Test",
+                CSharpSyntaxTree.ParseText("var x = new Script();", parseOptions),
+                [NetStandard20Ref]);
+            compilation.VerifyDiagnostics(
+                // (1,13): error CS8386: Invalid object creation
+                // var x = new Script();
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "Script").WithLocation(1, 13));
+        }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);

@@ -2514,16 +2514,13 @@ public sealed class SmartTokenFormatterFormatRangeTests
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620568")]
     public void SkippedTokens1(bool useTabs)
-    {
-        AutoFormatToken(@";$$*", @";*", useTabs);
-    }
+        => AutoFormatToken(@";$$*", @";*", useTabs);
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
     public void AutoPropertyAccessor(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 int Prop {          get             ;$$
@@ -2534,14 +2531,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 int Prop {          get;
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
     public void AutoPropertyAccessor2(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 int Prop {          get;                set             ;$$
@@ -2552,14 +2547,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 int Prop {          get;                set;
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
     public void AutoPropertyAccessor3(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 int Prop {          get;                set             ;           }$$
@@ -2570,14 +2563,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 int Prop { get; set; }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784674")]
     public void AutoPropertyAccessor4(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 int Prop {          get;$$             }
@@ -2588,14 +2579,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 int Prop { get; }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
     public void AutoPropertyAccessor5(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 int Prop {          get;                set             ;$$           }
@@ -2606,14 +2595,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 int Prop { get; set; }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
     public void AutoPropertyAccessor6(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 int Prop { get;set;$$}
@@ -2624,14 +2611,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 int Prop { get; set; }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
     public void AutoPropertyAccessor7(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 int Prop     { get;set;$$}    
@@ -2642,14 +2627,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 int Prop     { get; set; }    
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void NestedUsingStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2668,14 +2651,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void NestedNotUsingStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2694,13 +2675,11 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void UsingStatementWithNestedFixedStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2723,13 +2702,11 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void UsingStatementWithNestedCheckedStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2752,13 +2729,11 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void UsingStatementWithNestedUncheckedStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2781,13 +2756,11 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FixedStatementWithNestedUsingStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2806,13 +2779,11 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FixedStatementWithNestedFixedStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2835,13 +2806,11 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void FixedStatementWithNestedNotFixedStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2864,13 +2833,11 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     public void NotFixedStatementWithNestedFixedStatement(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2893,14 +2860,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
     public void FormattingRangeForFirstStatementOfBlock(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {
                 public void M()
@@ -2916,14 +2881,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
     public void FormattingRangeForFirstMemberofType(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {int s;$$
                 public void M()
@@ -2939,14 +2902,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 }
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
     public void FormattingRangeForFirstMethodMemberofType(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             interface C
             {void s();$$
             }
@@ -2956,14 +2917,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 void s();
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
     public void FormattingRangeForConstructor(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {public C()=>f=1;$$
             }
@@ -2973,14 +2932,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 public C() => f = 1;
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
     public void FormattingRangeForDestructor(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {~C()=>f=1;$$
             }
@@ -2990,14 +2947,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 ~C() => f = 1;
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/17257")]
     public void FormattingRangeForOperator(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class C
             {public static C operator +(C left, C right)=>field=1;$$
                 static int field;
@@ -3009,14 +2964,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 static int field;
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
     public void FormattingRangeForFirstMemberOfNamespace(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             namespace C
             {delegate void s();$$
             }
@@ -3026,14 +2979,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
                 delegate void s();
             }
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
     public void FormatDirectiveTriviaAlwaysToColumnZero(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class Program
             {
                 static void Main(string[] args)
@@ -3054,14 +3005,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
             }
 
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
     public void FormatDirectiveTriviaAlwaysToColumnZeroWithCode(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class Program
             {
                 static void Main(string[] args)
@@ -3084,14 +3033,12 @@ public sealed class SmartTokenFormatterFormatRangeTests
             }
 
             """, useTabs);
-    }
 
     [WpfTheory]
     [CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
     public void FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective(bool useTabs)
-    {
-        AutoFormatToken("""
+        => AutoFormatToken("""
             class Program
             {
                 static void Main(string[] args)
@@ -3112,7 +3059,6 @@ public sealed class SmartTokenFormatterFormatRangeTests
             }
 
             """, useTabs);
-    }
 
     internal static void AutoFormatToken(string markup, string expected, bool useTabs)
     {

@@ -84,11 +84,11 @@ internal static class RenameUtilities
         if (IsSymbolDefinedInsideMethod(symbol))
         {
             // if the symbol was declared inside of a method, don't check for conflicts in non-renamed documents.
-            return renameLocations.Select(l => solution.GetRequiredDocument(l.DocumentId));
+            return renameLocations.Select(l => solution.GetRequiredDocument(l.Location.SourceTree!));
         }
         else
         {
-            var documentsOfRenameSymbolDeclaration = symbol.Locations.Where(l => l.IsInSource).Select(l => solution.GetRequiredDocument(l.SourceTree!));
+            var documentsOfRenameSymbolDeclaration = symbol.Locations.SelectAsArray(l => l.IsInSource, l => solution.GetRequiredDocument(l.SourceTree!));
             var projectIdsOfRenameSymbolDeclaration =
                 documentsOfRenameSymbolDeclaration.SelectMany(d => d.GetLinkedDocumentIds())
                 .Concat(documentsOfRenameSymbolDeclaration.First().Id)

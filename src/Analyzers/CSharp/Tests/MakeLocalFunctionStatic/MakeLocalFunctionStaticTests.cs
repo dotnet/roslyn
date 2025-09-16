@@ -17,13 +17,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic;
 
-public sealed partial class MakeLocalFunctionStaticTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class MakeLocalFunctionStaticTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public MakeLocalFunctionStaticTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new MakeLocalFunctionStaticDiagnosticAnalyzer(), new MakeLocalFunctionStaticCodeFixProvider());
 
@@ -61,7 +57,7 @@ public sealed partial class MakeLocalFunctionStaticTests : AbstractCSharpDiagnos
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
     public Task TestWithOptionOff()
@@ -190,7 +186,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("")]
@@ -228,7 +224,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("")]
@@ -264,7 +260,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("")]
@@ -308,7 +304,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("")]
@@ -340,7 +336,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("")]
@@ -378,7 +374,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [InlineData("\r\n")]
@@ -415,7 +411,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/46858")]
@@ -481,7 +477,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     public Task TestCallingNestedLocalFunction()
@@ -524,7 +520,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
                 }
             }
             """,
-            parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/53179")]
@@ -538,7 +534,7 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
             {
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/59286")]
@@ -552,5 +548,5 @@ parseOptions: CSharp8ParseOptions);
             {
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            new(parseOptions: CSharp8ParseOptions));
 }

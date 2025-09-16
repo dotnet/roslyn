@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -35,16 +36,20 @@ public sealed class ReplaceDefaultLiteralTests(ITestOutputHelper logger) : Abstr
             LanguageVersion.CSharp1,
         ];
 
-    private async Task TestWithLanguageVersionsAsync(string initialMarkup, string expectedMarkup, ImmutableArray<LanguageVersion> versions)
+    private async Task TestWithLanguageVersionsAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        ImmutableArray<LanguageVersion> versions)
     {
         foreach (var version in versions)
         {
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
-                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(version));
+                new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(version)));
         }
     }
 
-    private async Task TestMissingWithLanguageVersionsAsync(string initialMarkup, ImmutableArray<LanguageVersion> versions)
+    private async Task TestMissingWithLanguageVersionsAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, ImmutableArray<LanguageVersion> versions)
     {
         foreach (var version in versions)
         {

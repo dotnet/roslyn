@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 /// </summary>
 internal sealed class ProjectCodeModel : IProjectCodeModel
 {
-    private readonly NonReentrantLock _guard = new NonReentrantLock();
+    private readonly NonReentrantLock _guard = new();
     private readonly IThreadingContext _threadingContext;
     private readonly ProjectId _projectId;
     private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;

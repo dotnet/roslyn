@@ -23,5 +23,5 @@ internal sealed class MockServiceBroker : IServiceBroker
         => throw new NotImplementedException();
 
     public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default) where T : class
-        => ValueTaskFactory.FromResult((T?)(CreateService ?? throw new NotImplementedException()).Invoke(typeof(T)));
+        => ValueTask.FromResult((T?)(CreateService ?? throw new NotImplementedException()).Invoke(typeof(T)));
 }

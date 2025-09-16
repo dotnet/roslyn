@@ -64,7 +64,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 { GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups },
                 { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, placeInsideNamespace ? InsideNamespaceOption : OutsideNamespaceOption },
             };
-        return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
+        return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new(options: options));
     }
 
     [WpfFact]

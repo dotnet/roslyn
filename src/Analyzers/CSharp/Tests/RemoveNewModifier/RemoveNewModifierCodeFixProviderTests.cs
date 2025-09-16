@@ -139,7 +139,7 @@ public sealed class RemoveNewModifierCodeFixProviderTests : AbstractCSharpDiagno
 
     private Task TestRemoveNewModifierCodeFixAsync(string original, string expected)
     {
-        return TestInRegularAndScript1Async(
+        return TestInRegularAndScriptAsync(
             $$"""
             class App
             {

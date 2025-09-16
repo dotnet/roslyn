@@ -46,7 +46,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         {
             var tagsChanged = this.TagsChanged;
             if (tagsChanged == null)
-                return ValueTaskFactory.CompletedTask;
+                return ValueTask.CompletedTask;
 
             foreach (var collection in snapshotSpans)
             {
@@ -66,7 +66,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     tagsChanged(this, new SnapshotSpanEventArgs(span));
             }
 
-            return ValueTaskFactory.CompletedTask;
+            return ValueTask.CompletedTask;
         }
     }
 }

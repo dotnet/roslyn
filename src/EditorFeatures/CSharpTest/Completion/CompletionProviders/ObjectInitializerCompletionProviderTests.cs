@@ -626,9 +626,8 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
     }
 
     [Fact]
-    public async Task TestCommitCharacter()
-    {
-        const string markup = """
+    public Task TestCommitCharacter()
+        => VerifyCommonCommitCharactersAsync("""
             class C { public int value {set; get; }}
 
             class D
@@ -638,10 +637,7 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
                    C goo = new C { v$$
                 }
             }
-            """;
-
-        await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "v");
-    }
+            """, textTypedSoFar: "v");
 
     [Fact]
     public async Task TestEnter()

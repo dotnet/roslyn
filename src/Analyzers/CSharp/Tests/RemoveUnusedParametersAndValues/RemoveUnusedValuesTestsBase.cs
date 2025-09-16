@@ -48,14 +48,14 @@ public abstract class RemoveUnusedValuesTestsBase : AbstractCSharpDiagnosticProv
     private protected Task TestMissingInRegularAndScriptAsync(string initialMarkup, string optionName, ParseOptions parseOptions = null)
          => TestMissingInRegularAndScriptAsync(initialMarkup, GetOptions(optionName), parseOptions);
     protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, string optionName, ParseOptions parseOptions = null)
-        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: GetOptions(optionName), parseOptions: parseOptions);
+        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new TestParameters(options: GetOptions(optionName), parseOptions: parseOptions));
 
     // Helpers to test all options - only used by tests which already have InlineData for custom input test code snippets.
     protected async Task TestInRegularAndScriptWithAllOptionsAsync(string initialMarkup, string expectedMarkup, ParseOptions parseOptions = null)
     {
         foreach (var options in new[] { PreferDiscard, PreferUnusedLocal })
         {
-            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options, parseOptions: parseOptions);
+            await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, new TestParameters(options: options, parseOptions: parseOptions));
         }
     }
 

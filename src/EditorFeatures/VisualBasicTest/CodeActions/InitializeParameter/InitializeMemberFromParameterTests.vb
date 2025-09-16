@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InitializeParamete
         <Fact>
         Public Async Function TestInitializeFieldWithSameName() As Task
 
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private s As String
@@ -41,7 +41,7 @@ end class")
         <Fact>
         Public Async Function TestEndOfParameter1() As Task
 
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private s As String
@@ -63,7 +63,7 @@ end class")
         <Fact>
         Public Async Function TestEndOfParameter2() As Task
 
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private s As String
@@ -84,7 +84,7 @@ end class")
         <Fact>
         Public Async Function TestInitializeFieldWithUnderscoreName() As Task
 
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private _s As String
@@ -105,7 +105,7 @@ end class")
 
         <Fact>
         Public Async Function TestInitializeWritableProperty() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Private ReadOnly property S As String
@@ -171,7 +171,7 @@ end class")
 
         <Fact>
         Public Async Function TestInitializeFieldWithWrongType1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private s As Integer
@@ -194,7 +194,7 @@ end class")
 
         <Fact>
         Public Async Function TestInitializeFieldWithWrongType2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private s As Integer
@@ -252,7 +252,7 @@ end class")
 
         <Fact>
         Public Async Function TestWhenAlreadyInitialized3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
 
@@ -278,7 +278,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestInsertionLocation1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
 
@@ -304,7 +304,7 @@ end class")
 
         <Fact>
         Public Async Function TestInsertionLocation2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private s As String
@@ -328,7 +328,7 @@ end class")
 
         <Fact>
         Public Async Function TestInsertionLocation3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
 
@@ -370,7 +370,7 @@ end class")
         <Fact>
         Public Async Function TestInsertionLocation6() As Task
 
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new(s As String, [||]t As String)
@@ -394,7 +394,7 @@ end class")
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestInsertionLocation7() As Task
 
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new([||]s As String, t As String)
@@ -417,7 +417,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestInitializeFieldWithParameterNameSelected1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private s As String
@@ -438,7 +438,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestInitializeFieldWithParameterNameSelected2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     private s As String
@@ -459,7 +459,7 @@ end class")
 
         <Fact>
         Public Async Function TestInitializeClassProperty_RequiredAccessibilityOmitIfDefault() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Class C
     ReadOnly test As Integer = 5
 
@@ -481,7 +481,7 @@ End Class
 
         <Fact>
         Public Async Function TestInitializeClassProperty_RequiredAccessibilityNever() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Class C
     ReadOnly test As Integer = 5
 
@@ -503,7 +503,7 @@ End Class
 
         <Fact>
         Public Async Function TestInitializeClassProperty_RequiredAccessibilityAlways() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Class C
     ReadOnly test As Integer = 5
 
@@ -525,7 +525,7 @@ End Class
 
         <Fact>
         Public Async Function TestInitializeClassField_RequiredAccessibilityOmitIfDefault() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Class C
     ReadOnly test As Integer = 5
 
@@ -546,7 +546,7 @@ End Class
 
         <Fact>
         Public Async Function TestInitializeClassField_RequiredAccessibilityNever() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Class C
     ReadOnly test As Integer = 5
 
@@ -567,7 +567,7 @@ End Class
 
         <Fact>
         Public Async Function TestInitializeClassField_RequiredAccessibilityAlways() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Class C
     ReadOnly test As Integer = 5
 
@@ -588,7 +588,7 @@ End Class
 
         <Fact>
         Public Async Function TestInitializeStructProperty_RequiredAccessibilityOmitIfDefault() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Structure S
     Public Sub New(ByVal [|test|] As Integer)
     End Sub
@@ -606,7 +606,7 @@ End Structure
 
         <Fact>
         Public Async Function TestInitializeStructProperty_RequiredAccessibilityNever() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Structure S
     Public Sub New(ByVal [|test|] As Integer)
     End Sub
@@ -624,7 +624,7 @@ End Structure
 
         <Fact>
         Public Async Function TestInitializeStructProperty_RequiredAccessibilityAlways() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Structure S
     Public Sub New(ByVal [|test|] As Integer)
     End Sub
@@ -642,7 +642,7 @@ End Structure
 
         <Fact>
         Public Async Function TestInitializeStructField_RequiredAccessibilityOmitIfDefault() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Structure S
     Public Sub New(ByVal [|test|] As Integer)
     End Sub
@@ -660,7 +660,7 @@ End Structure
 
         <Fact>
         Public Async Function TestInitializeStructField_RequiredAccessibilityNever() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Structure S
     Public Sub New(ByVal [|test|] As Integer)
     End Sub
@@ -678,7 +678,7 @@ End Structure
 
         <Fact>
         Public Async Function TestInitializeStructField_RequiredAccessibilityAlways() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Structure S
     Public Sub New(ByVal [|test|] As Integer)
     End Sub
@@ -696,7 +696,7 @@ End Structure
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new([||]i as integer, j as integer, k as integer)
@@ -718,7 +718,7 @@ end class", index:=3)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Private ReadOnly i As Integer
@@ -743,7 +743,7 @@ end class", index:=2)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004"), WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Private ReadOnly j As Integer
@@ -768,7 +768,7 @@ end class", index:=2)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004"), WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields4() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Private ReadOnly k As Integer
@@ -793,7 +793,7 @@ end class", index:=2)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     public sub new([||]i as integer, j as integer, k as integer)
@@ -815,7 +815,7 @@ end class", index:=2)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Private ReadOnly i As Integer
@@ -841,7 +841,7 @@ end class", index:=3)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004"), WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Private ReadOnly j As Integer
@@ -867,7 +867,7 @@ end class", index:=3)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004"), WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties4() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Private ReadOnly k As Integer
@@ -893,7 +893,7 @@ end class", index:=3)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")>
         Public Async Function TestInitializeThrowingProperty1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -925,7 +925,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")>
         Public Async Function TestInitializeThrowingProperty2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -962,7 +962,7 @@ end class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")>
         Public Async Function TestInitializeThrowingProperty3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 

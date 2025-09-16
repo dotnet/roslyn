@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -25,13 +24,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
-    private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
-        IMetadataAsSourceFileService metadataAsSourceFileService,
         VirtualProjectXmlProvider projectXmlProvider,
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
@@ -54,7 +51,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
-        _metadataAsSourceFileService = metadataAsSourceFileService;
         _projectXmlProvider = projectXmlProvider;
         _workspaceFactory = workspaceFactory;
     }
@@ -73,20 +69,17 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
         var documentFilePath = GetDocumentFilePath(uri);
-
-        // https://github.com/dotnet/roslyn/issues/78421: MetadataAsSource should be its own workspace
-        if (_metadataAsSourceFileService.TryAddDocumentToWorkspace(documentFilePath, documentText.Container, out var documentId))
+        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+        if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))
         {
-            var metadataWorkspace = _metadataAsSourceFileService.TryGetWorkspace();
-            Contract.ThrowIfNull(metadataWorkspace);
-            return metadataWorkspace.CurrentSolution.GetRequiredDocument(documentId);
+            Contract.Fail($"Could not find language information for {uri} with absolute path {documentFilePath}");
         }
 
         var primordialDoc = AddPrimordialDocument(uri, documentText, languageId);
         Contract.ThrowIfNull(primordialDoc.FilePath);
 
         var doDesignTimeBuild = uri.ParsedUri?.IsFile is true
-            && primordialDoc.Project.Language == LanguageNames.CSharp
+            && languageInformation.LanguageName == LanguageNames.CSharp
             && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
         await BeginLoadingProjectWithPrimordialAsync(primordialDoc.FilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
 
@@ -94,12 +87,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         TextDocument AddPrimordialDocument(DocumentUri uri, SourceText documentText, string languageId)
         {
-            var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-            if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))
-            {
-                Contract.Fail($"Could not find language information for {uri} with absolute path {documentFilePath}");
-            }
-
             var workspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
             var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
@@ -120,14 +107,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace)
+    public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
         var documentPath = GetDocumentFilePath(uri);
-        if (removeFromMetadataWorkspace && _metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentPath))
-        {
-            return;
-        }
-
         await UnloadProjectAsync(documentPath);
     }
 
@@ -158,7 +140,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(documentPath, textAndVersion.Text);
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
 
         return new RemoteProjectLoadResult(
@@ -169,5 +151,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             IsMiscellaneousFile: !isFileBasedProgram,
             Preferred: buildHostKind,
             Actual: buildHostKind);
+    }
+
+    protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
+    {
+        await _projectXmlProvider.UnloadCachedDiagnosticsAsync(projectFilePath);
     }
 }

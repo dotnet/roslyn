@@ -29,7 +29,7 @@ internal sealed partial class CPSProject : IVsReportExternalErrors, IVsLanguageS
     public int AddNewErrors(IVsEnumExternalErrors pErrors)
         => GetExternalErrorReporter().AddNewErrors(pErrors);
 
-    public int GetErrors(out IVsEnumExternalErrors pErrors)
+    public int GetErrors(out IVsEnumExternalErrors? pErrors)
         => GetExternalErrorReporter().GetErrors(out pErrors);
 
     public int ReportError(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)

@@ -32,7 +32,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestIdentifierName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -113,7 +113,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestBuiltInType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -141,7 +141,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestNamedType()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -169,7 +169,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestReversed()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -197,7 +197,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestNegated_CSharp7()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -225,7 +225,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public Task TestNegated_CSharp9()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -269,7 +269,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestFixAll1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -299,7 +299,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestFixAll2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -329,7 +329,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")]
     public Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp7()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -356,7 +356,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
     public Task TestValueParameterTypeIsUnconstrainedGeneric_CSharp8()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -388,7 +388,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp7()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -415,7 +415,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp9()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -442,7 +442,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23581")]
     public Task TestValueParameterTypeIsRefConstraintGeneric()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -470,7 +470,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp7()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -498,7 +498,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp9()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -558,7 +558,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact]
     public Task TestFixAllNested1()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -586,7 +586,7 @@ public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSha
 
     [Fact, WorkItem(23581, "https://github.com/dotnet/roslyn/issues/47972")]
     public Task TestValueParameterTypeIsBaseTypeConstraintGeneric()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             using System;
 

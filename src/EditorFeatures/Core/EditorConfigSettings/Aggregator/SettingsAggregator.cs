@@ -94,7 +94,7 @@ internal sealed partial class SettingsAggregator : ISettingsAggregator
     private ValueTask UpdateProvidersAsync(CancellationToken cancellationToken)
     {
         UpdateProviders(_workspace.CurrentSolution.SolutionState);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [MemberNotNull(nameof(_whitespaceProvider))]

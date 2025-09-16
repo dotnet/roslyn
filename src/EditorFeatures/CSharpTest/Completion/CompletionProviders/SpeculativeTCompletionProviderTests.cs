@@ -20,17 +20,13 @@ public sealed class SpeculativeTCompletionProviderTests : AbstractCSharpCompleti
         => typeof(SpeculativeTCompletionProvider);
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-    public async Task IsCommitCharacterTest()
-    {
-        const string markup = """
+    public Task IsCommitCharacterTest()
+        => VerifyCommonCommitCharactersAsync("""
             class C
             {
                 $$
             }
-            """;
-
-        await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
-    }
+            """, textTypedSoFar: "");
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
     public void IsTextualTriggerCharacterTest()

@@ -18,7 +18,7 @@ end class")
 
         <Fact>
         Public Async Function TestAvailableWithSyntaxErrorAfter() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     function Goobar([||]i as integer, j as integer) as
     end function
@@ -80,7 +80,7 @@ end class")
 
         <Fact>
         Public Async Function TestInHeader1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [||]sub Goobar(i as integer, j as integer)
     end sub
@@ -94,7 +94,7 @@ end class")
 
         <Fact>
         Public Async Function TestInHeader2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub [||]Goobar(i as integer, j as integer)
     end sub
@@ -108,7 +108,7 @@ end class")
 
         <Fact>
         Public Async Function TestInHeader3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [||]public sub Goobar(i as integer, j as integer)
     end sub
@@ -122,7 +122,7 @@ end class")
 
         <Fact>
         Public Async Function TestInHeader4() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     public sub Goobar(i as integer, j as integer)[||]
     end sub
@@ -686,7 +686,7 @@ end class")
 
         <Fact>
         Public Async Function TestInConstructor() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     public [||]sub new(i as integer, j as integer)
     end sub
@@ -700,7 +700,7 @@ end class")
 
         <Fact>
         Public Async Function TestInIndexer() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     public readonly property [||]P(i as integer, j as integer) as integer
     end property
@@ -714,7 +714,7 @@ end class")
 
         <Fact>
         Public Async Function TestInOperator() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     public shared operator [||]+(c1 as C, c2 as C) as integer
     end operator
@@ -728,7 +728,7 @@ end class")
 
         <Fact>
         Public Async Function TestInDelegate() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     public delegate function [||]D(c1 as C, c2 as C) as integer
 end class",
@@ -740,7 +740,7 @@ end class")
 
         <Fact>
         Public Async Function TestInParenthesizedLambda() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub Goobar()
         dim v = sub ([||]c as C, d as C)
@@ -758,7 +758,7 @@ end class")
 
         <Fact>
         Public Async Function TestInParenthesizedLambda2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub Goobar()
         dim v = sub ([||]c, d)

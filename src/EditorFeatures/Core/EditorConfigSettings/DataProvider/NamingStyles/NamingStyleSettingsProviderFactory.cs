@@ -4,18 +4,19 @@
 
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.NamingStyles;
 
-internal sealed class NamingStyleSettingsProviderFactory(Workspace workspace, IGlobalOptionService globalOptions) : IWorkspaceSettingsProviderFactory<NamingStyleSetting>
+internal sealed class NamingStyleSettingsProviderFactory(
+    IThreadingContext threadingContext,
+    Workspace workspace,
+    IGlobalOptionService globalOptions) : IWorkspaceSettingsProviderFactory<NamingStyleSetting>
 {
-    private readonly Workspace _workspace = workspace;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
-
     public ISettingsProvider<NamingStyleSetting> GetForFile(string filePath)
     {
-        var updater = new NamingStyleSettingsUpdater(_workspace, _globalOptions, filePath);
-        return new NamingStyleSettingsProvider(filePath, updater, _workspace, _globalOptions);
+        var updater = new NamingStyleSettingsUpdater(workspace, globalOptions, filePath);
+        return new NamingStyleSettingsProvider(threadingContext, filePath, updater, workspace, globalOptions);
     }
 }

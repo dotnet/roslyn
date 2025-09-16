@@ -521,19 +521,15 @@ public sealed class SyntaxGeneratorTests
 
     [Fact]
     public void TestAddHandlerExpressions()
-    {
-        VerifySyntax<AssignmentExpressionSyntax>(
+        => VerifySyntax<AssignmentExpressionSyntax>(
             Generator.AddEventHandler(Generator.IdentifierName("@event"), Generator.IdentifierName("handler")),
             "@event += (handler)");
-    }
 
     [Fact]
     public void TestSubtractHandlerExpressions()
-    {
-        VerifySyntax<AssignmentExpressionSyntax>(
+        => VerifySyntax<AssignmentExpressionSyntax>(
             Generator.RemoveEventHandler(Generator.IdentifierName("@event"),
             Generator.IdentifierName("handler")), "@event -= (handler)");
-    }
 
     [Fact]
     public void TestAwaitExpressions()
@@ -674,11 +670,9 @@ public sealed class SyntaxGeneratorTests
 
     [Fact]
     public void TestLockStatements()
-    {
-        VerifySyntax<LockStatementSyntax>(
+        => VerifySyntax<LockStatementSyntax>(
             Generator.LockStatement(Generator.IdentifierName("x"), [Generator.IdentifierName("y")]),
             "lock (x)\r\n{\r\n    y;\r\n}");
-    }
 
     [Fact]
     public void TestTryCatchStatements()
@@ -2258,8 +2252,7 @@ public sealed class SyntaxGeneratorTests
 
     [Fact]
     public void TestInterfaceDeclarationWithEventFromSymbol()
-    {
-        VerifySyntax<InterfaceDeclarationSyntax>(
+        => VerifySyntax<InterfaceDeclarationSyntax>(
             Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")),
             """
             public interface INotifyPropertyChanged
@@ -2267,12 +2260,10 @@ public sealed class SyntaxGeneratorTests
                 event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
     public void TestUnsafeFieldDeclarationFromSymbol()
-    {
-        VerifySyntax<MethodDeclarationSyntax>(
+        => VerifySyntax<MethodDeclarationSyntax>(
             Generator.Declaration(
                 _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
             """
@@ -2280,12 +2271,10 @@ public sealed class SyntaxGeneratorTests
             {
             }
             """);
-    }
 
     [Fact]
     public void TestEnumDeclarationFromSymbol()
-    {
-        VerifySyntax<EnumDeclarationSyntax>(
+        => VerifySyntax<EnumDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
                 """
@@ -2296,12 +2285,10 @@ public sealed class SyntaxGeneratorTests
                     Local = 2
                 }
                 """);
-    }
 
     [Fact]
     public void TestEnumWithUnderlyingTypeFromSymbol()
-    {
-        VerifySyntax<EnumDeclarationSyntax>(
+        => VerifySyntax<EnumDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
                 """
@@ -2312,7 +2299,6 @@ public sealed class SyntaxGeneratorTests
                     Level2 = 2
                 }
                 """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66381")]
     public void TestDelegateDeclarationFromSymbol()
@@ -2914,6 +2900,30 @@ public sealed class SyntaxGeneratorTests
                 static virtual void operator +();
             }
             """);
+    }
+
+    [Fact]
+    public void TestMultipleMembersIntoClass()
+    {
+        using var workspace = new AdhocWorkspace();
+        var node = Generator.AddMembers(Generator.ClassDeclaration("C"),
+            [
+                Generator.MethodDeclaration("M1", returnType: Generator.TypeExpression(SpecialType.System_Void), accessibility: Accessibility.Public),
+                Generator.PropertyDeclaration("P1", Generator.TypeExpression(SpecialType.System_Int32), accessibility: Accessibility.Public)
+            ]);
+
+        AssertEx.EqualOrDiff(
+            """
+            class C
+            {
+                public void M1()
+                {
+                }
+
+                public int P1 { get; set; }
+            }
+            """,
+            Formatter.Format(node, workspace).ToFullString());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65932")]
@@ -5073,63 +5083,52 @@ public sealed class SyntaxGeneratorTests
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestNamespaceModifiers()
-    {
-        TestModifiersAsync(DeclarationModifiers.None,
+        => TestModifiersAsync(DeclarationModifiers.None,
             """
             [|namespace N1
             {
             }|]
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestFileScopedNamespaceModifiers()
-    {
-        TestModifiersAsync(DeclarationModifiers.None,
+        => TestModifiersAsync(DeclarationModifiers.None,
             """
             [|namespace N1;|]
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestClassModifiers1()
-    {
-        TestModifiersAsync(DeclarationModifiers.Static,
+        => TestModifiersAsync(DeclarationModifiers.Static,
             """
             [|static class C
             {
             }|]
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestMethodModifiers()
-    {
-        TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
+        => TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
             """
             class C
             {
                 [|public sealed override void M() { }|]
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66170")]
     public void TestMethodModifiers2()
-    {
-        TestModifiersAsync(DeclarationModifiers.ReadOnly,
+        => TestModifiersAsync(DeclarationModifiers.ReadOnly,
             """
             struct S
             {
                 [|public readonly void M() { }|]
             }
             """);
-    }
 
     [Fact]
     public void TestAsyncMethodModifier()
-    {
-        TestModifiersAsync(DeclarationModifiers.Async,
+        => TestModifiersAsync(DeclarationModifiers.Async,
             """
             using System.Threading.Tasks;
             class C
@@ -5137,78 +5136,65 @@ public sealed class SyntaxGeneratorTests
                 [|public async Task DoAsync() { await Task.CompletedTask; }|]
             }
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestPropertyModifiers1()
-    {
-        TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
+        => TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
             """
             class C
             {
                 [|public virtual int X => 0;|]
             }
             """);
-    }
 
     [Fact]
     public void TestPropertyModifiers2()
-    {
-        TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Required,
+        => TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Required,
             """
             class C
             {
                 [|public required int X => 0;|]
             }
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestFieldModifiers1()
-    {
-        TestModifiersAsync(DeclarationModifiers.Static,
+        => TestModifiersAsync(DeclarationModifiers.Static,
             """
             class C
             {
                 public static int [|X|];
             }
             """);
-    }
 
     [Fact]
     public void TestFieldModifiers2()
-    {
-        TestModifiersAsync(DeclarationModifiers.Required,
+        => TestModifiersAsync(DeclarationModifiers.Required,
             """
             class C
             {
                 public required int [|X|];
             }
             """);
-    }
 
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestEvent1()
-    {
-        TestModifiersAsync(DeclarationModifiers.Virtual,
+        => TestModifiersAsync(DeclarationModifiers.Virtual,
             """
             class C
             {
                 public virtual event System.Action [|X|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65834")]
     public void TestStructModifiers1()
-    {
-        TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
+        => TestModifiersAsync(DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed,
             """
             public readonly struct [|S|]
             {
             }
             """);
-    }
 
     [Fact]
     public void TestStructModifiers2()
@@ -5299,6 +5285,387 @@ public sealed class SyntaxGeneratorTests
             Generator.TypeExpression(type),
             """
             global::System.ValueTuple<, >
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_01()
+    {
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(int i)
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::System.Int32 i)
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_02()
+    {
+        // unnamed extension parameter
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(int)
+                {
+                    public static int P { get => 0; set { } }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public static global::System.Int32 P { get; set; }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_03()
+    {
+        // generic
+        var compilation = Compile("""
+            public static class E
+            {
+                extension<T>(int)
+                {
+                    public static int P => 0;
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension<T>(global::System.Int32)
+                {
+                    public static global::System.Int32 P { get; }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_04()
+    {
+        // null extension parameter
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(__arglist)
+                {
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        Assert.Throws<ArgumentException>(() => Generator.Declaration(symbol));
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_05()
+    {
+        // operator
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(C)
+                {
+                    public static C operator +(C c1, C c2) => null;
+                }
+            }
+
+            class C { }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::C)
+                {
+                    public static global::C operator +(global::C c1, global::C c2)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_06()
+    {
+        // in struct
+        var compilation = Compile("""
+            public struct E
+            {
+                extension(int)
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<StructDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public struct E
+            {
+                extension(global::System.Int32)
+                {
+                    public void M()
+                    {
+                    }
+                }
+
+                public E()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_07()
+    {
+        // in non-static class
+        var compilation = Compile("""
+            public class E
+            {
+                extension(int)
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public void M()
+                    {
+                    }
+                }
+
+                public E()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_08()
+    {
+        // top-level
+        var compilation = Compile("""
+            extension(int)
+            {
+                public void M() { }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("").Single();
+        VerifySyntax<ExtensionBlockDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            extension(global::System.Int32)
+            {
+                public void M()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_09()
+    {
+        // nested in type
+        var compilation = Compile("""
+            static class E1
+            {
+                static class E2
+                {
+                    extension(int)
+                    {
+                        public void M() { }
+                    }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E1").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E1 : global::System.Object
+            {
+                private static class E2 : global::System.Object
+                {
+                    extension(global::System.Int32)
+                    {
+                        public void M()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_10()
+    {
+        // merged extension blocks
+        var compilation = Compile("""
+            static class E
+            {
+                extension(int)
+                {
+                    public void M1() { }
+                }
+                extension(int)
+                {
+                    public void M2() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public void M1()
+                    {
+                    }
+                }
+
+                extension(global::System.Int32)
+                {
+                    public void M2()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_11()
+    {
+        // type parameter constraints
+        var compilation = Compile("""
+            static class E
+            {
+                extension<T>(int) where T : class
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension<T>(global::System.Int32)
+                    where T : class
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_12()
+    {
+        // static extension method
+        var compilation = Compile("""
+            static class E
+            {
+                extension(int)
+                {
+                    public static void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public static void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Operator_01()
+    {
+        var compilation = Compile("""
+            class C
+            {
+                public static C operator+(C c1, C c2) => throw null;
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("C").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal class C : global::System.Object
+            {
+                public static global::C operator +(global::C c1, global::C c2)
+                {
+                }
+
+                public C()
+                {
+                }
+            }
             """);
     }
 

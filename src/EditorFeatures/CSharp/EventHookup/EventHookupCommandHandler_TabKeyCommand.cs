@@ -144,7 +144,7 @@ internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            var factory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using var waitContext = factory.Create(
                 textView,
                 applicableToSpan,

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
                 {GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups}
                 }
 
-            Return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options:=options)
+            Return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, New TestParameters(options:=options))
         End Function
 
         <WpfFact>

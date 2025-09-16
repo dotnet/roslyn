@@ -53,7 +53,7 @@ public sealed class UseExpressionBodyForLocalFunctionsRefactoringTests : Abstrac
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -79,7 +79,7 @@ public sealed class UseExpressionBodyForLocalFunctionsRefactoringTests : Abstrac
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -119,7 +119,7 @@ public sealed class UseExpressionBodyForLocalFunctionsRefactoringTests : Abstrac
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -145,7 +145,7 @@ public sealed class UseExpressionBodyForLocalFunctionsRefactoringTests : Abstrac
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -171,7 +171,7 @@ public sealed class UseExpressionBodyForLocalFunctionsRefactoringTests : Abstrac
 
     [Fact]
     public Task TestOfferedWithSelectionInsideBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

@@ -204,11 +204,7 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddGeneralDiagnostic(EditAndContinueErrorCode.ChangingMultiVersionReferences, nameof(FeaturesResources.Project_references_mutliple_assemblies_of_the_same_simple_name_0_1_Changing_a_reference_to_such_an_assembly_requires_restarting_the_application));
         AddGeneralDiagnostic(EditAndContinueErrorCode.ChangingReference, nameof(FeaturesResources.Changing_project_or_package_reference_caused_the_identity_of_referenced_assembly_to_change_from_0_to_1_which_requires_restarting_the_application));
 
-#if NET
         foreach (var value in Enum.GetValues<ProjectSettingKind>())
-#else
-        foreach (ProjectSettingKind value in Enum.GetValues(typeof(ProjectSettingKind)))
-#endif
         {
             AddProjectRudeEdit(value);
         }

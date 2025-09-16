@@ -685,7 +685,7 @@ public sealed class AliasAmbiguousTypeTests(ITestOutputHelper logger) : Abstract
         {
             { GenerationOptions.PlaceSystemNamespaceFirst, false }
         };
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, options: options, index: 0);
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, options: options, index: 1);
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0, new(options: options));
+        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1, new(options: options));
     }
 }

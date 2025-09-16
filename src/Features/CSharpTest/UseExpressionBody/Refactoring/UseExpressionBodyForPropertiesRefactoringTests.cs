@@ -23,49 +23,49 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
         => new UseExpressionBodyCodeRefactoringProvider();
 
     private OptionsCollection UseExpressionBodyForAccessors_BlockBodyForProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
         };
 
     private OptionsCollection UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption2.None },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption2.None },
         };
 
     private OptionsCollection UseExpressionBodyForAccessors_ExpressionBodyForProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
         };
 
     private OptionsCollection UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption2.None },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.None },
         };
 
     private OptionsCollection UseBlockBodyForAccessors_ExpressionBodyForProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
         };
 
     private OptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
         };
 
     private OptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.None },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption2.None },
@@ -90,7 +90,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -113,7 +113,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestUpdateAccessorIfAccessWantsBlockAndPropertyWantsExpression()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -139,7 +139,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -162,7 +162,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -224,7 +224,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -247,7 +247,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -270,7 +270,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -293,7 +293,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody2()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -335,12 +335,11 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-            options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6), options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
 
     [Fact]
     public Task TestOfferedWithSelectionInsideBlockBody()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -380,7 +379,7 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38057")]
     public Task TestCommentAfterPropertyName()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {

@@ -2501,7 +2501,7 @@ public static class E
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             verify(comp);
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.Regular14 : TestOptions.RegularPreview);
             verify(comp);
 
             static void verify(CSharpCompilation comp)

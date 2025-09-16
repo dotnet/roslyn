@@ -42,35 +42,27 @@ public sealed class CodeStyleOptionTests
 
     [Fact]
     public void WithValue_Equal_Bool()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             new CodeStyleOption2<bool>(true, NotificationOption2.Error).WithValue(false),
             new CodeStyleOption2<bool>(false, NotificationOption2.Error));
-    }
 
     [Fact]
     public void WithValue_Equal_Int()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             new CodeStyleOption2<int>(1, NotificationOption2.Error).WithValue(2),
             new CodeStyleOption2<int>(2, NotificationOption2.Error));
-    }
 
     [Fact]
     public void WithValue_Equal_Enum()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.Error).WithValue(ExpressionBodyPreference.WhenPossible),
             new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Error));
-    }
 
     [Fact]
     public void WithValue_Equal_String()
-    {
-        Assert.Equal(
+        => Assert.Equal(
             new CodeStyleOption2<string>("abc", NotificationOption2.Error).WithValue("xyz"),
             new CodeStyleOption2<string>("xyz", NotificationOption2.Error));
-    }
 
     /// <summary>
     /// Verify that bool value can migrate to enum value.

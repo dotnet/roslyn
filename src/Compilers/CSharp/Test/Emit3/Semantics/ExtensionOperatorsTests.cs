@@ -5,6 +5,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -696,14 +697,14 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:101:102").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = +s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(6, 18)
+                // (6,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = !s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(6, 18)
                 );
 
             var opName = UnaryOperatorName(op);
@@ -720,7 +721,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -1087,17 +1088,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1:102:-1").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:102:-1").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = +s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(6, 18),
-                // (11,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = +s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(11, 14)
+                // (6,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = !s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(6, 18),
+                // (11,14): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s2 = !s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(11, 14)
                 );
         }
 
@@ -1623,17 +1624,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = -c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-c1").WithArguments("extensions").WithLocation(6, 13),
-                // (10,17): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "-c1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (10,17): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //             _ = -c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-c1").WithArguments("extensions").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "-c1").WithArguments("extensions", "14.0").WithLocation(10, 17)
                 );
         }
 
@@ -2186,17 +2187,17 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:true:operator1:false").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if (s1)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1").WithArguments("extensions").WithLocation(6, 13),
-                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (12,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if (s1)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1").WithArguments("extensions").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1").WithArguments("extensions", "14.0").WithLocation(12, 13)
                 );
 
             var src3 = $$$"""
@@ -2212,7 +2213,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -2747,14 +2748,14 @@ class Program
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) == (s1, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) == (s1, 1)").WithArguments("extensions").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) == (s1, 1)").WithArguments("extensions", "14.0").WithLocation(6, 13)
                 );
         }
 
@@ -3647,35 +3648,49 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_UnaryNegation (
                 class C2 x
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_UnaryNegation
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static pinvokeimpl("something.dll" winapi) 
         class C2 op_UnaryNegation (
@@ -3721,35 +3736,49 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_UnaryNegation (
                 class C2 x
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_UnaryNegation
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         class C2 op_UnaryNegation (
@@ -3787,35 +3816,49 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_UnaryNegation (
                 class C2 x
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_UnaryNegation
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         class C2 op_UnaryNegation (
@@ -3856,8 +3899,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -3865,8 +3908,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
-                "(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                "(E.extension(S1).operator " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
+                "(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -3898,14 +3941,14 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            AssertEx.Equal(["(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+            AssertEx.Equal(["(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -3938,14 +3981,14 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            AssertEx.Equal(["(E.extension(S1).operator checked -(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+            AssertEx.Equal(["(E.extension(S1).operator checked -(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -3982,10 +4025,10 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{trueName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{trueName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{falseName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{falseName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{trueName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{trueName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{falseName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{falseName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -3993,10 +4036,10 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator true, System.Boolean E.<>E__0." + trueName + "(S1 x))",
-                "(E.extension(S1).operator true(S1), System.Boolean E.<>E__0." + trueName + "(S1 x))",
-                "(E.extension(S1).operator false, System.Boolean E.<>E__0." + falseName + "(S1 x))",
-                "(E.extension(S1).operator false(S1), System.Boolean E.<>E__0." + falseName + "(S1 x))"],
+                "(E.extension(S1).operator true, System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + trueName + "(S1 x))",
+                "(E.extension(S1).operator true(S1), System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + trueName + "(S1 x))",
+                "(E.extension(S1).operator false, System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + falseName + "(S1 x))",
+                "(E.extension(S1).operator false(S1), System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + falseName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -4726,17 +4769,17 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(6, 9),
-                // (10,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(10, 18)
+                // (6,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(6, 9),
+                // (10,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(10, 18)
                 );
 
             var opName = UnaryOperatorName(op);
@@ -4753,7 +4796,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -4844,7 +4887,7 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -4872,7 +4915,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -4950,7 +4993,7 @@ class Program
             var comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp6, expectedOutput: "operator1:101:102:True:operator1:102:103:True:True").VerifyDiagnostics();
 
-            comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp6, expectedOutput: "operator1:101:102:True:operator1:102:103:True:True").VerifyDiagnostics();
 
             comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -6229,35 +6272,35 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1:101:102:operator1:102:103:103:-1:-1:-1 | operator1:101:102:operator1:102:102:103:-1:-1:-1").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103:-1:-1:-1 | operator1:101:102:operator1:102:102:103:-1:-1:-1").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(6, 9),
-                // (10,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(10, 18),
-                // (17,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(17, 9),
-                // (20,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "s1").WithArguments("extensions").WithLocation(20, 14),
-                // (28,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1" + op).WithArguments("extensions").WithLocation(28, 9),
-                // (32,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1" + op).WithArguments("extensions").WithLocation(32, 14),
-                // (39,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1" + op).WithArguments("extensions").WithLocation(39, 9),
-                // (42,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s2 = s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1" + op).WithArguments("extensions").WithLocation(42, 14)
+                // (6,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(6, 9),
+                // (10,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(10, 18),
+                // (17,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(17, 9),
+                // (20,14): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s2 = --s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "s1").WithArguments("extensions", "14.0").WithLocation(20, 14),
+                // (28,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s1--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1" + op).WithArguments("extensions", "14.0").WithLocation(28, 9),
+                // (32,14): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s2 = s1--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1" + op).WithArguments("extensions", "14.0").WithLocation(32, 14),
+                // (39,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s1--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1" + op).WithArguments("extensions", "14.0").WithLocation(39, 9),
+                // (42,14): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s2 = s1--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1" + op).WithArguments("extensions", "14.0").WithLocation(42, 14)
                 );
         }
 
@@ -7388,17 +7431,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = ++c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "c1").WithArguments("extensions").WithLocation(6, 13),
-                // (10,17): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             _ = ++c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "c1").WithArguments("extensions").WithLocation(10, 17)
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = --c1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "c1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (10,17): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //             _ = --c1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, op + "c1").WithArguments("extensions", "14.0").WithLocation(10, 17)
                 );
         }
 
@@ -7443,7 +7486,7 @@ class Program
             var comp1 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -8343,17 +8386,17 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:102:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1++").WithArguments("extensions").WithLocation(6, 9),
-                // (10,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1++").WithArguments("extensions", "14.0").WithLocation(6, 9),
+                // (10,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         var s2 = s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1++").WithArguments("extensions").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1++").WithArguments("extensions", "14.0").WithLocation(10, 18)
                 );
         }
 
@@ -8414,7 +8457,7 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:102").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -9867,23 +9910,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_DecrementAssignment () cil managed 
         {
@@ -9892,13 +9944,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_DecrementAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static pinvokeimpl("something.dll" winapi) 
         void op_DecrementAssignment (
@@ -9946,23 +10003,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_DecrementAssignment () cil managed 
         {
@@ -9971,13 +10037,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_DecrementAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         void op_DecrementAssignment (
@@ -10017,23 +10088,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_DecrementAssignment () cil managed 
         {
@@ -10042,13 +10122,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_DecrementAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         void op_DecrementAssignment (
@@ -10089,8 +10174,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -10098,8 +10183,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
-                "(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                "(E.extension(S1).operator " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
+                "(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -10131,14 +10216,14 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            AssertEx.Equal(["(E.extension(ref S1).operator " + op + "(), void E.<>E__0." + opName + "())"],
+            AssertEx.Equal(["(E.extension(ref S1).operator " + op + "(), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "())"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -10173,8 +10258,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -10182,8 +10267,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator checked " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
-                "(E.extension(S1).operator checked " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                "(E.extension(S1).operator checked " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
+                "(E.extension(S1).operator checked " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -10217,14 +10302,14 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            AssertEx.Equal(["(E.extension(ref S1).operator checked " + op + "(), void E.<>E__0." + opName + "())"],
+            AssertEx.Equal(["(E.extension(ref S1).operator checked " + op + "(), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "())"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -11473,14 +11558,14 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:101:202:303").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 18)
+                // (7,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 18)
                 );
 
             var opName = BinaryOperatorName(op);
@@ -11497,7 +11582,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -11902,23 +11987,23 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1operator1:").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1operator1:").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 13),
-                // (8,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s12 + s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + " s11").WithArguments("extensions").WithLocation(8, 13),
-                // (11,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(11, 13),
-                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s12 + s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + " s11").WithArguments("extensions").WithLocation(12, 13)
+                // (7,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s11 - s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 13),
+                // (8,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s12 - s11;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + " s11").WithArguments("extensions", "14.0").WithLocation(8, 13),
+                // (11,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s11 - s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(11, 13),
+                // (12,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s12 - s11;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + " s11").WithArguments("extensions", "14.0").WithLocation(12, 13)
                 );
         }
 
@@ -11964,23 +12049,23 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1operator1:").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1operator1:").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 13),
-                // (8,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s12 + s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + " s11").WithArguments("extensions").WithLocation(8, 13),
-                // (11,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(11, 13),
-                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s12 + s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + " s11").WithArguments("extensions").WithLocation(12, 13)
+                // (7,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 13),
+                // (8,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s12 != s11;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + " s11").WithArguments("extensions", "14.0").WithLocation(8, 13),
+                // (11,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(11, 13),
+                // (12,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         _ = s12 != s11;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + " s11").WithArguments("extensions", "14.0").WithLocation(12, 13)
                 );
         }
 
@@ -13047,17 +13132,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c1 " + op + " c1").WithArguments("extensions").WithLocation(6, 13),
-                // (10,17): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "c1 " + op + " c1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (10,17): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //             _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c1 " + op + " c1").WithArguments("extensions").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "c1 " + op + " c1").WithArguments("extensions", "14.0").WithLocation(10, 17)
                 );
         }
 
@@ -13715,14 +13800,14 @@ operator2:True::True
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: expected).VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (11,23): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,23): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //                 Print(s1 && s2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 " + op + " s2").WithArguments("extensions").WithLocation(11, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1 " + op + " s2").WithArguments("extensions", "14.0").WithLocation(11, 23)
                 );
         }
 
@@ -15411,14 +15496,14 @@ operator2:null::null
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: expected).VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: expected).VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (11,23): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,23): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //                 Print(s1 && s2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 " + op + " s2").WithArguments("extensions").WithLocation(11, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s1 " + op + " s2").WithArguments("extensions", "14.0").WithLocation(11, 23)
                 );
         }
 
@@ -18383,36 +18468,50 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_Subtraction (
                 class C2 x,
                 class C2 y
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_Subtraction
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static pinvokeimpl("something.dll" winapi) 
         class C2 op_Subtraction (
@@ -18459,36 +18558,50 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_Subtraction (
                 class C2 x,
                 class C2 y
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_Subtraction
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         class C2 op_Subtraction (
@@ -18527,36 +18640,50 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 ''
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$3D0C2090833F9460B6F186EEC21CE3B0'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 ''
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2072
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$3D0C2090833F9460B6F186EEC21CE3B0'::'<Extension>$'
+        } // end of class <M>$3D0C2090833F9460B6F186EEC21CE3B0
+        // Methods
         .method public hidebysig specialname static 
             class C2 op_Subtraction (
                 class C2 x,
                 class C2 y
             ) cil managed 
         {
-            // Method begins at RVA 0x2071
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 33 44 30 43 32 30 39 30 38
+                33 33 46 39 34 36 30 42 36 46 31 38 36 45 45 43
+                32 31 43 45 33 42 30 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_Subtraction
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         class C2 op_Subtraction (
@@ -18651,23 +18778,23 @@ class Program
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp2, expectedOutput: "operator1: ==:operator1: !=:operator2: ==:operator2: !=").VerifyDiagnostics();
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1: ==:operator1: !=:operator2: ==:operator2: !=").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (8,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) == (s1, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) == (s1, 1)").WithArguments("extensions").WithLocation(8, 13),
-                // (15,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) == (s1, 1)").WithArguments("extensions", "14.0").WithLocation(8, 13),
+                // (15,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) == (s2, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) == (s2, 1)").WithArguments("extensions").WithLocation(15, 13),
-                // (24,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) == (s2, 1)").WithArguments("extensions", "14.0").WithLocation(15, 13),
+                // (24,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) != (s1, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) != (s1, 1)").WithArguments("extensions").WithLocation(24, 13),
-                // (33,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) != (s1, 1)").WithArguments("extensions", "14.0").WithLocation(24, 13),
+                // (33,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         if ((s1, 1) != (s2, 1))
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) != (s2, 1)").WithArguments("extensions").WithLocation(33, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "(s1, 1) != (s2, 1)").WithArguments("extensions", "14.0").WithLocation(33, 13)
                 );
 
             var src3 = $$$"""
@@ -18776,14 +18903,14 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:101:202:303").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 18)
+                // (7,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 18)
                 );
 
             var opName = BinaryOperatorName(op);
@@ -18801,7 +18928,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -18903,14 +19030,14 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:101:202:303").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = s11 + s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + " s12").WithArguments("extensions").WithLocation(7, 18)
+                // (7,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = s11 != s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + " s12").WithArguments("extensions", "14.0").WithLocation(7, 18)
                 );
 
             var opName = BinaryOperatorName(op);
@@ -18928,7 +19055,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -19245,8 +19372,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1,S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -19254,8 +19381,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator " + ToCRefOp(op) + ", S1 E.<>E__0." + opName + "(S1 x, S1 y))",
-                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1, S1), S1 E.<>E__0." + opName + "(S1 x, S1 y))"],
+                "(E.extension(S1).operator " + ToCRefOp(op) + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))",
+                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1, S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -19290,8 +19417,8 @@ public struct S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1,S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -19299,8 +19426,8 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", S1 E.<>E__0." + opName + "(S1 x, S1 y))",
-                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1), S1 E.<>E__0." + opName + "(S1 x, S1 y))"],
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))",
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -20197,17 +20324,17 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:303:202:operator1:303:202:505:202:505").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (8,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s11 += s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s12").WithArguments("extensions").WithLocation(8, 9),
-                // (15,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var s2 = s11 += s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s12").WithArguments("extensions").WithLocation(15, 18)
+                // (8,9): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         s11 -= s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s12").WithArguments("extensions", "14.0").WithLocation(8, 9),
+                // (15,18): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
+                //         var s2 = s11 -= s12;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s12").WithArguments("extensions", "14.0").WithLocation(15, 18)
                 );
 
             var opName = BinaryOperatorName(op);
@@ -20224,7 +20351,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -20324,7 +20451,7 @@ class Program
             var group = model.GetMemberGroup(opNode);
             Assert.Empty(group);
 
-            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:101:202:303:202:operator1:303:202:505:202:505").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -20351,7 +20478,7 @@ class Program
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
-            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -20438,7 +20565,7 @@ class Program
             var comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe);
             CompileAndVerify(comp6, expectedOutput: "operator1:101:202:303:202:True:operator1:303:202:505:202:True:True").VerifyDiagnostics();
 
-            comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp6, expectedOutput: "operator1:101:202:303:202:True:operator1:303:202:505:202:True:True").VerifyDiagnostics();
 
             comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -21681,23 +21808,23 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "operator1:").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "operator1:").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = s11 -= s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s12").WithArguments("extensions").WithLocation(7, 13),
-                // (10,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s12").WithArguments("extensions", "14.0").WithLocation(7, 13),
+                // (10,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = s11 -= s12;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s12").WithArguments("extensions").WithLocation(10, 13),
-                // (11,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s12").WithArguments("extensions", "14.0").WithLocation(10, 13),
+                // (11,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = s12 -= s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s12 " + op + "= s11").WithArguments("extensions").WithLocation(11, 13),
-                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s12 " + op + "= s11").WithArguments("extensions", "14.0").WithLocation(11, 13),
+                // (12,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = s11 -= s11;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 " + op + "= s11").WithArguments("extensions").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "s11 " + op + "= s11").WithArguments("extensions", "14.0").WithLocation(12, 13)
                 );
         }
 
@@ -23384,17 +23511,17 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //         _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c1 " + op + "= c1").WithArguments("extensions").WithLocation(6, 13),
-                // (10,17): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "c1 " + op + "= c1").WithArguments("extensions", "14.0").WithLocation(6, 13),
+                // (10,17): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
                 //             _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "c1 " + op + "= c1").WithArguments("extensions").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "c1 " + op + "= c1").WithArguments("extensions", "14.0").WithLocation(10, 17)
                 );
         }
 
@@ -23441,7 +23568,7 @@ class Program
             var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "regularchecked").VerifyDiagnostics();
 
-            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            var comp2 = CreateCompilation([src1, src2], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular14);
             CompileAndVerify(comp2, expectedOutput: "regularchecked").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
@@ -26467,23 +26594,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_SubtractionAssignment (
                 class C2 y
@@ -26494,13 +26630,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_SubtractionAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static pinvokeimpl("something.dll" winapi) 
         void op_SubtractionAssignment (
@@ -26549,23 +26690,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_SubtractionAssignment (
                 class C2 y
@@ -26576,13 +26726,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_SubtractionAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         void op_SubtractionAssignment (
@@ -26623,23 +26778,32 @@ public class C2
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname '<G>$3D0C2090833F9460B6F186EEC21CE3B0'
         extends [mscorlib]System.Object
     {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                class C2 x
-            ) cil managed 
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$A5B9DA57687B6EBB6576FC573B145969'
+            extends [mscorlib]System.Object
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x2097
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    class C2 x
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x209a
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$A5B9DA57687B6EBB6576FC573B145969'::'<Extension>$'
+        } // end of class <M>$A5B9DA57687B6EBB6576FC573B145969
+        // Methods
         .method public hidebysig specialname 
             instance void op_SubtractionAssignment (
                 class C2 y
@@ -26650,13 +26814,18 @@ public class C2
                 6d 70 6f 75 6e 64 41 73 73 69 67 6e 6d 65 6e 74
                 4f 70 65 72 61 74 6f 72 73 00 00
             )
-            // Method begins at RVA 0x2099
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 41 35 42 39 44 41 35 37 36
+                38 37 42 36 45 42 42 36 35 37 36 46 43 35 37 33
+                42 31 34 35 39 36 39 00 00
+            )
+            // Method begins at RVA 0x2097
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<>E__0'::op_SubtractionAssignment
-    } // end of class <>E__0
+        } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
+    } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
     .method public hidebysig static 
         void op_SubtractionAssignment (
@@ -26698,8 +26867,8 @@ public class S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -26707,8 +26876,8 @@ public class S1;
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator " + ToCRefOp(op) + ", void E.<>E__0." + opName + "(S1 y))",
-                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1), void E.<>E__0." + opName + "(S1 y))"],
+                "(E.extension(S1).operator " + ToCRefOp(op) + ", void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))",
+                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -26743,8 +26912,8 @@ public class S1;
             var e = comp.GetMember<NamedTypeSymbol>("E");
             AssertEx.Equal($$$"""
 <member name="T:E">
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
-    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;G&gt;$78CFE6F93D970DBBE44B05C24FFEB91E.{{{opName}}}(S1)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -26752,8 +26921,8 @@ public class S1;
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal([
-                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", void E.<>E__0." + opName + "(S1 y))",
-                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1), void E.<>E__0." + opName + "(S1 y))"],
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))",
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))"],
                 ExtensionTests.PrintXmlCrefSymbols(tree, model));
         }
 
@@ -27409,6 +27578,77 @@ public class Program
                 //         x += 1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
+        public void RemoveWorseMembers_01()
+        {
+            // by-value vs. in extension parameter, static operator
+            var src = """
+_ = new S() + new S();
+
+struct S { }
+
+static class E1
+{
+    extension(S)
+    {
+        public static S operator +(S s1, S s2) => throw null;
+    }
+}
+
+static class E2
+{
+    extension(in S s)
+    {
+        public static S operator +(S s1, S s2) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (1,5): error CS0034: Operator '+' is ambiguous on operands of type 'S' and 'S'
+                // _ = new S() + new S();
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new S() + new S()").WithArguments("+", "S", "S").WithLocation(1, 5));
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var binary = GetSyntax<BinaryExpressionSyntax>(tree, "new S() + new S()");
+            Assert.Null(model.GetSymbolInfo(binary).Symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79171")]
+        public void RemoveWorseMembers_02()
+        {
+            // by-value vs. in parameter, static operator
+            var src = """
+_ = new S() + new S();
+
+struct S { }
+
+static class E1
+{
+    extension(S)
+    {
+        public static S operator +(S s1, S s2) => throw null;
+    }
+}
+
+static class E2
+{
+    extension(S)
+    {
+        public static S operator +(in S s1, S s2) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var binary = GetSyntax<BinaryExpressionSyntax>(tree, "new S() + new S()");
+            AssertEx.Equal("S E1.<G>$3B24C9A1A6673CA92CA71905DDEE0A6C.op_Addition(S s1, S s2)", model.GetSymbolInfo(binary).Symbol.ToTestDisplayString());
         }
     }
 }

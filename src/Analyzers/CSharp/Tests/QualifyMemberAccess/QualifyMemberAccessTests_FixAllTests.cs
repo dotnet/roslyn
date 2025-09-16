@@ -90,5 +90,5 @@ public sealed partial class QualifyMemberAccessTests
                 </Project>
             </Workspace>
             """,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Suggestion));
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Suggestion)));
 }

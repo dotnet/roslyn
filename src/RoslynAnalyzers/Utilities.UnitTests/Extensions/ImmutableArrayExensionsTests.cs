@@ -16,9 +16,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, false)]
         [Theory]
         public void HasExactly2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, global::System.Collections.Immutable.ImmutableArrayExtensions.HasExactly(CreateImmutableArray(count), 2));
-        }
+            => Assert.Equal(result, global::System.Collections.Immutable.ImmutableArrayExtensions.HasExactly(CreateImmutableArray(count), 2));
 
         [InlineData(0, false)]
         [InlineData(1, false)]
@@ -26,9 +24,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, true)]
         [Theory]
         public void HasMoreThan2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, global::System.Collections.Immutable.ImmutableArrayExtensions.HasMoreThan(CreateImmutableArray(count), 2));
-        }
+            => Assert.Equal(result, global::System.Collections.Immutable.ImmutableArrayExtensions.HasMoreThan(CreateImmutableArray(count), 2));
 
         [InlineData(0, true)]
         [InlineData(1, true)]
@@ -36,9 +32,7 @@ namespace Analyzer.Utilities.Extensions
         [InlineData(3, false)]
         [Theory]
         public void HasFewerThan2_ReturnsTheCorrectValue(int count, bool result)
-        {
-            Assert.Equal(result, global::System.Collections.Immutable.ImmutableArrayExtensions.HasFewerThan(CreateImmutableArray(count), 2));
-        }
+            => Assert.Equal(result, global::System.Collections.Immutable.ImmutableArrayExtensions.HasFewerThan(CreateImmutableArray(count), 2));
 
         private static ImmutableArray<int> CreateImmutableArray(int count)
         {

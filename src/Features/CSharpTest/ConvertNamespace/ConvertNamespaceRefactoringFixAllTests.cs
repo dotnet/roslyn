@@ -27,7 +27,7 @@ public sealed class ConvertNamespaceRefactoringFixAllTests : AbstractCSharpCodeA
 
     [Fact]
     public Task TestConvertToFileScope_FixAllInProject()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -91,7 +91,7 @@ public sealed class ConvertNamespaceRefactoringFixAllTests : AbstractCSharpCodeA
 
     [Fact]
     public Task TestConvertToFileScope_FixAllInSolution()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -164,7 +164,7 @@ public sealed class ConvertNamespaceRefactoringFixAllTests : AbstractCSharpCodeA
 
     [Fact]
     public Task TestConvertToBlockScope_FixAllInProject()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -227,7 +227,7 @@ public sealed class ConvertNamespaceRefactoringFixAllTests : AbstractCSharpCodeA
 
     [Fact]
     public Task TestConvertToBlockScope_FixAllInSolution()
-        => TestInRegularAndScript1Async("""
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>

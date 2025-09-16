@@ -648,7 +648,7 @@ class C
                 var numRetries = 0;
                 string errorMessage;
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     context,
                     (_, diagnostics) =>
                     {
@@ -691,7 +691,7 @@ class C
                 var shouldSucceed = false;
                 string errorMessage;
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     context,
                     (_, diagnostics) =>
                     {
@@ -748,7 +748,7 @@ class UseLinq
                 CompilationTestData testData;
                 int retryCount = 0;
                 var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                    runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                    runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                     "args.Where(a => a.Length > 0)",
                     ImmutableArray<Alias>.Empty,
                     (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
@@ -912,7 +912,7 @@ LanguageVersion.CSharp7_1);
                     CompilationTestData testData;
                     int retryCount = 0;
                     var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
-                        runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                        runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                         expression,
                         ImmutableArray<Alias>.Empty,
                         (b, u) => EvaluationContext.CreateMethodContext(

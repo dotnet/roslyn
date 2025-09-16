@@ -277,7 +277,7 @@ End Class")
 
         <Fact>
         Public Async Function PadLeftWhenFormattingComponentIsSpecified() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Class C
     Sub M(someValue As String)
         Dim v = $""prefix {someValue[||].PadLeft(3):goo} suffix""
@@ -292,7 +292,7 @@ End Class")
 
         <Fact>
         Public Async Function PadRightWhenFormattingComponentIsSpecified() As Task
-            Await TestInRegularAndScript1Async("
+            Await TestInRegularAndScriptAsync("
 Class C
     Sub M(someValue As String)
         Dim v = $""prefix {someValue[||].PadRight(3):goo} suffix""

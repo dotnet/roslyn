@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking;
 
@@ -181,11 +182,9 @@ internal static partial class ValueTracker
         private async Task TrackArgumentsAsync(ImmutableArray<IArgumentOperation> argumentOperations, CancellationToken cancellationToken)
         {
             var collectorsAndArgumentMap = argumentOperations
-                .Where(ShouldTrackArgument)
                 // Clone the collector here to allow each argument to report multiple items.
                 // See Clone() docs for more details
-                .Select(argument => (collector: Clone(), argument))
-                .ToImmutableArray();
+                .SelectAsArray(ShouldTrackArgument, argument => (collector: Clone(), argument));
 
             await Parallel.ForEachAsync(
                 collectorsAndArgumentMap,

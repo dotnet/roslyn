@@ -267,12 +267,12 @@ retry:
                 // in the queue.  This keeps the behavior in line with TryDequeue
                 if (_data.Count > 0)
                 {
-                    return ValueTaskFactory.FromResult<Optional<TElement>>(_data.Dequeue());
+                    return ValueTask.FromResult<Optional<TElement>>(_data.Dequeue());
                 }
 
                 if (_completed)
                 {
-                    return ValueTaskFactory.FromResult(default(Optional<TElement>));
+                    return ValueTask.FromResult(default(Optional<TElement>));
                 }
 
                 _waiters ??= new Queue<TaskCompletionSource<Optional<TElement>>>();

@@ -31,7 +31,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormatRules(SourceText text);
 
     public async Task<ImmutableArray<AddImportFixData>> AnalyzeAsync(
-        Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        Document document, TextSpan textSpan, bool cleanDocument, CancellationToken cancellationToken)
     {
         // Get the diagnostics that indicate a missing import.
         var addImportFeatureService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -52,6 +52,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
                 SearchReferenceAssemblies = false,
                 SearchNuGetPackages = false,
             },
+            cleanDocument,
             cancellationToken).ConfigureAwait(false);
 
         var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
@@ -103,7 +104,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
             args: (document, progressTracker),
             cancellationToken);
 
-        await foreach (var change in changes)
+        await foreach (var change in changes.ConfigureAwait(false))
             insertionOnlyChanges.Add(change);
 
         // Capture each location where we are inserting imports as well as the total

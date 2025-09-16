@@ -125,11 +125,6 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
                 isEnabledByDefault: true, warningLevel: 0, [], ImmutableDictionary<string, string?>.Empty,context.Document!.Project.Id,
                 new DiagnosticDataLocation(new FileLinePositionSpan(context.Document!.FilePath!, new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))))]);
         }
-
-        public override bool IsLiveSource()
-        {
-            return true;
-        }
     }
 
     [Export(typeof(IDiagnosticSourceProvider)), Shared, PartNotDiscoverable]

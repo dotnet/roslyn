@@ -10,8 +10,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -331,9 +331,66 @@ namespace Roslyn.Utilities
             return source.Where((Func<T?, bool>)s_notNullTest)!;
         }
 
+        /// <summary>
+        /// Uses a builder to store results computed from <paramref name="source"/>.  If <paramref name="source"/> is
+        /// null, or definitely empty, this returns false, allowing the caller to immediately return <c>[]</c> without
+        /// further allocations.  If this returns true, then <paramref name="builder"/> will be set to an appropriate
+        /// builder to receive temporary values.
+        /// </summary>
+        /// <param name="useCountForBuilder">If the count of <paramref name="source"/> can be determined (and is non-zero),
+        /// if <paramref name="builder"/> should be initialized to that same count.  This should be passed true
+        /// for 'SelectAsArray' methods, and false for 'WhereAsArray' or 'SelectManyAsArray' methods (as the latter two
+        /// do not know how many items will be added to the builder).</param>
+        private static bool TryGetBuilder<TSource, TResult>(
+            [NotNullWhen(true)] IEnumerable<TSource>? source,
+            bool useCountForBuilder,
+            [NotNullWhen(true)] out ArrayBuilder<TResult>? builder)
+        {
+            if (source is null)
+            {
+                builder = null;
+                return false;
+            }
+
+#if NET
+            if (source.TryGetNonEnumeratedCount(out var count))
+            {
+                if (count == 0)
+                {
+                    builder = null;
+                    return false;
+                }
+
+                if (useCountForBuilder)
+                {
+                    builder = ArrayBuilder<TResult>.GetInstance(count);
+                    return true;
+                }
+            }
+#endif
+
+            builder = ArrayBuilder<TResult>.GetInstance();
+            return true;
+        }
+
+        public static ImmutableArray<T> WhereAsArray<T>(this IEnumerable<T> values, Func<T, bool> predicate)
+        {
+            if (!TryGetBuilder<T, T>(values, useCountForBuilder: false, out var builder))
+                return [];
+
+            foreach (var value in values)
+            {
+                if (predicate(value))
+                    builder.Add(value);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static ImmutableArray<T> WhereAsArray<T, TArg>(this IEnumerable<T> values, Func<T, TArg, bool> predicate, TArg arg)
         {
-            var result = ArrayBuilder<T>.GetInstance();
+            if (!TryGetBuilder<T, T>(values, useCountForBuilder: false, out var result))
+                return [];
 
             foreach (var value in values)
             {
@@ -349,25 +406,34 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, TResult> selector)
         {
-            if (source == null)
-            {
-                return ImmutableArray<TResult>.Empty;
-            }
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
             builder.AddRange(source.Select(selector));
+            return builder.ToImmutableAndFree();
+
+        }
+
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this IEnumerable<TItem>? source, Func<TItem, bool> predicate, Func<TItem, TResult> selector)
+        {
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
+
+            foreach (var item in source)
+            {
+                if (predicate(item))
+                    builder.Add(selector(item));
+            }
 
             return builder.ToImmutableAndFree();
         }
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, int, TResult> selector)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
-
-            int index = 0;
+            var index = 0;
             foreach (var element in source)
             {
                 builder.Add(selector(element, index));
@@ -377,44 +443,50 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)
-        {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
-
-            var builder = new TResult[source.Count];
-            var index = 0;
-            foreach (var item in source)
-            {
-                builder[index] = selector(item);
-                index++;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
-        {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
-
-            var builder = new TResult[source.Count];
-            var index = 0;
-            foreach (var item in source)
-            {
-                builder[index] = selector(item, arg);
-                index++;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IEnumerable<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
         {
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
             var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var element in source)
+            {
+                builder.Add(selector(element, arg));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)
+        {
+            if (source is null or { Count: 0 })
+                return [];
+
+            var builder = new FixedSizeArrayBuilder<TResult>(source.Count);
+            foreach (var item in source)
+                builder.Add(selector(item));
+
+            return builder.MoveToImmutable();
+        }
+
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
+        {
+            if (source is null or { Count: 0 })
+                return [];
+
+            var builder = new FixedSizeArrayBuilder<TResult>(source.Count);
+            foreach (var item in source)
+                builder.Add(selector(item, arg));
+
+            return builder.MoveToImmutable();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
+        {
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
+
             foreach (var item in source)
                 builder.AddRange(selector(item));
 
@@ -423,10 +495,9 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IEnumerable<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)
                 builder.AddRange(selector(item, arg));
 
@@ -435,8 +506,8 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, IEnumerable<TResult>> selector)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (source is null or { Count: 0 })
+                return [];
 
             // Basic heuristic. Assume each element in the source adds one item to the result.
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
@@ -448,8 +519,8 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (source is null or { Count: 0 })
+                return [];
 
             // Basic heuristic. Assume each element in the source adds one item to the result.
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
@@ -461,10 +532,9 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, OneOrMany<TResult>> selector)
         {
-            if (source == null)
-                return ImmutableArray<TResult>.Empty;
+            if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)
                 selector(item).AddRangeTo(builder);
 
@@ -476,12 +546,11 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, ValueTask<TResult>> selector)
         {
-            var builder = ArrayBuilder<TResult>.GetInstance();
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
             foreach (var item in source)
-            {
                 builder.Add(await selector(item).ConfigureAwait(false));
-            }
 
             return builder.ToImmutableAndFree();
         }
@@ -491,12 +560,11 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<TResult>.GetInstance();
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
             foreach (var item in source)
-            {
                 builder.Add(await selector(item, cancellationToken).ConfigureAwait(false));
-            }
 
             return builder.ToImmutableAndFree();
         }
@@ -506,24 +574,22 @@ namespace Roslyn.Utilities
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<TResult>.GetInstance();
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: true, out var builder))
+                return [];
 
             foreach (var item in source)
-            {
                 builder.Add(await selector(item, arg, cancellationToken).ConfigureAwait(false));
-            }
 
             return builder.ToImmutableAndFree();
         }
 
         public static async ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this IEnumerable<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<IEnumerable<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<TResult>.GetInstance();
+            if (!TryGetBuilder<TItem, TResult>(source, useCountForBuilder: false, out var builder))
+                return [];
 
             foreach (var item in source)
-            {
                 builder.AddRange(await selector(item, arg, cancellationToken).ConfigureAwait(false));
-            }
 
             return builder.ToImmutableAndFree();
         }

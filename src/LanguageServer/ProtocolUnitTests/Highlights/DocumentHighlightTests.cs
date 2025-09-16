@@ -113,7 +113,7 @@ public sealed class DocumentHighlightTests : AbstractLanguageServerProtocolTests
     }
 
     private static LSP.DocumentHighlight CreateDocumentHighlight(LSP.DocumentHighlightKind kind, LSP.Location location)
-        => new LSP.DocumentHighlight()
+        => new()
         {
             Kind = kind,
             Range = location.Range

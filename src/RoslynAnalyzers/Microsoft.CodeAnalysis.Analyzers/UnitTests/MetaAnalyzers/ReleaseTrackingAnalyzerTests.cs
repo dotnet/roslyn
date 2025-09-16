@@ -20,10 +20,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class ReleaseTrackingAnalyzerTests
     {
         [Fact]
-        public async Task TestNoDeclaredAnalyzersAsync()
-        {
-            await VerifyCSharpAsync(@"", @"", @"");
-        }
+        public Task TestNoDeclaredAnalyzersAsync()
+            => VerifyCSharpAsync(@"", @"", @"");
 
         [InlineData(@"{|RS2008:""Id1""|}", null, null)]
         [InlineData("""
@@ -34,9 +32,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             """, null, "")]
         [InlineData(@"{|RS2000:""Id1""|}", "", "")]
         [Theory]
-        public async Task TestMissingReleasesFilesAsync(string id, string shippedText, string unshippedText)
-        {
-            await VerifyCSharpAsync($$"""
+        public Task TestMissingReleasesFilesAsync(string id, string shippedText, string unshippedText)
+            => VerifyCSharpAsync($$"""
 
                 using System;
                 using System.Collections.Immutable;
@@ -54,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, shippedText, unshippedText);
-        }
 
         [Fact]
         public async Task TestCodeFixToEnableAnalyzerReleaseTrackingAsync()
@@ -145,9 +141,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     DefaultShippedHeader2WithBorders + "| Id1 | Category1 | Warning | |" + BlankLine + DefaultChangedUnshippedHeaderWithBorders + "| Id3 | Category2 | Warning | Category1 | Warning | |" + BlankLine + DefaultRemovedUnshippedHeaderWithBorders + "| Id2 | Category1 | Warning | |",
                     DefaultRemovedUnshippedHeaderWithBorders + "| Id3 | Category2 | Warning | |")]
         [Theory]
-        public async Task TestReleasesFileAlreadyHasEntryAsync(string shippedText, string unshippedText)
-        {
-            await VerifyCSharpAsync("""
+        public Task TestReleasesFileAlreadyHasEntryAsync(string shippedText, string unshippedText)
+            => VerifyCSharpAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -165,7 +160,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) {{ }}
                 }
                 """, shippedText, unshippedText);
-        }
 
         [Fact]
         public async Task TestRemoveUnshippedDeletedDiagnosticIdRuleAsync()
@@ -211,9 +205,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         }
 
         [Fact]
-        public async Task TestCodeFixToAddUnshippedEntriesAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync("""
+        public Task TestCodeFixToAddUnshippedEntriesAsync()
+            => VerifyCSharpAdditionalFileFixAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -247,7 +240,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 Id2 | Category2 | Disabled | MyAnalyzer
                 Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)
                 """);
-        }
 
         [Fact]
         public async Task TestCodeFixToAddUnshippedEntries_DiagnosticDescriptorHelperAsync()
@@ -304,9 +296,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [InlineData(DefaultUnshippedHeader + BlankLine + @"; Comments are preserved" + BlankLine,
                     DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + @"; Comments are preserved" + BlankLine)]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_TriviaIsPreservedAsync(string unshippedText, string fixedUnshippedText)
-        {
-            await VerifyCSharpAdditionalFileFixAsync("""
+        public Task TestCodeFixToAddUnshippedEntries_TriviaIsPreservedAsync(string unshippedText, string fixedUnshippedText)
+            => VerifyCSharpAdditionalFileFixAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -323,7 +314,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, @"", unshippedText, fixedUnshippedText);
-        }
 
         // Added after current entry.
         [InlineData("Id0", DefaultUnshippedHeader + @"Id0 | DifferentCategory | Warning | MyAnalyzer",
@@ -340,9 +330,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                            DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader + @"Id3 | Category | Warning | MyAnalyzer",
                            DefaultShippedHeader + @"Id2 | DifferentCategory | Warning | MyAnalyzer" + BlankLine + @"Id3 | Category | Warning | MyAnalyzer")]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntriesAsync(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntriesAsync(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
+            => VerifyCSharpAdditionalFileFixAsync($$"""
 
                 using System;
                 using System.Collections.Immutable;
@@ -362,7 +351,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, shippedText, unshippedText, fixedUnshippedText);
-        }
 
         // Adds to existing new rules table and creates a new changed rules table.
         [InlineData(DefaultUnshippedHeader + @"Id0 | Category0 | Warning | MyAnalyzer",
@@ -373,9 +361,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + DefaultChangedUnshippedHeader + @"Id0 | Category0 | Warning | Category | Warning | MyAnalyzer" + BlankLine + @"Id2 | DifferentCategory | Warning | Category | Warning | MyAnalyzer",
                     DefaultShippedHeader + @"Id0 | Category | Warning | MyAnalyzer" + BlankLine + @"Id2 | Category | Warning | MyAnalyzer")]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntriesToMultipleTablesAsync(string unshippedText, string fixedUnshippedText, string shippedText = "")
-        {
-            await VerifyCSharpAdditionalFileFixAsync("""
+        public Task TestCodeFixToAddUnshippedEntriesToMultipleTablesAsync(string unshippedText, string fixedUnshippedText, string shippedText = "")
+            => VerifyCSharpAdditionalFileFixAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -398,7 +385,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, shippedText, unshippedText, fixedUnshippedText);
-        }
 
         [InlineData("",
                     DefaultUnshippedHeader + "Id1 | Category1 | Warning | MyAnalyzer",
@@ -413,9 +399,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     DefaultUnshippedHeader + "Id1 | Category1 | Warning | MyAnalyzer",
                     "RS2000")]
         [Theory]
-        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntryAsync(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntryAsync(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
+            => VerifyCSharpAdditionalFileFixAsync($$"""
 
                 using System;
                 using System.Collections.Immutable;
@@ -433,12 +418,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, shippedText, @"", fixedUnshippedText);
-        }
 
         [Fact]
-        public async Task TestCodeFixToUpdateMultipleUnshippedEntriesAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync("""
+        public Task TestCodeFixToUpdateMultipleUnshippedEntriesAsync()
+            => VerifyCSharpAdditionalFileFixAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -472,7 +455,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 Id2 | Category2 | Disabled | MyAnalyzer
                 Id3 | Category3 | Warning | MyAnalyzer
                 """);
-        }
 
         [Fact]
         public async Task TestCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
@@ -513,9 +495,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         }
 
         [Fact]
-        public async Task TestNoCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
-        {
-            await VerifyCSharpAsync("""
+        public Task TestNoCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
+            => VerifyCSharpAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -541,7 +522,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, @"", $@"{DefaultUnshippedHeader}Id1 | CustomCategory | Warning |");
-        }
 
         // No header in unshipped
         [InlineData("", "Id1 | Category1 | Warning |")]
@@ -731,9 +711,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         // Duplicate entries with in shipped with second removed entry.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "{|RS2005:Id1 | Category2 | Warning ||}", "")]
         [Theory]
-        public async Task TestDuplicateEntryInReleaseDiagnosticAsync(string shippedText, string unshippedText)
-        {
-            await VerifyCSharpAsync("""
+        public Task TestDuplicateEntryInReleaseDiagnosticAsync(string shippedText, string unshippedText)
+            => VerifyCSharpAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -750,7 +729,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, shippedText, unshippedText);
-        }
 
         // Duplicate entries across shipped and unshipped.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultUnshippedHeader + "{|RS2006:Id1 | Category1 | Warning ||}")]
@@ -767,9 +745,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         // Duplicate changed entries across consecutive shipped releases.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedShippedHeader2 + "Id1 | Category1 | Warning | Category1 | Info |" + BlankLine + DefaultChangedShippedHeader3 + "{|RS2006:Id1 | Category1 | Warning | Category1 | Info ||}", "")]
         [Theory]
-        public async Task TestDuplicateEntryBetweenReleasesDiagnosticAsync(string shippedText, string unshippedText)
-        {
-            await VerifyCSharpAsync("""
+        public Task TestDuplicateEntryBetweenReleasesDiagnosticAsync(string shippedText, string unshippedText)
+            => VerifyCSharpAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -786,7 +763,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, shippedText, unshippedText);
-        }
 
         // Remove entry in unshipped for already shipped release.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultRemovedUnshippedHeader + "Id1 | Category1 | Warning |", "RS2004")]
@@ -795,9 +771,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         // Remove entry with changed severity in shipped for a prior shipped release.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |", "", "RS2000")]
         [Theory]
-        public async Task TestRemoveEntryInReleaseFile_DiagnosticCasesAsync(string shippedText, string unshippedText, string expectedDiagnosticId)
-        {
-            await VerifyCSharpAsync($$"""
+        public Task TestRemoveEntryInReleaseFile_DiagnosticCasesAsync(string shippedText, string unshippedText, string expectedDiagnosticId)
+            => VerifyCSharpAsync($$"""
 
                 using System;
                 using System.Collections.Immutable;
@@ -814,7 +789,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, shippedText, unshippedText);
-        }
 
         // Invalid remove entry without prior shipped entry in shipped.
         [InlineData(DefaultRemovedShippedHeader + "Id1 | Category1 | Warning |", "")]
@@ -921,9 +895,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         // Remove entry with changed severity in shipped for a prior shipped release.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |", "")]
         [Theory]
-        public async Task TestRemoveEntryInReleaseFile_NoDiagnosticCasesAsync(string shippedText, string unshippedText)
-        {
-            await VerifyCSharpAsync("""
+        public Task TestRemoveEntryInReleaseFile_NoDiagnosticCasesAsync(string shippedText, string unshippedText)
+            => VerifyCSharpAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -937,12 +910,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, shippedText, unshippedText);
-        }
 
         [Fact, WorkItem(5828, "https://github.com/dotnet/roslyn-analyzers/issues/5828")]
-        public async Task TestTargetTypedNew()
-        {
-            await VerifyCSharpAsync("""
+        public Task TestTargetTypedNew()
+            => VerifyCSharpAsync("""
 
                 using System;
                 using System.Collections.Immutable;
@@ -959,7 +930,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) { }
                 }
                 """, @"", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |");
-        }
         #region Helpers
 
         private const string DefaultUnshippedHeader = ReleaseTrackingHelper.TableTitleNewRules + BlankLine + BlankLine +

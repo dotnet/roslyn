@@ -20,7 +20,7 @@ public sealed partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnost
     private sealed class MockDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string Id = "MockDiagnostic";
-        private readonly DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");
+        private readonly DiagnosticDescriptor _descriptor = new(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -54,7 +54,7 @@ public sealed partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnost
          params DiagnosticDescription[] expectedDiagnostics)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: GetComposition());
-        var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, new TestParameters());
+        var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, TestParameters.Default);
         actualDiagnostics.Verify(expectedDiagnostics);
     }
 

@@ -24,9 +24,7 @@ public sealed class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTes
         string initialMarkup, string expectedMarkup,
         ParseOptions? parseOptions = null, int index = 0)
         => TestAsync(
-            initialMarkup, expectedMarkup, parseOptions,
-            index: index,
-            options: AllCodeStyleOff);
+            initialMarkup, expectedMarkup, new(parseOptions, index: index, options: AllCodeStyleOff));
 
     private OptionsCollection AllCodeStyleOff
         => new(GetLanguage())
@@ -1807,7 +1805,7 @@ index: 1);
             {
                 int Goo { get => 1; }
             }
-            """, options: PreferExpressionBodiedAccessors);
+            """, new(options: PreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle2()
@@ -1826,7 +1824,7 @@ index: 1);
             {
                 int Goo => 1;
             }
-            """, options: PreferExpressionBodiedProperties);
+            """, new(options: PreferExpressionBodiedProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle3()
@@ -1845,7 +1843,7 @@ index: 1);
             {
                 int Goo => 1;
             }
-            """, options: PreferExpressionBodiedAccessorsAndProperties);
+            """, new(options: PreferExpressionBodiedAccessorsAndProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle4()
@@ -1871,7 +1869,7 @@ index: 1);
             }
             """,
             index: 1,
-            options: PreferExpressionBodiedAccessors);
+            new(options: PreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle5()
@@ -1908,7 +1906,7 @@ index: 1);
             }
             """,
             index: 1,
-            options: PreferExpressionBodiedProperties);
+            new(options: PreferExpressionBodiedProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle6()
@@ -1934,7 +1932,7 @@ index: 1);
             }
             """,
             index: 1,
-            options: PreferExpressionBodiedAccessorsAndProperties);
+            new(options: PreferExpressionBodiedAccessorsAndProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle7()
@@ -1950,7 +1948,7 @@ index: 1);
             {
                 int Goo => 0;
             }
-            """, options: PreferExpressionBodiedProperties);
+            """, new(options: PreferExpressionBodiedProperties));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle8()
@@ -1966,7 +1964,7 @@ index: 1);
             {
                 int Goo { get => 0; }
             }
-            """, options: PreferExpressionBodiedAccessors);
+            """, new(options: PreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle9()
@@ -1982,7 +1980,7 @@ index: 1);
             {
                 int Goo { get => throw e; }
             }
-            """, options: PreferExpressionBodiedAccessors);
+            """, new(options: PreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
     public Task TestCodeStyle10()
@@ -1998,7 +1996,7 @@ index: 1);
             {
                 int Goo => throw e;
             }
-            """, options: PreferExpressionBodiedProperties);
+            """, new(options: PreferExpressionBodiedProperties));
 
     [Fact]
     public Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
@@ -2014,7 +2012,7 @@ index: 1);
             {
                 int Goo => throw e;
             }
-            """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
+            """, new(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
 
     [Fact]
     public Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
@@ -2038,11 +2036,11 @@ index: 1);
                     }
                 }
             }
-            """, options: new OptionsCollection(GetLanguage())
-{
-    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
-    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
-});
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
+            }));
 
     [Fact]
     public Task TestExplicitInterfaceImplementation()
@@ -2434,7 +2432,7 @@ index: 1);
 
     [Fact]
     public Task TestBeforeStartOfMethod_NotBeforeAttributes()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2485,7 +2483,7 @@ index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42699")]
     public Task TestSameNameMemberAsProperty()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2510,7 +2508,7 @@ index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
     public Task TestMethodWithTrivia_3()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2787,7 +2785,7 @@ index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72035")]
     public Task TestUpdateGetReferenceGeneratedPart()
-        => TestInRegularAndScript1Async(
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">

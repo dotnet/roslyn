@@ -1866,6 +1866,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             closeParen = parenthesizedExpression.CloseParenToken
         End Sub
 
+        Public Sub GetPartsOfPostfixUnaryExpression(node As SyntaxNode, ByRef operand As SyntaxNode, ByRef operatorToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfPostfixUnaryExpression
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
+        End Sub
+
         Public Sub GetPartsOfPrefixUnaryExpression(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef operand As SyntaxNode) Implements ISyntaxFacts.GetPartsOfPrefixUnaryExpression
             Dim unaryExpression = DirectCast(node, UnaryExpressionSyntax)
             operatorToken = unaryExpression.OperatorToken

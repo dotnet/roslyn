@@ -25,8 +25,7 @@ public sealed class CSharpCommentSelectionTests
 {
     [WpfFact]
     public void UncommentAndFormat1()
-    {
-        UncommentSelection("""
+        => UncommentSelection("""
             class A
             {
                 [|          //            void  Method  (   )
@@ -43,12 +42,10 @@ public sealed class CSharpCommentSelectionTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void UncommentAndFormat2()
-    {
-        UncommentSelection("""
+        => UncommentSelection("""
             class A
             {
                 [|          /*            void  Method  (   )
@@ -65,12 +62,10 @@ public sealed class CSharpCommentSelectionTests
                 }
             }
             """);
-    }
 
     [WpfFact]
     public void UncommentSingleLineCommentInPseudoBlockComment()
-    {
-        UncommentSelection("""
+        => UncommentSelection("""
             class C
             {
                 /// <include file='doc\Control.uex' path='docs/doc[@for="Control.RtlTranslateAlignment1"]/*' />
@@ -91,12 +86,10 @@ public sealed class CSharpCommentSelectionTests
                 /* Hello world */
             }
             """);
-    }
 
     [WpfFact]
     public void UncommentAndFormat3()
-    {
-        UncommentSelection("""
+        => UncommentSelection("""
             class A
             {
                 [|          //            void  Method  (   )       |]
@@ -113,7 +106,6 @@ public sealed class CSharpCommentSelectionTests
                 }
             }
             """);
-    }
 
     private static void UncommentSelection(string markup, string expected)
     {

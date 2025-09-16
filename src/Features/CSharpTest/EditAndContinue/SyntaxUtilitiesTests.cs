@@ -30,8 +30,7 @@ public sealed class SyntaxUtilitiesTests
 
     [Fact]
     public void FindPartner1()
-    {
-        VerifySyntaxMap("""
+        => VerifySyntaxMap("""
             using System;
 
             class C
@@ -62,7 +61,6 @@ public sealed class SyntaxUtilitiesTests
                 }
             }
             """);
-    }
 
     [Fact]
     public void FindLeafNodeAndPartner1()

@@ -10,7 +10,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml;
 
-#pragma warning disable RSEXPERIMENTAL003 // SyntaxTokenParser
 public class SyntaxTokenParserTests
 {
     [Fact]

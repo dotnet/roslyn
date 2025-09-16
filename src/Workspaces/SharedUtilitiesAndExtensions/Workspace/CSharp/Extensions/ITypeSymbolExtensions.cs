@@ -39,17 +39,14 @@ internal static partial class ITypeSymbolExtensions
         var type = symbol as ITypeSymbol;
         var containsAnonymousType = type != null && type.ContainsAnonymousType();
 
+        // something with an anonymous type can only be represented with 'var', regardless
+        // of what the user's preferences might be.
         if (containsAnonymousType && allowVar)
-        {
-            // something with an anonymous type can only be represented with 'var', regardless
-            // of what the user's preferences might be.
             return IdentifierName("var");
-        }
 
         var syntax = containsAnonymousType
             ? TypeSyntaxGeneratorVisitor.CreateSystemObject()
-            : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
-                    .WithAdditionalAnnotations(Simplifier.Annotation);
+            : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!.WithAdditionalAnnotations(Simplifier.Annotation);
 
         if (!allowVar)
             syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);

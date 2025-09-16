@@ -286,8 +286,7 @@ public class OtherClass
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNull_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -299,12 +298,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNull_StringEmpty_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 
 class TestClass
@@ -318,12 +315,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNull_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -334,12 +329,10 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNull);
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNull_OtherMethod_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -352,12 +345,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (9, 9, "void OtherClass.OtherMethod(string s, TestTypeToTrack t)", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNull_StaticMethod_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -369,12 +360,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (8, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNull_OtherClassBothMethods_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -389,7 +378,6 @@ class TestClass
                 TestTypeToTrack_HazardousIfStringIsNonNull,
                 (9, 9, "void OtherClass.OtherMethod(string s, TestTypeToTrack t)", HazardousUsageEvaluationResult.Flagged),
                 (10, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
-        }
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrackWithConstructor.AString property
@@ -448,8 +436,7 @@ class TestClass
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -460,12 +447,10 @@ class TestClass
 }",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull,
                 (7, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_StringEmpty_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 
 class TestClass
@@ -478,12 +463,10 @@ class TestClass
 }",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull,
                 (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -493,12 +476,10 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull);
-        }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfStringIsNull_PropertyAssigned_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -510,7 +491,6 @@ class TestClass
 }",
                 TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrack.AnEnum property is Value0 when
@@ -547,8 +527,7 @@ class TestClass
 
         [Fact]
         public void TestTypeToTrack_HazardousIfEnumIsValue0_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -560,12 +539,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfEnumIsValue0,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfEnumIsValue0_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -576,7 +553,6 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfEnumIsValue0);
-        }
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrackWithConstructor.AnEnum property
@@ -620,8 +596,7 @@ class TestClass
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -631,12 +606,10 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0);
-        }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -647,7 +620,6 @@ class TestClass
 }",
                 TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0,
                 (7, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when both TestTypeToTrack.AString starts with 'T' and
@@ -702,8 +674,7 @@ class TestClass
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -716,12 +687,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2,
                 (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_BothMaybe_MaybeFlagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 class TestClass
 {
@@ -746,12 +715,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2,
                 (21, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_FirstMaybe_MaybeFlagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 class TestClass
 {
@@ -771,12 +738,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2,
                 (16, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_SecondMaybe_MaybeFlagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 class TestClass
 {
@@ -796,12 +761,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2,
                 (16, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringStartsWithTAndValue2_FirstFlagged_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 class TestClass
 {
@@ -814,7 +777,6 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2);
-        }
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when both TestTypeToTrack.AnObject is a BitArray.
@@ -880,8 +842,7 @@ class TestClass
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 using System.Collections;
 
@@ -895,12 +856,10 @@ class TestClass
 }",
                 TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray,
                 (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_TwoPaths_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 using System.Collections;
 
@@ -918,12 +877,10 @@ class TestClass
 }",
                 TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray,
                 (14, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_NotFlagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 using System.Collections;
 
@@ -936,7 +893,6 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray);
-        }
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when both TestTypeToTrackWithConstructor.AString starts
@@ -984,8 +940,7 @@ class TestClass
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 using System.Collections;
 
@@ -999,12 +954,10 @@ class TestClass
 }",
                 TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA,
                 (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA_Interprocedural_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 using System.Collections;
 
@@ -1023,7 +976,6 @@ class TestClass
 }",
                 TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA,
                 (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrack.AString property is not null
@@ -1064,8 +1016,7 @@ class TestClass
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturn_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     TestTypeToTrack TestMethod()
@@ -1077,12 +1028,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn,
                 (8, 16, null, HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturn_StringEmpty_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 class TestClass
 {
@@ -1095,12 +1044,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn,
                 (9, 16, null, HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturns_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     TestTypeToTrack TestMethod()
@@ -1111,12 +1058,10 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn);
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturns_ReturnObject_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     object TestMethod()
@@ -1127,7 +1072,6 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn);
-        }
 
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrack.AString and
@@ -1184,8 +1128,7 @@ class TestClass
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AStringNonNull_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -1197,12 +1140,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AnObjectNonNull_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -1214,12 +1155,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull,
                 (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_StringEmpty_Flagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 using System;
 class TestClass
 {
@@ -1232,12 +1171,10 @@ class TestClass
 }",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull,
                 (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_StringNonNull_ObjectNull_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -1249,12 +1186,10 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
-        }
 
         [Fact]
         public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AnObjectNonNull_StringNull_Unflagged()
-        {
-            VerifyCSharp(@"
+            => VerifyCSharp(@"
 class TestClass
 {
     void TestMethod()
@@ -1266,7 +1201,6 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
-        }
 
         private ITestOutputHelper TestOutput { get; }
 

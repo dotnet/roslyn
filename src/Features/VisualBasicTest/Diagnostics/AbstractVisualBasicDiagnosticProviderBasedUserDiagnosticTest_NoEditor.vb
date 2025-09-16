@@ -7,9 +7,12 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-
     Partial Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
-        Inherits AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+        Inherits AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(Of
+            TestHostDocument,
+            TestHostProject,
+            TestHostSolution,
+            TestWorkspace)
 
         Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))
@@ -32,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Dim expectedStr = expected.ConvertTestSourceTag()
 
             Await MyBase.TestAsync(initialMarkupStr, expectedStr,
-                                   parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions,
-                                   index:=index)
+                                   New TestParameters(parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions,
+                                   index:=index))
         End Function
 
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Task

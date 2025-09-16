@@ -2002,8 +2002,7 @@ public partial class ExtractMethodTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
     public Task SimpleUsingStatement()
-    {
-        return TestExtractMethodAsync("""
+        => TestExtractMethodAsync("""
             public class Goo : IDisposable
             {
                 void M2() { }
@@ -2049,7 +2048,6 @@ public partial class ExtractMethodTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24136")]
     public Task WhenClause_SwitchStatement()

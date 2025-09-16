@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
 public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    private static readonly CSharpParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+    private static readonly CSharpParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
 
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
@@ -48,7 +48,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task ExtraLineAfterProperty()
@@ -76,7 +76,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                 }
 
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task WithInitialValue()
@@ -102,7 +102,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task WithCalculatedInitialValue()
@@ -130,7 +130,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task WithPrivateSetter()
@@ -156,7 +156,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task WithFieldNameAlreadyUsed()
@@ -185,7 +185,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task WithComments()
@@ -215,7 +215,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                 } //Comments during
                 //Comments after
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task WithExpressionBody()
@@ -231,7 +231,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 public int Goo { get => goo; set => goo = value; }
             }
-            """, options: PreferExpressionBodiedAccessorsWhenPossible);
+            """, new(options: PreferExpressionBodiedAccessorsWhenPossible));
 
     [Fact]
     public Task WithExpressionBodyWhenOnSingleLine()
@@ -247,7 +247,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 public int Goo { get => goo; set => goo = value; }
             }
-            """, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
+            """, new(options: PreferExpressionBodiedAccessorsWhenOnSingleLine));
 
     [Fact]
     public Task WithExpressionBodyWhenOnSingleLine2()
@@ -271,7 +271,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     set => goo = value;
                 }
             }
-            """, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
+            """, new(options: PreferExpressionBodiedAccessorsWhenOnSingleLine));
 
     [Fact]
     public Task WithExpressionBodyWithTrivia()
@@ -287,7 +287,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 public int Goo { get /* test */ => goo; set /* test2 */ => goo = value; }
             }
-            """, options: PreferExpressionBodiedAccessorsWhenPossible);
+            """, new(options: PreferExpressionBodiedAccessorsWhenPossible));
 
     [Fact]
     public Task WithPropertyOpenBraceOnSameLine()
@@ -312,7 +312,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine);
+            """, new(options: DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine));
 
     [Fact]
     public Task WithAccessorOpenBraceOnSameLine()
@@ -336,7 +336,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine);
+            """, new(options: DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine));
 
     [Fact]
     public Task StaticProperty()
@@ -362,7 +362,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task ProtectedProperty()
@@ -388,7 +388,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task InternalProperty()
@@ -414,7 +414,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task WithAttributes()
@@ -442,7 +442,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task CommentsInAccessors()
@@ -474,7 +474,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     } /* test5 */
                 } /* test6 */
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task OverrideProperty()
@@ -510,7 +510,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task SealedProperty()
@@ -536,7 +536,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task VirtualProperty()
@@ -572,7 +572,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             {
                 public override string Name {get; set;}
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task PrivateProperty()
@@ -598,7 +598,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task AbstractProperty()
@@ -643,7 +643,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task GetterOnlyExpressionBodies()
@@ -659,7 +659,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
 
                 public int Goo => goo;
             }
-            """, options: PreferExpressionBodiesOnAccessorsAndMethods);
+            """, new(options: PreferExpressionBodiesOnAccessorsAndMethods));
 
     [Fact]
     public Task GetterOnlyExpressionBodies_Field()
@@ -674,7 +674,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             {
                 public int Goo => field;
             }
-            """, options: PreferExpressionBodiesOnAccessorsAndMethods, index: 1, parseOptions: CSharp14);
+            """, new(options: PreferExpressionBodiesOnAccessorsAndMethods, index: 1, parseOptions: CSharp14));
 
     [Fact]
     public Task SetterOnly()
@@ -723,7 +723,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task CursorAtEnd()
@@ -749,7 +749,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task CursorOnAccessors()
@@ -784,7 +784,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     public Task SelectionWhole()
@@ -810,7 +810,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task SelectionName()
@@ -836,7 +836,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact]
     public Task MoreThanOneGetter()
@@ -880,7 +880,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: UseCustomFieldName);
+            """, new(options: UseCustomFieldName));
 
     [Fact, WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
     public Task UnderscorePrefixedFieldName()
@@ -906,7 +906,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: UseUnderscorePrefixedFieldName);
+            """, new(options: UseUnderscorePrefixedFieldName));
 
     [Fact, WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30208")]
@@ -949,7 +949,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: UseCustomStaticFieldName);
+            """, new(options: UseCustomStaticFieldName));
 
     [Fact]
     public Task StaticPropertyWithCustomStaticFieldName()
@@ -975,7 +975,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: UseCustomStaticFieldName);
+            """, new(options: UseCustomStaticFieldName));
 
     [Fact]
     public Task InInterface()
@@ -1010,7 +1010,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors);
+            """, new(options: DoNotPreferExpressionBodiedAccessors));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
     public Task PartialClasses()
@@ -1231,7 +1231,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                 void M(int i) { }
             }
             """,
-            parseOptions: CSharp14);
+            new(parseOptions: CSharp14));
 
     [Theory]
     [InlineData("set"), InlineData("init")]
@@ -1257,7 +1257,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 }
             }
-            """, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
+            """, new(options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14));
 
     [Theory]
     [InlineData("set"), InlineData("init")]
@@ -1283,5 +1283,5 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                     }
                 } = 0;
             }
-            """, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
+            """, new(options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14));
 }

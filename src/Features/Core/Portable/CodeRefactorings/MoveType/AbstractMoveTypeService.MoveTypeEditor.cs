@@ -92,8 +92,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // See which imports we kept around.
             var rootWithMovedType = await documentWithMovedType.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
             var movedImports = rootWithMovedType.DescendantNodes()
-                                                .Where(syntaxFacts.IsUsingOrExternOrImport)
-                                                .ToImmutableArray();
+                                                .WhereAsArray(syntaxFacts.IsUsingOrExternOrImport);
 
             // Now remove any unnecessary imports from the original doc that moved to the new doc.
             var sourceDocument = solution.GetRequiredDocument(sourceDocumentId);
