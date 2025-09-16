@@ -3274,24 +3274,59 @@ Namespace System.Runtime.CompilerServices
 End Namespace
 "
             Dim compilation = CreateCompilation(source)
-            compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "Assembly: System.Runtime.CompilerServices.MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(2, 2),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "Module: System.Runtime.CompilerServices.MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(3, 2),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(6, 6),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(7, 10),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(12, 10),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(14, 10),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(15, 14),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(18, 14),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(22, 10),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(28, 10),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(28, 45),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(29, 17),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(33, 10),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(35, 10),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(36, 14),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(37, 14),
-                Diagnostic(ERRID.ERR_AttributeCannotBeAppliedManually, "MetadataUpdateDeleted").WithArguments("System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute").WithLocation(38, 14))
+            compilation.AssertTheseDiagnostics(
+"BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+<Assembly: System.Runtime.CompilerServices.MetadataUpdateDeleted>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+<Module: System.Runtime.CompilerServices.MetadataUpdateDeleted>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+    <MetadataUpdateDeleted> Class TestClass(Of T)
+     ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Sub New()
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Public field As Integer
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Property P As Integer
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> Get
+             ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> Set
+             ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> ReadOnly Property Item(a As Integer) As Integer
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Function M(<MetadataUpdateDeleted> x As Integer) _
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Function M(<MetadataUpdateDeleted> x As Integer) _
+                                            ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            As <MetadataUpdateDeleted> Integer
+                ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Public Event E1 As Action
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+        <MetadataUpdateDeleted> Public Custom Event E2 As Action
+         ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> AddHandler(value As Action) : End AddHandler
+             ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> RemoveHandler(value As Action) : End RemoveHandler
+             ~~~~~~~~~~~~~~~~~~~~~
+BC37338: 'System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute' cannot be applied manually.
+            <MetadataUpdateDeleted> RaiseEvent() : End RaiseEvent
+             ~~~~~~~~~~~~~~~~~~~~~
+")
         End Sub
 
 #End Region
