@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -38,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [Name(nameof(RootSymbolTreeItemSourceProvider))]
 [Order(Before = HierarchyItemsProviderNames.Contains)]
 [AppliesToProject("CSharp | VB")]
-internal sealed partial class RootSymbolTreeItemSourceProvider
-    : AttachedCollectionSourceProvider<IVsHierarchyItem>
+internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
     /// <summary>
     /// Mapping from filepath to the collection sources made for it.  Is a multi dictionary because the same
