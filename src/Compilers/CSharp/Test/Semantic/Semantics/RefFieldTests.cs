@@ -31991,5 +31991,135 @@ Block[B2] - Exit
                 //         M(GetValue().F);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetValue().F").WithArguments("1", "ref").WithLocation(11, 11));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        public void Repro_80244_NetCoreApp()
+        {
+            var comp = CreateCompilation("""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                ref struct SpanReader
+                {
+                    long _spanEndStreamOffset;
+                    ReadOnlySpan<byte> _buffer;
+                    public SpanReader(ReadOnlySpan<byte> buffer, long spanStartStreamOffset)
+                    {
+                        _buffer = buffer;
+                        _spanEndStreamOffset = spanStartStreamOffset + buffer.Length;
+                    }
+
+                    public ref readonly T ReadRef<T>() where T : struct
+                    {
+                        if (_buffer.Length >= Unsafe.SizeOf<T>())
+                        {
+                            ref readonly T ret = ref MemoryMarshal.Cast<byte, T>(_buffer)[0];
+                            _buffer = _buffer.Slice(Unsafe.SizeOf<T>());
+                            return ref ret;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp,
+                parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        [InlineData(LanguageVersion.CSharp8), InlineData(LanguageVersion.CSharp14)]
+        public void Repro_80244_NetStandard(LanguageVersion consumerLanguageVersion)
+        {
+            var spanCompilation = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8);
+            var spanReference = spanCompilation.EmitToImageReference();
+            var source0 = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public static class Unsafe
+                    {
+                        public static int SizeOf<T>() => throw null!;
+                    }
+                }
+
+                namespace System.Runtime.InteropServices
+                {
+                    public static class MemoryMarshal
+                    {
+                        public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(ReadOnlySpan<TFrom> span)
+                            where TFrom : struct
+                            => throw null!;
+                    }
+                }
+                """;
+            var source1 = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                ref struct SpanReader
+                {
+                    long _spanEndStreamOffset;
+                    ReadOnlySpan<byte> _buffer;
+                    public SpanReader(ReadOnlySpan<byte> buffer, long spanStartStreamOffset)
+                    {
+                        _buffer = buffer;
+                        _spanEndStreamOffset = spanStartStreamOffset + buffer.Length;
+                    }
+
+                    public ref readonly T ReadRef<T>() where T : struct
+                    {
+                        if (_buffer.Length >= Unsafe.SizeOf<T>())
+                        {
+                            ref readonly T ret = ref MemoryMarshal.Cast<byte, T>(_buffer)[0];
+                            _buffer = _buffer.Slice(Unsafe.SizeOf<T>());
+                            return ref ret;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source0, source1],
+                references: [spanReference],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(consumerLanguageVersion),
+                targetFramework: TargetFramework.NetStandard20);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        public void Repro_80244_Simple()
+        {
+            var source0 = """
+                public ref struct RS
+                {
+                    public ref byte this[int i] => throw null!;
+                }
+                """;
+
+            var reference = CreateCompilation(source0, parseOptions: TestOptions.Regular8).EmitToImageReference();
+            var source1 = """
+                class Program
+                {
+                    static ref byte M1(RS rs)
+                    {
+                        ref byte ret = ref rs[1];
+                        return ref ret;
+                    }
+
+                    static ref byte M2(RS rs)
+                    {
+                        return ref rs[1];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source1, references: [reference], parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

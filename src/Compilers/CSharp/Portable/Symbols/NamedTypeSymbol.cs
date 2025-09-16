@@ -378,8 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
         {
-            // Consider whether IsClassType could be used instead. Tracked by https://github.com/dotnet/roslyn/issues/78275
-            if (!IsReferenceType || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
+            if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
 
             foreach (var nestedType in GetTypeMembersUnordered())
             {
