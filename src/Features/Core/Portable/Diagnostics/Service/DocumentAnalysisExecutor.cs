@@ -70,7 +70,7 @@ internal sealed partial class DiagnosticAnalyzerService
         /// <summary>
         /// Return all local diagnostics (syntax, semantic) that belong to given document for the given analyzer by calculating them.
         /// </summary>
-        public async Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsInProcessAsync(
+        public async ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsInProcessAsync(
             DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(AnalysisScope.ProjectAnalyzers.Contains(analyzer) || AnalysisScope.HostAnalyzers.Contains(analyzer));
@@ -151,7 +151,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
             return diagnostics;
 
-            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetAnalysisResultInProcessAsync(
+            async ValueTask<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetAnalysisResultInProcessAsync(
                 DocumentAnalysisScope analysisScope)
             {
                 RoslynDebug.Assert(_compilationWithAnalyzers != null);
@@ -169,7 +169,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 }
             }
 
-            async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsInProcessAsync(TextSpan? span)
+            async ValueTask<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsInProcessAsync(TextSpan? span)
             {
                 RoslynDebug.Assert(analyzer.IsCompilerAnalyzer());
                 RoslynDebug.Assert(_compilationWithAnalyzers != null);
@@ -188,7 +188,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 return result.GetDocumentDiagnostics(analysisScope.TextDocument.Id, analysisScope.Kind);
             }
 
-            async Task<ImmutableArray<DiagnosticData>> GetSyntaxDiagnosticsInProcessAsync()
+            async ValueTask<ImmutableArray<DiagnosticData>> GetSyntaxDiagnosticsInProcessAsync()
             {
                 // PERF:
                 //  1. Compute diagnostics for all analyzers with a single invocation into CompilationWithAnalyzers.
@@ -221,7 +221,7 @@ internal sealed partial class DiagnosticAnalyzerService
                     : [];
             }
 
-            async Task<ImmutableArray<DiagnosticData>> GetSemanticDiagnosticsInProcessAsync()
+            async ValueTask<ImmutableArray<DiagnosticData>> GetSemanticDiagnosticsInProcessAsync()
             {
                 // PERF:
                 //  1. Compute diagnostics for all analyzers with a single invocation into CompilationWithAnalyzers.
@@ -257,7 +257,7 @@ internal sealed partial class DiagnosticAnalyzerService
                     : [];
             }
 
-            async Task<TextSpan?> GetAdjustedSpanForCompilerAnalyzerAsync(Document document)
+            async ValueTask<TextSpan?> GetAdjustedSpanForCompilerAnalyzerAsync(Document document)
             {
                 // This method is to workaround a bug (https://github.com/dotnet/roslyn/issues/1557)
                 // once that bug is fixed, we should be able to use given span as it is.
@@ -293,7 +293,7 @@ internal sealed partial class DiagnosticAnalyzerService
             }
 
 #if DEBUG
-            async Task VerifySpanBasedCompilerDiagnosticsAsync(Document document)
+            async ValueTask VerifySpanBasedCompilerDiagnosticsAsync(Document document)
             {
                 if (!span.HasValue)
                 {
@@ -345,7 +345,7 @@ internal sealed partial class DiagnosticAnalyzerService
             }
 #endif
 
-            async Task<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
+            async ValueTask<ImmutableArray<DiagnosticData>> RemapDiagnosticLocationsIfRequiredAsync(
                ImmutableArray<DiagnosticData> diagnostics)
             {
                 if (diagnostics.IsEmpty)
