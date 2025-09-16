@@ -41,7 +41,9 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             {
                 if (sourceGeneratedDocument.IsRazorSourceGeneratedDocument())
                 {
-                    // Don't report Razor source generated diagnostics in FSA
+                    // Razor has not ever participated in diagnostics for closed files, so we filter then out when doing FSA. They will handle
+                    // their own open diagnostics. Additionally, if we reported them here, they would should up as coming from a `.g.cs` file
+                    // which is not what the user wants anyway.
                     return [];
                 }
 
