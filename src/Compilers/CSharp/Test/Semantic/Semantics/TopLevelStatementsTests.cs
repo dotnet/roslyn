@@ -1104,7 +1104,7 @@ System.Console.WriteLine(async);
             CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80313")]
         public void LocalDeclarationStatement_18()
         {
             var text = @"
@@ -1133,6 +1133,50 @@ await System.Threading.Tasks.Task.Yield();
 
             comp = CreateCompilation(text, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x2f }"
+            }, sourceSymbolValidator: validator);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       48 (0x30)
+                  .maxstack  1
+                  .locals init (int V_0, //c
+                                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                                System.Runtime.CompilerServices.YieldAwaitable V_2)
+                  IL_0000:  ldc.i4.s   -100
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloca.s   V_0
+                  IL_0005:  ldind.i4
+                  IL_0006:  call       "void System.Console.Write(int)"
+                  IL_000b:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                  IL_0010:  stloc.2
+                  IL_0011:  ldloca.s   V_2
+                  IL_0013:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                  IL_0018:  stloc.1
+                  IL_0019:  ldloca.s   V_1
+                  IL_001b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                  IL_0020:  brtrue.s   IL_0028
+                  IL_0022:  ldloc.1
+                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0028:  ldloca.s   V_1
+                  IL_002a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                  IL_002f:  ret
+                }
+                """);
+
+            static void validator(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetTypeMember("Program");
+                Assert.NotNull(program);
+
+                var main = program.GetMethod("<Main>$");
+                Assert.NotNull(main);
+                Assert.Equal(MethodImplAttributes.Async, main.ImplementationAttributes & MethodImplAttributes.Async);
+            }
         }
 
         [Fact]
