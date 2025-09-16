@@ -50,8 +50,11 @@ namespace Microsoft.CodeAnalysis.Text
 
         protected override void Dispose(bool disposing)
         {
-            s_charArrayPool.Free(_charBuffer);
-            _charBuffer = null!;
+            if (_charBuffer != null)
+            {
+                s_charArrayPool.Free(_charBuffer);
+                _charBuffer = null!;
+            }
 
             base.Dispose(disposing);
         }
