@@ -2426,6 +2426,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionBlockCollision = 9329,
         ERR_MethodImplAttributeAsyncCannotBeUsed = 9330,
 
+        HDN_RedundantPattern = 9331,
+        WRN_RedundantPattern = 9332,
+        HDN_RedundantPatternStackGuard = 9333,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
