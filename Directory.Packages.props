@@ -7,9 +7,8 @@
 
   <!-- <Metalama> -->
   <PropertyGroup>
-    <PostSharpEngineeringVersion>2023.2.184</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">2023.2.184</PostSharpEngineeringVersion>
   </PropertyGroup>
-  <Import Project="..\eng-Metalama\Versions.g.props" Condition="Exists('..\eng-Metalama\Versions.g.props')" />
   <!-- </Metalama> -->
 
 

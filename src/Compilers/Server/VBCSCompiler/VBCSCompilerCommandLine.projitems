@@ -54,7 +54,9 @@
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
     
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <!-- <Metalama >
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    </Metalama> -->
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" Condition="'$(TargetFramework)' == 'net472'" />
 
