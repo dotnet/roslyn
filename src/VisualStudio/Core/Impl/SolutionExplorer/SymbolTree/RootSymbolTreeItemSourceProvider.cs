@@ -162,7 +162,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             cancellationToken,
             async (source, cancellationToken) =>
             {
-                await source.UpdateIfEverExpandedAsync(cancellationToken)
+                await source.UpdateIfEverBeenAskedToComputeAsync(cancellationToken)
                     .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
                     .ConfigureAwait(false);
             }).ConfigureAwait(false);
