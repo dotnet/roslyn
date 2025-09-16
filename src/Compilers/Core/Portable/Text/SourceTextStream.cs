@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly Encoding _encoding;
         private readonly Encoder _encoder;
 
-        private const int BufferSize = 2048;
+        internal const int BufferSize = 2048;
         private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[BufferSize], size: 8);
 
         private readonly int _minimumTargetBufferCount;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         protected override void Dispose(bool disposing)
         {
-            if (_charBuffer != null)
+            if (disposing && _charBuffer != null)
             {
                 s_charArrayPool.Free(_charBuffer);
                 _charBuffer = null!;
