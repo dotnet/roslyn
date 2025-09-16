@@ -74,7 +74,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 isMainThreadTask:=False,
                 task:=Function() As Task
                           Try
-                              AddService(GetType(IVbCompilerService), Function(_1, cancellationToken, _2) Task.FromResult(_comAggregate), promote:=True)
+                              AddService(GetType(IVbCompilerService), Function(_1, cancellationToken, _2)
+                                                                          PreloadProjectSystemComponents()
+                                                                          Return Task.FromResult(_comAggregate)
+                                                                      End Function, promote:=True)
 
                               DirectCast(Me, IServiceContainer).AddService(
                                   GetType(IVbTempPECompilerFactory),

@@ -28,6 +28,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     private VisualStudioSymbolSearchService? _symbolSearchService;
     private IVsShell? _shell;
 
+    /// <summary>
+    /// Set to 1 if we've already preloaded project system components. Should be updated with <see cref="Interlocked.CompareExchange{T}(ref T, T, T)" />
+    /// </summary>
+    private int _projectSystemComponentsPreloaded;
+
     protected AbstractPackage()
     {
     }
@@ -176,5 +181,27 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
         // it is virtual rather than abstract to not break other languages which derived from our
         // base package implementations
+    }
+
+    protected void PreloadProjectSystemComponents()
+    {
+        if (Interlocked.CompareExchange(ref _projectSystemComponentsPreloaded, value: 1, comparand: 0) == 1)
+            return;
+
+        // Preload some components so later uses don't block. This is specifically to help out csproj and msvbprj project systems. They push changes
+        // to us on the UI thread as fundamental part of their design. This causes blocking on the UI thread as we create MEF components and JIT code
+        // for the first time, even though those components could have been loaded on the background thread first. This method is called from the two places
+        // we expose a service for the project systems to create us; this can be called by VS's preloading support on a background thread to ensure this is ran
+        // on a background thread so the later calls on the UI thread will block less. For CPS projects, we don't need this, as CPS already creates us on
+        // background threads, so we can just let things load as they're pulled in.
+        //
+        // The expectation is no thread switching should happen here; if we're being called on a background thread that means we're being pulled in
+        // by the preloading logic. If we're being called on the UI thread, that means we might be getting created directly by the project systems
+        // and the UI thread is already blocked, so a switch to the background thread won't unblock the UI thread and might delay us even further.
+        //
+        // As long as there's something that's not cheap to load later, and it'll definitely be used in all csproj/msvbprj scenarios, then it's worth
+        // putting here to preload.
+        var workspace = this.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
+        workspace.PreloadProjectSystemComponents(this.RoslynLanguageName);
     }
 }
