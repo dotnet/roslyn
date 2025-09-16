@@ -32449,10 +32449,11 @@ public static class E
         var comp = CreateCompilation(src);
         validate(comp);
 
-        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
+        var compRef = comp.EmitToImageReference();
+        var comp2 = CreateCompilation("", references: [compRef]);
         validate(comp2);
 
-        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: [comp.EmitToImageReference()]);
+        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: [compRef]);
         var vbGroupingType = vbComp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         Assert.False(vbGroupingType.IsExtension);
         AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", vbGroupingType.GetDocumentationCommentId());
@@ -32532,10 +32533,11 @@ public static class E
         AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
             DocumentationCommentId.CreateDeclarationId(extension));
 
-        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
+        var compRef = comp.EmitToImageReference();
+        var comp2 = CreateCompilation("", references: [compRef]);
         validate(comp2);
 
-        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: [comp.EmitToImageReference()]);
+        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: [compRef]);
         var vbGroupingType = vbComp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         Assert.False(vbGroupingType.IsExtension);
         AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1", vbGroupingType.GetDocumentationCommentId());
