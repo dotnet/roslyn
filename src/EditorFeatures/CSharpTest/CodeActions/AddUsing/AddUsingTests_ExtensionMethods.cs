@@ -4,11 +4,13 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
 public sealed partial class AddUsingTests
 {
     [Fact]
@@ -1510,7 +1512,7 @@ public sealed partial class AddUsingTests
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
     [InlineData("object")]
     [InlineData("int")]
-    public Task TestModernExtension1(string sourceType)
+    public Task TestModernExtension_Method(string sourceType)
         => TestInRegularAndScriptAsync(
             $$"""
             namespace M
@@ -1558,6 +1560,207 @@ public sealed partial class AddUsingTests
                 static class Test
                 {
                     extension(object o)
+                    {
+                        public void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_StaticMethod(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        [|{{sourceType}}.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}}.M1();
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static void M1()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_Property(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        var v = [|o.M1;|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public int M1 => 0;
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        var v = o.M1;
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public int M1 => 0;
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_StaticProperty(string sourceType)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        [|{{sourceType}}.M1;|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static int M1 => 0;
+                    }
+                }
+            }
+            """,
+            $$"""
+            using N;
+
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}}.M1;
+                    }
+                }
+            }
+            
+            namespace N
+            {
+                static class Test
+                {
+                    extension(object o)
+                    {
+                        public static int M1 => 0;
+                    }
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80240")]
+    [InlineData("object")]
+    [InlineData("int")]
+    public Task TestModernExtension_TypeParameter(string sourceType)
+        // Will work once we get an API from https://github.com/dotnet/roslyn/issues/80273
+        => TestMissingAsync(
+            $$"""
+            namespace M
+            {
+                class C
+                {
+                    void X()
+                    {
+                        {{sourceType}} o = new();
+                        [|o.M1();|]
+                    }
+                }
+            }
+
+            namespace N
+            {
+                static class Test
+                {
+                    extension<T>(T t)
                     {
                         public void M1()
                         {
