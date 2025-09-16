@@ -56,11 +56,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             // it will never leave that state from that point on, and we'll be stuck in an invalid state.
         }
 
-        public async Task UpdateIfEverExpandedAsync(CancellationToken cancellationToken)
+        public async Task UpdateIfEverBeenAskedToComputeAsync(CancellationToken cancellationToken)
         {
-            // If we haven't been initialized yet, then we don't have to do anything.  We will get called again
-            // in the future as documents are mutated, and we'll ignore until the point that the user has at
-            // least expanded this node once.
+            // If we haven't ever been asked to compute items, then we don't have to do anything.  We will get called
+            // again in the future as documents are mutated, and we'll ignore until the point that the user has at least
+            // expanded this node once.
             if (_hasEverBeenAskedToCompute == 0)
                 return;
 
