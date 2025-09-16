@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Copilot;
 internal interface ICopilotProposalAdjusterService : IWorkspaceService
 {
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
-    ValueTask<ImmutableArray<TextChange>> TryAdjustProposalAsync(
+    ValueTask<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalAsync(
         Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 internal interface IRemoteCopilotProposalAdjusterService
 {
     /// <inheritdoc cref="ICopilotProposalAdjusterService.TryAdjustProposalAsync"/>
-    ValueTask<ImmutableArray<TextChange>> TryAdjustProposalAsync(
+    ValueTask<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalAsync(
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
@@ -37,7 +37,7 @@ internal interface IRemoteCopilotProposalAdjusterService
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposalAdjusterService
 {
-    public async ValueTask<ImmutableArray<TextChange>> TryAdjustProposalAsync(
+    public async ValueTask<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalAsync(
         Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
         if (normalizedChanges.IsDefaultOrEmpty)
@@ -46,7 +46,7 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
-            var result = await client.TryInvokeAsync<IRemoteCopilotProposalAdjusterService, ImmutableArray<TextChange>>(
+            var result = await client.TryInvokeAsync<IRemoteCopilotProposalAdjusterService, (ImmutableArray<TextChange> changes, bool format)>(
                 document.Project,
                 (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(checksum, document.Id, normalizedChanges, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -59,7 +59,7 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         }
     }
 
-    private static async Task<ImmutableArray<TextChange>> TryAdjustProposalInCurrentProcessAsync(
+    private static async Task<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalInCurrentProcessAsync(
         Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
         CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
@@ -83,9 +83,10 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         // Keep the new root around, in case something needs it while processing.  This way we don't throw it away unnecessarily.
         GC.KeepAlive(forkedRoot);
 
-        // Reurn the add-import changes concatenated with the original changes.  This way we ensure
+        // Return the add-import changes concatenated with the original changes.  This way we ensure
         // that the copilot changes themselves are not themselves modified by the add-import changes.
-        return addImportChanges.Concat(normalizedChanges);
+        var totalChanges = addImportChanges.Concat(normalizedChanges);
+        return (totalChanges, format: false);
     }
 
     private static async Task<(bool success, ImmutableArray<TextChange> addImportChanges)> TryGetAddImportTextChangesAsync(
