@@ -39,20 +39,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                     delta -= selectionSpan.Length
                 Next
 
-                Dim service = workspace.Services.GetRequiredService(Of ICopilotProposalAdjusterService)
+                Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim tuple = Await service.TryAdjustProposalAsync(
                     originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
 
                 Dim adjustedChanges = tuple.textChanges
                 Dim format = tuple.format
                 Dim originalDocumentText = Await originalDocument.GetTextAsync()
-                Dim adjustedDocumentText = originalDocumentText.WithChanges(adjustedChanges)
+                Dim adjustedDocumentTextAndFinalSpans = CopilotUtilities.GetNewTextAndChangedSpans(originalDocumentText, adjustedChanges)
+                Dim adjustedDocumentText = adjustedDocumentTextAndFinalSpans.newText
+                Dim finalSpans = adjustedDocumentTextAndFinalSpans.newSpans
 
                 If format Then
-                    Dim finalChanges = adjustedDocumentText.GetTextChanges(originalDocumentText)
+
                     Dim adjustedDocument = originalDocument.WithText(adjustedDocumentText)
-                    Dim formattedDocument = Await Formatter.FormatAsync(adjustedDocument, finalChanges.Select(Function(c) c.Span))
-                    adjustedDocumentText = Await formattedDocument.GetTextAsync()
+                    Dim formattedDocument = Await Formatter.FormatAsync(adjustedDocument, finalSpans)
+                    Dim formattedText = Await formattedDocument.GetTextAsync()
+                    adjustedDocumentText = formattedText
                 End If
 
                 AssertEx.Equal(expected, adjustedDocumentText.ToString())
@@ -230,6 +233,27 @@ class C
         Console.WriteLine(1);
     }
 }")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace2() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}
+")
         End Function
 
 #End Region

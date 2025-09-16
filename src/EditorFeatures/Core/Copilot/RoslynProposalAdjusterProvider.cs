@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Proposals;
@@ -175,9 +176,11 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
             // Checked in TryGetAffectedSolution
             Contract.ThrowIfNull(document);
 
-            var proposalAdjusterService = document.Project.Solution.Services.GetRequiredService<ICopilotProposalAdjusterService>();
-            var (proposedEdits, formatGroup) = await proposalAdjusterService.TryAdjustProposalAsync(
-                document, CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup), cancellationToken).ConfigureAwait(false);
+            var proposalAdjusterService = document.GetLanguageService<ICopilotProposalAdjusterService>();
+            var (proposedEdits, formatGroup) = proposalAdjusterService is null
+                ? default
+                : await proposalAdjusterService.TryAdjustProposalAsync(
+                    document, CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup), cancellationToken).ConfigureAwait(false);
 
             if (proposedEdits.IsDefault)
             {

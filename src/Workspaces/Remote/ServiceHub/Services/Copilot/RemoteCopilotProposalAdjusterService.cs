@@ -28,7 +28,7 @@ internal sealed partial class RemoteCopilotProposalAdjusterService(
             var document = await solution.GetRequiredDocumentAsync(
                 documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-            var service = solution.Services.GetRequiredService<ICopilotProposalAdjusterService>();
+            var service = document.GetRequiredLanguageService<ICopilotProposalAdjusterService>();
             return await service.TryAdjustProposalAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
