@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -37,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [Name(nameof(RootSymbolTreeItemSourceProvider))]
 [Order(Before = HierarchyItemsProviderNames.Contains)]
 [AppliesToProject("CSharp | VB")]
-internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
+internal sealed partial class RootSymbolTreeItemSourceProvider
+    : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
     /// <summary>
     /// Mapping from filepath to the collection sources made for it.  Is a multi dictionary because the same
@@ -92,11 +94,17 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             this.Listener,
             this.ThreadingContext.DisposalToken);
 
+        // Register for workspace changes so that if any documents change, we can update the symbol tree *as long as it
+        // has been expanded at least once* to reflect the new state of the document.
         this._workspace.RegisterWorkspaceChangedHandler(
             e =>
             {
                 var oldPath = e.OldSolution.GetDocument(e.DocumentId)?.FilePath;
                 var newPath = e.NewSolution.GetDocument(e.DocumentId)?.FilePath;
+
+                // Update both the old and new paths.  That way if the path changed, we'll remove the old source and add
+                // in the new one.  Note: if the paths are the same, this will just add one entry to the queue as we
+                // dedupe based on file path.
 
                 if (oldPath != null)
                     _updateSourcesQueue.AddWork(oldPath);
@@ -106,13 +114,40 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
 
+        // Register for document open events so that if a document is opened, we can preemptively update the symbol tree
+        // even if it was never opened before.  We do this as users expect the root symbol tree arrow to be there or not
+        // if the file has no symbols within it.  We don't do this for closed documents as it would be extremely
+        // expensive to go to every file and read/parse it.  However, once opened, we're going to do all that work
+        // anyways so it is worthwhile to force it to happen.
+        this._workspace.RegisterDocumentOpenedHandler(
+            e =>
+            {
+                var filePath = e.Document.FilePath;
+
+                if (filePath == null)
+                    return;
+
+                lock (_filePathToCollectionSources)
+                {
+                    if (_filePathToCollectionSources.TryGetValue(filePath, out var pathSources))
+                    {
+                        // For each source, go and touch the .Items collection.  If the source was already expanded,
+                        // this will no-op.  If it was never expanded, this will mark it as being expanded, and kick off
+                        // the work back to us (in _updateSourcesQueue) to compute the actual items.
+                        foreach (var source in pathSources)
+                            _ = source.Items;
+                    }
+                }
+            },
+            new WorkspaceEventOptions(RequiresMainThread: false));
+
         this.ContextMenuController = new SymbolItemContextMenuController(this);
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(
         ImmutableSegmentedList<string> updatedFilePaths, CancellationToken cancellationToken)
     {
-        using var _ = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
+        using var _1 = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
 
         lock (_filePathToCollectionSources)
         {

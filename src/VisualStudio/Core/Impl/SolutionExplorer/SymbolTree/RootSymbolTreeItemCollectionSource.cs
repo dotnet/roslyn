@@ -132,7 +132,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
 
         bool IAttachedCollectionSource.HasItems => _childCollection.HasItems;
 
-        IEnumerable IAttachedCollectionSource.Items
+        public IEnumerable Items
         {
             get
             {
