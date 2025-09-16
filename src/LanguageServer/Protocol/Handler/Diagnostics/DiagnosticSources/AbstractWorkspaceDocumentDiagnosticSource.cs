@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -38,6 +39,12 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
         {
             if (Document is SourceGeneratedDocument sourceGeneratedDocument)
             {
+                if (sourceGeneratedDocument.IsRazorSourceGeneratedDocument())
+                {
+                    // Don't report Razor source generated diagnostics in FSA
+                    return [];
+                }
+
                 // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
                 var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
                 var documentDiagnostics = await service.GetDiagnosticsForSpanAsync(
