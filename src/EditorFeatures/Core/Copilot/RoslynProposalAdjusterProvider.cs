@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Experimental.BuildCheck;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -163,6 +164,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
         using var _2 = PooledObjects.ArrayBuilder<ProposedEdit>.GetInstance(out var finalEdits);
 
         var adjustmentsProposed = false;
+        var format = false;
         foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -174,7 +176,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
             Contract.ThrowIfNull(document);
 
             var proposalAdjusterService = document.Project.Solution.Services.GetRequiredService<ICopilotProposalAdjusterService>();
-            var proposedEdits = await proposalAdjusterService.TryAdjustProposalAsync(
+            var (proposedEdits, formatGroup) = await proposalAdjusterService.TryAdjustProposalAsync(
                 document, CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup), cancellationToken).ConfigureAwait(false);
 
             if (proposedEdits.IsDefault)
@@ -186,6 +188,8 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
             {
                 // Changes were made to the proposal.  Add the new edits.
                 adjustmentsProposed = true;
+                format = format || formatGroup;
+
                 foreach (var proposedEdit in proposedEdits)
                 {
                     finalEdits.Add(new ProposedEdit(
@@ -203,6 +207,13 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
         // those changes in.  Note: we should generally always be producing edits that are safe to merge in.  However,
         // as we do not control this code, we cannot guarantee this.  Telemetry will let us know how often this happens
         // and if there's something we need to look into.
-        return Proposal.TryCreateProposal(proposal, finalEdits);
+        var result = Proposal.TryCreateProposal(proposal, finalEdits);
+        if (result is null)
+            return null;
+
+        if (format && !result.Flags.HasFlag(ProposalFlags.FormatAfterCommit))
+            result = new Proposal(result.Description, result.Edits, result.Caret, result.CompletionState, result.Flags | ProposalFlags.FormatAfterCommit, result.CommitAction, result.ProposalId, result.AcceptText, result.PreviewText, result.NextText, result.UndoDescription, result.Scope);
+
+        return result;
     }
 }

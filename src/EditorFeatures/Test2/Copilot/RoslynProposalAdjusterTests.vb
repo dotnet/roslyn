@@ -39,9 +39,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                 Next
 
                 Dim service = workspace.Services.GetRequiredService(Of ICopilotProposalAdjusterService)
-                Dim adjustedChanges = Await service.TryAdjustProposalAsync(
+                Dim tuple = Await service.TryAdjustProposalAsync(
                     originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
 
+                Dim adjustedChanges = tuple.textChanges
+                Dim format = tuple.format
                 Dim originalDocumentText = Await originalDocument.GetTextAsync()
                 Dim adjustedDocumentText = originalDocumentText.WithChanges(adjustedChanges)
 
@@ -198,6 +200,26 @@ class C
         Console.WriteLine(1);
         if (true) { }
         Console.WriteLine();
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace1() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
     }
 }")
         End Function

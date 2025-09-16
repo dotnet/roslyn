@@ -21,7 +21,7 @@ internal sealed partial class RemoteCopilotProposalAdjusterService(
             => new RemoteCopilotProposalAdjusterService(arguments);
     }
 
-    public ValueTask<ImmutableArray<TextChange>> TryAdjustProposalAsync(Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
+    public ValueTask<(ImmutableArray<TextChange> textChanges, bool format)> TryAdjustProposalAsync(Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
