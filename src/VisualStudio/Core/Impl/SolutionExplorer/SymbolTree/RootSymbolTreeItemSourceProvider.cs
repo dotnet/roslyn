@@ -128,11 +128,12 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                 {
                     if (_filePathToCollectionSources.TryGetValue(filePath, out var pathSources))
                     {
-                        // For each source, go and touch the .Items collection.  If the source was already expanded,
-                        // this will no-op.  If it was never expanded, this will mark it as being expanded, and kick off
-                        // the work back to us (in _updateSourcesQueue) to compute the actual items.
+                        // For each source, go and ensure that the .Items collection is computed.  If the source was
+                        // already expanded, this will no-op.  If it was never expanded, this will mark it as being
+                        // expanded, and kick off the work back to us (in _updateSourcesQueue) to compute the actual
+                        // items.
                         foreach (var source in pathSources)
-                            _ = source.Items;
+                            source.EnsureItemsComputed();
                     }
                 }
             },
