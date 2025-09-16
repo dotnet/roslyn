@@ -157,9 +157,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
 
 #nullable enable
-        bool ITypeSymbol.IsExtension => UnderlyingTypeSymbol.IsExtension;
+        bool ITypeSymbol.IsExtension
+        {
+            get
+            {
+                return UnderlyingTypeSymbol is Symbols.NamedTypeSymbol namedType
+                    ? namedType.IsExtension
+                    : false;
+            }
+        }
 
-        IParameterSymbol? ITypeSymbol.ExtensionParameter => UnderlyingTypeSymbol.ExtensionParameter?.GetPublicSymbol();
+        IParameterSymbol? ITypeSymbol.ExtensionParameter
+        {
+            get
+            {
+                return UnderlyingTypeSymbol is Symbols.NamedTypeSymbol namedType
+                    ? namedType.ExtensionParameter?.GetPublicSymbol()
+                    : null;
+            }
+        }
 #nullable disable
 
         string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
