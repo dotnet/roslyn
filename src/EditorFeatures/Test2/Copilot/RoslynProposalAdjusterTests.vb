@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Copilot
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -46,6 +47,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                 Dim format = tuple.format
                 Dim originalDocumentText = Await originalDocument.GetTextAsync()
                 Dim adjustedDocumentText = originalDocumentText.WithChanges(adjustedChanges)
+
+                If format Then
+                    Dim finalChanges = adjustedDocumentText.GetTextChanges(originalDocumentText)
+                    Dim adjustedDocument = originalDocument.WithText(adjustedDocumentText)
+                    Dim formattedDocument = Await Formatter.FormatAsync(adjustedDocument, finalChanges.Select(Function(c) c.Span))
+                    adjustedDocumentText = Await formattedDocument.GetTextAsync()
+                End If
 
                 AssertEx.Equal(expected, adjustedDocumentText.ToString())
             End Using
