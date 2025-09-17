@@ -80,7 +80,7 @@ internal abstract partial class AbstractSymbolDisplayService
 
         private readonly SemanticModel _semanticModel;
         private readonly int _position;
-        private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = [];
+        private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>> _groupMap = [];
         private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = [];
         private readonly Func<ISymbol?, string?> _getNavigationHint;
 
@@ -450,7 +450,7 @@ internal abstract partial class AbstractSymbolDisplayService
 
         private ImmutableArray<SymbolDisplayPart> BuildDescription(SymbolDescriptionGroups groups)
         {
-            var finalParts = new List<SymbolDisplayPart>();
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
             var orderedGroups = _groupMap.Keys.OrderBy((g1, g2) => g1 - g2);
 
             foreach (var group in orderedGroups)
@@ -460,14 +460,13 @@ internal abstract partial class AbstractSymbolDisplayService
                     continue;
                 }
 
-                if (!finalParts.IsEmpty())
+                if (!finalParts.IsEmpty)
                 {
                     var newLines = GetPrecedingNewLineCount(group);
                     finalParts.AddRange(LineBreak(newLines));
                 }
 
-                var parts = _groupMap[group];
-                finalParts.AddRange(parts);
+                finalParts.AddRange(_groupMap[group]);
             }
 
             return finalParts.AsImmutable();
@@ -833,16 +832,12 @@ internal abstract partial class AbstractSymbolDisplayService
 
         protected void AddToGroup(SymbolDescriptionGroups group, params IEnumerable<SymbolDisplayPart>[] partsArray)
         {
-            var partsList = partsArray.Flatten().ToList();
-            if (partsList.Count > 0)
+            var partsList = partsArray.Flatten().ToImmutableArray();
+            if (partsList.Length > 0)
             {
-                if (!_groupMap.TryGetValue(group, out var existingParts))
-                {
-                    existingParts = [];
-                    _groupMap.Add(group, existingParts);
-                }
-
-                existingParts.AddRange(partsList);
+                var existingParts = _groupMap.TryGetValue(group, out var temp) ? temp : [];
+                existingParts = existingParts.AddRange(partsList);
+                _groupMap[group] = existingParts;
             }
         }
 

@@ -181,7 +181,7 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
     private static void CompareAndAssertCollectionsAndCurrentParameter(
         IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureHelpItems actualSignatureHelpItems)
     {
-        Assert.True(expectedTestItems.Count() == actualSignatureHelpItems.Items.Count, $"Expected {expectedTestItems.Count()} items, but got {actualSignatureHelpItems.Items.Count}");
+        Assert.True(expectedTestItems.Count() == actualSignatureHelpItems.Items.Length, $"Expected {expectedTestItems.Count()} items, but got {actualSignatureHelpItems.Items.Length}");
 
         for (var i = 0; i < expectedTestItems.Count(); i++)
         {

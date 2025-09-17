@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -156,9 +156,9 @@ internal abstract partial class AbstractGenericNameSignatureHelpProvider : Abstr
             throw ExceptionUtilities.UnexpectedValue(symbol);
         }
 
-        IList<SignatureHelpSymbolParameter> GetTypeArguments(IMethodSymbol method)
+        ImmutableArray<SignatureHelpSymbolParameter> GetTypeArguments(IMethodSymbol method)
         {
-            var result = new List<SignatureHelpSymbolParameter>();
+            using var _ = ArrayBuilder<SignatureHelpSymbolParameter>.GetInstance(out var result);
 
             // Signature help for generic modern extensions must include the generic type *arguments* for the containing
             // extension as well.  These are fixed given the receiver, and need to be repeated in the method type argument
@@ -173,7 +173,7 @@ internal abstract partial class AbstractGenericNameSignatureHelpProvider : Abstr
 
             result.AddRange(method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)));
 
-            return result;
+            return result.ToImmutableAndClear();
         }
     }
 
@@ -195,12 +195,12 @@ internal abstract partial class AbstractGenericNameSignatureHelpProvider : Abstr
             selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position));
     }
 
-    private static IList<SymbolDisplayPart> GetSelectedDisplayParts(
+    private static ImmutableArray<SymbolDisplayPart> GetSelectedDisplayParts(
         ITypeParameterSymbol typeParam,
         SemanticModel semanticModel,
         int position)
     {
-        var parts = new List<SymbolDisplayPart>();
+        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 
         if (TypeParameterHasConstraints(typeParam))
         {
@@ -276,7 +276,7 @@ internal abstract partial class AbstractGenericNameSignatureHelpProvider : Abstr
             }
         }
 
-        return parts;
+        return parts.ToImmutableAndClear();
     }
 
     private static bool TypeParameterHasConstraints(ITypeParameterSymbol typeParam)

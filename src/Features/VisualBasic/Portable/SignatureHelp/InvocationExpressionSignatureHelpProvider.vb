@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -101,18 +102,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim expressionType = If(typeInfo.Type, typeInfo.ConvertedType)
             Dim defaultProperties =
                 If(expressionType Is Nothing,
-                   SpecializedCollections.EmptyList(Of IPropertySymbol),
-                   semanticModel.LookupSymbols(position, expressionType, includeReducedExtensionMethods:=True).
-                                 OfType(Of IPropertySymbol).
-                                 ToImmutableArrayOrEmpty().
-                                 WhereAsArray(Function(p) p.IsIndexer).
-                                 FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
-                                 Sort(semanticModel, invocationExpression.SpanStart))
+                    ImmutableArray(Of IPropertySymbol).Empty,
+                    semanticModel.LookupSymbols(position, expressionType, includeReducedExtensionMethods:=True).
+                                  OfType(Of IPropertySymbol).
+                                  ToImmutableArrayOrEmpty().
+                                  WhereAsArray(Function(p) p.IsIndexer).
+                                  FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
+                                  Sort(semanticModel, invocationExpression.SpanStart))
 
             Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
-            Dim items = New List(Of SignatureHelpItem)
+            Dim items = ArrayBuilder(Of SignatureHelpItem).GetInstance()
             Dim accessibleMembers = ImmutableArray(Of ISymbol).Empty
             If memberGroup.Length > 0 Then
                 accessibleMembers = GetAccessibleMembers(invocationExpression, semanticModel, within, memberGroup, cancellationToken)
@@ -132,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo.Symbol)
             Return CreateSignatureHelpItems(
-                items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
+                items.ToImmutableAndFree(), textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
                 selectedItem, parameterIndexOverride:=-1)
         End Function
     End Class

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -135,10 +135,10 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
         var position = attribute.SpanStart;
         var namedParameters = constructor.ContainingType.GetAttributeNamedParameters(semanticModel.Compilation, within)
             .OrderBy(s => s.Name)
-            .ToList();
+            .ToImmutableArray();
 
         var isVariadic =
-            constructor.Parameters is [.., { IsParams: true }] && namedParameters.Count == 0;
+            constructor.Parameters is [.., { IsParams: true }] && namedParameters.IsEmpty;
 
         var item = CreateItem(
             constructor, semanticModel, position,
@@ -152,51 +152,45 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
         return item;
     }
 
-    private static IList<SignatureHelpSymbolParameter> GetParameters(
+    private static ImmutableArray<SignatureHelpSymbolParameter> GetParameters(
         IMethodSymbol constructor,
         SemanticModel semanticModel,
         int position,
-        IList<ISymbol> namedParameters,
+        ImmutableArray<ISymbol> namedParameters,
         IDocumentationCommentFormattingService documentationCommentFormatter,
         CancellationToken cancellationToken)
     {
-        var result = new List<SignatureHelpSymbolParameter>();
+        using var _ = ArrayBuilder<SignatureHelpSymbolParameter>.GetInstance(out var result);
         foreach (var parameter in constructor.Parameters)
-        {
             result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter));
-        }
 
-        for (var i = 0; i < namedParameters.Count; i++)
+        for (var i = 0; i < namedParameters.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var namedParameter = namedParameters[i];
 
-            var type = namedParameter is IFieldSymbol ? ((IFieldSymbol)namedParameter).Type : ((IPropertySymbol)namedParameter).Type;
-
-            var displayParts = new List<SymbolDisplayPart>
-            {
-                new(
-                namedParameter is IFieldSymbol ? SymbolDisplayPartKind.FieldName : SymbolDisplayPartKind.PropertyName,
-                namedParameter, namedParameter.Name.ToIdentifierToken().ToString()),
-                Space(),
-                Punctuation(SyntaxKind.EqualsToken),
-                Space()
-            };
-            displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position));
-
+            var type = namedParameter is IFieldSymbol field ? field.Type : ((IPropertySymbol)namedParameter).Type;
             result.Add(new SignatureHelpSymbolParameter(
                 namedParameter.Name,
                 isOptional: true,
                 documentationFactory: namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
-                displayParts: displayParts,
+                displayParts:
+                [
+                    new(namedParameter is IFieldSymbol ? SymbolDisplayPartKind.FieldName : SymbolDisplayPartKind.PropertyName,
+                        namedParameter, namedParameter.Name.ToIdentifierToken().ToString()),
+                    Space(),
+                    Punctuation(SyntaxKind.EqualsToken),
+                    Space(),
+                    .. type.ToMinimalDisplayParts(semanticModel, position),
+                ],
                 prefixDisplayParts: GetParameterPrefixDisplayParts(i)));
         }
 
-        return result;
+        return result.ToImmutableAndClear();
     }
 
-    private static List<SymbolDisplayPart>? GetParameterPrefixDisplayParts(int i)
+    private static ImmutableArray<SymbolDisplayPart>? GetParameterPrefixDisplayParts(int i)
     {
         if (i == 0)
         {
@@ -211,7 +205,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
         return null;
     }
 
-    private static IList<SymbolDisplayPart> GetPreambleParts(
+    private static ImmutableArray<SymbolDisplayPart> GetPreambleParts(
         IMethodSymbol method,
         SemanticModel semanticModel,
         int position)
@@ -219,6 +213,6 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
         return [.. method.ContainingType.ToMinimalDisplayParts(semanticModel, position), Punctuation(SyntaxKind.OpenParenToken)];
     }
 
-    private static IList<SymbolDisplayPart> GetPostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetPostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }
