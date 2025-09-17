@@ -126,9 +126,7 @@ internal static partial class SyntaxGeneratorExtensions
         }
 
         if (syntaxFacts.IsRelationalPattern(expressionOrPattern))
-        {
             return GetNegationOfRelationalPattern(expressionOrPattern, generatorInternal, patternValueType);
-        }
 
         return syntaxFacts.IsAnyPattern(expressionOrPattern)
             ? generatorInternal.NotPattern(expressionOrPattern)
