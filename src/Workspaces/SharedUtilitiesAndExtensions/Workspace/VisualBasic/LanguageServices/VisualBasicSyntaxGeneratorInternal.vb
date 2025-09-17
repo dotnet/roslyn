@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return expression
         End Function
 
-        Public Overrides Function AddParentheses(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True, Optional parenthesizeIdentifiers As Boolean = True) As SyntaxNode
+        Public Overrides Function AddParentheses(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode
             Return Parenthesize(expression, addSimplifierAnnotation)
         End Function
 
