@@ -22,10 +22,15 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.InvertIf;
 
 internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
-    TSyntaxKind, TStatementSyntax, TIfStatementSyntax, TEmbeddedStatement> : CodeRefactoringProvider
+    TSyntaxKind,
+    TStatementSyntax,
+    TIfStatementSyntax,
+    TEmbeddedStatementSyntax,
+    TDirectiveSyntaxSyntax> : CodeRefactoringProvider
     where TSyntaxKind : struct, Enum
     where TStatementSyntax : SyntaxNode
     where TIfStatementSyntax : TStatementSyntax
+    where TDirectiveSyntaxSyntax : SyntaxNode
 {
     private enum InvertIfStyle
     {
@@ -60,21 +65,21 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
     protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
 
-    protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatement ifBody);
-    protected abstract TEmbeddedStatement GetIfBody(TIfStatementSyntax ifNode);
-    protected abstract TEmbeddedStatement GetElseBody(TIfStatementSyntax ifNode);
-    protected abstract TEmbeddedStatement GetEmptyEmbeddedStatement();
+    protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatementSyntax ifBody);
+    protected abstract TEmbeddedStatementSyntax GetIfBody(TIfStatementSyntax ifNode);
+    protected abstract TEmbeddedStatementSyntax GetElseBody(TIfStatementSyntax ifNode);
+    protected abstract TEmbeddedStatementSyntax GetEmptyEmbeddedStatement();
 
-    protected abstract TEmbeddedStatement AsEmbeddedStatement(
+    protected abstract TEmbeddedStatementSyntax AsEmbeddedStatement(
         IEnumerable<TStatementSyntax> statements,
-        TEmbeddedStatement original);
+        TEmbeddedStatementSyntax original);
 
     protected abstract TIfStatementSyntax UpdateIf(
         SourceText sourceText,
         TIfStatementSyntax ifNode,
         SyntaxNode condition,
-        TEmbeddedStatement trueStatement,
-        TEmbeddedStatement? falseStatement = default);
+        TEmbeddedStatementSyntax trueStatement,
+        TEmbeddedStatementSyntax? falseStatement = default);
 
     protected abstract SyntaxNode WithStatements(
         SyntaxNode node,
@@ -82,8 +87,46 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
 
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
-        var (document, _, cancellationToken) = context;
+        if (await TryComputeRefactoringForIfDirectiveAsync(context).ConfigureAwait(false))
+            return;
 
+        await TryComputeRefactorForIfStatementAsync(context).ConfigureAwait(false);
+    }
+
+    private async ValueTask<bool> TryComputeRefactoringForIfDirectiveAsync(CodeRefactoringContext context)
+    {
+        var (document, textSpan, cancellationToken) = context;
+        if (textSpan.IsEmpty)
+            return false;
+
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        var token = root.FindToken(textSpan.Start, findInsideTrivia: true);
+        var directive = token.GetAncestor<TDirectiveSyntaxSyntax>();
+        if (directive is null)
+            return false;
+
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var syntaxKinds = syntaxFacts.SyntaxKinds;
+
+        if (directive.RawKind != syntaxKinds.IfDirectiveTrivia)
+            return false;
+
+        var conditionalDirectives = syntaxFacts.GetMatchingConditionalDirectives(directive, cancellationToken);
+        if (conditionalDirectives.Length != 3)
+            return false;
+
+        if (conditionalDirectives[0].RawKind != syntaxKinds.IfDirectiveTrivia ||
+            conditionalDirectives[1].RawKind != syntaxKinds.ElseDirectiveTrivia ||
+            conditionalDirectives[2].RawKind != syntaxKinds.EndIfDirectiveTrivia)
+        {
+            return false;
+        }
+    }
+
+    private async ValueTask TryComputeRefactorForIfStatementAsync(CodeRefactoringContext context)
+    {
+        var (document, textSpan, cancellationToken) = context;
         var ifNode = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
         if (ifNode == null)
             return;
