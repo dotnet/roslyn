@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -27,13 +26,13 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     TStatementSyntax,
     TIfStatementSyntax,
     TEmbeddedStatementSyntax,
-    TDirectiveSyntax,
-    TIfDirectiveSyntax> : CodeRefactoringProvider
+    TDirectiveTriviaSyntax,
+    TIfDirectiveTriviaSyntax> : CodeRefactoringProvider
     where TSyntaxKind : struct, Enum
     where TStatementSyntax : SyntaxNode
     where TIfStatementSyntax : TStatementSyntax
-    where TDirectiveSyntax : SyntaxNode
-    where TIfDirectiveSyntax : TDirectiveSyntax
+    where TDirectiveTriviaSyntax : SyntaxNode
+    where TIfDirectiveTriviaSyntax : TDirectiveTriviaSyntax
 {
     private enum InvertIfStyle
     {
@@ -68,7 +67,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
 
     protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
-    protected abstract SyntaxNode GetCondition(TIfDirectiveSyntax ifNode);
+    protected abstract SyntaxNode GetCondition(TIfDirectiveTriviaSyntax ifNode);
 
     protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatementSyntax ifBody);
     protected abstract TEmbeddedStatementSyntax GetIfBody(TIfStatementSyntax ifNode);
@@ -107,7 +106,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var token = root.FindToken(textSpan.Start, findInsideTrivia: true);
-        var ifDirective = token.GetAncestor<TIfDirectiveSyntax>();
+        var ifDirective = token.GetAncestor<TIfDirectiveTriviaSyntax>();
         if (ifDirective is null)
             return false;
 
@@ -131,8 +130,8 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
             return false;
         }
 
-        var elseDirective = (TDirectiveSyntax)conditionalDirectives[1];
-        var endIfDirective = (TDirectiveSyntax)conditionalDirectives[2];
+        var elseDirective = (TDirectiveTriviaSyntax)conditionalDirectives[1];
+        var endIfDirective = (TDirectiveTriviaSyntax)conditionalDirectives[2];
 
         if (HasErrorDiagnostics(elseDirective) ||
             HasErrorDiagnostics(endIfDirective))
@@ -151,9 +150,9 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
 
     private async Task<Document> InvertIfDirectiveAsync(
         Document document,
-        TIfDirectiveSyntax ifDirective,
-        TDirectiveSyntax elseDirective,
-        TDirectiveSyntax endIfDirective,
+        TIfDirectiveTriviaSyntax ifDirective,
+        TDirectiveTriviaSyntax elseDirective,
+        TDirectiveTriviaSyntax endIfDirective,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
