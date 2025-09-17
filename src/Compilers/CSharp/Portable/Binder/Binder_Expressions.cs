@@ -5283,8 +5283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
             {
                 bool hasErrors = false;
-                
-                // Check if spread is used in a catch filter, which is not allowed
+
+                // Spreads are blocked in exception filters because the try/finally from disposing the enumerator is not allowed in a filter.
                 if (@this.Flags.Includes(BinderFlags.InCatchFilter))
                 {
                     Error(diagnostics, ErrorCode.ERR_BadSpreadInCatchFilter, syntax);
