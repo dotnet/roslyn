@@ -221,8 +221,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             var memberType = semanticModel.GetTypeInfo(whenPartToCheck, cancellationToken).Type;
             if (memberType is null or ITypeParameterSymbol
                 {
-                    HasReferenceTypeConstraint: false,
-                    HasValueTypeConstraint: false,
+                    IsReferenceType: false,
+                    IsValueType: false,
                 })
             {
                 return null;
