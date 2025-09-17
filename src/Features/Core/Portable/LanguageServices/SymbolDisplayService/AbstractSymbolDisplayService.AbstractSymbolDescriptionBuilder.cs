@@ -80,7 +80,7 @@ internal abstract partial class AbstractSymbolDisplayService
 
         private readonly SemanticModel _semanticModel;
         private readonly int _position;
-        private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = [];
+        private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>> _groupMap = [];
         private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = [];
         private readonly Func<ISymbol?, string?> _getNavigationHint;
 

@@ -193,7 +193,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         var info = structuralTypeDisplayService.GetTypeDisplayInfo(
             orderSymbol, [.. structuralTypes], semanticModel, position);
 
-        if (info.TypesParts.Count > 0)
+        if (info.TypesParts.Length > 0)
         {
             var structuralTypeParts = new List<SymbolDisplayPart>
             {
@@ -258,7 +258,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
         var compilation = semanticModel.Compilation;
 
-        var finalItems = new List<SignatureHelpItem>();
+        using var _1 = ArrayBuilder<SignatureHelpItem>.GetInstance(out var finalItems);
         foreach (var item in itemsForCurrentDocument.Items)
         {
             if (item is not SymbolKeySignatureHelpItem symbolKeyItem ||
@@ -276,7 +276,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
                 symbolKey = SymbolKey.Create(methodSymbol.OriginalDefinition, cancellationToken);
             }
 
-            using var _ = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjectsForCurrentSymbol);
+            using var _2 = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjectsForCurrentSymbol);
             foreach (var relatedDocument in relatedDocuments)
             {
                 // Try to resolve symbolKey in each related compilation,
@@ -293,7 +293,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         }
 
         return new SignatureHelpItems(
-            finalItems,
+            finalItems.ToImmutableAndClear(),
             itemsForCurrentDocument.ApplicableSpan,
             itemsForCurrentDocument.SemanticParameterIndex,
             itemsForCurrentDocument.SyntacticArgumentCount,

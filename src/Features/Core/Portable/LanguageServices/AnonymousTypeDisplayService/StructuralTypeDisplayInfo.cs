@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
@@ -12,8 +13,10 @@ internal readonly struct StructuralTypeDisplayInfo(
     IDictionary<INamedTypeSymbol, string> structuralTypeToName,
     ImmutableArray<SymbolDisplayPart> typesParts)
 {
-    public IDictionary<INamedTypeSymbol, string> StructuralTypeToName { get; } = structuralTypeToName;
-    public ImmutableArray<SymbolDisplayPart> TypesParts { get; } = typesParts;
+    public static readonly StructuralTypeDisplayInfo Empty = default;
+
+    public IDictionary<INamedTypeSymbol, string> StructuralTypeToName => structuralTypeToName ?? SpecializedCollections.EmptyDictionary<INamedTypeSymbol, string>();
+    public ImmutableArray<SymbolDisplayPart> TypesParts => typesParts.NullToEmpty();
 
     public ImmutableArray<SymbolDisplayPart> ReplaceStructuralTypes(ImmutableArray<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
         => ReplaceStructuralTypes(parts, StructuralTypeToName, semanticModel, position);
