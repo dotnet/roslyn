@@ -51,7 +51,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                 Dim finalSpans = adjustedDocumentTextAndFinalSpans.newSpans
 
                 If format Then
-
                     Dim adjustedDocument = originalDocument.WithText(adjustedDocumentText)
                     Dim formattedDocument = Await Formatter.FormatAsync(adjustedDocument, finalSpans)
                     Dim formattedText = Await formattedDocument.GetTextAsync()
