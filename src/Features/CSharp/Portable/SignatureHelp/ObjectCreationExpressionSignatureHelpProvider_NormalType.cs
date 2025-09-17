@@ -38,17 +38,11 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
     }
 
     private static ImmutableArray<SymbolDisplayPart> GetNormalTypePreambleParts(
-        IMethodSymbol method,
-        SemanticModel semanticModel,
-        int position)
-    {
-        var result = new List<SymbolDisplayPart>();
-
-        result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position));
-        result.Add(Punctuation(SyntaxKind.OpenParenToken));
-
-        return result;
-    }
+        IMethodSymbol method, SemanticModel semanticModel, int position)
+        => [
+            .. method.ContainingType.ToMinimalDisplayParts(semanticModel, position),
+            Punctuation(SyntaxKind.OpenParenToken),
+        ];
 
     private static ImmutableArray<SymbolDisplayPart> GetNormalTypePostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];

@@ -165,7 +165,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
         foreach (var parameter in constructor.Parameters)
             result.Add(Convert(parameter, semanticModel, position, documentationCommentFormatter));
 
-        for (var i = 0; i < namedParameters.Count; i++)
+        for (var i = 0; i < namedParameters.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

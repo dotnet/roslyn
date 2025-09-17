@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -239,7 +240,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         int position,
         SemanticModel semanticModel)
     {
-        var result = new List<SymbolDisplayPart>();
+        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
 
         if (indexer.ReturnsByRef)
         {
@@ -266,7 +267,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
 
         result.Add(Punctuation(SyntaxKind.OpenBracketToken));
 
-        return result;
+        return result.ToImmutableAndClear();
     }
 
     private static ImmutableArray<SymbolDisplayPart> GetPostambleParts()

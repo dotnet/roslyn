@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
@@ -58,7 +59,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
 
     private static ImmutableArray<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
     {
-        var displayParts = new List<SymbolDisplayPart>();
+        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var displayParts);
         displayParts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position));
         displayParts.Add(Space());
 
@@ -74,13 +75,13 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
 
         displayParts.Add(Punctuation(SyntaxKind.OpenParenToken));
 
-        return displayParts;
+        return displayParts.ToImmutableAndClear();
     }
 
     private static ImmutableArray<SignatureHelpSymbolParameter> GetDelegateOrFunctionPointerInvokeParameters(
         IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
     {
-        var result = new List<SignatureHelpSymbolParameter>();
+        using var _ = ArrayBuilder<SignatureHelpSymbolParameter>.GetInstance(out var result);
 
         foreach (var parameter in invokeMethod.Parameters)
         {
@@ -92,7 +93,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
                 parameter.ToMinimalDisplayParts(semanticModel, position)));
         }
 
-        return result;
+        return result.ToImmutableAndClear();
     }
 
     private static ImmutableArray<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePostambleParts()
