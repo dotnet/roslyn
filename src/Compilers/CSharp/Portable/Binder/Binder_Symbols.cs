@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private NamespaceOrTypeSymbol GetContainingNamespaceOrNonExtensionType(Symbol symbol)
         {
             if (symbol.ContainingNamespaceOrType() is { } containing
-                && containing is not TypeSymbol { IsExtension: true })
+                && containing is not NamedTypeSymbol { IsExtension: true })
             {
                 return containing;
             }

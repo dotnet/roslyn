@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -521,16 +522,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
+        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
+        public virtual bool IsExtension
+            => TypeKind == TypeKind.Extension;
+
+        /// <summary>
+        /// For the type representing an extension declaration, returns the receiver parameter symbol.
+        /// It may be unnamed.
+        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
+        /// </summary>
+        internal abstract ParameterSymbol? ExtensionParameter { get; }
+
         /// <summary>
         /// For extensions, returns the synthesized identifier for the grouping type.
+        /// Returns null otherwise.
         /// </summary>
-        internal abstract string ExtensionGroupingName { get; }
+        internal abstract string? ExtensionGroupingName { get; }
 
         /// <summary>
         /// For extensions, returns the synthesized identifier for the marker type.
+        /// Returns null otherwise.
         /// </summary>
-        internal abstract string ExtensionMarkerName { get; }
-
+        internal abstract string? ExtensionMarkerName { get; }
 #nullable disable
 
         /// <summary>

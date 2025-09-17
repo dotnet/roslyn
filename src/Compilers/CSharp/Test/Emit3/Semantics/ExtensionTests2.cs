@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -4271,7 +4270,7 @@ int.M();
         var comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyEmitDiagnostics();
         var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ToTestDisplayString());
+        AssertEx.Equal("E.<Extension>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ToTestDisplayString());
         AssertEx.SetEqual([], extension.GetAttributes().Select(a => a.ToString()));
         Assert.Equal("", extension.Name);
         AssertEx.Equal("<Marker>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.MetadataName);
@@ -4298,7 +4297,9 @@ int.M();
 
         var extension = (PENamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         Assert.True(extension.IsExtension);
-        AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB<T>", extension.ToTestDisplayString());
+        Assert.Equal("<G>$8048A6C8BE30A622530249B904B537EB", extension.ExtensionGroupingName);
+        Assert.Equal("<M>$01CE3801593377B4E240F33E20D30D50", extension.ExtensionMarkerName);
+        AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$01CE3801593377B4E240F33E20D30D50", extension.ToTestDisplayString());
         Assert.Equal("", extension.Name);
         AssertEx.Equal("<M>$01CE3801593377B4E240F33E20D30D50", extension.MetadataName);
         Assert.False(extension.MangleName);
@@ -5107,12 +5108,12 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M``1(``0)"/>
+    <see cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M``1(``0)"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
 
-        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
             e.GetTypeMembers().Single().GetDocumentationCommentId());
 
         var tree = comp.SyntaxTrees.Single();
@@ -5769,7 +5770,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;G&gt;$B8D310208B4544F25EEBACB9990FC73B.M"/>
+    <see cref="M:E.&lt;G&gt;$B8D310208B4544F25EEBACB9990FC73B`1.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -5828,7 +5829,7 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
-    <see cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB.M"/>
+    <see cref="M:E.&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.M"/>
 </member>
 
 """, e.GetDocumentationCommentXml());
@@ -22339,7 +22340,7 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$8048A6C8BE30A622530249B904B537EB`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -22364,7 +22365,7 @@ static class E
                 IL_0000: ret
             } // end of method '<M>$A93DBF9EBD61C29E8B5CFA979E4C33E8'::'<Extension>$'
         } // end of class <M>$A93DBF9EBD61C29E8B5CFA979E4C33E8
-    } // end of class <G>$8048A6C8BE30A622530249B904B537EB
+    } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
@@ -22714,7 +22715,7 @@ static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$BAC44226FEFE1ED1B549A4B5F35748C7'<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) $T0>
+    .class nested public auto ansi sealed specialname '<G>$BAC44226FEFE1ED1B549A4B5F35748C7`1'<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) $T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -22747,7 +22748,7 @@ static class E
                 IL_0000: ret
             } // end of method '<M>$03A00A6A168488BDF2B2E5B73B8099A6'::'<Extension>$'
         } // end of class <M>$03A00A6A168488BDF2B2E5B73B8099A6
-    } // end of class <G>$BAC44226FEFE1ED1B549A4B5F35748C7
+    } // end of class <G>$BAC44226FEFE1ED1B549A4B5F35748C7`1
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -24492,7 +24493,7 @@ interface I { }
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$0AD8C3962A3C5E6BFA97E099F6F428C4'<(I) $T0, (I) $T1, (I) $T2>
+    .class nested public auto ansi sealed specialname '<G>$0AD8C3962A3C5E6BFA97E099F6F428C4`3'<(I) $T0, (I) $T1, (I) $T2>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -24511,10 +24512,10 @@ interface I { }
                     01 00 02 00 00
                 )
             // Methods
-            .method private hidebysig specialname static 
+            .method private hidebysig specialname static
                 void '<Extension>$' (
                     int32 ''
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -24525,7 +24526,7 @@ interface I { }
                 IL_0000: ret
             } // end of method '<M>$5B198AEBE2F597134BE1E94D84704187'::'<Extension>$'
         } // end of class <M>$5B198AEBE2F597134BE1E94D84704187
-    } // end of class <G>$0AD8C3962A3C5E6BFA97E099F6F428C4
+    } // end of class <G>$0AD8C3962A3C5E6BFA97E099F6F428C4`3
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
@@ -24587,7 +24588,7 @@ class BAttribute : System.Attribute { }
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$B8D310208B4544F25EEBACB9990FC73B'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$B8D310208B4544F25EEBACB9990FC73B`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -24605,10 +24606,10 @@ class BAttribute : System.Attribute { }
                     01 00 00 00
                 )
             // Methods
-            .method private hidebysig specialname static 
+            .method private hidebysig specialname static
                 void '<Extension>$' (
                     int32 ''
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -24626,7 +24627,7 @@ class BAttribute : System.Attribute { }
                 IL_0000: ret
             } // end of method '<M>$D131137B02074799BD78183FB29034EC'::'<Extension>$'
         } // end of class <M>$D131137B02074799BD78183FB29034EC
-    } // end of class <G>$B8D310208B4544F25EEBACB9990FC73B
+    } // end of class <G>$B8D310208B4544F25EEBACB9990FC73B`1
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -27051,9 +27052,9 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<G>$66F77D1E46F965A5B22D4932892FA78B",
+                "TypeDefinition:<G>$66F77D1E46F965A5B22D4932892FA78B`1",
                 "TypeDefinition:<M>$C8718A1AD9DFC47EBD0C706B9E6984E6",
-                "TypeDefinition:<G>$BCF902721DDD961E5243C324D8379E5C",
+                "TypeDefinition:<G>$BCF902721DDD961E5243C324D8379E5C`1",
                 "TypeDefinition:<M>$B865B3ED3C68CE2EBBC104FFAF3CFF93"
                 ], reader.DumpNestedTypes(e.Handle));
         }
@@ -27087,7 +27088,7 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<G>$8048A6C8BE30A622530249B904B537EB",
+                "TypeDefinition:<G>$8048A6C8BE30A622530249B904B537EB`1",
                 "TypeDefinition:<M>$C7A07C3975E80DE5DBC93B5392C6C922",
                 "TypeDefinition:<M>$2789E59A55056F0AD9E820EBD5BCDFBF"
                 ], reader.DumpNestedTypes(e.Handle));
@@ -27461,7 +27462,7 @@ public class AAttribute : System.Attribute { }
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B",
+                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B`1",
                 "TypeDefinition:<M>$F167169D271C76FCF9FF858EA5CFC454",
                 "TypeDefinition:<M>$9D7BB308433678477E9C2F4392A27B18"
                 ], reader.DumpNestedTypes(e.Handle));
@@ -27498,7 +27499,7 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<G>$8048A6C8BE30A622530249B904B537EB",
+                "TypeDefinition:<G>$8048A6C8BE30A622530249B904B537EB`1",
                 "TypeDefinition:<M>$C7A07C3975E80DE5DBC93B5392C6C922",
                 "TypeDefinition:<M>$01CE3801593377B4E240F33E20D30D50"
                 ], reader.DumpNestedTypes(e.Handle));
@@ -27533,7 +27534,7 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B",
+                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B`1",
                 "TypeDefinition:<M>$A189EAA0A09C2534B53DBF86166AD56A",
                 "TypeDefinition:<M>$869530FF3C2454D7BCCC5A8D0E31052F"
                 ], reader.DumpNestedTypes(e.Handle));
@@ -27568,7 +27569,7 @@ public static class E
             var reader = ((PEModuleSymbol)module).Module.GetMetadataReader();
             AssertEx.Equal([
                 "TypeDefinition:E",
-                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B",
+                "TypeDefinition:<G>$B8D310208B4544F25EEBACB9990FC73B`1",
                 "TypeDefinition:<M>$9D7BB308433678477E9C2F4392A27B18"
                 ], reader.DumpNestedTypes(e.Handle));
         }
@@ -31270,7 +31271,7 @@ public class AAttribute : System.Attribute { }
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$B8D310208B4544F25EEBACB9990FC73B'<$T0>
+    .class nested public auto ansi sealed specialname '<G>$B8D310208B4544F25EEBACB9990FC73B`1'<$T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -31285,10 +31286,10 @@ public class AAttribute : System.Attribute { }
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static 
+            .method public hidebysig specialname static
                 void '<Extension>$' (
                     int32 i
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -31300,8 +31301,8 @@ public class AAttribute : System.Attribute { }
             } // end of method '<M>$73F5560BE55A0A0B23905153DB511F4E'::'<Extension>$'
         } // end of class <M>$73F5560BE55A0A0B23905153DB511F4E
         // Methods
-        .method public hidebysig 
-            instance void M () cil managed 
+        .method public hidebysig
+            instance void M () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 37 33 46 35 35 36 30 42 45
@@ -31313,13 +31314,13 @@ public class AAttribute : System.Attribute { }
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$B8D310208B4544F25EEBACB9990FC73B'::M
-    } // end of class <G>$B8D310208B4544F25EEBACB9990FC73B
+        } // end of method '<G>$B8D310208B4544F25EEBACB9990FC73B`1'::M
+    } // end of class <G>$B8D310208B4544F25EEBACB9990FC73B`1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         void M<T> (
             int32 i
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -31770,7 +31771,7 @@ public static class E
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$8A1E908054B5C3DCE56554F1F294FA98'<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) $T0>
+    .class nested public auto ansi sealed specialname '<G>$8A1E908054B5C3DCE56554F1F294FA98`1'<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) $T0>
         extends [mscorlib]System.Object
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -31789,10 +31790,10 @@ public static class E
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static 
+            .method public hidebysig specialname static
                 void '<Extension>$' (
                     int32 i
-                ) cil managed 
+                ) cil managed
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -31804,8 +31805,8 @@ public static class E
             } // end of method '<M>$A888E0AEEFB4AB1872CCB8E7D5472CC8'::'<Extension>$'
         } // end of class <M>$A888E0AEEFB4AB1872CCB8E7D5472CC8
         // Methods
-        .method public hidebysig 
-            instance void M () cil managed 
+        .method public hidebysig
+            instance void M () cil managed
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 41 38 38 38 45 30 41 45 45
@@ -31817,13 +31818,13 @@ public static class E
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
-        } // end of method '<G>$8A1E908054B5C3DCE56554F1F294FA98'::M
-    } // end of class <G>$8A1E908054B5C3DCE56554F1F294FA98
+        } // end of method '<G>$8A1E908054B5C3DCE56554F1F294FA98`1'::M
+    } // end of class <G>$8A1E908054B5C3DCE56554F1F294FA98`1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         void M<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T> (
             int32 i
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -32431,6 +32432,303 @@ public class E
         var comp = CreateCompilationWithIL("", ilSrc);
         var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
         Assert.Null(method.AssociatedExtensionImplementation);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
+    public void DocumentationCommentId_01()
+    {
+        var src = """
+public static class E
+{
+    extension(int i1)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        validate(comp);
+
+        var compRef = comp.EmitToImageReference();
+        var comp2 = CreateCompilation("", references: [compRef]);
+        validate(comp2);
+
+        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: [compRef]);
+        var vbGroupingType = vbComp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.False(vbGroupingType.IsExtension);
+        AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", vbGroupingType.GetDocumentationCommentId());
+        var vbM = vbGroupingType.GetMember<IMethodSymbol>("M");
+        AssertEx.Equal("M:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M", vbM.GetDocumentationCommentId());
+        var vbMarkerType = vbGroupingType.GetTypeMembers().Single();
+        Assert.False(vbMarkerType.IsExtension);
+        AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60",
+            vbMarkerType.GetDocumentationCommentId());
+
+        static void validate(CSharpCompilation comp)
+        {
+            var e = comp.GlobalNamespace.GetTypeMember("E");
+            Assert.False(e.IsExtension);
+            Assert.Null(e.ExtensionGroupingName);
+            Assert.Null(e.ExtensionMarkerName);
+
+            // extension
+            var extension = e.GetTypeMembers().Single().GetPublicSymbol();
+            Assert.True(extension.IsExtension);
+            AssertEx.Equal("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", DocumentationCommentId.CreateReferenceId(extension));
+            AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", DocumentationCommentId.CreateDeclarationId(extension));
+            Assert.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", extension.ExtensionGroupingName);
+            Assert.Equal("<M>$531E7AC45D443AE2243E7FFAB9455D60", extension.ExtensionMarkerName);
+            AssertEx.Equal("T:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", extension.GetDocumentationCommentId());
+            var found = (INamedTypeSymbol)DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).Single();
+            Assert.True(found.IsExtension);
+            AssertEx.Equal("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.<M>$531E7AC45D443AE2243E7FFAB9455D60", found.ToTestDisplayString());
+
+            // extension member
+            var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+            Assert.Equal("", DocumentationCommentId.CreateReferenceId(m));
+            Assert.Equal("M:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M", m.GetDocumentationCommentId());
+
+            var declarationId = DocumentationCommentId.CreateDeclarationId(m);
+            AssertEx.Equal("M:E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M", declarationId);
+            AssertEx.Equal("void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+
+            // implementation method
+            var mImplementation = e.GetMember<MethodSymbol>("M").GetPublicSymbol();
+            declarationId = DocumentationCommentId.CreateDeclarationId(mImplementation);
+            AssertEx.Equal("M:E.M(System.Int32)", declarationId);
+            AssertEx.Equal("void E.M(this System.Int32 i1)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.M(this System.Int32 i1)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
+    public void DocumentationCommentId_02()
+    {
+        var src = """
+42.M();
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        validate(comp);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        var method = model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<System.Int32>.M()", method.ToTestDisplayString());
+        AssertEx.Equal("", DocumentationCommentId.CreateReferenceId(method));
+        AssertEx.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", DocumentationCommentId.CreateDeclarationId(method));
+
+        var extension = method.ContainingType;
+        AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB{System.Int32}.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+            DocumentationCommentId.CreateReferenceId(extension));
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+            DocumentationCommentId.CreateDeclarationId(extension));
+
+        var compRef = comp.EmitToImageReference();
+        var comp2 = CreateCompilation("", references: [compRef]);
+        validate(comp2);
+
+        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: [compRef]);
+        var vbGroupingType = vbComp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.False(vbGroupingType.IsExtension);
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1", vbGroupingType.GetDocumentationCommentId());
+        var vbM = vbGroupingType.GetMember<IMethodSymbol>("M");
+        AssertEx.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", vbM.GetDocumentationCommentId());
+        var vbMarkerType = vbGroupingType.GetTypeMembers().Single();
+        Assert.False(vbMarkerType.IsExtension);
+        AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+            vbMarkerType.GetDocumentationCommentId());
+
+        static void validate(CSharpCompilation comp)
+        {
+            var e = comp.GlobalNamespace.GetTypeMember("E");
+            Assert.False(e.IsExtension);
+            Assert.Null(e.ExtensionGroupingName);
+            Assert.Null(e.ExtensionMarkerName);
+
+            // extension
+            var extension = e.GetTypeMembers().Single().GetPublicSymbol();
+            Assert.True(extension.IsExtension);
+            AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", DocumentationCommentId.CreateReferenceId(extension));
+            AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", DocumentationCommentId.CreateDeclarationId(extension));
+            Assert.Equal("<G>$8048A6C8BE30A622530249B904B537EB", extension.ExtensionGroupingName);
+            Assert.Equal("<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.ExtensionMarkerName);
+            AssertEx.Equal("T:E.<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+            var found = (INamedTypeSymbol)DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).Single();
+            Assert.True(found.IsExtension);
+            AssertEx.Equal("E.<G>$8048A6C8BE30A622530249B904B537EB<T>.<M>$D1693D81A12E8DED4ED68FE22D9E856F", found.ToTestDisplayString());
+
+            AssertEx.Equal("E+<G>$8048A6C8BE30A622530249B904B537EB<T>+<M>$D1693D81A12E8DED4ED68FE22D9E856F",
+                found.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames | SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes)));
+
+            // extension member
+            var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+            Assert.Equal("", DocumentationCommentId.CreateReferenceId(m));
+            Assert.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", m.GetDocumentationCommentId());
+
+            var declarationId = DocumentationCommentId.CreateDeclarationId(m);
+            AssertEx.Equal("M:E.<G>$8048A6C8BE30A622530249B904B537EB`1.M", declarationId);
+            AssertEx.Equal("void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.<G>$8048A6C8BE30A622530249B904B537EB<T>.M()"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+
+            // implementation method
+            var mImplementation = e.GetMember<MethodSymbol>("M").GetPublicSymbol();
+            declarationId = DocumentationCommentId.CreateDeclarationId(mImplementation);
+            AssertEx.Equal("M:E.M``1(``0)", declarationId);
+            AssertEx.Equal("void E.M<T>(this T t)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.M<T>(this T t)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
+    public void DocumentationCommentId_03()
+    {
+        // grouping type name from metadata without arity suffix
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname 'GroupingType'<$T0>
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname 'MarkerType'<T>
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( !T t ) cil managed 
+            {
+                ret
+            }
+        }
+        .method public hidebysig instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 0a 4d 61 72 6b 65 72 54 79 70 65 00 00
+            )
+            ldnull
+            throw
+        }
+    }
+    .method public hidebysig static void M<T> ( !!T t ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        ldarg.0
+        box !!T
+        call void [mscorlib]System.Console::Write(object)
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var src = """
+42.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+        validate(comp);
+
+        MetadataReference ilReference = CompileIL(ilSrc);
+        var allReferences = TargetFrameworkUtil.GetReferences(targetFramework: TargetFramework.Standard).Add(ilReference);
+        var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: allReferences);
+        var vbGroupingType = vbComp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.False(vbGroupingType.IsExtension);
+        AssertEx.Equal("T:E.GroupingType`1", vbGroupingType.GetDocumentationCommentId());
+        var vbM = vbGroupingType.GetMember<IMethodSymbol>("M");
+        AssertEx.Equal("M:E.GroupingType`1.M", vbM.GetDocumentationCommentId());
+        var vbMarkerType = vbGroupingType.GetTypeMembers().Single();
+        Assert.False(vbMarkerType.IsExtension);
+        AssertEx.Equal("T:E.GroupingType`1.MarkerType", vbMarkerType.GetDocumentationCommentId());
+
+        static void validate(CSharpCompilation comp)
+        {
+            var e = comp.GlobalNamespace.GetTypeMember("E");
+            Assert.False(e.IsExtension);
+            Assert.Null(e.ExtensionGroupingName);
+            Assert.Null(e.ExtensionMarkerName);
+
+            // extension
+            var extension = e.GetTypeMembers().Single().GetPublicSymbol();
+            Assert.True(extension.IsExtension);
+            AssertEx.Equal("E.GroupingType`1.MarkerType", DocumentationCommentId.CreateReferenceId(extension));
+            AssertEx.Equal("T:E.GroupingType`1.MarkerType", DocumentationCommentId.CreateDeclarationId(extension));
+            Assert.Equal("GroupingType", extension.ExtensionGroupingName);
+            Assert.Equal("MarkerType", extension.ExtensionMarkerName);
+            AssertEx.Equal("T:E.GroupingType`1.MarkerType", extension.GetDocumentationCommentId());
+            var found = (INamedTypeSymbol)DocumentationCommentId.GetSymbolsForDeclarationId(DocumentationCommentId.CreateDeclarationId(extension), comp).Single();
+            Assert.True(found.IsExtension);
+            AssertEx.Equal("E.GroupingType<T>.MarkerType", found.ToTestDisplayString());
+
+            // extension member
+            var m = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+            Assert.Equal("", DocumentationCommentId.CreateReferenceId(m));
+            Assert.Equal("M:E.GroupingType`1.M", m.GetDocumentationCommentId());
+
+            var declarationId = DocumentationCommentId.CreateDeclarationId(m);
+            AssertEx.Equal("M:E.GroupingType`1.M", declarationId);
+            AssertEx.Equal("void E.GroupingType<T>.M()", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.GroupingType<T>.M()"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+
+            // implementation method
+            var mImplementation = e.GetMember<MethodSymbol>("M").GetPublicSymbol();
+            declarationId = DocumentationCommentId.CreateDeclarationId(mImplementation);
+            AssertEx.Equal("M:E.M``1(``0)", declarationId);
+            AssertEx.Equal("void E.M<T>(this T t)", DocumentationCommentId.GetFirstSymbolForDeclarationId(declarationId, comp).ToTestDisplayString());
+            AssertEx.Equal(["void E.M<T>(this T t)"], DocumentationCommentId.GetSymbolsForDeclarationId(declarationId, comp).ToTestDisplayStrings());
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
+    public void DocumentationCommentId_04()
+    {
+        // grouping and marker type names from metadata are VB-escapable
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname 'Rem'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname 'New'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( object o ) cil managed
+            {
+                ret
+            }
+        }
+        .method public hidebysig instance void M () cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 03 4e 65 77 00 00
+            )
+            ldnull
+            throw
+        }
+    }
+    .method public hidebysig static void M ( object o ) cil managed
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var comp = CreateCompilationWithIL("", ilSrc);
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetPublicSymbol();
+        Assert.True(extension.IsExtension);
+        Assert.Equal("E.[Rem].[New]", VisualBasic.SymbolDisplay.ToDisplayString(extension));
     }
 }
 
