@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 [ExportLanguageService(typeof(ICopilotProposalAdjusterService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpCopilotProposalAdjusterService() : AbstractCopilotProposalAdjusterService
+internal sealed class CSharpCopilotProposalAdjusterService(IGlobalOptionService globalOptions) : AbstractCopilotProposalAdjusterService(globalOptions)
 {
     private const string CS1513 = nameof(CS1513); // } expected
 

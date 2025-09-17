@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -38,6 +39,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
 
                     delta -= selectionSpan.Length
                 Next
+
+                ' Enable code fixer feature flags. They are off by default.
+                Dim options = workspace.GetService(Of IGlobalOptionService)
+                options.SetGlobalOption(CopilotOptions.FixCodeFormat, True)
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim tuple = Await service.TryAdjustProposalAsync(
@@ -281,6 +286,120 @@ class C
 ")
         End Function
 
+        <WpfFact>
+        Public Async Function TestCSharp_RequiresFormatting() As Task
+            Await TestCSharp("
+using System;
+
+class C
+{
+    void M()
+    {
+            [| Console  .  WriteLine ( 1 )   ;|]
+    }
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_RequiresUsingAndFormatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+            [| Console  .  WriteLine ( 1 )   ;|]
+    }
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_Multi_Line_Formatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [| if (false) {
+System.Console  .  WriteLine ( 1 )   ; } |]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        if (false)
+        {
+            System.Console.WriteLine(1);
+        }
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_Formatting_Outside_Proposal() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [| Console  .  WriteLine ( 1 )   ;|]
+            if (    true    ) {
+            [| Console  .  WriteLine ( 1 )   ;|]
+            }
+    }
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+        if (true)
+        {
+            Console.WriteLine(1);
+        }
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_Partial_Formatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [| System . Console  .  Writ|]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        System.Console.Writ
+    }
+}")
+        End Function
+
 #End Region
 
 #Region "Visual Basic"
@@ -412,6 +531,105 @@ class C
         if (true)
         end if
         Console.WriteLine()
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_RequiresFormatting() As Task
+            Await TestVisualBasic("
+Imports System
+
+class C
+    sub M()
+        [| Console . WriteLine ( 1 )   |]
+    end sub
+end class", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_RequiresUsingAndFormatting() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| Console . WriteLine ( 1 )   |]
+    end sub
+end class", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_Multi_Line_Formatting() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| Console . WriteLine ( 1 )   |]
+        if (false)
+        end if
+        [| Console . WriteLine ( 1 )   |]
+    end sub
+end class
+", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+        if (false)
+        end if
+        Console.WriteLine(1)
+    end sub
+end class
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_Formatting_Outside_Proposal() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| Console  .  WriteLine ( 1 )  |]
+            if (    true    )
+            [| Console  .  WriteLine ( 1 )   |]
+            end if
+    end sub
+end class", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+        if (true)
+            Console.WriteLine(1)
+        end if
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_Partial_Formatting() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| System .  Console  .  Writ|]
+    end sub
+end class", "
+class C
+    sub M()
+        System.Console.Writ
     end sub
 end class")
         End Function

@@ -9,4 +9,5 @@ namespace Microsoft.CodeAnalysis.Copilot;
 internal static class CopilotOptions
 {
     public static Option2<bool> AnalyzeCopilotChanges { get; } = new Option2<bool>("dotnet_analyze_copilot_changes", defaultValue: true);
+    public static Option2<bool> FixCodeFormat { get; } = new Option2<bool>("dotnet_copilot_fix_code_format", defaultValue: false);
 }
