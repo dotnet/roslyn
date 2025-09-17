@@ -100,7 +100,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     private async ValueTask<bool> TryComputeRefactoringForIfDirectiveAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
-        if (textSpan.IsEmpty)
+        if (!textSpan.IsEmpty)
             return false;
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
