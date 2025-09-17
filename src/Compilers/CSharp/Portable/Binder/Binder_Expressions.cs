@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.InParameterDefaultValue);
             Debug.Assert(this.ContainingMemberOrLambda.Kind == SymbolKind.Method
                 || this.ContainingMemberOrLambda.Kind == SymbolKind.Property
-                || this.ContainingMemberOrLambda is TypeSymbol { IsExtension: true });
+                || this.ContainingMemberOrLambda is NamedTypeSymbol { IsExtension: true });
 
             // UNDONE: The binding and conversion has to be executed in a checked context.
             Binder defaultValueBinder = this.GetBinder(defaultValueSyntax);
@@ -3792,7 +3792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                             Debug.Assert(methodResult.Member.GetIsNewExtensionMember());
-                            var receiverParameter = ((TypeSymbol)methodResult.Member.ContainingSymbol).ExtensionParameter;
+                            var receiverParameter = ((NamedTypeSymbol)methodResult.Member.ContainingSymbol).ExtensionParameter;
                             Debug.Assert(receiverParameter is not null);
                             refKind = receiverParameter.RefKind;
                             placeholderType = receiverParameter.Type;

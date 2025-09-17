@@ -472,10 +472,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override bool HasCompilerLoweringPreserveAttribute => _underlyingType.HasCompilerLoweringPreserveAttribute;
 
-        internal override string ExtensionGroupingName
+        internal override string? ExtensionGroupingName
             => _underlyingType.ExtensionGroupingName;
 
-        internal override string ExtensionMarkerName
+        internal override string? ExtensionMarkerName
             => _underlyingType.ExtensionMarkerName;
     }
 }

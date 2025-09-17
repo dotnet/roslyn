@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var xExtension = x.OriginalDefinition.ContainingType;
                 var xGroupingKey = ((SourceNamedTypeSymbol)xExtension).ExtensionGroupingName;
+                Debug.Assert(xGroupingKey is not null);
                 var yExtension = y.OriginalDefinition.ContainingType;
                 var yGroupingKey = ((SourceNamedTypeSymbol)yExtension).ExtensionGroupingName;
 
@@ -294,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var extension = op.OriginalDefinition.ContainingType;
                 var groupingKey = ((SourceNamedTypeSymbol)extension).ExtensionGroupingName;
+                Debug.Assert(groupingKey is not null);
                 result = Hash.Combine(result, groupingKey.GetHashCode());
 
                 foreach (var parameter in op.OriginalDefinition.AsMember(Normalize(extension)).Parameters)

@@ -6161,7 +6161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.DefaultArguments = defaultArguments;
             this.ResultKind = resultKind;
             this.OriginalMethodsOpt = originalMethodsOpt;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public new TypeSymbol Type => base.Type!;
         public BoundExpression? ReceiverOpt { get; }
