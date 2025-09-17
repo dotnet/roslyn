@@ -315,6 +315,20 @@ internal static partial class ProtocolConversions
     {
         var linePositionSpan = RangeToLinePositionSpan(range);
 
+        // Handle the specific case where the end position is exactly one line beyond the document bounds
+        // and the end character is 0 (start of the non-existent next line).
+        // This can happen when deleting the last line, where LSP clients are allowed (by the spec) to
+        // send an end position referencing the start of the next line (which doesn't exist).
+        if (text.Lines.Count > 0 &&
+            linePositionSpan.End.Line == text.Lines.Count &&
+            linePositionSpan.End.Character == 0)
+        {
+            // Clamp the end position to the end of the last line
+            var lastLine = text.Lines[text.Lines.Count - 1];
+            var clampedEnd = new LinePosition(text.Lines.Count - 1, lastLine.End - lastLine.Start);
+            linePositionSpan = new LinePositionSpan(linePositionSpan.Start, clampedEnd);
+        }
+
         try
         {
             try
