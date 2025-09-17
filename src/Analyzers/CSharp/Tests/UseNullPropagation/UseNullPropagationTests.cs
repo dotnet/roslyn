@@ -2664,4 +2664,117 @@ public sealed partial class UseNullPropagationTests
             }
             """,
             languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestUnconstrainedGenericType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public sealed class Element<T>
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, [|x is null ? null : x.Key|]);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestInterfaceTypeConstrainedGenericType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public sealed class Element<T> : System.IDisposable
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, [|x is null ? null : x.Key|]);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestClassConstrainedGenericType()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Element<T> where T : class
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, [|x is null ? null : x.Key|]);
+                }
+            }
+            """,
+            """
+            public sealed class Element<T> where T : class
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, x?.Key);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestStructConstrainedGenericType()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Element<T> where T : struct
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, [|x is null ? null : x.Key|]);
+                }
+            }
+            """,
+            """
+            public sealed class Element<T> where T : class
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, x?.Key);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64431")]
+    public Task TestRefTypeConstrainedGenericType()
+        => TestInRegularAndScriptAsync(
+            """
+            public sealed class Element<T> where T : System.Exception
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, [|x is null ? null : x.Key|]);
+                }
+            }
+            """,
+            """
+            public sealed class Element<T> where T : System.Exception
+            {
+                public T Key { get; }
+
+                public bool Equals(Element<T> x)
+                {
+                    return Equals(null, x?.Key);
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.CSharp14);
 }
