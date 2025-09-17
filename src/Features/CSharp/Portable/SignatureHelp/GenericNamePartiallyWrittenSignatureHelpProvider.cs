@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-[ExportSignatureHelpProvider("GenericNamePartiallyWrittenSignatureHelpProvider", LanguageNames.CSharp), Shared]
+[ExportSignatureHelpProvider(nameof(GenericNamePartiallyWrittenSignatureHelpProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class GenericNamePartiallyWrittenSignatureHelpProvider() : AbstractGenericNameSignatureHelpProvider
