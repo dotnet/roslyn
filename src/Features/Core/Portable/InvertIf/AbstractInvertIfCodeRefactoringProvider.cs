@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -26,11 +27,13 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     TStatementSyntax,
     TIfStatementSyntax,
     TEmbeddedStatementSyntax,
-    TDirectiveSyntaxSyntax> : CodeRefactoringProvider
+    TDirectiveSyntax,
+    TIfDirectiveSyntax> : CodeRefactoringProvider
     where TSyntaxKind : struct, Enum
     where TStatementSyntax : SyntaxNode
     where TIfStatementSyntax : TStatementSyntax
-    where TDirectiveSyntaxSyntax : SyntaxNode
+    where TDirectiveSyntax : SyntaxNode
+    where TIfDirectiveSyntax : TDirectiveSyntax
 {
     private enum InvertIfStyle
     {
@@ -63,7 +66,9 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     protected abstract bool IsElseless(TIfStatementSyntax ifNode);
 
     protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
+
     protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
+    protected abstract SyntaxNode GetCondition(TIfDirectiveSyntax ifNode);
 
     protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatementSyntax ifBody);
     protected abstract TEmbeddedStatementSyntax GetIfBody(TIfStatementSyntax ifNode);
@@ -102,27 +107,88 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var token = root.FindToken(textSpan.Start, findInsideTrivia: true);
-        var directive = token.GetAncestor<TDirectiveSyntaxSyntax>();
-        if (directive is null)
+        var ifDirective = token.GetAncestor<TIfDirectiveSyntax>();
+        if (ifDirective is null)
+            return false;
+
+        if (HasErrorDiagnostics(ifDirective))
             return false;
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var syntaxKinds = syntaxFacts.SyntaxKinds;
 
-        if (directive.RawKind != syntaxKinds.IfDirectiveTrivia)
+        if (ifDirective.RawKind != syntaxKinds.IfDirectiveTrivia)
             return false;
 
-        var conditionalDirectives = syntaxFacts.GetMatchingConditionalDirectives(directive, cancellationToken);
+        var conditionalDirectives = syntaxFacts.GetMatchingConditionalDirectives(ifDirective, cancellationToken);
         if (conditionalDirectives.Length != 3)
             return false;
 
-        if (conditionalDirectives[0].RawKind != syntaxKinds.IfDirectiveTrivia ||
+        if (conditionalDirectives[0] != ifDirective ||
             conditionalDirectives[1].RawKind != syntaxKinds.ElseDirectiveTrivia ||
             conditionalDirectives[2].RawKind != syntaxKinds.EndIfDirectiveTrivia)
         {
             return false;
         }
+
+        var elseDirective = (TDirectiveSyntax)conditionalDirectives[1];
+        var endIfDirective = (TDirectiveSyntax)conditionalDirectives[2];
+
+        if (HasErrorDiagnostics(elseDirective) ||
+            HasErrorDiagnostics(endIfDirective))
+        {
+            return false;
+        }
+
+        var title = GetTitle();
+        context.RegisterRefactoring(CodeAction.Create(
+            title,
+            cancellationToken => InvertIfDirectiveAsync(document, ifDirective, elseDirective, endIfDirective, cancellationToken),
+            title),
+            ifDirective.Span);
+        return true;
     }
+
+    private async Task<Document> InvertIfDirectiveAsync(
+        Document document,
+        TIfDirectiveSyntax ifDirective,
+        TDirectiveSyntax elseDirective,
+        TDirectiveSyntax endIfDirective,
+        CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
+
+        var condition = GetCondition(ifDirective);
+        var invertedCondition = generator.Negate(
+            generator.SyntaxGeneratorInternal,
+            condition,
+            semanticModel,
+            cancellationToken);
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var ifDirectiveLine = text.Lines.GetLineFromPosition(ifDirective.SpanStart);
+        var elseDirectiveLine = text.Lines.GetLineFromPosition(elseDirective.SpanStart);
+        var endIfDirectiveLine = text.Lines.GetLineFromPosition(endIfDirective.SpanStart);
+
+        var trueSpanStart = text.Lines[ifDirectiveLine.LineNumber + 1].Start;
+        var trueSpan = TextSpan.FromBounds(trueSpanStart, Math.Max(trueSpanStart, text.Lines[elseDirectiveLine.LineNumber - 1].SpanIncludingLineBreak.End));
+
+        var falseSpanStart = text.Lines[elseDirectiveLine.LineNumber + 1].Start;
+        var falseSpan = TextSpan.FromBounds(falseSpanStart, Math.Max(falseSpanStart, text.Lines[endIfDirectiveLine.LineNumber - 1].SpanIncludingLineBreak.End));
+
+        // Swap the condition with the new condition.
+        // Swap the true/false sections.
+        var newText = text.WithChanges(
+            new TextChange(condition.FullSpan, invertedCondition.ToFullString()),
+            new TextChange(trueSpan, text.ToString(falseSpan)),
+            new TextChange(falseSpan, text.ToString(trueSpan)));
+
+        return document.WithText(newText);
+    }
+
+    private static bool HasErrorDiagnostics(SyntaxNode node)
+        => node.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error);
 
     private async ValueTask TryComputeRefactorForIfStatementAsync(CodeRefactoringContext context)
     {
@@ -135,11 +201,10 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
             return;
 
         var title = GetTitle();
-        context.RegisterRefactoring(
-            CodeAction.Create(
-                title,
-                c => InvertIfAsync(document, ifNode, c),
-                title),
+        context.RegisterRefactoring(CodeAction.Create(
+            title,
+            cancellationToken => InvertIfAsync(document, ifNode, cancellationToken),
+            title),
             ifNode.Span);
     }
 

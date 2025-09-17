@@ -25,7 +25,11 @@ using static SyntaxFactory;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIfCodeRefactoringProvider<
-    SyntaxKind, StatementSyntax, IfStatementSyntax, StatementSyntax>
+    SyntaxKind,
+    StatementSyntax,
+    IfStatementSyntax,
+    StatementSyntax,
+    IfDirectiveTriviaSyntax>
 {
     protected override string GetTitle()
         => CSharpFeaturesResources.Invert_if;
