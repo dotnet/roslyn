@@ -186,23 +186,6 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
 
         var updatedDocument = document.WithText(newText);
         return updatedDocument;
-        //var updatedRoot = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        //// SyntaxGenerator.Negate often adds parentheses around the expression.  However, because we are making text
-        //// changes, we lose the annotations to go and clean that up later.
-        //var updatedIfDirective = updatedRoot.FindNode(ifDirective.FullSpan, findInsideTrivia: true);
-        //if (updatedIfDirective != null)
-        //{
-        //    var syntaxFacts = generator.SyntaxFacts;
-        //    var updatedIfDirectiveWithAnnotations = updatedIfDirective.ReplaceNodes(
-        //        updatedIfDirective.DescendantNodes().Where(n => n.RawKind == syntaxFacts.SyntaxKinds.ParenthesizedExpression),
-        //        (_, current) => current.WithAdditionalAnnotations(Simplifier.Annotation));
-        //    updatedRoot = updatedRoot.ReplaceNode(
-        //        updatedIfDirective,
-        //        updatedIfDirectiveWithAnnotations);
-        //}
-
-        //return updatedDocument.WithSyntaxRoot(updatedRoot);
     }
 
     private static bool HasErrorDiagnostics(SyntaxNode node)
