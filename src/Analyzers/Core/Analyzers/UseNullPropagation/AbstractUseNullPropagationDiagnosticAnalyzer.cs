@@ -215,6 +215,16 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             if (memberSymbol is IMethodSymbol)
                 return null;
 
+            //var memberType = semanticModel.GetTypeInfo(whenPartToCheck, cancellationToken).Type;
+            //if (memberType is null)
+            //    return null;
+
+            //if (memberType is ITypeParameterSymbol typeParameter)
+            //{
+            //    if (!typeParameter.HasValueTypeConstraint && !typeParameter.HasReferenceTypeConstraint)
+            //        return null;
+            //}
+
             // `x == null ? x : x.Value` will be converted to just 'x'.
             if (UseNullPropagationHelpers.IsSystemNullableValueProperty(memberSymbol))
                 isTrivialNullableValueAccess = true;

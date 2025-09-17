@@ -5,7 +5,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -48,6 +47,7 @@ public sealed partial class UseNullPropagationTests
         => new VerifyCS.Test
         {
             TestCode = testCode,
+            FixedCode = testCode,
             LanguageVersion = languageVersion,
         }.RunAsync();
 
@@ -2739,7 +2739,7 @@ public sealed partial class UseNullPropagationTests
             }
             """,
             """
-            public sealed class Element<T> where T : class
+            public sealed class Element<T> where T : struct
             {
                 public T Key { get; }
 
