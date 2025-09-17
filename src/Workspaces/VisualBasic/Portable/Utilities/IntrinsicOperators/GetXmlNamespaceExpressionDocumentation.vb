@@ -8,14 +8,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
     Friend NotInheritable Class GetXmlNamespaceExpressionDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
-        Public Overrides Function GetParameterDisplayParts(index As Integer) As IList(Of SymbolDisplayPart)
+        Public Overrides Function GetParameterDisplayParts(index As Integer) As ImmutableArray(Of SymbolDisplayPart)
             Select Case index
                 Case 0
-                    Return {
+                    Return ImmutableArray.Create(
                         New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "["),
                         New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index)),
-                        New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "]")
-                   }
+                        New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "]"))
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select

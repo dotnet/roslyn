@@ -11,15 +11,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides ReadOnly Property DocumentationText As String =
             VBWorkspaceResources.If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse
 
-        Public Overrides Function GetParameterDisplayParts(index As Integer) As IList(Of SymbolDisplayPart)
+        Public Overrides Function GetParameterDisplayParts(index As Integer) As ImmutableArray(Of SymbolDisplayPart)
             If index = 0 Then
-                Return {New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index)),
-                        New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
-                        New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "As"),
-                        New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
-                        New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "Boolean")}
+                Return ImmutableArray.Create(
+                    New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index)),
+                    New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
+                    New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "As"),
+                    New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
+                    New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "Boolean"))
             Else
-                Return {New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index))}
+                Return ImmutableArray.Create(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index)))
             End If
         End Function
 
