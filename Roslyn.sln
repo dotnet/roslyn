@@ -729,7 +729,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Buil
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.SemanticSearch.Extensions", "src\Tools\SemanticSearch\Extensions\Microsoft.CodeAnalysis.SemanticSearch.Extensions.csproj", "{66C8265C-2C79-F259-9807-3E97CA586F1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Workspaces.Test.Framework", "src\Workspaces\Test.Framework\Microsoft.CodeAnalysis.Workspaces.Test.Framework.csproj", "{74F17E90-A4E2-C94B-1ECF-6E700516D5E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.Test.Framework", "src\Workspaces\Test.Framework\Microsoft.CodeAnalysis.Workspaces.Test.Framework.csproj", "{74F17E90-A4E2-C94B-1ECF-6E700516D5E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
