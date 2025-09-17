@@ -8491,7 +8491,7 @@ namespace ConsoleApp1
             {
                 for (var i = 0; i < 10; i++)
                 {
-                    object  {|Rename:v|} = p[i];
+                    object {|Rename:v|} = p[i];
                     Console.Write(v);
                 }
             }
