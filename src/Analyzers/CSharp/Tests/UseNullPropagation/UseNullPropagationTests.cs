@@ -2675,7 +2675,7 @@ public sealed partial class UseNullPropagationTests
 
                 public bool Equals(Element<T> x)
                 {
-                    return Equals(null, [|x is null ? null : x.Key|]);
+                    return Equals(null, x is null ? null : x.Key);
                 }
             }
             """,
@@ -2691,8 +2691,10 @@ public sealed partial class UseNullPropagationTests
 
                 public bool Equals(Element<T> x)
                 {
-                    return Equals(null, [|x is null ? null : x.Key|]);
+                    return Equals(null, x is null ? null : x.Key);
                 }
+
+                public void Dispose() { }
             }
             """,
             languageVersion: LanguageVersion.CSharp14);
