@@ -1093,6 +1093,29 @@ public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCom
         await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: FeaturesResources.Required);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80192")]
+    public async Task RequiredMembersNotLabeledOrSelectedInRecordWith()
+    {
+        var markup = """
+            record C
+            {
+                public required int RequiredField;
+                public required int RequiredProperty { get; set; }
+            }
+
+            class D
+            {
+                static void Main(C c)
+                {
+                    var t = c with { $$ };
+                }
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "RequiredField", inlineDescription: "", matchPriority: MatchPriority.Default);
+        await VerifyItemExistsAsync(markup, "RequiredProperty", inlineDescription: "");
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15205")]
     public Task NestedPropertyInitializers1()
         => VerifyItemExistsAsync("""
