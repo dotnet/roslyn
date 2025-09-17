@@ -115,11 +115,6 @@ Usar colores mejorados;Combinación de colores del editor;Margen de herencia;Dir
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">Los componentes de Visual Basic utilizados en el IDE. En función del tipo de proyecto y la configuración, se podría utilizar una versión diferente del compilador.</target>

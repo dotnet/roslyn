@@ -39,7 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 //         Spacing
 //         Wrapping
 //       Naming
-//     IntelliSense
 
 [ProvideLanguageEditorOptionPage(typeof(Options.AdvancedOptionPage), "CSharp", null, "Advanced", pageNameResourceId: "#102", keywordListResourceId: 306)]
 [ProvideLanguageEditorToolsOptionCategory("CSharp", "Code Style", "#114")]
@@ -51,7 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingNewLinesPage), "CSharp", @"Code Style\Formatting", "NewLines", pageNameResourceId: "#111", keywordListResourceId: 309)]
 [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingSpacingPage), "CSharp", @"Code Style\Formatting", "Spacing", pageNameResourceId: "#112", keywordListResourceId: 310)]
 [ProvideLanguageEditorOptionPage(typeof(Options.NamingStylesOptionPage), "CSharp", @"Code Style", "Naming", pageNameResourceId: "#115", keywordListResourceId: 314)]
-[ProvideLanguageEditorOptionPage(typeof(Options.IntelliSenseOptionPage), "CSharp", null, "IntelliSense", pageNameResourceId: "#103", keywordListResourceId: 312)]
 [ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\csharpSettings.registration.json")]
 [ProvideService(typeof(ICSharpTempPECompilerService), IsAsyncQueryable = false, IsCacheable = true, IsFreeThreaded = true, ServiceName = "C# TempPE Compiler Service")]
 [Guid(Guids.CSharpPackageIdString)]

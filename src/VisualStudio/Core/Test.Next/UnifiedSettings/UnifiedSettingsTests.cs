@@ -134,7 +134,6 @@ public sealed class UnifiedSettingsTests
         Assert.Equal(2, propertyToCategory.Count);
         Assert.Equal("C#", propertyToCategory["languages.csharp"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.csharp.intellisense"]!.Title);
-        Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, propertyToCategory["languages.csharp.intellisense"]!.LegacyOptionPageId);
         await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
@@ -235,7 +234,6 @@ public sealed class UnifiedSettingsTests
         Assert.Equal(2, propertyToCategory.Count);
         Assert.Equal("Visual Basic", propertyToCategory["languages.basic"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.basic.intellisense"]!.Title);
-        Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, propertyToCategory["languages.basic.intellisense"]!.LegacyOptionPageId);
         await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
