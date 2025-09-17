@@ -1590,7 +1590,7 @@ public sealed partial class InvertIfTests
             record D();
             #endif
             """, """
-            #if !A || !B
+            #if !(A && B)
             record D();
             #else
             class C
@@ -1601,26 +1601,6 @@ public sealed partial class InvertIfTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75438")]
     public Task TestIfDirective8()
-        => TestAsync("""
-            [||]#if NAME >= 0
-            class C
-            {
-            }
-            #else
-            record D();
-            #endif
-            """, """
-            #if NAME < 0
-            record D();
-            #else
-            class C
-            {
-            }
-            #endif
-            """);
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75438")]
-    public Task TestIfDirective9()
         => TestAsync("""
             [||]#if (true)
             class C
