@@ -1618,4 +1618,24 @@ public sealed partial class InvertIfTests
             }
             #endif
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75438")]
+    public Task TestIfDirective9()
+        => TestAsync("""
+                [||]#if (true)
+                class C
+                {
+                }
+                #else
+                record D();
+                #endif
+            """, """
+                #if (false)
+                record D();
+                #else
+                class C
+                {
+                }
+                #endif
+            """);
 }
