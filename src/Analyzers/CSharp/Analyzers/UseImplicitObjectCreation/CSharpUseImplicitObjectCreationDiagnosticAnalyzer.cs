@@ -81,7 +81,7 @@ internal sealed class CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
         // 3. Collection-like constructs where the type of the collection is itself explicit.  For example: `new
         //    List<C> { new() }` or `new C[] { new() }`.
 
-        bool isAsync = false;
+        var isAsync = false;
         TypeSyntax? typeNode;
 
         if (objectCreation.Parent is EqualsValueClauseSyntax
