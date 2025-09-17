@@ -126,6 +126,8 @@ public sealed class TestComposition
         return newFactory;
     }
 
+    // TODO: Ideally, we would detect the need for remote scope dynamically, e.g. based on an assembly name or attribute,
+    // to avoid direct dependency on the remote layer. https://github.com/dotnet/roslyn/issues/80316
     public bool IsRemote
         => Assemblies.Contains(typeof(Remote.BrokeredServiceBase).Assembly);
 

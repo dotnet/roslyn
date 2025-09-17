@@ -3123,7 +3123,7 @@ record C(int X)
         /// </summary>
         private static void CheckSymbols(SemanticModel model, int keyPositionNum, int position, IEnumerable<string> expectedSymbols)
         {
-            var actualSymbols = model.LookupSymbols(position).Select(SymbolExtensions.ToTestDisplayString).ToArray();
+            var actualSymbols = model.LookupSymbols(position).Select(SymbolTestExtensions.ToTestDisplayString).ToArray();
             Array.Sort(actualSymbols);
 
             SyntaxToken token = model.SyntaxTree.GetCompilationUnitRoot().FindToken(position, findInsideTrivia: true);
