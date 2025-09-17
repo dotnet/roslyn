@@ -44,9 +44,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
         Public Overrides ReadOnly Property ParameterCount As Integer = 1
 
-        Public Overrides ReadOnly Property PrefixParts As ImmutableArray(Of SymbolDisplayPart) = ImmutableArray.Create(
-            New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, _keywordText),
-            New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "("))
+        Public Overrides ReadOnly Property PrefixParts As ImmutableArray(Of SymbolDisplayPart)
+            Get
+                Return ImmutableArray.Create(
+                    New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, _keywordText),
+                    New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "("))
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property ReturnTypeMetadataName As String
             Get
