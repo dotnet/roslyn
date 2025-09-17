@@ -29,6 +29,7 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
     StatementSyntax,
     IfStatementSyntax,
     StatementSyntax,
+    DirectiveTriviaSyntax,
     IfDirectiveTriviaSyntax>
 {
     protected override string GetTitle()
@@ -41,6 +42,9 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         => ifNode?.Parent is (kind: SyntaxKind.Block or SyntaxKind.SwitchSection);
 
     protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
+        => ifNode.Condition;
+
+    protected override SyntaxNode GetCondition(IfDirectiveTriviaSyntax ifNode)
         => ifNode.Condition;
 
     protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)

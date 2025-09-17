@@ -12,8 +12,8 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     TStatementSyntax,
     TIfStatementSyntax,
     TEmbeddedStatementSyntax,
-    TDirectiveSyntax,
-    TIfDirectiveSyntax>
+    TDirectiveTriviaSyntax,
+    TIfDirectiveTriviaSyntax>
 {
     protected readonly struct StatementRange
     {
