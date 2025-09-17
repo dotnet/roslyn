@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,64 +13,28 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-[ExportSignatureHelpProvider("GenericNameSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal abstract partial class AbstractGenericNameSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public GenericNameSignatureHelpProvider()
-    {
-    }
-
     public override ImmutableArray<char> TriggerCharacters => ['<', ','];
 
     public override ImmutableArray<char> RetriggerCharacters => ['>'];
 
-    protected virtual bool TryGetGenericIdentifier(
+    protected abstract TextSpan GetTextSpan(SyntaxToken genericIdentifier, SyntaxToken lessThanToken);
+
+    protected abstract bool TryGetGenericIdentifier(
         SyntaxNode root, int position,
         ISyntaxFactsService syntaxFacts,
         SignatureHelpTriggerReason triggerReason,
         CancellationToken cancellationToken,
         out SyntaxToken genericIdentifier,
-        out SyntaxToken lessThanToken)
-    {
-        if (CommonSignatureHelpUtilities.TryGetSyntax(
-                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out GenericNameSyntax? name))
-        {
-            genericIdentifier = name.Identifier;
-            lessThanToken = name.TypeArgumentList.LessThanToken;
-            return true;
-        }
-
-        genericIdentifier = default;
-        lessThanToken = default;
-        return false;
-    }
-
-    private bool IsTriggerToken(SyntaxToken token)
-    {
-        return !token.IsKind(SyntaxKind.None) &&
-            token.ValueText.Length == 1 &&
-            TriggerCharacters.Contains(token.ValueText[0]) &&
-            token.Parent is TypeArgumentListSyntax &&
-            token.Parent.Parent is GenericNameSyntax;
-    }
-
-    private bool IsArgumentListToken(GenericNameSyntax node, SyntaxToken token)
-    {
-        return node.TypeArgumentList != null &&
-            node.TypeArgumentList.Span.Contains(token.SpanStart) &&
-            token != node.TypeArgumentList.GreaterThanToken;
-    }
+        out SyntaxToken lessThanToken);
 
     protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
@@ -156,12 +119,6 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
         }
 
         return null;
-    }
-
-    protected virtual TextSpan GetTextSpan(SyntaxToken genericIdentifier, SyntaxToken lessThanToken)
-    {
-        Contract.ThrowIfFalse(lessThanToken.Parent is TypeArgumentListSyntax && lessThanToken.Parent.Parent is GenericNameSyntax);
-        return SignatureHelpUtilities.GetSignatureHelpSpan(((GenericNameSyntax)lessThanToken.Parent.Parent).TypeArgumentList);
     }
 
     private static SignatureHelpItem Convert(
