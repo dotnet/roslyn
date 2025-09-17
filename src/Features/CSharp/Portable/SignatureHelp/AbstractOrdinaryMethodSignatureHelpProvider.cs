@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
@@ -28,7 +29,7 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
         IMethodSymbol method,
         int position,
         SemanticModel semanticModel,
-        IList<SymbolDisplayPart>? descriptionParts)
+        ImmutableArray<SymbolDisplayPart>? descriptionParts)
     {
         var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
         var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
@@ -50,7 +51,7 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
         SemanticModel semanticModel,
         int position)
     {
-        var result = new List<SymbolDisplayPart>();
+        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
 
         var awaitable = method.GetOriginalUnreducedDefinition().IsAwaitableNonDynamic(semanticModel, position);
         var extension = method.GetOriginalUnreducedDefinition().IsExtensionMethod();
@@ -82,9 +83,9 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
         result.AddRange(method.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutParametersFormat));
         result.Add(Punctuation(SyntaxKind.OpenParenToken));
 
-        return result;
+        return result.ToImmutableAndClear();
     }
 
-    private static IList<SymbolDisplayPart> GetMethodGroupPostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetMethodGroupPostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }

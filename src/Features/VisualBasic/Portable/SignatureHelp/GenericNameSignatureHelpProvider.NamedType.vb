@@ -21,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetPostambleParts() As IList(Of SymbolDisplayPart)
-            Return {Punctuation(SyntaxKind.CloseParenToken)}
+        Private Shared Function GetPostambleParts() As ImmutableArray(Of SymbolDisplayPart)
+            Return ImmutableArray.Create(Punctuation(SyntaxKind.CloseParenToken))
         End Function
     End Class
 End Namespace

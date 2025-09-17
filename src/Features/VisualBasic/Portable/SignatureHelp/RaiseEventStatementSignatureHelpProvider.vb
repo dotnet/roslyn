@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -123,12 +124,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
 
         Private Shared Function GetPreambleParts(
-            eventSymbol As IEventSymbol,
-            semanticModel As SemanticModel,
-            position As Integer
-        ) As IList(Of SymbolDisplayPart)
+                eventSymbol As IEventSymbol,
+                semanticModel As SemanticModel,
+                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
 
-            Dim result = New List(Of SymbolDisplayPart)()
+            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
 
             result.AddRange(eventSymbol.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.DotToken))
@@ -140,11 +140,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             result.AddRange(eventSymbol.ToMinimalDisplayParts(semanticModel, position, format))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
 
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetPostambleParts() As IList(Of SymbolDisplayPart)
-            Return {Punctuation(SyntaxKind.CloseParenToken)}
+        Private Shared Function GetPostambleParts() As ImmutableArray(Of SymbolDisplayPart)
+            Return ImmutableArray.Create(Punctuation(SyntaxKind.CloseParenToken))
         End Function
     End Class
 End Namespace

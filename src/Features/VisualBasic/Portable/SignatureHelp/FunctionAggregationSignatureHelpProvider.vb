@@ -109,18 +109,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return item
         End Function
 
-        Private Shared Function GetPreambleParts(method As IMethodSymbol) As IList(Of SymbolDisplayPart)
-            Dim result = New List(Of SymbolDisplayPart)()
+        Private Shared Function GetPreambleParts(method As IMethodSymbol) As ImmutableArray(Of SymbolDisplayPart)
+            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             AddExtensionPreamble(method, result)
             result.AddMethodName(method.Name)
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetPostambleParts(method As IMethodSymbol,
-                                           semanticModel As SemanticModel,
-                                           position As Integer) As IList(Of SymbolDisplayPart)
-            Dim parts = New List(Of SymbolDisplayPart)
+        Private Shared Function GetPostambleParts(
+                method As IMethodSymbol,
+                semanticModel As SemanticModel,
+                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
+            Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             parts.Add(Punctuation(SyntaxKind.CloseParenToken))
 
             If Not method.ReturnsVoid Then
@@ -130,14 +131,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 parts.AddRange(method.ReturnType.ToMinimalDisplayParts(semanticModel, position))
             End If
 
-            Return parts
+            Return parts.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetParameterParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer,
-                                           documentationCommentFormattingService As IDocumentationCommentFormattingService) As IList(Of SignatureHelpSymbolParameter)
+        Private Shared Function GetParameterParts(
+                method As IMethodSymbol,
+                semanticModel As SemanticModel,
+                position As Integer,
+                documentationCommentFormattingService As IDocumentationCommentFormattingService) As ImmutableArray(Of SignatureHelpSymbolParameter)
             ' Function <name>() As <type>
             If method.Parameters.Length <> 1 Then
-                Return SpecializedCollections.EmptyList(Of SignatureHelpSymbolParameter)()
+                Return ImmutableArray(Of SignatureHelpSymbolParameter).Empty
             End If
 
             ' Function <name>(selector as Func(Of T, R)) As R
@@ -162,11 +166,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                         parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                         parts.ToImmutableAndFree())
 
-                    Return {sigHelpParameter}
+                    Return ImmutableArray.Create(sigHelpParameter)
                 End If
             End If
 
-            Return SpecializedCollections.EmptyList(Of SignatureHelpSymbolParameter)()
+            Return ImmutableArray(Of SignatureHelpSymbolParameter).Empty
         End Function
     End Class
 End Namespace

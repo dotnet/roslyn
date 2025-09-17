@@ -38,9 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Select
         End Function
 
-        Public Overrides Function GetParameterDisplayParts(index As Integer) As IList(Of SymbolDisplayPart)
+        Public Overrides Function GetParameterDisplayParts(index As Integer) As ImmutableArray(Of SymbolDisplayPart)
             If index = 2 Then
-                Return {New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, "[" + GetParameterName(2) + "]")}
+                Return ImmutableArray.Create(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, "[" + GetParameterName(2) + "]"))
             Else
                 Return MyBase.GetParameterDisplayParts(index)
             End If
@@ -50,14 +50,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
         Public Overrides ReadOnly Property ParameterCount As Integer = 3
 
-        Public Overrides Function GetSuffix(semanticModel As SemanticModel, position As Integer, nodeToBind As SyntaxNode, cancellationToken As CancellationToken) As IList(Of SymbolDisplayPart)
-            Return {
+        Public Overrides Function GetSuffix(semanticModel As SemanticModel, position As Integer, nodeToBind As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of SymbolDisplayPart)
+            Return ImmutableArray.Create(
                 New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, ")"),
                 New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
                 New SymbolDisplayPart(SymbolDisplayPartKind.Operator, Nothing, "="),
                 New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "),
-                New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBWorkspaceResources.stringExpression)
-            }
+                New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBWorkspaceResources.stringExpression))
         End Function
 
         Public Overrides ReadOnly Property PrefixParts As ImmutableArray(Of SymbolDisplayPart) = ImmutableArray.Create(

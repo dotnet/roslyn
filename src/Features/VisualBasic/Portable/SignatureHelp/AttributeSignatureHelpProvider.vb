@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -126,12 +127,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return item
         End Function
 
-        Private Shared Function GetParameters(constructor As IMethodSymbol,
-                                       semanticModel As SemanticModel,
-                                       position As Integer,
-                                       namedParameters As List(Of ISymbol),
-                                       documentationCommentFormattingService As IDocumentationCommentFormattingService) As IList(Of SignatureHelpSymbolParameter)
-            Dim result = New List(Of SignatureHelpSymbolParameter)
+        Private Shared Function GetParameters(
+                constructor As IMethodSymbol,
+                semanticModel As SemanticModel,
+                position As Integer,
+                namedParameters As List(Of ISymbol),
+                documentationCommentFormattingService As IDocumentationCommentFormattingService) As ImmutableArray(Of SignatureHelpSymbolParameter)
+            Dim result = ArrayBuilder(Of SignatureHelpSymbolParameter).GetInstance()
 
             For Each parameter In constructor.Parameters
                 result.Add(Convert(parameter, semanticModel, position, documentationCommentFormattingService))
@@ -144,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                DirectCast(namedParameter, IFieldSymbol).Type,
                                DirectCast(namedParameter, IPropertySymbol).Type)
 
-                Dim displayParts = New List(Of SymbolDisplayPart)
+                Dim displayParts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
 
                 displayParts.Add(New SymbolDisplayPart(
                     If(TypeOf namedParameter Is IFieldSymbol, SymbolDisplayPartKind.FieldName, SymbolDisplayPartKind.PropertyName),
@@ -156,11 +158,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                     namedParameter.Name,
                     isOptional:=True,
                     documentationFactory:=namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                    displayParts:=displayParts,
+                    displayParts:=displayParts.ToImmutableAndFree(),
                     prefixDisplayParts:=GetParameterPrefixDisplayParts(i)))
             Next
 
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
         Private Shared Function GetParameterPrefixDisplayParts(i As Integer) As ImmutableArray(Of SymbolDisplayPart)
@@ -174,15 +176,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Shared Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
-            Dim result = New List(Of SymbolDisplayPart)()
+        Private Shared Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
+            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetPostambleParts() As IList(Of SymbolDisplayPart)
-            Return {Punctuation(SyntaxKind.CloseParenToken)}
+        Private Shared Function GetPostambleParts() As ImmutableArray(Of SymbolDisplayPart)
+            Return ImmutableArray.Create(Punctuation(SyntaxKind.CloseParenToken))
         End Function
     End Class
 End Namespace

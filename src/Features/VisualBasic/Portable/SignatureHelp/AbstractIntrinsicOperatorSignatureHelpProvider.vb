@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim items As New List(Of SignatureHelpItem)
+            Dim items = ArrayBuilder(Of SignatureHelpItem).GetInstance()
 
             Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(False)
             For Each documentation In Await GetIntrinsicOperatorDocumentationAsync(node, document, cancellationToken).ConfigureAwait(False)
@@ -49,12 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                items, textSpan,
+                items.ToImmutableAndFree(), textSpan,
                 GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItemIndex:=Nothing, parameterIndexOverride:=-1)
         End Function
 
         Friend Shared Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
-            Dim parameters As New List(Of SignatureHelpSymbolParameter)
+            Dim parameters = ArrayBuilder(Of SignatureHelpSymbolParameter).GetInstance()
 
             For i = 0 To documentation.ParameterCount - 1
                 Dim capturedIndex = i
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 prefixParts:=documentation.PrefixParts,
                 separatorParts:=GetSeparatorParts(),
                 suffixParts:=suffixParts,
-                parameters:=parameters)
+                parameters:=parameters.ToImmutableAndFree())
         End Function
 
         Protected Overridable Function GetCurrentArgumentStateWorker(node As SyntaxNode, position As Integer) As SignatureHelpState

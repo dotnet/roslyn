@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -24,16 +25,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public MustOverride Function GetParameterName(index As Integer) As String
         Public MustOverride Function GetParameterDocumentation(index As Integer) As String
 
-        Public Overridable Function GetParameterDisplayParts(index As Integer) As IList(Of SymbolDisplayPart)
-            Return {New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index))}
+        Public Overridable Function GetParameterDisplayParts(index As Integer) As ImmutableArray(Of SymbolDisplayPart)
+            Return ImmutableArray.Create(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index)))
         End Function
 
         Public Overridable Function TryGetTypeNameParameter(syntaxNode As SyntaxNode, index As Integer) As TypeSyntax
             Return Nothing
         End Function
 
-        Public Overridable Function GetSuffix(semanticModel As SemanticModel, position As Integer, nodeToBind As SyntaxNode, cancellationToken As CancellationToken) As IList(Of SymbolDisplayPart)
-            Dim suffixParts As New List(Of SymbolDisplayPart)
+        Public Overridable Function GetSuffix(semanticModel As SemanticModel, position As Integer, nodeToBind As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of SymbolDisplayPart)
+            Dim suffixParts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
 
             If IncludeAsType Then
                 suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, ")"))
@@ -45,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                     Dim typeInfo = semanticModel.GetTypeInfo(nodeToBind, cancellationToken)
                     If typeInfo.Type IsNot Nothing Then
                         suffixParts.AddRange(typeInfo.Type.ToMinimalDisplayParts(semanticModel, position))
-                        Return suffixParts
+                        Return suffixParts.ToImmutableAndFree()
                     End If
                 End If
 
@@ -59,13 +60,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                         suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, ReturnTypeMetadataName))
                     End If
 
-                    Return suffixParts
+                    Return suffixParts.ToImmutableAndFree()
                 End If
 
                 suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBWorkspaceResources.result))
             End If
 
-            Return suffixParts
+            Return suffixParts.ToImmutableAndFree()
         End Function
     End Class
 End Namespace
