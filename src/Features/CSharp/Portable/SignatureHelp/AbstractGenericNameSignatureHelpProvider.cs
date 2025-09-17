@@ -79,16 +79,13 @@ internal abstract partial class AbstractGenericNameSignatureHelpProvider : Abstr
             return null;
         }
 
-        var accessibleSymbols =
-            symbols.WhereAsArray(s => s.GetArity() > 0)
-                   .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
-                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
-                   .Sort(semanticModel, genericIdentifier.SpanStart);
+        var accessibleSymbols = symbols
+            .WhereAsArray(s => s.GetArity() > 0)
+            .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
+            .Sort(semanticModel, genericIdentifier.SpanStart);
 
         if (!accessibleSymbols.Any())
-        {
             return null;
-        }
 
         var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
         var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
@@ -130,34 +127,54 @@ internal abstract partial class AbstractGenericNameSignatureHelpProvider : Abstr
     {
         var position = lessThanToken.SpanStart;
 
-        SignatureHelpItem item;
         if (symbol is INamedTypeSymbol namedType)
         {
-            item = CreateItem(
+            return CreateItem(
                 symbol, semanticModel, position,
                 structuralTypeDisplayService,
-                false,
+                isVariadic: false,
                 symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(namedType, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(),
                 [.. namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         }
-        else
+        else if (symbol is IMethodSymbol method)
         {
-            var method = (IMethodSymbol)symbol;
-            item = CreateItem(
+            return CreateItem(
                 symbol, semanticModel, position,
                 structuralTypeDisplayService,
-                false,
-                c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
+                isVariadic: false,
+                symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(method, semanticModel, position),
-                [.. method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
+                GetTypeArguments(method));
+        }
+        else
+        {
+            throw ExceptionUtilities.UnexpectedValue(symbol);
         }
 
-        return item;
+        IList<SignatureHelpSymbolParameter> GetTypeArguments(IMethodSymbol method)
+        {
+            var result = new List<SignatureHelpSymbolParameter>();
+
+            // Signature help for generic modern extensions must include the generic type *arguments* for the containing
+            // extension as well.  These are fixed given the receiver, and need to be repeated in the method type argument
+            // list.
+            if (method.ContainingType.IsExtension)
+            {
+                result.AddRange(method.ContainingType.TypeArguments.Select(t => new SignatureHelpSymbolParameter(
+                    name: null, isOptional: false,
+                    t.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
+                    t.ToMinimalDisplayParts(semanticModel, position))));
+            }
+
+            result.AddRange(method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)));
+
+            return result;
+        }
     }
 
     private static readonly SymbolDisplayFormat s_minimallyQualifiedFormat =

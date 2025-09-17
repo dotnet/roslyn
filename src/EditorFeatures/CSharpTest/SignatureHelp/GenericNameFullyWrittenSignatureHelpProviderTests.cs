@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,10 +17,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
 
 [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-public sealed class GenericNameSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+public sealed class GenericNameFullyWrittenSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
     internal override Type GetSignatureHelpProviderType()
-        => typeof(GenericNameSignatureHelpProvider);
+        => typeof(GenericNameFullyWrittenSignatureHelpProvider);
 
     #region "Declaring generic type objects"
 
@@ -952,4 +950,33 @@ public sealed class GenericNameSignatureHelpProviderTests : AbstractCSharpSignat
             }
             """, expectedOrderedItems);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80233")]
+    public Task TestModernGenericExtensionMethodOnGenericType()
+        => TestAsync("""
+            public class My<T>
+            {
+            }
+
+            public static class MyExtensions
+            {
+                extension<TBase>(My<TBase> self)
+                {
+                    public void GenericMethod<TDerived>()
+                    {
+                    }
+                }
+            }
+
+            class User
+            {
+                static void Main()
+                {
+                    My<object> target = new();
+                    target.GenericMethod<$$>();
+                }
+            }
+            """,
+            [new("void MyExtensions.extension<object>(My<object>).GenericMethod<object, TDerived>()")],
+            sourceCodeKind: SourceCodeKind.Regular);
 }
