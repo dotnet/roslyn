@@ -8458,7 +8458,7 @@ namespace ConsoleApp1
 
     [Fact]
     public Task TestInTopLevelLoop1()
-        => TestInRegularAndScriptAsync(
+        => TestAsync(
             """
             for (var i = 0; i < 10; i++)
             {
@@ -8471,11 +8471,12 @@ namespace ConsoleApp1
                 string {|Rename:v|} = args[i];
                 Console.Write(v);
             }
-            """);
+            """,
+            new(parseOptions: TestOptions.Regular));
 
     [Fact]
     public Task TestInTopLevelLoop2()
-        => TestInRegularAndScriptAsync(
+        => TestAsync(
             """
             void M(object[] p)
             {
@@ -8494,5 +8495,6 @@ namespace ConsoleApp1
                     Console.Write(v);
                 }
             }
-            """);
+            """,
+            new(parseOptions: TestOptions.Regular));
 }
