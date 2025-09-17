@@ -34,7 +34,11 @@ internal sealed partial class CSharpIntroduceVariableService
         bool isConstant,
         CancellationToken cancellationToken)
     {
-        var containerToGenerateInto = expression.Ancestors().First(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax or CompilationUnitSyntax);
+        var globalStatement = expression.GetAncestor<GlobalStatementSyntax>();
+
+        var containerToGenerateInto = globalStatement != null
+            ? (CompilationUnitSyntax)globalStatement.GetRequiredParent()
+            : expression.Ancestors().FirstOrDefault(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
         var newLocalNameToken = GenerateUniqueLocalName(
             document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -318,7 +322,7 @@ internal sealed partial class CSharpIntroduceVariableService
         foreach (var match in matches)
             editor.ReplaceNode(match, replacement);
 
-        if (scope is BlockSyntax block)
+        if (matches.FindInnermostCommonBlock() is BlockSyntax block)
         {
             var firstAffectedStatement = block.Statements.Single(s => firstAffectedExpression.GetAncestorOrThis<StatementSyntax>()!.Contains(s));
             var firstAffectedStatementIndex = block.Statements.IndexOf(firstAffectedStatement);
