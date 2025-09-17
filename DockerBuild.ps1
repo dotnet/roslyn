@@ -14,6 +14,51 @@ param(
 
 # This setting is replaced by the generate-scripts command.
 $EngPath = 'eng-Metalama'
+$EnvironmentVariables = 'AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AZ_IDENTITY_USERNAME,AZURE_DEVOPS_TOKEN,AZURE_DEVOPS_USER,ENG_USERNAME,GITHUB_AUTHOR_EMAIL,GITHUB_REVIEWER_TOKEN,GITHUB_TOKEN,IS_POSTSHARP_OWNED,IS_TEAMCITY_AGENT,NUGET_ORG_API_KEY,SIGNSERVER_SECRET,TEAMCITY_CLOUD_TOKEN,TYPESENSE_API_KEY,VS_MARKETPLACE_ACCESS_TOKEN,VSS_NUGET_EXTERNAL_FEED_ENDPOINTS'
+
+$dockerContextDirectory = "$EngPath/docker-context"
+
+# Function to create secrets JSON file
+function New-SecretsJson
+{
+    param(
+        [string]$EnvironmentVariableList
+    )
+
+    # Parse comma-separated environment variable names
+    $envVarNames = $EnvironmentVariableList -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+
+    # Build hashtable with environment variable values
+    $secrets = @{ }
+    foreach ($envVarName in $envVarNames)
+    {
+        $value = [Environment]::GetEnvironmentVariable($envVarName)
+        if (-not [string]::IsNullOrEmpty($value))
+        {
+            $secrets[$envVarName] = $value
+        }
+    }
+
+    # Convert to JSON and save
+    $jsonPath = Join-Path $dockerContextDirectory "secrets.g.json"
+
+    # Write a test JSON file with GUID first
+    @{ guid = [System.Guid]::NewGuid().ToString() } | ConvertTo-Json | Set-Content -Path $jsonPath -Encoding UTF8
+
+    # Check if secrets file is tracked by git
+    $gitStatus = git status --porcelain $jsonPath 2> $null
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($gitStatus))
+    {
+        Write-Error "Secrets file '$jsonPath' is tracked by git. Please add it to .gitignore first."
+        exit 1
+    }
+
+    $secrets | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonPath -Encoding UTF8
+    Write-Host "Created secrets file: $jsonPath" -ForegroundColor Cyan
+
+
+    return $jsonPath
+}
 
 # Generate ImageName from script directory if not provided
 if ( [string]::IsNullOrEmpty($ImageName))
@@ -42,13 +87,16 @@ if (-not $env:IS_TEAMCITY_AGENT -and -not $NoClean)
     Get-ChildItem @("bin", "obj") -Recurse | Remove-Item -Force -Recurse -ProgressAction SilentlyContinue
 }
 
+# Create secrets JSON file (after cleanup)
+$secretsJsonPath = New-SecretsJson -EnvironmentVariableList $EnvironmentVariables
+
 # Get the source directory name from $PSScriptRoot
 $SourceDirName = $PSScriptRoot
 
 # Start timing the entire process except cleaning
 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
-$dockerContextDirectory = "$EngPath/docker-context"
+
 
 # Ensure docker context directory exists and contains at least one file
 if (-not (Test-Path $dockerContextDirectory))
@@ -80,7 +128,8 @@ if (Test-Path $gitSystemDir)
 
 # Execute auto-generated DockerMounts script in current context
 $dockerMountsScript = Join-Path $EngPath 'DockerMounts.g.ps1'
-if (Test-Path $dockerMountsScript) {
+if (Test-Path $dockerMountsScript)
+{
     Write-Host "Importing Docker mount points from $dockerMountsScript" -ForegroundColor Cyan
     . $dockerMountsScript
 }

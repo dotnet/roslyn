@@ -52,14 +52,26 @@ RUN cmd /c "setx PATH \"$env:PATH;C:\\Program Files\\PowerShell\\7;C:\\git\\cmd;
 ENV PSExecutionPolicyPreference=Bypass
 ENV POWERSHELL_UPDATECHECK=FALSE
 
-# Create NuGet cache directory and set environment variable
-RUN New-Item -ItemType Directory -Path C:\packages -Force | Out-Null
-ENV NUGET_PACKAGES=c:\packages
+# Create directories for mountpoints
+ARG MOUNTPOINTS
+RUN if ($env:MOUNTPOINTS) { `
+        $mounts = $env:MOUNTPOINTS -split ';'; `
+        foreach ($dir in $mounts) { `
+            if ($dir) { `
+                Write-Host "Creating directory $dir`."; `
+                New-Item -ItemType Directory -Path $dir -Force | Out-Null; `
+            } `
+        } `
+    }
 
+# Import secrets
+COPY ReadSecrets.ps1 c:\ReadSecrets.ps1    
+COPY secrets.g.json c:\secrets.g.json
+RUN c:\ReadSecrets.ps1 c:\secrets.g.json   
+
+# Configure NuGet
+ENV NUGET_PACKAGES=c:\packages
 
 # Configure git
 ARG SRC_DIR
-RUN Write-Host "SRC_DIR=$env:SRC_DIR";`
-    New-Item -ItemType Directory -Path $env:SRC_DIR -Force | Out-Null; `
-    git config --global --add safe.directory $env:SRC_DIR/; `
-    New-Item -ItemType Directory -Path C:\BuildAgent\system\git -Force | Out-Null
+RUN git config --global --add safe.directory $env:SRC_DIR/
