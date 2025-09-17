@@ -1,15 +1,18 @@
 # The original of this file is in the PostSharp.Engineering repo.
 # You can generate this file using `./Build.ps1 generate-scripts`.
+
 [CmdletBinding(PositionalBinding = $false)]
 param(
-    [switch]$Interactive,
-    [switch]$BuildImage,
-    [switch]$NoBuildImage,
-    [switch]$NoClean,
-    [string]$ImageName,
+    [switch]$Interactive,  # Opens an interactive PowerShell session
+    [switch]$BuildImage,   # Only builds the image, but does not build the product.
+    [switch]$NoBuildImage, # Does not build the image.
+    [switch]$NoClean,      # Does not clean up.
+    [switch]$NoNuGetCache, # Does not mount the host nuget cache in the container.
+    [switch]$KeepSecrets,  # Does not override the secrets.g.json file.
+    [string]$ImageName,    # Image name (defaults to a name based on the directory).
     [string]$BuildAgentPath = 'C:\BuildAgent',
     [Parameter(ValueFromRemainingArguments)]
-    [string[]]$BuildArgs
+    [string[]]$BuildArgs   # Arguments passed to `Build.ps1` within the container.
 )
 
 # This setting is replaced by the generate-scripts command.
@@ -87,16 +90,17 @@ if (-not $env:IS_TEAMCITY_AGENT -and -not $NoClean)
     Get-ChildItem @("bin", "obj") -Recurse | Remove-Item -Force -Recurse -ProgressAction SilentlyContinue
 }
 
-# Create secrets JSON file (after cleanup)
-$secretsJsonPath = New-SecretsJson -EnvironmentVariableList $EnvironmentVariables
+# Create secrets JSON file.
+if ( -not $KeepSecrets )
+{
+    New-SecretsJson -EnvironmentVariableList $EnvironmentVariables
+}
 
 # Get the source directory name from $PSScriptRoot
 $SourceDirName = $PSScriptRoot
 
 # Start timing the entire process except cleaning
 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-
-
 
 # Ensure docker context directory exists and contains at least one file
 if (-not (Test-Path $dockerContextDirectory))
@@ -105,28 +109,39 @@ if (-not (Test-Path $dockerContextDirectory))
     exit 1
 }
 
-# Create local NuGet cache directory if it doesn't exist
-$nugetCacheDir = Join-Path $env:USERPROFILE ".nuget\packages"
-Write-Host "NuGet cache directory: $nugetCacheDir" -ForegroundColor Cyan
-if (-not (Test-Path $nugetCacheDir))
-{
-    Write-Host "Creating NuGet cache directory on host: $nugetCacheDir"
-    New-Item -ItemType Directory -Force -Path $nugetCacheDir | Out-Null
-}
+
+# Prepare volume mappings
+$volumeMappings = @("-v", "${SourceDirName}:${SourceDirName}")
+$MountPoints = @($SourceDirName)
+
 # Define static Git system directory for mapping
 $gitSystemDir = "$BuildAgentPath\system\git"
 
-# Prepare volume mappings
-$volumeMappings = @("-v", "${SourceDirName}:${SourceDirName}", "-v", "${nugetCacheDir}:c:\packages")
-$MountPoints = @($SourceDirName, "c:\packages")
 if (Test-Path $gitSystemDir)
 {
     $volumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
     $MountPoints += $gitSystemDir
 }
 
+# Mount the host NuGet cache in the container.
+if ( -not $NoNuGetCache )
+{
+    $nugetCacheDir = Join-Path $env:USERPROFILE ".nuget\packages"
+    Write-Host "NuGet cache directory: $nugetCacheDir" -ForegroundColor Cyan
+    if (-not (Test-Path $nugetCacheDir))
+    {
+        Write-Host "Creating NuGet cache directory on host: $nugetCacheDir"
+        New-Item -ItemType Directory -Force -Path $nugetCacheDir | Out-Null
+    }
 
-# Execute auto-generated DockerMounts script in current context
+    $volumeMappings += @("-v", "${nugetCacheDir}:c:\packages")
+}
+
+# We must add a MountPoint anyway so the directory is created in the container.
+$MountPoints += "c:\packages"
+
+
+# Execute auto-generated DockerMounts.g.ps1 script to add more directory mounts.
 $dockerMountsScript = Join-Path $EngPath 'DockerMounts.g.ps1'
 if (Test-Path $dockerMountsScript)
 {
@@ -134,9 +149,7 @@ if (Test-Path $dockerMountsScript)
     . $dockerMountsScript
 }
 
-
 $mountPointsArg = $MountPoints -Join ";"
-
 
 Write-Host "Volume mappings: " @volumeMappings -ForegroundColor Gray
 Write-Host "Mount points: " $mountPointsArg -ForegroundColor Gray

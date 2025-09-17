@@ -26,8 +26,6 @@ try
         Write-Host "Setting environment variable: $name" -ForegroundColor Green
         [Environment]::SetEnvironmentVariable($name, $value, [EnvironmentVariableTarget]::Machine)
     }
-
-    Write-Host "Successfully set $( $secrets.PSObject.Properties.Count ) environment variables" -ForegroundColor Green
 }
 catch
 {
