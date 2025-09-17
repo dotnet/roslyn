@@ -22,7 +22,7 @@ Generally Roslyn package versions are in the form A.B.C-D.  With the new publish
 * A = Associated with the current VS Major version (`5` = VS 18, same as before).
 * B = The current VS Minor version (same as before)
 * C = Our own patch version if we need to service the package for any reason, generally `0`.
-* D = The VS prerelease version `-` VMR build version (if any).
+* D = The VS prerelease version `.` VMR build version (if any).
 
 We still use VS versions in our version scheme as Roslyn currently branches for releases with VS in mind.
 

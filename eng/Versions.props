@@ -7,12 +7,12 @@
   -->
   <PropertyGroup>
     <!-- All packages produced by the Roslyn official build should be suffixed with '-vs' to distinguish them from VMR produced packages -->
-    <RoslynPackageSuffix Condition="'$(DotNetBuildFromVMR)' != 'true'">-vs</RoslynPackageSuffix>
+    <_RoslynPackageSuffix Condition="'$(DotNetBuildFromVMR)' != 'true'">-vs</_RoslynPackageSuffix>
 
     <MajorVersion>5</MajorVersion>
     <MinorVersion>0</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>2$(RoslynPackageSuffix)</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>2$(_RoslynPackageSuffix)</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
