@@ -128,26 +128,16 @@ internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : 
             structuralTypeDisplayService,
             constructor.IsParams(),
             constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-            GetPreambleParts(constructor, semanticModel, position),
+            GetPreambleParts(),
             GetSeparatorParts(),
             GetPostambleParts(),
             [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         return item;
 
-        static IList<SymbolDisplayPart> GetPreambleParts(
-            IMethodSymbol method,
-            SemanticModel semanticModel,
-            int position)
-        {
-            var result = new List<SymbolDisplayPart>();
+        ImmutableArray<SymbolDisplayPart> GetPreambleParts()
+            => [.. constructor.ContainingType.ToMinimalDisplayParts(semanticModel, position), Punctuation(SyntaxKind.OpenParenToken)];
 
-            result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position));
-            result.Add(Punctuation(SyntaxKind.OpenParenToken));
-
-            return result;
-        }
-
-        static IList<SymbolDisplayPart> GetPostambleParts()
+        static ImmutableArray<SymbolDisplayPart> GetPostambleParts()
             => [Punctuation(SyntaxKind.CloseParenToken)];
     }
 }

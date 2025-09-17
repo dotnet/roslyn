@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 internal partial class AbstractGenericNameSignatureHelpProvider
 {
-    private static IList<SymbolDisplayPart> GetPreambleParts(
+    private static ImmutableArray<SymbolDisplayPart> GetPreambleParts(
         INamedTypeSymbol namedType,
         SemanticModel semanticModel,
         int position)
@@ -16,6 +17,6 @@ internal partial class AbstractGenericNameSignatureHelpProvider
         return [.. namedType.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutTypeParametersFormat), Punctuation(SyntaxKind.LessThanToken)];
     }
 
-    private static IList<SymbolDisplayPart> GetPostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetPostambleParts()
         => [Punctuation(SyntaxKind.GreaterThanToken)];
 }
