@@ -125,5 +125,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
         Protected NotOverridable Overrides Function IsSingleStatementStatementRange(statementRange As StatementRange) As Boolean
             Return Not statementRange.IsEmpty AndAlso statementRange.FirstStatement Is statementRange.LastStatement
         End Function
+
+        Protected Overrides Function GetCondition(ifNode As IfDirectiveTriviaSyntax) As SyntaxNode
+            Return ifNode.Condition
+        End Function
     End Class
 End Namespace

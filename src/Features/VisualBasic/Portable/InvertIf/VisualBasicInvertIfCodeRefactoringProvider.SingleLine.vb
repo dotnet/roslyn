@@ -32,10 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
             Return ifNode.Condition
         End Function
 
-        Protected Overrides Function GetCondition(ifNode As IfDirectiveTriviaSyntax) As SyntaxNode
-            Return ifNode.Condition
-        End Function
-
         Protected Overrides Function GetIfBody(ifNode As SingleLineIfStatementSyntax) As SyntaxList(Of StatementSyntax)
             Return ifNode.Statements
         End Function
