@@ -58,7 +58,7 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
     /// <summary>
     /// Wraps with parens.
     /// </summary>
-    public abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true, bool parenthesizeIdentifiers = true);
+    public abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
 
     /// <summary>
     /// Creates a statement that can be used to yield a value from an iterator method.
