@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Debugger</PackageId>
     <PackageDescription>
       A supporting package for the Visual Studio debugger:

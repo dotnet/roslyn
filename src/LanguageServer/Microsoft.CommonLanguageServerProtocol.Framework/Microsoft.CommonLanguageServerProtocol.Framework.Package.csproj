@@ -10,7 +10,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <IsSourcePackage>true</IsSourcePackage>
     <PackageId>Microsoft.CommonLanguageServerProtocol.Framework</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>

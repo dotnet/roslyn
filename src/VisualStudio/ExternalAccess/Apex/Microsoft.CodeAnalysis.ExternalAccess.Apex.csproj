@@ -7,7 +7,7 @@
     <TargetFramework>net472</TargetFramework>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Apex</PackageId>
     <PackageDescription>
       A supporting package for Apex (internal integration testing library):

@@ -6,7 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
 
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot</PackageId>
     <PackageDescription>
       A supporting package for the GitHub Copilot in Visual Studio Code.

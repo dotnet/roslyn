@@ -8,7 +8,7 @@
     <TargetFramework>net472</TargetFramework>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
 
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for building the XAML Language Service.
     </PackageDescription>

@@ -4,7 +4,7 @@
     <TargetFrameworks>net472</TargetFrameworks>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator</PackageId>
     <PackageDescription>
       A supporting package for editor config generation.

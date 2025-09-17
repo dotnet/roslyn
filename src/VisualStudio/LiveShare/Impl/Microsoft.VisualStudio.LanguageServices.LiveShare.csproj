@@ -6,7 +6,7 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.LiveShare</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.LiveShare</AssemblyName>
     <TargetFramework>net472</TargetFramework>
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageDescription>
       A private package for the liveshare team to grant access to LSP implementations.
     </PackageDescription>

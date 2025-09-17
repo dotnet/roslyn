@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <IsShippingPackage>true</IsShippingPackage>
     <PackageDescription>Analyzer utilities for various analyses, including Dataflow analysis based on ControlFlowGraph API in Microsoft.CodeAnalysis.</PackageDescription>
     <PackageReleaseNotes>Analyzer utilities for various analyses, including Dataflow analysis based on ControlFlowGraph API in Microsoft.CodeAnalysis.</PackageReleaseNotes>

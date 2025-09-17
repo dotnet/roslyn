@@ -7,7 +7,7 @@
     <IsShipping>false</IsShipping>
     <IsVisualStudioBuildPackage>true</IsVisualStudioBuildPackage>
 
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>VS.Tools.Roslyn</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>CoreXT package for Roslyn compiler toolset.</PackageDescription>

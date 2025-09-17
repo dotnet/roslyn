@@ -8,7 +8,7 @@
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
 
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for creating C# editing experiences.

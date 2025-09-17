@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Roslyn.Diagnostics.Analyzers</NuspecPackageId>
     <Description>Private analyzers specific to Roslyn repo. These analyzers are not intended for public consumptions outside of the Roslyn repo.</Description>

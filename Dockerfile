@@ -52,6 +52,10 @@ RUN cmd /c "setx PATH \"$env:PATH;C:\\Program Files\\PowerShell\\7;C:\\git\\cmd;
 ENV PSExecutionPolicyPreference=Bypass
 ENV POWERSHELL_UPDATECHECK=FALSE
 
+##################################################################################################################################
+## The following is required for integration with DockerBuild.ps1 and PostSharp.Engineering. It should not be modified.         ##
+
+
 # Create directories for mountpoints
 ARG MOUNTPOINTS
 RUN if ($env:MOUNTPOINTS) { `
@@ -75,3 +79,6 @@ ENV NUGET_PACKAGES=c:\packages
 # Configure git
 ARG SRC_DIR
 RUN git config --global --add safe.directory $env:SRC_DIR/
+
+##                                                                                                                              ##
+##################################################################################################################################

@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures</PackageId>
     <PackageDescription>
       A supporting package for Razor:

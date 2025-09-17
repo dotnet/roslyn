@@ -7,7 +7,7 @@
     <UseWpf>true</UseWpf>
     <TargetFramework>net472</TargetFramework>
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for VisualBasic editor features inside the Visual Studio editor.
     </PackageDescription>

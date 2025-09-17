@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Microsoft.CodeAnalysis.Analyzers</NuspecPackageId>
     <Description>Analyzers for consumers of "Microsoft.CodeAnalysis" NuGet package, i.e. extensions and applications built on top of .NET Compiler Platform ("Roslyn"). This package is included as a development dependency of "Microsoft.CodeAnalysis" NuGet package and does not need to be installed separately if you are referencing "Microsoft.CodeAnalysis" NuGet package.</Description>

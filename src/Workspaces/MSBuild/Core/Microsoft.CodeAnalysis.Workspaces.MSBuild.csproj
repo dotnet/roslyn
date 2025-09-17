@@ -7,7 +7,7 @@
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <IncludeContentInPack>true</IncludeContentInPack>
 
     <!-- We are packing DLLs into the content directories of the NuGet package because that's what where the BuildHosts will go; NuGet warns we may not want that since they won't be referenced;

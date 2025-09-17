@@ -11,7 +11,7 @@
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.Workspaces.Common</PackageId>
     <PackageDescription>
       A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.

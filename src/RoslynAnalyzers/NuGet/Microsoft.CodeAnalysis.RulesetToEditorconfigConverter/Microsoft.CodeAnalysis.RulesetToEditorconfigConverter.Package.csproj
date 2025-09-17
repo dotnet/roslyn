@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net472</TargetFrameworks>
 
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Microsoft.CodeAnalysis.RulesetToEditorconfigConverter</NuspecPackageId>
     <Description>Utility to convert ruleset files to equivalent .editorconfig files. Editorconfig files are respected by C# and VB compilers on VS2019 16.3 or later. See https://learn.microsoft.com/visualstudio/code-quality/use-roslyn-analyzers#set-rule-severity-in-an-editorconfig-file for details.</Description>
