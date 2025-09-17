@@ -29127,6 +29127,10 @@ public static class C1
     {
     }
 
+    extension(ref int i)
+    {
+    }
+
     public class C2
     {
         public class C3;
@@ -29151,8 +29155,9 @@ public static class C1
                 ".C3 0x27000002 (ExportedType) 0x0002",
                 ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0002",
                 ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0002",
+                ".<M>$56B5C634B2E52051C75D91F71BA8833A 0x27000004 (ExportedType) 0x0002",
                 ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0002",
-                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000006 (ExportedType) 0x0002",
+                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0002",
             ], actual);
         });
     }
