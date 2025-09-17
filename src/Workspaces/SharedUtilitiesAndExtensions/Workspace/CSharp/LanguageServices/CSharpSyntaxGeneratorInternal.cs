@@ -83,13 +83,13 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
     public override SyntaxNode RefExpression(SyntaxNode expression)
         => SyntaxFactory.RefExpression((ExpressionSyntax)expression);
 
-    public override SyntaxNode AddParentheses(SyntaxNode expressionOrPattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true, bool parenthesizeIdentifiers = true)
-        => Parenthesize(expressionOrPattern, includeElasticTrivia, addSimplifierAnnotation, parenthesizeIdentifiers);
+    public override SyntaxNode AddParentheses(SyntaxNode expressionOrPattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        => Parenthesize(expressionOrPattern, includeElasticTrivia, addSimplifierAnnotation);
 
-    internal static SyntaxNode Parenthesize(SyntaxNode expressionOrPattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true, bool parenthesizeIdentifiers = true)
+    internal static SyntaxNode Parenthesize(SyntaxNode expressionOrPattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         => expressionOrPattern switch
         {
-            ExpressionSyntax expression => expression.Parenthesize(includeElasticTrivia, addSimplifierAnnotation, parenthesizeIdentifiers),
+            ExpressionSyntax expression => expression.Parenthesize(includeElasticTrivia, addSimplifierAnnotation),
             PatternSyntax pattern => pattern.Parenthesize(includeElasticTrivia, addSimplifierAnnotation),
             var other => other,
         };
