@@ -16,7 +16,7 @@ using static SyntaxFactory;
 internal static partial class ExpressionSyntaxExtensions
 {
     public static ExpressionSyntax Parenthesize(
-        this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true, bool parenthesizeIdentifiers = true)
     {
         // a 'ref' expression should never be parenthesized.  It fundamentally breaks the code.
         // This is because, from the language's perspective there is no such thing as a ref
@@ -28,9 +28,7 @@ internal static partial class ExpressionSyntaxExtensions
         // on a ref-expression node.  But this node isn't a true expression that be operated
         // on like with everything else.
         if (expression.IsKind(SyntaxKind.RefExpression))
-        {
             return expression;
-        }
 
         // Throw expressions are not permitted to be parenthesized:
         //
@@ -42,9 +40,10 @@ internal static partial class ExpressionSyntaxExtensions
         //
         // is not.
         if (expression.IsKind(SyntaxKind.ThrowExpression))
-        {
             return expression;
-        }
+
+        if (!parenthesizeIdentifiers && expression is IdentifierNameSyntax)
+            return expression;
 
         var result = ParenthesizeWorker(expression, includeElasticTrivia);
         return addSimplifierAnnotation
@@ -52,7 +51,7 @@ internal static partial class ExpressionSyntaxExtensions
             : result;
     }
 
-    private static ExpressionSyntax ParenthesizeWorker(
+    private static ParenthesizedExpressionSyntax ParenthesizeWorker(
         this ExpressionSyntax expression, bool includeElasticTrivia)
     {
         var withoutTrivia = expression.WithoutTrivia();
