@@ -2676,7 +2676,7 @@ outerDefault:
         private static RefKind GetParameterBetternessRefKind<TMember>(ParameterSymbol parameter, TMember member) where TMember : Symbol
         {
             // For static extension members, the ref kind of the extension parameter shouldn't affect betterness.
-            bool isExtensionParameterOfStaticExtensionMember = parameter is { ContainingSymbol: TypeSymbol { IsExtension: true, ExtensionParameter: var extensionParameter } }
+            bool isExtensionParameterOfStaticExtensionMember = parameter is { ContainingSymbol: NamedTypeSymbol { IsExtension: true, ExtensionParameter: var extensionParameter } }
                 && member.IsStatic
                 && object.ReferenceEquals(parameter, extensionParameter);
 

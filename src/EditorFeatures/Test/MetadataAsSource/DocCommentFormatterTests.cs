@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
 public sealed class DocCommentFormatterTests
 {
-    private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
-    private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
+    private readonly CSharpDocumentationCommentFormattingService _csharpService = new();
+    private readonly VisualBasicDocumentationCommentFormattingService _vbService = new();
 
     private void TestFormat(string docCommentXmlFragment, string expected)
         => TestFormat(docCommentXmlFragment, expected, expected);

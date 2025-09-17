@@ -21,7 +21,7 @@ internal sealed partial class RenameTrackingTaggerProvider
     /// </summary>
     private sealed class UndoPrimitive(ITextBuffer textBuffer, int trackingSessionId, bool shouldRestoreStateOnUndo) : ITextUndoPrimitive
     {
-        private readonly WeakReference<ITextBuffer> _weakTextBuffer = new WeakReference<ITextBuffer>(textBuffer);
+        private readonly WeakReference<ITextBuffer> _weakTextBuffer = new(textBuffer);
         private readonly int _trackingSessionId = trackingSessionId;
         private readonly bool _shouldRestoreStateOnUndo = shouldRestoreStateOnUndo;
 

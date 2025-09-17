@@ -115,11 +115,6 @@ JSON 문자열 색상 지정,
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">완성 목록 설정 변경;가장 최근에 사용한 멤버 미리 선택</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">IDE에서 사용되는 Visual Basic 구성 요소입니다. 프로젝트 형식 및 설정에 따라 다른 버전의 컴파일러를 사용할 수 있습니다.</target>

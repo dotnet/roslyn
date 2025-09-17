@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Instrumentation related bound nodes:
         protected BoundBlockInstrumentation? instrumentation;
 
+        private readonly RefInitializationHoister<StateMachineFieldSymbol, BoundFieldAccess> _refInitializationHoister;
+
         // new:
         public MethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
@@ -161,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slotAllocatorOpt,
                 firstState: FirstIncreasingResumableState,
                 increasing: true);
+
+            _refInitializationHoister = new RefInitializationHoister<StateMachineFieldSymbol, BoundFieldAccess>(F, OriginalMethod, TypeMap);
         }
 #nullable disable
 
@@ -365,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    foreach (var field in ((CapturedToExpressionSymbolReplacement)proxy).HoistedFields)
+                    foreach (var field in ((CapturedToExpressionSymbolReplacement<StateMachineFieldSymbol>)proxy).HoistedSymbols)
                     {
                         AddVariableCleanup(variableCleanup, field);
 
@@ -503,226 +507,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             fields.Add(field);
-        }
-
-        private BoundExpression HoistRefInitialization(LocalSymbol local, BoundAssignmentOperator node)
-        {
-            Debug.Assert(
-                local switch
-                {
-                    TypeSubstitutedLocalSymbol tsl => tsl.UnderlyingLocalSymbol,
-                    _ => local
-                } is SynthesizedLocal
-            );
-            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
-                         (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
-            Debug.Assert(local.GetDeclaratorSyntax() != null);
-#pragma warning disable format
-            Debug.Assert(local.SynthesizedKind switch
-                         {
-                             SynthesizedLocalKind.Spill => this.OriginalMethod.IsAsync,
-                             SynthesizedLocalKind.ForEachArray => this.OriginalMethod.IsAsync || this.OriginalMethod.IsIterator,
-                             _ => false
-                         });
-#pragma warning restore format
-
-            var right = (BoundExpression)Visit(node.Right);
-
-            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
-            bool needsSacrificialEvaluation = false;
-            var hoistedFields = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
-
-            SyntaxNode awaitSyntaxOpt;
-            int syntaxOffset;
-            if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
-            {
-                awaitSyntaxOpt = local.GetDeclaratorSyntax();
-#pragma warning disable format
-                Debug.Assert(local.SynthesizedKind switch
-                             {
-                                 SynthesizedLocalKind.Spill => awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression),
-                                 SynthesizedLocalKind.ForEachArray => awaitSyntaxOpt is CommonForEachStatementSyntax,
-                                 _ => false
-                             });
-#pragma warning restore format
-                syntaxOffset = OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntaxOpt), awaitSyntaxOpt.SyntaxTree);
-            }
-            else
-            {
-                // These are only used to calculate debug id for ref-spilled variables,
-                // no need to do so in release build.
-                awaitSyntaxOpt = null;
-                syntaxOffset = -1;
-            }
-
-            var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, local.RefKind, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
-
-            proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree(), isReusable: true));
-
-            if (needsSacrificialEvaluation)
-            {
-                var type = TypeMap.SubstituteType(local.Type).Type;
-                var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
-                Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
-                return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));
-            }
-
-            if (sideEffects.Count == 0)
-            {
-                sideEffects.Free();
-                return null;
-            }
-
-            var last = sideEffects.Last();
-            sideEffects.RemoveLast();
-            return F.Sequence(ImmutableArray<LocalSymbol>.Empty, sideEffects.ToImmutableAndFree(), last);
-        }
-
-        private BoundExpression HoistExpression(
-            BoundExpression expr,
-            SyntaxNode awaitSyntaxOpt,
-            int syntaxOffset,
-            RefKind refKind,
-            ArrayBuilder<BoundExpression> sideEffects,
-            ArrayBuilder<StateMachineFieldSymbol> hoistedFields,
-            ref bool needsSacrificialEvaluation)
-        {
-            switch (expr.Kind)
-            {
-                case BoundKind.ArrayAccess:
-                    {
-                        var array = (BoundArrayAccess)expr;
-                        BoundExpression expression = HoistExpression(array.Expression, awaitSyntaxOpt, syntaxOffset, RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
-                        var indices = ArrayBuilder<BoundExpression>.GetInstance();
-                        foreach (var index in array.Indices)
-                        {
-                            indices.Add(HoistExpression(index, awaitSyntaxOpt, syntaxOffset, RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation));
-                        }
-
-                        needsSacrificialEvaluation = true; // need to force array index out of bounds exceptions
-                        return array.Update(expression, indices.ToImmutableAndFree(), array.Type);
-                    }
-
-                case BoundKind.FieldAccess:
-                    {
-                        var field = (BoundFieldAccess)expr;
-                        if (field.FieldSymbol.IsStatic)
-                        {
-                            // the address of a static field, and the value of a readonly static field, is stable
-                            if (refKind != RefKind.None || field.FieldSymbol.IsReadOnly) return expr;
-                            goto default;
-                        }
-
-                        if (refKind == RefKind.None)
-                        {
-                            goto default;
-                        }
-
-                        var isFieldOfStruct = !field.FieldSymbol.ContainingType.IsReferenceType;
-
-                        var receiver = HoistExpression(field.ReceiverOpt, awaitSyntaxOpt, syntaxOffset,
-                            isFieldOfStruct ? refKind : RefKind.None, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
-                        if (receiver.Kind != BoundKind.ThisReference && !isFieldOfStruct)
-                        {
-                            needsSacrificialEvaluation = true; // need the null check in field receiver
-                        }
-
-                        return F.Field(receiver, field.FieldSymbol);
-                    }
-
-                case BoundKind.ThisReference:
-                case BoundKind.BaseReference:
-                case BoundKind.DefaultExpression:
-                    return expr;
-
-                case BoundKind.Call:
-                    var call = (BoundCall)expr;
-                    // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'in' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'in' or 'ref readonly' parameter)
-                    //
-                    //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
-                    //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
-                    if (refKind != RefKind.None && refKind != RefKind.In)
-                    {
-                        Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.Out);
-                        Debug.Assert(call.Method.RefKind != RefKind.None);
-                        F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
-                    }
-                    // method call is not referentially transparent, we can only spill the result value.
-                    refKind = RefKind.None;
-                    goto default;
-
-                case BoundKind.ConditionalOperator:
-                    var conditional = (BoundConditionalOperator)expr;
-                    // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'in' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'in' or 'ref readonly' parameter)
-                    //
-                    //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
-                    //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
-                    if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
-                    {
-                        Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.In);
-                        Debug.Assert(conditional.IsRef);
-                        F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
-                    }
-                    // conditional expr is not referentially transparent, we can only spill the result value.
-                    refKind = RefKind.None;
-                    goto default;
-
-                default:
-                    if (expr.ConstantValueOpt != null)
-                    {
-                        return expr;
-                    }
-
-                    if (refKind != RefKind.None)
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(expr.Kind);
-                    }
-
-                    TypeSymbol fieldType = expr.Type;
-                    StateMachineFieldSymbol hoistedField;
-                    if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
-                    {
-                        const SynthesizedLocalKind kind = SynthesizedLocalKind.AwaitByRefSpill;
-
-                        Debug.Assert(awaitSyntaxOpt != null);
-
-                        int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(kind, syntaxOffset);
-                        var id = new LocalDebugId(syntaxOffset, ordinal);
-
-                        // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
-                        // However, it may happen that the type changes, in which case we need to allocate a new slot.
-                        int slotIndex;
-                        if (slotAllocator == null ||
-                            !slotAllocator.TryGetPreviousHoistedLocalSlotIndex(
-                                awaitSyntaxOpt,
-                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
-                                kind,
-                                id,
-                                Diagnostics.DiagnosticBag,
-                                out slotIndex))
-                        {
-                            slotIndex = _nextFreeHoistedLocalSlot++;
-                        }
-
-                        string fieldName = GeneratedNames.MakeHoistedLocalFieldName(kind, slotIndex);
-                        hoistedField = F.StateMachineField(expr.Type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex);
-                        _fieldsForCleanup.Add(hoistedField);
-                    }
-                    else
-                    {
-                        hoistedField = GetOrAllocateReusableHoistedField(fieldType, reused: out _);
-                    }
-
-                    hoistedFields.Add(hoistedField);
-
-                    var replacement = F.Field(F.This(), hoistedField);
-                    sideEffects.Add(F.AssignmentExpression(replacement, expr));
-                    return replacement;
-            }
         }
 
         #region Visitors
@@ -863,7 +647,69 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
             // So we assign the proxy before translating the assignment.
-            return HoistRefInitialization(leftLocal, node);
+            var visitedRight = (BoundExpression)Visit(node.Right);
+            return _refInitializationHoister.HoistRefInitialization(
+                leftLocal,
+                visitedRight,
+                proxies,
+                createHoistedSymbol,
+                createHoistedAccess,
+                this,
+                isRuntimeAsync: false);
+
+            static StateMachineFieldSymbol createHoistedSymbol(TypeSymbol type, MethodToStateMachineRewriter @this, LocalSymbol assignedLocal)
+            {
+                StateMachineFieldSymbol hoistedSymbol;
+
+                // https://github.com/dotnet/roslyn/issues/79793 - consider whether runtime async will need some of this work for enc
+                if (@this.F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    const SynthesizedLocalKind kind = SynthesizedLocalKind.AwaitByRefSpill;
+                    SyntaxNode awaitSyntax = assignedLocal.GetDeclaratorSyntax();
+#pragma warning disable format
+                    Debug.Assert(assignedLocal.SynthesizedKind switch
+                                 {
+                                     SynthesizedLocalKind.Spill => awaitSyntax.IsKind(SyntaxKind.AwaitExpression) || awaitSyntax.IsKind(SyntaxKind.SwitchExpression),
+                                     SynthesizedLocalKind.ForEachArray => awaitSyntax is CommonForEachStatementSyntax,
+                                     _ => false
+                                 });
+#pragma warning restore format
+                    int syntaxOffset = @this.OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntax), awaitSyntax.SyntaxTree);
+
+                    Debug.Assert(awaitSyntax != null);
+
+                    int ordinal = @this._synthesizedLocalOrdinals.AssignLocalOrdinal(kind, syntaxOffset);
+                    var id = new LocalDebugId(syntaxOffset, ordinal);
+
+                    // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
+                    // However, it may happen that the type changes, in which case we need to allocate a new slot.
+                    int slotIndex;
+                    if (@this.slotAllocator == null ||
+                        !@this.slotAllocator.TryGetPreviousHoistedLocalSlotIndex(
+                            awaitSyntax,
+                            @this.F.ModuleBuilderOpt.Translate(type, awaitSyntax, @this.Diagnostics.DiagnosticBag),
+                            kind,
+                            id,
+                            @this.Diagnostics.DiagnosticBag,
+                            out slotIndex))
+                    {
+                        slotIndex = @this._nextFreeHoistedLocalSlot++;
+                    }
+
+                    string fieldName = GeneratedNames.MakeHoistedLocalFieldName(kind, slotIndex);
+                    hoistedSymbol = @this.F.StateMachineField(type, fieldName, new LocalSlotDebugInfo(kind, id), slotIndex);
+                    @this._fieldsForCleanup.Add(hoistedSymbol);
+                }
+                else
+                {
+                    hoistedSymbol = @this.GetOrAllocateReusableHoistedField(type, out _);
+                }
+
+                return hoistedSymbol;
+            }
+
+            static BoundFieldAccess createHoistedAccess(StateMachineFieldSymbol fieldSymbol, MethodToStateMachineRewriter @this)
+                => @this.F.Field(@this.F.This(), fieldSymbol);
         }
 
         /// <summary>

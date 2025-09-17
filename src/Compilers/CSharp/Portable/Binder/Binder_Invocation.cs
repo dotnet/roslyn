@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the error has already been reported by BindInvocationExpression
                 Debug.Assert(diagnostics.DiagnosticBag is null || diagnostics.HasAnyErrors());
 
-                result = CreateBadCall(node, boundExpression, LookupResultKind.Viable, analyzedArguments);
+                result = CreateBadCall(node, boundExpression, LookupResultKind.NotInvocable, analyzedArguments);
             }
 
             result.WasCompilerGenerated = true;
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, delegateType, node: node))
                 {
-                    return CreateBadCall(node, boundExpression, LookupResultKind.Viable, analyzedArguments);
+                    return CreateBadCall(node, boundExpression, LookupResultKind.NotInvocable, analyzedArguments);
                 }
 
                 result = BindDelegateInvocation(node, expression, methodName, boundExpression, analyzedArguments, diagnostics, queryClause, delegateType);
@@ -748,6 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol> originalMethods;
                 LookupResultKind resultKind;
                 ImmutableArray<TypeWithAnnotations> typeArguments;
+                BoundExpression receiverOpt = methodGroup.ReceiverOpt;
+
                 if (resolution.OverloadResolutionResult != null)
                 {
                     originalMethods = GetOriginalMethods(resolution.OverloadResolutionResult);
@@ -759,12 +761,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalMethods = methodGroup.Methods;
                     resultKind = methodGroup.ResultKind;
                     typeArguments = methodGroup.TypeArgumentsOpt;
+
+                    if (originalMethods.IsEmpty && methodGroup.LookupSymbolOpt is { })
+                    {
+                        Debug.Assert(methodGroup.LookupSymbolOpt is not MethodSymbol);
+
+                        // Create receiver as BindMemberAccessBadResult does
+                        receiverOpt = new BoundBadExpression(
+                            methodGroup.Syntax,
+                            methodGroup.ResultKind,
+                            [methodGroup.LookupSymbolOpt],
+                            receiverOpt == null ? [] : [receiverOpt],
+                            GetNonMethodMemberType(methodGroup.LookupSymbolOpt));
+                    }
                 }
 
                 result = CreateBadCall(
                     syntax,
                     methodName,
-                    methodGroup.ReceiverOpt,
+                    receiverOpt,
                     originalMethods,
                     resultKind,
                     typeArguments,

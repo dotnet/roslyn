@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -39,7 +40,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
     protected abstract bool IsWithinImport(SyntaxNode node);
     protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
-    protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
+    protected abstract bool CanAddImportForMember(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
     protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
     protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
     protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
@@ -51,12 +52,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-    protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
     protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, AddImportPlacementOptions options, CancellationToken cancellationToken);
     protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, AddImportPlacementOptions options, CancellationToken cancellationToken);
 
-    protected abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
+    protected abstract bool IsAddMethodContext(
+        SyntaxNode node, SemanticModel semanticModel, [NotNullWhen(true)] out SyntaxNode? objectCreationExpression);
 
     protected abstract string GetDescription(IReadOnlyList<string> nameParts);
     protected abstract (string description, bool hasExistingImport) GetDescription(Document document, AddImportPlacementOptions options, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
@@ -143,7 +144,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // Caches so we don't produce the same data multiple times while searching 
         // all over the solution.
         var project = document.Project;
-        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
+        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
         var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
 
         var finder = new SymbolReferenceFinder(
@@ -168,7 +169,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         => project.Solution.WorkspaceKind is WorkspaceKind.Host or WorkspaceKind.RemoteWorkspace;
 
     private async Task<ImmutableArray<Reference>> FindResultsAsync(
-        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
         ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
         Project project,
         int maxResults,
@@ -213,7 +214,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     }
 
     private static async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
-        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
         Project project, ConcurrentQueue<Reference> allSymbolReferences, int maxResults,
         SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
     {
@@ -476,31 +477,6 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     {
         foreach (var reference in proposedReferences)
             allSymbolReferences.Enqueue(reference);
-    }
-
-    protected static bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
-    {
-        if (receiver == null || method == null)
-        {
-            return false;
-        }
-
-        // It's possible that the 'method' we're looking at is from a different language than
-        // the language we're currently in.  For example, we might find the extension method
-        // in an unreferenced VB project while we're in C#.  However, in order to 'reduce'
-        // the extension method, the compiler requires both the method and receiver to be 
-        // from the same language.
-        //
-        // So, if they're not from the same language, we simply can't proceed.  Now in this 
-        // case we decide that the method is not viable.  But we could, in the future, decide
-        // to just always consider such methods viable.
-
-        if (receiver.Language != method.Language)
-        {
-            return false;
-        }
-
-        return method.ReduceExtensionMethod(receiver) != null;
     }
 
     private static bool NotGlobalNamespace(SymbolReference reference)

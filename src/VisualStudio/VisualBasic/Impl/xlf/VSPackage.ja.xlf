@@ -115,11 +115,6 @@ JSON 文字列のエディター機能の検出と提供;
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">IDE で使用する Visual Basic コンポーネント。プロジェクトの種類や設定に応じて、異なるバージョンのコンパイラを使用できます。</target>

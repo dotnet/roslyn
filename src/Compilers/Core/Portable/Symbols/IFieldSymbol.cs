@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the top-level nullability of this field.
         /// </summary>
+        /// <remarks>
+        /// The inferred nullability of a backing field symbol (for example, the symbol for a <see langword="field"/> keyword) is not exposed by this API.
+        /// In that case, this API returns the nullable annotation of the associated property.
+        /// The inferred nullability is only exposed indirectly via APIs that give information about expressions, such as <see cref="SemanticModel.GetTypeInfo"/> when called with a <see langword="field"/> expression.
+        /// </remarks>
         NullableAnnotation NullableAnnotation { get; }
 
         /// <summary>

@@ -48,7 +48,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
     }
 
     private static ClientCapabilities CreateClientCapabilities(bool supportDocumentChanges)
-        => new LSP.ClientCapabilities
+        => new()
         {
             Workspace = new LSP.WorkspaceClientCapabilities
             {

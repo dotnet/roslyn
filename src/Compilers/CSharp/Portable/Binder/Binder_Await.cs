@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var call = (BoundCall)expression;
+            Debug.Assert(!call.IsErroneousNode);
 
             // First check if the target method is async.
             if ((object)call.Method != null && call.Method.IsAsync)
@@ -591,6 +592,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var call = (BoundCall)getAwaiterCall;
+            Debug.Assert(!call.IsErroneousNode);
+
             var getAwaiterMethod = call.Method;
             if (getAwaiterMethod is ErrorMethodSymbol ||
                 call.Expanded || HasOptionalParameters(getAwaiterMethod) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
@@ -699,6 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var call = (BoundCall)getAwaiterGetResultCall;
+            Debug.Assert(!call.IsErroneousNode);
+
             getResultMethod = call.Method;
             if (getResultMethod.IsExtensionMethod || getResultMethod.GetIsNewExtensionMember())
             {

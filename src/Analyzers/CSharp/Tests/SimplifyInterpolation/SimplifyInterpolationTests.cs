@@ -1298,6 +1298,51 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnReadOnlySpanIfTargetsIFormattableAndInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct ReadOnlySpan<T> { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                IFormattable M(ReadOnlySpan<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80132")]
+    public Task ToStringSimplificationIsNotOfferedOnSpanIfTargetsIFormattableAndInterpolatedStringHandlersAvailable()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace System
+            {
+                public ref struct Span<T> { }
+                public ref struct ReadOnlySpan<T> { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class InterpolatedStringHandlerAttribute { }
+            }
+
+            class C
+            {
+                IFormattable M(Span<char> span) => $"Test: {span[||].ToString()}";
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42936")]
     public Task PadLeftSimplificationIsStillOfferedOnRefStruct()
         => TestInRegularAndScriptAsync(
@@ -1459,12 +1504,38 @@ public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
             """
             class C
             {
-                void B() => M($"{args[||].Length.ToString()}");
+                void B(string[] args) => M($"{args[||].Length.ToString()}");
 
                 void M(FormattableString fs)
                 {
                     foreach (object o in fs.GetArguments())
                         Console.WriteLine(o?.GetType());
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotPassedToIFormattable()
+        => TestMissingAsync(
+            """
+            class C : ICustomFormatter, IFormatProvider
+            {
+                void B(string[] args) => M($"{args[||].Length.ToString()}");
+
+                void M(IFormattable fs)
+                {
+                    fs.ToString(null, formatProvider: this);
+                }
+
+                object? IFormatProvider.GetFormat(Type? formatType)
+                {
+                    return formatType == typeof(ICustomFormatter) ? this : null;
+                }
+
+                string ICustomFormatter.Format(string? format, object? arg, IFormatProvider? formatProvider)
+                {
+                    Console.WriteLine(arg?.GetType());
+                    return "";
                 }
             }
             """);

@@ -1101,8 +1101,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void B.Goo()", string.Empty, null, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void D.Goo(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("void B.Goo()", string.Empty, null, currentParameterIndex: 0),
+            new("void D.Goo(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,

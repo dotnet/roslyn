@@ -75,6 +75,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.14.39337" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Styles" Version="18.0.2101-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" Version="18.0.634-alpha" />

@@ -7,6 +7,11 @@
         <target state="translated">Init only 属性 "{0}" 只能由对象成员初始值设定项分配，或在实例构造函数中的 "Me"、"MyClass" 或 "MyBase" 上分配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
         <target state="translated">无法访问共享抽象或虚拟接口成员。</target>

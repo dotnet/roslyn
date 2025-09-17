@@ -50,7 +50,7 @@ internal readonly struct EditDistance(string text) : IDisposable
     private readonly char[] _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
 
     private const int PooledArraySize = 512;
-    private static readonly ObjectPool<char[]> s_pool = new ObjectPool<char[]>(() => new char[PooledArraySize]);
+    private static readonly ObjectPool<char[]> s_pool = new(() => new char[PooledArraySize]);
 
     private static char[] ConvertToLowercaseArray(string text)
     {

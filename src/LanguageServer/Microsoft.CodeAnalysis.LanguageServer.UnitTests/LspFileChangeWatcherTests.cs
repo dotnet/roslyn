@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    private readonly ClientCapabilities _clientCapabilitiesWithFileWatcherSupport = new ClientCapabilities
+    private readonly ClientCapabilities _clientCapabilitiesWithFileWatcherSupport = new()
     {
         Workspace = new WorkspaceClientCapabilities
         {
