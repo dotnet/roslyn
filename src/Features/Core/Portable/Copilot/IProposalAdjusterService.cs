@@ -82,8 +82,12 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         // move to in the forked document, as that is what we will want to analyze.
         var oldText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        var changesWhenMissingTokens = await AddMissingTokensIfAppropriateAsync(
-            originalDocument, normalizedChanges, cancellationToken).ConfigureAwait(false);
+        ImmutableArray<TextChange> changesWhenMissingTokens = default;
+        if (globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
+        {
+            changesWhenMissingTokens = await AddMissingTokensIfAppropriateAsync(
+                originalDocument, normalizedChanges, cancellationToken).ConfigureAwait(false);
+        }
 
         using var _ = ArrayBuilder<string>.GetInstance(out var adjustmentKinds);
 
@@ -102,32 +106,39 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         var forkedRoot = await forkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var totalNewSpan = GetSpanToAnalyze(forkedRoot, newSpans);
 
-        var (success, addImportChanges) = await TryGetAddImportTextChangesAsync(
-            originalDocument, forkedDocument, normalizedChanges.First(), totalNewSpan, cancellationToken).ConfigureAwait(false);
-        if (success)
-            adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingImports);
+        ImmutableArray<TextChange> addImportChanges = default;
+        if (globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
+        {
+            (var addImportSuccess, addImportChanges) = await TryGetAddImportTextChangesAsync(
+                originalDocument, forkedDocument, normalizedChanges.First(), totalNewSpan, cancellationToken).ConfigureAwait(false);
+            if (addImportSuccess)
+            {
+                adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingImports);
+                format = true;
+            }
+        }
 
         ImmutableArray<TextChange> afterFormatChanges = default;
         if (globalOptions.GetOption(CopilotOptions.FixCodeFormat))
         {
-            (success, afterFormatChanges) = await TryGetFormattingTextChangesAsync(
+            (var formatSuccess, afterFormatChanges) = await TryGetFormattingTextChangesAsync(
                 originalDocument, forkedDocument, totalNewSpan, cancellationToken).ConfigureAwait(false);
-            if (success)
+            if (formatSuccess)
                 adjustmentKinds.Add(ProposalAdjusterKinds.FormatCode);
         }
 
         if (adjustmentKinds.IsEmpty)
-            return default;
+            return new(normalizedChanges, format, default);
 
         // Keep the new root around, in case something needs it while processing.  This way we don't throw it away unnecessarily.
         GC.KeepAlive(forkedRoot);
 
-        var beforeChanges = addImportChanges.IsDefault ? ImmutableArray<TextChange>.Empty : addImportChanges;
-        var afterChanges = afterFormatChanges.IsDefault ? normalizedChanges : afterFormatChanges;
-
         // Return the add-import changes concatenated with the original changes.  This way we ensure
         // that the copilot changes themselves are not themselves modified by the add-import changes.
+        var beforeChanges = addImportChanges.IsDefault ? ImmutableArray<TextChange>.Empty : addImportChanges;
+        var afterChanges = afterFormatChanges.IsDefault ? normalizedChanges : afterFormatChanges;
         var totalChanges = beforeChanges.Concat(afterChanges);
+
         return new(totalChanges, format, adjustmentKinds.ToImmutableAndClear());
     }
 

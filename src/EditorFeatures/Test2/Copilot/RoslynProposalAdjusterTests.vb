@@ -14,10 +14,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
     Public NotInheritable Class RoslynProposalAdjusterTests
         Private Shared ReadOnly s_composition As TestComposition = FeaturesTestCompositions.Features
 
+        Private Shared Sub AllSettingsOff(options As IGlobalOptionService)
+            options.SetGlobalOption(CopilotOptions.FixAddMissingTokens, False)
+            options.SetGlobalOption(CopilotOptions.FixAddMissingImports, False)
+            options.SetGlobalOption(CopilotOptions.FixCodeFormat, False)
+        End Sub
+
         Private Shared Async Function Test(
                 code As String,
                 expected As String,
                 language As String,
+                Optional setOptions As Action(Of IGlobalOptionService) = Nothing,
                 Optional compilationOptions As CompilationOptions = Nothing) As Task
             Using workspace = If(language Is LanguageNames.CSharp,
                     EditorTestWorkspace.CreateCSharp(code, compilationOptions:=compilationOptions, composition:=s_composition),
@@ -42,7 +49,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
 
                 ' Enable code fixer feature flags. They are off by default.
                 Dim options = workspace.GetService(Of IGlobalOptionService)
-                options.SetGlobalOption(CopilotOptions.FixCodeFormat, True)
+
+                ' Default to all the flags on if a setter is not specified. 
+                If setOptions Is Nothing Then
+                    options.SetGlobalOption(CopilotOptions.FixAddMissingTokens, True)
+                    options.SetGlobalOption(CopilotOptions.FixAddMissingImports, True)
+                    options.SetGlobalOption(CopilotOptions.FixCodeFormat, True)
+                Else
+                    setOptions(options)
+                End If
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim tuple = Await service.TryAdjustProposalAsync(
@@ -68,8 +83,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
 
 #Region "C#"
 
-        Private Shared Async Function TestCSharp(code As String, expected As String) As Task
-            Await Test(code, expected, LanguageNames.CSharp)
+        Private Shared Async Function TestCSharp(code As String, expected As String, Optional setOptions As Action(Of IGlobalOptionService) = Nothing) As Task
+            Await Test(code, expected, LanguageNames.CSharp, setOptions)
         End Function
 
         <WpfFact>
@@ -400,12 +415,96 @@ class C
 }")
         End Function
 
+        <WpfFact>
+        Public Async Function TestCSharp_AnalyzersOff() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}", AddressOf AllSettingsOff)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingImportsOnly() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+    }
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}", Sub(options)
+        options.SetGlobalOption(CopilotOptions.FixAddMissingImports, True)
+    End Sub)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingTokensOnly() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}", Sub(options)
+        options.SetGlobalOption(CopilotOptions.FixAddMissingTokens, True)
+    End Sub)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_FormatOnly() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+    }
+}", "
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}", Sub(options)
+        options.SetGlobalOption(CopilotOptions.FixCodeFormat, True)
+    End Sub)
+        End Function
+
 #End Region
 
 #Region "Visual Basic"
 
-        Private Shared Async Function TestVisualBasic(code As String, expected As String) As Task
-            Await Test(code, expected, LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+        Private Shared Async Function TestVisualBasic(code As String, expected As String, Optional setOptions As Action(Of IGlobalOptionService) = Nothing) As Task
+            Await Test(code, expected, LanguageNames.VisualBasic, setOptions, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
         End Function
 
         <WpfFact>
@@ -632,6 +731,21 @@ class C
         System.Console.Writ
     end sub
 end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_AnalyzersOff() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [| Console . WriteLine ( 1 )   |]
+    end sub
+end class", "
+class C
+    sub M()
+         Console . WriteLine ( 1 )   
+    end sub
+end class", AddressOf AllSettingsOff)
         End Function
 
 #End Region
