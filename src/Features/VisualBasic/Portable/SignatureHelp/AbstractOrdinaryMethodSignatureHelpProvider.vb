@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetMemberGroupPreambleParts(member, semanticModel, position),
                 GetSeparatorParts(),
                 GetMemberGroupPostambleParts(member, semanticModel, position),
-                member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
+                member.GetParameters().SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
         End Function
 
         Private Shared Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)

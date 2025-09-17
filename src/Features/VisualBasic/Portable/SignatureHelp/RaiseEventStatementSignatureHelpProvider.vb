@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                allowedEvents.SelectAsArray(Function(e) Convert(e, raiseEventStatement, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItemIndex:=Nothing, parameterIndexOverride:=-1)
         End Function
 
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetPreambleParts(eventSymbol, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(),
-                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
+                type.DelegateInvokeMethod.GetParameters().SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
 
             Return item
         End Function

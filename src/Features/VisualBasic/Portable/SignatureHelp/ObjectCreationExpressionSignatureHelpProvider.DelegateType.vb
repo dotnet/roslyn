@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SignatureHelpSymbolParameter)
             Const TargetName As String = "target"
 
-            Dim parts = New List(Of SymbolDisplayPart)()
+            Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
 
             If invokeMethod.ReturnsVoid Then
                 parts.Add(Keyword(SyntaxKind.SubKeyword))
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 TargetName,
                 isOptional:=False,
                 documentationFactory:=Nothing,
-                displayParts:=parts)}
+                displayParts:=parts.ToImmutableAndFree())}
         End Function
 
         Private Shared Function GetDelegateTypePostambleParts() As IList(Of SymbolDisplayPart)

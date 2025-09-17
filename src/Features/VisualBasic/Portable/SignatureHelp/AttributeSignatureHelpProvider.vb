@@ -84,8 +84,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim symbolInfo = semanticModel.GetSymbolInfo(attribute, cancellationToken)
             Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol)
 
-            Return CreateSignatureHelpItems(accessibleConstructors.Select(
-                Function(c) Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+            Return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(
+                Function(c) Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem, parameterIndexOverride:=-1)
         End Function
 
@@ -163,13 +163,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Shared Function GetParameterPrefixDisplayParts(i As Integer) As List(Of SymbolDisplayPart)
+        Private Shared Function GetParameterPrefixDisplayParts(i As Integer) As ImmutableArray(Of SymbolDisplayPart)
             If i = 0 Then
-                Return New List(Of SymbolDisplayPart) From {
+                Return ImmutableArray.Create(
                     New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, FeaturesResources.Properties),
                     Punctuation(SyntaxKind.ColonToken),
-                    Space()
-                }
+                    Space())
             End If
 
             Return Nothing

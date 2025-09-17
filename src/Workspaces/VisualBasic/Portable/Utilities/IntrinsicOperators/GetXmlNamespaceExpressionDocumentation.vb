@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
     Friend NotInheritable Class GetXmlNamespaceExpressionDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
@@ -37,37 +39,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Select
         End Function
 
-        Public Overrides ReadOnly Property ParameterCount As Integer
-            Get
-                Return 1
-            End Get
-        End Property
+        Public Overrides ReadOnly Property ParameterCount As Integer = 1
 
-        Public Overrides ReadOnly Property DocumentationText As String
-            Get
-                Return VBWorkspaceResources.Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix
-            End Get
-        End Property
+        Public Overrides ReadOnly Property DocumentationText As String =
+            VBWorkspaceResources.Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix
 
-        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
-            Get
-                Return {
-                    New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "GetXmlNamespace"),
-                    New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")
-                }
-            End Get
-        End Property
+        Public Overrides ReadOnly Property PrefixParts As ImmutableArray(Of SymbolDisplayPart) = ImmutableArray.Create(
+            New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "GetXmlNamespace"),
+            New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "("))
 
-        Public Overrides ReadOnly Property IncludeAsType As Boolean
-            Get
-                Return True
-            End Get
-        End Property
+        Public Overrides ReadOnly Property IncludeAsType As Boolean = True
 
-        Public Overrides ReadOnly Property ReturnTypeMetadataName As String
-            Get
-                Return "System.Xml.Linq.XNamespace"
-            End Get
-        End Property
+        Public Overrides ReadOnly Property ReturnTypeMetadataName As String = "System.Xml.Linq.XNamespace"
     End Class
 End Namespace

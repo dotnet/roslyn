@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position), GetSeparatorParts(),
                 GetNormalTypePostambleParts(),
-                constructor.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
+                constructor.Parameters.SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
             Return item
         End Function
 

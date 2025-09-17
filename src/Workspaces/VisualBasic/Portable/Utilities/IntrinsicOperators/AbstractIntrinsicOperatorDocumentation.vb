@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Get
         End Property
 
-        Public MustOverride ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
+        Public MustOverride ReadOnly Property PrefixParts As ImmutableArray(Of SymbolDisplayPart)
         Public MustOverride Function GetParameterName(index As Integer) As String
         Public MustOverride Function GetParameterDocumentation(index As Integer) As String
 

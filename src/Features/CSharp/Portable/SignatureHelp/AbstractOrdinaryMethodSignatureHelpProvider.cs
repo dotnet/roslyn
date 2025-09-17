@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -44,7 +45,7 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
             descriptionParts: descriptionParts);
     }
 
-    private static IList<SymbolDisplayPart> GetMethodGroupPreambleParts(
+    private static ImmutableArray<SymbolDisplayPart> GetMethodGroupPreambleParts(
         IMethodSymbol method,
         SemanticModel semanticModel,
         int position)

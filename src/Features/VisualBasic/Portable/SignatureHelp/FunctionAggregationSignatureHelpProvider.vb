@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -86,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                accessibleMethods.SelectAsArray(Function(m) Convert(m, functionAggregation, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItemIndex:=Nothing, parameterIndexOverride:=-1)
         End Function
 
@@ -148,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                    delegateInvokeMethod.Parameters.Length = 1 AndAlso
                    Not delegateInvokeMethod.ReturnsVoid Then
 
-                    Dim parts = New List(Of SymbolDisplayPart)
+                    Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
                     parts.Add(Text(VBWorkspaceResources.expression))
                     parts.Add(Space())
                     parts.Add(Keyword(SyntaxKind.AsKeyword))
@@ -159,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                         VBWorkspaceResources.expression,
                         parameter.IsOptional,
                         parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                        parts)
+                        parts.ToImmutableAndFree())
 
                     Return {sigHelpParameter}
                 End If
