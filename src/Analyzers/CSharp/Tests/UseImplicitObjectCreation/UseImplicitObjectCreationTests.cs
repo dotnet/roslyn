@@ -884,4 +884,75 @@ public sealed class UseImplicitObjectCreationTests
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77670")]
+    public Task TestWithTask1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    async Task<C> Func() => [|new|] C();
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+                
+                class C
+                {
+                    async Task<C> Func() => new();
+                }
+                """,
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77670")]
+    public Task TestWithValueTask1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    async ValueTask<C> Func() => [|new|] C();
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+                
+                class C
+                {
+                    async ValueTask<C> Func() => new();
+                }
+                """,
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77670")]
+    public Task TestWithValueTask2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    ValueTask<C> Func() => [|new|] ValueTask<C>(new C());
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+                
+                class C
+                {
+                    ValueTask<C> Func() => new(new C());
+                }
+                """,
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
 }
