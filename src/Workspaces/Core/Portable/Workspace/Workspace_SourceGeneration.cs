@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 

@@ -2338,6 +2338,9 @@ public abstract partial class Workspace : IDisposable
 
     #endregion
 
+    internal virtual IAnalyzerAssemblyLoader GetAssemblyLoader(IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider)
+        => assemblyLoaderProvider.SharedShadowCopyLoader;
+
     #region Checks and Asserts
     /// <summary>
     /// Throws an exception is the solution is not empty.
