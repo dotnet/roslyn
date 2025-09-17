@@ -2,15 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
     Friend NotInheritable Class BinaryConditionalExpressionDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
-        Public Overrides ReadOnly Property DocumentationText As String
-            Get
-                Return VBWorkspaceResources.If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing
-            End Get
-        End Property
+        Public Overrides ReadOnly Property DocumentationText As String =
+            VBWorkspaceResources.If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing
 
         Public Overrides Function GetParameterDocumentation(index As Integer) As String
             Select Case index
@@ -34,23 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Select
         End Function
 
-        Public Overrides ReadOnly Property IncludeAsType As Boolean
-            Get
-                Return True
-            End Get
-        End Property
+        Public Overrides ReadOnly Property IncludeAsType As Boolean = True
 
-        Public Overrides ReadOnly Property ParameterCount As Integer
-            Get
-                Return 2
-            End Get
-        End Property
+        Public Overrides ReadOnly Property ParameterCount As Integer = 2
 
-        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
-            Get
-                Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "If"),
-                        New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")}
-            End Get
-        End Property
+        Public Overrides ReadOnly Property PrefixParts As ImmutableArray(Of SymbolDisplayPart) = ImmutableArray.Create(
+            New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "If"),
+            New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "("))
     End Class
 End Namespace

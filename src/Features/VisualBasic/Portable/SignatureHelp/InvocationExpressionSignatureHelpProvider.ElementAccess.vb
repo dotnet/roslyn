@@ -2,10 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -13,13 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Shared Function GetElementAccessItems(leftExpression As ExpressionSyntax,
-                                               semanticModel As SemanticModel,
-                                               structuralTypeDisplayService As IStructuralTypeDisplayService,
-                                               documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                               within As ISymbol,
-                                               defaultProperties As IList(Of IPropertySymbol),
-                                               cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
+        Private Shared Function GetElementAccessItems(
+                leftExpression As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                structuralTypeDisplayService As IStructuralTypeDisplayService,
+                documentationCommentFormattingService As IDocumentationCommentFormattingService,
+                within As ISymbol,
+                defaultProperties As ImmutableArray(Of IPropertySymbol),
+                cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
             Dim throughType As ITypeSymbol = Nothing
             If leftExpression IsNot Nothing Then
                 throughType = semanticModel.GetTypeInfo(leftExpression, cancellationToken).Type
@@ -47,21 +50,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetIndexerPreambleParts(indexer, semanticModel, position),
                 GetSeparatorParts(),
                 GetIndexerPostambleParts(indexer, semanticModel, position),
-                indexer.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
+                indexer.Parameters.SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
             Return item
         End Function
 
-        Private Shared Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
-            Dim result = New List(Of SymbolDisplayPart)()
+        Private Shared Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
+            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             result.AddRange(symbol.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetIndexerPostambleParts(symbol As IPropertySymbol,
-                                                  semanticModel As SemanticModel,
-                                                  position As Integer) As IList(Of SymbolDisplayPart)
-            Dim parts = New List(Of SymbolDisplayPart)
+        Private Shared Function GetIndexerPostambleParts(
+                symbol As IPropertySymbol,
+                semanticModel As SemanticModel,
+                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
+            Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             parts.Add(Punctuation(SyntaxKind.CloseParenToken))
 
             Dim [property] = DirectCast(symbol, IPropertySymbol)
@@ -71,8 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             parts.Add(Space())
             parts.AddRange([property].Type.ToMinimalDisplayParts(semanticModel, position))
 
-            Return parts
+            Return parts.ToImmutableAndFree()
         End Function
-
     End Class
 End Namespace

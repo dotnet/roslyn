@@ -493,5 +493,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription CompilerLoweringPreserveAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilerLoweringPreserveAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription ExtensionMarkerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ExtensionMarkerAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription RuntimeAsyncMethodGenerationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeAsyncMethodGenerationAttribute", s_signatures_HasThis_Void_Boolean_Only);
+        internal static readonly AttributeDescription MetadataUpdateDeletedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MetadataUpdateDeletedAttribute", s_signatures_HasThis_Void_Only);
     }
 }

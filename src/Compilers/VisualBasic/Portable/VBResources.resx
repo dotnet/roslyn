@@ -5740,4 +5740,7 @@
     <value>'MethodImplAttribute.Async' cannot be manually applied to methods.</value>
     <remarks>'MethodImplAttribute.Async' is not localizable.</remarks>
   </data>
+  <data name="ERR_AttributeCannotBeAppliedManually" xml:space="preserve">
+    <value>'{0}' cannot be applied manually.</value>
+  </data>
 </root>

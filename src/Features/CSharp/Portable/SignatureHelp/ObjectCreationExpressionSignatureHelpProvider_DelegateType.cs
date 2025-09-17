@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
@@ -33,21 +33,17 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
         return [item];
     }
 
-    private static IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
-    {
-        var result = new List<SymbolDisplayPart>();
+    private static ImmutableArray<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        => [
+            .. invokeMethod.ContainingType.ToMinimalDisplayParts(semanticModel, position),
+            Punctuation(SyntaxKind.OpenParenToken),
+        ];
 
-        result.AddRange(invokeMethod.ContainingType.ToMinimalDisplayParts(semanticModel, position));
-        result.Add(Punctuation(SyntaxKind.OpenParenToken));
-
-        return result;
-    }
-
-    private static IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+    private static ImmutableArray<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
     {
         const string TargetName = "target";
 
-        var parts = new List<SymbolDisplayPart>();
+        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
         parts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position));
         parts.Add(Space());
         parts.Add(Punctuation(SyntaxKind.OpenParenToken));
@@ -73,9 +69,9 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
             TargetName,
             isOptional: false,
             documentationFactory: null,
-            displayParts: parts)];
+            displayParts: parts.ToImmutableAndClear())];
     }
 
-    private static IList<SymbolDisplayPart> GetDelegateTypePostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetDelegateTypePostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }

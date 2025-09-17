@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
 
                     default:
-                        if (ContainingSymbol is { IsStatic: false, ContainingSymbol: TypeSymbol { IsExtension: true, ExtensionParameter.Name: var extensionParameterName } }
+                        if (ContainingSymbol is { IsStatic: false, ContainingSymbol: NamedTypeSymbol { IsExtension: true, ExtensionParameter.Name: var extensionParameterName } }
                             && string.Equals(extensionParameterName, name, StringComparison.Ordinal))
                         {
                             builder.Add(BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver);

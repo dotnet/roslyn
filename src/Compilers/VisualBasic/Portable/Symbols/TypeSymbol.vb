@@ -782,5 +782,19 @@ Done:
         Private Function ITypeSymbolInternal_GetITypeSymbol() As ITypeSymbol Implements ITypeSymbolInternal.GetITypeSymbol
             Return Me
         End Function
+
+        <Obsolete>
+        Private ReadOnly Property ITypeSymbol_IsExtension As Boolean Implements ITypeSymbol.IsExtension
+            Get
+                Return False
+            End Get
+        End Property
+
+        <Obsolete>
+        Private ReadOnly Property ITypeSymbol_ExtensionParameter As IParameterSymbol Implements ITypeSymbol.ExtensionParameter
+            Get
+                Return Nothing
+            End Get
+        End Property
     End Class
 End Namespace

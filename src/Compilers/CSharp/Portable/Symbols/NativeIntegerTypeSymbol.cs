@@ -300,11 +300,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override string ExtensionGroupingName
-            => throw ExceptionUtilities.Unreachable();
+        internal sealed override string? ExtensionGroupingName => null;
 
-        internal override string ExtensionMarkerName
-            => throw ExceptionUtilities.Unreachable();
+        internal sealed override string? ExtensionMarkerName => null;
 
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
         {

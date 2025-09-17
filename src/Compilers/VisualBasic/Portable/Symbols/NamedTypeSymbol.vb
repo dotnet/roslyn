@@ -1580,5 +1580,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End Get
         End Property
+
+        Public ReadOnly Property ExtensionGroupingName As String Implements INamedTypeSymbol.ExtensionGroupingName
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property ExtensionMarkerName As String Implements INamedTypeSymbol.ExtensionMarkerName
+            Get
+                Return Nothing
+            End Get
+        End Property
     End Class
 End Namespace

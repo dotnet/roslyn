@@ -298,43 +298,6 @@ Insert space before and after binary operators;</source>
         <target state="translated">Изменение параметров форматирования для переноса по словам; оставить блок в одной строке; оставить запросы и объявления членов в той же строке</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Automatically show completion list in argument lists (experimental);
-Highlight matching portions of completion list items;
-Show completion item filters;
-Automatically complete statement on semicolon;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;
-Show items from unimported namespaces (experimental);</source>
-        <target state="translated">Изменить параметры списка завершения;Предварительно выбрать наиболее часто используемый элемент; Списки завершения;
-Показывать список завершения после ввода символа;
-Показывать список завершения после удаления символа;
-Автоматически показывать список завершения в списках аргументов (экспериментальная функция);
-Выделять совпадающие части элементов списка завершения;
-Показывать фильтры элементов завершения;
-Автоматически завершать предложение при вводе точки с запятой;
-Поведение фрагментов кода;
-Никогда не включать фрагменты кода;
-Всегда включать фрагменты кода;
-Включать фрагменты кода, когда после идентификатора указывается ?-Tab;
-Поведение при нажатии клавиши ВВОД;
-Никогда не добавлять новую строку при нажатии клавиши ВВОД;
-Добавлять новую строку при нажатии клавиши ВВОД только в конце полностью введенного слова;
-Всегда добавлять новую строку при нажатии клавиши ВВОД;
-Показывать варианты имен;
-Показывать элементы из неимпортированных пространств имен (экспериментальная функция);</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">Форматирование</target>

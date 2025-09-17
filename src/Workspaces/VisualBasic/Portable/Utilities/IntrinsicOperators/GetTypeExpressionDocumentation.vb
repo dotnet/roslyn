@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -26,32 +27,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Select
         End Function
 
-        Public Overrides ReadOnly Property ParameterCount As Integer
-            Get
-                Return 1
-            End Get
-        End Property
+        Public Overrides ReadOnly Property ParameterCount As Integer = 1
 
-        Public Overrides ReadOnly Property DocumentationText As String
-            Get
-                Return VBWorkspaceResources.Returns_a_System_Type_object_for_the_specified_type_name
-            End Get
-        End Property
+        Public Overrides ReadOnly Property DocumentationText As String =
+            VBWorkspaceResources.Returns_a_System_Type_object_for_the_specified_type_name
 
-        Public Overrides ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
-            Get
-                Return {
-                    New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "GetType"),
-                    New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")
-                }
-            End Get
-        End Property
+        Public Overrides ReadOnly Property PrefixParts As ImmutableArray(Of SymbolDisplayPart) = ImmutableArray.Create(
+            New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "GetType"),
+            New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "("))
 
-        Public Overrides ReadOnly Property IncludeAsType As Boolean
-            Get
-                Return True
-            End Get
-        End Property
+        Public Overrides ReadOnly Property IncludeAsType As Boolean = True
 
         Public Overrides Function TryGetTypeNameParameter(syntaxNode As SyntaxNode, index As Integer) As TypeSyntax
             Dim getTypeExpression = TryCast(syntaxNode, GetTypeExpressionSyntax)
@@ -63,10 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End If
         End Function
 
-        Public Overrides ReadOnly Property ReturnTypeMetadataName As String
-            Get
-                Return "System.Type"
-            End Get
-        End Property
+        Public Overrides ReadOnly Property ReturnTypeMetadataName As String = "System.Type"
     End Class
 End Namespace

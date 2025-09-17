@@ -2698,18 +2698,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override string ExtensionGroupingName
-        {
-            get
-            {
-                if (!IsExtension)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                return _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.MetadataName;
-            }
-        }
+#nullable enable
+        internal override string? ExtensionGroupingName
+            => IsExtension ? _lazyUncommonProperties.extensionInfo.GroupingTypeSymbol.Name : null;
 
         internal PENamedTypeSymbol ExtensionGroupingType
         {
@@ -2724,18 +2715,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override string ExtensionMarkerName
-        {
-            get
-            {
-                if (!IsExtension)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                return MetadataName;
-            }
-        }
+        internal override string? ExtensionMarkerName
+            => IsExtension ? _name : null;
+#nullable disable
 
         public override bool IsReadOnly
         {
