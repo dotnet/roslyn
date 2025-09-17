@@ -15,13 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Shared Function GetElementAccessItems(leftExpression As ExpressionSyntax,
-                                               semanticModel As SemanticModel,
-                                               structuralTypeDisplayService As IStructuralTypeDisplayService,
-                                               documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                               within As ISymbol,
-                                               defaultProperties As IList(Of IPropertySymbol),
-                                               cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
+        Private Shared Function GetElementAccessItems(
+                leftExpression As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                structuralTypeDisplayService As IStructuralTypeDisplayService,
+                documentationCommentFormattingService As IDocumentationCommentFormattingService,
+                within As ISymbol,
+                defaultProperties As ImmutableArray(Of IPropertySymbol),
+                cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
             Dim throughType As ITypeSymbol = Nothing
             If leftExpression IsNot Nothing Then
                 throughType = semanticModel.GetTypeInfo(leftExpression, cancellationToken).Type

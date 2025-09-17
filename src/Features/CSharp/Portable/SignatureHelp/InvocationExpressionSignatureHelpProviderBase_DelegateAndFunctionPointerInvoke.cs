@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,7 +37,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         return invokeMethod;
     }
 
-    private static IList<SignatureHelpItem> GetDelegateOrFunctionPointerInvokeItems(InvocationExpressionSyntax invocationExpression, IMethodSymbol invokeMethod, SemanticModel semanticModel, IStructuralTypeDisplayService structuralTypeDisplayService, IDocumentationCommentFormattingService documentationCommentFormattingService, out int? selectedItem, CancellationToken cancellationToken)
+    private static ImmutableArray<SignatureHelpItem> GetDelegateOrFunctionPointerInvokeItems(InvocationExpressionSyntax invocationExpression, IMethodSymbol invokeMethod, SemanticModel semanticModel, IStructuralTypeDisplayService structuralTypeDisplayService, IDocumentationCommentFormattingService documentationCommentFormattingService, out int? selectedItem, CancellationToken cancellationToken)
     {
         var position = invocationExpression.SpanStart;
         var item = CreateItem(
@@ -55,7 +56,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         return [item];
     }
 
-    private static IList<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+    private static ImmutableArray<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
     {
         var displayParts = new List<SymbolDisplayPart>();
         displayParts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position));
@@ -76,7 +77,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         return displayParts;
     }
 
-    private static IList<SignatureHelpSymbolParameter> GetDelegateOrFunctionPointerInvokeParameters(
+    private static ImmutableArray<SignatureHelpSymbolParameter> GetDelegateOrFunctionPointerInvokeParameters(
         IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
     {
         var result = new List<SignatureHelpSymbolParameter>();
@@ -94,6 +95,6 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         return result;
     }
 
-    private static IList<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }

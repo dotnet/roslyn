@@ -33,7 +33,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
         return [item];
     }
 
-    private static IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+    private static ImmutableArray<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
     {
         var result = new List<SymbolDisplayPart>();
 
@@ -43,7 +43,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
         return result;
     }
 
-    private static IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+    private static ImmutableArray<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
     {
         const string TargetName = "target";
 
@@ -76,6 +76,6 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
             displayParts: parts)];
     }
 
-    private static IList<SymbolDisplayPart> GetDelegateTypePostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetDelegateTypePostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }

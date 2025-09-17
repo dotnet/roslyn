@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,7 +37,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
         return item;
     }
 
-    private static IList<SymbolDisplayPart> GetNormalTypePreambleParts(
+    private static ImmutableArray<SymbolDisplayPart> GetNormalTypePreambleParts(
         IMethodSymbol method,
         SemanticModel semanticModel,
         int position)
@@ -49,6 +50,6 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
         return result;
     }
 
-    private static IList<SymbolDisplayPart> GetNormalTypePostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetNormalTypePostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }

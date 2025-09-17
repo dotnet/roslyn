@@ -234,7 +234,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         return item;
     }
 
-    private static IList<SymbolDisplayPart> GetPreambleParts(
+    private static ImmutableArray<SymbolDisplayPart> GetPreambleParts(
         IPropertySymbol indexer,
         int position,
         SemanticModel semanticModel)
@@ -269,7 +269,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         return result;
     }
 
-    private static IList<SymbolDisplayPart> GetPostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetPostambleParts()
         => [Punctuation(SyntaxKind.CloseBracketToken)];
 
     private static class CompleteElementAccessExpression

@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim position = attribute.SpanStart
             Dim namedParameters = constructor.ContainingType.GetAttributeNamedParameters(semanticModel.Compilation, within).
                                                              OrderBy(Function(s) s.Name).
-                                                             ToList()
+                                                             ToImmutableArray()
 
             Dim isVariadic =
                 constructor.Parameters.Length > 0 AndAlso constructor.Parameters.Last().IsParams AndAlso namedParameters.Count = 0
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 constructor As IMethodSymbol,
                 semanticModel As SemanticModel,
                 position As Integer,
-                namedParameters As List(Of ISymbol),
+                namedParameters As ImmutableArray(Of ISymbol),
                 documentationCommentFormattingService As IDocumentationCommentFormattingService) As ImmutableArray(Of SignatureHelpSymbolParameter)
             Dim result = ArrayBuilder(Of SignatureHelpSymbolParameter).GetInstance()
 

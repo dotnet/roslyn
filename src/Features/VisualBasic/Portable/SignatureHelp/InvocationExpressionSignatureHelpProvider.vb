@@ -102,13 +102,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim expressionType = If(typeInfo.Type, typeInfo.ConvertedType)
             Dim defaultProperties =
                 If(expressionType Is Nothing,
-                   SpecializedCollections.EmptyList(Of IPropertySymbol),
-                   semanticModel.LookupSymbols(position, expressionType, includeReducedExtensionMethods:=True).
-                                 OfType(Of IPropertySymbol).
-                                 ToImmutableArrayOrEmpty().
-                                 WhereAsArray(Function(p) p.IsIndexer).
-                                 FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
-                                 Sort(semanticModel, invocationExpression.SpanStart))
+                    ImmutableArray(Of IPropertySymbol).Empty,
+                    semanticModel.LookupSymbols(position, expressionType, includeReducedExtensionMethods:=True).
+                                  OfType(Of IPropertySymbol).
+                                  ToImmutableArrayOrEmpty().
+                                  WhereAsArray(Function(p) p.IsIndexer).
+                                  FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
+                                  Sort(semanticModel, invocationExpression.SpanStart))
 
             Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()

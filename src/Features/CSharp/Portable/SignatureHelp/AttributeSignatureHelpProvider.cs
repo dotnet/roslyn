@@ -136,10 +136,10 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
         var position = attribute.SpanStart;
         var namedParameters = constructor.ContainingType.GetAttributeNamedParameters(semanticModel.Compilation, within)
             .OrderBy(s => s.Name)
-            .ToList();
+            .ToImmutableArray();
 
         var isVariadic =
-            constructor.Parameters is [.., { IsParams: true }] && namedParameters.Count == 0;
+            constructor.Parameters is [.., { IsParams: true }] && namedParameters.IsEmpty;
 
         var item = CreateItem(
             constructor, semanticModel, position,
@@ -157,7 +157,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
         IMethodSymbol constructor,
         SemanticModel semanticModel,
         int position,
-        IList<ISymbol> namedParameters,
+        ImmutableArray<ISymbol> namedParameters,
         IDocumentationCommentFormattingService documentationCommentFormatter,
         CancellationToken cancellationToken)
     {

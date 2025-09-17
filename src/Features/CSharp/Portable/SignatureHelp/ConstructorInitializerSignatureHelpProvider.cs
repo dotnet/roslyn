@@ -148,7 +148,7 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
         return item;
     }
 
-    private static IList<SymbolDisplayPart> GetPreambleParts(
+    private static ImmutableArray<SymbolDisplayPart> GetPreambleParts(
         IMethodSymbol method,
         SemanticModel semanticModel,
         int position)
@@ -156,6 +156,6 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
         return [.. method.ContainingType.ToMinimalDisplayParts(semanticModel, position), Punctuation(SyntaxKind.OpenParenToken)];
     }
 
-    private static IList<SymbolDisplayPart> GetPostambleParts()
+    private static ImmutableArray<SymbolDisplayPart> GetPostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }
