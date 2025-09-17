@@ -101,18 +101,6 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
                 return false;
 
-            if (containingType is null)
-            {
-                var globalStatement = Expression.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsGlobalStatement);
-                if (globalStatement != null)
-                {
-                    InGlobalStatementContext = true;
-                    return true;
-                }
-
-                return false;
-            }
-
             IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
 
             // Note: the ordering of these clauses are important.  They go, generally, from
@@ -142,17 +130,17 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             var enclosingBlocks = _service.GetContainingExecutableBlocks(Expression);
             if (enclosingBlocks.Any())
             {
-                // If we're inside a block, then don't even try the other options (like field,
-                // constructor initializer, etc.).  This is desirable behavior.  If we're in a 
-                // block in a field, then we're in a lambda, and we want to offer to generate
-                // a local, and not a field.
-                if (IsInBlockContext(cancellationToken))
-                {
+                //// If we're inside a block, then don't even try the other options (like field,
+                //// constructor initializer, etc.).  This is desirable behavior.  If we're in a 
+                //// block in a field, then we're in a lambda, and we want to offer to generate
+                //// a local, and not a field.
+                //if (IsInBlockContext(cancellationToken))
+                //{
                     InBlockContext = true;
                     return true;
-                }
+                //}
 
-                return false;
+                //return false;
             }
 
             // NOTE: All checks from this point forward are intentionally ordered to be AFTER the check for Block Context.
@@ -175,6 +163,18 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
                 if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                 {
                     InAutoPropertyInitializerContext = true;
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (containingType is null)
+            {
+                var globalStatement = Expression.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsGlobalStatement);
+                if (globalStatement != null)
+                {
+                    InGlobalStatementContext = true;
                     return true;
                 }
 

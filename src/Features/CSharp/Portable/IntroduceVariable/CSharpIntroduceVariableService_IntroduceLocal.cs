@@ -34,11 +34,7 @@ internal sealed partial class CSharpIntroduceVariableService
         bool isConstant,
         CancellationToken cancellationToken)
     {
-        var globalStatement = expression.GetAncestor<GlobalStatementSyntax>();
-
-        var containerToGenerateInto = globalStatement != null
-            ? (CompilationUnitSyntax)globalStatement.GetRequiredParent()
-            : expression.Ancestors().FirstOrDefault(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
+        var containerToGenerateInto = expression.Ancestors().First(s => s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax or CompilationUnitSyntax);
 
         var newLocalNameToken = GenerateUniqueLocalName(
             document, expression, isConstant, containerToGenerateInto, cancellationToken);
