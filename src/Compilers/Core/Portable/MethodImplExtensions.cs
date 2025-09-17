@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis;
 
-internal static class MethodImplOptionsExtensions
+internal static class MethodImplAttributeExtensions
 {
     extension(MethodImplAttributes)
     {
@@ -16,7 +16,7 @@ internal static class MethodImplOptionsExtensions
     }
 }
 
-internal static class MethodImplAttributeExtensions
+internal static class MethodImplOptionsExtensions
 {
     extension(MethodImplOptions)
     {
