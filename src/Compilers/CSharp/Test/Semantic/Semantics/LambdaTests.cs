@@ -9281,7 +9281,7 @@ x.IntProperty
 Parameter
 x.IntProperty
 Convert
-Convert(x).IntProperty
+Convert(x" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", IWithIntProperty" : "") + @").IntProperty
 Parameter
 x.IntProperty
 ");
