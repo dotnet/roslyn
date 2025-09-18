@@ -3969,7 +3969,6 @@ class Driver
         public void NestedRethrow_02(bool await1, bool await2, bool await3)
         {
             var source = $$"""
-                #pragma warning disable 1998 // async method lacks 'await' operators
                 using System;
                 using System.Threading.Tasks;
 

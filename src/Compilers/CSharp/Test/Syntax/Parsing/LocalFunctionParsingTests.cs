@@ -2091,7 +2091,7 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async void F() { }
                     }
                 }
@@ -2168,7 +2168,7 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async void F() { }
                     }
                 }
@@ -2252,7 +2252,7 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async async void F() { }
                     }
                 }
@@ -2343,7 +2343,7 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async async async void F() { }
                     }
                 }

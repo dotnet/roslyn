@@ -2110,7 +2110,6 @@ class Driver
             var source = """
                 using System.Threading.Tasks;
                 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                #pragma warning disable 1998
                 class Program
                 {
                     int F;

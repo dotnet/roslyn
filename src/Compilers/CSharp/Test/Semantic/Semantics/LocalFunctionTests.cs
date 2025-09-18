@@ -7103,7 +7103,7 @@ namespace N
         public void AwaitWithinAsyncOuterScope_01()
         {
             var source =
-@"#pragma warning disable 1998
+@"
 #pragma warning disable 8321
 using System.Threading.Tasks;
 class Program
@@ -7153,7 +7153,7 @@ class Program
         public void AwaitWithinAsyncOuterScope_02()
         {
             var source =
-@"#pragma warning disable 1998
+@"
 #pragma warning disable 8321
 class Program
 {
