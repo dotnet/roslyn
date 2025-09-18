@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternTests : EmitMetadataTestBase
     {
         #region Miscellaneous
@@ -6899,6 +6900,55 @@ class Outer
               IL_002d:  ret
             }
             """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80326")]
+        public void InterfaceOrNull()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                Console.WriteLine(M1(null));
+                Console.WriteLine(M2(null));
+                Console.WriteLine(M3(null));
+                Console.WriteLine(M4(null));
+                Console.WriteLine(M5(null));
+                Console.WriteLine(M6(null));
+
+                bool M1(A? a) => a is I or null;
+                bool M2(A? a) => a is null or I;
+                bool M3(A? a) => a is I || a is null;
+                bool M4(A? a) => a is A or null;
+                bool M5(A? a) => a is I or (null and null);
+                bool M6(A? a) => a is (I or null) and var x;
+
+                interface I;
+                class A : I;
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                True
+                True
+                True
+                True
+                True
+                True
+                """).VerifyDiagnostics(
+                // (11,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M1(A? a) => a is I or null;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is I or null").WithArguments("A").WithLocation(11, 18),
+                // (12,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M2(A? a) => a is null or I;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is null or I").WithArguments("A").WithLocation(12, 18),
+                // (14,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M4(A? a) => a is A or null;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is A or null").WithArguments("A").WithLocation(14, 18),
+                // (15,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M5(A? a) => a is I or (null and null);
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is I or (null and null)").WithArguments("A").WithLocation(15, 18),
+                // (16,18): warning CS8794: An expression of type 'A' always matches the provided pattern.
+                // bool M6(A? a) => a is (I or null) and var x;
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "a is (I or null) and var x").WithArguments("A").WithLocation(16, 18));
         }
     }
 }

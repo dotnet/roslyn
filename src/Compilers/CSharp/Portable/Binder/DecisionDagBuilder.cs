@@ -284,7 +284,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
+            if (!pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions))
+            {
+                var builder = ArrayBuilder<Tests>.GetInstance(1);
+                input = MakeConvertToType(input: input, syntax: pattern.Syntax, type: pattern.InputType, isExplicitTest: false, tests: builder);
+            }
+
             Debug.Assert(pattern.HasErrors || pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType());
+
             switch (pattern)
             {
                 case BoundDeclarationPattern declaration:
@@ -676,18 +683,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(leftTests);
                     builder.Add(@this.MakeTestsAndBindings(input, bin.Right, bindings));
                     var result = Tests.OrSequence.Create(builder);
-                    if (bin.InputType.Equals(bin.NarrowedType))
-                    {
-                        output = input;
-                        return result;
-                    }
-                    else
-                    {
-                        builder = ArrayBuilder<Tests>.GetInstance(2);
-                        builder.Add(result);
-                        output = @this.MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
-                        return Tests.AndSequence.Create(builder);
-                    }
+                    output = input;
+                    return result;
                 }
                 else
                 {
