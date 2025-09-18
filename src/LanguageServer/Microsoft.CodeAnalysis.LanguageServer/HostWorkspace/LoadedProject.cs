@@ -42,7 +42,7 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     private Lazy<ImmutableArray<Matcher>>? _mostRecentFileMatchers;
     private IWatchedFile? _mostRecentProjectAssetsFileWatcher;
-    private ImmutableArray<byte> _mostRecentProjectAssetsFileContentHash;
+    private Checksum _mostRecentProjectAssetsFileChecksum;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = [];
     private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = [];
 
@@ -103,18 +103,19 @@ internal sealed class LoadedProject : IDisposable
 
     private void AssetsFileChangeContext_FileChanged(object? sender, string filePath)
     {
-        // We only want to trigger design time build if the assets file content actually changed from the last time this handler was called.
-        // Sometimes we can get a change event where no content changed (e.g. for a failed restore).
-        // In such cases, proceeding with design-time build can put us in a restore loop (since the design-time build notices that assets are missing).
-        using var assetsFileStream = File.OpenRead(filePath);
-        var sourceText = SourceText.From(assetsFileStream);
-        var contentHash = sourceText.GetContentHash();
-        if (_mostRecentProjectAssetsFileContentHash.IsDefault
-            || !_mostRecentProjectAssetsFileContentHash.SequenceEqual(contentHash))
+        Shared.Utilities.IOUtilities.PerformIO(() =>
         {
-            _mostRecentProjectAssetsFileContentHash = contentHash;
-            NeedsReload?.Invoke(this, EventArgs.Empty);
-        }
+            // We only want to trigger design time build if the assets file content actually changed from the last time this handler was called.
+            // Sometimes we can get a change event where no content changed (e.g. for a failed restore).
+            // In such cases, proceeding with design-time build can put us in a restore loop (since the design-time build notices that assets are missing).
+            using var assetsFileStream = File.OpenRead(filePath);
+            var checksum = Checksum.Create(assetsFileStream);
+            if (_mostRecentProjectAssetsFileChecksum != checksum)
+            {
+                _mostRecentProjectAssetsFileChecksum = checksum;
+                NeedsReload?.Invoke(this, EventArgs.Empty);
+            }
+        });
     }
 
     public event EventHandler? NeedsReload;
@@ -306,7 +307,7 @@ internal sealed class LoadedProject : IDisposable
             _mostRecentProjectAssetsFileWatcher = currentProjectInfo.ProjectAssetsFilePath is { } assetsFilePath
                     ? _assetsFileChangeContext.EnqueueWatchingFile(assetsFilePath)
                     : null;
-            _mostRecentProjectAssetsFileContentHash = default;
+            _mostRecentProjectAssetsFileChecksum = default;
         }
     }
 
