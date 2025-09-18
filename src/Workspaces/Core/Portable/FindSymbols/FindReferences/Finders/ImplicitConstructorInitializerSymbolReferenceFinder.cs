@@ -58,7 +58,7 @@ internal sealed class ImplicitConstructorInitializerSymbolReferenceFinder : Expl
         CancellationToken cancellationToken)
     {
         var syntaxFacts = state.SyntaxFacts;
-        var constructorNodes = syntaxFacts.GetConstructors(state.Root, cancellationToken);
+        var constructorNodes = state.Cache.GetConstructorDeclarations(cancellationToken);
         foreach (var constructorNode in constructorNodes)
         {
             if (!syntaxFacts.HasImplicitBaseConstructorInitializer(constructorNode))

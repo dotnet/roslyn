@@ -173,7 +173,6 @@ internal interface ISyntaxFacts
     bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node);
     bool IsDeclaration([NotNullWhen(true)] SyntaxNode? node);
-    bool IsTypeDeclaration(SyntaxNode node);
 
     bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node);
 
@@ -420,6 +419,8 @@ internal interface ISyntaxFacts
     // Violation.  This is a feature level API.
     void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
 
+    SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode typeDeclaration);
+    SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode typeDeclaration);
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
     // Violation.  This is a feature level API.
@@ -441,9 +442,6 @@ internal interface ISyntaxFacts
     /// </summary>
     // Violation.  This is a feature level API.
     SyntaxNode? TryGetBindableParent(SyntaxToken token);
-
-    // Violation.  This is a feature level API.
-    ImmutableArray<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a <see cref="SyntaxNode"/>, that represents and argument return the string representation of
@@ -500,6 +498,7 @@ internal interface ISyntaxFacts
 
     bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsBaseNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
+    bool IsTypeDeclaration(SyntaxNode node);
     bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
