@@ -34,7 +34,7 @@ internal static class PRTagger
     {
         var cancellationToken = CancellationToken.None;
         var builds = await remoteConnections.DevDivConnection.TryGetBuildsAsync(
-            "DD-CB-ReleaseVS",
+            "DD-CB-TestSignVS",
             logger: logger,
             buildNumber: vsBuild,
             maxFetchingVsBuildNumber: maxFetchingVSBuildNumber,
