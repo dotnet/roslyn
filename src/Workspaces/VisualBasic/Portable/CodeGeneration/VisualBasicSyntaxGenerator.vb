@@ -99,12 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Shared Function ParenthesizeNonSimple(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ExpressionSyntax
-            Dim identifierName = TryCast(expression, IdentifierNameSyntax)
-            If identifierName IsNot Nothing Then
-                Return identifierName
-            End If
-
-            Return VisualBasicSyntaxGeneratorInternal.Parenthesize(expression, addSimplifierAnnotation)
+            Return VisualBasicSyntaxGeneratorInternal.ParenthesizeNonSimple(expression, addSimplifierAnnotation)
         End Function
 
         Public Overrides Function AddExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
