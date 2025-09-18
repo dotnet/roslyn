@@ -6,6 +6,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -29111,6 +29112,218 @@ public interface I<T> { }
         var comp = CreateCompilation(src);
         CompileAndVerify(comp).VerifyDiagnostics();
         VerifyCollisions(comp, groupingMatch: true, markerMatch: true);
+    }
+
+    [Fact]
+    public void ExportedTypes_01()
+    {
+        string source = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+        var moduleRef = moduleComp.EmitToImageReference();
+
+        CompileAndVerify("", references: [moduleRef], assemblyValidator: (assembly) =>
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x26000001 (AssemblyFile) 0x0001",
+                ".C2 0x27000001 (ExportedType) 0x0002",
+                ".C3 0x27000002 (ExportedType) 0x0002",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0002",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0002",
+                ".<M>$56B5C634B2E52051C75D91F71BA8833A 0x27000004 (ExportedType) 0x0002",
+                ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0002",
+                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0002",
+            ], actual);
+        });
+    }
+
+    [Fact]
+    public void ExportedTypes_02()
+    {
+        string source = @"
+namespace N1.N2;
+
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+        var moduleRef = moduleComp.EmitToImageReference();
+
+        CompileAndVerify("", references: [moduleRef], assemblyValidator: (assembly) =>
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                "N1.N2.C1 0x26000001 (AssemblyFile) 0x0001",
+                ".C2 0x27000001 (ExportedType) 0x0002",
+                ".C3 0x27000002 (ExportedType) 0x0002",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0002",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0002",
+            ], actual);
+        });
+    }
+
+    [Fact]
+    public void ExportedTypes_03()
+    {
+        string moduleSource = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+
+internal static class C4
+{
+    extension(int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var moduleComp = CreateCompilation(moduleSource, options: TestOptions.ReleaseModule);
+        var moduleRef = moduleComp.EmitToImageReference();
+
+        string source = @"
+static class C1
+{
+    extension(int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+
+static class C4
+{
+    extension(int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+
+        CreateCompilation(source, references: [moduleRef]).VerifyEmitDiagnostics(
+            // (2,14): error CS0101: The namespace '<global namespace>' already contains a definition for 'C1'
+            // static class C1
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C1").WithArguments("C1", "<global namespace>").WithLocation(2, 14),
+            // (14,14): error CS0101: The namespace '<global namespace>' already contains a definition for 'C4'
+            // static class C4
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C4").WithArguments("C4", "<global namespace>").WithLocation(14, 14)
+            );
+    }
+
+    [Fact]
+    public void ExportedTypes_04()
+    {
+        string moduleSource = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var module1Comp = CreateCompilation(moduleSource, options: TestOptions.ReleaseModule);
+        var module1Ref = module1Comp.EmitToImageReference();
+
+        var module2Comp = CreateCompilation(moduleSource, options: TestOptions.ReleaseModule);
+        var module2Ref = module2Comp.EmitToImageReference();
+
+        CreateCompilation("", references: [module1Ref, module2Ref]).VerifyEmitDiagnostics(
+            // error CS0101: The namespace '<global namespace>' already contains a definition for 'C1'
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("C1", "<global namespace>").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ExportedTypes_05()
+    {
+        string moduleSource = @"
+internal static class C1
+{
+    extension(int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var module1Comp = CreateCompilation(moduleSource, options: TestOptions.ReleaseModule);
+        var module1Ref = module1Comp.EmitToImageReference();
+
+        var module2Comp = CreateCompilation(moduleSource, options: TestOptions.ReleaseModule);
+        var module2Ref = module2Comp.EmitToImageReference();
+
+        CreateCompilation("", references: [module1Ref, module2Ref]).VerifyEmitDiagnostics(
+            // error CS0101: The namespace '<global namespace>' already contains a definition for 'C1'
+            Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("C1", "<global namespace>").WithLocation(1, 1)
+            );
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]

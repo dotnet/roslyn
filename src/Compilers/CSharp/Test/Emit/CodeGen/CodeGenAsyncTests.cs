@@ -23,9 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.Async)]
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
-        // https://github.com/dotnet/roslyn/issues/79792: Use the real value when possible
-        private const MethodImplAttributes MethodImplOptionsAsync = (MethodImplAttributes)0x2000;
-
         private static CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             options = options ?? TestOptions.ReleaseExe;
@@ -322,7 +319,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
             }
         }
@@ -386,7 +383,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 Assert.Empty(test.GetTypeMembers());
             }
         }
@@ -449,7 +446,7 @@ O brave new world...
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
             }
         }
@@ -502,7 +499,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -622,7 +619,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 if (!useValueTask && useGeneric)
                 {
                     AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
@@ -757,7 +754,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -877,7 +874,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -1009,7 +1006,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -1120,7 +1117,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -1228,7 +1225,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }

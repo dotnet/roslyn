@@ -2754,8 +2754,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                             continue;
                         }
 
-                        var oldSymbolInNewCompilation = symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
-                        var newSymbolInOldCompilation = symbolCache.GetKey(newSymbol, cancellationToken).Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                        var oldSymbolInNewCompilation = symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
+                        var newSymbolInOldCompilation = symbolCache.GetKey(newSymbol, cancellationToken).Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol;
 
                         if (oldSymbolInNewCompilation == null || newSymbolInOldCompilation == null)
                         {
@@ -2823,8 +2823,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                         if (containingType != null && (syntacticEditKind != EditKind.Delete || newSymbol == null))
                         {
                             var containingTypeSymbolKey = symbolCache.GetKey(containingType, cancellationToken);
-                            oldContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
-                            newContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                            oldContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol;
+                            newContainingType ??= (INamedTypeSymbol?)containingTypeSymbolKey.Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
 
                             if (oldContainingType != null && newContainingType != null && IsReloadable(oldContainingType))
                             {
@@ -2967,7 +2967,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                 // If so, skip the member deletion and only report the containing symbol deletion.
                                 var oldContainingType = oldSymbol.ContainingType;
                                 var containingTypeKey = symbolCache.GetKey(oldContainingType, cancellationToken);
-                                var newContainingType = (INamedTypeSymbol?)containingTypeKey.Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                var newContainingType = (INamedTypeSymbol?)containingTypeKey.Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
                                 if (newContainingType == null)
                                 {
                                     // If a type parameter is deleted from the parameter list of a type declaration, the symbol key won't be resolved (because the arities do not match).
@@ -3092,7 +3092,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                                         HasEdit(editMap, GetSymbolDeclarationSyntax(newAssociatedMember, cancellationToken), EditKind.Insert);
 
                                     var containingTypeKey = symbolCache.GetKey(newContainingType, cancellationToken);
-                                    oldContainingType = containingTypeKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
+                                    oldContainingType = containingTypeKey.Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol as INamedTypeSymbol;
 
                                     // Check rude edits for each member even if it is inserted into a new type.
                                     if (!hasAssociatedSymbolInsert && IsMember(newSymbol))
@@ -3629,7 +3629,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 static ISymbol? Resolve(ISymbol symbol, SymbolKey symbolKey, Compilation compilation, CancellationToken cancellationToken)
                 {
                     // Ignore ambiguous resolution result - it may happen if there are semantic errors in the compilation.
-                    var result = symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                    var result = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
 
                     // If we were looking for a definition and an implementation is returned the definition does not exist.
                     return symbol.IsPartialImplementation() && result?.IsPartialDefinition() == true ? null : result;
@@ -3709,7 +3709,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     protected static ISymbol? GetSemanticallyMatchingNewSymbol(ISymbol? oldSymbol, ISymbol? newSymbol, Compilation newCompilation, SymbolInfoCache symbolCache, CancellationToken cancellationToken)
         => oldSymbol != null && IsMember(oldSymbol) &&
            newSymbol != null && IsMember(newSymbol) &&
-           symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is { } matchingNewSymbol &&
+           symbolCache.GetKey(oldSymbol, cancellationToken).Resolve(newCompilation, cancellationToken: cancellationToken).Symbol is { } matchingNewSymbol &&
            !matchingNewSymbol.IsSynthesized() &&
            matchingNewSymbol != newSymbol
            ? matchingNewSymbol
@@ -3805,7 +3805,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 IsPrimaryConstructor(constructor, cancellationToken) &&
                 constructor.GetMatchingDeconstructor() is { IsImplicitlyDeclared: true } deconstructor)
             {
-                if (SymbolKey.Create(deconstructor, cancellationToken).Resolve(otherCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol != null)
+                if (SymbolKey.Create(deconstructor, cancellationToken).Resolve(otherCompilation, cancellationToken: cancellationToken).Symbol != null)
                 {
                     // Update for transition from synthesized to declared deconstructor
                     AddUpdateEditsForMemberAndAccessors(semanticEdits, deconstructor, cancellationToken);
@@ -4053,7 +4053,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 continue;
             }
 
-            var newType = SymbolKey.Create(oldType, cancellationToken).Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+            var newType = SymbolKey.Create(oldType, cancellationToken).Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol;
             if (newType == null)
             {
                 var key = (oldType.Name, oldType.Arity);
@@ -4084,7 +4084,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 continue;
             }
 
-            var oldType = SymbolKey.Create(newType, cancellationToken).Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+            var oldType = SymbolKey.Create(newType, cancellationToken).Resolve(oldModel.Compilation, cancellationToken: cancellationToken).Symbol;
             if (oldType == null)
             {
                 // Check if a type with the same name and arity was also removed. If so treat it as a move.
@@ -5193,7 +5193,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             while (oldContainer is not null and not INamespaceSymbol { IsGlobalNamespace: true })
             {
                 var symbolKey = SymbolKey.Create(oldSymbol, cancellationToken);
-                if (symbolKey.Resolve(newModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol is { } newSymbol)
+                if (symbolKey.Resolve(newModel.Compilation, cancellationToken: cancellationToken).Symbol is { } newSymbol)
                 {
                     return newSymbol;
                 }
@@ -5600,7 +5600,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     }
                     else
                     {
-                        var resolution = newCtorKey.Resolve(oldModel.Compilation, ignoreAssemblyKey: true, cancellationToken);
+                        var resolution = newCtorKey.Resolve(oldModel.Compilation, cancellationToken: cancellationToken);
 
                         // There may be semantic errors in the compilation that result in multiple candidates.
                         // Pick the first candidate.
@@ -7054,7 +7054,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             GetPrimaryConstructor(newSymbol.ContainingType, cancellationToken) is { } newPrimaryConstructor &&
             method.HasDeconstructorSignature(newPrimaryConstructor))
         {
-            var oldConstructor = SymbolKey.Create(newPrimaryConstructor, cancellationToken).Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+            var oldConstructor = SymbolKey.Create(newPrimaryConstructor, cancellationToken).Resolve(oldCompilation, cancellationToken: cancellationToken).Symbol;
 
             // An insert exists if the new primary constructor is explicitly declared and
             // the old one doesn't exist, is synthesized, or is not a primary constructor parameter.
@@ -7067,7 +7067,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             GetPrimaryConstructor(newSymbol.ContainingType, cancellationToken)?.Parameters.FirstOrDefault(
                 static (parameter, name) => parameter.Name == name, newSymbol.Name) is { } newPrimaryParameter)
         {
-            var oldParameter = SymbolKey.Create(newPrimaryParameter, cancellationToken).Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+            var oldParameter = SymbolKey.Create(newPrimaryParameter, cancellationToken).Resolve(oldCompilation, cancellationToken: cancellationToken).Symbol;
             var oldProperty = (IPropertySymbol)oldSymbol;
 
             // An insert exists if the new primary parameter is explicitly declared and

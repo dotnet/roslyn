@@ -8496,6 +8496,21 @@ public sealed class TopLevelEditingTests : EditingTestBase
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
     }
 
+    [Fact]
+    public void Namespace_Insert_NewType_HidingMetadataType()
+    {
+        var srcA1 = "";
+        var srcA2 = """
+            namespace Microsoft.CodeAnalysis;
+            public readonly partial class EmbeddedAttribute;
+            """;
+
+        EditAndContinueValidation.VerifySemantics(
+            GetTopEdits(srcA1, srcA2),
+            [SemanticEdit(SemanticEditKind.Insert, c => c.Assembly.GlobalNamespace.GetMember<INamespaceSymbol>("Microsoft").GetMember<INamespaceSymbol>("CodeAnalysis").GetMember("EmbeddedAttribute"))],
+            capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+    }
+
     [Theory]
     [InlineData("class")]
     [InlineData("interface")]
@@ -8759,7 +8774,12 @@ public sealed class TopLevelEditingTests : EditingTestBase
     [Fact]
     public void Namespace_Update_MultiplePartials1()
         => EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(@"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }", @"namespace N { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"), GetTopEdits(@"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }", @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }")],
+            [GetTopEdits(
+                @"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }",
+                @"namespace N { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"),
+             GetTopEdits(
+                @"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }",
+                @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -8777,7 +8797,12 @@ public sealed class TopLevelEditingTests : EditingTestBase
     [Fact]
     public void Namespace_Update_MultiplePartials2()
         => EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(@"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }", @"namespace M { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"), GetTopEdits(@"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }", @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }")],
+            [GetTopEdits(
+                @"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }",
+                @"namespace M { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"),
+             GetTopEdits(
+                 @"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }",
+                 @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }")],
             [
                 DocumentResults(diagnostics:
                 [
