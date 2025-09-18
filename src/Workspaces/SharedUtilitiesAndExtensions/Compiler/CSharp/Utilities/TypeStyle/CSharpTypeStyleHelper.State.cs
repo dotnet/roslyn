@@ -48,10 +48,21 @@ internal partial class CSharpTypeStyleHelper
 
             this.TypeStylePreference = options.GetUseVarPreference();
 
-            this.Context =
-                IsPredefinedTypeInDeclaration(declaration, semanticModel) || IsInferredPredefinedType(declaration, semanticModel) ? Context.BuiltInType :
-                declaration is VariableDeclarationSyntax varDecl && IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken) ? Context.TypeIsApparent :
-                Context.Elsewhere;
+            if (IsPredefinedTypeInDeclaration(declaration, semanticModel) ||
+                IsInferredPredefinedType(declaration, semanticModel))
+            {
+                this.Context = Context.BuiltInType;
+            }
+            else if (
+                declaration is VariableDeclarationSyntax varDecl &&
+                IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken))
+            {
+                this.Context = Context.TypeIsApparent;
+            }
+            else
+            {
+                this.Context = Context.Elsewhere;
+            }
         }
 
         public NotificationOption2 GetDiagnosticSeverityPreference()
