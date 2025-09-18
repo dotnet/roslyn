@@ -12,7 +12,8 @@
     <MajorVersion>5</MajorVersion>
     <MinorVersion>0</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>2$(_RoslynPackageSuffix)</PreReleaseVersionLabel>
+    <_RoslynPreReleaseVersion>2</_RoslynPreReleaseVersion>
+    <PreReleaseVersionLabel>$(_RoslynPreReleaseVersion)$(_RoslynPackageSuffix)</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
