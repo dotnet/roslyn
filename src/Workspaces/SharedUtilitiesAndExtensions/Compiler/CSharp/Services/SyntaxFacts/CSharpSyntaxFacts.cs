@@ -185,7 +185,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => node is DeclarationExpressionSyntax;
 
     public bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node)
-        => node is ArgumentSyntax arg && arg.NameColon != null;
+        => node is ArgumentSyntax { NameColon: not null };
 
     public bool IsNameOfNamedArgument([NotNullWhen(true)] SyntaxNode? node)
         => node.CheckParent<NameColonSyntax>(p => p.Name == node);
@@ -201,7 +201,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
            usingDirective.NamespaceOrType == node;
 
     public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
-        => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
+        => node is UsingDirectiveSyntax { Alias: not null };
 
     public void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name)
     {
@@ -1104,8 +1104,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => ((AssignmentExpressionSyntax)node).Right;
 
     public bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node)
-        => node is AnonymousObjectMemberDeclaratorSyntax anonObject &&
-           anonObject.NameEquals == null;
+        => node is AnonymousObjectMemberDeclaratorSyntax { NameEquals: null };
 
     public bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
         => node?.Parent?.Kind() is SyntaxKind.PostIncrementExpression or SyntaxKind.PreIncrementExpression;
@@ -1363,8 +1362,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => node.GetAttributeLists();
 
     public bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node)
-        => node is XmlElementSyntax xmlElement &&
-        xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
+        => node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: DocumentationCommentXmlNames.ParameterElementName };
 
     public SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
     {

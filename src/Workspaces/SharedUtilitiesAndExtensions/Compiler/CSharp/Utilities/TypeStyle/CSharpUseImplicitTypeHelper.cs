@@ -109,11 +109,7 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
             return false;
         }
 
-        if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
-            typeName.Parent.Parent is (kind:
-                SyntaxKind.LocalDeclarationStatement or
-                SyntaxKind.ForStatement or
-                SyntaxKind.UsingStatement))
+        if (typeName is { Parent: VariableDeclarationSyntax variableDeclaration, Parent.Parent: (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement) })
         {
             // implicitly typed variables cannot be constants.
             if (variableDeclaration.Parent is LocalDeclarationStatementSyntax { IsConst: true })

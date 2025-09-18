@@ -167,7 +167,7 @@ internal sealed class SuppressFormattingRule : BaseFormattingRule
             }
 
             var propertyDeclNode = node as PropertyDeclarationSyntax;
-            if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
+            if (propertyDeclNode is { Initializer: not null, AccessorList: not null })
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, propertyDeclNode.AccessorList.GetLastToken());
             }
@@ -230,7 +230,7 @@ internal sealed class SuppressFormattingRule : BaseFormattingRule
         if (node is TryStatementSyntax tryStatement)
         {
             // Add a suppression operation if the try keyword and the block are in the same line
-            if (!tryStatement.TryKeyword.IsMissing && tryStatement.Block != null && !tryStatement.Block.CloseBraceToken.IsMissing)
+            if (tryStatement is { TryKeyword.IsMissing: false, Block: not null } && !tryStatement.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, tryStatement.TryKeyword, tryStatement.Block.CloseBraceToken);
             }
@@ -239,7 +239,7 @@ internal sealed class SuppressFormattingRule : BaseFormattingRule
         if (node is CatchClauseSyntax catchClause)
         {
             // Add a suppression operation if the catch keyword and the corresponding block are in the same line
-            if (!catchClause.CatchKeyword.IsMissing && catchClause.Block != null && !catchClause.Block.CloseBraceToken.IsMissing)
+            if (catchClause is { CatchKeyword.IsMissing: false, Block: not null } && !catchClause.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, catchClause.CatchKeyword, catchClause.Block.CloseBraceToken);
             }
@@ -248,7 +248,7 @@ internal sealed class SuppressFormattingRule : BaseFormattingRule
         if (node is FinallyClauseSyntax finallyClause)
         {
             // Add a suppression operation if the finally keyword and the corresponding block are in the same line
-            if (!finallyClause.FinallyKeyword.IsMissing && finallyClause.Block != null && !finallyClause.Block.CloseBraceToken.IsMissing)
+            if (finallyClause is { FinallyKeyword.IsMissing: false, Block: not null } && !finallyClause.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
             }

@@ -79,8 +79,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         }
 
         // can this ever happen?
-        if (section.Labels.Count == 0 &&
-            section.Statements.Count == 0)
+        if (section is { Labels.Count: 0, Statements.Count: 0 })
         {
             return;
         }
@@ -160,22 +159,22 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             case AnonymousMethodExpressionSyntax anonymousMethod:
                 SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
                 return;
-            case BaseObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
+            case BaseObjectCreationExpressionSyntax { Initializer: not null } objectCreation:
                 SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
                 return;
             case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation:
                 SetAlignmentBlockOperation(list, anonymousObjectCreation.NewKeyword, anonymousObjectCreation.OpenBraceToken, anonymousObjectCreation.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
-            case ArrayCreationExpressionSyntax arrayCreation when arrayCreation.Initializer != null:
+            case ArrayCreationExpressionSyntax { Initializer: not null } arrayCreation:
                 SetAlignmentBlockOperation(list, arrayCreation.NewKeyword, arrayCreation.Initializer.OpenBraceToken, arrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
-            case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
+            case ImplicitArrayCreationExpressionSyntax { Initializer: not null } implicitArrayCreation:
                 SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
-            case StackAllocArrayCreationExpressionSyntax arrayCreation when arrayCreation.Initializer != null:
+            case StackAllocArrayCreationExpressionSyntax { Initializer: not null } arrayCreation:
                 SetAlignmentBlockOperation(list, arrayCreation.StackAllocKeyword, arrayCreation.Initializer.OpenBraceToken, arrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
-            case ImplicitStackAllocArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
+            case ImplicitStackAllocArrayCreationExpressionSyntax { Initializer: not null } implicitArrayCreation:
                 SetAlignmentBlockOperation(list, implicitArrayCreation.StackAllocKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
             case SwitchExpressionSyntax switchExpression:
@@ -294,13 +293,13 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
     private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
         // increase indentation - embedded statement cases
-        if (node is IfStatementSyntax ifStatement && ifStatement.Statement != null && !(ifStatement.Statement is BlockSyntax))
+        if (node is IfStatementSyntax { Statement: not null } ifStatement && !(ifStatement.Statement is BlockSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, ifStatement.Statement);
             return;
         }
 
-        if (node is ElseClauseSyntax elseClause && elseClause.Statement != null)
+        if (node is ElseClauseSyntax { Statement: not null } elseClause)
         {
             if (elseClause.Statement is not (BlockSyntax or IfStatementSyntax))
             {
@@ -310,43 +309,43 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             return;
         }
 
-        if (node is WhileStatementSyntax whileStatement && whileStatement.Statement != null && !(whileStatement.Statement is BlockSyntax))
+        if (node is WhileStatementSyntax { Statement: not null } whileStatement && !(whileStatement.Statement is BlockSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, whileStatement.Statement);
             return;
         }
 
-        if (node is ForStatementSyntax forStatement && forStatement.Statement != null && !(forStatement.Statement is BlockSyntax))
+        if (node is ForStatementSyntax { Statement: not null } forStatement && !(forStatement.Statement is BlockSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, forStatement.Statement);
             return;
         }
 
-        if (node is CommonForEachStatementSyntax foreachStatement && foreachStatement.Statement != null && !(foreachStatement.Statement is BlockSyntax))
+        if (node is CommonForEachStatementSyntax { Statement: not null } foreachStatement && !(foreachStatement.Statement is BlockSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, foreachStatement.Statement);
             return;
         }
 
-        if (node is UsingStatementSyntax usingStatement && usingStatement.Statement != null && !(usingStatement.Statement is BlockSyntax or UsingStatementSyntax))
+        if (node is UsingStatementSyntax { Statement: not null } usingStatement && !(usingStatement.Statement is BlockSyntax or UsingStatementSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, usingStatement.Statement);
             return;
         }
 
-        if (node is FixedStatementSyntax fixedStatement && fixedStatement.Statement != null && !(fixedStatement.Statement is BlockSyntax or FixedStatementSyntax))
+        if (node is FixedStatementSyntax { Statement: not null } fixedStatement && !(fixedStatement.Statement is BlockSyntax or FixedStatementSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, fixedStatement.Statement);
             return;
         }
 
-        if (node is DoStatementSyntax doStatement && doStatement.Statement != null && !(doStatement.Statement is BlockSyntax))
+        if (node is DoStatementSyntax { Statement: not null } doStatement && !(doStatement.Statement is BlockSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, doStatement.Statement);
             return;
         }
 
-        if (node is LockStatementSyntax lockStatement && lockStatement.Statement != null && !(lockStatement.Statement is BlockSyntax))
+        if (node is LockStatementSyntax { Statement: not null } lockStatement && !(lockStatement.Statement is BlockSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, lockStatement.Statement);
             return;
