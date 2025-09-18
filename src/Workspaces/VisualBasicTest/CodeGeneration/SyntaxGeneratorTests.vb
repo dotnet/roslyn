@@ -306,7 +306,7 @@ End Class
 
             VerifySyntax(Of UnaryExpressionSyntax)(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "Not x")
             VerifySyntax(Of BinaryExpressionSyntax)(Generator.BitwiseAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x And y")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) Or (y)")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x Or y")
 
             VerifySyntax(Of UnaryExpressionSyntax)(Generator.LogicalNotExpression(Generator.IdentifierName("x")), "Not x")
             VerifySyntax(Of BinaryExpressionSyntax)(Generator.LogicalAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x AndAlso y")
