@@ -20,11 +20,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
 [ExportLanguageService(typeof(ICopilotProposalAdjusterService), LanguageNames.CSharp), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpCopilotProposalAdjusterService(IGlobalOptionService globalOptions) : AbstractCopilotProposalAdjusterService(globalOptions)
+internal sealed class CSharpCopilotProposalAdjusterService : AbstractCopilotProposalAdjusterService
 {
     private const string CS1513 = nameof(CS1513); // } expected
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCopilotProposalAdjusterService(IGlobalOptionService globalOptions) : base(globalOptions) { }
 
     protected override async Task<ImmutableArray<TextChange>> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)

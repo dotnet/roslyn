@@ -46,8 +46,15 @@ internal interface IRemoteCopilotProposalAdjusterService
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
-internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionService globalOptions) : ICopilotProposalAdjusterService
+internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
 {
+    protected readonly IGlobalOptionService globalOptions;
+
+    protected AbstractCopilotProposalAdjusterService(IGlobalOptionService globalOptions)
+    {
+        this.globalOptions = globalOptions;
+    }
+
     protected abstract Task<ImmutableArray<TextChange>> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 
