@@ -3,13 +3,13 @@
 
 [CmdletBinding(PositionalBinding = $false)]
 param(
-    [switch]$Interactive,  # Opens an interactive PowerShell session
-    [switch]$BuildImage,   # Only builds the image, but does not build the product.
+    [switch]$Interactive, # Opens an interactive PowerShell session
+    [switch]$BuildImage, # Only builds the image, but does not build the product.
     [switch]$NoBuildImage, # Does not build the image.
-    [switch]$NoClean,      # Does not clean up.
+    [switch]$NoClean, # Does not clean up.
     [switch]$NoNuGetCache, # Does not mount the host nuget cache in the container.
-    [switch]$KeepSecrets,  # Does not override the secrets.g.json file.
-    [string]$ImageName,    # Image name (defaults to a name based on the directory).
+    [switch]$KeepSecrets, # Does not override the env.g.json file.
+    [string]$ImageName, # Image name (defaults to a name based on the directory).
     [string]$BuildAgentPath = 'C:\BuildAgent',
     [Parameter(ValueFromRemainingArguments)]
     [string[]]$BuildArgs   # Arguments passed to `Build.ps1` within the container.
@@ -17,7 +17,7 @@ param(
 
 # This setting is replaced by the generate-scripts command.
 $EngPath = 'eng-Metalama'
-$EnvironmentVariables = 'AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AZ_IDENTITY_USERNAME,AZURE_DEVOPS_TOKEN,AZURE_DEVOPS_USER,ENG_USERNAME,GITHUB_AUTHOR_EMAIL,GITHUB_REVIEWER_TOKEN,GITHUB_TOKEN,IS_POSTSHARP_OWNED,IS_TEAMCITY_AGENT,NUGET_ORG_API_KEY,SIGNSERVER_SECRET,TEAMCITY_CLOUD_TOKEN,TYPESENSE_API_KEY,VS_MARKETPLACE_ACCESS_TOKEN,VSS_NUGET_EXTERNAL_FEED_ENDPOINTS'
+$EnvironmentVariables = 'AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AZ_IDENTITY_USERNAME,AZURE_CLIENT_ID,AZURE_CLIENT_SECRET,AZURE_DEVOPS_TOKEN,AZURE_DEVOPS_USER,AZURE_TENANT_ID,DOC_API_KEY,DOWNLOADS_API_KEY,ENG_USERNAME,GITHUB_AUTHOR_EMAIL,GITHUB_REVIEWER_TOKEN,GITHUB_TOKEN,IS_POSTSHARP_OWNED,IS_TEAMCITY_AGENT,NUGET_ORG_API_KEY,SIGNSERVER_SECRET,TEAMCITY_CLOUD_TOKEN,TYPESENSE_API_KEY,VS_MARKETPLACE_ACCESS_TOKEN,VSS_NUGET_EXTERNAL_FEED_ENDPOINTS'
 
 $dockerContextDirectory = "$EngPath/docker-context"
 
@@ -43,7 +43,7 @@ function New-SecretsJson
     }
 
     # Convert to JSON and save
-    $jsonPath = Join-Path $dockerContextDirectory "secrets.g.json"
+    $jsonPath = Join-Path $dockerContextDirectory "env.g.json"
 
     # Write a test JSON file with GUID first
     @{ guid = [System.Guid]::NewGuid().ToString() } | ConvertTo-Json | Set-Content -Path $jsonPath -Encoding UTF8
@@ -91,7 +91,7 @@ if (-not $env:IS_TEAMCITY_AGENT -and -not $NoClean)
 }
 
 # Create secrets JSON file.
-if ( -not $KeepSecrets )
+if (-not $KeepSecrets)
 {
     New-SecretsJson -EnvironmentVariableList $EnvironmentVariables
 }
@@ -124,7 +124,7 @@ if (Test-Path $gitSystemDir)
 }
 
 # Mount the host NuGet cache in the container.
-if ( -not $NoNuGetCache )
+if (-not $NoNuGetCache)
 {
     $nugetCacheDir = Join-Path $env:USERPROFILE ".nuget\packages"
     Write-Host "NuGet cache directory: $nugetCacheDir" -ForegroundColor Cyan
