@@ -50844,10 +50844,10 @@ public static class E
 }
 """ + ExtensionMarkerAttributeDefinition;
 
-        var moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+        var moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         var moduleRef = moduleComp.EmitToImageReference(documentation: withDocumentationProvider ? new TestDocumentationProvider() : null);
 
-        var comp = CreateCompilation("", references: [moduleRef]);
+        var comp = CreateCompilation("", references: [moduleRef], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics();
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
