@@ -145,8 +145,8 @@ class Test
             var expected = @"";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics(
                 // (3,1): hidden CS8019: Unnecessary using directive.
                 // using System.Diagnostics;
@@ -580,8 +580,8 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -629,8 +629,8 @@ namespace ConsoleApplication1
 ";
             CompileAndVerify(source, expectedOutput: "3");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("3", isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("3"), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Bar]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -678,10 +678,10 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
                 comp,
-                expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -732,8 +732,8 @@ exception
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [H]: Unexpected type on the stack. { Offset = 0xa, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -895,8 +895,8 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -1001,8 +1001,8 @@ class Test
 
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0xb, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -1360,8 +1360,8 @@ class Test
   IL_01cc:  ret
 }", sequencePoints: "Test+<G>d__1.MoveNext");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -1480,8 +1480,8 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -1766,8 +1766,8 @@ class Test
                 }
                 """);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -2044,8 +2044,8 @@ class Test
                 }
                 """);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -2297,8 +2297,8 @@ class Test
                 }
                 """);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -2378,8 +2378,8 @@ class Test
             var expected = "4";
             CompileAndVerify(source, expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -2505,8 +2505,8 @@ class Test
             var expected = @"15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -2593,8 +2593,8 @@ class Test
 15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -2685,8 +2685,8 @@ class Test
 15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -2848,10 +2848,10 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
                 comp,
-                expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -2965,8 +2965,8 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3045,8 +3045,8 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3130,8 +3130,8 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3195,8 +3195,8 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3375,8 +3375,8 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3467,8 +3467,8 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3562,8 +3562,8 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3609,10 +3609,10 @@ class Driver
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
                 comp,
-                expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3687,8 +3687,8 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3798,8 +3798,8 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true),
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
                 verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -3896,8 +3896,8 @@ class Driver
                     [M2]: Return value missing on the stack. { Offset = 0x3f }
                     """;
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage });
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage });
             verifier.VerifyDiagnostics();
         }
 
@@ -4005,7 +4005,7 @@ class Driver
                     """
             };
 
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage });
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage });
             verifier.VerifyDiagnostics();
         }
 
@@ -4065,8 +4065,8 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x1d }"
             });
@@ -4780,8 +4780,8 @@ class Driver
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.DebugExe), expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe), expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Skipped);
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<<Main>$>g__Run|0_0()", getIL(statement));
