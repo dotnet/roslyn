@@ -25,7 +25,7 @@ internal readonly record struct TypeStyleResult(
     bool CanConvert,
     CSharpTypeStyleHelper.Context Context,
     bool IsStylePreferred,
-    NotificationOption2 NotificationOption);
+    NotificationOption2 Notification);
 
 internal abstract partial class CSharpTypeStyleHelper
 {
