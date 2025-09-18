@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            if (!pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions))
+            if (!pattern.HasErrors && !pattern.InputType.IsErrorType() && !pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions))
             {
                 var builder = ArrayBuilder<Tests>.GetInstance(1);
                 input = MakeConvertToType(input: input, syntax: pattern.Syntax, type: pattern.InputType, isExplicitTest: false, tests: builder);
