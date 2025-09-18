@@ -344,14 +344,14 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestMathAndLogicExpressions()
     {
-        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.NegateExpression(Generator.IdentifierName("x")), "-(x)");
+        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.NegateExpression(Generator.IdentifierName("x")), "-x");
         VerifySyntax<BinaryExpressionSyntax>(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) + (y)");
         VerifySyntax<BinaryExpressionSyntax>(Generator.SubtractExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) - (y)");
         VerifySyntax<BinaryExpressionSyntax>(Generator.MultiplyExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) * (y)");
         VerifySyntax<BinaryExpressionSyntax>(Generator.DivideExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) / (y)");
         VerifySyntax<BinaryExpressionSyntax>(Generator.ModuloExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) % (y)");
 
-        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "~(x)");
+        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "~x");
         VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) & (y)");
         VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) | (y)");
 
@@ -380,7 +380,7 @@ public sealed class SyntaxGeneratorTests
     public void TestConditionalExpressions()
     {
         VerifySyntax<BinaryExpressionSyntax>(Generator.CoalesceExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) ?? (y)");
-        VerifySyntax<ConditionalExpressionSyntax>(Generator.ConditionalExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"), Generator.IdentifierName("z")), "(x) ? (y) : (z)");
+        VerifySyntax<ConditionalExpressionSyntax>(Generator.ConditionalExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"), Generator.IdentifierName("z")), "x ? y : z");
     }
 
     [Fact]
@@ -392,7 +392,7 @@ public sealed class SyntaxGeneratorTests
         VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.InvocationExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "x(y).z");
         VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.ElementAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "x[y].z");
         VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "((x) + (y)).z");
-        VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.NegateExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y")), "(-(x)).y");
+        VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.NegateExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y")), "(-x).y");
     }
 
     [Fact]
@@ -471,8 +471,8 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestIsAndAsExpressions()
     {
-        VerifySyntax<BinaryExpressionSyntax>(Generator.IsTypeExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) is y");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.TryCastExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) as y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.IsTypeExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x is y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.TryCastExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x as y");
         VerifySyntax<TypeOfExpressionSyntax>(Generator.TypeOfExpression(Generator.IdentifierName("x")), "typeof(x)");
     }
 
@@ -498,7 +498,7 @@ public sealed class SyntaxGeneratorTests
 
     [Fact]
     public void TestAssignmentStatement()
-        => VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = (y)");
+        => VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = y");
 
     [Fact]
     public void TestExpressionStatement()
@@ -523,13 +523,13 @@ public sealed class SyntaxGeneratorTests
     public void TestAddHandlerExpressions()
         => VerifySyntax<AssignmentExpressionSyntax>(
             Generator.AddEventHandler(Generator.IdentifierName("@event"), Generator.IdentifierName("handler")),
-            "@event += (handler)");
+            "@event += handler");
 
     [Fact]
     public void TestSubtractHandlerExpressions()
         => VerifySyntax<AssignmentExpressionSyntax>(
             Generator.RemoveEventHandler(Generator.IdentifierName("@event"),
-            Generator.IdentifierName("handler")), "@event -= (handler)");
+            Generator.IdentifierName("handler")), "@event -= handler");
 
     [Fact]
     public void TestAwaitExpressions()
