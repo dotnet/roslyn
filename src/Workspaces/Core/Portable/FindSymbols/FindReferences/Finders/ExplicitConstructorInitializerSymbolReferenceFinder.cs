@@ -26,7 +26,6 @@ internal sealed class ExplicitConstructorInitializerSymbolReferenceFinder
 
     protected override bool CheckIndex(Document document, string name, SyntaxTreeIndex index)
     {
-
         if (index.ContainsExplicitBaseConstructorInitializer)
         {
             // if we have `partial class C { ... : base(...) }` we have to assume it might be a match, as the base

@@ -57,15 +57,8 @@ internal sealed class ImplicitConstructorInitializerSymbolReferenceFinder : Expl
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var nameTokens = FindMatchingIdentifierTokens(state, methodSymbol.ContainingType.Name, cancellationToken);
-        var vbNewTokens = GetVisualBasicNewTokens(state, cancellationToken);
-
         var syntaxFacts = state.SyntaxFacts;
-        var allTokens = nameTokens.Concat(vbNewTokens).Distinct();
-        var constructorNodes = allTokens
-            .Select(t => t.GetAncestor(n => syntaxFacts.IsConstructorDeclaration(n) && syntaxFacts.HasImplicitBaseConstructorInitializer(n)))
-            .WhereNotNull();
-
+        var constructorNodes = syntaxFacts.GetConstructors(state.Root, cancellationToken);
         foreach (var constructorNode in constructorNodes)
         {
             // Looks like a suitable match.  A constructor with an implicit base constructor initializer. See if the

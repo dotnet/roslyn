@@ -1058,18 +1058,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return node
         End Function
 
-        Public Function GetConstructors(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements ISyntaxFacts.GetConstructors
+        Public Function GetConstructors(root As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFacts.GetConstructors
             Dim compilationUnit = TryCast(root, CompilationUnitSyntax)
             If compilationUnit Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
+                Return ImmutableArray(Of SyntaxNode).Empty
             End If
 
-            Dim constructors = New List(Of SyntaxNode)()
+            Dim constructors = ArrayBuilder(Of SyntaxNode).GetInstance()
             AppendConstructors(compilationUnit.Members, constructors, cancellationToken)
-            Return constructors
+            Return constructors.ToImmutableAndFree()
         End Function
 
-        Private Shared Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As List(Of SyntaxNode), cancellationToken As CancellationToken)
+        Private Shared Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As ArrayBuilder(Of SyntaxNode), cancellationToken As CancellationToken)
             For Each member As StatementSyntax In members
                 cancellationToken.ThrowIfCancellationRequested()
 
@@ -1084,14 +1084,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
                     AppendConstructors([namespace].Members, constructors, cancellationToken)
                 End If
 
-                Dim [class] = TryCast(member, ClassBlockSyntax)
-                If [class] IsNot Nothing Then
-                    AppendConstructors([class].Members, constructors, cancellationToken)
-                End If
-
-                Dim [struct] = TryCast(member, StructureBlockSyntax)
-                If [struct] IsNot Nothing Then
-                    AppendConstructors([struct].Members, constructors, cancellationToken)
+                Dim typeBlock = TryCast(member, TypeBlockSyntax)
+                If typeBlock IsNot Nothing Then
+                    AppendConstructors(typeBlock.Members, constructors, cancellationToken)
                 End If
             Next
         End Sub

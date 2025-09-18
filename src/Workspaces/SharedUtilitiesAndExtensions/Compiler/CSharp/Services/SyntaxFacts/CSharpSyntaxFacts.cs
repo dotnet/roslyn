@@ -996,38 +996,32 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         return node is PatternSyntax ? null : node;
     }
 
-    public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
+    public ImmutableArray<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
     {
         if (root is not CompilationUnitSyntax compilationUnit)
             return [];
 
-        var constructors = new List<SyntaxNode>();
-        AppendConstructors(compilationUnit.Members, constructors, cancellationToken);
-        return constructors;
-    }
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var constructors);
+        AppendConstructors(compilationUnit.Members);
+        return constructors.ToImmutableAndClear();
 
-    private static void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
-    {
-        foreach (var member in members)
+        void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            switch (member)
+            foreach (var member in members)
             {
-                case ConstructorDeclarationSyntax constructor:
-                    constructors.Add(constructor);
-                    continue;
-                case BaseNamespaceDeclarationSyntax @namespace:
-                    AppendConstructors(@namespace.Members, constructors, cancellationToken);
-                    break;
-                case ClassDeclarationSyntax @class:
-                    AppendConstructors(@class.Members, constructors, cancellationToken);
-                    break;
-                case RecordDeclarationSyntax record:
-                    AppendConstructors(record.Members, constructors, cancellationToken);
-                    break;
-                case StructDeclarationSyntax @struct:
-                    AppendConstructors(@struct.Members, constructors, cancellationToken);
-                    break;
+                cancellationToken.ThrowIfCancellationRequested();
+                switch (member)
+                {
+                    case ConstructorDeclarationSyntax constructor:
+                        constructors.Add(constructor);
+                        continue;
+                    case BaseNamespaceDeclarationSyntax @namespace:
+                        AppendConstructors(@namespace.Members);
+                        break;
+                    case TypeDeclarationSyntax typeDeclaration:
+                        AppendConstructors(typeDeclaration.Members);
+                        break;
+                }
             }
         }
     }

@@ -443,7 +443,7 @@ internal interface ISyntaxFacts
     SyntaxNode? TryGetBindableParent(SyntaxToken token);
 
     // Violation.  This is a feature level API.
-    IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken);
+    ImmutableArray<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a <see cref="SyntaxNode"/>, that represents and argument return the string representation of
