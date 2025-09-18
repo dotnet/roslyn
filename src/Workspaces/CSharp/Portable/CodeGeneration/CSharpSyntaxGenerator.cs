@@ -3364,7 +3364,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         => SyntaxFactory.Literal(text, value);
 
     private static SyntaxNode ParenthesizeNonSimple(SyntaxNode expression)
-        =>  CSharpSyntaxGeneratorInternal.ParenthesizeNonSimple(expression);
+        => CSharpSyntaxGeneratorInternal.ParenthesizeNonSimple(expression);
 
     public override SyntaxNode IsTypeExpression(SyntaxNode expression, SyntaxNode type)
         => SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, (ExpressionSyntax)ParenthesizeNonSimple(expression), (TypeSyntax)type);
