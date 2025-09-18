@@ -81,8 +81,7 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
             return false;
         }
 
-        if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
-            typeName.Parent.Parent is (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement))
+        if (typeName is { Parent: VariableDeclarationSyntax variableDeclaration, Parent.Parent: (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement) })
         {
             // check assignment for variable declarations.
             var variable = variableDeclaration.Variables.First();
