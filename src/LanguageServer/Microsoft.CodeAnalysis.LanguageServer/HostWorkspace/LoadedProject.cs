@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,7 @@ internal sealed class LoadedProject : IDisposable
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
     private readonly IFileChangeContext _sourceFileChangeContext;
     private readonly IFileChangeContext _projectFileChangeContext;
+    private readonly IFileChangeContext _assetsFileChangeContext;
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
 
     /// <summary>
@@ -40,6 +42,7 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     private Lazy<ImmutableArray<Matcher>>? _mostRecentFileMatchers;
     private IWatchedFile? _mostRecentProjectAssetsFileWatcher;
+    private Checksum _mostRecentProjectAssetsFileChecksum;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = [];
     private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = [];
 
@@ -63,6 +66,9 @@ internal sealed class LoadedProject : IDisposable
         _projectFileChangeContext = fileWatcher.CreateContext([]);
         _projectFileChangeContext.FileChanged += ProjectFileChangeContext_FileChanged;
         _projectFileChangeContext.EnqueueWatchingFile(_projectFilePath);
+
+        _assetsFileChangeContext = fileWatcher.CreateContext([]);
+        _assetsFileChangeContext.FileChanged += AssetsFileChangeContext_FileChanged;
     }
 
     private void SourceFileChangeContext_FileChanged(object? sender, string filePath)
@@ -93,6 +99,23 @@ internal sealed class LoadedProject : IDisposable
     private void ProjectFileChangeContext_FileChanged(object? sender, string filePath)
     {
         NeedsReload?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void AssetsFileChangeContext_FileChanged(object? sender, string filePath)
+    {
+        Shared.Utilities.IOUtilities.PerformIO(() =>
+        {
+            // We only want to trigger design time build if the assets file content actually changed from the last time this handler was called.
+            // Sometimes we can get a change event where no content changed (e.g. for a failed restore).
+            // In such cases, proceeding with design-time build can put us in a restore loop (since the design-time build notices that assets are missing).
+            using var assetsFileStream = File.OpenRead(filePath);
+            var checksum = Checksum.Create(assetsFileStream);
+            if (_mostRecentProjectAssetsFileChecksum != checksum)
+            {
+                _mostRecentProjectAssetsFileChecksum = checksum;
+                NeedsReload?.Invoke(this, EventArgs.Empty);
+            }
+        });
     }
 
     public event EventHandler? NeedsReload;
@@ -282,8 +305,9 @@ internal sealed class LoadedProject : IDisposable
             // Dispose of the last once since we're changing the file we're watching.
             _mostRecentProjectAssetsFileWatcher?.Dispose();
             _mostRecentProjectAssetsFileWatcher = currentProjectInfo.ProjectAssetsFilePath is { } assetsFilePath
-                    ? _projectFileChangeContext.EnqueueWatchingFile(assetsFilePath)
+                    ? _assetsFileChangeContext.EnqueueWatchingFile(assetsFilePath)
                     : null;
+            _mostRecentProjectAssetsFileChecksum = default;
         }
     }
 
