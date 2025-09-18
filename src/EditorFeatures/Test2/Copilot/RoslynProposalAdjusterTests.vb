@@ -346,6 +346,56 @@ class C
         End Function
 
         <WpfFact>
+        Public Async Function TestCSharp_MissingBraceUsingAndFormatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console  . WriteLine( 1 )  ; |]
+
+    public void N() { }
+}
+", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+
+    public void N() { }
+}
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBraceAndFormatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        System.Console  . WriteLine( 1 )  ; |]
+
+    public void N() { }
+}
+", "
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(1);
+    }
+
+    public void N() { }
+}
+")
+        End Function
+
+        <WpfFact>
         Public Async Function TestCSharp_Multi_Line_Formatting() As Task
             Await TestCSharp("
 class C
