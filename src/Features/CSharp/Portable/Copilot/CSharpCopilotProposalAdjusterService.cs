@@ -29,6 +29,9 @@ internal sealed class CSharpCopilotProposalAdjusterService(IGlobalOptionService 
     protected override async Task<ImmutableArray<TextChange>> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
+        if (!globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
+            return normalizedChanges;
+
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
 

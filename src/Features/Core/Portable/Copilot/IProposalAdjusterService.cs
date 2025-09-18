@@ -78,21 +78,17 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
     {
         CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
 
+        using var _ = ArrayBuilder<string>.GetInstance(out var adjustmentKinds);
+
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
         // move to in the forked document, as that is what we will want to analyze.
         var oldText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        ImmutableArray<TextChange> changesWhenMissingTokens = default;
-        if (globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
-        {
-            changesWhenMissingTokens = await AddMissingTokensIfAppropriateAsync(
+        var changesWhenMissingTokens = await AddMissingTokensIfAppropriateAsync(
                 originalDocument, normalizedChanges, cancellationToken).ConfigureAwait(false);
-        }
-
-        using var _ = ArrayBuilder<string>.GetInstance(out var adjustmentKinds);
 
         var format = false;
-        if (!changesWhenMissingTokens.IsDefault)
+        if (!changesWhenMissingTokens.IsDefaultOrEmpty)
         {
             adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingTokens);
             normalizedChanges = changesWhenMissingTokens;
@@ -106,26 +102,18 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         var forkedRoot = await forkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var totalNewSpan = GetSpanToAnalyze(forkedRoot, newSpans);
 
-        ImmutableArray<TextChange> addImportChanges = default;
-        if (globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
+        var addImportChanges = await TryGetAddImportTextChangesAsync(
+            originalDocument, forkedDocument, normalizedChanges.First(), totalNewSpan, cancellationToken).ConfigureAwait(false);
+        if (!addImportChanges.IsDefaultOrEmpty)
         {
-            (var addImportSuccess, addImportChanges) = await TryGetAddImportTextChangesAsync(
-                originalDocument, forkedDocument, normalizedChanges.First(), totalNewSpan, cancellationToken).ConfigureAwait(false);
-            if (addImportSuccess)
-            {
-                adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingImports);
-                format = true;
-            }
+            adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingImports);
+            format = true;
         }
 
-        ImmutableArray<TextChange> afterFormatChanges = default;
-        if (globalOptions.GetOption(CopilotOptions.FixCodeFormat))
-        {
-            (var formatSuccess, afterFormatChanges) = await TryGetFormattingTextChangesAsync(
-                originalDocument, forkedDocument, totalNewSpan, cancellationToken).ConfigureAwait(false);
-            if (formatSuccess)
-                adjustmentKinds.Add(ProposalAdjusterKinds.FormatCode);
-        }
+        var afterFormatChanges = await TryGetFormattingTextChangesAsync(
+            originalDocument, forkedDocument, totalNewSpan, cancellationToken).ConfigureAwait(false);
+        if (!afterFormatChanges.IsDefaultOrEmpty)
+            adjustmentKinds.Add(ProposalAdjusterKinds.FormatCode);
 
         if (adjustmentKinds.IsEmpty)
             return new(normalizedChanges, format, default);
@@ -137,14 +125,17 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         // that the copilot changes themselves are not themselves modified by the add-import changes.
         var beforeChanges = addImportChanges.IsDefault ? ImmutableArray<TextChange>.Empty : addImportChanges;
         var afterChanges = afterFormatChanges.IsDefault ? normalizedChanges : afterFormatChanges;
-        var totalChanges = beforeChanges.Concat(afterChanges);
 
+        var totalChanges = beforeChanges.Concat(afterChanges);
         return new(totalChanges, format, adjustmentKinds.ToImmutableAndClear());
     }
 
-    private static async Task<(bool success, ImmutableArray<TextChange> addImportChanges)> TryGetAddImportTextChangesAsync(
+    private async Task<ImmutableArray<TextChange>> TryGetAddImportTextChangesAsync(
         Document originalDocument, Document forkedDocument, TextChange firstTextChange, TextSpan totalNewSpan, CancellationToken cancellationToken)
     {
+        if (!globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
+            return default;
+
         var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
         // Add the missing imports, but do not clean up the document.  We don't want the cleanup phase making edits that
@@ -169,7 +160,7 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         if (!addImportChanges.All(textChange => textChange.Span.End < firstTextChange.Span.Start))
             return default;
 
-        return (true, addImportChanges);
+        return addImportChanges;
     }
 
     private static TextSpan GetSpanToAnalyze(SyntaxNode forkedRoot, ImmutableArray<TextSpan> newSpans)
@@ -187,9 +178,12 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
             endToken.FullSpan.End);
     }
 
-    private static async Task<(bool success, ImmutableArray<TextChange> afterFormatChanges)> TryGetFormattingTextChangesAsync(
+    private async Task<ImmutableArray<TextChange>> TryGetFormattingTextChangesAsync(
         Document originalDocument, Document forkedDocument, TextSpan totalNewSpan, CancellationToken cancellationToken)
     {
+        if (!globalOptions.GetOption(CopilotOptions.FixCodeFormat))
+            return default;
+
         var syntaxFormattingService = originalDocument.GetRequiredLanguageService<ISyntaxFormattingService>();
 
         var formattingOptions = await originalDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -206,6 +200,6 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         if (afterFormatChanges.IsEmpty)
             return default;
 
-        return (true, afterFormatChanges);
+        return afterFormatChanges;
     }
 }
