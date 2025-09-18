@@ -352,28 +352,28 @@ public sealed class SyntaxGeneratorTests
         VerifySyntax<BinaryExpressionSyntax>(Generator.ModuloExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x % y");
 
         VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "~x");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) & (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) | (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x & y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x | y");
 
         VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.LogicalNotExpression(Generator.IdentifierName("x")), "!x");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.LogicalAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) && (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.LogicalOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) || (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.LogicalAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x && y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.LogicalOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x || y");
     }
 
     [Fact]
     public void TestEqualityAndInequalityExpressions()
     {
         VerifySyntax<BinaryExpressionSyntax>(Generator.ReferenceEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x == y");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.ValueEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) == (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.ValueEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x == y");
 
-        VerifySyntax<BinaryExpressionSyntax>(Generator.ReferenceNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) != (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.ValueNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) != (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.ReferenceNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x != y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.ValueNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x != y");
 
-        VerifySyntax<BinaryExpressionSyntax>(Generator.LessThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) < (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.LessThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) <= (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.LessThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x < y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.LessThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x <= y");
 
-        VerifySyntax<BinaryExpressionSyntax>(Generator.GreaterThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) > (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.GreaterThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) >= (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.GreaterThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x > y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.GreaterThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x >= y");
     }
 
     [Fact]
@@ -465,7 +465,7 @@ public sealed class SyntaxGeneratorTests
     public void TestCastAndConvertExpressions()
     {
         VerifySyntax<CastExpressionSyntax>(Generator.CastExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x)y");
-        VerifySyntax<CastExpressionSyntax>(Generator.ConvertExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x)(y)");
+        VerifySyntax<CastExpressionSyntax>(Generator.ConvertExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x)y");
     }
 
     [Fact]
