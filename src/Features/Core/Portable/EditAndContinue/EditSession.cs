@@ -841,7 +841,7 @@ internal sealed class EditSession
             SymbolKeyResolution oldResolution;
             if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Delete)
             {
-                oldResolution = edit.Symbol.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken);
+                oldResolution = edit.Symbol.Resolve(oldCompilation, cancellationToken: cancellationToken);
                 Contract.ThrowIfNull(oldResolution.Symbol);
             }
             else
@@ -852,13 +852,13 @@ internal sealed class EditSession
             SymbolKeyResolution newResolution;
             if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace)
             {
-                newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                newResolution = edit.Symbol.Resolve(newCompilation, cancellationToken: cancellationToken);
                 Contract.ThrowIfNull(newResolution.Symbol);
             }
             else if (edit.Kind == SemanticEditKind.Delete && edit.DeletedSymbolContainer is not null)
             {
                 // For deletes, we use NewSymbol to reference the containing type of the deleted member
-                newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                newResolution = edit.DeletedSymbolContainer.Value.Resolve(newCompilation, cancellationToken: cancellationToken);
                 Contract.ThrowIfNull(newResolution.Symbol);
             }
             else

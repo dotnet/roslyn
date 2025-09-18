@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -38,6 +39,14 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
         {
             if (Document is SourceGeneratedDocument sourceGeneratedDocument)
             {
+                if (sourceGeneratedDocument.IsRazorSourceGeneratedDocument())
+                {
+                    // Razor has not ever participated in diagnostics for closed files, so we filter then out when doing FSA. They will handle
+                    // their own open file diagnostics. Additionally, if we reported them here, they would should up as coming from a `.g.cs` file
+                    // which is not what the user wants anyway.
+                    return [];
+                }
+
                 // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
                 var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
                 var documentDiagnostics = await service.GetDiagnosticsForSpanAsync(

@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -93,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                allowedEvents.SelectAsArray(Function(e) Convert(e, raiseEventStatement, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItemIndex:=Nothing, parameterIndexOverride:=-1)
         End Function
 
@@ -117,18 +118,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetPreambleParts(eventSymbol, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(),
-                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
+                type.DelegateInvokeMethod.GetParameters().SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
 
             Return item
         End Function
 
         Private Shared Function GetPreambleParts(
-            eventSymbol As IEventSymbol,
-            semanticModel As SemanticModel,
-            position As Integer
-        ) As IList(Of SymbolDisplayPart)
+                eventSymbol As IEventSymbol,
+                semanticModel As SemanticModel,
+                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
 
-            Dim result = New List(Of SymbolDisplayPart)()
+            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
 
             result.AddRange(eventSymbol.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.DotToken))
@@ -140,11 +140,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             result.AddRange(eventSymbol.ToMinimalDisplayParts(semanticModel, position, format))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
 
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetPostambleParts() As IList(Of SymbolDisplayPart)
-            Return {Punctuation(SyntaxKind.CloseParenToken)}
+        Private Shared Function GetPostambleParts() As ImmutableArray(Of SymbolDisplayPart)
+            Return ImmutableArray.Create(Punctuation(SyntaxKind.CloseParenToken))
         End Function
     End Class
 End Namespace

@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Copilot
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -38,12 +39,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                     delta -= selectionSpan.Length
                 Next
 
-                Dim service = workspace.Services.GetRequiredService(Of ICopilotProposalAdjusterService)
-                Dim adjustedChanges = Await service.TryAdjustProposalAsync(
+                Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
+                Dim tuple = Await service.TryAdjustProposalAsync(
                     originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
 
+                Dim adjustedChanges = tuple.TextChanges
+                Dim format = tuple.Format
                 Dim originalDocumentText = Await originalDocument.GetTextAsync()
-                Dim adjustedDocumentText = originalDocumentText.WithChanges(adjustedChanges)
+                Dim adjustedDocumentTextAndFinalSpans = CopilotUtilities.GetNewTextAndChangedSpans(originalDocumentText, adjustedChanges)
+                Dim adjustedDocumentText = adjustedDocumentTextAndFinalSpans.newText
+                Dim finalSpans = adjustedDocumentTextAndFinalSpans.newSpans
+
+                If format Then
+                    Dim adjustedDocument = originalDocument.WithText(adjustedDocumentText)
+                    Dim formattedDocument = Await Formatter.FormatAsync(adjustedDocument, finalSpans)
+                    Dim formattedText = Await formattedDocument.GetTextAsync()
+                    adjustedDocumentText = formattedText
+                End If
 
                 AssertEx.Equal(expected, adjustedDocumentText.ToString())
             End Using
@@ -200,6 +212,73 @@ class C
         Console.WriteLine();
     }
 }")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace1() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+}", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace2() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+}
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBrace3() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        Console.WriteLine(1);|]
+
+    public void N() { }
+}
+", "
+using System;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+    }
+
+    public void N() { }
+}
+")
         End Function
 
 #End Region

@@ -115,11 +115,6 @@ JSON;
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">變更完成清單設定;預先選取最近使用的成員</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">在 IDE 中使用的 Visual Basic 元件。根據您的專案類型與設定，可能會使用其他版本的編譯器。</target>

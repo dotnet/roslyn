@@ -289,7 +289,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
     }
 
     internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
-        => new CodeActionParams
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,

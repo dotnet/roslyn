@@ -12,24 +12,17 @@ using System.Xml.Serialization;
 
 namespace BoundTreeGenerator
 {
-    internal class Program
+    public static class Program
     {
         private static int Main(string[] args)
         {
-            string language;
-            string infilename;
-            string outfilename;
             TargetLanguage targetLanguage;
 
-            if (args.Length != 3)
+            if (args is not [string language, string infilename, string outfilename])
             {
                 Console.Error.WriteLine("Usage: \"{0} <language> <input> <output>\", where <language> is \"VB\" or \"CSharp\"", Path.GetFileNameWithoutExtension(args[0]));
                 return 1;
             }
-
-            language = args[0];
-            infilename = args[1];
-            outfilename = args[2];
 
             switch (language)
             {
@@ -45,6 +38,11 @@ namespace BoundTreeGenerator
                     return 1;
             }
 
+            return Generate(targetLanguage, infilename, outfilename);
+        }
+
+        public static int Generate(TargetLanguage targetLanguage, string infilename, string outfilename)
+        {
             Tree tree;
             var serializer = new XmlSerializer(typeof(Tree));
             using (var reader = XmlReader.Create(infilename, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit }))

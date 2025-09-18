@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 /// <summary>
 /// Base class for all Roslyn light bulb menu items.
 /// </summary>
-internal abstract partial class SuggestedAction(
+internal abstract partial class EditorSuggestedAction(
     IThreadingContext threadingContext,
     SuggestedActionsSourceProvider sourceProvider,
     Solution originalSolution,
@@ -103,7 +103,7 @@ internal abstract partial class SuggestedAction(
         {
             using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Application_Summary, $"Total");
 
-            using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
+            using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(EditorSuggestedAction)}.{nameof(Invoke)}");
             using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
                 EditorFeaturesResources.Execute_Suggested_Action, CodeAction.Title, allowCancellation: true, showProgress: true);
             using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
@@ -271,12 +271,12 @@ internal abstract partial class SuggestedAction(
     #region IEquatable<ISuggestedAction>
 
     public bool Equals(ISuggestedAction other)
-        => Equals(other as SuggestedAction);
+        => Equals(other as EditorSuggestedAction);
 
     public override bool Equals(object obj)
-        => Equals(obj as SuggestedAction);
+        => Equals(obj as EditorSuggestedAction);
 
-    internal bool Equals(SuggestedAction otherSuggestedAction)
+    internal bool Equals(EditorSuggestedAction otherSuggestedAction)
     {
         if (otherSuggestedAction == null)
         {
@@ -314,8 +314,8 @@ internal abstract partial class SuggestedAction(
 
     #endregion
 
-    public static SuggestedAction CreateTrivialAction(
-        SuggestedAction action,
+    public static EditorSuggestedAction CreateTrivialAction(
+        EditorSuggestedAction action,
         CodeAction codeAction)
         => new TrivialSuggestedAction(action.ThreadingContext, action.SourceProvider, action.OriginalSolution, action.SubjectBuffer, action.Provider, codeAction);
 
@@ -325,5 +325,5 @@ internal abstract partial class SuggestedAction(
         Solution originalSolution,
         ITextBuffer subjectBuffer,
         object provider,
-        CodeAction codeAction) : SuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction);
+        CodeAction codeAction) : EditorSuggestedAction(threadingContext, sourceProvider, originalSolution, subjectBuffer, provider, codeAction);
 }

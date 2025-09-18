@@ -52,7 +52,7 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
     }
 
     private static OptionsCollection PreferImplicitTypeWithInfo()
-        => new OptionsCollection(LanguageNames.CSharp)
+        => new(LanguageNames.CSharp)
         {
             { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Suggestion },
             { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true, NotificationOption2.Suggestion },
@@ -60,7 +60,7 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
         };
 
     private static OptionsCollection PreferExplicitTypeWithInfo()
-        => new OptionsCollection(LanguageNames.CSharp)
+        => new(LanguageNames.CSharp)
         {
             { CSharpCodeStyleOptions.VarElsewhere, false, NotificationOption2.Suggestion },
             { CSharpCodeStyleOptions.VarWhenTypeIsApparent, false, NotificationOption2.Suggestion },

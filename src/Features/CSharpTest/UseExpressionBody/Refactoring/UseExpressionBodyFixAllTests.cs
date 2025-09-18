@@ -23,7 +23,7 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
         => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
     private OptionsCollection UseBlockBodyForMethodsAndAccessorsAndProperties
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },

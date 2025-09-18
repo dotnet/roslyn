@@ -28,7 +28,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -57,7 +57,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("ref int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("ref int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -80,7 +80,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("ref readonly int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("ref readonly int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -103,7 +103,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -132,7 +132,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a]", "Summary for this.", "Param a", currentParameterIndex: 0)
+            new("string C[int a]", "Summary for this.", "Param a", currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -165,7 +165,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
+            new("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -194,7 +194,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a, bool b]", "Summary for this.", "Param b", currentParameterIndex: 1)
+            new("string C[int a, bool b]", "Summary for this.", "Param b", currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -228,7 +228,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -257,7 +257,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
+            new("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -316,7 +316,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -345,7 +345,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
+            new("string C[int a, bool b]", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -433,7 +433,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -470,7 +470,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
             """;
         var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -507,7 +507,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -560,13 +560,13 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
 
         var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0),
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -603,7 +603,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -640,7 +640,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -678,7 +678,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -739,12 +739,12 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
 
         var metadataItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string CCC.IndexProp[int p1]", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("string CCC.IndexProp[int p1]", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         var projectReferenceItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("string CCC.IndexProp[int p1]", "An index property from VB", "p1 is an integer index", currentParameterIndex: 0)
+            new("string CCC.IndexProp[int p1]", "An index property from VB", "p1 is an integer index", currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -856,7 +856,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
         {
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
+                new("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0)
             };
 
             await TestAsync("""
@@ -885,7 +885,7 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
         {
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("int P[int z]", string.Empty, string.Empty, currentParameterIndex: 0)
+                new("int P[int z]", string.Empty, string.Empty, currentParameterIndex: 0)
             };
 
             await TestAsync("""

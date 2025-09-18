@@ -157,14 +157,13 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
 
         var diagnosticAnalyzerService = (DiagnosticAnalyzerService)workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
-        var compilationWithAnalyzers = new CompilationWithAnalyzersPair(
-            projectCompilationWithAnalyzers: null,
+        var compilationWithAnalyzers =
             (await project.GetCompilationAsync()).WithAnalyzers(
                 [.. analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType)],
-                project.AnalyzerOptions));
+                project.AnalyzerOptions);
 
         var result = await diagnosticAnalyzerService.GetTestAccessor().AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
-        var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.HostAnalyzers[0]];
+        var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
         // check result
         var diagnostics = analyzerResult.GetDocumentDiagnostics(project.DocumentIds.First(), AnalysisKind.Semantic);
@@ -198,14 +197,13 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
         var diagnosticAnalyzerService = (DiagnosticAnalyzerService)workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var analyzers = analyzerReference.GetAnalyzers(project.Language).WhereAsArray(a => a.GetType() == analyzerType);
 
-        var compilationWithAnalyzers = new CompilationWithAnalyzersPair(
-            (await project.GetCompilationAsync()).WithAnalyzers(analyzers, project.AnalyzerOptions),
-            hostCompilationWithAnalyzers: null);
+        var compilationWithAnalyzers =
+            (await project.GetCompilationAsync()).WithAnalyzers(analyzers, project.AnalyzerOptions);
 
         var result = await diagnosticAnalyzerService.GetTestAccessor().AnalyzeProjectInProcessAsync(project, compilationWithAnalyzers,
             logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
 
-        var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.ProjectAnalyzers[0]];
+        var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
         // check result
         var diagnostics = analyzerResult.GetDocumentDiagnostics(project.DocumentIds.First(), AnalysisKind.Syntax);
@@ -232,14 +230,11 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
         var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
             [.. analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType)],
             project.AnalyzerOptions);
-        var analyzerDriver = isHostAnalyzer
-            ? new CompilationWithAnalyzersPair(projectCompilationWithAnalyzers: null, compilationWithAnalyzers)
-            : new CompilationWithAnalyzersPair(compilationWithAnalyzers, hostCompilationWithAnalyzers: null);
 
         var result = await diagnosticAnalyzerService.GetTestAccessor().AnalyzeProjectInProcessAsync(
-            project, analyzerDriver, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);
+            project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);
 
-        return result.AnalysisResult[(isHostAnalyzer ? analyzerDriver.HostAnalyzers : analyzerDriver.ProjectAnalyzers)[0]];
+        return result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
     }
 
     private static TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)

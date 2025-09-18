@@ -33,7 +33,7 @@ internal abstract partial class AbstractSymbolDisplayService
             var info = LanguageServices.GetRequiredService<IStructuralTypeDisplayService>().GetTypeDisplayInfo(
                 firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
-            if (info.TypesParts.Count > 0)
+            if (info.TypesParts.Length > 0)
                 AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
             foreach (var (group, parts) in _groupMap.ToArray())

@@ -2,10 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -20,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             structuralTypeDisplayService As IStructuralTypeDisplayService,
             normalType As INamedTypeSymbol,
             within As ISymbol,
-            options As MemberDisplayOptions, cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
+            options As MemberDisplayOptions, cancellationToken As CancellationToken) As (items As ImmutableArray(Of SignatureHelpItem), selectedItem As Integer?)
 
             Dim accessibleConstructors = normalType.InstanceConstructors.
                                                     WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
@@ -33,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
-            Dim items = accessibleConstructors.Select(
-                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList()
+            Dim items = accessibleConstructors.SelectAsArray(
+                Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService))
 
             Dim currentConstructor = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken)
             Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor.Symbol)
@@ -53,19 +55,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetNormalTypePreambleParts(constructor, semanticModel, position), GetSeparatorParts(),
                 GetNormalTypePostambleParts(),
-                constructor.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
+                constructor.Parameters.SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
             Return item
         End Function
 
-        Private Shared Function GetNormalTypePreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
-            Dim result = New List(Of SymbolDisplayPart)()
+        Private Shared Function GetNormalTypePreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
+            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetNormalTypePostambleParts() As IList(Of SymbolDisplayPart)
-            Return {Punctuation(SyntaxKind.CloseParenToken)}
+        Private Shared Function GetNormalTypePostambleParts() As ImmutableArray(Of SymbolDisplayPart)
+            Return ImmutableArray.Create(Punctuation(SyntaxKind.CloseParenToken))
         End Function
     End Class
 End Namespace

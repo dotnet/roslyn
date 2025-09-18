@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,64 +12,29 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-[ExportSignatureHelpProvider("GenericNameSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal abstract partial class AbstractGenericNameSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public GenericNameSignatureHelpProvider()
-    {
-    }
-
     public override ImmutableArray<char> TriggerCharacters => ['<', ','];
 
     public override ImmutableArray<char> RetriggerCharacters => ['>'];
 
-    protected virtual bool TryGetGenericIdentifier(
+    protected abstract TextSpan GetTextSpan(SyntaxToken genericIdentifier, SyntaxToken lessThanToken);
+
+    protected abstract bool TryGetGenericIdentifier(
         SyntaxNode root, int position,
         ISyntaxFactsService syntaxFacts,
         SignatureHelpTriggerReason triggerReason,
         CancellationToken cancellationToken,
         out SyntaxToken genericIdentifier,
-        out SyntaxToken lessThanToken)
-    {
-        if (CommonSignatureHelpUtilities.TryGetSyntax(
-                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out GenericNameSyntax? name))
-        {
-            genericIdentifier = name.Identifier;
-            lessThanToken = name.TypeArgumentList.LessThanToken;
-            return true;
-        }
-
-        genericIdentifier = default;
-        lessThanToken = default;
-        return false;
-    }
-
-    private bool IsTriggerToken(SyntaxToken token)
-    {
-        return !token.IsKind(SyntaxKind.None) &&
-            token.ValueText.Length == 1 &&
-            TriggerCharacters.Contains(token.ValueText[0]) &&
-            token.Parent is TypeArgumentListSyntax &&
-            token.Parent.Parent is GenericNameSyntax;
-    }
-
-    private bool IsArgumentListToken(GenericNameSyntax node, SyntaxToken token)
-    {
-        return node.TypeArgumentList != null &&
-            node.TypeArgumentList.Span.Contains(token.SpanStart) &&
-            token != node.TypeArgumentList.GreaterThanToken;
-    }
+        out SyntaxToken lessThanToken);
 
     protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
@@ -116,16 +79,13 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
             return null;
         }
 
-        var accessibleSymbols =
-            symbols.WhereAsArray(s => s.GetArity() > 0)
-                   .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
-                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
-                   .Sort(semanticModel, genericIdentifier.SpanStart);
+        var accessibleSymbols = symbols
+            .WhereAsArray(s => s.GetArity() > 0)
+            .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
+            .Sort(semanticModel, genericIdentifier.SpanStart);
 
         if (!accessibleSymbols.Any())
-        {
             return null;
-        }
 
         var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
         var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
@@ -158,12 +118,6 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
         return null;
     }
 
-    protected virtual TextSpan GetTextSpan(SyntaxToken genericIdentifier, SyntaxToken lessThanToken)
-    {
-        Contract.ThrowIfFalse(lessThanToken.Parent is TypeArgumentListSyntax && lessThanToken.Parent.Parent is GenericNameSyntax);
-        return SignatureHelpUtilities.GetSignatureHelpSpan(((GenericNameSyntax)lessThanToken.Parent.Parent).TypeArgumentList);
-    }
-
     private static SignatureHelpItem Convert(
         ISymbol symbol,
         SyntaxToken lessThanToken,
@@ -173,34 +127,54 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
     {
         var position = lessThanToken.SpanStart;
 
-        SignatureHelpItem item;
         if (symbol is INamedTypeSymbol namedType)
         {
-            item = CreateItem(
+            return CreateItem(
                 symbol, semanticModel, position,
                 structuralTypeDisplayService,
-                false,
+                isVariadic: false,
                 symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(namedType, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(),
                 [.. namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         }
-        else
+        else if (symbol is IMethodSymbol method)
         {
-            var method = (IMethodSymbol)symbol;
-            item = CreateItem(
+            return CreateItem(
                 symbol, semanticModel, position,
                 structuralTypeDisplayService,
-                false,
-                c => symbol.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
+                isVariadic: false,
+                symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(method, semanticModel, position),
-                [.. method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
+                GetTypeArguments(method));
+        }
+        else
+        {
+            throw ExceptionUtilities.UnexpectedValue(symbol);
         }
 
-        return item;
+        ImmutableArray<SignatureHelpSymbolParameter> GetTypeArguments(IMethodSymbol method)
+        {
+            using var _ = ArrayBuilder<SignatureHelpSymbolParameter>.GetInstance(out var result);
+
+            // Signature help for generic modern extensions must include the generic type *arguments* for the containing
+            // extension as well.  These are fixed given the receiver, and need to be repeated in the method type argument
+            // list.
+            if (method.ContainingType.IsExtension)
+            {
+                result.AddRange(method.ContainingType.TypeArguments.Select(t => new SignatureHelpSymbolParameter(
+                    name: null, isOptional: false,
+                    t.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
+                    t.ToMinimalDisplayParts(semanticModel, position))));
+            }
+
+            result.AddRange(method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)));
+
+            return result.ToImmutableAndClear();
+        }
     }
 
     private static readonly SymbolDisplayFormat s_minimallyQualifiedFormat =
@@ -221,12 +195,12 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
             selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position));
     }
 
-    private static IList<SymbolDisplayPart> GetSelectedDisplayParts(
+    private static ImmutableArray<SymbolDisplayPart> GetSelectedDisplayParts(
         ITypeParameterSymbol typeParam,
         SemanticModel semanticModel,
         int position)
     {
-        var parts = new List<SymbolDisplayPart>();
+        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 
         if (TypeParameterHasConstraints(typeParam))
         {
@@ -302,7 +276,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
             }
         }
 
-        return parts;
+        return parts.ToImmutableAndClear();
     }
 
     private static bool TypeParameterHasConstraints(ITypeParameterSymbol typeParam)

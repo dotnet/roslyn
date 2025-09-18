@@ -17,7 +17,7 @@ internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
             _documentPropertiesService = VirtualDocumentPropertiesService.Instance;
         }
 
-        public static LspContainedDocumentServiceProvider Instance = new LspContainedDocumentServiceProvider();
+        public static LspContainedDocumentServiceProvider Instance = new();
 
         bool IDocumentOperationService.CanApplyChange => true;
 
@@ -39,7 +39,7 @@ internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
 
             private VirtualDocumentPropertiesService() { }
 
-            public static VirtualDocumentPropertiesService Instance = new VirtualDocumentPropertiesService();
+            public static VirtualDocumentPropertiesService Instance = new();
 
             public override string? DiagnosticsLspClientName => _lspClientName;
         }

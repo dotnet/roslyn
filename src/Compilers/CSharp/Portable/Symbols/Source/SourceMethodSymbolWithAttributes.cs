@@ -1756,15 +1756,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     result |= (System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall);
                 }
 
-                if (this.IsAsync && this.DeclaringCompilation.IsRuntimeAsyncEnabledIn(this))
-                {
-                    // https://github.com/dotnet/roslyn/issues/79792: Use real value from MethodImplAttributes when available
-                    // When a method is emitted using runtime async, we add MethodImplAttributes.Async to indicate to the 
-                    // runtime to generate the state machine
-                    result |= (System.Reflection.MethodImplAttributes)0x2000;
-                }
+                AddAsyncImplAttributeIfNeeded(ref result);
 
                 return result;
+            }
+        }
+
+        protected void AddAsyncImplAttributeIfNeeded(ref System.Reflection.MethodImplAttributes result)
+        {
+            if (this.IsAsync && this.DeclaringCompilation.IsRuntimeAsyncEnabledIn(this))
+            {
+                // When a method is emitted using runtime async, we add MethodImplAttributes.Async to indicate to the 
+                // runtime to generate the state machine
+                result |= System.Reflection.MethodImplAttributes.Async;
             }
         }
 

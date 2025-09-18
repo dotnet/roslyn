@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -590,14 +591,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 index = -1;
             }
 
-            foreach (var member in symbol.GetMembers())
+            bool haveExtensions = false;
+
+            foreach (var member in (symbol.IsNamespace ? symbol.GetMembers() : symbol.GetTypeMembers().Cast<NamedTypeSymbol, Symbol>()))
             {
                 var namespaceOrType = member as NamespaceOrTypeSymbol;
-                if ((object)namespaceOrType != null &&
-                    member is not NamedTypeSymbol { IsExtension: true }) // https://github.com/dotnet/roslyn/issues/78963 - This is a temporary handling, we should get grouping and marker types processed instead.
+                if ((object)namespaceOrType != null)
                 {
-                    GetExportedTypes(namespaceOrType, index, builder);
+                    Debug.Assert(namespaceOrType is PENamespaceSymbol or PENamedTypeSymbol);
+
+                    if (namespaceOrType is NamedTypeSymbol { IsExtension: true })
+                    {
+                        haveExtensions = true;
+                    }
+                    else
+                    {
+                        GetExportedTypes(namespaceOrType, index, builder);
+                    }
                 }
+            }
+
+            if (haveExtensions)
+            {
+                var seenGroupingTypes = PooledHashSet<PENamedTypeSymbol>.GetInstance();
+                var groupingTypes = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
+
+                foreach (var type in symbol.GetTypeMembers(""))
+                {
+                    if (!type.IsExtension)
+                    {
+                        continue;
+                    }
+
+                    var groupingType = ((PENamedTypeSymbol)type).ExtensionGroupingType;
+                    if (seenGroupingTypes.Add(groupingType))
+                    {
+                        groupingTypes.Add(groupingType);
+                    }
+                }
+
+                seenGroupingTypes.Free();
+                groupingTypes.Sort((x, y) => x.MetadataToken.CompareTo(y.MetadataToken));
+                Debug.Assert(!groupingTypes.IsEmpty);
+
+                foreach (var groupingType in groupingTypes)
+                {
+                    GetExportedTypes(groupingType, index, builder);
+                }
+
+                groupingTypes.Free();
             }
         }
 

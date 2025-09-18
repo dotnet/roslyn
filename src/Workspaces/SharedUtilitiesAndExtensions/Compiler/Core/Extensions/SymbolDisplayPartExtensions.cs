@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -15,7 +16,7 @@ internal static class SymbolDisplayPartExtensions
     public static void AddLineBreak(this IList<SymbolDisplayPart> parts, string text = "\r\n")
         => parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, text));
 
-    public static void AddMethodName(this IList<SymbolDisplayPart> parts, string text)
+    public static void AddMethodName(this ArrayBuilder<SymbolDisplayPart> parts, string text)
         => parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, null, text));
 
     public static void AddPunctuation(this IList<SymbolDisplayPart> parts, string text)

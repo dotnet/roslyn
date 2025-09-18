@@ -2,7 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.DocumentationComments
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
@@ -34,8 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, vbCrLf)
         End Function
 
-        Protected Shared Function GetSeparatorParts() As IList(Of SymbolDisplayPart)
-            Return {Punctuation(SyntaxKind.CommaToken), Space()}
+        Protected Shared Function GetSeparatorParts() As ImmutableArray(Of SymbolDisplayPart)
+            Return ImmutableArray.Create(Punctuation(SyntaxKind.CommaToken), Space())
         End Function
 
         Protected Shared Function Convert(parameter As IParameterSymbol,
@@ -48,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 parameter.ToMinimalDisplayParts(semanticModel, position))
         End Function
 
-        Protected Shared Sub AddExtensionPreamble(symbol As ISymbol, result As IList(Of SymbolDisplayPart))
+        Protected Shared Sub AddExtensionPreamble(symbol As ISymbol, result As ArrayBuilder(Of SymbolDisplayPart))
             If symbol.GetOriginalUnreducedDefinition().IsExtensionMethod() Then
                 result.Add(Punctuation(SyntaxKind.LessThanToken))
                 result.Add(Text(VBFeaturesResources.Extension))
