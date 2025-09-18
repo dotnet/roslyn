@@ -16,5 +16,5 @@ internal static class SymbolMatchPriority
     internal static readonly int PreferLocalOrParameterOrRangeVariable = 600;
 
     // For keywords like 'ref' that the language requires at certain locations.
-    internal static readonly int PreferRequiredKeyword = int.MaxValue;
+    internal static readonly int PreferRequiredKeyword = 700;
 }
