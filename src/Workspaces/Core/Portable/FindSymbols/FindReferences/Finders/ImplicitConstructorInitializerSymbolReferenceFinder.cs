@@ -1,0 +1,147 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+/// <summary>
+/// For finding references to implicit constructor initializers (i.e. the implicit "base()" call when non is
+/// explicitly supplied).
+/// </summary>
+internal sealed class ImplicitConstructorInitializerSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+{
+    public static readonly ImplicitConstructorInitializerSymbolReferenceFinder Instance = new();
+
+    private ImplicitConstructorInitializerSymbolReferenceFinder()
+    {
+    }
+
+    protected override bool CanFind(IMethodSymbol symbol)
+        => symbol.MethodKind == MethodKind.Constructor;
+
+    protected override Task DetermineDocumentsToSearchAsync<TData>(
+        IMethodSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        return FindDocumentsAsync(project, documents, static async (document, name, cancellationToken) =>
+        {
+            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+
+            if (index.ContainsImplicitBaseConstructorInitializer)
+            {
+                // if we have `partial class C { ... : base(...) }` we have to assume it might be a match, as the base
+                // type reference might be in a another part of the partial in another file.
+                if (index.ContainsPartialClass)
+                    return true;
+
+                // Otherwise, if it doesn't have any partial types, ensure that the base type name is referenced in the
+                // same file.  e.g. `partial class C : B { ... base(...) }`.   This allows us to greatly filter down the
+                // number of matches, presuming that most inheriting types in a project are not themselves partial.
+                if (index.ProbablyContainsIdentifier(name))
+                    return true;
+            }
+
+            return false;
+        }, symbol.ContainingType.Name, processResult, processResultData, cancellationToken);
+    }
+
+    protected sealed override void FindReferencesInDocument<TData>(
+        IMethodSymbol methodSymbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        FindExplicitThisOrBaseInitializerReferences();
+        FindImplicitBaseInitializerReferences();
+
+        void FindExplicitThisOrBaseInitializerReferences()
+        {
+            if (state)
+
+            var tokens = state.Cache.GetConstructorInitializerTokens(cancellationToken);
+            var vbNewTokens = GetVisualBasicNewTokens(state, cancellationToken);
+
+            var totalTokens = tokens.Concat(vbNewTokens).Distinct().WhereAsArray(
+                static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
+                (state, methodSymbol, cancellationToken));
+
+            FindReferencesInTokens(methodSymbol, state, totalTokens, processResult, processResultData, cancellationToken);
+            return;
+
+            // local functions
+            static bool TokensMatch(
+                FindReferencesDocumentState state,
+                SyntaxToken token,
+                string typeName,
+                CancellationToken cancellationToken)
+            {
+                var semanticModel = state.SemanticModel;
+                var syntaxFacts = state.SyntaxFacts;
+
+                if (syntaxFacts.IsBaseConstructorInitializer(token))
+                {
+                    var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
+                    return containingType != null && containingType.BaseType != null && containingType.BaseType.Name == typeName;
+                }
+                else if (syntaxFacts.IsThisConstructorInitializer(token))
+                {
+                    var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
+                    return containingType != null && containingType.Name == typeName;
+                }
+                else if (semanticModel.Language == LanguageNames.VisualBasic && token.IsPartOfStructuredTrivia())
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        void FindImplicitBaseInitializerReferences()
+        {
+            var nameTokens = FindMatchingIdentifierTokens(state, methodSymbol.ContainingType.Name, cancellationToken);
+            var vbNewTokens = GetVisualBasicNewTokens(state, cancellationToken);
+
+            var syntaxFacts = state.SyntaxFacts;
+            var allTokens = nameTokens.Concat(vbNewTokens).Distinct();
+            var constructorNodes = allTokens
+                .Select(t => t.GetAncestor(n => syntaxFacts.IsConstructorDeclaration(n) && syntaxFacts.HasImplicitBaseConstructorCall(n)))
+                .WhereNotNull();
+
+            foreach (var constructorNode in constructorNodes)
+            {
+                if (state.SemanticModel.GetDeclaredSymbol(constructorNode) is IMethodSymbol constructor &&
+                    Equals(constructor.ContainingType, methodSymbol.ContainingType))
+                {
+                    var location = constructor.GetLocation();
+                    processResult(new FinderLocation(location, isImplicit: true), processResultData);
+                }
+            }
+        }
+
+        ImmutableArray<SyntaxToken> GetVisualBasicNewTokens(FindReferencesDocumentState state, CancellationToken cancellationToken)
+        {
+            return state.SemanticModel.Language == LanguageNames.VisualBasic
+                ? FindMatchingIdentifierTokens(state, "New", cancellationToken)
+                : [];
+        }
+    }
+}
