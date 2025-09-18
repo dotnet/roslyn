@@ -564,5 +564,15 @@ namespace System
         public static Span<T> AsSpan<T>(this T[] array) => new Span<T>(array);
     }
 }";
+
+        public static readonly string ParamsCollectionAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class ParamCollectionAttribute : Attribute
+                {
+                    public ParamCollectionAttribute() { }
+                }
+            }
+            """;
     }
 }
