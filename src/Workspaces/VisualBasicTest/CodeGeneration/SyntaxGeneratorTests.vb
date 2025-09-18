@@ -299,9 +299,9 @@ End Class
         Public Sub TestMathAndLogicExpressions()
             VerifySyntax(Of UnaryExpressionSyntax)(Generator.NegateExpression(Generator.IdentifierName("x")), "-x")
             VerifySyntax(Of BinaryExpressionSyntax)(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x + y")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.SubtractExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) - (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.MultiplyExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) * (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.DivideExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) / (y)")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.SubtractExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x - y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.MultiplyExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x * y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.DivideExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x / y")
             VerifySyntax(Of BinaryExpressionSyntax)(Generator.ModuloExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) Mod (y)")
 
             VerifySyntax(Of UnaryExpressionSyntax)(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "Not(x)")
@@ -318,8 +318,8 @@ End Class
             VerifySyntax(Of BinaryExpressionSyntax)(Generator.ReferenceEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x Is y")
             VerifySyntax(Of BinaryExpressionSyntax)(Generator.ValueEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = y")
 
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ReferenceNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) IsNot (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ValueNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) <> (y)")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ReferenceNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x IsNot y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ValueNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x <> y")
 
             VerifySyntax(Of BinaryExpressionSyntax)(Generator.LessThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) < (y)")
             VerifySyntax(Of BinaryExpressionSyntax)(Generator.LessThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) <= (y)")
