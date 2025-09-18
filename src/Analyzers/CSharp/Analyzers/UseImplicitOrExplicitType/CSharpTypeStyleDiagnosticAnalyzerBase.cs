@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 
 internal static class CSharpTypeStyleUtilities
 {
+    public const string EquivalenceyKey = nameof(EquivalenceyKey);
+
     public const string BuiltInType = nameof(BuiltInType);
     public const string TypeIsApparent = nameof(TypeIsApparent);
     public const string Elsewhere = nameof(Elsewhere);
@@ -28,9 +30,9 @@ internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase(
         [CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere],
         title, message)
 {
-    private static readonly ImmutableDictionary<string, string?> BuiltInTypeProperties = ImmutableDictionary<string, string?>.Empty.Add(CSharpTypeStyleUtilities.BuiltInType, "");
-    private static readonly ImmutableDictionary<string, string?> TypeIsApparentProperties = ImmutableDictionary<string, string?>.Empty.Add(CSharpTypeStyleUtilities.TypeIsApparent, "");
-    private static readonly ImmutableDictionary<string, string?> ElsewhereProperties = ImmutableDictionary<string, string?>.Empty.Add(CSharpTypeStyleUtilities.Elsewhere, "");
+    private static readonly ImmutableDictionary<string, string?> BuiltInTypeProperties = ImmutableDictionary<string, string?>.Empty.Add(CSharpTypeStyleUtilities.EquivalenceyKey, CSharpTypeStyleUtilities.BuiltInType);
+    private static readonly ImmutableDictionary<string, string?> TypeIsApparentProperties = ImmutableDictionary<string, string?>.Empty.Add(CSharpTypeStyleUtilities.EquivalenceyKey, CSharpTypeStyleUtilities.TypeIsApparent);
+    private static readonly ImmutableDictionary<string, string?> ElsewhereProperties = ImmutableDictionary<string, string?>.Empty.Add(CSharpTypeStyleUtilities.EquivalenceyKey, CSharpTypeStyleUtilities.Elsewhere);
 
     protected abstract CSharpTypeStyleHelper Helper { get; }
 
