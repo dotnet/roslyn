@@ -365,6 +365,8 @@ internal interface ISyntaxFacts
 
     bool IsThisConstructorInitializer(SyntaxToken token);
     bool IsBaseConstructorInitializer(SyntaxToken token);
+    bool HasImplicitBaseConstructorInitializer(SyntaxNode constructorDeclaration);
+
     bool IsQueryKeyword(SyntaxToken token);
     bool IsElementAccessExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsIdentifierStartCharacter(char c);
