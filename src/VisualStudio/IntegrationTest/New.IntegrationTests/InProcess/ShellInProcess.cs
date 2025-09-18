@@ -101,7 +101,7 @@ internal sealed partial class ShellInProcess
         ErrorHandler.ThrowOnFailure(commandService.GetControlDataSourceAsync(
             (uint)__VSCOMMANDTYPES.cCommandTypeButton,
             commandName,
-            timeout: TestHelpers.HangMitigatingTimeout.Milliseconds,
+            timeout: ((int)TestHelpers.HangMitigatingTimeout.TotalMilliseconds),
             out var dataSourceTask));
 
         Assumes.NotNull(dataSourceTask);
