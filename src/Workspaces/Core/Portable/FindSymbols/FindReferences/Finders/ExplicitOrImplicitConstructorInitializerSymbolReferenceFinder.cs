@@ -34,11 +34,4 @@ internal abstract class ExplicitOrImplicitConstructorInitializerSymbolReferenceF
             return @this.CheckIndex(document, name, index);
         }, (this, symbol.ContainingType.Name), processResult, processResultData, cancellationToken);
     }
-
-    protected static ImmutableArray<SyntaxToken> GetVisualBasicNewTokens(FindReferencesDocumentState state, CancellationToken cancellationToken)
-    {
-        return state.SemanticModel.Language == LanguageNames.VisualBasic
-            ? FindMatchingIdentifierTokens(state, "New", cancellationToken)
-            : [];
-    }
 }

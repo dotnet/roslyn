@@ -65,9 +65,10 @@ internal sealed class ExplicitConstructorInitializerSymbolReferenceFinder
         CancellationToken cancellationToken)
     {
         var tokens = state.Cache.GetConstructorInitializerTokens(cancellationToken);
-        var vbNewTokens = GetVisualBasicNewTokens(state, cancellationToken);
+        if (state.SemanticModel.Language == LanguageNames.VisualBasic)
+            tokens = tokens.Concat(FindMatchingIdentifierTokens(state, "New", cancellationToken)).Distinct();
 
-        var totalTokens = tokens.Concat(vbNewTokens).Distinct().WhereAsArray(
+        var totalTokens = tokens.WhereAsArray(
             static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
             (state, methodSymbol, cancellationToken));
 
