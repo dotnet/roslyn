@@ -42,9 +42,6 @@ internal static partial class ExpressionSyntaxExtensions
         if (expression.IsKind(SyntaxKind.ThrowExpression))
             return expression;
 
-        if (expression is IdentifierNameSyntax)
-            return expression;
-
         var result = ParenthesizeWorker(expression, includeElasticTrivia);
         return addSimplifierAnnotation
             ? result.WithAdditionalAnnotations(Simplifier.Annotation)
