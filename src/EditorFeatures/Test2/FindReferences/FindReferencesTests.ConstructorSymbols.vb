@@ -774,6 +774,76 @@ internal abstract class Derived : Abstract
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11049")>
+        Public Async Function TestImplicitBaseConstructorReference_CSharp4(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+internal abstract class Abstract
+{
+    protected {|Definition:$$Abstract|}(int i = 0)
+    {
+    }
+}
+
+internal abstract class Derived : Abstract
+{
+    protected [|Derived|](int i)
+    {
+    }
+
+    protected Derived() : this(0)
+    {
+    }
+
+    protected Derived(params int[] i) : this(0)
+    {
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/11049")>
+        Public Async Function TestImplicitBaseConstructorReference_CSharp5(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+internal abstract class Abstract
+{
+    protected {|Definition:$$Abstract|}(params int[] i)
+    {
+    }
+}
+
+internal abstract class Derived : Abstract
+{
+    protected [|Derived|](int i)
+    {
+    }
+
+    protected Derived() : this(0)
+    {
+    }
+
+    protected Derived(params int[] i) : this(0)
+    {
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
 #If False Then
         <WorkItem(10441)>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
