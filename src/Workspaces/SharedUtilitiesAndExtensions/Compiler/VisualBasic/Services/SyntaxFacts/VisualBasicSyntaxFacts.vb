@@ -256,6 +256,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function HasImplicitBaseConstructorInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.HasImplicitBaseConstructorInitializer
+            Dim constructorNode = DirectCast(node, ConstructorBlockSyntax)
+            If constructorNode.Statements.Count = 0 Then
+                Return True
+            End If
+
+            Dim firstStatement = constructorNode.Statements(0)
+            Return Not firstStatement.DescendantNodes().OfType(Of MemberAccessExpressionSyntax)().Any(Function(m) m.IsConstructorInitializer())
+        End Function
+
         Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsQueryKeyword
             Select Case token.Kind()
                 Case _

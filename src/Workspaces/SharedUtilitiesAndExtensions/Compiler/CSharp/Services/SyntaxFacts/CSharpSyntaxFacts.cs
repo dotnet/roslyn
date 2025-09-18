@@ -268,6 +268,9 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => token.Parent is ConstructorInitializerSyntax(SyntaxKind.BaseConstructorInitializer) constructorInit &&
            constructorInit.ThisOrBaseKeyword == token;
 
+    public bool HasImplicitBaseConstructorInitializer(SyntaxNode node)
+        => node is ConstructorDeclarationSyntax constructor && constructor.Initializer == null;
+
     public bool IsQueryKeyword(SyntaxToken token)
     {
         switch (token.Kind())
