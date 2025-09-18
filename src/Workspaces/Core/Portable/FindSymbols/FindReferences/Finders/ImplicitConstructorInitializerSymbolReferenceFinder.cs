@@ -61,6 +61,9 @@ internal sealed class ImplicitConstructorInitializerSymbolReferenceFinder : Expl
         var constructorNodes = syntaxFacts.GetConstructors(state.Root, cancellationToken);
         foreach (var constructorNode in constructorNodes)
         {
+            if (!syntaxFacts.HasImplicitBaseConstructorInitializer(constructorNode))
+                continue;
+
             // Looks like a suitable match.  A constructor with an implicit base constructor initializer. See if the
             // constructor's base type is the type that contains the constructor we're looking for.
             if (state.SemanticModel.GetDeclaredSymbol(constructorNode, cancellationToken) is IMethodSymbol constructor &&
@@ -71,7 +74,7 @@ internal sealed class ImplicitConstructorInitializerSymbolReferenceFinder : Expl
                     alias: null,
                     constructor.Locations.First(loc => loc.SourceTree == constructorNode.SyntaxTree && constructorNode.Span.IntersectsWith(loc.SourceSpan)),
                     isImplicit: true,
-                    new(ValueUsageInfo.None, TypeOrNamespaceUsageInfo.ObjectCreation),
+                    new(valueUsageInfoOpt: null, TypeOrNamespaceUsageInfo.ObjectCreation),
                     additionalProperties: [],
                     CandidateReason.None)),
                     processResultData);
