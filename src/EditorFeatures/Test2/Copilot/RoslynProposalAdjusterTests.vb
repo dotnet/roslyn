@@ -352,7 +352,7 @@ class C
 {
     void M()
     [|{
-        Console  . WriteLine( 1 )  ; |]
+        Console  . WriteLine( 1 )  ;|]
 
     public void N() { }
 }
@@ -372,13 +372,38 @@ class C
         End Function
 
         <WpfFact>
-        Public Async Function TestCSharp_MissingBraceAndFormatting() As Task
+        Public Async Function TestCSharp_MissingBraceAndFormattingPlusWhiteSpaceAfter() As Task
+            ' Note that the trailing whitespace after the proposal causes the AddMissingTokens fixer
+            ' to not add the closing brace. This could be improved in the future.
             Await TestCSharp("
 class C
 {
     void M()
     [|{
         System.Console  . WriteLine( 1 )  ; |]
+
+    public void N() { }
+}
+", "
+class C
+{
+    void M()
+    {
+        System.Console.WriteLine(1);
+
+    public void N() { }
+}
+")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_MissingBraceAndFormatting() As Task
+            Await TestCSharp("
+class C
+{
+    void M()
+    [|{
+        System.Console  . WriteLine( 1 )  ;|]
 
     public void N() { }
 }
