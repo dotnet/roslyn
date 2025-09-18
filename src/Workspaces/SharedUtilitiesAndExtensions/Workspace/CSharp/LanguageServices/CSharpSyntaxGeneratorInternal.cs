@@ -339,6 +339,6 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
 
     internal static SyntaxNode ParenthesizeNonSimple(SyntaxNode expression)
         => expression is IdentifierNameSyntax
-            ? expression.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
+            ? expression
             : Parenthesize(expression);
 }

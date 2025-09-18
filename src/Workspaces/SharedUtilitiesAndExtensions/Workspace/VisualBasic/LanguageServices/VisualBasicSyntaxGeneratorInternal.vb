@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Shared Function ParenthesizeNonSimple(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ExpressionSyntax
             Dim identifierName = TryCast(expression, IdentifierNameSyntax)
             If identifierName IsNot Nothing Then
-                Return identifierName.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
+                Return identifierName
             End If
 
             Return Parenthesize(expression, addSimplifierAnnotation)
