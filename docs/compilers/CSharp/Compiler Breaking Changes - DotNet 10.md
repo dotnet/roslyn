@@ -371,7 +371,7 @@ class C<extension> { } // type parameter may not be named "extension"
 
 ## Partial properties and events are now implicitly virtual and public
 
-***Introduced in Visual Studio 2022 version 17.15***
+***Introduced in Visual Studio 2026 version 18.0 preview 1***
 
 We have fixed [an inconsistency](https://github.com/dotnet/roslyn/issues/77346)
 where partial interface properties and events would not be implicitly `virtual` and `public` unlike their non-partial equivalents.
