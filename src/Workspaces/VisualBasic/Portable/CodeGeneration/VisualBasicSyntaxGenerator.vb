@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     <ExportLanguageService(GetType(SyntaxGenerator), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxGenerator
+    Friend NotInheritable Class VisualBasicSyntaxGenerator
         Inherits SyntaxGenerator
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
@@ -248,7 +248,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function LogicalNotExpression(expression As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.NotExpression(ParenthesizeNonSimple(expression))
+            ' This helper is used in some locations where the formatter is not available.  So try to ensure
+            ' that we generate proper code with a space between the 'Not' and the expression when necessary.
+            Return SyntaxFactory.NotExpression(
+                SyntaxFactory.Token(SyntaxKind.NotKeyword).WithTrailingTrivia(SyntaxFactory.ElasticSpace),
+                ParenthesizeNonSimple(expression))
         End Function
 
         Public Overrides Function LogicalOrExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode

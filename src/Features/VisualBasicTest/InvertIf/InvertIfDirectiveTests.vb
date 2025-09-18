@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
             end interface
             #end if
             ", "
-            #if (false)
+            #if (False)
             interface I
 
             end interface
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
                 end interface
                 #end if
             ", "
-                #if (false)
+                #if (False)
                 interface I
 
                 end interface
