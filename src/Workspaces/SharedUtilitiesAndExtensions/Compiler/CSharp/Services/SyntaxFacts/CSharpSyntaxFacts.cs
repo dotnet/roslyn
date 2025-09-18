@@ -890,8 +890,14 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 #endif
     }
 
-    public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
-        => ((TypeDeclarationSyntax)typeDeclaration).Members;
+    public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode node)
+        => node is TypeDeclarationSyntax { Members: var members } ? members : [];
+
+    public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode node)
+        => node is BaseNamespaceDeclarationSyntax { Members: var members } ? members : [];
+
+    public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode node)
+        => node is CompilationUnitSyntax { Members: var members } ? members : [];
 
     protected override void AppendMembers(SyntaxNode? node, ArrayBuilder<SyntaxNode> list, bool topLevel, bool methodLevel)
     {
@@ -994,36 +1000,6 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
         // Patterns are never bindable (though their constituent types/exprs may be).
         return node is PatternSyntax ? null : node;
-    }
-
-    public ImmutableArray<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
-    {
-        if (root is not CompilationUnitSyntax compilationUnit)
-            return [];
-
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var constructors);
-        AppendConstructors(compilationUnit.Members);
-        return constructors.ToImmutableAndClear();
-
-        void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            foreach (var member in members)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                switch (member)
-                {
-                    case ConstructorDeclarationSyntax constructor:
-                        constructors.Add(constructor);
-                        continue;
-                    case BaseNamespaceDeclarationSyntax @namespace:
-                        AppendConstructors(@namespace.Members);
-                        break;
-                    case TypeDeclarationSyntax typeDeclaration:
-                        AppendConstructors(typeDeclaration.Members);
-                        break;
-                }
-            }
-        }
     }
 
     public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

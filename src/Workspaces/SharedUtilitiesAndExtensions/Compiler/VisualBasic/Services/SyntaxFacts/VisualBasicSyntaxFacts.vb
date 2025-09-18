@@ -843,8 +843,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return Nothing
         End Function
 
-        Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
-            Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
+        Public Function GetMembersOfTypeDeclaration(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
+            Dim block = TryCast(node, TypeBlockSyntax)
+            Return If(block Is Nothing, Nothing, block.Members)
+        End Function
+
+        Public Function GetMembersOfNamespaceDeclaration(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfNamespaceDeclaration
+            Dim block = TryCast(node, NamespaceBlockSyntax)
+            Return If(block Is Nothing, Nothing, block.Members)
+        End Function
+
+        Public Function GetMembersOfCompilationUnit(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfCompilationUnit
+            Dim block = TryCast(node, CompilationUnitSyntax)
+            Return If(block Is Nothing, Nothing, block.Members)
         End Function
 
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTopLevelNodeWithMembers
@@ -1057,39 +1068,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
             Return node
         End Function
-
-        Public Function GetConstructors(root As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFacts.GetConstructors
-            Dim compilationUnit = TryCast(root, CompilationUnitSyntax)
-            If compilationUnit Is Nothing Then
-                Return ImmutableArray(Of SyntaxNode).Empty
-            End If
-
-            Dim constructors = ArrayBuilder(Of SyntaxNode).GetInstance()
-            AppendConstructors(compilationUnit.Members, constructors, cancellationToken)
-            Return constructors.ToImmutableAndFree()
-        End Function
-
-        Private Shared Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As ArrayBuilder(Of SyntaxNode), cancellationToken As CancellationToken)
-            For Each member As StatementSyntax In members
-                cancellationToken.ThrowIfCancellationRequested()
-
-                Dim constructor = TryCast(member, ConstructorBlockSyntax)
-                If constructor IsNot Nothing Then
-                    constructors.Add(constructor)
-                    Continue For
-                End If
-
-                Dim [namespace] = TryCast(member, NamespaceBlockSyntax)
-                If [namespace] IsNot Nothing Then
-                    AppendConstructors([namespace].Members, constructors, cancellationToken)
-                End If
-
-                Dim typeBlock = TryCast(member, TypeBlockSyntax)
-                If typeBlock IsNot Nothing Then
-                    AppendConstructors(typeBlock.Members, constructors, cancellationToken)
-                End If
-            Next
-        End Sub
 
         Public Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFacts.GetInactiveRegionSpanAroundPosition
             Dim trivia = tree.FindTriviaToLeft(position, cancellationToken)
