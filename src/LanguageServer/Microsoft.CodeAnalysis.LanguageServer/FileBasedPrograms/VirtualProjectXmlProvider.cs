@@ -203,13 +203,13 @@ internal class VirtualProjectXmlProvider(IDiagnosticsRefresher diagnosticRefresh
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(documentFilePath));
         var artifactsPath = GetArtifactsPath(documentFilePath);
 
-        var targetFramework = Environment.GetEnvironmentVariable("DOTNET_RUN_FILE_TFM") ?? "net10.0";
+        var targetFramework = Environment.GetEnvironmentVariable("DOTNET_RUN_FILE_TFM") ?? "net$(BundledNETCoreAppTargetFrameworkVersion)";
 
         var virtualProjectXml = $"""
             <Project>
               <PropertyGroup>
-                <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
-                <ArtifactsPath>{SecurityElement.Escape(artifactsPath)}</ArtifactsPath>
+                <BaseIntermediateOutputPath>{SecurityElement.Escape(artifactsPath)}\obj\</BaseIntermediateOutputPath>
+                <BaseOutputPath>{SecurityElement.Escape(artifactsPath)}\bin\</BaseOutputPath>
               </PropertyGroup>
               <!-- We need to explicitly import Sdk props/targets so we can override the targets below. -->
               <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />

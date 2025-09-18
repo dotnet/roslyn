@@ -4,6 +4,7 @@
 
 Imports System.ComponentModel.Design
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Options
@@ -57,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Sub New()
             MyBase.New()
 
-            ' This is a UI-affinitized operation. Currently this opeartion prevents setting AllowsBackgroundLoad for
+            ' This is a UI-affinitized operation. Currently this operation prevents setting AllowsBackgroundLoad for
             ' VisualBasicPackage. The call should be removed from the constructor, and the package set back to allowing
             ' background loads.
             _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
@@ -71,7 +72,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 isMainThreadTask:=False,
                 task:=Function() As Task
                           Try
-                              RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
+                              AddService(GetType(IVbCompilerService), Function(_1, cancellationToken, _2)
+                                                                          PreloadProjectSystemComponents()
+                                                                          Return Task.FromResult(_comAggregate)
+                                                                      End Function, promote:=True)
 
                               DirectCast(Me, IServiceContainer).AddService(
                                   GetType(IVbTempPECompilerFactory),

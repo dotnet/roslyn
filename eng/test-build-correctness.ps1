@@ -71,8 +71,7 @@ try {
 
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
-  & eng/generate-compiler-code.ps1 -test -configuration:$configuration
-  Test-LastExitCode
+  Exec-DotNet "run --file eng/generate-compiler-code.cs -- -test -configuration $configuration"
   Exec-DotNet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 
