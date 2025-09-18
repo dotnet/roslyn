@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (type.IsExtension)
                     {
-                        // This symbol is represents an extension block, not the marker type itself.  
+                        // This symbol represents an extension block, not the marker type itself.  
                         continue;
                     }
 
