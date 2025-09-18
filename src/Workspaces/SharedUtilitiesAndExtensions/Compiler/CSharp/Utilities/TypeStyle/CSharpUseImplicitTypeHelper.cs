@@ -83,7 +83,8 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
         {
             Context.BuiltInType => stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes),
             Context.TypeIsApparent => stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent),
-            _ => stylePreferences.HasFlag(UseVarPreference.Elsewhere),
+            Context.Elsewhere => stylePreferences.HasFlag(UseVarPreference.Elsewhere),
+            _ => throw ExceptionUtilities.UnexpectedValue(state.Context),
         };
     }
 

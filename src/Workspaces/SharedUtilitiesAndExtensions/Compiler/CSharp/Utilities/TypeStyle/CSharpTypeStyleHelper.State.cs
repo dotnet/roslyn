@@ -59,7 +59,8 @@ internal partial class CSharpTypeStyleHelper
             {
                 Context.BuiltInType => _forBuiltInTypes,
                 Context.TypeIsApparent => _whenTypeIsApparent,
-                _ => _elsewhere,
+                Context.Elsewhere => _elsewhere,
+                _ => throw ExceptionUtilities.UnexpectedValue(Context),
             };
 
         /// <summary>
