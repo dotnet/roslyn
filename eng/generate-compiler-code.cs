@@ -20,7 +20,9 @@ var (test, configuration, repoRoot) = ParseArgs(args);
 var generationTempDirRoot = Path.Join(repoRoot, "artifacts", "log", configuration, "Generated");
 var retVal = 0;
 
-// Generate C# syntax source
+// Generate C# source
+Console.WriteLine("Generating C# files...");
+
 var csharpLocation = GetLanguageDirStructure(repoRoot, "CSharp", generationTempDirRoot, test);
 retVal = GenerateLanguage(
     BoundTreeGenerator.TargetLanguage.CSharp,
@@ -31,7 +33,9 @@ retVal = GenerateLanguage(
         => CSharpSyntaxGenerator.Program.Generate(inputFile, outputFile, writeSource, writeTests, writeGrammar, writeSignatures: false),
     Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator.Program.Generate);
 
-// Generate VB syntax source
+// Generate VB source
+Console.WriteLine("Generating VB files...");
+
 var vbLocation = GetLanguageDirStructure(repoRoot, "VisualBasic", generationTempDirRoot, test);
 retVal |= GenerateLanguage(
     BoundTreeGenerator.TargetLanguage.VB,
@@ -42,6 +46,8 @@ retVal |= GenerateLanguage(
     Microsoft.CodeAnalysis.VisualBasic.Internal.VBErrorFactsGenerator.Program.Generate);
 
 // Generate VB GetText source
+Console.WriteLine("Generating VB GetText files...");
+
 var getTextLocation = GetGetTextLocation(vbLocation, repoRoot, generationTempDirRoot, test);
 Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator.Program.Generate(
     Path.Join(vbLocation.LanguageDir, "Syntax", "Syntax.xml"),
@@ -49,14 +55,18 @@ Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator.Program.Generate(
     writeSource: false, writeTests: false, writeGrammar: false);
 
 // Generate IOperation source
+Console.WriteLine("Generating IOperation files...");
+
 var ioperationLocation = GetIOperationLocation(repoRoot, generationTempDirRoot, test);
 retVal |= IOperationGenerator.Program.Generate(Path.Join(ioperationLocation.LanguageDir, "Operations", "OperationInterfaces.xml"), test ? ioperationLocation.GeneratedSourceTempDir : ioperationLocation.GeneratedSourceDir);
 
 if (test)
 {
+    Console.WriteLine("Verifying generated files...");
     retVal |= TestGenerationResults(repoRoot, csharpLocation, vbLocation, getTextLocation, ioperationLocation);
 }
 
+Console.WriteLine(retVal == 0 ? "Generation succeeded." : "Generation failed.");
 return retVal;
 
 static (bool test, string configuration, string roslynDirectory) ParseArgs(string[] args, [CallerFilePath] string sourceFilePath = "")

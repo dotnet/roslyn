@@ -133,6 +133,7 @@
         "type": "shell",
         "args": [
           "run",
+          "--file",
           "${workspaceFolder}/eng/generate-compiler-code.cs"
         ],
         "problemMatcher": "$msCompile",
