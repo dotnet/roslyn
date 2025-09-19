@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class Moniker
+internal sealed class Moniker
 {
     /// <summary>
     /// The scheme of the moniker. For example tsc or .Net

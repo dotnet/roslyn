@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
-internal partial class StringCopyPasteCommandHandler :
+internal sealed partial class StringCopyPasteCommandHandler :
     IChainedCommandHandler<CutCommandArgs>,
     IChainedCommandHandler<CopyCommandArgs>
 {

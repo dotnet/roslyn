@@ -11,12 +11,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 
 internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
@@ -62,7 +56,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
             return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: accessibility,
-                modifiers: new DeclarationModifiers(),
+                modifiers: DeclarationModifiers.None,
                 typeName: classType.Name,
                 parameters: baseConstructor.Parameters.SelectAsArray(p => WithoutInaccessibleAttributes(p, classType)),
                 statements: default,

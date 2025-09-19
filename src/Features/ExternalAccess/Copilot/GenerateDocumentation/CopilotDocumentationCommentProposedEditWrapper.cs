@@ -5,22 +5,21 @@
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+
+internal sealed class CopilotDocumentationCommentProposedEditWrapper
 {
-    internal sealed class CopilotDocumentationCommentProposedEditWrapper
+
+    private readonly DocumentationCommentProposedEdit _documentationCommentProposedEdit;
+
+    public CopilotDocumentationCommentProposedEditWrapper(DocumentationCommentProposedEdit proposedEdit)
     {
-
-        private readonly DocumentationCommentProposedEdit _documentationCommentProposedEdit;
-
-        public CopilotDocumentationCommentProposedEditWrapper(DocumentationCommentProposedEdit proposedEdit)
-        {
-            _documentationCommentProposedEdit = proposedEdit;
-        }
-
-        public TextSpan SpanToReplace => _documentationCommentProposedEdit.SpanToReplace;
-
-        public string? SymbolName => _documentationCommentProposedEdit.SymbolName;
-
-        public CopilotDocumentationCommentTagType TagType => (CopilotDocumentationCommentTagType)_documentationCommentProposedEdit.TagType;
+        _documentationCommentProposedEdit = proposedEdit;
     }
+
+    public TextSpan SpanToReplace => _documentationCommentProposedEdit.SpanToReplace;
+
+    public string? SymbolName => _documentationCommentProposedEdit.SymbolName;
+
+    public CopilotDocumentationCommentTagType TagType => (CopilotDocumentationCommentTagType)_documentationCommentProposedEdit.TagType;
 }

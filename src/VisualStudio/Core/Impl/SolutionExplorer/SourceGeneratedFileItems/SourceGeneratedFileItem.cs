@@ -20,7 +20,7 @@ internal sealed partial class SourceGeneratedFileItem(
     string hintName,
     string languageName,
     Workspace workspace)
-    : BaseItem(name: hintName)
+    : BaseItem(hintName)
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly string _languageName = languageName;

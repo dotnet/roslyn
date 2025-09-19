@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-internal class ResettableDelay
+internal sealed class ResettableDelay
 {
     public static readonly ResettableDelay CompletedDelay = new();
 

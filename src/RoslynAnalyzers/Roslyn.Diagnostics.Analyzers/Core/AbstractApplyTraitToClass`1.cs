@@ -61,7 +61,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 CodeAction.Create(
                     RoslynDiagnosticsAnalyzersResources.ApplyTraitToContainingType,
                     cancellationToken => ApplyTraitToClassAsync(state, cancellationToken),
-                    nameof(AbstractApplyTraitToClass<TAttributeSyntax>)));
+                    nameof(AbstractApplyTraitToClass<>)));
         }
 
         private async Task<Document> ApplyTraitToClassAsync(State state, CancellationToken cancellationToken)

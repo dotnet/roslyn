@@ -696,7 +696,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ErrorCode GetProtectedMemberInSealedTypeError(NamedTypeSymbol containingType)
         {
-            return containingType.TypeKind == TypeKind.Struct ? ErrorCode.ERR_ProtectedInStruct : ErrorCode.WRN_ProtectedInSealed;
+            return containingType.IsExtension ? ErrorCode.ERR_ProtectedInExtension
+                : containingType.TypeKind == TypeKind.Struct ? ErrorCode.ERR_ProtectedInStruct
+                : ErrorCode.WRN_ProtectedInSealed;
         }
     }
 }

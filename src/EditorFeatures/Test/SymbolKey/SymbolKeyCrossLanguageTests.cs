@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SymbolKeyTests;
 
 [UseExportProvider]
-public class SymbolKeyCrossLanguageTests
+public sealed class SymbolKeyCrossLanguageTests
 {
     [Theory]
     [InlineData("dynamic")]
@@ -22,20 +22,22 @@ public class SymbolKeyCrossLanguageTests
     public async Task TestUnsupportedVBTypes(string parameterType)
     {
         using var workspace = TestWorkspace.Create(
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" Name=""CSProject"">
-        <Document>
-public class C
-{{
-    public void M({parameterType} d) {{ }}
-}}
-        </Document>
-    </Project>
-    <Project Language=""Visual Basic"" CommonReference=""true"">
-        <ProjectReference>CSProject</ProjectReference>
-        
-    </Project>
-</Workspace>");
+            $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Name="CSProject">
+                    <Document>
+            public class C
+            {
+                public void M({{parameterType}} d) { }
+            }
+                    </Document>
+                </Project>
+                <Project Language="Visual Basic" CommonReference="true">
+                    <ProjectReference>CSProject</ProjectReference>
+
+                </Project>
+            </Workspace>
+            """);
 
         var solution = workspace.CurrentSolution;
         var csDocument = solution.Projects.Single(p => p.Language == LanguageNames.CSharp).Documents.Single();

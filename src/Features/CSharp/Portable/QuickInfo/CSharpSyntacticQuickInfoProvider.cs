@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
 [ExportQuickInfoProvider(QuickInfoProviderNames.Syntactic, LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = QuickInfoProviderNames.Semantic)]
-internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
+internal sealed class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

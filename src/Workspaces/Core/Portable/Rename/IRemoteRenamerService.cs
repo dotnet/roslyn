@@ -27,7 +27,6 @@ internal interface IRemoteRenamerService
         SerializableSymbolAndProjectId symbolAndProjectId,
         string replacementText,
         SymbolRenameOptions options,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
@@ -41,7 +40,6 @@ internal interface IRemoteRenamerService
         SerializableSymbolAndProjectId symbolAndProjectId,
         SerializableRenameLocations renameLocationSet,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 }
 

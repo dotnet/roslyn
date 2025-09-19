@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 /// </summary>
 [Export(typeof(IVisualStudioDiagnosticListSuppressionStateService))]
 [Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
-internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
+internal sealed class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
 {
     private readonly IThreadingContext _threadingContext;
     private readonly VisualStudioWorkspace _workspace;
@@ -58,8 +58,8 @@ internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudio
 
     public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        _shellService = await serviceProvider.GetServiceAsync<SVsUIShell, IVsUIShell>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        _shellService = await serviceProvider.GetServiceAsync<SVsUIShell, IVsUIShell>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
+        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         _tableControl = errorList?.TableControl;
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

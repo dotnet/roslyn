@@ -52,7 +52,7 @@ public sealed class LinkedFileDiffMergingEditorTests : AbstractCodeActionTest
     public async Task TestCodeActionPreviewAndApply()
     {
         // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
-        using var workspace = EditorTestWorkspace.Create(WorkspaceXml, composition: EditorTestCompositions.EditorFeaturesWpf);
+        using var workspace = EditorTestWorkspace.Create(WorkspaceXml, composition: EditorTestCompositions.EditorFeatures);
         var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, new TestParameters());
 
         await TestActionOnLinkedFiles(

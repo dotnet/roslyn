@@ -5,15 +5,15 @@
 using System;
 using System.Composition;
 using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Shell;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
-internal partial class VisualStudioDiagnosticAnalyzerProvider
+internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 {
     [Export(typeof(IVisualStudioDiagnosticAnalyzerProviderFactory)), Shared]
     internal sealed class Factory : IVisualStudioDiagnosticAnalyzerProviderFactory

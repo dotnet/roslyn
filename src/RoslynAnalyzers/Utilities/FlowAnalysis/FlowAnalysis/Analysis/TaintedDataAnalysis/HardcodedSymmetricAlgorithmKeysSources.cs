@@ -4,8 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -38,7 +38,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             (argumentPointsTos, argumentValueContents) =>
                                 argumentValueContents.Length == 1
                                 && argumentValueContents[0].LiteralValues.Any(
-                                    (object? v) => v is string s && s.Length % 4 == 0 && IsLegalKeySize(s.Length * 3 / 4))
+                                    v => v is string s && s.Length % 4 == 0 && IsLegalKeySize(s.Length * 3 / 4))
                         }
                     ),
                 });

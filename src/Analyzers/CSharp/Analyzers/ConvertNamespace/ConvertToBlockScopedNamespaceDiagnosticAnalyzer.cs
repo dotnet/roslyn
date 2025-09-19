@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class ConvertToBlockScopedNamespaceDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class ConvertToBlockScopedNamespaceDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public ConvertToBlockScopedNamespaceDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId,

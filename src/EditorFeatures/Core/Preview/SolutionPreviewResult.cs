@@ -7,13 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
-internal class SolutionPreviewResult(
+internal sealed class SolutionPreviewResult(
     IThreadingContext threadingContext,
     IList<SolutionPreviewItem>? previews,
     SolutionChangeSummary? changeSummary = null)

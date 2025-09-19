@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         private static TupleElementNamesInfo DecodeTupleElementNamesInfo(ImmutableArray<byte> bytes, ref int offset)
         {
             var n = ReadInt32(bytes, ref offset);
-            var builder = ArrayBuilder<string>.GetInstance(n);
+            var builder = ArrayBuilder<string?>.GetInstance(n);
             for (var i = 0; i < n; i++)
             {
                 var value = ReadUtf8String(bytes, ref offset);
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings<TArg>(
             int methodToken,
             TArg arg,
-            Func<int, TArg, byte[]> getMethodCustomDebugInfo,
+            Func<int, TArg, byte[]?> getMethodCustomDebugInfo,
             Func<int, TArg, ImmutableArray<string>> getMethodImportStrings,
             out ImmutableArray<string> externAliasStrings)
         {
@@ -572,7 +573,7 @@ RETRY:
         ///  "TSystem.Math" -> <type name="System.Math" />
         /// ]]>
         /// </remarks>
-        public static bool TryParseCSharpImportString(string import, out string alias, out string externAlias, out string target, out ImportTargetKind kind)
+        public static bool TryParseCSharpImportString(string import, out string? alias, out string? externAlias, out string? target, out ImportTargetKind kind)
         {
             alias = null;
             externAlias = null;
@@ -673,7 +674,7 @@ RETRY:
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="import"/> is null.</exception>
         /// <exception cref="ArgumentException">Format of <paramref name="import"/> is not valid.</exception>
-        public static bool TryParseVisualBasicImportString(string import, out string alias, out string target, out ImportTargetKind kind, out VBImportScopeKind scope)
+        public static bool TryParseVisualBasicImportString(string import, out string? alias, out string? target, out ImportTargetKind kind, out VBImportScopeKind scope)
         {
             alias = null;
             target = null;
@@ -820,7 +821,7 @@ RETRY:
             }
         }
 
-        private static bool TrySplit(string input, int offset, char separator, out string before, out string after)
+        private static bool TrySplit(string input, int offset, char separator, [NotNullWhen(true)] out string? before, [NotNullWhen(true)] out string? after)
         {
             var separatorPos = input.IndexOf(separator, offset);
 

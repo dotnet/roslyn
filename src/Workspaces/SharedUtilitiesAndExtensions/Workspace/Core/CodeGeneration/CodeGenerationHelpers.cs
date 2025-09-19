@@ -9,9 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
-
 using Microsoft.CodeAnalysis.Formatting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -194,10 +193,13 @@ internal static class CodeGenerationHelpers
         IComparer<TDeclaration> comparerWithoutNameCheck,
         IComparer<TDeclaration> comparerWithNameCheck,
         Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
-        Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
+        Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null,
+        Func<SyntaxList<TDeclaration>, int, bool>? canPlaceAtIndex = null)
         where TDeclaration : SyntaxNode
     {
         Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
+
+        canPlaceAtIndex ??= static (_, _) => true;
 
         // Try to strictly obey the after option by inserting immediately after the member containing the location
         if (info.Context.AfterThisLocation?.SourceTree is { } afterSourceTree &&
@@ -208,10 +210,8 @@ internal static class CodeGenerationHelpers
             {
                 var index = declarationList.IndexOf(afterMember);
                 index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                if (index != -1)
-                {
+                if (index != -1 && canPlaceAtIndex(declarationList, index))
                     return index;
-                }
             }
         }
 

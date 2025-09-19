@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
 internal abstract partial class AbstractGenerateMethodService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
-    internal new class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
+    internal new sealed class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
     {
         public static async Task<State> GenerateMethodStateAsync(
             TService service,
@@ -167,7 +167,7 @@ internal abstract partial class AbstractGenerateMethodService<TService, TSimpleN
                 {
                     // If we inferred Func/Action here, attempt to create better parameter names than the default
                     // 'arg1/arg2/arg3' form that the delegate specifies.
-                    var parameterNames = delegateInvokeMethod.ContainingType is { Name: nameof(Action) or nameof(Func<int>), ContainingNamespace.Name: nameof(System) }
+                    var parameterNames = delegateInvokeMethod.ContainingType is { Name: nameof(Action) or nameof(Func<>), ContainingNamespace.Name: nameof(System) }
                         ? GenerateParameterNamesBasedOnParameterTypes(delegateInvokeMethod.Parameters)
                         : delegateInvokeMethod.Parameters.SelectAsArray(p => p.Name);
 

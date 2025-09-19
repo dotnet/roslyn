@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal class SpanChange : AbstractChange
+internal sealed class SpanChange : AbstractChange
 {
     private readonly DocumentId _id;
     private readonly ITrackingSpan _span;

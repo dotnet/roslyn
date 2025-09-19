@@ -12,7 +12,7 @@ internal readonly struct MoveStaticMembersOptions
 {
     public bool IsCancelled { get; }
 
-    public string FileName { get; }
+    public string FilePath { get; }
 
     public bool IsNewType { get; }
 
@@ -42,7 +42,7 @@ internal readonly struct MoveStaticMembersOptions
         RoslynDebug.AssertNotNull(sourceLocation.SyntaxTree);
 
         IsCancelled = isCancelled;
-        FileName = sourceLocation.SyntaxTree.FilePath;
+        FilePath = sourceLocation.SyntaxTree.FilePath;
         IsNewType = false;
         Destination = destination;
         TypeName = null;
@@ -57,7 +57,7 @@ internal readonly struct MoveStaticMembersOptions
         bool isCancelled = false)
     {
         IsCancelled = isCancelled;
-        FileName = fileName;
+        FilePath = fileName;
         IsNewType = true;
         Destination = null;
         var namespacesAndType = fullTypeName.Split(separator: '.');

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -27,7 +28,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
@@ -42,7 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 internal sealed class VisualStudioSuppressionFixService(
     IThreadingContext threadingContext,
     VisualStudioWorkspaceImpl workspace,
-    IDiagnosticAnalyzerService diagnosticService,
     ICodeFixService codeFixService,
     ICodeActionEditHandlerService editHandlerService,
     VisualStudioDiagnosticListSuppressionStateService suppressionStateService,
@@ -53,7 +52,6 @@ internal sealed class VisualStudioSuppressionFixService(
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly VisualStudioWorkspaceImpl _workspace = workspace;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
-    private readonly IDiagnosticAnalyzerService _diagnosticService = diagnosticService;
     private readonly ICodeFixService _codeFixService = codeFixService;
     private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService = workspace.Services.GetRequiredService<IFixMultipleOccurrencesService>();
     private readonly ICodeActionEditHandlerService _editHandlerService = editHandlerService;
@@ -64,9 +62,9 @@ internal sealed class VisualStudioSuppressionFixService(
 
     private IWpfTableControl? _tableControl;
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
+    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         _tableControl = errorList?.TableControl;
     }
 
@@ -348,7 +346,7 @@ internal sealed class VisualStudioSuppressionFixService(
                     cancellationToken).ConfigureAwait(false);
 
                 // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
-                _diagnosticService.RequestDiagnosticRefresh();
+                _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>().RequestDiagnosticRefresh();
             }
         }
         catch (OperationCanceledException)
@@ -484,7 +482,8 @@ internal sealed class VisualStudioSuppressionFixService(
                 RoslynDebug.AssertNotNull(latestDocumentDiagnosticsMap);
 
                 var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
-                var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
+                var diagnosticService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var latestProjectDiagnostics = (await diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
                     diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
@@ -541,24 +540,12 @@ internal sealed class VisualStudioSuppressionFixService(
 
     private async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
     {
-        var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
+        using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>>.GetInstance(out var builder);
         foreach (var diagnosticData in diagnosticsToFix.Where(IsProjectDiagnostic))
-        {
-            RoslynDebug.AssertNotNull(diagnosticData.ProjectId);
-
-            if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
-            {
-                diagnosticsPerProject = [];
-                builder[diagnosticData.ProjectId] = diagnosticsPerProject;
-            }
-
-            diagnosticsPerProject.Add(diagnosticData);
-        }
+            builder.MultiAdd(diagnosticData.ProjectId, diagnosticData);
 
         if (builder.Count == 0)
-        {
             return ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
-        }
 
         var finalBuilder = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
         var latestDiagnosticsToFix = filterStaleDiagnostics ? new HashSet<DiagnosticData>() : null;
@@ -574,7 +561,8 @@ internal sealed class VisualStudioSuppressionFixService(
                 RoslynDebug.AssertNotNull(latestDiagnosticsToFix);
 
                 var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
-                var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
+                var diagnosticService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var latestDiagnosticsFromDiagnosticService = (await diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
                     diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false));
 
@@ -599,6 +587,6 @@ internal sealed class VisualStudioSuppressionFixService(
         return finalBuilder.ToImmutableDictionary();
 
         // Local functions
-        static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
+        static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null;
     }
 }

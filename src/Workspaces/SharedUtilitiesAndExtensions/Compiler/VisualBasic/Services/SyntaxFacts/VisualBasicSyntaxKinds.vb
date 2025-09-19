@@ -120,11 +120,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression Implements ISyntaxKinds.ReferenceNotEqualsExpression
         Public ReadOnly Property SimpleAssignmentExpression As Integer = SyntaxKind.SimpleAssignmentStatement Implements ISyntaxKinds.SimpleAssignmentExpression
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression
+        Public ReadOnly Property SizeOfExpression As Integer? Implements ISyntaxKinds.SizeOfExpression
         Public ReadOnly Property SuppressNullableWarningExpression As Integer? Implements ISyntaxKinds.SuppressNullableWarningExpression
         Public ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.TernaryConditionalExpression
         Public ReadOnly Property ThisExpression As Integer = SyntaxKind.MeExpression Implements ISyntaxKinds.ThisExpression
         Public ReadOnly Property ThrowExpression As Integer? Implements ISyntaxKinds.ThrowExpression
         Public ReadOnly Property TupleExpression As Integer = SyntaxKind.TupleExpression Implements ISyntaxKinds.TupleExpression
+        Public ReadOnly Property TypeOfExpression As Integer = SyntaxKind.GetTypeExpression Implements ISyntaxKinds.TypeOfExpression
 
         Public ReadOnly Property AndPattern As Integer? Implements ISyntaxKinds.AndPattern
         Public ReadOnly Property ConstantPattern As Integer? Implements ISyntaxKinds.ConstantPattern

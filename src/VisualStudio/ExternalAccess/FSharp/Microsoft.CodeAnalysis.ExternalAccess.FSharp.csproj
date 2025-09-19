@@ -7,7 +7,7 @@
     <TargetFramework>net472</TargetFramework>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.FSharp</PackageId>
     <PackageDescription>
       A supporting package for F#:
@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
   </ItemGroup>
 
   <ItemGroup>

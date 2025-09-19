@@ -263,6 +263,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
 
+            if (this.GetIsNewExtensionMember() && MethodKind != MethodKind.Ordinary)
+            {
+                ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
+            }
+
             Location getReturnTypeLocation()
             {
                 returnTypeLocation ??= this.ReturnTypeLocation;

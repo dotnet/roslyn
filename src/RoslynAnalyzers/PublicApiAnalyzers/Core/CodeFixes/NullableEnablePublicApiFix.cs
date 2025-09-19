@@ -10,9 +10,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> GetFixAsync(TextDocument surfaceAreaDocument, CancellationToken cancellationToken)
+        private static async Task<Solution?> GetFixAsync(TextDocument surfaceAreaDocument, CancellationToken cancellationToken)
         {
             SourceText sourceText = await surfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SourceText newSourceText = AddNullableEnable(sourceText);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 var updatedSurfaceAreaText = new List<(DocumentId, SourceText)>();
 
-                using var uniqueShippedDocuments = PooledHashSet<string>.GetInstance();
+                using var _ = PooledHashSet<string>.GetInstance(out var uniqueShippedDocuments);
                 foreach (var project in _projectsToFix)
                 {
                     foreach (var isPublic in new[] { true, false })

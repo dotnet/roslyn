@@ -235,8 +235,6 @@ class C
 
         [Theory]
         [InlineData("-")]
-        [InlineData("++")]
-        [InlineData("--")]
         public void UnaryOperators_Supported_08(string op)
         {
             var source1 =
@@ -251,7 +249,28 @@ class C
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,23): error CS0558: User-defined operator 'C.operator checked --(C)' must be declared static and public
                 //     C operator checked--(C x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23)
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23)
+                );
+        }
+
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void IncrementOperators_Supported_08(string op)
+        {
+            var source1 =
+@"
+class C 
+{
+    C operator checked" + op + @"(C x) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
+                // (4,23): error CS0558: User-defined operator 'C.operator checked ++(C)' must be declared static and public
+                //     C operator checked++(C x) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23)
                 );
         }
 
@@ -372,9 +391,15 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                // (4,38): error CS1535: Overloaded unary operator '--' takes one parameter
+                // (4,38): error CS0106: The modifier 'static' is not valid for this item
                 //     public static C operator checked --() => default;
-                Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("static").WithLocation(4, 38),
+                // (4,38): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+                //     public static C operator checked --() => default;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, op).WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(4, 38),
+                // (4,38): error CS9310: The return type for this operator must be void
+                //     public static C operator checked --() => default;
+                Diagnostic(ErrorCode.ERR_OperatorMustReturnVoid, op).WithLocation(4, 38)
                 );
 
             var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
@@ -1420,7 +1445,7 @@ class C
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,23): error CS0558: User-defined operator 'C.operator checked -(C, C)' must be declared static and public
                 //     C operator checked-(C x, C y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C.operator checked " + op + "(C, C)").WithLocation(4, 23)
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("C.operator checked " + op + "(C, C)").WithLocation(4, 23)
                 );
         }
 
@@ -2658,7 +2683,7 @@ class C
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,31): error CS0558: User-defined operator 'C.explicit operator checked int(C)' must be declared static and public
                 //     explicit operator checked int(C x) => 0;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("C.explicit operator checked int(C)").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("C.explicit operator checked int(C)").WithLocation(4, 31)
                 );
         }
 

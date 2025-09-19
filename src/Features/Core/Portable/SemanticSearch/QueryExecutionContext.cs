@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
@@ -41,7 +42,7 @@ internal sealed class QueryExecutionContext(
     public long ExecutionTime => _executionTime;
     public int ProcessedProjectCount => _processedProjectCount;
 
-    public async Task InvokeAsync(Solution solution, QueryKind targetEntity, CancellationToken cancellationToken)
+    public async Task InvokeAsync(Solution solution, QueryKind queryKind, CancellationToken cancellationToken)
     {
         // Invoke query on projects and types in parallel and on members serially.
         // Cancel execution if the query throws an exception.
@@ -63,16 +64,16 @@ internal sealed class QueryExecutionContext(
                     // only search source symbols:
                     var rootNamespace = compilation.Assembly.GlobalNamespace;
 
-                    switch (targetEntity)
+                    switch (queryKind)
                     {
                         case QueryKind.Compilation:
-                            await InvokeAsync(project, compilation, entity: compilation, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                            await InvokeAsync(project, compilation, entity: compilation, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
                             break;
 
                         case QueryKind.Namespace:
                             await Parallel.ForEachAsync(rootNamespace.GetAllNamespaces(cancellationToken), cancellationToken, async (namespaceSymbol, cancellationToken) =>
                             {
-                                await InvokeAsync(project, compilation, entity: namespaceSymbol, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                                await InvokeAsync(project, compilation, entity: namespaceSymbol, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
                             }).ConfigureAwait(false);
                             break;
 
@@ -82,13 +83,13 @@ internal sealed class QueryExecutionContext(
                         case QueryKind.Property:
                         case QueryKind.Event:
 
-                            var kind = GetSymbolKind(targetEntity);
+                            var kind = GetSymbolKind(queryKind);
 
                             await Parallel.ForEachAsync(rootNamespace.GetAllTypes(cancellationToken), async (type, cancellationToken) =>
                             {
                                 if (kind == SymbolKind.NamedType)
                                 {
-                                    await InvokeAsync(project, compilation, entity: type, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                                    await InvokeAsync(project, compilation, entity: type, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
                                 }
                                 else
                                 {
@@ -96,7 +97,7 @@ internal sealed class QueryExecutionContext(
                                     {
                                         if (member.Kind == kind)
                                         {
-                                            await InvokeAsync(project, compilation, entity: member, symbolEnumerationCancellationSource, cancellationToken).ConfigureAwait(false);
+                                            await InvokeAsync(project, compilation, entity: member, symbolEnumerationCancellationSource: symbolEnumerationCancellationSource, cancellationToken: cancellationToken).ConfigureAwait(false);
                                         }
                                     }
                                 }
@@ -130,30 +131,40 @@ internal sealed class QueryExecutionContext(
 
             try
             {
-                var symbols = (IEnumerable<ISymbol?>?)method.Invoke(null, [entity]) ?? [];
+                var symbols = method.Invoke(null, [entity]) switch
+                {
+                    IAsyncEnumerable<ISymbol> asyncEnumerableSymbols => asyncEnumerableSymbols,
+                    IEnumerable<ISymbol> enumerableSymbols => enumerableSymbols.AsAsyncEnumerable(),
+                    null => Array.Empty<ISymbol>().AsAsyncEnumerable(),
 
-                foreach (var symbol in symbols)
+                    // we shouldn't have compiled the query:
+                    var other => throw ExceptionUtilities.UnexpectedValue(other)
+                };
+
+                await foreach (var symbol in symbols.WithCancellation(cancellationToken).ConfigureAwait(false))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (symbol != null)
+                    if (symbol == null)
                     {
-                        executionTime += Stopwatch.GetElapsedTime(executionStart);
-
-                        try
-                        {
-                            var definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
-                                classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
-
-                            await resultsObserver.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                        {
-                            // skip symbol
-                        }
-
-                        executionStart = Stopwatch.GetTimestamp();
+                        return;
                     }
+
+                    executionTime += Stopwatch.GetElapsedTime(executionStart);
+
+                    try
+                    {
+                        var definitionItem = await symbol.ToClassifiedDefinitionItemAsync(
+                            classificationOptions, project.Solution, s_findReferencesSearchOptions, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
+
+                        await resultsObserver.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                    {
+                        // skip symbol
+                    }
+
+                    executionStart = Stopwatch.GetTimestamp();
                 }
             }
             finally

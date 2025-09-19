@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 [Export(typeof(IDefaultColumnGroup))]
 [Name(nameof(AnalyzerCategoryGroupingSet))]    // Required, name of the default group
 [GroupColumns(Category)] // Required, the names of the columns in the grouping
-internal class AnalyzerCategoryGroupingSet : IDefaultColumnGroup
+internal sealed class AnalyzerCategoryGroupingSet : IDefaultColumnGroup
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,7 +27,7 @@ internal class AnalyzerCategoryGroupingSet : IDefaultColumnGroup
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Category)] // TODO(jmarolf): make sure all columns have ToString implementation
-internal class AnalyzerCategoryColumnDefinition : TableColumnDefinitionBase
+internal sealed class AnalyzerCategoryColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

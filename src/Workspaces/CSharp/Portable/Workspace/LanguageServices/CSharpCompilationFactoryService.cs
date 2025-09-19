@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageService(typeof(ICompilationFactoryService), LanguageNames.CSharp), Shared]
-internal class CSharpCompilationFactoryService : ICompilationFactoryService
+internal sealed class CSharpCompilationFactoryService : ICompilationFactoryService
 {
     private static readonly CSharpCompilationOptions s_defaultOptions = new(OutputKind.ConsoleApplication, concurrentBuild: false);
 
@@ -56,12 +56,4 @@ internal class CSharpCompilationFactoryService : ICompilationFactoryService
 
     GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, string? generatedFilesBaseDirectory)
         => CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider, new GeneratorDriverOptions(baseDirectory: generatedFilesBaseDirectory));
-
-    // <Metalama> This code is used by Try.Metalama.
-    public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)> GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
-    {
-        return compilation =>
-            CSharpTransformerDriver.RunTransformers(compilation, transformers, analyzerConfigProvider, ImmutableArray<ResourceDescription>.Empty, assemblyLoader);
-    }
-    // </Metalama>
 }

@@ -14,65 +14,48 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ExternAliasCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class ExternAliasCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(ExternAliasCompletionProvider);
 
     [Fact]
-    public async Task NoAliases()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NoAliases()
+        => VerifyNoItemsExistAsync("""
             extern alias $$
             class C
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
-    public async Task ExternAlias()
-    {
-        var markup = """
+    public Task ExternAlias()
+        => VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias $$
-            """;
-        await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 1, "C#", "C#");
-    }
+            """, "goo", "goo", 1, "C#", "C#");
 
     [Fact]
-    public async Task NotAfterExternAlias()
-    {
-        var markup = """
+    public Task NotAfterExternAlias()
+        => VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias goo $$
-            """;
-        await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 0, "C#", "C#");
-    }
+            """, "goo", "goo", 0, "C#", "C#");
 
     [Fact]
-    public async Task NotGlobal()
-    {
-        var markup = """
+    public Task NotGlobal()
+        => VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias $$
-            """;
-        await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "global", 0, "C#", "C#");
-    }
+            """, "goo", "global", 0, "C#", "C#");
 
     [Fact]
-    public async Task NotIfAlreadyUsed()
-    {
-        var markup = """
+    public Task NotIfAlreadyUsed()
+        => VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias goo;
             extern alias $$
-            """;
-        await VerifyItemWithAliasedMetadataReferencesAsync(markup, "goo", "goo", 0, "C#", "C#");
-    }
+            """, "goo", "goo", 0, "C#", "C#");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
-    public async Task NotInComment()
-    {
-        var markup = """
+    public Task NotInComment()
+        => VerifyNoItemsExistAsync("""
             extern alias // $$
-            """;
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 }

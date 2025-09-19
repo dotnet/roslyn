@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Text.Json.Serialization;
 
 namespace Roslyn.LanguageServer.Protocol;
@@ -13,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// folder root, but it can be another absolute URI as well.
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class RelativePattern
+internal sealed class RelativePattern
 {
     /// <summary>
     /// A workspace folder or a base URI to which this pattern will be matched
@@ -21,7 +20,7 @@ internal class RelativePattern
     /// </summary>
     [JsonPropertyName("baseUri")]
     [JsonRequired]
-    public SumType<WorkspaceFolder, Uri> BaseUri { get; init; }
+    public SumType<WorkspaceFolder, DocumentUri> BaseUri { get; init; }
 
     /// <summary>
     /// The actual glob pattern. See <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#pattern">Glob Pattern</see> for more detail.

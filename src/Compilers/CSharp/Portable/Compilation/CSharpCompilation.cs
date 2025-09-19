@@ -1943,7 +1943,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return scriptClass.GetScriptEntryPoint();
                     }
 
-                    var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split('.')).OfMinimalArity();
+                    var nameParts = mainTypeName.Split('.');
+                    if (nameParts.Any(n => string.IsNullOrWhiteSpace(n)))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadCompilationOptionValue, NoLocation.Singleton, nameof(CSharpCompilationOptions.MainTypeName), mainTypeName);
+                        return null;
+                    }
+
+                    var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(nameParts).OfMinimalArity();
                     if (mainTypeOrNamespace is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotFound, NoLocation.Singleton, mainTypeName);
@@ -2160,6 +2167,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> entryPointCandidates, IEnumerable<Symbol> members)
         {
             foreach (var member in members)
+            {
+                if (member.GetIsNewExtensionMember())
+                {
+                    // When candidates are collected by GetSymbolsWithName, skeleton members are found but not implementation methods.
+                    // We want to include the implementation for skeleton methods.
+                    if (member is MethodSymbol method && method.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
+                    {
+                        addIfCandidate(entryPointCandidates, implementationMethod);
+                    }
+                }
+                else
+                {
+                    addIfCandidate(entryPointCandidates, member);
+                }
+            }
+
+            static void addIfCandidate(ArrayBuilder<MethodSymbol> entryPointCandidates, Symbol member)
             {
                 if (member is MethodSymbol method &&
                     method.IsEntryPointCandidate)
@@ -3714,7 +3738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_moduleInitializerMethods is object)
             {
-                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), methodBodyDiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
 
                 foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
                 {
@@ -3722,8 +3746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ilBuilder.EmitToken(
                         moduleBeingBuilt.Translate(method, methodBodyDiagnosticBag, needDeclaration: true),
-                        CSharpSyntaxTree.Dummy.GetRoot(),
-                        methodBodyDiagnosticBag);
+                        CSharpSyntaxTree.Dummy.GetRoot());
                 }
 
                 ilBuilder.EmitRet(isVoid: true);
@@ -3809,6 +3832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
+            EmitDifferenceOptions options,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3820,6 +3844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
+                options,
                 testData,
                 cancellationToken);
         }

@@ -255,8 +255,11 @@
   <data name="Remove_and_Sort_Imports" xml:space="preserve">
     <value>R&amp;emove and Sort Imports</value>
   </data>
-  <data name="Sort_Imports" xml:space="preserve">
+  <data name="Sort_Imports_with_accelerator" xml:space="preserve">
     <value>&amp;Sort Imports</value>
+  </data>
+  <data name="Sort_Imports" xml:space="preserve">
+    <value>Sort Imports</value>
   </data>
   <data name="VB_Coding_Conventions" xml:space="preserve">
     <value>VB Coding Conventions</value>

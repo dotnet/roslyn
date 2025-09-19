@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.AddPackage;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddPackage), Shared]
-internal class CSharpAddSpecificPackageCodeFixProvider : AbstractAddSpecificPackageCodeFixProvider
+internal sealed class CSharpAddSpecificPackageCodeFixProvider : AbstractAddSpecificPackageCodeFixProvider
 {
     private const string CS8179 = nameof(CS8179); // Predefined type 'System.ValueTuple`2' is not defined or imported
 

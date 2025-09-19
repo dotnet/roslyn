@@ -4,43 +4,42 @@
 
 #nullable disable
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
 using Microsoft.CodeAnalysis.Host.Mef;
-using System;
+using Microsoft.CodeAnalysis.Structure;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Structure
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Structure;
+
+[Shared]
+[ExportLanguageService(typeof(BlockStructureService), LanguageNames.FSharp)]
+internal class FSharpBlockStructureService : BlockStructureService
 {
-    [Shared]
-    [ExportLanguageService(typeof(BlockStructureService), LanguageNames.FSharp)]
-    internal class FSharpBlockStructureService : BlockStructureService
+    private readonly IFSharpBlockStructureService _service;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpBlockStructureService(IFSharpBlockStructureService service)
     {
-        private readonly IFSharpBlockStructureService _service;
+        _service = service;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpBlockStructureService(IFSharpBlockStructureService service)
+    public override string Language => LanguageNames.FSharp;
+
+    public override async Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken)
+    {
+        var blockStructure = await _service.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
+        if (blockStructure != null)
         {
-            _service = service;
+            return new BlockStructure(blockStructure.Spans.SelectAsArray(
+                x => new BlockSpan(x.Type, x.IsCollapsible, x.TextSpan, x.HintSpan, subHeadings: default, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
         }
-
-        public override string Language => LanguageNames.FSharp;
-
-        public override async Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken)
+        else
         {
-            var blockStructure = await _service.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
-            if (blockStructure != null)
-            {
-                return new BlockStructure(blockStructure.Spans.SelectAsArray(
-                    x => new BlockSpan(x.Type, x.IsCollapsible, x.TextSpan, x.HintSpan, subHeadings: default, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
-            }
-            else
-            {
-                return null;
-            }
+            return null;
         }
     }
 }

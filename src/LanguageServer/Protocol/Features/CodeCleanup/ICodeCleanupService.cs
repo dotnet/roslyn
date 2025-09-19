@@ -7,11 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.CodeCleanup
+namespace Microsoft.CodeAnalysis.CodeCleanup;
+
+internal interface ICodeCleanupService : ILanguageService
 {
-    internal interface ICodeCleanupService : ILanguageService
-    {
-        Task<Document> CleanupAsync(Document document, EnabledDiagnosticOptions enabledDiagnostics, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
-        EnabledDiagnosticOptions GetAllDiagnostics();
-    }
+    Task<Document> CleanupAsync(Document document, EnabledDiagnosticOptions enabledDiagnostics, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
+    EnabledDiagnosticOptions GetAllDiagnostics();
 }

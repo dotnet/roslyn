@@ -8,25 +8,24 @@ using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Roslyn.Text.Adornments
+namespace Roslyn.Text.Adornments;
+
+[JsonConverter(typeof(ContainerElementConverter))]
+internal sealed class ContainerElement
 {
-    [JsonConverter(typeof(ContainerElementConverter))]
-    internal sealed class ContainerElement
+    public IEnumerable<object> Elements { get; }
+
+    public ContainerElementStyle Style { get; }
+
+    public ContainerElement(ContainerElementStyle style, IEnumerable<object> elements)
     {
-        public IEnumerable<object> Elements { get; }
+        Style = style;
+        Elements = elements?.ToImmutableList() ?? throw new ArgumentNullException("elements");
+    }
 
-        public ContainerElementStyle Style { get; }
-
-        public ContainerElement(ContainerElementStyle style, IEnumerable<object> elements)
-        {
-            Style = style;
-            Elements = elements?.ToImmutableList() ?? throw new ArgumentNullException("elements");
-        }
-
-        public ContainerElement(ContainerElementStyle style, params object[] elements)
-        {
-            Style = style;
-            Elements = elements?.ToImmutableList() ?? throw new ArgumentNullException("elements");
-        }
+    public ContainerElement(ContainerElementStyle style, params object[] elements)
+    {
+        Style = style;
+        Elements = elements?.ToImmutableList() ?? throw new ArgumentNullException("elements");
     }
 }

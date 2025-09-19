@@ -8,13 +8,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using InterproceduralGlobalFlowStateAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisValueSet>;
     using GlobalFlowStateAnalysisData = DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>;
     using GlobalFlowStateAnalysisResult = DataFlowAnalysisResult<GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>;
+    using InterproceduralGlobalFlowStateAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisValueSet>;
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     /// <summary>

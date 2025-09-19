@@ -182,5 +182,5 @@ internal static class FixAllLogger
     }
 
     public static LogMessage CreateCorrelationLogMessage(int correlationId)
-        => KeyValueLogMessage.Create(LogType.UserAction, m => m[CorrelationId] = correlationId);
+        => KeyValueLogMessage.Create(LogType.UserAction, static (m, correlationId) => m[CorrelationId] = correlationId, correlationId);
 }

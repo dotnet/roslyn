@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' Handle conversions to Boolean
             If underlyingTo = PrimitiveTypeCode.Boolean Then
                 ' Emit Zero
-                _builder.EmitConstantValue(ConstantValue.Default(underlyingFrom.GetConstantValueTypeDiscriminator()))
+                _builder.EmitConstantValue(ConstantValue.Default(underlyingFrom.GetConstantValueTypeDiscriminator()), conversion.Syntax)
 
                 ' using cgt.un is optimal, but doesn't work in the case of floating point values
                 If underlyingFrom.IsFloatingPoint() Then

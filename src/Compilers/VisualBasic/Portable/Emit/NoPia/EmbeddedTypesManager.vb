@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Collections.Concurrent
 Imports System.Threading
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 #If Not DEBUG Then
 Imports SymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbol

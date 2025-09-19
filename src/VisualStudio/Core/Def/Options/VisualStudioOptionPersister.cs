@@ -4,8 +4,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 

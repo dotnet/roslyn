@@ -7,7 +7,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics</PackageId>
     <PackageDescription>
       A supporting package for Visual Studio Microsoft.VisualStudio.DesignTools.CodeAnalysis.Diagnostics:

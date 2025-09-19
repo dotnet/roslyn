@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.Formatting;
 
 [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
-internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
+internal sealed class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -62,7 +62,7 @@ internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewD
             // error.
             var modifiers = syntaxFacts.GetModifiers(declaration);
             CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
-            if (declarationModifiers.IsPartial)
+            if (declarationModifiers.HasFlag(Modifiers.Partial))
                 continue;
 
             var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);

@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
 
+        internal override bool HasEnumeratorCancellationAttribute => _underlyingParameter.HasEnumeratorCancellationAttribute;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get

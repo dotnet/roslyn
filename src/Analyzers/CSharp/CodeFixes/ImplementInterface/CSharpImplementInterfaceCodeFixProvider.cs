@@ -24,7 +24,4 @@ internal sealed class CSharpImplementInterfaceCodeFixProvider()
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [CS0535, CS0737, CS0738];
-
-    protected override bool IsTypeInInterfaceBaseList(TypeSyntax type)
-        => type.Parent is BaseTypeSyntax { Parent: BaseListSyntax } baseTypeParent && baseTypeParent.Type == type;
 }

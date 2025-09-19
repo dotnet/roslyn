@@ -5,56 +5,55 @@
 using System.Diagnostics;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+internal sealed class MSBuildDiagnosticLogger : MSB.Framework.ILogger
 {
-    internal class MSBuildDiagnosticLogger : MSB.Framework.ILogger
+    private string? _projectFilePath;
+    private DiagnosticLog? _log;
+    private MSB.Framework.IEventSource? _eventSource;
+
+    public string? Parameters { get; set; }
+    public MSB.Framework.LoggerVerbosity Verbosity { get; set; }
+
+    public void SetProjectAndLog(string projectFilePath, DiagnosticLog log)
     {
-        private string? _projectFilePath;
-        private DiagnosticLog? _log;
-        private MSB.Framework.IEventSource? _eventSource;
+        _projectFilePath = projectFilePath;
+        _log = log;
+    }
 
-        public string? Parameters { get; set; }
-        public MSB.Framework.LoggerVerbosity Verbosity { get; set; }
+    private void OnErrorRaised(object sender, MSB.Framework.BuildErrorEventArgs e)
+    {
+        Debug.Assert(_projectFilePath != null);
+        _log?.Add(new MSBuildDiagnosticLogItem(DiagnosticLogItemKind.Error, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
+    }
 
-        public void SetProjectAndLog(string projectFilePath, DiagnosticLog log)
+    private void OnWarningRaised(object sender, MSB.Framework.BuildWarningEventArgs e)
+    {
+        Debug.Assert(_projectFilePath != null);
+        _log?.Add(new MSBuildDiagnosticLogItem(DiagnosticLogItemKind.Warning, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
+    }
+
+    public void Initialize(MSB.Framework.IEventSource eventSource)
+    {
+        Debug.Assert(_eventSource == null);
+
+        _eventSource = eventSource;
+        _eventSource.ErrorRaised += OnErrorRaised;
+        _eventSource.WarningRaised += OnWarningRaised;
+    }
+
+    public void Shutdown()
+    {
+        if (_eventSource != null)
         {
-            _projectFilePath = projectFilePath;
-            _log = log;
-        }
+            _eventSource.ErrorRaised -= OnErrorRaised;
+            _eventSource.WarningRaised -= OnWarningRaised;
 
-        private void OnErrorRaised(object sender, MSB.Framework.BuildErrorEventArgs e)
-        {
-            Debug.Assert(_projectFilePath != null);
-            _log?.Add(new MSBuildDiagnosticLogItem(DiagnosticLogItemKind.Error, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
-        }
+            _eventSource = null;
 
-        private void OnWarningRaised(object sender, MSB.Framework.BuildWarningEventArgs e)
-        {
-            Debug.Assert(_projectFilePath != null);
-            _log?.Add(new MSBuildDiagnosticLogItem(DiagnosticLogItemKind.Warning, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
-        }
-
-        public void Initialize(MSB.Framework.IEventSource eventSource)
-        {
-            Debug.Assert(_eventSource == null);
-
-            _eventSource = eventSource;
-            _eventSource.ErrorRaised += OnErrorRaised;
-            _eventSource.WarningRaised += OnWarningRaised;
-        }
-
-        public void Shutdown()
-        {
-            if (_eventSource != null)
-            {
-                _eventSource.ErrorRaised -= OnErrorRaised;
-                _eventSource.WarningRaised -= OnWarningRaised;
-
-                _eventSource = null;
-
-                _projectFilePath = null;
-                _log = null;
-            }
+            _projectFilePath = null;
+            _log = null;
         }
     }
 }

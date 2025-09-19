@@ -991,6 +991,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable 
+        public string GetEscapedDocumentationCommentId()
+        {
+            return escape(GetDocumentationCommentId());
+
+            static string escape(string s)
+            {
+                Debug.Assert(!s.Contains("&"));
+                return s.Replace("<", "&lt;").Replace(">", "&gt;");
+            }
+        }
+
         /// <summary>
         /// Fetches the documentation comment for this element with a cancellation token.
         /// </summary>

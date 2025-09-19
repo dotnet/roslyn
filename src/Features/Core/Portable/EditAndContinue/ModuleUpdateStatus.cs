@@ -15,18 +15,13 @@ internal enum ModuleUpdateStatus
     None = 0,
 
     /// <summary>
-    /// All changes are valid, can be applied.
+    /// Changes can be applied (project might need rebuild in presence of transient errors).
     /// </summary>
     Ready = 1,
-
-    /// <summary>
-    /// Changes require restarting the application in order to be applied.
-    /// </summary>
-    RestartRequired = 2,
 
     /// <summary>
     /// Some changes are errors that block rebuild of the module.
     /// This means that the code is in a broken state that cannot be resolved by restarting the application.
     /// </summary>
-    Blocked = 3
+    Blocked = 2
 }

@@ -7,7 +7,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
-internal class ResourceStringConverter : JsonConverter<string>
+
+internal sealed class ResourceStringConverter : JsonConverter<string>
 {
     public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

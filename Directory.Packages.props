@@ -4,10 +4,13 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-<!-- <Metalama> -->
+
+  <!-- <Metalama> -->
   <PropertyGroup>
-    <PostSharpEngineeringVersion>2023.2.178</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">2023.2.191</PostSharpEngineeringVersion>
   </PropertyGroup>
-<!-- </Metalama> -->
+  <!-- </Metalama> -->
+
+
   <Import Project="eng\Directory.Packages.props" />
 </Project>

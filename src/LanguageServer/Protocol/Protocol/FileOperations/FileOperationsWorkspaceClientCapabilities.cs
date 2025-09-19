@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The client's capabilities for file requests/notifications.
 /// </summary>
-internal class FileOperationsWorkspaceClientCapabilities
+internal sealed class FileOperationsWorkspaceClientCapabilities
 {
     /// <summary>
     /// The client has support for sending didCreateFiles notifications.

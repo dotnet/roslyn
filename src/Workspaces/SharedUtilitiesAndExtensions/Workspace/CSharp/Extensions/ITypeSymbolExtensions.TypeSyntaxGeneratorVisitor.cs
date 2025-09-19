@@ -19,7 +19,7 @@ using static SyntaxFactory;
 
 internal partial class ITypeSymbolExtensions
 {
-    private class TypeSyntaxGeneratorVisitor : SymbolVisitor<TypeSyntax>
+    private sealed class TypeSyntaxGeneratorVisitor : SymbolVisitor<TypeSyntax>
     {
         private readonly bool _nameOnly;
 

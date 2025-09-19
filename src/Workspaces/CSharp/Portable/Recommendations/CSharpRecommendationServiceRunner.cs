@@ -700,7 +700,7 @@ internal partial class CSharpRecommendationService
             var typeMembers = GetSymbolsOffOfBoundExpressionWorker(reinterpretedBinding, originalExpression, expression, containerType, unwrapNullable, isForDereference);
 
             return new RecommendedSymbols(
-                result.NamedSymbols.Concat(typeMembers.NamedSymbols),
+                [.. result.NamedSymbols, .. typeMembers.NamedSymbols],
                 result.UnnamedSymbols);
 
             bool CanAccessInstanceAndStaticMembersOffOf(out SymbolInfo reinterpretedBinding)

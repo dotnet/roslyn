@@ -9,13 +9,15 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -157,7 +159,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else if (constructorMapper.MapFromPointsToAbstractValue != null)
                     {
-                        using ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
+                        using var _ = ArrayBuilder<PointsToAbstractValue>.GetInstance(out var builder);
 
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
@@ -169,8 +171,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     else if (constructorMapper.MapFromValueContentAbstractValue != null)
                     {
                         Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResult != null);
-                        using ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
-                        using ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
+                        using var _1 = ArrayBuilder<PointsToAbstractValue>.GetInstance(out var pointsToBuilder);
+                        using var _2 = ArrayBuilder<ValueContentAbstractValue>.GetInstance(out var valueContentBuilder);
 
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
@@ -201,7 +203,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             operation.Syntax,
                             operation.Constructor,
                             propertySetInstance,
-                            (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.InvocationEvaluator!(
+                            abstractValue => hazardousUsageEvaluator.InvocationEvaluator!(
                                 operation.Constructor,
                                 abstractValue));
                     }
@@ -446,7 +448,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         trackedAssignmentData.Free();
                     }
 
-                    this.TrackedFieldPropertyAssignments.Dispose();
+                    this.TrackedFieldPropertyAssignments.Free();
                     this.TrackedFieldPropertyAssignments = null;
                 }
             }
@@ -466,7 +468,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                 visitedArgument.Value.Syntax,
                                 null,
                                 visitedArgument.Value,
-                                (PropertySetAbstractValue abstractValue) => argumentHazardousUsageEvaluator.ValueEvaluator!(abstractValue));
+                                abstractValue => argumentHazardousUsageEvaluator.ValueEvaluator!(abstractValue));
                         }
                     }
                 }
@@ -490,7 +492,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         originalOperation.Syntax,
                         method,
                         propertySetInstance,
-                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator!.InvocationEvaluator!(method, abstractValue));
+                        abstractValue => hazardousUsageEvaluator!.InvocationEvaluator!(method, abstractValue));
                 }
                 else
                 {
@@ -549,7 +551,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
                 finally
                 {
-                    hazardousUsageTypeNames?.Dispose();
+                    hazardousUsageTypeNames?.Free();
                 }
 
                 return false;
@@ -659,7 +661,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         returnValue.Syntax,
                         null,
                         returnValue,
-                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.ValueEvaluator!(abstractValue));
+                        abstractValue => hazardousUsageEvaluator.ValueEvaluator!(abstractValue));
                 }
             }
 

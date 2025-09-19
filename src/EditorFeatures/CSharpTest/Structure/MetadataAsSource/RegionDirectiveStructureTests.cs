@@ -12,34 +12,26 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
+public sealed class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new RegionDirectiveStructureProvider();
 
     [Fact]
-    public async Task FileHeader()
-    {
-        var code = """
+    public Task FileHeader()
+        => VerifyBlockSpansAsync("""
                 {|span:#re$$gion Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
                 // C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll
                 #endregion|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse: true, isDefaultCollapsed: true));
-    }
 
     [Fact]
-    public async Task EmptyFileHeader()
-    {
-        var code = """
+    public Task EmptyFileHeader()
+        => VerifyBlockSpansAsync("""
                 {|span:#re$$gion
                 // C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll
                 #endregion|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "#region", autoCollapse: true, isDefaultCollapsed: true));
-    }
 }

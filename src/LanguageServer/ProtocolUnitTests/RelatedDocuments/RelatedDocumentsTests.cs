@@ -21,7 +21,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
 {
     private static async Task<VSInternalRelatedDocumentReport[]> RunGetRelatedDocumentsAsync(
         TestLspServer testLspServer,
-        Uri uri,
+        DocumentUri uri,
         bool useProgress = false)
     {
         BufferedProgress<VSInternalRelatedDocumentReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalRelatedDocumentReport[]>(null) : null;
@@ -29,7 +29,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             VSInternalMethods.CopilotRelatedDocumentsName,
             new VSInternalRelatedDocumentParams
             {
-                TextDocument = new TextDocumentIdentifier { Uri = uri },
+                TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
                 PartialResultToken = progress,
             },
             CancellationToken.None).ConfigureAwait(false);
@@ -189,18 +189,15 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
                 }
             }
             """;
-        var generated =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator("""
             namespace M
             {
                 class B
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+            """), testLspServer.TestWorkspace);
 
         var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
         var results = await RunGetRelatedDocumentsAsync(

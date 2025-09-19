@@ -45,8 +45,10 @@ internal sealed class FormatNewFileHandler : ILspServiceRequestHandler<FormatNew
             return null;
         }
 
+        var parsedUri = request.Document.DocumentUri.GetRequiredParsedUri();
+
         // Create a document in-memory to represent the file Razor wants to add
-        var filePath = ProtocolConversions.GetDocumentFilePathFromUri(request.Document.Uri);
+        var filePath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
         var source = SourceText.From(request.Contents);
         var fileLoader = new SourceTextLoader(source, filePath);
         var documentId = DocumentId.CreateNewId(project.Id);

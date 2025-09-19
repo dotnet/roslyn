@@ -16,12 +16,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     ConvertSwitchStatementToExpressionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-public class ConvertSwitchStatementToExpressionFixAllTests
+public sealed class ConvertSwitchStatementToExpressionFixAllTests
 {
     [Fact]
-    public async Task TestNested_01()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestNested_01()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -166,12 +165,12 @@ public class ConvertSwitchStatementToExpressionFixAllTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNested_02()
-    {
-        var input = """
+    public Task TestNested_02()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 System.Func<int> M(int i, int j)
@@ -191,8 +190,8 @@ public class ConvertSwitchStatementToExpressionFixAllTests
                     }
                 }
             }
-            """;
-        var expected = """
+            """,
+            FixedCode = """
             class Program
             {
                 System.Func<int> M(int i, int j)
@@ -213,20 +212,13 @@ public class ConvertSwitchStatementToExpressionFixAllTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37907")]
-    public async Task TestNested_03()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestNested_03()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -284,11 +276,9 @@ public class ConvertSwitchStatementToExpressionFixAllTests
                 }
             }
             """);
-    }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44572")]
-    public async Task TestImplicitConversion()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestImplicitConversion()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -329,5 +319,4 @@ public class ConvertSwitchStatementToExpressionFixAllTests
                 }
             }
             """);
-    }
 }

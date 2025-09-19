@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Description)]
-internal class CodeStyleDescriptionColumnDefinition : TableColumnDefinitionBase
+internal sealed class CodeStyleDescriptionColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

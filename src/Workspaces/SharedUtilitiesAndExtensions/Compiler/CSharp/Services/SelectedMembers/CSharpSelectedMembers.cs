@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpSelectedMembers : AbstractSelectedMembers<
+internal sealed class CSharpSelectedMembers : AbstractSelectedMembers<
     MemberDeclarationSyntax,
     FieldDeclarationSyntax,
     PropertyDeclarationSyntax,

@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, declarationKind);
         }
 
-        public override SingleNamespaceOrTypeDeclaration VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
+        public override SingleNamespaceOrTypeDeclaration VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
         {
             return VisitTypeDeclaration(node, DeclarationKind.Extension);
         }
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     anyMethodHadExtensionSyntax = true;
                 }
 
-                if (!anyExtensionDeclarationSyntax && member.Kind == SyntaxKind.ExtensionDeclaration)
+                if (!anyExtensionDeclarationSyntax && member.Kind == SyntaxKind.ExtensionBlockDeclaration)
                 {
                     anyExtensionDeclarationSyntax = true;
                 }
@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.ExtensionDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:

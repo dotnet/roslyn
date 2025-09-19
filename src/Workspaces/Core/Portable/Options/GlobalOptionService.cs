@@ -7,12 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
@@ -21,61 +19,23 @@ namespace Microsoft.CodeAnalysis.Options;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class GlobalOptionService(
-    [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
-    [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisters) : IGlobalOptionService
+    [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisterProviders) : IGlobalOptionService
 {
-    private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionPersisterProviders = [.. optionPersisters];
-
     private readonly object _gate = new();
 
     #region Guarded by _gate
 
-    private ImmutableArray<IOptionPersister> _lazyOptionPersisters;
+    private readonly Lazy<ImmutableArray<IOptionPersister>> _optionPersisters = new(() => GetOptionPersisters(optionPersisterProviders));
     private ImmutableDictionary<OptionKey2, object?> _currentValues = ImmutableDictionary.Create<OptionKey2, object?>();
 
     #endregion
 
     private readonly WeakEvent<OptionChangedEventArgs> _optionChanged = new();
 
-    private ImmutableArray<IOptionPersister> GetOptionPersisters()
+    private static ImmutableArray<IOptionPersister> GetOptionPersisters(IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisterProviders)
     {
-        if (_lazyOptionPersisters.IsDefault)
-        {
-            // Option persisters cannot be initialized while holding the global options lock
-            // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1353715
-            Debug.Assert(!Monitor.IsEntered(_gate));
-
-            ImmutableInterlocked.InterlockedInitialize(
-                ref _lazyOptionPersisters,
-                GetOptionPersistersSlow(workspaceThreadingService, _optionPersisterProviders, CancellationToken.None));
-        }
-
-        return _lazyOptionPersisters;
-
-        // Local functions
-        static ImmutableArray<IOptionPersister> GetOptionPersistersSlow(
-            IWorkspaceThreadingService? workspaceThreadingService,
-            ImmutableArray<Lazy<IOptionPersisterProvider>> persisterProviders,
-            CancellationToken cancellationToken)
-        {
-            if (workspaceThreadingService is not null)
-            {
-                return workspaceThreadingService.Run(() => GetOptionPersistersAsync(persisterProviders, cancellationToken));
-            }
-            else
-            {
-                return GetOptionPersistersAsync(persisterProviders, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            }
-        }
-
-        static async Task<ImmutableArray<IOptionPersister>> GetOptionPersistersAsync(
-            ImmutableArray<Lazy<IOptionPersisterProvider>> persisterProviders,
-            CancellationToken cancellationToken)
-        {
-            return await persisterProviders.SelectAsArrayAsync(
-                static (lazyProvider, cancellationToken) => lazyProvider.Value.GetOrCreatePersisterAsync(cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
+        return optionPersisterProviders.SelectAsArray(
+            static provider => provider.Value.GetOrCreatePersister());
     }
 
     private static object? LoadOptionFromPersisterOrGetDefault(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
@@ -107,9 +67,6 @@ internal sealed class GlobalOptionService(
 
     public T GetOption<T>(OptionKey2 optionKey)
     {
-        // Ensure the option persisters are available before taking the global lock
-        var persisters = GetOptionPersisters();
-
         // Performance: This is called very frequently, with the vast majority (> 99%) of calls requesting a previously
         //  added key. In those cases, we can avoid taking the lock as _currentValues is an immutable structure.
         if (_currentValues.TryGetValue(optionKey, out var value))
@@ -117,6 +74,8 @@ internal sealed class GlobalOptionService(
             return (T)value!;
         }
 
+        // Ensure the option persisters are available before taking the global lock
+        var persisters = _optionPersisters.Value;
         lock (_gate)
         {
             return (T)GetOption_NoLock(ref _currentValues, optionKey, persisters)!;
@@ -125,8 +84,6 @@ internal sealed class GlobalOptionService(
 
     public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys)
     {
-        // Ensure the option persisters are available before taking the global lock
-        var persisters = GetOptionPersisters();
         using var values = TemporaryArray<object?>.Empty;
 
         // Performance: The vast majority of calls are for previously added keys. In those cases, we can avoid taking the lock
@@ -145,6 +102,8 @@ internal sealed class GlobalOptionService(
 
         if (values.Count != optionKeys.Length)
         {
+            // Ensure the option persisters are available before taking the global lock
+            var persisters = _optionPersisters.Value;
             lock (_gate)
             {
                 foreach (var optionKey in optionKeys)
@@ -181,7 +140,7 @@ internal sealed class GlobalOptionService(
         => SetGlobalOption(new OptionKey2(option, language), value);
 
     public void SetGlobalOption(OptionKey2 optionKey, object? value)
-        => SetGlobalOptions(OneOrMany.Create(KeyValuePairUtil.Create(optionKey, value)));
+        => SetGlobalOptions(OneOrMany.Create(KeyValuePair.Create(optionKey, value)));
 
     public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
         => SetGlobalOptions(OneOrMany.Create(options));
@@ -189,7 +148,7 @@ internal sealed class GlobalOptionService(
     private bool SetGlobalOptions(OneOrMany<KeyValuePair<OptionKey2, object?>> options)
     {
         using var _ = ArrayBuilder<(OptionKey2, object?)>.GetInstance(options.Count, out var changedOptions);
-        var persisters = GetOptionPersisters();
+        var persisters = _optionPersisters.Value;
 
         lock (_gate)
         {

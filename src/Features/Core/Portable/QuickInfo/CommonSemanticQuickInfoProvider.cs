@@ -176,7 +176,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         return QuickInfoUtilities.CreateQuickInfoItemAsync(
             services, semanticModel, token.Span, symbols, supportedPlatforms,
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, onTheFlyDocsInfo, cancellationToken);
+            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, options, onTheFlyDocsInfo, cancellationToken);
     }
 
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
@@ -186,7 +186,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
 
-    protected virtual NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
+    protected virtual (NullableAnnotation, NullableFlowState) GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => default;
 
     private TokenInformation BindToken(
         SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
@@ -206,13 +206,11 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         if (filteredSymbols is [var firstSymbol, ..])
         {
             var isAwait = syntaxFacts.IsAwaitKeyword(token);
-            var nullableFlowState = NullableFlowState.None;
-            if (bindableParent != null)
-            {
-                nullableFlowState = GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken);
-            }
+            var nullabilityInfo = bindableParent != null
+                ? GetNullabilityAnalysis(semanticModel, firstSymbol, bindableParent, cancellationToken)
+                : default;
 
-            return new TokenInformation(filteredSymbols.ToImmutableAndClear(), isAwait, nullableFlowState);
+            return new TokenInformation(filteredSymbols.ToImmutableAndClear(), isAwait, nullabilityInfo);
         }
 
         // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at

@@ -15,8 +15,13 @@ internal partial struct SymbolKey
 
         protected sealed override SymbolKeyResolution Resolve(SymbolKeyReader reader, IPreprocessingSymbol? contextualSymbol, out string? failureReason)
         {
+#if !ROSLYN_4_12_OR_LOWER
             failureReason = null;
             return new SymbolKeyResolution(reader.Compilation.CreatePreprocessingSymbol(reader.ReadRequiredString()));
+#else
+            failureReason = "Preprocessing symbols are not supported in this version of Roslyn.";
+            return default;
+#endif
         }
     }
 }

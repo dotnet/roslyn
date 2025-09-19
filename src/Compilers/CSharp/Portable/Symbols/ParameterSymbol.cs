@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
+        /// Indicates whether the parameter has the EnumeratorCancellation attribute.
+        /// </summary>
+        internal abstract bool HasEnumeratorCancellationAttribute { get; }
+
+        /// <summary>
         /// Describes how the parameter is marshalled when passed to native code.
         /// Null if no specific marshalling information is available for the parameter.
         /// </summary>
@@ -424,6 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <c>UnscopedRefAttribute</c>.
         /// </summary>
         internal abstract ScopedKind EffectiveScope { get; }
+
+        /// <summary>
+        /// Only valid for parameters declared in source.
+        /// </summary>
+        internal abstract ScopedKind DeclaredScope { get; }
 
         internal abstract bool HasUnscopedRefAttribute { get; }
 

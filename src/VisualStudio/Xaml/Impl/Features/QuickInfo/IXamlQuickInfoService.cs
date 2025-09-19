@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.QuickInfo
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.QuickInfo;
+
+internal interface IXamlQuickInfoService : ILanguageService
 {
-    internal interface IXamlQuickInfoService : ILanguageService
-    {
-        Task<XamlQuickInfo> GetQuickInfoAsync(TextDocument document, int position, CancellationToken cancellationToken);
-    }
+    Task<XamlQuickInfo> GetQuickInfoAsync(TextDocument document, int position, CancellationToken cancellationToken);
 }

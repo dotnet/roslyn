@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SemanticSearch;
 
-internal class MockSemanticSearchResultsObserver : ISemanticSearchResultsObserver
+internal sealed class MockSemanticSearchResultsObserver : ISemanticSearchResultsObserver
 {
     public Action<DefinitionItem>? OnDefinitionFoundImpl { get; set; }
     public Action<UserCodeExceptionInfo>? OnUserCodeExceptionImpl { get; set; }

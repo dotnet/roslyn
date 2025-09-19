@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 
-internal class Model
+internal sealed class Model
 {
     public ITextVersion TextVersion { get; }
     public QuickInfoItem Item { get; }

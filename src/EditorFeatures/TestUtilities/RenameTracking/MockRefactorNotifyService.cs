@@ -7,40 +7,39 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking;
+
+public sealed class MockRefactorNotifyService : IRefactorNotifyService
 {
-    public sealed class MockRefactorNotifyService : IRefactorNotifyService
+    private int _onAfterSymbolRenamedCount = 0;
+
+    public int OnBeforeSymbolRenamedCount { get; private set; } = 0;
+    public int OnAfterSymbolRenamedCount { get { return _onAfterSymbolRenamedCount; } }
+
+    public bool OnBeforeSymbolRenamedReturnValue { get; set; }
+    public bool OnAfterSymbolRenamedReturnValue { get; set; }
+
+    public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
     {
-        private int _onAfterSymbolRenamedCount = 0;
+        OnBeforeSymbolRenamedCount++;
 
-        public int OnBeforeSymbolRenamedCount { get; private set; } = 0;
-        public int OnAfterSymbolRenamedCount { get { return _onAfterSymbolRenamedCount; } }
-
-        public bool OnBeforeSymbolRenamedReturnValue { get; set; }
-        public bool OnAfterSymbolRenamedReturnValue { get; set; }
-
-        public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+        if (throwOnFailure && !OnBeforeSymbolRenamedReturnValue)
         {
-            OnBeforeSymbolRenamedCount++;
-
-            if (throwOnFailure && !OnBeforeSymbolRenamedReturnValue)
-            {
-                Marshal.ThrowExceptionForHR(unchecked((int)0x80004004)); // E_ABORT
-            }
-
-            return OnBeforeSymbolRenamedReturnValue;
+            Marshal.ThrowExceptionForHR(unchecked((int)0x80004004)); // E_ABORT
         }
 
-        public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+        return OnBeforeSymbolRenamedReturnValue;
+    }
+
+    public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+    {
+        _onAfterSymbolRenamedCount++;
+
+        if (throwOnFailure && !OnAfterSymbolRenamedReturnValue)
         {
-            _onAfterSymbolRenamedCount++;
-
-            if (throwOnFailure && !OnAfterSymbolRenamedReturnValue)
-            {
-                Marshal.ThrowExceptionForHR(unchecked((int)0x80004004)); // E_ABORT
-            }
-
-            return OnAfterSymbolRenamedReturnValue;
+            Marshal.ThrowExceptionForHR(unchecked((int)0x80004004)); // E_ABORT
         }
+
+        return OnAfterSymbolRenamedReturnValue;
     }
 }

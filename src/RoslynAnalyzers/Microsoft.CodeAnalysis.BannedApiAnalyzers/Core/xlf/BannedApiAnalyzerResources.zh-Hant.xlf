@@ -4,47 +4,47 @@
     <body>
       <trans-unit id="DuplicateBannedSymbolDescription">
         <source>The list of banned symbols contains a duplicate.</source>
-        <target state="new">The list of banned symbols contains a duplicate.</target>
+        <target state="translated">禁止符號清單出現重複的項目。</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolMessage">
         <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
-        <target state="new">The symbol '{0}' is listed multiple times in the list of banned APIs</target>
+        <target state="translated">在禁止的 API 清單中，列出了多次符號 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolTitle">
         <source>The list of banned symbols contains a duplicate</source>
-        <target state="new">The list of banned symbols contains a duplicate</target>
+        <target state="translated">禁止的符號清單包含重複項目</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToDescription">
         <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
-        <target state="new">RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</target>
+        <target state="translated">RestrictedInternalsVisibleToAttribute 是受限版的 InternalsVisibleToAttribute，會限制對指定命名空間中內部符號的存取。參考的每一個組件都只能存取所參考組件允許之受限命名空間中定義的內部符號。</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
         <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</source>
-        <target state="new">External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</target>
+        <target state="translated">禁止從外部存取內部符號 '{0}'。組件 '{1}' 只得存取下列命名空間中所定義的內部符號: '{2}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">
         <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
-        <target state="new">External access to internal symbols outside the restricted namespace(s) is prohibited</target>
+        <target state="translated">外部無法存取受限命名空間外部的內部符號</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
-        <target state="new">The symbol has been marked as banned in this project, and an alternate should be used instead.</target>
+        <target state="translated">符號已標示為在此專案中禁用，因此應改用替代符號。</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedMessage">
         <source>The symbol '{0}' is banned in this project{1}</source>
-        <target state="new">The symbol '{0}' is banned in this project{1}</target>
+        <target state="translated">此專案中禁用符號 '{0}'{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedTitle">
         <source>Do not use banned APIs</source>
-        <target state="new">Do not use banned APIs</target>
+        <target state="translated">請勿使用禁止的 API</target>
         <note />
       </trans-unit>
     </body>

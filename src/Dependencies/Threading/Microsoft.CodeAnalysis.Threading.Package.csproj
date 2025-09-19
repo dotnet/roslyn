@@ -9,7 +9,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <IsSourcePackage>true</IsSourcePackage>
     <PackageId>Microsoft.CodeAnalysis.Threading</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -19,10 +19,6 @@
     <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
-  <ItemGroup>
-    <!-- ⚠ Consuming projects will be required to manually reproduce the APIs for any linked files added here -->
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="External\FatalError.cs" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Threading.Tasks.Extensions" />

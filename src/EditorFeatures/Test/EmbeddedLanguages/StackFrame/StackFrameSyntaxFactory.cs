@@ -12,9 +12,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame;
 
+using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
 using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
 using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
-using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
 
 internal static class StackFrameSyntaxFactory
 {
@@ -61,10 +61,10 @@ internal static class StackFrameSyntaxFactory
     public static StackFrameParameterDeclarationNode Parameter(StackFrameTypeNode type, StackFrameToken identifier)
         => new(type, identifier);
 
-    public static StackFrameParameterList ParameterList(params StackFrameParameterDeclarationNode[] parameters)
+    public static StackFrameParameterList ParameterList(params ReadOnlySpan<StackFrameParameterDeclarationNode> parameters)
         => ParameterList(OpenParenToken, CloseParenToken, parameters);
 
-    public static StackFrameParameterList ParameterList(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameParameterDeclarationNode[] parameters)
+    public static StackFrameParameterList ParameterList(StackFrameToken openToken, StackFrameToken closeToken, params ReadOnlySpan<StackFrameParameterDeclarationNode> parameters)
     {
         var separatedList = parameters.Length == 0
             ? EmbeddedSeparatedSyntaxNodeList<StackFrameKind, StackFrameNode, StackFrameParameterDeclarationNode>.Empty
@@ -72,7 +72,7 @@ internal static class StackFrameSyntaxFactory
 
         return new(openToken, separatedList, closeToken);
 
-        static ImmutableArray<StackFrameNodeOrToken> CommaSeparateList(StackFrameParameterDeclarationNode[] parameters)
+        static ImmutableArray<StackFrameNodeOrToken> CommaSeparateList(ReadOnlySpan<StackFrameParameterDeclarationNode> parameters)
         {
             var builder = ImmutableArray.CreateBuilder<StackFrameNodeOrToken>();
             builder.Add(parameters[0]);
@@ -157,19 +157,19 @@ internal static class StackFrameSyntaxFactory
     public static StackFrameArrayRankSpecifier ArrayRankSpecifier(int commaCount = 0, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
         => new(OpenBracketToken.With(leadingTrivia: leadingTrivia.ToImmutableArray()), CloseBracketToken.With(trailingTrivia: trailingTrivia.ToImmutableArray()), [.. Enumerable.Repeat(CommaToken, commaCount)]);
 
-    public static StackFrameArrayRankSpecifier ArrayRankSpecifier(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameToken[] commaTokens)
+    public static StackFrameArrayRankSpecifier ArrayRankSpecifier(StackFrameToken openToken, StackFrameToken closeToken, params ReadOnlySpan<StackFrameToken> commaTokens)
         => new(openToken, closeToken, [.. commaTokens]);
 
-    public static StackFrameArrayTypeNode ArrayType(StackFrameNameNode identifier, params StackFrameArrayRankSpecifier[] arrayTokens)
+    public static StackFrameArrayTypeNode ArrayType(StackFrameNameNode identifier, params ReadOnlySpan<StackFrameArrayRankSpecifier> arrayTokens)
         => new(identifier, [.. arrayTokens]);
 
     public static StackFrameGenericNameNode GenericType(string identifierName, int arity)
         => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), GraveAccentToken, CreateToken(StackFrameKind.NumberToken, arity.ToString()));
 
-    public static StackFrameTypeArgumentList TypeArgumentList(params StackFrameIdentifierNameNode[] typeArguments)
+    public static StackFrameTypeArgumentList TypeArgumentList(params ReadOnlySpan<StackFrameIdentifierNameNode> typeArguments)
         => TypeArgumentList(useBrackets: true, typeArguments);
 
-    public static StackFrameTypeArgumentList TypeArgumentList(bool useBrackets, params StackFrameIdentifierNameNode[] typeArguments)
+    public static StackFrameTypeArgumentList TypeArgumentList(bool useBrackets, params ReadOnlySpan<StackFrameIdentifierNameNode> typeArguments)
     {
         using var _ = PooledObjects.ArrayBuilder<StackFrameNodeOrToken>.GetInstance(out var builder);
         var openToken = useBrackets ? OpenBracketToken : LessThanToken;

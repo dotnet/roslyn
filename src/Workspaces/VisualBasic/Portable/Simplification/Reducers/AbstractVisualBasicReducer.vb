@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService

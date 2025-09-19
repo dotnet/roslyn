@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class FileOperationFilter
+internal sealed class FileOperationFilter
 {
     /// <summary>
     /// A Uri like `file` or `untitled`.

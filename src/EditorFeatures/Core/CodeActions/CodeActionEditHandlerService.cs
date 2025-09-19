@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 [Export(typeof(ICodeActionEditHandlerService))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CodeActionEditHandlerService(
+internal sealed class CodeActionEditHandlerService(
     IThreadingContext threadingContext,
     IPreviewFactoryService previewService,
     IInlineRenameService renameService,

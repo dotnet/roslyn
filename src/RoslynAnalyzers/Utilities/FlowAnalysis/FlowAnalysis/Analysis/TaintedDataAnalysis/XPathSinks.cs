@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -26,7 +26,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ( "XPath", new[] { "xPathExpression" }),
-                    ( "XPathSelect", new[] { "xPathExpression" }),
+                    ( "XPathSelect", ["xPathExpression"]),
                 });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemWebUITemplateControl,
@@ -36,7 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ( "XPath", new[] { "xPathExpression" }),
-                    ( "XPathSelect", new[] { "xPathExpression" }),
+                    ( "XPathSelect", ["xPathExpression"]),
                 });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemWebUIWebControlsXmlDataSource,
@@ -55,7 +55,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ( "Eval", new[] { "xPath" }),
-                    ( "Select", new[] { "xPath" }),
+                    ( "Select", ["xPath"]),
                 });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemXmlSchemaXmlSchemaXPath,
@@ -74,7 +74,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ( "SelectNodes", new[] { "xpath" }),
-                    ( "SelectSingleNode", new[] { "xpath" }),
+                    ( "SelectSingleNode", ["xpath"]),
                 });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemXmlXPathXPathExpression,
@@ -93,13 +93,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: new[] {
                     ( "Compile", new[] { "xpath" }),
-                    ( "Evaluate", new[] { "xpath" }),
-                    ( "Matches", new[] { "xpath" }),
-                    ( "Select", new[] { "xpath" }),
-                    ( "SelectAncestors", new[] { "name" }),
-                    ( "SelectChildren", new[] { "name" }),
-                    ( "SelectDescendants", new[] { "name" }),
-                    ( "SelectSingleNode", new[] { "xpath" }),
+                    ( "Evaluate", ["xpath"]),
+                    ( "Matches", ["xpath"]),
+                    ( "Select", ["xpath"]),
+                    ( "SelectAncestors", ["name"]),
+                    ( "SelectChildren", ["name"]),
+                    ( "SelectDescendants", ["name"]),
+                    ( "SelectSingleNode", ["xpath"]),
                 });
 
             SinkInfos = builder.ToImmutableAndFree();

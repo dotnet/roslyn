@@ -16,33 +16,6 @@ namespace Analyzer.Utilities.Lightup
     {
         private static readonly ConcurrentDictionary<Type, ConcurrentDictionary<OperationKind, bool>> s_supportedOperationWrappers = new();
 
-        internal static bool CanWrapOperation(IOperation? operation, Type? underlyingType)
-        {
-            if (operation == null)
-            {
-                // The wrappers support a null instance
-                return true;
-            }
-
-            if (underlyingType == null)
-            {
-                // The current runtime doesn't define the target type of the conversion, so no instance of it can exist
-                return false;
-            }
-
-            ConcurrentDictionary<OperationKind, bool> wrappedSyntax = s_supportedOperationWrappers.GetOrAdd(underlyingType, _ => new ConcurrentDictionary<OperationKind, bool>());
-
-            // Avoid creating the delegate if the value already exists
-            if (!wrappedSyntax.TryGetValue(operation.Kind, out var canCast))
-            {
-                canCast = wrappedSyntax.GetOrAdd(
-                    operation.Kind,
-                    kind => underlyingType.GetTypeInfo().IsAssignableFrom(operation.GetType().GetTypeInfo()));
-            }
-
-            return canCast;
-        }
-
         internal static Func<TOperation, TProperty> CreateOperationPropertyAccessor<TOperation, TProperty>(Type? type, string propertyName, TProperty fallbackResult)
             where TOperation : IOperation
             => CreatePropertyAccessor<TOperation, TProperty>(type, "operation", propertyName, fallbackResult);

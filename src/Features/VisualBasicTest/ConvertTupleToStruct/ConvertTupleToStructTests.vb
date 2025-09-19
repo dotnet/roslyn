@@ -8,12 +8,12 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ConvertTupleToStruct
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
-
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct.VisualBasicConvertTupleToStructCodeRefactoringProvider)
 

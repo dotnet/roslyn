@@ -2723,8 +2723,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
-                Debug.Assert(resultKind == LookupResultKind.Empty, "How could overload resolution fail if a user-defined true operator was found?");
-                Debug.Assert(originalUserDefinedOperators.IsEmpty, "How could overload resolution fail if a user-defined true operator was found?");
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
                 return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }

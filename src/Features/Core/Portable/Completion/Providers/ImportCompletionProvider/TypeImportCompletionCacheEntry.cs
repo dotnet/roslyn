@@ -12,7 +12,7 @@ using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal readonly struct TypeImportCompletionCacheEntry
+internal sealed class TypeImportCompletionCacheEntry
 {
     public SymbolKey AssemblySymbolKey { get; }
 
@@ -143,7 +143,7 @@ internal readonly struct TypeImportCompletionCacheEntry
         }
     }
 
-    public class Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo) : IDisposable
+    public sealed class Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo) : IDisposable
     {
         private readonly SymbolKey _assemblySymbolKey = assemblySymbolKey;
         private readonly string _language = language;

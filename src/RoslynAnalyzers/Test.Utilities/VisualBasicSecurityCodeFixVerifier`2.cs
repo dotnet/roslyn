@@ -39,7 +39,7 @@ namespace Test.Utilities
             => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
         public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
-            => VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
+            => VerifyCodeFixAsync(source, [expected], fixedSource);
 
         public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
         {

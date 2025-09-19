@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -42,7 +43,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
         return renameAnnotationRewriter.Visit(parameters.SyntaxRoot)!;
     }
 
-    private class RenameRewriter : CSharpSyntaxRewriter
+    private sealed class RenameRewriter : CSharpSyntaxRewriter
     {
         private readonly DocumentId _documentId;
         private readonly RenameAnnotation _renameRenamableSymbolDeclaration;

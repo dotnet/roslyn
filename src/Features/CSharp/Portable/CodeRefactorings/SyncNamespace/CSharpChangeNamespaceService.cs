@@ -13,11 +13,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -27,14 +29,18 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IChangeNamespaceService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpChangeNamespaceService :
-    AbstractChangeNamespaceService<BaseNamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpChangeNamespaceService() :
+    AbstractChangeNamespaceService<
+        CompilationUnitSyntax,
+        MemberDeclarationSyntax,
+        BaseNamespaceDeclarationSyntax,
+        NameSyntax,
+        SimpleNameSyntax,
+        QualifiedCrefSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpChangeNamespaceService()
-    {
-    }
+    public override AbstractReducer NameReducer { get; } = new CSharpNameReducer();
 
     protected override async Task<ImmutableArray<(DocumentId, SyntaxNode)>> GetValidContainersFromAllLinkedDocumentsAsync(
         Document document,

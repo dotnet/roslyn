@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField;
 
 [UseExportProvider]
-public class EncapsulateFieldCommandHandlerTests
+public sealed class EncapsulateFieldCommandHandlerTests
 {
     [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
     public async Task EncapsulatePrivateField()
@@ -34,7 +34,8 @@ public class EncapsulateFieldCommandHandlerTests
                 }
             }
             """;
-        var expected = """
+        using var state = EncapsulateFieldTestState.Create(text);
+        await state.AssertEncapsulateAsAsync("""
             class C
             {
                 private int field;
@@ -57,10 +58,7 @@ public class EncapsulateFieldCommandHandlerTests
                     Field = 3;
                 }
             }
-            """;
-
-        using var state = EncapsulateFieldTestState.Create(text);
-        await state.AssertEncapsulateAsAsync(expected);
+            """);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -77,7 +75,8 @@ public class EncapsulateFieldCommandHandlerTests
                 }
             }
             """;
-        var expected = """
+        using var state = EncapsulateFieldTestState.Create(text);
+        await state.AssertEncapsulateAsAsync("""
             class C
             {
                 private int field;
@@ -100,10 +99,7 @@ public class EncapsulateFieldCommandHandlerTests
                     Field = 3;
                 }
             }
-            """;
-
-        using var state = EncapsulateFieldTestState.Create(text);
-        await state.AssertEncapsulateAsAsync(expected);
+            """);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -142,7 +138,8 @@ public class EncapsulateFieldCommandHandlerTests
                 }
             }
             """;
-        var expected = """
+        using var state = EncapsulateFieldTestState.Create(text);
+        await state.AssertEncapsulateAsAsync("""
             class Program
             {
                 static int A = 1;
@@ -180,10 +177,7 @@ public class EncapsulateFieldCommandHandlerTests
                     System.Console.WriteLine(B1);
                 }
             }
-            """;
-
-        using var state = EncapsulateFieldTestState.Create(text);
-        await state.AssertEncapsulateAsAsync(expected);
+            """);
     }
 
     [WpfFact]
@@ -202,7 +196,7 @@ public class EncapsulateFieldCommandHandlerTests
             </Workspace>
             """),
             workspaceKind: WorkspaceKind.Interactive,
-            composition: EditorTestCompositions.EditorFeaturesWpf);
+            composition: EditorTestCompositions.EditorFeatures);
         // Force initialization.
         workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 

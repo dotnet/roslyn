@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 
-internal partial class ChangeSignatureDialogViewModel
+internal sealed partial class ChangeSignatureDialogViewModel
 {
     public abstract class ParameterViewModel
     {
@@ -95,7 +95,7 @@ internal partial class ChangeSignatureDialogViewModel
         public virtual string CallSiteValue => string.Empty;
     }
 
-    public class AddedParameterViewModel : ParameterViewModel
+    public sealed class AddedParameterViewModel : ParameterViewModel
     {
         public override Parameter Parameter => _addedParameter;
         private readonly AddedParameter _addedParameter;
@@ -152,7 +152,7 @@ internal partial class ChangeSignatureDialogViewModel
         public override string DefaultValue => _addedParameter.DefaultValue;
     }
 
-    public class ExistingParameterViewModel : ParameterViewModel
+    public sealed class ExistingParameterViewModel : ParameterViewModel
     {
         public IParameterSymbol ParameterSymbol => _existingParameter.Symbol;
 

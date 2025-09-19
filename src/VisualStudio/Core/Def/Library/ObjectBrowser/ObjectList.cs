@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
 
-internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManager>
+internal sealed class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManager>
 {
     private readonly ObjectList _parentList;
     private readonly uint _flags;

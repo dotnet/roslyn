@@ -69,11 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generatedFilesBaseDirectory As String) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
             Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider, New GeneratorDriverOptions(baseDirectory:=generatedFilesBaseDirectory))
         End Function
-
-        ' <Metalama> This code is used by Try.Metalama.
-        Public Function GetRunTransformersDelegate(transformers As ImmutableArray(Of ISourceTransformer), analyzerConfigProvider As AnalyzerConfigOptionsProvider, assemblyLoader As IAnalyzerAssemblyLoader) As Func(Of Compilation, (Compilation, ImmutableArray(Of Diagnostic))) Implements ICompilationFactoryService.GetRunTransformersDelegate
-            Return Nothing
-        End Function
-        ' </Metalama>
+        
     End Class
 End Namespace

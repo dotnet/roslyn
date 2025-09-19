@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Analyzers
+namespace Microsoft.CodeAnalysis
 {
     internal static partial class CodeAnalysisDiagnosticsResources
     {

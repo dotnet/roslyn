@@ -4,33 +4,32 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
+
+public readonly struct XamlCommitCharacters
 {
-    public readonly struct XamlCommitCharacters
+    /// <summary>
+    /// Commit characters.
+    /// </summary>
+    public ImmutableArray<char> Characters { get; }
+
+    /// <summary>
+    /// Commit characters that will not be inserted when commit
+    /// </summary>
+    public ImmutableArray<char> NonInsertCharacters { get; }
+
+    private XamlCommitCharacters(ImmutableArray<char> characters, ImmutableArray<char> nonInsertCharacters)
     {
-        /// <summary>
-        /// Commit characters.
-        /// </summary>
-        public ImmutableArray<char> Characters { get; }
-
-        /// <summary>
-        /// Commit characters that will not be inserted when commit
-        /// </summary>
-        public ImmutableArray<char> NonInsertCharacters { get; }
-
-        private XamlCommitCharacters(ImmutableArray<char> characters, ImmutableArray<char> nonInsertCharacters)
-        {
-            Characters = characters;
-            NonInsertCharacters = nonInsertCharacters;
-        }
-
-        public static XamlCommitCharacters Create(ImmutableArray<char> characters, ImmutableArray<char> nonInsertCharacters)
-            => new(characters, nonInsertCharacters);
-
-        public static XamlCommitCharacters Create(ImmutableArray<char> characters, params char[] nonInsertCharacters)
-            => new(characters, nonInsertCharacters?.ToImmutableArray() ?? []);
-
-        public static XamlCommitCharacters Create(char[] characters, params char[] nonInsertCharacters)
-            => Create(characters.ToImmutableArray(), nonInsertCharacters);
+        Characters = characters;
+        NonInsertCharacters = nonInsertCharacters;
     }
+
+    public static XamlCommitCharacters Create(ImmutableArray<char> characters, ImmutableArray<char> nonInsertCharacters)
+        => new(characters, nonInsertCharacters);
+
+    public static XamlCommitCharacters Create(ImmutableArray<char> characters, params char[] nonInsertCharacters)
+        => new(characters, nonInsertCharacters?.ToImmutableArray() ?? []);
+
+    public static XamlCommitCharacters Create(char[] characters, params char[] nonInsertCharacters)
+        => Create(characters.ToImmutableArray(), nonInsertCharacters);
 }

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class CreateFilesParams
+internal sealed class CreateFilesParams
 {
     /// <summary>
     /// An array of all files/folders created in this operation.

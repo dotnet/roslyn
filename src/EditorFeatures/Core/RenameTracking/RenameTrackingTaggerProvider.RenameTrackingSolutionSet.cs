@@ -9,7 +9,7 @@ internal sealed partial class RenameTrackingTaggerProvider
     /// <summary>
     /// Tracks the solution before and after rename.
     /// </summary>
-    private class RenameTrackingSolutionSet(
+    private sealed class RenameTrackingSolutionSet(
         ISymbol symbolToRename,
         Solution originalSolution,
         Solution renamedSolution)

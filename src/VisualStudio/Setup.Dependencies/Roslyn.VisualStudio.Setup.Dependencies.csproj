@@ -15,6 +15,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\VBCSharp\Dependencies</ExtensionInstallationFolder>
+    <DeployExtension>true</DeployExtension>
   </PropertyGroup>
   <ItemGroup>
     <!--

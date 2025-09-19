@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-internal class ExampleLspServices : ILspServices
+internal sealed class ExampleLspServices : ILspServices
 {
     private readonly IServiceProvider _serviceProvider;
 

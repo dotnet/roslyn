@@ -26,19 +26,21 @@ public abstract class BasicErrorListCommon : AbstractEditorTest
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63041")]
     public virtual async Task ErrorList()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Module Module1
+        await TestServices.Editor.SetTextAsync("""
 
-    Function Good() As P
-        Return Nothing
-    End Function
+            Module Module1
 
-    Sub Main()
-        Goo()
-    End Sub
+                Function Good() As P
+                    Return Nothing
+                End Function
 
-End Module
-", HangMitigatingCancellationToken);
+                Sub Main()
+                    Goo()
+                End Sub
+
+            End Module
+
+            """, HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
         var expectedContents = new[] {
             "Class1.vb(4, 24): error BC30002: Type 'P' is not defined.",
@@ -64,16 +66,18 @@ End Module
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63981 and https://github.com/dotnet/roslyn/issues/63982")]
     public virtual async Task ErrorsDuringMethodBodyEditing()
     {
-        await TestServices.Editor.SetTextAsync(@"
-Namespace N
-    Class C
-        Private F As Integer
-        Sub S()
-             ' Comment
-        End Sub
-    End Class
-End Namespace
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+
+            Namespace N
+                Class C
+                    Private F As Integer
+                    Sub S()
+                         ' Comment
+                    End Sub
+                End Class
+            End Namespace
+
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync(" Comment", charsOffset: -2, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("F = 0", HangMitigatingCancellationToken);
         await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
@@ -113,8 +117,10 @@ End Namespace
     public virtual async Task BuildErrorsInClosedFiles()
     {
         // Enter code with compiler error.
-        await TestServices.Editor.SetTextAsync(@"Class Class1
-", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+            Class Class1
+
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
 
         // Close active tab before build.

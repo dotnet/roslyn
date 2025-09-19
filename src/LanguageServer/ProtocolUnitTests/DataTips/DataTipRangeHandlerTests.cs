@@ -12,7 +12,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DataTips;
 
-public class DataTipRangeHandlerTests(ITestOutputHelper testOutputHelper)
+public sealed class DataTipRangeHandlerTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     private static async Task<LSP.VSInternalDataTip?> RunAsync(TestLspServer testLspServer, LSP.Location caret)
@@ -21,7 +21,7 @@ public class DataTipRangeHandlerTests(ITestOutputHelper testOutputHelper)
             LSP.VSInternalMethods.TextDocumentDataTipRangeName,
             new LSP.TextDocumentPositionParams()
             {
-                TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
+                TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri },
                 Position = caret.Range.Start,
             },
             CancellationToken.None);

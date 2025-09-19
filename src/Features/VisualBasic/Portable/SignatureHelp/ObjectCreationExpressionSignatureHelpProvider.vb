@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
@@ -22,13 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Public Sub New()
         End Sub
 
-        Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
-            Return ch = "("c OrElse ch = ","c
-        End Function
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create("("c, ","c)
 
-        Public Overrides Function IsRetriggerCharacter(ch As Char) As Boolean
-            Return ch = ")"c
-        End Function
+        Public Overrides ReadOnly Property RetriggerCharacters As ImmutableArray(Of Char) = ImmutableArray.Create(")"c)
 
         Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState?
             Dim expression As ObjectCreationExpressionSyntax = Nothing

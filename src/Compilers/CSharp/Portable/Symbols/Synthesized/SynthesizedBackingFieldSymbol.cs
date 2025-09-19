@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -170,11 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Annotated;
             }
 
+            getAccessor = (SourcePropertyAccessorSymbol?)getAccessor.PartialImplementationPart ?? getAccessor;
             // If the get accessor is auto-implemented, the property is not null-resilient.
             if (getAccessor.IsAutoPropertyAccessor)
                 return NullableAnnotation.NotAnnotated;
 
-            getAccessor = (SourcePropertyAccessorSymbol?)getAccessor.PartialImplementationPart ?? getAccessor;
             var binder = getAccessor.TryGetBodyBinder() ?? throw ExceptionUtilities.UnexpectedValue(getAccessor);
             var boundGetAccessor = binder.BindMethodBody(getAccessor.SyntaxNode, BindingDiagnosticBag.Discarded);
 

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class ChecksumTests
+public sealed class ChecksumTests
 {
     [Fact]
     public void ValidateChecksumFromSpanSameAsChecksumFromBytes1()
@@ -177,7 +177,7 @@ public class ChecksumTests
 
         Assert.NotEqual(Checksum.Null, Checksum.Create([""]));
         Assert.NotEqual(Checksum.Null, Checksum.Create(["\0"]));
-        Assert.NotEqual(Checksum.Null, Checksum.Create([null]));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(new string?[] { null }));
         Assert.NotEqual(Checksum.Null, Checksum.Create(new MemoryStream()));
         Assert.NotEqual(Checksum.Null, Checksum.Create(stackalloc Checksum[] { Checksum.Null }));
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create(Checksum.Null)));

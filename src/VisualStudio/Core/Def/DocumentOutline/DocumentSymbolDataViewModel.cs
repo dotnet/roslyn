@@ -28,20 +28,17 @@ internal sealed class DocumentSymbolDataViewModel : INotifyPropertyChanged, IEqu
     /// </summary>
     public ImageMoniker ImageMoniker => Data.Glyph.GetImageMoniker();
 
-    private bool _isExpanded = true;
-    private bool _isSelected = false;
-
     public bool IsExpanded
     {
-        get => _isExpanded;
-        set => SetProperty(ref _isExpanded, value);
-    }
+        get;
+        set => SetProperty(ref field, value);
+    } = true;
 
     public bool IsSelected
     {
-        get => _isSelected;
-        set => SetProperty(ref _isSelected, value);
-    }
+        get;
+        set => SetProperty(ref field, value);
+    } = false;
 
     public DocumentSymbolDataViewModel(
         DocumentSymbolData data,

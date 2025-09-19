@@ -5,8 +5,8 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
 {
     public class DynamicAnalysisResourceTests : CSharpTestBase
     {
-        const string InstrumentationHelperSource = @"
+        public const string InstrumentationHelperSource = @"
 namespace Microsoft.CodeAnalysis.Runtime
 {
     public static class Instrumentation

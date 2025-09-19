@@ -8,23 +8,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+
+internal readonly struct FSharpBraceMatchingResult
 {
-    internal readonly struct FSharpBraceMatchingResult
-    {
-        public TextSpan LeftSpan { get; }
-        public TextSpan RightSpan { get; }
+    public TextSpan LeftSpan { get; }
+    public TextSpan RightSpan { get; }
 
-        public FSharpBraceMatchingResult(TextSpan leftSpan, TextSpan rightSpan)
-            : this()
-        {
-            this.LeftSpan = leftSpan;
-            this.RightSpan = rightSpan;
-        }
-    }
-
-    internal interface IFSharpBraceMatcher
+    public FSharpBraceMatchingResult(TextSpan leftSpan, TextSpan rightSpan)
+        : this()
     {
-        Task<FSharpBraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken = default);
+        this.LeftSpan = leftSpan;
+        this.RightSpan = rightSpan;
     }
+}
+
+internal interface IFSharpBraceMatcher
+{
+    Task<FSharpBraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken = default);
 }

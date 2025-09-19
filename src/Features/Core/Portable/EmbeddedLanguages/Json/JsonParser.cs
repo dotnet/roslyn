@@ -16,11 +16,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 
 using static EmbeddedSyntaxHelpers;
 using static JsonHelpers;
-
 using JsonNodeOrToken = EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode>;
+using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
 using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
-using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
 
 /// <summary>
 /// Parser used for reading in a sequence of <see cref="VirtualChar"/>s, and producing a <see

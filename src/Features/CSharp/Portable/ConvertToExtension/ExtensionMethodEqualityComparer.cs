@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
 

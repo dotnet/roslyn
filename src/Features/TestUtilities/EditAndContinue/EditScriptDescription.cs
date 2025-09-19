@@ -29,7 +29,9 @@ internal readonly struct EditScriptDescription(string oldMarkedSource, string ne
         => VerifyEdits(Array.Empty<string>());
 
     public void VerifyEdits(params string[] expected)
-        => AssertEx.Equal(expected, Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+        => AssertEx.Equal(expected, Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"""
+        "{s}"
+        """);
 
     public void VerifyEdits(params EditKind[] expected)
         => AssertEx.Equal(expected, Edits.Select(e => e.Kind));

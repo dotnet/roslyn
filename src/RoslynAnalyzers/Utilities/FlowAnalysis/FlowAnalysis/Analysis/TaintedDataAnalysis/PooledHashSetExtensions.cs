@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {

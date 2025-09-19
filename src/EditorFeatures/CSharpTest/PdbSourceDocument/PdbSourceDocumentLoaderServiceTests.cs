@@ -16,21 +16,18 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-public class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
+public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
-    public async Task ReturnsSourceFileFromSourceLink()
-    {
-        var source = """
+    public Task ReturnsSourceFileFromSourceLink()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
@@ -51,21 +48,17 @@ public class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTest
             Assert.Equal(sourceFilePath, result!.FilePath);
             Assert.True(result.FromRemoteLocation);
         });
-    }
 
     [Fact]
-    public async Task NoUrlFoundReturnsNull()
-    {
-        var source = """
+    public Task NoUrlFoundReturnsNull()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
@@ -81,5 +74,4 @@ public class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTest
 
             Assert.Null(result);
         });
-    }
 }

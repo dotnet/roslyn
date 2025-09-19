@@ -7,17 +7,17 @@ using System.Collections.ObjectModel;
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-internal partial class TestRunner
+internal sealed partial class TestRunner
 {
-    private class TestRunHandler(BufferedProgress<RunTestsPartialResult> progress, TestProgress initialProgress, ILogger logger) : ITestRunEventsHandler
+    private sealed class TestRunHandler(BufferedProgress<RunTestsPartialResult> progress, TestProgress initialProgress, ILogger logger) : ITestRunEventsHandler
     {
         private readonly ILogger _logger = logger;
         private readonly BufferedProgress<RunTestsPartialResult> _progress = progress;

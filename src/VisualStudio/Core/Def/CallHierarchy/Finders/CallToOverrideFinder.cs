@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 
-internal class CallToOverrideFinder : AbstractCallFinder
+internal sealed class CallToOverrideFinder : AbstractCallFinder
 {
     public CallToOverrideFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
         : base(symbol, projectId, asyncListener, provider)

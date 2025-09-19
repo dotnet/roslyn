@@ -44,14 +44,13 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class UnusedLocalVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
+    public sealed class UnusedLocalVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
     {
         protected override int CodeActionIndex => 0;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_UnusedLocalVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_Empty_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -69,9 +68,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -93,15 +90,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_UnusedLocalVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -121,9 +114,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -143,15 +134,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -171,9 +158,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -196,15 +181,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RuleExists_ConflictingDotnetDiagnosticEntry()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_ConflictingDotnetDiagnosticEntry()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -225,9 +206,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -248,15 +227,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_UnusedLocalVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_InvalidHeader_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -276,9 +251,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -303,15 +276,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_MaintainSeverity_UnusedLocalVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_MaintainSeverity_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -331,9 +300,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -353,15 +320,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_UnusedLocalVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_InvalidRule_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -381,9 +344,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -406,21 +367,17 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class DiscardVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
+    public sealed class DiscardVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests
     {
         protected override int CodeActionIndex => 1;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_DiscardVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_Empty_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -438,9 +395,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -462,15 +417,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_DiscardVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -490,9 +441,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -512,15 +461,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_DiscardVariable_WithoutSeveritySuffix()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_RuleExists_DiscardVariable_WithoutSeveritySuffix()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -540,9 +485,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -562,15 +505,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_DiscardVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_InvalidHeader_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -590,9 +529,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -617,15 +554,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [Fact]
-        public async Task ConfigureEditorconfig_MaintainSeverity_DiscardVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_MaintainSeverity_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -645,9 +578,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -667,15 +598,11 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_DiscardVariable()
-        {
-            var input = """
+        public Task ConfigureEditorconfig_InvalidRule_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -695,9 +622,7 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -720,9 +645,6 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-        }
+                """, CodeActionIndex);
     }
 }

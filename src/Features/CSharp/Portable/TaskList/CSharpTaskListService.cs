@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.TaskList;
 namespace Microsoft.CodeAnalysis.CSharp.TaskList;
 
 [ExportLanguageService(typeof(ITaskListService), LanguageNames.CSharp), Shared]
-internal class CSharpTaskListService : AbstractTaskListService
+internal sealed class CSharpTaskListService : AbstractTaskListService
 {
     private static readonly int s_multilineCommentPostfixLength = "*/".Length;
     private const string SingleLineCommentPrefix = "//";

@@ -11,7 +11,7 @@
         the server executables that we need to ship inside the extension vsix.  The extension will download this and extract the
         executables when it builds.  NuGet just happens to be a convenient way to share build artifacts.
     -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <!-- Our outer Pack task (defined in PackAllRids.targets) invokes Pack passing in a PackRuntimeIdentifier to produce one package per RID; from that we can set everything else. -->
     <RuntimeIdentifier Condition="'$(PackRuntimeIdentifier)' != '' and '$(PackRuntimeIdentifier)' != 'neutral'">$(PackRuntimeIdentifier)</RuntimeIdentifier>
 
@@ -45,13 +45,13 @@
     <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
 
     <!-- List of runtime identifiers that we want to publish an executable for. -->
-    <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or BaseOS.
-         TargetRid and BaseOS are provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
+    <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or PortableTargetRid.
+         TargetRid and PortableTargetRid are provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
          https://github.com/dotnet/dotnet/blob/main/repo-projects/roslyn.proj. For definitions of the TargetRid
          and other common properties, see https://github.com/dotnet/arcade/blob/main/Documentation/UnifiedBuild/Unified-Build-Controls.md -->
     <RuntimeIdentifiers Condition="'$(TargetRid)' != ''">$(TargetRid)</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="'$(BaseOS)' != ''">$(BaseOS)</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="'$(TargetRid)' == '' and '$(BaseOS)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(PortableTargetRid)' != ''">$(PortableTargetRid)</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(TargetRid)' == '' and '$(PortableTargetRid)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 
     <!-- These indicate that the runtime/apphost packages should not be downloaded as part of build/restore -->
     <EnableRuntimePackDownload>false</EnableRuntimePackDownload>
@@ -115,6 +115,7 @@
 
     <!-- Not directly referenced but needed for Route embedded language features -->
     <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
     <ProjectReference Include="..\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\Xaml\Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
     <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
@@ -131,7 +132,6 @@
     <PackageReference Include="Microsoft.TestPlatform.TranslationLayer" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" />
-    <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" />
     <PackageReference Include="NuGet.ProjectModel" />
     <PackageReference Include="System.CommandLine" />
 

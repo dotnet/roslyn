@@ -190,7 +190,7 @@ internal sealed partial class ItemManager : IAsyncCompletionItemManager2
             var yRoslyn = y is not null ? CompletionItemData.GetOrAddDummyRoslynItem(y) : null;
 
             // Sort by default comparer of Roslyn CompletionItem
-            return Comparer<RoslynCompletionItem>.Default.Compare(xRoslyn, yRoslyn);
+            return Comparer<RoslynCompletionItem?>.Default.Compare(xRoslyn, yRoslyn);
         }
     }
 }

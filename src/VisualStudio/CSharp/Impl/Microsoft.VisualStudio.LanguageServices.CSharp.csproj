@@ -55,7 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpVSResources.resx" GenerateSource="true" />
-    <EmbeddedResource Update="VSPackage.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.CSharp" >
+    <EmbeddedResource Update="VSPackage.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.CSharp">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>

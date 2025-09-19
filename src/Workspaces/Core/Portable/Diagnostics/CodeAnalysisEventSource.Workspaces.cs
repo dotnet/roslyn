@@ -4,11 +4,10 @@
 
 using System.Diagnostics.Tracing;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+[EventSource(Name = "Microsoft-CodeAnalysis-Workspaces")]
+internal sealed partial class CodeAnalysisEventSource
 {
-    [EventSource(Name = "Microsoft-CodeAnalysis-Workspaces")]
-    internal sealed partial class CodeAnalysisEventSource
-    {
-        public static readonly CodeAnalysisEventSource Log = new CodeAnalysisEventSource();
-    }
+    public static readonly CodeAnalysisEventSource Log = new CodeAnalysisEventSource();
 }

@@ -52,7 +52,6 @@
       <CommonMetalamaCompilerBinArtifact Include="$(PkgHumanizer_Core)\lib\netstandard1.0\Humanizer.dll"/>
       <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_DiaSymReader)\lib\netstandard2.0\Microsoft.DiaSymReader.dll"/>
       <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_CodeAnalysis_Elfie)\lib\netstandard2.0\Microsoft.CodeAnalysis.Elfie.dll"/>
-      <CommonMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)\Microsoft.CodeAnalysis.AnalyzerUtilities\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.AnalyzerUtilities.dll"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -61,7 +60,7 @@
       <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
       <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Features.dll" />
       <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.Features.dll" />
-      <CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Scripting.dll"/>
+      <!--<CoreClrMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Scripting.dll"/>-->
       <CoreClrMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.1\Microsoft.Bcl.AsyncInterfaces.dll"/>
     </ItemGroup>
 

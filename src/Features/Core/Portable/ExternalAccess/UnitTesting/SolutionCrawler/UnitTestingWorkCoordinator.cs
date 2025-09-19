@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -25,7 +26,6 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
     {
         private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
         private readonly IAsynchronousOperationListener _listener;
-        private readonly Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService? _solutionCrawlerOptionsService;
 
         private readonly CancellationTokenSource _shutdownNotificationSource = new();
         private readonly CancellationToken _shutdownToken;
@@ -43,7 +43,6 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             Registration = registration;
 
             _listener = listener;
-            _solutionCrawlerOptionsService = Registration.Services.GetService<Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService>();
 
             // event and worker queues
             _shutdownToken = _shutdownNotificationSource.Token;
@@ -294,36 +293,34 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
                     // If all features are enabled for source generated documents, the solution crawler needs to
                     // include them in incremental analysis.
-                    if (_solutionCrawlerOptionsService?.EnableDiagnosticsInSourceGeneratedFiles == true)
+
+                    // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
+                    // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
+                    var oldProjectSourceGeneratedDocuments = await oldProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
+                    var oldProjectSourceGeneratedDocumentsById = oldProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
+                    var newProjectSourceGeneratedDocuments = await newProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
+                    var newProjectSourceGeneratedDocumentsById = newProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
+
+                    foreach (var (oldDocumentId, _) in oldProjectSourceGeneratedDocumentsById)
                     {
-                        // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
-                        // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
-                        var oldProjectSourceGeneratedDocuments = await oldProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
-                        var oldProjectSourceGeneratedDocumentsById = oldProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
-                        var newProjectSourceGeneratedDocuments = await newProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
-                        var newProjectSourceGeneratedDocumentsById = newProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
-
-                        foreach (var (oldDocumentId, _) in oldProjectSourceGeneratedDocumentsById)
+                        if (!newProjectSourceGeneratedDocumentsById.ContainsKey(oldDocumentId))
                         {
-                            if (!newProjectSourceGeneratedDocumentsById.ContainsKey(oldDocumentId))
-                            {
-                                // This source generated document was removed
-                                EnqueueFullDocumentEvent(oldSolution, oldDocumentId, UnitTestingInvocationReasons.DocumentRemoved);
-                            }
+                            // This source generated document was removed
+                            EnqueueFullDocumentEvent(oldSolution, oldDocumentId, UnitTestingInvocationReasons.DocumentRemoved);
                         }
+                    }
 
-                        foreach (var (newDocumentId, newDocument) in newProjectSourceGeneratedDocumentsById)
+                    foreach (var (newDocumentId, newDocument) in newProjectSourceGeneratedDocumentsById)
+                    {
+                        if (!oldProjectSourceGeneratedDocumentsById.TryGetValue(newDocumentId, out var oldDocument))
                         {
-                            if (!oldProjectSourceGeneratedDocumentsById.TryGetValue(newDocumentId, out var oldDocument))
-                            {
-                                // This source generated document was added
-                                EnqueueFullDocumentEvent(newSolution, newDocumentId, UnitTestingInvocationReasons.DocumentAdded);
-                            }
-                            else
-                            {
-                                // This source generated document may have changed
-                                await EnqueueChangedDocumentWorkItemAsync(oldDocument, newDocument).ConfigureAwait(continueOnCapturedContext: false);
-                            }
+                            // This source generated document was added
+                            EnqueueFullDocumentEvent(newSolution, newDocumentId, UnitTestingInvocationReasons.DocumentAdded);
+                        }
+                        else
+                        {
+                            // This source generated document may have changed
+                            await EnqueueChangedDocumentWorkItemAsync(oldDocument, newDocument).ConfigureAwait(continueOnCapturedContext: false);
                         }
                     }
                 });
@@ -382,11 +379,8 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
             // If all features are enabled for source generated documents, the solution crawler needs to
             // include them in incremental analysis.
-            if (_solutionCrawlerOptionsService?.EnableDiagnosticsInSourceGeneratedFiles == true)
-            {
-                foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
-                    await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);
-            }
+            foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
+                await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);
         }
 
         private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope)
@@ -560,7 +554,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             using var pool = SharedPools.Default<HashSet<string>>().GetPooledObject();
             if (_solutionId != null)
             {
-                pool.Object.UnionWith(solution.SolutionState.ProjectStates.Select(kv => kv.Value.Language));
+                pool.Object.UnionWith(solution.SortedProjectStates.Select(project => project.Language));
                 return string.Join(",", pool.Object);
             }
 
@@ -604,9 +598,9 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
             var count = 0;
             if (_solutionId != null)
             {
-                foreach (var projectState in solution.SolutionState.ProjectStates)
+                foreach (var projectState in solution.SortedProjectStates)
                 {
-                    count += projectState.Value.DocumentStates.Count;
+                    count += projectState.DocumentStates.Count;
                 }
 
                 return count;

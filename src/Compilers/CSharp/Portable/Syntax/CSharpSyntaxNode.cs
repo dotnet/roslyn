@@ -9,9 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -73,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parent == null)
                 {
                     // set the tree on the root node atomically
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site only)
-                    Interlocked.CompareExchange(ref node._syntaxTree, CSharpSyntaxTree.CreateWithoutClone(node), null);
+#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
+                    Interlocked.CompareExchange(ref node._syntaxTree, CSharpSyntaxTree.CreateWithoutClone(node, CSharpParseOptions.Default), null);
 #pragma warning restore
                     tree = node._syntaxTree;
                     break;

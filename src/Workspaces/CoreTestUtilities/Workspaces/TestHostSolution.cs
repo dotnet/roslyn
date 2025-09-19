@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public class TestHostSolution(params TestHostProject[] projects)
+public sealed class TestHostSolution(params TestHostProject[] projects)
     : TestHostSolution<TestHostDocument>(projects)
 {
     public TestHostSolution(

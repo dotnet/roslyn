@@ -131,7 +131,7 @@ partial class C
 
     public C()
     {
-        this.P = 0;
+        P = 0;
     }
 }".Trim()
 

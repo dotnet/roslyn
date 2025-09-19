@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
 internal abstract partial class AbstractEditorInlineRenameService
 {
-    private class InlineRenameLocationSet : IInlineRenameLocationSet
+    private sealed class InlineRenameLocationSet : IInlineRenameLocationSet
     {
         private readonly LightweightRenameLocations _renameLocationSet;
         private readonly SymbolInlineRenameInfo _renameInfo;
@@ -44,7 +44,7 @@ internal abstract partial class AbstractEditorInlineRenameService
             CancellationToken cancellationToken)
         {
             var conflicts = await _renameLocationSet.ResolveConflictsAsync(
-                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+                _renameInfo.RenameSymbol, _renameInfo.GetFinalSymbolName(replacementText), cancellationToken).ConfigureAwait(false);
 
             return new InlineRenameReplacementInfo(conflicts);
         }

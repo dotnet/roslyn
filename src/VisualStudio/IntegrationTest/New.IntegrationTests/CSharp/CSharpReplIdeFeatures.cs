@@ -48,8 +48,10 @@ public class CSharpReplIdeFeatures : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task International()
     {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"delegate void العربية();
-العربية func = () => System.Console.WriteLine(2);", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.InsertCodeAsync("""
+            delegate void العربية();
+            العربية func = () => System.Console.WriteLine(2);
+            """, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.PlaceCaretAsync("func", charsOffset: -1, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
         var s = await TestServices.InteractiveWindow.GetQuickInfoAsync(HangMitigatingCancellationToken);
@@ -158,15 +160,17 @@ public class CSharpReplIdeFeatures : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task DisabledCommandsPart1()
     {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"public class Class
-{
-    int field;
+        await TestServices.InteractiveWindow.InsertCodeAsync("""
+            public class Class
+            {
+                int field;
 
-    public void Method(int x)
-    {
-         int abc = 1 + 1;
-     }
-}", HangMitigatingCancellationToken);
+                public void Method(int x)
+                {
+                     int abc = 1 + 1;
+                 }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.InteractiveWindow.PlaceCaretAsync("abc", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
@@ -201,9 +205,11 @@ public class CSharpReplIdeFeatures : AbstractInteractiveWindowTest
             new string[] { "using System.Collections;", "System.Collections.ArrayList" },
             "using System.Collections;", cancellationToken: HangMitigatingCancellationToken);
 
-        Assert.Equal(@"using System.Collections;
+        Assert.Equal("""
+            using System.Collections;
 
-typeof(ArrayList)", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
+            typeof(ArrayList)
+            """, await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]

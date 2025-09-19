@@ -3,20 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UpdateLegacySuppressions;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions.CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.UpdateLegacySuppressions.UpdateLegacySuppressionsCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppressions;
 
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
+    UpdateLegacySuppressionsCodeFixProvider>;
+
 [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)]
 [WorkItem("https://github.com/dotnet/roslyn/issues/44362")]
-public class UpdateLegacySuppressionsTests
+public sealed class UpdateLegacySuppressionsTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)
@@ -39,7 +42,10 @@ public class UpdateLegacySuppressionsTests
     [Theory]
     public async Task LegacySuppressions(string scope, string target, string fixedTarget)
     {
-        var input = $$"""
+        var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
+                                    .WithLocation(0)
+                                    .WithArguments(target);
+        await VerifyCS.VerifyCodeFixAsync($$"""
             [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "Id: Title", Scope = "{{scope}}", Target = {|#0:"{{target}}"|})]
 
             namespace N
@@ -57,13 +63,7 @@ public class UpdateLegacySuppressionsTests
                     }
                 }
             }
-            """;
-
-        var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
-                                    .WithLocation(0)
-                                    .WithArguments(target);
-
-        var fixedCode = $$"""
+            """, expectedDiagnostic, $$"""
             [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "Id: Title", Scope = "{{scope}}", Target = "{{fixedTarget}}")]
 
             namespace N
@@ -81,7 +81,6 @@ public class UpdateLegacySuppressionsTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(input, expectedDiagnostic, fixedCode);
+            """);
     }
 }

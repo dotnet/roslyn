@@ -14,7 +14,6 @@ namespace TestProject
         [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("defaultValue")]
         internal static string? GetResourceString(string resourceKey, string? defaultValue = null) =>  ResourceManager.GetString(resourceKey, Culture) ?? defaultValue;
-
         private static string GetResourceString(string resourceKey, string[]? formatterNames)
         {
            var value = GetResourceString(resourceKey) ?? "";
@@ -27,7 +26,6 @@ namespace TestProject
            }
            return value;
         }
-
         /// <summary>value {replacement}</summary>
         public static string @Name => GetResourceString("Name")!;
         /// <summary>value {replacement}</summary>

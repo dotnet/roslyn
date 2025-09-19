@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public partial class CSharpSimplifyLinqExpressionTests
 {
     [Fact]
-    public async Task FixAllInDocument()
-    {
-        await new VerifyCS.Test
+    public Task FixAllInDocument()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -60,13 +59,10 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAllInDocumentExplicitCall()
-    {
-
-        var testCode = """
+    public Task FixAllInDocumentExplicitCall()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -83,8 +79,7 @@ public partial class CSharpSimplifyLinqExpressionTests
                     var test5 = [|Enumerable.Where(test, x => x.Equals("!")).FirstOrDefault()|];
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -101,15 +96,11 @@ public partial class CSharpSimplifyLinqExpressionTests
                     var test5 = Enumerable.FirstOrDefault(test, x => x.Equals("!"));
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(testCode, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task NestedInDocument()
-    {
-
-        await new VerifyCS.Test
+    public Task NestedInDocument()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -150,5 +141,4 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """,
         }.RunAsync();
-    }
 }

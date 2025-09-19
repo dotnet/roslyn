@@ -400,6 +400,14 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public override int ERR_TooManyUserStrings_RestartRequired
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public override int ERR_PeWritingFailure
         {
             get

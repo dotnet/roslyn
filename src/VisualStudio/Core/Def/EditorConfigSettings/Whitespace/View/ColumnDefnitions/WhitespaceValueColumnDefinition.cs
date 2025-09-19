@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Value)]
-internal class WhitespaceValueColumnDefinition : TableColumnDefinitionBase
+internal sealed class WhitespaceValueColumnDefinition : TableColumnDefinitionBase
 {
     private readonly IEnumerable<IEnumSettingViewModelFactory> _factories;
 

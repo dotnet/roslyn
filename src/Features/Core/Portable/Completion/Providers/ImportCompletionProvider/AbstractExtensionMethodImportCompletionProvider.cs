@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -43,12 +44,13 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
             var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
             {
-
                 var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                     ? syntaxContext.InferredTypes
                     : [];
 
-                var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                var totalTime = SharedStopwatch.StartNew();
+
+                var completionItems = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                     syntaxContext,
                     receiverTypeSymbol,
                     namespaceInScope,
@@ -57,10 +59,10 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
                     hideAdvancedMembers: completionContext.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result is not null)
+                if (!completionItems.IsDefault)
                 {
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+                    completionContext.AddItems(completionItems.Select(i => Convert(i, receiverTypeKey)));
                 }
             }
         }

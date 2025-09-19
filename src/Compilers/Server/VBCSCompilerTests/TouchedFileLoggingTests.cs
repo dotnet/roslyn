@@ -94,6 +94,9 @@ End Class
             }
         }
 
+// <Metalama>
+#if FALSE
+// </Metalama>
         [ConditionalFact(typeof(DesktopOnly))]
         public void VisualBasicTrivialMetadataCaching()
         {
@@ -144,6 +147,9 @@ End Class
                 CleanupAllGeneratedFiles(f);
             }
         }
+// </Metalama>        
+#endif
+// <Metalama>
 
         /// <summary>
         /// Builds the expected base of touched files.

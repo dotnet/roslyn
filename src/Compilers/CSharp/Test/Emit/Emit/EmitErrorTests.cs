@@ -341,8 +341,12 @@ public class A
 
             var expectedDiagnostics = new[]
             {
-                // error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.
-                Diagnostic(ErrorCode.ERR_TooManyUserStrings).WithLocation(1, 1)
+                // (15,26): error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.
+                // System.Console.WriteLine("J...J");
+                Diagnostic(ErrorCode.ERR_TooManyUserStrings, '"' + new string('J', 1000000) + '"').WithLocation(15, 26),
+                // (16,26): error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.
+                // System.Console.WriteLine("K...K");
+                Diagnostic(ErrorCode.ERR_TooManyUserStrings, '"' + new string('K', 1000000) + '"').WithLocation(16, 26)
             };
 
             CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);

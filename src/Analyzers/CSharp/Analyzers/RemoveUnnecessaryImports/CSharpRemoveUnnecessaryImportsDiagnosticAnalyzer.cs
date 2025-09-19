@@ -52,18 +52,16 @@ internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer :
     {
         Contract.ThrowIfFalse(nodes.Any());
 
-        var nodesContainingUnnecessaryUsings = new HashSet<SyntaxNode>();
-        foreach (var node in nodes)
+        foreach (var node in nodes.Select(n => n.GetAncestors().First(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)).Distinct())
         {
-            var nodeContainingUnnecessaryUsings = node.GetAncestors().First(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax);
-            if (!nodesContainingUnnecessaryUsings.Add(nodeContainingUnnecessaryUsings))
+            if (node is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
-                continue;
+                yield return namespaceDeclaration.Usings.GetContainedSpan();
             }
-
-            yield return nodeContainingUnnecessaryUsings is BaseNamespaceDeclarationSyntax namespaceDeclaration
-                ? namespaceDeclaration.Usings.GetContainedSpan()
-                : ((CompilationUnitSyntax)nodeContainingUnnecessaryUsings).Usings.GetContainedSpan();
+            else if (node is CompilationUnitSyntax compilationUnit)
+            {
+                yield return compilationUnit.Usings.GetContainedSpan();
+            }
         }
     }
 }

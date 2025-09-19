@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache) : CommonQuickInfoProvider
+internal sealed class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache) : CommonQuickInfoProvider
 {
     private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache = globalCache.AnalyzerInfoCache;
 
@@ -144,7 +144,7 @@ internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoC
     }
 
     private static QuickInfoItem CreateQuickInfo(TextSpan location, DiagnosticDescriptor descriptor,
-        params TextSpan[] relatedSpans)
+        params ReadOnlySpan<TextSpan> relatedSpans)
     {
         var description =
             descriptor.Title.ToStringOrNull() ??

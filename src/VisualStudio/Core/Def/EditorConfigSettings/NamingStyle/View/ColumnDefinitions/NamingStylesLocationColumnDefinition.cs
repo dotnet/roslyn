@@ -19,7 +19,7 @@ using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Location)]
-internal class NamingStylesLocationColumnDefinition : TableColumnDefinitionBase
+internal sealed class NamingStylesLocationColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

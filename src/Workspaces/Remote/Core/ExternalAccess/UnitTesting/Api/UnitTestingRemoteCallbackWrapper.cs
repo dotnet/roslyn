@@ -7,20 +7,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal readonly struct UnitTestingRemoteCallbackWrapper<T>
+    where T : class
 {
-    internal readonly struct UnitTestingRemoteCallbackWrapper<T>
-        where T : class
-    {
-        internal readonly RemoteCallback<T> UnderlyingObject;
+    internal readonly RemoteCallback<T> UnderlyingObject;
 
-        public UnitTestingRemoteCallbackWrapper(T callback)
-            => UnderlyingObject = new RemoteCallback<T>(callback);
+    public UnitTestingRemoteCallbackWrapper(T callback)
+        => UnderlyingObject = new RemoteCallback<T>(callback);
 
-        public ValueTask InvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
-            => UnderlyingObject.InvokeAsync(invocation, cancellationToken);
+    public ValueTask InvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        => UnderlyingObject.InvokeAsync(invocation, cancellationToken);
 
-        public ValueTask<TResult> InvokeAsync<TResult>(Func<T, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
-            => UnderlyingObject.InvokeAsync(invocation, cancellationToken);
-    }
+    public ValueTask<TResult> InvokeAsync<TResult>(Func<T, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        => UnderlyingObject.InvokeAsync(invocation, cancellationToken);
 }

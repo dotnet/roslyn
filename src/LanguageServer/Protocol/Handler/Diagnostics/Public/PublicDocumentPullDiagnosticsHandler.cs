@@ -18,20 +18,15 @@ using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticRep
 using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
 
 [Method(Methods.TextDocumentDiagnosticName)]
-internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
+internal sealed partial class PublicDocumentPullDiagnosticsHandler(
+    IClientLanguageServerManager clientLanguageServerManager,
+    IDiagnosticSourceManager diagnosticSourceManager,
+    IDiagnosticsRefresher diagnosticsRefresher,
+    IGlobalOptionService globalOptions)
+    : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>(
+        diagnosticsRefresher, diagnosticSourceManager, globalOptions)
 {
-    private readonly IClientLanguageServerManager _clientLanguageServerManager;
-
-    public PublicDocumentPullDiagnosticsHandler(
-        IClientLanguageServerManager clientLanguageServerManager,
-        IDiagnosticAnalyzerService analyzerService,
-        IDiagnosticSourceManager diagnosticSourceManager,
-        IDiagnosticsRefresher diagnosticsRefresher,
-        IGlobalOptionService globalOptions)
-        : base(analyzerService, diagnosticsRefresher, diagnosticSourceManager, globalOptions)
-    {
-        _clientLanguageServerManager = clientLanguageServerManager;
-    }
+    private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
 
     protected override string? GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;

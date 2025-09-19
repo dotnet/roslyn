@@ -7,7 +7,7 @@
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-internal class LanguageServerConstants
+internal sealed class LanguageServerConstants
 {
     /// <summary>
     /// Default language name for use with <see cref="LanguageServerEndpointAttribute"/> and <see cref="AbstractHandlerProvider.GetMethodHandler"/>.

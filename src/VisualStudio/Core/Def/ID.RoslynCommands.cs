@@ -31,13 +31,6 @@ internal static partial class ID
         public const int SetActiveRuleSet = 0x0118;
         public const int SetSeverityDefault = 0x011b;
 
-        // Analyze and Code Cleanup menu IDs
-        public const int AnalysisScopeDefault = 0x0131;
-        public const int AnalysisScopeCurrentDocument = 0x0132;
-        public const int AnalysisScopeOpenDocuments = 0x0133;
-        public const int AnalysisScopeEntireSolution = 0x0134;
-        public const int AnalysisScopeNone = 0x0137;
-
         public const int GoToImplementation = 0x0200;
 
         public const int RunCodeAnalysisForProject = 0x0201;
@@ -53,5 +46,10 @@ internal static partial class ID
         public const int DocumentOutlineSortByOrder = 0x314;
         public const int DocumentOutlineSortByType = 0x315;
         public const int DocumentOutlineToolbarGroup = 0x350;
+
+        public const int SolutionExplorerSymbolItemContextMenu = 0x401;
+        public const int SolutionExplorerSymbolItemGoToBase = 0x402;
+        public const int SolutionExplorerSymbolItemGoToImplementation = 0x403;
+        public const int SolutionExplorerSymbolItemFindAllReferences = 0x404;
     }
 }

@@ -163,7 +163,7 @@ namespace Analyzer.Utilities
         internal static Collection<string> Parse(string text, WordParserOptions options, char prefix)
         {
             WordParser parser = new WordParser(text, options, prefix);
-            Collection<string> words = new Collection<string>();
+            Collection<string> words = [];
 
             string? word;
             while ((word = parser.NextWord()) != null)

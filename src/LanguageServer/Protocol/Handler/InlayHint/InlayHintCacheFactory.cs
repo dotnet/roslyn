@@ -6,17 +6,16 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
-{
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(InlayHintCache)), Shared]
-    internal class InlayHintCacheFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlayHintCacheFactory()
-        {
-        }
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new InlayHintCache();
+[ExportCSharpVisualBasicLspServiceFactory(typeof(InlayHintCache)), Shared]
+internal sealed class InlayHintCacheFactory : ILspServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public InlayHintCacheFactory()
+    {
     }
+
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new InlayHintCache();
 }

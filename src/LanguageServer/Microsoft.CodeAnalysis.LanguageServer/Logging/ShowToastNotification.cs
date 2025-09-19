@@ -32,7 +32,7 @@ internal static class ShowToastNotification
         await languageServerManager.SendNotificationAsync(ShowToastNotificationName, toastParams, cancellationToken);
     }
 
-    private record ShowToastNotificationParams(
+    private sealed record ShowToastNotificationParams(
         [property: JsonPropertyName("messageType")] LSP.MessageType MessageType,
         [property: JsonPropertyName("message")] string Message,
         [property: JsonPropertyName("commands")] LSP.Command[] Commands);

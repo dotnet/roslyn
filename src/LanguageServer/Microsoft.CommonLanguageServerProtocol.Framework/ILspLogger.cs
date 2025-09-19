@@ -8,9 +8,11 @@
 using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
+
 internal interface ILspLogger
 {
     IDisposable? CreateContext(string context);
+    IDisposable? CreateLanguageContext(string? language);
 
     void LogDebug(string message, params object[] @params);
     void LogInformation(string message, params object[] @params);

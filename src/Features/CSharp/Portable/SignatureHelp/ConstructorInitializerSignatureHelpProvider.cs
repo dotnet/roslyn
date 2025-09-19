@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -29,11 +30,9 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private async Task<ConstructorInitializerSyntax?> TryGetConstructorInitializerAsync(
         Document document,
@@ -57,7 +56,7 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, TriggerCharacters);
 
     private static bool IsArgumentListToken(ConstructorInitializerSyntax expression, SyntaxToken token)
     {

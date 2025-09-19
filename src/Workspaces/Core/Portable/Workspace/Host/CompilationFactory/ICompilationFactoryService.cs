@@ -17,8 +17,4 @@ internal interface ICompilationFactoryService : ILanguageService
     CompilationOptions GetDefaultCompilationOptions();
     CompilationOptions? TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata);
     GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, string? generatedFilesBaseDirectory);
-
-    // <Metalama> This code is used by Try.Metalama.
-    Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader);
-    // </Metalama>
 }
