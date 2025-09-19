@@ -39,6 +39,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpCodeRefactoringTestingXUnitVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisVisualBasicCodeRefactoringTestingXUnitVersion)" />
+    <!-- Directly depend on NuGet.Packaging to upgrade the version brought in transitively by the M.CA.Testing libraries. -->
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackagingVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- TODO: Remove the below project references to test utility projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
