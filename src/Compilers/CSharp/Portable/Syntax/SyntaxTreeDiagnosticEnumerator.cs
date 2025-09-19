@@ -133,6 +133,7 @@ tryAgain:
                 {
                     Debug.Assert(!this.PreviousTrailingTrivia.IsTrivia);
                 }
+#endif
 
                 this.SlotIndex = -1;
                 this.DiagnosticIndex = -1;

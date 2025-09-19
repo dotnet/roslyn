@@ -680,10 +680,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
         {
-            int offset, width;
-            this.GetDiagnosticSpanForMissingToken(out offset, out width);
-
-            return this.GetExpectedTokenError(expected, actual, offset, width);
+            var offset = this.GetDiagnosticOffsetForMissingToken();
+            return this.GetExpectedTokenError(expected, actual, offset, width: 0);
         }
 
         private static ErrorCode GetExpectedTokenErrorCode(SyntaxKind expected, SyntaxKind actual)
@@ -718,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected void GetDiagnosticSpanForMissingToken(out int offset, out int width)
+        protected int GetDiagnosticOffsetForMissingToken()
         {
             //// If the previous token has a trailing EndOfLineTrivia,
             //// the missing token diagnostic position is moved to the
@@ -741,8 +739,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //}
 
             SyntaxToken ct = this.CurrentToken;
-            offset = ct.GetLeadingTriviaWidth();
-            width = 0;
+            return ct.GetLeadingTriviaWidth();
+            //width = 0;
             //width = ct.Width;
         }
 
@@ -819,7 +817,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 // If we have a missing node, report the error at the start of the token we're currently on.
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                offset = this.GetDiagnosticOffsetForMissingToken();
+                width = 0;
             }
 
             return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));

@@ -812,10 +812,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // NOTE: There are no errors in crefs - only warnings.  We accomplish this by wrapping every diagnostic in ErrorCode.WRN_ErrorOverride.
             if (InCref)
             {
-                int offset, width;
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
-
-                return GetExpectedTokenError(expected, actual, offset, width);
+                var offset = this.GetDiagnosticOffsetForMissingToken();
+                return GetExpectedTokenError(expected, actual, offset, length: 0);
             }
 
             switch (expected)
@@ -1029,18 +1027,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
 
-                // Grab the offset and width before we consume the invalid keyword and change our position.
-                int offset;
-                int width;
-                GetDiagnosticSpanForMissingToken(out offset, out width);
+                // Grab the offset before we consume the invalid keyword and change our position.
+                var offset = GetDiagnosticOffsetForMissingToken();
 
                 if (SyntaxFacts.IsUnaryOperatorDeclarationToken(CurrentToken.Kind) || SyntaxFacts.IsBinaryExpressionOperatorToken(CurrentToken.Kind))
                 {
                     operatorToken = AddTrailingSkippedSyntax(operatorToken, EatToken());
                 }
 
-                SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.ERR_OvlOperatorExpected);
-                SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width: 0, ErrorCode.ERR_OvlOperatorExpected);
+                SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width: 0, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
 
                 operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
             }
