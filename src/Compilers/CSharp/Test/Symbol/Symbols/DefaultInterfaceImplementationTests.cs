@@ -23775,7 +23775,7 @@ class Test2 : I1, I2, I3
                 // (26,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 //         I1.I2 I3.I4.M4() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 12),
-                // (26,21): error CS9332: 'CI4.M4()' return type must be 'I1.I2' to match implemented member 'I3.I4.M4()'
+                // (26,21): error CS9333: 'CI4.M4()' return type must be 'I1.I2' to match implemented member 'I3.I4.M4()'
                 //         I1.I2 I3.I4.M4() => null;
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M4").WithArguments("CI4.M4()", "I1.I2", "I3.I4.M4()").WithLocation(26, 21),
                 // (33,29): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'C3.I6.M6()'
@@ -23787,7 +23787,7 @@ class Test2 : I1, I2, I3
                 // (39,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 //         I1.I2 C3.I6.M6() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(39, 12),
-                // (39,21): error CS9332: 'CI6.M6()' return type must be 'I1.I2' to match implemented member 'C3.I6.M6()'
+                // (39,21): error CS9333: 'CI6.M6()' return type must be 'I1.I2' to match implemented member 'C3.I6.M6()'
                 //         I1.I2 C3.I6.M6() => null;
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M6").WithArguments("CI6.M6()", "I1.I2", "C3.I6.M6()").WithLocation(39, 21),
                 // (46,37): error CS0050: Inconsistent accessibility: return type 'C1.I2' is less accessible than method 'C33.C44.M44()'
@@ -23958,7 +23958,7 @@ class Test2 : I1, I2, I3
                 // (26,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
                 //         I1<string>.I2 I3.I4.M4() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(26, 20),
-                // (26,29): error CS9332: 'CI4.M4()' type must be 'I1<string>.I2' to match implemented member 'I3.I4.M4()'
+                // (26,29): error CS9333: 'CI4.M4()' type must be 'I1<string>.I2' to match implemented member 'I3.I4.M4()'
                 //         I1<string>.I2 I3.I4.M4() => null;
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M4").WithArguments("CI4.M4()", "I1<string>.I2", "I3.I4.M4()").WithLocation(26, 29),
                 // (33,37): error CS0050: Inconsistent accessibility: return type 'I1<string>.I2' is less accessible than method 'C3.I6.M6()'
@@ -23970,7 +23970,7 @@ class Test2 : I1, I2, I3
                 // (39,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
                 //         I1<string>.I2 C3.I6.M6() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(39, 20),
-                // (39,29): error CS9332: 'CI6.M6()' type must be 'I1<string>.I2' to match implemented member 'C3.I6.M6()'
+                // (39,29): error CS9333: 'CI6.M6()' type must be 'I1<string>.I2' to match implemented member 'C3.I6.M6()'
                 //         I1<string>.I2 C3.I6.M6() => null;
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M6").WithArguments("CI6.M6()", "I1<string>.I2", "C3.I6.M6()").WithLocation(39, 29),
                 // (46,45): error CS0050: Inconsistent accessibility: return type 'C1<string>.I2' is less accessible than method 'C33.C44.M44()'

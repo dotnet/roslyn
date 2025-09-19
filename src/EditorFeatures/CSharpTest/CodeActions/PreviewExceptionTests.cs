@@ -87,11 +87,11 @@ public sealed partial class PreviewTests
         Assert.False(extensionManager.IsIgnored(provider));
     }
 
-    private static SuggestedActionWithNestedFlavors CreateRefactoringSuggestedAction(EditorTestWorkspace workspace, CodeRefactoringProvider provider, out EditorLayerExtensionManager.ExtensionManager extensionManager)
+    private static EditorSuggestedActionWithNestedFlavors CreateRefactoringSuggestedAction(EditorTestWorkspace workspace, CodeRefactoringProvider provider, out EditorLayerExtensionManager.ExtensionManager extensionManager)
     {
         var codeActions = new List<CodeAction>();
         RefactoringSetup(workspace, provider, codeActions, out extensionManager, out var textBuffer, out var document);
-        var suggestedAction = new SuggestedActionWithNestedFlavors(
+        var suggestedAction = new EditorSuggestedActionWithNestedFlavors(
             workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
             workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
             document, textBuffer, provider, codeActions.First(), fixAllFlavors: null, diagnostics: []);

@@ -65,12 +65,12 @@ internal sealed class NavigateToItemDisplay : INavigateToItemDisplay3
 
         var items = new List<DescriptionItem>
                 {
-                    new DescriptionItem(
+                    new(
                         new ReadOnlyCollection<DescriptionRun>(
                             new[] { new DescriptionRun("Project:", bold: true) }),
                         new ReadOnlyCollection<DescriptionRun>(
                             new[] { new DescriptionRun(document.Project.Name) })),
-                    new DescriptionItem(
+                    new(
                         new ReadOnlyCollection<DescriptionRun>(
                             new[] { new DescriptionRun("File:", bold: true) }),
                         new ReadOnlyCollection<DescriptionRun>(

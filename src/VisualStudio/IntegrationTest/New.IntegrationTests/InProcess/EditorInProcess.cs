@@ -842,7 +842,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
                 action = fixAllAction;
 
                 if (willBlockUntilComplete
-                    && action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction)
+                    && action is EditorSuggestedActionForRefactorOrFixAll fixAllSuggestedAction)
                 {
                     // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
                     // the caller would not be able to interact with the preview changes dialog, and the tests would
@@ -859,7 +859,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
                 broker.DismissSession(view);
             }
 
-            if (action is not SuggestedAction suggestedAction)
+            if (action is not EditorSuggestedAction suggestedAction)
                 return true;
 
             broker.DismissSession(view);
@@ -932,7 +932,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         return actions;
     }
 
-    private async Task<RefactorOrFixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
+    private async Task<EditorSuggestedActionForRefactorOrFixAll?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -940,7 +940,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         {
             foreach (var action in actionSet.Actions)
             {
-                if (action is RefactorOrFixAllSuggestedAction fixAllSuggestedAction &&
+                if (action is EditorSuggestedActionForRefactorOrFixAll fixAllSuggestedAction &&
                     fixAllSuggestedAction.CodeAction.RefactorOrFixAllState.Scope == fixAllScope)
                 {
                     return fixAllSuggestedAction;

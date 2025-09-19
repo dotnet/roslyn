@@ -47,7 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsInterface => this.TypeKind == TypeKind.Interface;
 
-        internal sealed override ParameterSymbol ExtensionParameter => null;
+#nullable enable
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
+#nullable disable
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
@@ -148,12 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsStatic => false;
 
         public sealed override bool IsRefLikeType => false;
-
-        internal override string ExtensionGroupingName
-            => throw ExceptionUtilities.Unreachable();
-
-        internal override string ExtensionMarkerName
-            => throw ExceptionUtilities.Unreachable();
 
         public sealed override bool IsReadOnly => false;
 

@@ -6458,8 +6458,7 @@ unsafe class Derived : Base
     protected override delegate*<nint, void> M8() => throw null;
 }");
 
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
 
             assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods);
@@ -6511,8 +6510,7 @@ unsafe class Derived : Base
     protected override delegate*<dynamic, void> M8() => throw null;
 }");
 
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
 
             assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
@@ -9799,18 +9797,12 @@ class D
                 // (6,30): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(6, 30),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 30),
                 // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
                 // (11,30): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
-                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30),
-                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30)
             );
         }
 
@@ -9837,10 +9829,7 @@ class D
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
                 // (11,30): warning CS8892: Method 'D.Main()' will not be used as an entry point because a synchronous entry point 'C.Main()' was found.
                 //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main()").WithLocation(11, 30),
-                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main()").WithLocation(11, 30)
             );
         }
 

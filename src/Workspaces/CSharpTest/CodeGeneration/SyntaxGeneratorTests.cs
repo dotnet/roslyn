@@ -5615,6 +5615,35 @@ public sealed class SyntaxGeneratorTests
     }
 
     [Fact]
+    public void TestExtensionDeclaration_12()
+    {
+        // static extension method
+        var compilation = Compile("""
+            static class E
+            {
+                extension(int)
+                {
+                    public static void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public static void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public void Operator_01()
     {
         var compilation = Compile("""

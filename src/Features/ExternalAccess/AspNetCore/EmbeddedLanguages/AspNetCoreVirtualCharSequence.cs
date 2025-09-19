@@ -55,7 +55,7 @@ internal readonly struct AspNetCoreVirtualCharSequence
 
     /// <inheritdoc cref="VirtualCharSequence.GetEnumerator"/>
     public Enumerator GetEnumerator()
-        => new Enumerator(_virtualCharSequence.GetEnumerator());
+        => new(_virtualCharSequence.GetEnumerator());
 
     /// <inheritdoc cref="VirtualCharSequence.Enumerator"/>
     public struct Enumerator : IEnumerator<AspNetCoreVirtualChar>

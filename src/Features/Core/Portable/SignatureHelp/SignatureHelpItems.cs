@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp;
 
@@ -16,7 +16,7 @@ internal sealed class SignatureHelpItems
     /// <summary>
     /// The list of items to present to the user.
     /// </summary>
-    public IList<SignatureHelpItem> Items { get; }
+    public ImmutableArray<SignatureHelpItem> Items { get; }
 
     /// <summary>
     /// The span this session applies to.
@@ -59,23 +59,22 @@ internal sealed class SignatureHelpItems
     public int? SelectedItemIndex { get; }
 
     public SignatureHelpItems(
-        IList<SignatureHelpItem> items,
+        ImmutableArray<SignatureHelpItem> items,
         TextSpan applicableSpan,
         int semanticParameterIndex,
         int syntacticArgumentCount,
         string? argumentName,
         int? selectedItem = null)
     {
-        Contract.ThrowIfNull(items);
-        Contract.ThrowIfTrue(items.IsEmpty());
-        Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value >= items.Count);
+        Contract.ThrowIfTrue(items.IsDefaultOrEmpty);
+        Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value >= items.Length);
 
         if (semanticParameterIndex < 0)
             throw new ArgumentException($"{nameof(semanticParameterIndex)} < 0. {semanticParameterIndex} < 0", nameof(semanticParameterIndex));
 
         // Adjust the `selectedItem` index if duplicates are able to be removed.
-        var distinctItems = items.Distinct().ToList();
-        if (selectedItem.HasValue && items.Count != distinctItems.Count)
+        var distinctItems = items.Distinct();
+        if (selectedItem.HasValue && items.Length != distinctItems.Length)
         {
             // `selectedItem` index has already been determined to be valid, it now needs to be adjusted to point
             // to the equivalent item in the reduced list to account for duplicates being removed

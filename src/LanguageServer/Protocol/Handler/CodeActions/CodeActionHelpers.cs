@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnifiedSuggestions;
+using Microsoft.CodeAnalysis.Suggestions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -93,7 +93,7 @@ internal static class CodeActionHelpers
         return codeActions.ToArray();
     }
 
-    private static bool IsCodeActionNotSupportedByLSP(UnifiedSuggestedAction suggestedAction)
+    private static bool IsCodeActionNotSupportedByLSP(SuggestedAction suggestedAction)
         // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
         // Exceptions are made for ExtractClass and ExtractInterface because we have OptionsServices which
         // provide reasonable defaults without user interaction.
@@ -109,7 +109,7 @@ internal static class CodeActionHelpers
     /// </summary>
     private static LSP.CodeAction[] GenerateCodeActions(
         CodeActionParams request,
-        UnifiedSuggestedAction suggestedAction,
+        SuggestedAction suggestedAction,
         LSP.CodeActionKind codeActionKind)
     {
         var codeAction = suggestedAction.CodeAction;
@@ -142,7 +142,7 @@ internal static class CodeActionHelpers
         CodeActionParams request,
         LSP.CodeActionKind codeActionKind,
         LSP.Diagnostic[]? diagnosticsForFix,
-        UnifiedSuggestedAction suggestedAction,
+        SuggestedAction suggestedAction,
         ImmutableArray<string> pathOfParentAction,
         bool isTopLevelCodeAction = false)
     {
@@ -181,7 +181,7 @@ internal static class CodeActionHelpers
         Command? nestedCodeActionCommand,
         ImmutableArray<LSP.CodeAction>? nestedCodeActions,
         string[] codeActionPath,
-        UnifiedSuggestedAction suggestedAction)
+        SuggestedAction suggestedAction)
     {
         var title = codeAction.Title;
         // We add an overarching action to the lightbulb that may contain nested actions.
@@ -196,7 +196,7 @@ internal static class CodeActionHelpers
             Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, fixAllFlavors: null, nestedCodeActions)
         });
 
-        if (suggestedAction is UnifiedSuggestedAction { Flavors: { } fixAllFlavors })
+        if (suggestedAction is SuggestedAction { Flavors: { } fixAllFlavors })
         {
             var flavorStrings = fixAllFlavors.Actions.Select(a => a.RefactorOrFixAllState?.Scope.ToString()).WhereNotNull();
             var fixAllTitle = string.Format(FeaturesResources.Fix_All_0, title);
@@ -220,7 +220,7 @@ internal static class CodeActionHelpers
     private static VSInternalCodeAction GenerateVSCodeAction(
         CodeActionParams request,
         SourceText documentText,
-        UnifiedSuggestedAction suggestedAction,
+        SuggestedAction suggestedAction,
         LSP.CodeActionKind codeActionKind,
         CodeActionPriority setPriority,
         LSP.Range? applicableRange,
@@ -250,7 +250,7 @@ internal static class CodeActionHelpers
         static VSInternalCodeAction[] GenerateNestedVSCodeActions(
             CodeActionParams request,
             SourceText documentText,
-            UnifiedSuggestedAction suggestedAction,
+            SuggestedAction suggestedAction,
             CodeActionKind codeActionKind,
             ref int currentHighestSetNumber,
             ImmutableArray<string> codeActionPath)
@@ -277,9 +277,9 @@ internal static class CodeActionHelpers
         }
     }
 
-    private static LSP.Diagnostic[]? GetApplicableDiagnostics(CodeActionContext context, UnifiedSuggestedAction action)
+    private static LSP.Diagnostic[]? GetApplicableDiagnostics(CodeActionContext context, SuggestedAction action)
     {
-        if (action is UnifiedSuggestedAction { Diagnostics.Length: > 0 } codeFixAction && context.Diagnostics != null)
+        if (action is SuggestedAction { Diagnostics.Length: > 0 } codeFixAction && context.Diagnostics != null)
         {
             // Associate the diagnostics from the request that match the diagnostic fixed by the code action by ID.
             // The request diagnostics are already restricted to the code fix location by the request.
@@ -344,7 +344,7 @@ internal static class CodeActionHelpers
     /// <summary>
     /// Generates a code action with its nested actions properly set.
     /// </summary>
-    private static CodeAction GetNestedActionsFromActionSet(UnifiedSuggestedAction suggestedAction, string? fixAllScope)
+    private static CodeAction GetNestedActionsFromActionSet(SuggestedAction suggestedAction, string? fixAllScope)
     {
         var codeAction = suggestedAction.CodeAction;
         if (suggestedAction.NestedActionSets.IsEmpty)
@@ -365,7 +365,7 @@ internal static class CodeActionHelpers
             codeAction.Title, nestedActions.ToImmutableAndClear(), codeAction.IsInlinable, codeAction.Priority);
     }
 
-    private static void GetFixAllActionsFromActionSet(UnifiedSuggestedAction suggestedAction, ArrayBuilder<CodeAction> codeActions, string? fixAllScope)
+    private static void GetFixAllActionsFromActionSet(SuggestedAction suggestedAction, ArrayBuilder<CodeAction> codeActions, string? fixAllScope)
     {
         var codeAction = suggestedAction.CodeAction;
         if (suggestedAction.Flavors is null)
@@ -378,7 +378,7 @@ internal static class CodeActionHelpers
             fixAllFlavor.RefactorOrFixAllState!, showPreviewChangesDialog: false, title: codeAction.Title));
     }
 
-    private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
+    private static async ValueTask<ImmutableArray<SuggestedActionSet>> GetActionSetsAsync(
         TextDocument document,
         ICodeFixService codeFixService,
         ICodeRefactoringService codeRefactoringService,
@@ -400,7 +400,7 @@ internal static class CodeActionHelpers
         return actionSets;
     }
 
-    private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, UnifiedSuggestedAction suggestedAction)
+    private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, SuggestedAction suggestedAction)
         => categoryName switch
         {
             UnifiedPredefinedSuggestedActionCategoryNames.CodeFix => CodeActionKind.QuickFix,
@@ -410,7 +410,7 @@ internal static class CodeActionHelpers
             _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
         };
 
-    private static CodeActionKind GetRefactoringKind(UnifiedSuggestedAction suggestedAction)
+    private static CodeActionKind GetRefactoringKind(SuggestedAction suggestedAction)
         => suggestedAction.CodeRefactoringKind switch
         {
             CodeRefactoringKind.Extract => CodeActionKind.RefactorExtract,

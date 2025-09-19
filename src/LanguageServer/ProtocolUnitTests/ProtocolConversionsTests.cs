@@ -245,13 +245,48 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.Equal(32, textSpan.End);
     }
 
-    [Fact]
-    public void RangeToTextSpanLineOutOfRangeError()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80119")]
+    public void RangeToTextSpanDoesNotThrow_WhenReferencingStartOfNextLineAfterLastLine()
     {
         var markup = GetTestMarkup();
         var sourceText = SourceText.From(markup);
 
-        var range = new Range() { Start = new Position(0, 0), End = new Position(sourceText.Lines.Count, 0) };
+        // The spec allows clients to send a range referencing the start of the next line
+        // after the last line in the document (and outside the bounds of the document).
+        // This should not throw.
+        var lastLineIndex = sourceText.Lines.Count - 1;
+        var range = new Range()
+        {
+            Start = new Position(lastLineIndex, 0),
+            End = new Position(lastLineIndex + 1, 0)
+        };
+
+        var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
+
+        // Should span from the start of the last line to the end of the document
+        var lastLine = sourceText.Lines[lastLineIndex];
+        Assert.Equal(lastLine.Start, textSpan.Start);
+        Assert.Equal(sourceText.Length, textSpan.End);
+    }
+
+    [Fact]
+    public void RangeToTextSpanThrows_LineOutOfRange()
+    {
+        var markup = GetTestMarkup();
+        var sourceText = SourceText.From(markup);
+
+        // Ranges that are outside the document bounds should throw.
+        var range = new Range() { Start = new Position(0, 0), End = new Position(sourceText.Lines.Count + 1, 0) };
+        Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
+    }
+
+    [Fact]
+    public void RangeToTextSpanWThrows_CharacterOutOfRange()
+    {
+        var markup = GetTestMarkup();
+        var sourceText = SourceText.From(markup);
+
+        var range = new Range() { Start = new Position(0, 0), End = new Position(sourceText.Lines.Count, 5) };
         Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
     }
 

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
-internal partial class SuggestedActionWithNestedFlavors
+internal partial class EditorSuggestedActionWithNestedFlavors
 {
     /// <summary>
     /// Code action that triggers Copilot refinement session to add further

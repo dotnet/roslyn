@@ -246,7 +246,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
                 return Task.FromResult<ImmutableArray<DiagnosticData>>([DiagnosticData.Create(diagnostic, context.TextDocument.Project)]);
             }
 
-            public LSP.TextDocumentIdentifier? GetDocumentIdentifier() => new LSP.TextDocumentIdentifier
+            public LSP.TextDocumentIdentifier? GetDocumentIdentifier() => new()
             {
                 DocumentUri = textDocument.GetURI()
             };

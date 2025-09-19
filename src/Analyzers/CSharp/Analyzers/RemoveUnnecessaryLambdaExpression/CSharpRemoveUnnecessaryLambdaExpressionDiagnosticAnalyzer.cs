@@ -132,13 +132,13 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
             return;
 
         // cannot convert a partial-definition to a delegate (unless there's an existing implementation part that can be used).
-        if (invokedMethod.IsPartialDefinition && invokedMethod.PartialImplementationPart is null)
+        if (invokedMethod is { IsPartialDefinition: true, PartialImplementationPart: null })
             return;
 
         // Check if the invoked method is a member of a struct. If it is, and it is not readonly and the invoked method
         // is not readonly, then we don't want to convert it to a method group. If we did, we may accidently change the
         // behaviour of the code, since structs are value types and the method group will be copied rather than referenced.
-        if (invokedMethod.ContainingType.TypeKind == TypeKind.Struct && !invokedMethod.IsReadOnly && !invokedMethod.ContainingType.IsReadOnly)
+        if (invokedMethod is { ContainingType.TypeKind: TypeKind.Struct, IsReadOnly: false, ContainingType.IsReadOnly: false })
             return;
 
         // If we're calling a generic method, we have to have supplied type arguments.  They cannot be inferred once
@@ -307,7 +307,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         if (anonymousFunction.ExpressionBody != null)
             return TryGetInvocation(anonymousFunction.ExpressionBody, out invocation, out wasAwaited);
 
-        if (anonymousFunction.Block != null && anonymousFunction.Block.Statements.Count == 1)
+        if (anonymousFunction.Block is { Statements.Count: 1 })
         {
             var statement = anonymousFunction.Block.Statements[0];
             if (statement is ReturnStatementSyntax { Expression: { } expression })

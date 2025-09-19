@@ -34,20 +34,20 @@ public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosti
         => (new OptionKey2(option, language), codeStyle);
 
     internal OptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-        => new OptionsCollection(GetLanguage()) { { option, enabled, notification } };
+        => new(GetLanguage()) { { option, enabled, notification } };
 
     internal OptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-        => new OptionsCollection(GetLanguage()) { { option, codeStyle } };
+        => new(GetLanguage()) { { option, codeStyle } };
 
     internal OptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
-        => new OptionsCollection(GetLanguage()) { { option, enabled, notification } };
+        => new(GetLanguage()) { { option, enabled, notification } };
 
     internal OptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-        => new OptionsCollection(GetLanguage()) { { option, codeStyle } };
+        => new(GetLanguage()) { { option, codeStyle } };
 
     internal OptionsCollection Option<T>(Option2<T> option, T value)
-        => new OptionsCollection(GetLanguage()) { { option, value } };
+        => new(GetLanguage()) { { option, value } };
 
     internal OptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
-        => new OptionsCollection(GetLanguage()) { { option, value } };
+        => new(GetLanguage()) { { option, value } };
 }
