@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // don't produce locations outside of tree span
                     Debug.Assert(_syntaxTree is object);
                     var length = _syntaxTree.GetRoot().FullSpan.Length;
-                    var spanStart = Math.Min(_position - sdi.Offset, length);
+                    var spanStart = Math.Min(_position + sdi.Offset, length);
                     var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
 
                     _current = new CSDiagnostic(sdi, new SourceLocation(_syntaxTree, new TextSpan(spanStart, spanWidth)));
