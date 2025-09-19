@@ -305,5 +305,89 @@ Block[B7] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(51715, "https://github.com/dotnet/roslyn/issues/51715")]
+        public void MethodReference_LocalFunction_01()
+        {
+            var code = @"
+using System;
+Action a = /*<bind>*/localFunction/*</bind>*/;
+
+void localFunction() {}
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedTree = @"
+IMethodReferenceOperation: void localFunction() (OperationKind.MethodReference, Type: null) (Syntax: 'localFunction')
+  Instance Receiver:
+    null";
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(code, expectedTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(51715, "https://github.com/dotnet/roslyn/issues/51715")]
+        public void MethodReference_LocalFunction_02()
+        {
+            var code = @"
+using System;
+Action a = /*<bind>*/localFunction/*</bind>*/;
+
+static void localFunction() {}
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedTree = @"
+IMethodReferenceOperation: void localFunction() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'localFunction')
+  Instance Receiver:
+    null";
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(code, expectedTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(51715, "https://github.com/dotnet/roslyn/issues/51715")]
+        public void MethodReference_LocalFunction_03()
+        {
+            var code = @"
+using System;
+int local = 1;
+Func<int> a = /*<bind>*/localFunction/*</bind>*/;
+
+int localFunction() => local;
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedTree = @"
+IMethodReferenceOperation: System.Int32 localFunction() (OperationKind.MethodReference, Type: null) (Syntax: 'localFunction')
+  Instance Receiver:
+    null";
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(code, expectedTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(51715, "https://github.com/dotnet/roslyn/issues/51715")]
+        public void MethodReference_LocalFunction_04()
+        {
+            var code = @"
+using System;
+int local = 1;
+Func<int> a = /*<bind>*/localFunction/*</bind>*/;
+
+static int localFunction() => local;
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (6,31): error CS8421: A static local function cannot contain a reference to 'local'.
+                // static int localFunction() => local;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "local").WithArguments("local").WithLocation(6, 31)
+            };
+
+            var expectedTree = @"
+IMethodReferenceOperation: System.Int32 localFunction() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'localFunction')
+  Instance Receiver:
+    null";
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(code, expectedTree, expectedDiagnostics);
+        }
     }
 }
