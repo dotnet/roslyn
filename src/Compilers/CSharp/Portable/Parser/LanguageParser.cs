@@ -2971,7 +2971,7 @@ parse_member_name:;
                 var misplacedModifier = this.CurrentToken;
                 type = this.AddError(
                     type,
-                    type.Width + type.GetTrailingTriviaWidth() + misplacedModifier.GetLeadingTriviaWidth(),
+                    type.FullWidth + misplacedModifier.GetLeadingTriviaWidth(),
                     misplacedModifier.Width,
                     ErrorCode.ERR_BadModifierLocation,
                     misplacedModifier.Text);
@@ -3012,7 +3012,7 @@ parse_member_name:;
                     //the error position should indicate CurrentToken
                     result = this.AddError(
                         incompleteMember,
-                        incompleteMember.Width + incompleteMember.GetTrailingTriviaWidth() + this.CurrentToken.GetLeadingTriviaWidth(),
+                        incompleteMember.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
                         this.CurrentToken.Width,
                         ErrorCode.ERR_InvalidMemberDecl,
                         this.CurrentToken.Text);
