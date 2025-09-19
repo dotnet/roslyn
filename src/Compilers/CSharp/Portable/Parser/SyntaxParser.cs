@@ -821,14 +821,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, MakeError(offset, length, code, args));
         }
 
-        protected TNode AddError<TNode>(TNode node, CSharpSyntaxNode location, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
-        {
-            // assumes non-terminals will at most appear once in sub-tree
-            int offset;
-            FindOffset(node, location, out offset);
-            return WithAdditionalDiagnostics(node, MakeError(offset, location.Width, code, args));
-        }
-
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
         {
             var firstToken = node.GetFirstToken();
@@ -1036,61 +1028,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return target;
-        }
-
-        /// <summary>
-        /// This function searches for the given location node within the subtree rooted at root node. 
-        /// If it finds it, the function computes the offset span of that child node within the root and returns true, 
-        /// otherwise it returns false.
-        /// </summary>
-        /// <param name="root">Root node</param>
-        /// <param name="location">Node to search in the subtree rooted at root node</param>
-        /// <param name="offset">Offset of the location node within the subtree rooted at child</param>
-        /// <returns></returns>
-        private bool FindOffset(GreenNode root, CSharpSyntaxNode location, out int offset)
-        {
-            int currentOffset = 0;
-            offset = 0;
-            if (root != null)
-            {
-                for (int i = 0, n = root.SlotCount; i < n; i++)
-                {
-                    var child = root.GetSlot(i);
-                    if (child == null)
-                    {
-                        // ignore null slots
-                        continue;
-                    }
-
-                    // check if the child node is the location node
-                    if (child == location)
-                    {
-                        // Found the location node in the subtree
-                        // Initialize offset with the offset of the location node within its parent
-                        // and walk up the stack of recursive calls adding the offset of each node
-                        // within its parent
-                        offset = currentOffset;
-                        return true;
-                    }
-
-                    // search for the location node in the subtree rooted at child node
-                    if (this.FindOffset(child, location, out offset))
-                    {
-                        // Found the location node in child's subtree
-                        // Add the offset of child node within its parent to offset
-                        // and continue walking up the stack
-                        offset += child.GetLeadingTriviaWidth() + currentOffset;
-                        return true;
-                    }
-
-                    // We didn't find the location node in the subtree rooted at child
-                    // Move on to the next child
-                    currentOffset += child.FullWidth;
-                }
-            }
-
-            // We didn't find the location node within the subtree rooted at root node
-            return false;
         }
 
         protected static SyntaxToken ConvertToKeyword(SyntaxToken token)
