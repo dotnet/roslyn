@@ -3002,5 +3002,19 @@ class Program
                 }
             }
         }
+
+        [Fact]
+        public void ErrantPreprocessorDirective()
+        {
+            var text = """
+                int i,(#if goo
+
+                private void Goo() { }
+                """;
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var diagnostics = tree.GetDiagnostics();
+            diagnostics.Verify();
+        }
     }
 }
