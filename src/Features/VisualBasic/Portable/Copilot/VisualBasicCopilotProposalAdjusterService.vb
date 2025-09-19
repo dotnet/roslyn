@@ -21,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Copilot
             MyBase.New(globalOptions)
         End Sub
 
-        Protected Overrides Function AddMissingTokensIfAppropriateAsync(originalDocument As Document, normalizedChanges As ImmutableArray(Of Text.TextChange), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of TextChange))
-            Return SpecializedTasks.Default(Of ImmutableArray(Of TextChange))
+        Protected Overrides Function AddMissingTokensIfAppropriateAsync(originalDocument As Document, forkedDocument As Document, cancellationToken As CancellationToken) As Task(Of (changed As Boolean, document As Document))
+            Return Task.FromResult((False, forkedDocument))
         End Function
     End Class
 End Namespace
