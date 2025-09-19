@@ -699,7 +699,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
                                     {
                                         RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
-                                        attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
+
+                                        attribute = attribute.Update(
+                                            attribute.OpenBracketToken,
+                                            attribute.Target.Update(
+                                                this.AddError(attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst),
+                                                attribute.Target.ColonToken),
+                                            attribute.Attributes,
+                                            attribute.CloseBracketToken);
+
                                         this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
                                     }
                                     else
