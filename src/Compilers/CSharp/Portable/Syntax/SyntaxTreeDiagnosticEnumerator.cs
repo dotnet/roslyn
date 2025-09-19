@@ -53,10 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagIndex++;
                     var sdi = (SyntaxDiagnosticInfo)diags[diagIndex];
 
-                    ////for tokens, we've already seen leading trivia on the stack, so we have to roll back
-                    ////for nodes, we have yet to see the leading trivia
-                    //int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
-
                     // don't produce locations outside of tree span
                     Debug.Assert(_syntaxTree is object);
                     var length = _syntaxTree.GetRoot().FullSpan.Length;
@@ -93,6 +89,9 @@ tryAgain:
                 {
                     if (node.SlotCount == 0)
                     {
+                        // A slotness node is a token or trivia.  In both cases, we only want to move forward their
+                        // width, not their full width.  If we moved forward the full width, we would double count
+                        // leading trivia on tokens.
                         _position += node.Width;
                     }
 
