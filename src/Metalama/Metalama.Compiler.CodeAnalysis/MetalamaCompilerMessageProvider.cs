@@ -21,9 +21,7 @@ namespace Metalama.Compiler
         ERR_TransformerNotUnique = 616,
         WRN_AnalyzerAssembliesRedirected = 617,
         WRN_AnalyzerAssemblyCantRedirect = 618,
-        WRN_LanguageVersionUpdated = 620, // Emitted by Microsoft.CSharp.Core.targets.
         WRN_GeneratorAssemblyCantRedirect = 621,
-        WRN_TargetFrameworkNotSupported = 622, // Emitted by Microsoft.CSharp.Core.targets.
         ERR_ServiceInitializationFailed = 623
     }
 
