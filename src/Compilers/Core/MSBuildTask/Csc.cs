@@ -809,5 +809,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             RoslynDebug.Assert(cscHostObject != null, "Wrong kind of host object passed in!");
             return cscHostObject.Compile();
         }
+
+        internal override void AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(CommandLineBuilderExtension commandLine)
+        {
+            base.AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(commandLine);
+            commandLine.AppendSwitchIfNotNull("/nullable:", Nullable);
+        }
     }
 }
