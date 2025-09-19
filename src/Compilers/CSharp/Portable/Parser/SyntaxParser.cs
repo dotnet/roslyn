@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             //slow part of EatToken(SyntaxKind kind)
-            return CreateMissingToken(kind, this.CurrentToken.Kind, reportError: true);
+            return CreateMissingToken(kind, this.CurrentToken.Kind);
         }
 
         // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
@@ -538,32 +538,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(expected));
 
-            var token = this.EatToken();
-            if (token.Kind == expected)
-                return token;
+            var ct = this.CurrentToken;
+            if (ct.Kind == expected)
+            {
+                MoveToNextToken();
+                return ct;
+            }
 
-            var replacement = SyntaxFactory.Token(
-                token.LeadingTrivia.Node,
-                expected,
-                text: token.Text,
-                token.TrailingTrivia.Node);
-
-            replacement = replacement.WithDiagnosticsGreen(token.GetDiagnostics());
-            replacement = WithAdditionalDiagnostics(replacement, GetExpectedTokenError(expected, token.Kind));
-
-            return replacement;
-            //CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
-            //return AddTrailingSkippedSyntax(replacement, this.EatToken());
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind);
+            return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
-        protected SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
+        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual)
         {
             // should we eat the current ParseToken's leading trivia?
             var token = SyntaxFactory.MissingToken(expected);
-            if (reportError)
-            {
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
-            }
+            token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
 
             return token;
         }
@@ -646,14 +636,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxToken EatContextualToken(SyntaxKind kind, bool reportError = true)
+        protected SyntaxToken EatContextualToken(SyntaxKind kind)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
 
             var contextualKind = this.CurrentToken.ContextualKind;
             if (contextualKind != kind)
             {
-                return CreateMissingToken(kind, contextualKind, reportError);
+                return CreateMissingToken(kind, contextualKind);
             }
             else
             {
