@@ -4258,7 +4258,7 @@ top:
 
             this.Start();
             this.ScanXmlProcessingInstructionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
