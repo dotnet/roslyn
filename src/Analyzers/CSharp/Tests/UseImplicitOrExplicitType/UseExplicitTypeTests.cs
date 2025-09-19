@@ -15,7 +15,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitOrExplicitType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
 public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)

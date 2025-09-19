@@ -99,7 +99,6 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
                     #pragma warning disable 0414
                     private static object __o = null;
                     #pragma warning restore 0414
-                    #pragma warning disable 1998
                     public async override global::System.Threading.Tasks.Task ExecuteAsync()
                     {
             #nullable restore
@@ -122,7 +121,7 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
         ImmutableArray<LinePositionSpan> spans = [
             new LinePositionSpan(new LinePosition(12, 0), new LinePosition(13, 0)),
-            new LinePositionSpan(new LinePosition(29, 0), new LinePosition(30, 0)),
+            new LinePositionSpan(new LinePosition(28, 0), new LinePosition(29, 0)),
         ];
 
         var options = ClassificationOptions.Default;
@@ -141,7 +140,7 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
                    0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
                    0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Number],                 0, // '1'
                    0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],       0, // ';'
-                   17,    3,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],           0, // 'var'
+                   16,    3,     3,    tokenTypeToIndex[ClassificationTypeNames.Keyword],           0, // 'var'
                    0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.LocalName],         0, // 'x'
                    0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
             ];
@@ -156,7 +155,7 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
                    0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
                    0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Number],                 0, // '1'
                    0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],       0, // ';'
-                   17,    3,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'var'
+                   16,    3,     3,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                0, // 'var'
                    0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.Variable],               0, // 'x'
                    0,     2,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],               0, // '='
             ];

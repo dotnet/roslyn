@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInQuery = 1995,
         ERR_BadAwaitInLock = 1996,
         ERR_TaskRetNoObjectRequired = 1997,
-        WRN_AsyncLacksAwaits = 1998,
+        // WRN_AsyncLacksAwaits = 1998,
         ERR_FileNotFound = 2001,
         WRN_FileAlreadyIncluded = 2002,
         //ERR_DuplicateResponseFile = 2003,

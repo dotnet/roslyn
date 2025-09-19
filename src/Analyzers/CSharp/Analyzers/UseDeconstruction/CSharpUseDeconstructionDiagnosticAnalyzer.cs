@@ -151,10 +151,7 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
         if (!IsViableTupleTypeSyntax(typeNode))
             return false;
 
-        if (conversion.Exists &&
-            !conversion.IsIdentity &&
-            !conversion.IsTupleConversion &&
-            !conversion.IsTupleLiteralConversion)
+        if (conversion is { Exists: true, IsIdentity: false, IsTupleConversion: false, IsTupleLiteralConversion: false })
         {
             // If there is any other conversion, we bail out because the source type might not be a tuple
             // or it is a tuple but only thanks to target type inference, which won't occur in a deconstruction.

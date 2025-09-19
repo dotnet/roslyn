@@ -132,8 +132,9 @@
         "command": "dotnet",
         "type": "shell",
         "args": [
-          "pwsh",
-          "${workspaceFolder}/eng/generate-compiler-code.ps1"
+          "run",
+          "--file",
+          "${workspaceFolder}/eng/generate-compiler-code.cs"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"

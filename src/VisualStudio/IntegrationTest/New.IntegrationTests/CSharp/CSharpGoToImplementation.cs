@@ -119,9 +119,7 @@ public class CSharpGoToImplementation : AbstractEditorTest
     }
 
     [IdeTheory]
-    //[CombinatorialData]
-    [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/77293")]
-    [InlineData(true)]
+    [CombinatorialData]
     public async Task GoToImplementationFromMetadataAsSource(bool asyncNavigation)
     {
         await TestServices.Editor.ConfigureAsyncNavigation(asyncNavigation ? AsyncNavigationKind.Asynchronous : AsyncNavigationKind.Synchronous, HangMitigatingCancellationToken);
