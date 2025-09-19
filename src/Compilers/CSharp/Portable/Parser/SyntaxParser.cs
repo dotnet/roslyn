@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private BlendedNode _currentNode;
         private SyntaxToken _currentToken;
         private ArrayElement<SyntaxToken>[] _lexedTokens;
-        private GreenNode _prevTokenTrailingTrivia;
+        // private GreenNode _prevTokenTrailingTrivia;
         private int _firstToken; // The position of _lexedTokens[0] (or _blendedTokens[0]).
         private int _tokenOffset; // The index of the current token within _lexedTokens or _blendedTokens.
         private int _tokenCount;
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _resetCount = 0;
             _resetStart = 0;
             _currentToken = null;
-            _prevTokenTrailingTrivia = null;
+            // _prevTokenTrailingTrivia = null;
             if (this.IsIncremental || _allowModeReset)
             {
                 _firstBlender = new Blender(this.lexer, oldTree: null, changes: null);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             _resetCount++;
-            return new ResetPoint(_resetCount, _mode, pos, _prevTokenTrailingTrivia);
+            return new ResetPoint(_resetCount, _mode, pos/*, _prevTokenTrailingTrivia*/);
         }
 
         protected void Reset(ref ResetPoint point)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _tokenOffset = offset;
             _currentToken = null;
             _currentNode = default(BlendedNode);
-            _prevTokenTrailingTrivia = point.PrevTokenTrailingTrivia;
+            // _prevTokenTrailingTrivia = point.PrevTokenTrailingTrivia;
             if (_blendedTokens != null)
             {
                 // look forward for slots not holding a token
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void MoveToNextToken()
         {
-            _prevTokenTrailingTrivia = _currentToken.GetTrailingTrivia();
+            //_prevTokenTrailingTrivia = _currentToken.GetTrailingTrivia();
 
             _currentToken = null;
 
@@ -720,18 +720,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Otherwise the diagnostic offset and width is set
             // to the corresponding values of the current token
 
-            var trivia = _prevTokenTrailingTrivia;
-            if (trivia != null)
-            {
-                SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
-                bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
-                if (prevTokenHasEndOfLineTrivia)
-                {
-                    offset = -trivia.FullWidth;
-                    width = 0;
-                    return;
-                }
-            }
+            //var trivia = _prevTokenTrailingTrivia;
+            //if (trivia != null)
+            //{
+            //    SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
+            //    bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
+            //    if (prevTokenHasEndOfLineTrivia)
+            //    {
+            //        offset = -trivia.FullWidth;
+            //        width = 0;
+            //        return;
+            //    }
+            //}
 
             SyntaxToken ct = this.CurrentToken;
             offset = ct.GetLeadingTriviaWidth();

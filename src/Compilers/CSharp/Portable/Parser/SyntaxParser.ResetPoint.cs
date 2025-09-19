@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal readonly int ResetCount;
             internal readonly LexerMode Mode;
             internal readonly int Position;
-            internal readonly GreenNode PrevTokenTrailingTrivia;
+            //internal readonly GreenNode PrevTokenTrailingTrivia;
 
-            internal ResetPoint(int resetCount, LexerMode mode, int position, GreenNode prevTokenTrailingTrivia)
+            internal ResetPoint(int resetCount, LexerMode mode, int position/*, GreenNode prevTokenTrailingTrivia*/)
             {
                 this.ResetCount = resetCount;
                 this.Mode = mode;
                 this.Position = position;
-                this.PrevTokenTrailingTrivia = prevTokenTrailingTrivia;
+//                this.PrevTokenTrailingTrivia = prevTokenTrailingTrivia;
             }
         }
     }
