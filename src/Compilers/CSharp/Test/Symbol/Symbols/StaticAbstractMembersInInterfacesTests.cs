@@ -15555,7 +15555,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01()").WithLocation(36, 10),
                 // (38,19): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1.M01() => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 19)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M01").WithArguments("C6.M01()", "void", "I1.M01()").WithLocation(38, 19)
                 );
         }
 
@@ -15617,7 +15617,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01()").WithLocation(26, 13),
                 // (38,19): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1.M01() => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 19)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M01").WithArguments("C6.M01()", "void", "I1.M01()").WithLocation(38, 19)
                 );
         }
 
@@ -15697,7 +15697,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01()").WithLocation(36, 10),
                 // (38,12): error CS0539: 'C6.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.M01() => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01()").WithLocation(38, 12)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M01").WithArguments("C6.M01()", "void", "I1.M01()").WithLocation(38, 12)
                 );
         }
 
@@ -17622,7 +17622,7 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(36, 10),
                 // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C6>.operator + (C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator +(C7)'
                 //     C7 : I1<C7>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + checkedKeyword + op + "(C7)").WithLocation(42, 10),
@@ -17765,7 +17765,7 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(36, 10),
                 // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C6>.operator + (C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator +(C7)'
                 //     C7 : I1<C7>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + checkedKeyword + op + "(C7)").WithLocation(42, 10),
@@ -17890,7 +17890,7 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C6>.operator + (C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (50,22): error CS0539: 'C8.op_UnaryPlus(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C8 I1<C8>.op_UnaryPlus(C8 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 22),
@@ -18003,7 +18003,7 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C6>.operator + (C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (50,22): error CS0539: 'C8.op_UnaryPlus(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C8 I1<C8>.op_UnaryPlus(C8 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 22),
@@ -18157,7 +18157,7 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + checkedKeyword + op + "(C6, int)").WithLocation(36, 10),
                 // (38,32): error CS0539: 'C6.operator >>(C6, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C6>.operator >> (C6 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator >>(C7, int)'
                 //     C7 : I1<C7>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + checkedKeyword + op + "(C7, int)").WithLocation(42, 10),
@@ -18282,7 +18282,7 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4, int)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (38,32): error CS0539: 'C6.operator >>(C6, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C6>.operator >> (C6 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)", "C6", "I1<C6>.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (50,22): error CS0539: 'C8.op_RightShift(C8, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C8 I1<C8>.op_RightShift(C8 x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8, int)").WithLocation(50, 22),
@@ -22941,7 +22941,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
                 // (38,20): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static long I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 20)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "int", "I1.M01").WithLocation(38, 20)
                 );
         }
 
@@ -23003,7 +23003,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01").WithLocation(26, 12),
                 // (38,20): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static long I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 20)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M01").WithArguments("C6.M01", "int", "I1.M01").WithLocation(38, 20)
                 );
         }
 
@@ -23083,7 +23083,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
                 // (38,13): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     long I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 13)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "int", "I1.M01").WithLocation(38, 13)
                 );
         }
 
@@ -25720,7 +25720,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
                 // (38,40): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static event System.Action<int> I1.M01 { add{} remove{}}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 40)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "System.Action", "I1.M01").WithLocation(38, 40)
                 );
         }
 
@@ -25782,7 +25782,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01").WithLocation(26, 28),
                 // (38,40): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static event System.Action<int> I1.M01 { add{} remove{}}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 40)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "System.Action", "I1.M01").WithLocation(38, 40)
                 );
         }
 
@@ -25862,7 +25862,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
                 // (38,33): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action<int> I1.M01 { add{} remove{} }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 33)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M01").WithArguments("C6.M01", "System.Action", "I1.M01").WithLocation(38, 33)
                 );
         }
 
@@ -28460,7 +28460,7 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1<C5>").WithArguments("C5", "I1<C5>." + op + " operator " + checkedKeyword + "int(C5)", "C5." + op + " operator " + checkedKeyword + "long(C5)", "int").WithLocation(30, 10),
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.explicit operator int(C6)'
                 //     C6 : I1<C6>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>." + op + " operator " + checkedKeyword + "int(C6)").WithLocation(36, 10),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "I1<C6>").WithArguments("C6", "I1<C6>." + op + " operator " + checkedKeyword + "int(C6)", "int", "I1<C6>." + op + " operator " + checkedKeyword + "int(C6)").WithLocation(36, 10),
                 // (38,37): error CS0539: 'C6.explicit operator long(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static explicit I1<C6>.operator long(C6 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "long").WithArguments("C6." + op + " operator " + checkedKeyword + "long(C6)").WithLocation(38, 37 + checkedKeyword.Length),
@@ -28588,7 +28588,7 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("C4." + op + " operator " + checkedKeyword + "int(C4)").WithLocation(26, 30 + checkedKeyword.Length),
                 // (38,37): error CS0539: 'C6.explicit operator long(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static explicit I1<C6>.operator long(C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "long").WithArguments("C6." + op + " operator " + checkedKeyword + "long(C6)").WithLocation(38, 37 + checkedKeyword.Length),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "long").WithArguments("C6." + op + " operator " + checkedKeyword + "long(C6)", "int", "I1<C6>." + op + " operator " + checkedKeyword + "long(C6)").WithLocation(38, 37 + checkedKeyword.Length),
                 // (50,23): error CS0539: 'C8.op_Explicit(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C8>.op_Explicit(C8 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 23),

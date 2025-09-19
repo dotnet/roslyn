@@ -5617,7 +5617,7 @@ namespace System.Threading.Tasks
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(7, 15),
                 // (7,32): error CS0539: 'Class1.DisposeAsync()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     ValueTask IAsyncDisposable.DisposeAsync()
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "DisposeAsync").WithArguments("Class1.DisposeAsync()").WithLocation(7, 32),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "DisposeAsync").WithArguments("Class1.DisposeAsync()", "System.Threading.Tasks.ValueTask", "System.IAsyncDisposable.DisposeAsync()").WithLocation(7, 32),
                 // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
                 //         await using var x = new Class1();
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
