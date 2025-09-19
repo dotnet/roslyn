@@ -34310,9 +34310,9 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src);
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
             // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x95 }
@@ -34716,9 +34716,9 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src);
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
             // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x95 }
@@ -35199,9 +35199,9 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src);
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
             // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x95 }
@@ -35391,9 +35391,9 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src);
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
             // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x95 }
@@ -35603,9 +35603,9 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src);
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
             // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x95 }
@@ -36074,9 +36074,9 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src);
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
             // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x95 }
@@ -36303,9 +36303,9 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateRuntimeAsyncCompilation(src);
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
             // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x95 }

@@ -8346,9 +8346,9 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Cannot change initonly field outside its .ctor. { Offset = 0xa }
@@ -9084,7 +9084,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0xa4 }
@@ -9239,7 +9239,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0x6a }
@@ -9468,7 +9468,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0x95 }
@@ -9658,9 +9658,9 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Cannot change initonly field outside its .ctor. { Offset = 0xa }
@@ -12359,7 +12359,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0x152 }
@@ -12648,7 +12648,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0xde }
@@ -13064,7 +13064,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0x134 }
@@ -13651,7 +13651,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0xa4 }
@@ -13793,7 +13793,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0x6a }
@@ -14012,7 +14012,7 @@ class Program
 
         comp = CreateRuntimeAsyncCompilation(src);
         // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(null), verify: Verification.Fails with
         {
             ILVerifyMessage = """
                 [Main]: Return value missing on the stack. { Offset = 0x95 }
