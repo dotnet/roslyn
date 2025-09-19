@@ -9204,5 +9204,87 @@ class Test1
                     m.GlobalNamespace.GetMember("Test1.<>c__DisplayClass0_0.x").GetAttributes().Select(a => a.ToString()));
             }
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79130")]
+        public void ConstrainedTypeParameter()
+        {
+            CompileAndVerify(@"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        var expressionCreatedDirectly = ExpressionBuilder<ClassWithIntProperty>.OrderBy(x => x.IntProperty);
+        var expressionViaGenericMethodConstrainedToClass = CreateExpressionConstrainedToClass<ClassWithIntProperty>();
+        var expressionViaGenericMethodConstrainedToInterface = CreateExpressionConstrainedToInterface<ClassWithIntProperty>();
+        var expressionViaGenericMethodConstrainedToInterfaceAndClass = CreateExpressionConstrainedToInterfaceAndClass<ClassWithIntProperty>();
+
+        AssertIsMemberExpressionWithParameterExpression(expressionCreatedDirectly);
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToClass);
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToInterface);
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToInterfaceAndClass);
+    }
+
+    static Expression<Func<T, int>> CreateExpressionConstrainedToClass<T>()
+        where T : ClassWithIntProperty
+    {
+        return ExpressionBuilder<T>.OrderBy(x => x.IntProperty);
+    }
+
+    static Expression<Func<T, int>> CreateExpressionConstrainedToInterface<T>()
+        where T : IWithIntProperty
+    {
+        return ExpressionBuilder<T>.OrderBy(x => x.IntProperty);
+    }
+
+    static Expression<Func<T, int>> CreateExpressionConstrainedToInterfaceAndClass<T>()
+        where T : class, IWithIntProperty
+    {
+        return ExpressionBuilder<T>.OrderBy(x => x.IntProperty);
+    }
+
+    static void AssertIsMemberExpressionWithParameterExpression<T>(Expression<Func<T, int>> expression)
+    {
+        var memberExpression = (MemberExpression)expression.Body;
+        var nestedExpression = memberExpression.Expression;
+        Console.WriteLine(nestedExpression.NodeType);
+        Console.WriteLine(memberExpression);
+    }
+}
+
+static class ExpressionBuilder<TSource>
+{
+    public static Expression<Func<TSource, TKey>> OrderBy<TKey>(
+        Expression<Func<TSource, TKey>> keySelector)
+    {
+        return keySelector;
+    }
+}
+
+public interface IWithIntProperty
+{
+    int IntProperty { get; }    
+}
+
+class ClassWithIntProperty : IWithIntProperty
+{
+    public int IntProperty { get; set; }
+}
+",
+                options: TestOptions.DebugExe,
+                expectedOutput: @"
+Parameter
+x.IntProperty
+Parameter
+x.IntProperty
+Convert
+Convert(x" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", IWithIntProperty" : "") + @").IntProperty
+Parameter
+x.IntProperty
+");
+        }
     }
 }
