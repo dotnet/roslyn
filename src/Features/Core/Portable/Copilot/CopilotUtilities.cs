@@ -28,9 +28,17 @@ internal static class CopilotUtilities
         // move to in the forked doucment, as that is what we will want to analyze.
         var newText = oldText.WithChanges(changes);
 
+        return (newText, GetTextSpansFromTextChanges(changes));
+    }
+
+    public static ImmutableArray<TextSpan> GetTextSpansFromTextChanges(IEnumerable<TextChange>? changes)
+    {
+        if (changes is null)
+            return ImmutableArray<TextSpan>.Empty;
+
         var totalDelta = 0;
 
-        var newSpans = new FixedSizeArrayBuilder<TextSpan>(changes.Length);
+        var newSpans = ImmutableArray.CreateBuilder<TextSpan>();
         foreach (var change in changes)
         {
             var newTextLength = change.NewText!.Length;
@@ -39,7 +47,7 @@ internal static class CopilotUtilities
             totalDelta += newTextLength - change.Span.Length;
         }
 
-        return (newText, newSpans.MoveToImmutable());
+        return newSpans.ToImmutable();
     }
 
     /// <summary>
