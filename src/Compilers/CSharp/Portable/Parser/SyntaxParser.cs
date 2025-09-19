@@ -939,17 +939,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // separate trivia from the tokens
                         SyntaxToken tk = token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null);
 
-                        // adjust relative offsets of diagnostics attached to the token:
-                        int leadingWidth = token.GetLeadingTriviaWidth();
-                        if (leadingWidth > 0)
-                        {
-                            var tokenDiagnostics = tk.GetDiagnostics();
-                            for (int i = 0; i < tokenDiagnostics.Length; i++)
-                            {
-                                var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
-                                tokenDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset - leadingWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                            }
-                        }
+                        //// adjust relative offsets of diagnostics attached to the token:
+                        //int leadingWidth = token.GetLeadingTriviaWidth();
+                        //if (leadingWidth > 0)
+                        //{
+                        //    var tokenDiagnostics = tk.GetDiagnostics();
+                        //    for (int i = 0; i < tokenDiagnostics.Length; i++)
+                        //    {
+                        //        var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
+                        //        tokenDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset - leadingWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
+                        //    }
+                        //}
 
                         builder.Add(SyntaxFactory.SkippedTokensTrivia(tk));
                     }
@@ -994,15 +994,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Since we're adding triviaWidth before the token, we have to add that much to
                 // the offset of each of its diagnostics.
-                if (triviaWidth > 0)
-                {
-                    var targetDiagnostics = target.GetDiagnostics();
-                    for (int i = 0; i < targetDiagnostics.Length; i++)
-                    {
-                        var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
-                        targetDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset + triviaWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                    }
-                }
+                //if (triviaWidth > 0)
+                //{
+                //    var targetDiagnostics = target.GetDiagnostics();
+                //    for (int i = 0; i < targetDiagnostics.Length; i++)
+                //    {
+                //        var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
+                //        targetDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset + triviaWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
+                //    }
+                //}
 
                 var leadingTrivia = target.GetLeadingTrivia();
                 target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
@@ -1014,8 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int newOffset = triviaOffset + diagnosticOffset + diagnostic.Offset;
 
                 target = WithAdditionalDiagnostics(target,
-                    new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments)
-                );
+                    new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
             }
 
             return target;
