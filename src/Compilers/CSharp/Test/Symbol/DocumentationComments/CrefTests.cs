@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using SymbolExtensions = Microsoft.CodeAnalysis.Test.Utilities.SymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3376,7 +3377,7 @@ class Outer
 
             int position = source.IndexOf("{U}", StringComparison.Ordinal);
 
-            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolTestExtensions.ToTestDisplayString),
+            AssertEx.SetEqual(model.LookupSymbols(position).Select(SymbolExtensions.ToTestDisplayString),
                 // Implicit type parameter
                 "U",
 

@@ -9,7 +9,13 @@
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsTestUtilityProject>true</IsTestUtilityProject>
+
+    <!-- NuGet -->
     <IsPackable>true</IsPackable>
+    <PackageDescription>
+      Test framework for validating features built on top of Workspace layer.
+      Incudes basic test utilities with minimal dependencies.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
@@ -20,6 +26,10 @@
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+
+    <!--
+      TODO: Remove dependency on Remote layer https://github.com/dotnet/roslyn/issues/80316
+    -->
     <ProjectReference Include="..\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
   </ItemGroup>
