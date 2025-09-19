@@ -45,7 +45,7 @@ internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase(
             declaredType, semanticModel, simplifierOptions, cancellationToken);
         if (!typeStyle.IsStylePreferred
             || ShouldSkipAnalysis(context, typeStyle.Notification)
-            || !typeStyle.CanConvert())
+            || !typeStyle.CanConvert)
         {
             return;
         }

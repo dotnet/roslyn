@@ -57,7 +57,7 @@ internal sealed class UseExpressionBodyForMethodsHelper :
             // if it's 'async TaskLike' (where TaskLike is non-generic) we do *not* want to
             // create a return statement.  This is just the 'async' version of a 'void' method.
             var method = semanticModel.GetDeclaredSymbol(declaration);
-            return method.ReturnType is INamedTypeSymbol namedType && namedType.Arity != 0;
+            return method.ReturnType is INamedTypeSymbol { Arity: not 0 };
         }
 
         return !declaration.ReturnType.IsVoid();

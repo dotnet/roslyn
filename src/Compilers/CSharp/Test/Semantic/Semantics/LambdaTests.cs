@@ -8546,6 +8546,340 @@ class Program
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 19));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Reflection;
+
+                var lam = (params int[] xs) => xs.Length;
+                Console.WriteLine(lam(4, 5, 6));
+                Console.WriteLine(string.Join("\n", typeof(Program)
+                  .GetNestedType("<>c", BindingFlags.NonPublic)
+                  .GetMethod("<<Main>$>b__0_0", BindingFlags.Instance | BindingFlags.NonPublic)
+                  .GetParameters()
+                  .Single()
+                  .CustomAttributes
+                  .Select(a => a.AttributeType)));
+                """;
+            CompileAndVerify(source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.ParamArrayAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<<Main>$>b__0_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Int32[] xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.True(parameter.IsParamsArray);
+                Assert.False(parameter.IsParamsCollection);
+
+                Assert.DoesNotContain("ParamArrayAttribute", module.TypeNames);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_ExtensionMethod()
+        {
+            var source = """
+                using System;
+                using System.Linq;
+                using System.Reflection;
+
+                object.M();
+
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            var lam = (params int[] xs) => xs.Length;
+                            Console.WriteLine(lam(4, 5, 6));
+                            Console.WriteLine(string.Join("\n", typeof(E)
+                              .GetNestedType("<>c", BindingFlags.NonPublic)
+                              .GetMethod("<M>b__1_0", BindingFlags.Instance | BindingFlags.NonPublic)
+                              .GetParameters()
+                              .Single()
+                              .CustomAttributes
+                              .Select(a => a.AttributeType)));
+                        }
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.ParamArrayAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("E.<>c.<M>b__1_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Int32[] xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.True(parameter.IsParamsArray);
+                Assert.False(parameter.IsParamsCollection);
+
+                Assert.DoesNotContain("ParamArrayAttribute", module.TypeNames);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_Missing()
+        {
+            var source = """
+                var lam = (params int[] xs) => xs.Length;
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (1,12): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                // var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 12));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsArray_Attribute_Missing_ExtensionMethod()
+        {
+            var source = """
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            var lam = (params int[] xs) => xs.Length;
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_ParamArrayAttribute);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
+                //             var lam = (params int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(7, 24));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute(bool includeAttribute)
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Reflection;
+
+                var lam = (params IList<int> xs) => xs.Count;
+                Console.WriteLine(lam(4, 5, 6));
+                Console.WriteLine(string.Join("\n", typeof(Program)
+                  .GetNestedType("<>c", BindingFlags.NonPublic)
+                  .GetMethod("<<Main>$>b__0_0", BindingFlags.Instance | BindingFlags.NonPublic)
+                  .GetParameters()
+                  .Single()
+                  .CustomAttributes
+                  .Select(a => a.AttributeType)));
+                """;
+
+            var r = CreateCompilation(includeAttribute ? TestSources.ParamsCollectionAttribute : "").VerifyDiagnostics().ToMetadataReference();
+
+            CompileAndVerify(source, [r],
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.Runtime.CompilerServices.ParamCollectionAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<>c.<<Main>$>b__0_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Collections.Generic.IList<System.Int32> xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.False(parameter.IsParamsArray);
+                Assert.True(parameter.IsParamsCollection);
+
+                Assert.Equal(includeAttribute, !module.TypeNames.Contains("ParamCollectionAttribute"));
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_ExtensionMethod(bool includeAttribute)
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Reflection;
+
+                object.M();
+
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            var lam = (params IList<int> xs) => xs.Count;
+                            Console.WriteLine(lam(4, 5, 6));
+                            Console.WriteLine(string.Join("\n", typeof(E)
+                              .GetNestedType("<>c", BindingFlags.NonPublic)
+                              .GetMethod("<M>b__1_0", BindingFlags.Instance | BindingFlags.NonPublic)
+                              .GetParameters()
+                              .Single()
+                              .CustomAttributes
+                              .Select(a => a.AttributeType)));
+                        }
+                    }
+                }
+                """;
+
+            var r = CreateCompilation(includeAttribute ? TestSources.ParamsCollectionAttribute : "").VerifyDiagnostics().ToMetadataReference();
+
+            CompileAndVerify(source, [r],
+                options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validate,
+                expectedOutput: """
+                    3
+                    System.Runtime.CompilerServices.ParamCollectionAttribute
+                    """)
+                .VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var lambda = module.GlobalNamespace.GetMember<MethodSymbol>("E.<>c.<M>b__1_0");
+                var parameter = lambda.GetParameters().Single();
+                AssertEx.Equal("params System.Collections.Generic.IList<System.Int32> xs", parameter.ToTestDisplayString());
+                Assert.True(parameter.IsParams);
+                Assert.False(parameter.IsParamsArray);
+                Assert.True(parameter.IsParamsCollection);
+
+                Assert.Equal(includeAttribute, !module.TypeNames.Contains("ParamCollectionAttribute"));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Missing()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (params IList<int> xs) => xs.Count;
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+                // (6,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         var lam = (params IList<int> xs) => xs.Count;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(6, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Missing_NoSynthesizedDelegate()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M()
+                    {
+                        Func<IList<int>, int> lam = (params IList<int> xs) => xs.Count;
+                        lam([1, 2, 3]);
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+                // (7,38): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //         Func<IList<int>, int> lam = (params IList<int> xs) => xs.Count;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(7, 38));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Missing_ExtensionMethod()
+        {
+            var source = """
+                using System.Collections.Generic;
+                static class E
+                {
+                    extension(object)
+                    {
+                        public static void M()
+                        {
+                            var lam = (params IList<int> xs) => xs.Count;
+                        }
+                    }
+                }
+                """;
+            CreateCompilation([source, ExtensionMarkerAttributeDefinition], options: TestOptions.ReleaseModule).VerifyDiagnostics(
+                // (8,24): error CS0518: Predefined type 'System.Runtime.CompilerServices.ParamCollectionAttribute' is not defined or imported
+                //             var lam = (params IList<int> xs) => xs.Count;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "params IList<int> xs").WithArguments("System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(8, 24));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79752")]
+        public void ParamsCollection_Attribute_Speculative()
+        {
+            // Compile without a need for the attribute.
+            var source1 = """
+                class C
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source1);
+            var tree1 = comp.SyntaxTrees.Single();
+            var model1 = comp.GetSemanticModel(tree1);
+
+            // Speculatively bind a lambda that needs the attribute.
+            var source2 = """
+                class C
+                {
+                    void M()
+                    {
+                        var lam = (params System.Collections.Generic.IList<int> xs) => xs.Count;
+                    }
+                }
+                """;
+            var tree2 = CSharpSyntaxTree.ParseText(source2);
+            var method1 = tree1.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var method2 = tree2.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            Assert.True(model1.TryGetSpeculativeSemanticModelForMethodBody(method1.Body.SpanStart, method2, out var model2));
+            var lambda = tree2.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var symbol = model2.GetSymbolInfo(lambda).Symbol;
+            Assert.NotNull(symbol);
+            Assert.True(symbol.GetParameters().Single().IsParamsCollection);
+
+            // The original compilation does not synthesize the attribute when emitted.
+            Assert.Equal(TypeKind.Error, comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute).TypeKind);
+            CompileAndVerify(comp,
+                symbolValidator: static (module) =>
+                {
+                    Assert.DoesNotContain("ParamCollectionAttribute", module.TypeNames);
+                })
+                .VerifyDiagnostics();
+        }
+
         [Fact]
         public void ImplicitlyTypedLambdaWithModifier_CSharp13()
         {

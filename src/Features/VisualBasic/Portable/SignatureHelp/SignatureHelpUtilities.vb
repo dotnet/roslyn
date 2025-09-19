@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
-
     Friend Module SignatureHelpUtilities
         Private ReadOnly s_getArgumentListOpenToken As Func(Of ArgumentListSyntax, SyntaxToken) = Function(list) list.OpenParenToken
         Private ReadOnly s_getTypeArgumentListOpenToken As Func(Of TypeArgumentListSyntax, SyntaxToken) = Function(list) list.OpenParenToken

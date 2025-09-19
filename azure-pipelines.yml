@@ -465,8 +465,12 @@ stages:
       - powershell: eng/validate-rules-missing-documentation.ps1 -ci
         displayName: Validate rules missing documentation
 
-      - powershell: eng/generate-compiler-code.ps1 -test -configuration Release
+      - task: DotNetCoreCLI@2
         displayName: Generate Syntax Files
+        inputs:
+          command: 'custom'
+          custom: 'run'
+          arguments: '--file $(Build.SourcesDirectory)/eng/generate-compiler-code.cs -- -test -configuration Release'
 
       - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
         displayName: Validate Generated Syntax Files

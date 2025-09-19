@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -200,12 +201,26 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Is this a symbol for an extension declaration.
         /// </summary>
-        bool IsExtension { get; }
+        [MemberNotNullWhen(true, nameof(ExtensionGroupingName), nameof(ExtensionMarkerName))]
+        new bool IsExtension { get; }
 
         /// <summary>
         /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
         /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
         /// </summary>
-        IParameterSymbol? ExtensionParameter { get; }
+        new IParameterSymbol? ExtensionParameter { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the grouping type.
+        /// Returns null otherwise.
+        /// Note: the metadata name for generic grouping types includes an arity suffix, so differs from the ExtensionGroupingName property.
+        /// </summary>
+        string? ExtensionGroupingName { get; }
+
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the marker type.
+        /// Returns null otherwise.
+        /// </summary>
+        string? ExtensionMarkerName { get; }
     }
 }

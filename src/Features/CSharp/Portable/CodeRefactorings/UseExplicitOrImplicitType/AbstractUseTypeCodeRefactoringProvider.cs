@@ -55,7 +55,7 @@ internal abstract class AbstractUseTypeCodeRefactoringProvider : CodeRefactoring
             return;
         }
 
-        if (!typeStyle.CanConvert())
+        if (!typeStyle.CanConvert)
         {
             return;
         }

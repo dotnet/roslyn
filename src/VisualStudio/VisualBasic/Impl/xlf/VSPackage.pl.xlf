@@ -115,11 +115,6 @@ Używanie rozszerzonych kolorów; Schemat kolorów edytora;Margines dziedziczeni
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Zmień ustawienia listy uzupełniania;Wybierz wstępnie ostatnio używaną składową</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">Składniki języka Visual Basic używane w środowisku IDE. Zależnie od typu projektu i jego ustawień może być używana inna wersja kompilatora.</target>

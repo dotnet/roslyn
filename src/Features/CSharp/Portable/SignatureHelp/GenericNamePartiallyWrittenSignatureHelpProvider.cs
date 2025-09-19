@@ -13,15 +13,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-[ExportSignatureHelpProvider("GenericNamePartiallyWrittenSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal sealed class GenericNamePartiallyWrittenSignatureHelpProvider : GenericNameSignatureHelpProvider
+[ExportSignatureHelpProvider(nameof(GenericNamePartiallyWrittenSignatureHelpProvider), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class GenericNamePartiallyWrittenSignatureHelpProvider() : AbstractGenericNameSignatureHelpProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public GenericNamePartiallyWrittenSignatureHelpProvider()
-    {
-    }
-
     protected override bool TryGetGenericIdentifier(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
         => root.SyntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
 

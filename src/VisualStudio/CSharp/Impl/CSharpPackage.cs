@@ -39,7 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 //         Spacing
 //         Wrapping
 //       Naming
-//     IntelliSense
 
 [ProvideLanguageEditorOptionPage(typeof(Options.AdvancedOptionPage), "CSharp", null, "Advanced", pageNameResourceId: "#102", keywordListResourceId: 306)]
 [ProvideLanguageEditorToolsOptionCategory("CSharp", "Code Style", "#114")]
@@ -51,9 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingNewLinesPage), "CSharp", @"Code Style\Formatting", "NewLines", pageNameResourceId: "#111", keywordListResourceId: 309)]
 [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingSpacingPage), "CSharp", @"Code Style\Formatting", "Spacing", pageNameResourceId: "#112", keywordListResourceId: 310)]
 [ProvideLanguageEditorOptionPage(typeof(Options.NamingStylesOptionPage), "CSharp", @"Code Style", "Naming", pageNameResourceId: "#115", keywordListResourceId: 314)]
-[ProvideLanguageEditorOptionPage(typeof(Options.IntelliSenseOptionPage), "CSharp", null, "IntelliSense", pageNameResourceId: "#103", keywordListResourceId: 312)]
 [ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\csharpSettings.registration.json")]
 [ProvideService(typeof(ICSharpTempPECompilerService), IsAsyncQueryable = false, IsCacheable = true, IsFreeThreaded = true, ServiceName = "C# TempPE Compiler Service")]
+// ICSharpProjectHost requests the language service under the covers, and since that needs the UI thread to create a COM aggregation wrapper, this cannot be free-threaded either
+[ProvideService(typeof(ICSharpProjectHost), IsAsyncQueryable = true, IsCacheable = true, IsFreeThreaded = false, ServiceName = nameof(ICSharpProjectHost))]
 [Guid(Guids.CSharpPackageIdString)]
 internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
 {
@@ -75,7 +75,17 @@ internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLangu
             {
                 var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
                 return new TempPECompilerService(workspace.Services.GetService<IMetadataService>());
-            });
+            }, promote: true);
+
+            // Historically, the ICSharpProjectHost was fetched by calling QueryService for the CSharpLanguage service,
+            // and then casting it to ICSharpProjectHost. We keep that mechanism in place, but we now expose ICSharpProjectHost
+            // as it's own service directly, so that way the request for it is clear and we can do preloading as needed.
+            AddService(typeof(ICSharpProjectHost), (_, cancellationToken, _) =>
+                {
+                    PreloadProjectSystemComponents();
+                    return GetServiceAsync(typeof(CSharpLanguageService), swallowExceptions: false);
+                },
+                promote: true);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
         {

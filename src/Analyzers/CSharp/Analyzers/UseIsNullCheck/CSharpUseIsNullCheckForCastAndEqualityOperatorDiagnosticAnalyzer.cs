@@ -78,13 +78,7 @@ internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAn
                 var expressionType = semanticModel.GetTypeInfo(castExpression.Expression).Type;
                 if (expressionType != null)
                 {
-                    if (expressionType is ITypeParameterSymbol typeParameter &&
-                        !typeParameter.HasReferenceTypeConstraint)
-                    {
-                        return false;
-                    }
-
-                    return true;
+                    return expressionType is not ITypeParameterSymbol { HasReferenceTypeConstraint: false };
                 }
             }
         }
