@@ -484,8 +484,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal override string? ExtensionMarkerName
             => _underlyingType.ExtensionMarkerName;
 
-#nullable enable
-
         internal ImmutableArray<(Cci.INestedTypeReference GroupingType, ImmutableArray<Cci.INestedTypeReference> MarkerTypes)> GetExtensionGroupingAndMarkerTypesForTypeForwarding(EmitContext context)
         {
             if (_lazyExtensionGroupingAndMarkerTypesForTypeForwarding.IsDefault)
