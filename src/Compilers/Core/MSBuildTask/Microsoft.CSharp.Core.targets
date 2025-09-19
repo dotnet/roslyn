@@ -30,6 +30,10 @@
 
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
 
+    <!-- <Metalama> -->
+    <LangVersionImplicitlySet Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">True</LangVersionImplicitlySet>
+    <!-- </Metalama> -->
+
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
 
   </PropertyGroup>
