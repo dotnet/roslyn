@@ -922,15 +922,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // the error in we'll attach to the node
             SyntaxDiagnosticInfo diagnostic = null;
+            var diagnosticOffsetInSkippedSyntax = 0;
 
-            // the position of the error within the skippedSyntax node full tree
-            int diagnosticOffset = 0;
+            //// the position of the error within the skippedSyntax node full tree
+            //int diagnosticOffset = 0;
 
-            int currentOffset = 0;
+            var currentOffsetInSkippedSyntax = 0;
             foreach (var node in skippedSyntax.EnumerateNodes())
             {
-                SyntaxToken token = node as SyntaxToken;
-                if (token != null)
+                if (node is SyntaxToken token)
                 {
                     builder.Add(token.GetLeadingTrivia());
 
@@ -960,12 +960,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (existing != null)
                         {
                             diagnostic = existing;
-                            diagnosticOffset = currentOffset;
+                            diagnosticOffsetInSkippedSyntax = currentOffsetInSkippedSyntax;
                         }
                     }
                     builder.Add(token.GetTrailingTrivia());
 
-                    currentOffset += token.FullWidth;
+                    currentOffsetInSkippedSyntax += token.FullWidth;
                 }
                 else if (node.ContainsDiagnostics && diagnostic == null)
                 {
@@ -974,21 +974,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (existing != null)
                     {
                         diagnostic = existing;
-                        diagnosticOffset = currentOffset;
+                        diagnosticOffsetInSkippedSyntax = currentOffsetInSkippedSyntax;
                     }
                 }
             }
 
-            int triviaWidth = currentOffset;
             var trivia = builder.ToListNode();
 
-            // total width of everything preceding the added trivia
-            int triviaOffset;
             if (trailing)
             {
-                var trailingTrivia = target.GetTrailingTrivia();
-                triviaOffset = target.FullWidth; //added trivia is full width (before addition)
-                target = target.TokenWithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
+                var initialTrailingTrivia = target.GetTrailingTrivia();
+                var initialTrailingTriviaFullWidth = initialTrailingTrivia?.FullWidth ?? 0;
+
+                // We are potentially moving a diagnostic in the skipped syntax that follows the target token to belong
+                // to the target token. In that case it's offset will be reletive to the target token's Start (not its
+                // FullStart).  So to compute where it should go, we have to add the target token's Width, then the
+                // Width of the trivia that follows the target token, then where the diagnostic was located in the
+                // original skipped syntax.
+                var diagnosticOffset = target.Width + initialTrailingTriviaFullWidth + diagnosticOffsetInSkippedSyntax;
+
+                target = target.TokenWithTrailingTrivia(SyntaxList.Concat(initialTrailingTrivia, trivia));
+
+                if (diagnostic != null)
+                {
+                    target = WithAdditionalDiagnostics(target,
+                        new SyntaxDiagnosticInfo(diagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
+                }
             }
             else
             {
@@ -1004,18 +1015,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //    }
                 //}
 
-                var leadingTrivia = target.GetLeadingTrivia();
-                target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
-                triviaOffset = 0; //added trivia is first, so offset is zero
+                var initialLeadingTrivia = target.GetLeadingTrivia();
+                var initialLeadingTriviaFullWidth = initialLeadingTrivia?.FullWidth ?? 0;
+
+                target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, initialLeadingTrivia));
+
+                if (diagnostic != null)
+                {
+                    // Since offsets are relative to the *Start* of the target token, not the *FullStart*, we want to
+                    // move it backwards, skipping over the target token's leading trivia, then the right amount that
+                    // the diagnostic was originally found (backwards) in the skipped syntax.  This will form the final
+                    // offset (relative to the target token).
+                    var offsetFromEndOfSkippedSyntax = skippedSyntax.FullWidth - diagnosticOffsetInSkippedSyntax;
+                    Debug.Assert(offsetFromEndOfSkippedSyntax >= 0);
+
+                    var diagnosticOffset = -(initialLeadingTriviaFullWidth + offsetFromEndOfSkippedSyntax);
+                    target = WithAdditionalDiagnostics(target,
+                        new SyntaxDiagnosticInfo(diagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
+                }
             }
 
-            if (diagnostic != null)
-            {
-                int newOffset = triviaOffset + diagnosticOffset + diagnostic.Offset;
+            //    if (diagnostic != null)
+            //{
+            //    // We found a diagnotic on 
 
-                target = WithAdditionalDiagnostics(target,
-                    new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
-            }
+            //    int newOffset = triviaOffset + diagnosticOffset + diagnostic.Offset;
+
+            //    target = WithAdditionalDiagnostics(target,
+            //        new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
+            //}
 
             return target;
         }
