@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     //for tokens, we've already seen leading trivia on the stack, so we have to roll back
                     //for nodes, we have yet to see the leading trivia
+                    int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
                     // don't produce locations outside of tree span
                     Debug.Assert(_syntaxTree is object);
@@ -70,7 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Now that we've consumed all the diagnostics from this top node, it becomes our last seen node.
-                _previousNodeOrToken = node;
                 var slotIndex = _stack.Top.SlotIndex;
 tryAgain:
                 if (slotIndex < node.SlotCount - 1)
@@ -84,9 +84,6 @@ tryAgain:
 
                     if (!child.ContainsDiagnostics)
                     {
-                        // We're skipping past a node that has no diagnostics.  Set it as the last seen node, as
-                        // we may need to introspect it when looking at the next node.
-                        _previousNodeOrToken = child;
                         _position += child.FullWidth;
                         goto tryAgain;
                     }
