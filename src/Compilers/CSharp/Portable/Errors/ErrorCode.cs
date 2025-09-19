@@ -2425,12 +2425,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedFeatureInRuntimeAsync = 9328,
         ERR_ExtensionBlockCollision = 9329,
         ERR_MethodImplAttributeAsyncCannotBeUsed = 9330,
-<<<<<<< HEAD
-        ERR_ExplicitInterfaceMemberTypeMismatch = 9331,
-        ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9332,
-=======
         ERR_AttributeCannotBeAppliedManually = 9331,
->>>>>>> main
+        ERR_ExplicitInterfaceMemberTypeMismatch = 9332,
+        ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9333,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
