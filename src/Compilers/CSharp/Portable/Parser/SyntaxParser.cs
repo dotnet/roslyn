@@ -538,15 +538,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(expected));
 
-            var ct = this.CurrentToken;
-            if (ct.Kind == expected)
-            {
-                MoveToNextToken();
-                return ct;
-            }
+            var token = this.EatToken();
+            if (token.Kind == expected)
+                return token;
 
-            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
-            return AddTrailingSkippedSyntax(replacement, this.EatToken());
+            var replacement = SyntaxFactory.Token(
+                token.LeadingTrivia.Node,
+                expected,
+                text: token.Text,
+                token.TrailingTrivia.Node);
+
+            replacement = replacement.WithDiagnosticsGreen(token.GetDiagnostics());
+            replacement = WithAdditionalDiagnostics(replacement, GetExpectedTokenError(expected, token.Kind));
+
+            return replacement;
+            //CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            //return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
         private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
