@@ -5282,18 +5282,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
             {
-                bool hasErrors = false;
-
                 // Spreads are blocked in exception filters because the try/finally from disposing the enumerator is not allowed in a filter.
                 if (@this.Flags.Includes(BinderFlags.InCatchFilter))
                 {
                     Error(diagnostics, ErrorCode.ERR_BadSpreadInCatchFilter, syntax);
-                    hasErrors = true;
                 }
 
                 var expression = @this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 ForEachEnumeratorInfo.Builder builder;
-                hasErrors |= !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
+                bool hasErrors = !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
                     builder.IsIncomplete;
                 if (hasErrors)
                 {

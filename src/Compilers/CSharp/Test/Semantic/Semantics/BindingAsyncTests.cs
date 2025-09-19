@@ -1053,35 +1053,36 @@ class Test
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80331")]
         public void BadSpreadInCatchFilter()
         {
-            var source = @"
-using System;
-using System.Collections.Generic;
+            var source = """
+                using System;
+                using System.Collections.Generic;
 
-class MyException : Exception
-{
-    public IEnumerable<string> Strings { get; set; }
-}
+                class MyException : Exception
+                {
+                    public IEnumerable<string> Strings { get; set; }
+                }
 
-class Test
-{
-    static void M()
-    {
-        try
-        {
-            Console.WriteLine(""InTry"");
-        }
-        catch (MyException e) when (A([.. e.Strings, ""foo""]))
-        {
-            Console.WriteLine(""InCatch"");
-        }
-    }
+                class Test
+                {
+                    static void M()
+                    {
+                        try
+                        {
+                            Console.WriteLine("InTry");
+                        }
+                        catch (MyException e) when (A([.. e.Strings, "foo"]))
+                        {
+                            Console.WriteLine("InCatch");
+                        }
+                    }
 
-    static bool A(string[] strings) => true;
-}";
+                    static bool A(string[] strings) => true;
+                }
+                """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (18,40): error CS9332: Cannot use spread operator in the filter expression of a catch clause
+                // (17,40): error CS9332: Cannot use '..' spread operator in the filter expression of a catch clause
                 //         catch (MyException e) when (A([.. e.Strings, "foo"]))
-                Diagnostic(ErrorCode.ERR_BadSpreadInCatchFilter, ".. e.Strings").WithLocation(18, 40)
+                Diagnostic(ErrorCode.ERR_BadSpreadInCatchFilter, ".. e.Strings").WithLocation(17, 40)
                 );
         }
 
