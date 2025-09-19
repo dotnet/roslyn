@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return _newToken; // NB: diagnostic offsets have already been updated (by SyntaxParser.AddSkippedSyntax)
                     }
 
-                    return node; //  UpdateDiagnosticOffset(base.Visit(node), _diagnosticOffsetDelta);
+                    return UpdateDiagnosticOffset(base.Visit(node), _diagnosticOffsetDelta);
                 }
             }
 

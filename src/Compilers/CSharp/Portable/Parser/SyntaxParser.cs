@@ -951,16 +951,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         //    }
                         //}
 
+                        // Don't need to do anything with diagnostics here.  Any diagnostics attached to tk stay attached to tk.
                         builder.Add(SyntaxFactory.SkippedTokensTrivia(tk));
                     }
                     else
                     {
                         // do not create zero-width structured trivia, GetStructure doesn't work well for them
-                        var existing = (SyntaxDiagnosticInfo)token.GetDiagnostics().FirstOrDefault();
-                        if (existing != null)
+
+                        // However, if there is a diagnostic on the zero-width token, and we haven't captured any others
+                        // already, then capture this one.
+                        if (diagnostic == null)
                         {
-                            diagnostic = existing;
-                            diagnosticOffsetInSkippedSyntax = currentOffsetInSkippedSyntax;
+                            var existing = (SyntaxDiagnosticInfo)token.GetDiagnostics().FirstOrDefault();
+                            if (existing != null)
+                            {
+                                diagnostic = existing;
+                                diagnosticOffsetInSkippedSyntax = currentOffsetInSkippedSyntax + token.GetLeadingTriviaWidth() + existing.Offset;
+                            }
                         }
                     }
                     builder.Add(token.GetTrailingTrivia());
@@ -974,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (existing != null)
                     {
                         diagnostic = existing;
-                        diagnosticOffsetInSkippedSyntax = currentOffsetInSkippedSyntax;
+                        diagnosticOffsetInSkippedSyntax = currentOffsetInSkippedSyntax + node.GetLeadingTriviaWidth() + existing.Offset;
                     }
                 }
             }
@@ -984,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (trailing)
             {
                 var initialTrailingTrivia = target.GetTrailingTrivia();
-                var initialTrailingTriviaFullWidth = initialTrailingTrivia?.FullWidth ?? 0;
+                var initialTrailingTriviaFullWidth = target.GetTrailingTriviaWidth();
 
                 // We are potentially moving a diagnostic in the skipped syntax that follows the target token to belong
                 // to the target token. In that case it's offset will be reletive to the target token's Start (not its
@@ -1016,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //}
 
                 var initialLeadingTrivia = target.GetLeadingTrivia();
-                var initialLeadingTriviaFullWidth = initialLeadingTrivia?.FullWidth ?? 0;
+                var initialLeadingTriviaFullWidth = target.GetLeadingTriviaWidth();
 
                 target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, initialLeadingTrivia));
 
