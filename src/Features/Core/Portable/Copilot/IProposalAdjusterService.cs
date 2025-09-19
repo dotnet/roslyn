@@ -213,5 +213,4 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var totalNewSpan = GetSpanToAnalyze(forkedRoot, totalSpans);
         return totalNewSpan;
     }
-
 }
