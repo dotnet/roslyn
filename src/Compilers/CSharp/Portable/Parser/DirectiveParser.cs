@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 //relative to leading trivia of eod
                 //could be negative if part of the error text comes from the trailing trivia of the keyword token
-                int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
+                int triviaOffset = -triviaWidth;
 
                 string errorText = triviaBuilder.ToString();
                 eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
