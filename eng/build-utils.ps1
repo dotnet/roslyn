@@ -8,7 +8,6 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
-$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
@@ -28,8 +27,10 @@ function GetPublishData() {
     return $global:_PublishData
   }
 
-  Write-Host "Downloading $PublishDataUrl"
-  $content = (Invoke-WebRequest -Uri $PublishDataUrl -UseBasicParsing).Content
+  $publishDataFile = Join-Path $PSScriptRoot "config\PublishData.json"
+
+  Write-Host "Reading $publishDataFile"
+  $content = Get-Content -Path $publishDataFile -Raw
 
   return $global:_PublishData = ConvertFrom-Json $content
 }
