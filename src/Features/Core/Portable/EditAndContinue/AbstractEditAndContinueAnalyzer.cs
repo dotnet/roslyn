@@ -2819,7 +2819,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                         // Updates to types nested into reloadable type are handled as Replace edits of the reloadable type.
                         //
                         // Rationale:
-                        //   Any update to a member of a reloadable type results in Replace edit of the type.
+                        //   Any update to a member of a reloadable type results is a Replace edit of the type.
                         //   Replace edit generates a new version of the entire reloadable type, including any types nested into it.
                         //   Therefore, updating members results in new versions of all types nested in the reloadable type.
                         //   It would be unnecessarily limiting and inconsistent to update nested types "in-place".
