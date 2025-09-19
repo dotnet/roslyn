@@ -3826,7 +3826,7 @@ parse_member_name:;
 
                 if (separator.Kind != SyntaxKind.DotToken)
                 {
-                    separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, offset: 0), separator.Width));
+                    separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, offset: 0, separator.Width));
                     separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                 }
 

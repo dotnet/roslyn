@@ -2479,7 +2479,7 @@ top:
             this.Start();
             TokenInfo info = default(TokenInfo);
             this.ScanDirectiveToken(ref info);
-            var errors = this.GetErrors(leadingTriviaWidth: 0);
+            var errors = this.GetErrors();
 
             var directiveTriviaCache = _directiveTriviaCache;
             directiveTriviaCache?.Clear();
