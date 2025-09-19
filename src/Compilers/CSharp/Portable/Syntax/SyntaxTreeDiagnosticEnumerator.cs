@@ -13,11 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal struct SyntaxTreeDiagnosticEnumerator
     {
+        private const int DefaultStackCapacity = 8;
+
         private readonly SyntaxTree? _syntaxTree;
         private NodeIterationStack _stack;
         private Diagnostic? _current;
         private int _position;
-        private const int DefaultStackCapacity = 8;
+        private GreenNode? _previousToken;
 
         internal SyntaxTreeDiagnosticEnumerator(SyntaxTree syntaxTree, GreenNode? node, int position)
         {
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _syntaxTree = syntaxTree;
                 _stack = new NodeIterationStack(DefaultStackCapacity);
-                _stack.PushNodeOrToken(node);
+                _stack.PushNodeOrToken(previousTrailingTrivia: null, node);
             }
             else
             {
@@ -53,9 +55,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagIndex++;
                     var sdi = (SyntaxDiagnosticInfo)diags[diagIndex];
 
-                    //for tokens, we've already seen leading trivia on the stack, so we have to roll back
-                    //for nodes, we have yet to see the leading trivia
-                    int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
+                    var (start, width) = GetStartAndWidth();
+
+                    if (node.IsToken)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+
+                        //for tokens, we've already seen leading trivia on the stack, so we have to roll back
+                        //for nodes, we have yet to see the leading trivia
+                        int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
                     // don't produce locations outside of tree span
                     Debug.Assert(_syntaxTree is object);
@@ -69,6 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                if (node.IsToken)
+                    _previousToken = (Syntax.InternalSyntax.SyntaxToken)node;
+
+                // Now that we've consumed all the diagnostics from this top node, it becomes our last seen node.
                 var slotIndex = _stack.Top.SlotIndex;
 tryAgain:
                 if (slotIndex < node.SlotCount - 1)
@@ -82,6 +99,8 @@ tryAgain:
 
                     if (!child.ContainsDiagnostics)
                     {
+                        // As we skip forward, keep track of the last token we saw in the skipped region.
+                        _previousToken = child.IsToken ? (Syntax.InternalSyntax.SyntaxToken)node : child.GetLastTerminal();
                         _position += child.FullWidth;
                         goto tryAgain;
                     }
@@ -139,8 +158,7 @@ tryAgain:
 
             internal void PushNodeOrToken(GreenNode node)
             {
-                var token = node as Syntax.InternalSyntax.SyntaxToken;
-                if (token != null)
+                if (node is Syntax.InternalSyntax.SyntaxToken token)
                 {
                     PushToken(token);
                 }

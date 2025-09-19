@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private BlendedNode _currentNode;
         private SyntaxToken _currentToken;
         private ArrayElement<SyntaxToken>[] _lexedTokens;
-        private GreenNode _prevTokenTrailingTrivia;
+//        private GreenNode _prevTokenTrailingTrivia;
         private int _firstToken; // The position of _lexedTokens[0] (or _blendedTokens[0]).
         private int _tokenOffset; // The index of the current token within _lexedTokens or _blendedTokens.
         private int _tokenCount;
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _resetCount = 0;
             _resetStart = 0;
             _currentToken = null;
-            _prevTokenTrailingTrivia = null;
+//            _prevTokenTrailingTrivia = null;
             if (this.IsIncremental || _allowModeReset)
             {
                 _firstBlender = new Blender(this.lexer, oldTree: null, changes: null);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             _resetCount++;
-            return new ResetPoint(_resetCount, _mode, pos, _prevTokenTrailingTrivia);
+            return new ResetPoint(_resetCount, _mode, pos/*, _prevTokenTrailingTrivia*/);
         }
 
         protected void Reset(ref ResetPoint point)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _tokenOffset = offset;
             _currentToken = null;
             _currentNode = default(BlendedNode);
-            _prevTokenTrailingTrivia = point.PrevTokenTrailingTrivia;
+            // _prevTokenTrailingTrivia = point.PrevTokenTrailingTrivia;
             if (_blendedTokens != null)
             {
                 // look forward for slots not holding a token
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void MoveToNextToken()
         {
-            _prevTokenTrailingTrivia = _currentToken.GetTrailingTrivia();
+            // _prevTokenTrailingTrivia = _currentToken.GetTrailingTrivia();
 
             _currentToken = null;
 
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             //slow part of EatToken(SyntaxKind kind)
-            return CreateMissingToken(kind, this.CurrentToken.Kind, reportError: true);
+            return CreateMissingToken(kind, this.CurrentToken.Kind);
         }
 
         // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
@@ -545,18 +545,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return ct;
             }
 
-            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind);
             return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
-        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
+        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual)
         {
             // should we eat the current ParseToken's leading trivia?
             var token = SyntaxFactory.MissingToken(expected);
-            if (reportError)
-            {
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
-            }
+            token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
 
             return token;
         }
@@ -639,14 +636,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxToken EatContextualToken(SyntaxKind kind, bool reportError = true)
+        protected SyntaxToken EatContextualToken(SyntaxKind kind)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
 
             var contextualKind = this.CurrentToken.ContextualKind;
             if (contextualKind != kind)
             {
-                return CreateMissingToken(kind, contextualKind, reportError);
+                return CreateMissingToken(kind, contextualKind);
             }
             else
             {
@@ -673,10 +670,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
         {
-            int offset, width;
-            this.GetDiagnosticSpanForMissingToken(out offset, out width);
-
-            return this.GetExpectedTokenError(expected, actual, offset, width);
+            var offset = this.GetDiagnosticOffsetForMissingToken();
+            return this.GetExpectedTokenError(expected, actual, offset, width: 0);
         }
 
         private static ErrorCode GetExpectedTokenErrorCode(SyntaxKind expected, SyntaxKind actual)
@@ -711,31 +706,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected void GetDiagnosticSpanForMissingToken(out int offset, out int width)
+        protected int GetDiagnosticOffsetForMissingToken()
         {
-            // If the previous token has a trailing EndOfLineTrivia,
-            // the missing token diagnostic position is moved to the
-            // end of line containing the previous token and
-            // its width is set to zero.
-            // Otherwise the diagnostic offset and width is set
-            // to the corresponding values of the current token
+            //// If the previous token has a trailing EndOfLineTrivia,
+            //// the missing token diagnostic position is moved to the
+            //// end of line containing the previous token and
+            //// its width is set to zero.
+            //// Otherwise the diagnostic offset and width is set
+            //// to the corresponding values of the current token
 
-            var trivia = _prevTokenTrailingTrivia;
-            if (trivia != null)
-            {
-                SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
-                bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
-                if (prevTokenHasEndOfLineTrivia)
-                {
-                    offset = -trivia.FullWidth;
-                    width = 0;
-                    return;
-                }
-            }
+            //var trivia = _prevTokenTrailingTrivia;
+            //if (trivia != null)
+            //{
+            //    SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
+            //    bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
+            //    if (prevTokenHasEndOfLineTrivia)
+            //    {
+            //        offset = -trivia.FullWidth;
+            //        width = 0;
+            //        return;
+            //    }
+            //}
 
             SyntaxToken ct = this.CurrentToken;
-            offset = ct.GetLeadingTriviaWidth();
-            width = ct.Width;
+            return ct.GetLeadingTriviaWidth();
+            //width = 0;
+            //width = ct.Width;
         }
 
         protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
@@ -810,7 +806,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                // If we have a missing node, report the error at the start of the token we're currently on.
+                offset = this.GetDiagnosticOffsetForMissingToken();
+                width = 0;
             }
 
             return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
@@ -819,14 +817,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected TNode AddError<TNode>(TNode node, int offset, int length, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
         {
             return WithAdditionalDiagnostics(node, MakeError(offset, length, code, args));
-        }
-
-        protected TNode AddError<TNode>(TNode node, CSharpSyntaxNode location, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
-        {
-            // assumes non-terminals will at most appear once in sub-tree
-            int offset;
-            FindOffset(node, location, out offset);
-            return WithAdditionalDiagnostics(node, MakeError(offset, location.Width, code, args));
         }
 
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
@@ -1036,61 +1026,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return target;
-        }
-
-        /// <summary>
-        /// This function searches for the given location node within the subtree rooted at root node. 
-        /// If it finds it, the function computes the offset span of that child node within the root and returns true, 
-        /// otherwise it returns false.
-        /// </summary>
-        /// <param name="root">Root node</param>
-        /// <param name="location">Node to search in the subtree rooted at root node</param>
-        /// <param name="offset">Offset of the location node within the subtree rooted at child</param>
-        /// <returns></returns>
-        private bool FindOffset(GreenNode root, CSharpSyntaxNode location, out int offset)
-        {
-            int currentOffset = 0;
-            offset = 0;
-            if (root != null)
-            {
-                for (int i = 0, n = root.SlotCount; i < n; i++)
-                {
-                    var child = root.GetSlot(i);
-                    if (child == null)
-                    {
-                        // ignore null slots
-                        continue;
-                    }
-
-                    // check if the child node is the location node
-                    if (child == location)
-                    {
-                        // Found the location node in the subtree
-                        // Initialize offset with the offset of the location node within its parent
-                        // and walk up the stack of recursive calls adding the offset of each node
-                        // within its parent
-                        offset = currentOffset;
-                        return true;
-                    }
-
-                    // search for the location node in the subtree rooted at child node
-                    if (this.FindOffset(child, location, out offset))
-                    {
-                        // Found the location node in child's subtree
-                        // Add the offset of child node within its parent to offset
-                        // and continue walking up the stack
-                        offset += child.GetLeadingTriviaWidth() + currentOffset;
-                        return true;
-                    }
-
-                    // We didn't find the location node in the subtree rooted at child
-                    // Move on to the next child
-                    currentOffset += child.FullWidth;
-                }
-            }
-
-            // We didn't find the location node within the subtree rooted at root node
-            return false;
         }
 
         protected static SyntaxToken ConvertToKeyword(SyntaxToken token)
