@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal struct SyntaxTreeDiagnosticEnumerator
     {
+        private const int DefaultStackCapacity = 8;
+
         private readonly SyntaxTree? _syntaxTree;
         private NodeIterationStack _stack;
         private Diagnostic? _current;
         private int _position;
-        private const int DefaultStackCapacity = 8;
 
         internal SyntaxTreeDiagnosticEnumerator(SyntaxTree syntaxTree, GreenNode? node, int position)
         {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _syntaxTree = syntaxTree;
                 _stack = new NodeIterationStack(DefaultStackCapacity);
-                _stack.PushNodeOrToken(node);
+                _stack.PushNodeOrToken(previousTrailingTrivia: null, node);
             }
             else
             {
@@ -55,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     //for tokens, we've already seen leading trivia on the stack, so we have to roll back
                     //for nodes, we have yet to see the leading trivia
-                    int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
                     // don't produce locations outside of tree span
                     Debug.Assert(_syntaxTree is object);
@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                // Now that we've consumed all the diagnostics from this top node, it becomes our last seen node.
+                _previousNodeOrToken = node;
                 var slotIndex = _stack.Top.SlotIndex;
 tryAgain:
                 if (slotIndex < node.SlotCount - 1)
@@ -82,6 +84,9 @@ tryAgain:
 
                     if (!child.ContainsDiagnostics)
                     {
+                        // We're skipping past a node that has no diagnostics.  Set it as the last seen node, as
+                        // we may need to introspect it when looking at the next node.
+                        _previousNodeOrToken = child;
                         _position += child.FullWidth;
                         goto tryAgain;
                     }
@@ -114,12 +119,21 @@ tryAgain:
         private struct NodeIteration
         {
             internal readonly GreenNode Node;
+            internal readonly GreenNode? PreviousTrailingTrivia;
             internal int DiagnosticIndex;
             internal int SlotIndex;
 
-            internal NodeIteration(GreenNode node)
+            internal NodeIteration(GreenNode? previousTrailingTrivia, GreenNode node)
             {
                 this.Node = node;
+                this.PreviousTrailingTrivia = previousTrailingTrivia;
+
+#if DEBUG
+                if (this.PreviousTrailingTrivia is not null)
+                {
+                    Debug.Assert(!this.PreviousTrailingTrivia.IsTrivia);
+                }
+
                 this.SlotIndex = -1;
                 this.DiagnosticIndex = -1;
             }
@@ -137,36 +151,35 @@ tryAgain:
                 _count = 0;
             }
 
-            internal void PushNodeOrToken(GreenNode node)
+            internal void PushNodeOrToken(GreenNode? previousTrailingTrivia, GreenNode node)
             {
-                var token = node as Syntax.InternalSyntax.SyntaxToken;
-                if (token != null)
+                if (node is Syntax.InternalSyntax.SyntaxToken token)
                 {
-                    PushToken(token);
+                    PushToken(previousTrailingTrivia, token);
                 }
                 else
                 {
-                    Push(node);
+                    Push(previousTrailingTrivia, node);
                 }
             }
 
-            private void PushToken(Syntax.InternalSyntax.SyntaxToken token)
+            private void PushToken(GreenNode? previousTrailingTrivia, Syntax.InternalSyntax.SyntaxToken token)
             {
                 var trailing = token.GetTrailingTrivia();
                 if (trailing != null)
                 {
-                    this.Push(trailing);
+                    this.Push(null, trailing);
                 }
 
-                this.Push(token);
+                this.Push(previousTrailingTrivia, token);
                 var leading = token.GetLeadingTrivia();
                 if (leading != null)
                 {
-                    this.Push(leading);
+                    this.Push(null, leading);
                 }
             }
 
-            private void Push(GreenNode node)
+            private void Push(GreenNode? previousTrailingTrivia, GreenNode node)
             {
                 if (_count >= _stack.Length)
                 {
@@ -175,7 +188,7 @@ tryAgain:
                     _stack = tmp;
                 }
 
-                _stack[_count] = new NodeIteration(node);
+                _stack[_count] = new NodeIteration(previousTrailingTrivia, node);
                 _count++;
             }
 
