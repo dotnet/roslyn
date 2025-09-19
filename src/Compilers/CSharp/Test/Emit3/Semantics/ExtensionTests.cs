@@ -50856,8 +50856,41 @@ public static class E
         var extension = e.GetTypeMembers().Single();
         Assert.True(extension.IsExtension);
         Assert.Equal("", extension.GetDocumentationCommentXml());
-    }
+        Assert.Equal("", extension.ContainingSymbol.GetDocumentationCommentXml());
 
+        Assert.Equal("", comp.GlobalNamespace.GetDocumentationCommentXml());
+
+        // Baseline without extensions
+        source = """
+/// <summary>Summary</summary>
+public class C { }
+""";
+
+        moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        moduleRef = moduleComp.EmitToImageReference(documentation: withDocumentationProvider ? new TestDocumentationProvider() : null);
+        string source2 = """
+/// <summary>Summary for D</summary>
+public class D { }
+""";
+
+        comp = CreateCompilation(source2, assemblyName: "name", references: [moduleRef], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        AssertEx.Equal("""
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>name</name>
+    </assembly>
+    <members>
+        <member name="T:D">
+            <summary>Summary for D</summary>
+        </member>
+    </members>
+</doc>
+""", GetDocumentationCommentText(comp));
+    }
+ 
     [Fact]
     public void XmlDoc_Param_01()
     {

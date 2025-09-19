@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
                         processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
-                    compiler.Visit(compilation.SourceAssembly.GlobalNamespace);
+                    compiler.Visit(compilation.SourceAssembly.SourceModule.GlobalNamespace);
                     Debug.Assert(compiler._indentDepth == 0);
                     writer?.Flush();
                 }
@@ -254,30 +254,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (sawExtension)
                 {
-                    appendContainedExtensions(symbol);
+                    appendContainedExtensions((SourceNamedTypeSymbol)symbol);
                 }
             }
 
             return;
 
-            void appendContainedExtensions(NamedTypeSymbol containingType)
+            void appendContainedExtensions(SourceNamedTypeSymbol containingType)
             {
                 Debug.Assert(!_isForSingleSymbol);
-                if (containingType is SourceMemberContainerTypeSymbol sourceContainingType)
+                ExtensionGroupingInfo extensionGroupingInfo = containingType.GetExtensionGroupingInfo();
+
+                foreach (ImmutableArray<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
                 {
-                    ExtensionGroupingInfo extensionGroupingInfo = sourceContainingType.GetExtensionGroupingInfo();
+                    appendMergedExtensionBlocks(extensions);
 
-                    foreach (ImmutableArray<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
+                    foreach (var extension in extensions)
                     {
-                        appendMergedExtensionBlocks(extensions);
-
-                        foreach (var extension in extensions)
+                        foreach (Symbol member in extension.GetMembers())
                         {
-                            foreach (Symbol member in extension.GetMembers())
-                            {
-                                _cancellationToken.ThrowIfCancellationRequested();
-                                member.Accept(this);
-                            }
+                            _cancellationToken.ThrowIfCancellationRequested();
+                            member.Accept(this);
                         }
                     }
                 }
