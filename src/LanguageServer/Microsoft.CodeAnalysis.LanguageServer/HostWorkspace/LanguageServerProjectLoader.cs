@@ -362,7 +362,8 @@ internal abstract class LanguageServerProjectLoader
                 _projectSystemHostInfo);
 
             var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _targetFrameworkManager);
-            loadedProject.NeedsReload += (_, _) => _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
+            loadedProject.NeedsReload += (_, _) =>
+                _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
             return (loadedProject, alreadyExists: false);
         }
 

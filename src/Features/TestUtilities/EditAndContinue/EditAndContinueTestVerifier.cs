@@ -342,8 +342,8 @@ internal abstract class EditAndContinueTestVerifier
                     expectedOldSymbol = expectedSemanticEdit.SymbolProvider(oldCompilation);
                     expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
 
-                    Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation).Symbol);
+                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation).Symbol);
                     break;
 
                 case SemanticEditKind.Delete:
@@ -352,25 +352,25 @@ internal abstract class EditAndContinueTestVerifier
                     // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
                     // differently
                     if (expectedOldSymbol.IsPartialDefinition() &&
-                        symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is ISymbol resolvedSymbol)
+                        symbolKey.Resolve(oldCompilation).Symbol is ISymbol resolvedSymbol)
                     {
                         Assert.Equal(expectedOldSymbol, resolvedSymbol.PartialDefinitionPart());
                         Assert.Equal(null, resolvedSymbol.PartialImplementationPart());
                     }
                     else
                     {
-                        Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
+                        Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation).Symbol);
 
                         // When we're deleting a symbol, and have a deleted symbol container, it means the symbol wasn't really deleted,
                         // but rather had its signature changed in some way. Some of those ways, like changing the return type, are not
                         // represented in the symbol key, so the check below would fail, so we skip it.
                         if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
                         {
-                            Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                            Assert.Equal(null, symbolKey.Resolve(newCompilation).Symbol);
                         }
                     }
 
-                    var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
+                    var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation).Symbol;
                     AssertEx.AreEqual(
                         deletedSymbolContainer,
                         expectedSemanticEdit.DeletedSymbolContainerProvider?.Invoke(newCompilation),
@@ -380,7 +380,7 @@ internal abstract class EditAndContinueTestVerifier
 
                 case SemanticEditKind.Insert or SemanticEditKind.Replace:
                     expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation).Symbol);
                     break;
 
                 default:
@@ -390,7 +390,7 @@ internal abstract class EditAndContinueTestVerifier
             // Partial types must match:
             AssertEx.AreEqual(
                 expectedSemanticEdit.PartialType?.Invoke(newCompilation),
-                actualSemanticEdit.PartialType?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol,
+                actualSemanticEdit.PartialType?.Resolve(newCompilation).Symbol,
                 message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Partial types do not match");
 
             var expectedSyntaxMap = expectedSemanticEdit.GetSyntaxMap();

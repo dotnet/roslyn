@@ -263,7 +263,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             void appendContainedExtensions(NamedTypeSymbol containingType)
             {
                 Debug.Assert(!_isForSingleSymbol);
-                ExtensionGroupingInfo extensionGroupingInfo = ((SourceMemberContainerTypeSymbol)containingType).GetExtensionGroupingInfo();
+
+                if (containingType is not SourceMemberContainerTypeSymbol sourceContainer)
+                {
+                    // A temporary way to avoid a crash tracked by https://github.com/dotnet/roslyn/issues/80294
+                    return;
+                }
+
+                ExtensionGroupingInfo extensionGroupingInfo = sourceContainer.GetExtensionGroupingInfo();
 
                 foreach (ImmutableArray<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
                 {
