@@ -775,8 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             int offset, width;
 
-            SyntaxToken token = node as SyntaxToken;
-            if (token != null && token.ContainsSkippedText)
+            if (node is SyntaxToken token && token.ContainsSkippedText)
             {
                 // This code exists to clean up an anti-pattern:
                 //   1) an undesirable token is parsed,
@@ -786,26 +785,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // of the undesirable token (now skipped text).  Since the trivia no longer precedes the
                 // node to which the error is to be attached, the computed offset will be incorrect.
 
+                width = 0;
                 offset = token.GetLeadingTriviaWidth(); // Should always be zero, but at least we'll do something sensible if it's not.
                 Debug.Assert(offset == 0, "Why are we producing a missing token that has both skipped text and leading trivia?");
 
-                width = 0;
-                bool seenSkipped = false;
-                foreach (var trivia in token.TrailingTrivia)
+                // Skip past all the non-skipped trivia (this will be things like whitespace/comments), so we can find
+                // the offset of the first skipped trivia.
+                var trailingTrivia = token.TrailingTrivia;
+                var trailingTriviaIndex = 0;
+                while (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind != SyntaxKind.SkippedTokensTrivia)
                 {
-                    if (trivia.Kind == SyntaxKind.SkippedTokensTrivia)
-                    {
-                        seenSkipped = true;
-                        width += trivia.Width;
-                    }
-                    else if (seenSkipped)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        offset += trivia.Width;
-                    }
+                    offset += trailingTrivia[trailingTriviaIndex].Width;
+                    trailingTriviaIndex++;
+                }
+
+                // Now consume all following contiguous skipped trivia to determine the full width of the diagnostic to
+                // report on them.
+                while (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind == SyntaxKind.SkippedTokensTrivia)
+                {
+                    width += trailingTrivia[trailingTriviaIndex].Width;
+                    trailingTriviaIndex++;
                 }
             }
             else
