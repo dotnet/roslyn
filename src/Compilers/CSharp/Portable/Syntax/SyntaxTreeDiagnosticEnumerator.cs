@@ -48,28 +48,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stack.Top.ProcessedDiagnostics = true;
                 }
 
-                if (tryContinueWithThisNode(node))
-                    continue;
-
-                // Weren't able to continue with this node. Pop it so we continue processing its parent.
-                stack.Pop();
+                if (processNodeAndPopIfComplete(node))
+                    stack.Pop();
             }
 
             yield break;
 
-            bool tryContinueWithThisNode(GreenNode node)
+            bool processNodeAndPopIfComplete(GreenNode node)
             {
                 // SlotCount is 0 when we hit tokens or normal trivia. In this case, we just want to move past the
                 // normal width of the item.  Importantly, in the case of tokens, we don't want to move the full-width.
                 // That would make us double-count the widths of the leading/trailing trivia which we're walking into as
                 // normal green nodes.
                 //
-                // As this has no children and has had its diagnostics processed, return false so we pop it and process
+                // As this has no children and has had its diagnostics processed, return true so we pop it and process
                 // its parent.
                 if (node.SlotCount == 0)
                 {
                     position += node.Width;
-                    return false;
+                    return true;
                 }
 
                 for (var nextSlotIndex = stack.Top.SlotIndex + 1; nextSlotIndex < node.SlotCount; nextSlotIndex++)
@@ -88,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stack.Top.SlotIndex = nextSlotIndex;
                     stack.PushNodeOrToken(child);
 
-                    return true;
+                    return false;
                 }
 
                 // Done with all children in this node. Pop it so we continue processing its parent.
-                return false;
+                return true;
             }
         }
 
