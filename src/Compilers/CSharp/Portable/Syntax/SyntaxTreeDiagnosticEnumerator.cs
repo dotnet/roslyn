@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // We're skipping this node.  If it isn't trivia, remember it as the last non-trivia node we've seen.
                             if (!child.IsTrivia)
-                                previousNonTriviaNode = node;
+                                previousNonTriviaNode = child;
 
                             continue;
                         }
