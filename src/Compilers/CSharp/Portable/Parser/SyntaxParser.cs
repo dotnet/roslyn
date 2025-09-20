@@ -553,7 +553,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // should we eat the current ParseToken's leading trivia?
             var token = SyntaxFactory.MissingToken(expected);
-            token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
+            token = WithAdditionalDiagnostics(
+                token, this.GetExpectedMissingNodeOrTokenError(expectedDestination: token, expected, actual));
 
             return token;
         }
@@ -602,13 +603,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxToken EatTokenWithPrejudice(SyntaxKind kind)
+        /// <summary>
+        /// Consume the next token no matter what.  If it doesn't match the specified <paramref name="kind"/>, still
+        /// consume it, but produce a diagnostic saying there is an issue.  Because the tokens returns from this may
+        /// not have the requested <paramref name="kind"/>, this should only be used in situations where the tokens
+        /// will go into a skipped/bad token list and thus can be any token kind.
+        /// </summary>
+        protected SyntaxToken EatTokenWithPrejudiceForSkippedTokenList(SyntaxKind kind)
         {
             var token = this.CurrentToken;
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
             if (token.Kind != kind)
             {
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind));
+                // We're explicitly chewing through this token no matter what (in order to place in a sipped list or a .
+                // This is different from trying to eat a token of a particular kind, not finding it and producing a
+                // missing token without consuming anything.  In that latter case, we want to produce a diagnostic
+                // somewhere between the last token and this current one.  Here, however, we are consuming the token no
+                // matter what.  So we place the diagnostic entirely on the token we're consuming itself.
+                token = WithAdditionalDiagnostics(
+                    token,
+                    this.GetExpectedTokenError(
+                        kind, token.Kind,
+                        offset: this.CurrentToken.GetLeadingTriviaWidth(),
+                        width: this.CurrentToken.Width));
             }
 
             this.MoveToNextToken();
@@ -668,10 +685,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
+        /// <summary>
+        /// Should only be called when producing a diagnostic that will go on a missing token.
+        /// </summary>
+        protected virtual SyntaxDiagnosticInfo GetExpectedMissingNodeOrTokenError(
+            GreenNode expectedDestination, SyntaxKind expected, SyntaxKind actual)
         {
+            Debug.Assert(expectedDestination.IsMissing);
+
             int offset, width;
-            this.GetDiagnosticSpanForMissingToken(out offset, out width);
+            this.GetDiagnosticSpanForMissingNodeOrToken(
+                expectedDestination, out offset, out width);
 
             return this.GetExpectedTokenError(expected, actual, offset, width);
         }
@@ -708,8 +732,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected void GetDiagnosticSpanForMissingToken(out int offset, out int width)
+        /// <summary>
+        /// Should only be called when producing a diagnostic that will go on a missing token.
+        /// </summary>
+        protected void GetDiagnosticSpanForMissingNodeOrToken(
+            GreenNode expectedDestination, out int offset, out int width)
         {
+            Debug.Assert(expectedDestination.IsMissing);
+
             // If the previous token has a trailing EndOfLineTrivia,
             // the missing token diagnostic position is moved to the
             // end of line containing the previous token and
@@ -807,7 +837,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                this.GetDiagnosticSpanForMissingNodeOrToken(
+                    expectedDestination: node, out offset, out width);
             }
 
             return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));

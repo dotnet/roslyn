@@ -4236,9 +4236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (4,10): error CS1001: Identifier expected
                 //     fixed
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 10),
-                // (4,10): error CS1003: Syntax error, ',' expected
-                //     fixed
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 10),
+                // (5,1): error CS1003: Syntax error, ',' expected
+                // }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",").WithLocation(5, 1),
                 // (5,2): error CS1026: ) expected
                 // }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 2),
@@ -4789,9 +4789,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (4,8): error CS1003: Syntax error, '(' expected
                 //     for
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 8),
-                // (4,8): error CS1001: Identifier expected
-                //     for
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 8),
+                // (5,1): error CS1001: Identifier expected
+                // }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(5, 1),
                 // (5,2): error CS1002: ; expected
                 // }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
@@ -5940,9 +5940,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (4,11): error CS1001: Identifier expected
                 //     extern
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 11),
-                // (4,11): error CS1003: Syntax error, ',' expected
-                //     extern
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 11),
+                // (5,1): error CS1003: Syntax error, ',' expected
+                // }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",").WithLocation(5, 1),
                 // (5,2): error CS1002: ; expected
                 // }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 2),
@@ -6610,9 +6610,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """,
                 options: null,
-                // (3,17): error CS1001: Identifier expected
-                //     List<Type> [
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 17),
+                // (4,1): error CS1001: Identifier expected
+                // }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(4, 1),
                 // (4,2): error CS1003: Syntax error, ']' expected
                 // }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(4, 2),

@@ -807,12 +807,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected override SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
+        protected override SyntaxDiagnosticInfo GetExpectedMissingNodeOrTokenError(
+            GreenNode expectedDestination, SyntaxKind expected, SyntaxKind actual)
         {
+            Debug.Assert(expectedDestination.IsMissing);
+
             // NOTE: There are no errors in crefs - only warnings.  We accomplish this by wrapping every diagnostic in ErrorCode.WRN_ErrorOverride.
             if (InCref)
             {
-                return base.GetExpectedTokenError(expected, actual);
+                return base.GetExpectedMissingNodeOrTokenError(expectedDestination, expected, actual);
             }
 
             switch (expected)
@@ -1029,7 +1032,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Grab the offset and width before we consume the invalid keyword and change our position.
                 int offset;
                 int width;
-                GetDiagnosticSpanForMissingToken(out offset, out width);
+                GetDiagnosticSpanForMissingNodeOrToken(
+                    expectedDestination: operatorToken, out offset, out width);
 
                 if (SyntaxFacts.IsUnaryOperatorDeclarationToken(CurrentToken.Kind) || SyntaxFacts.IsBinaryExpressionOperatorToken(CurrentToken.Kind))
                 {
