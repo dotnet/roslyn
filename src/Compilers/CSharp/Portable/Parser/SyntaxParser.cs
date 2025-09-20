@@ -773,26 +773,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return WithAdditionalDiagnostics(node, MakeError(node, code, args));
             }
 
+            // We have a missing node/token (note: this means it has no content... but it might have trivia). In this
+            // case, we want to add the diagnostic to whatever token *conceptually* following the missing node/token.
+            //
+            // In practice, this means the token following the last token of this node/token.  And "the token following"
+            // could either be the real token that we're currently pointing at, *or* the first skipped token in the last
+            // token if there was skipped tokens.
+
             if (node is SyntaxToken { ContainsSkippedText: true, TrailingTrivia: var trailingTrivia })
             {
-                // This code exists to clean up an anti-pattern:
-                //   1) an undesirable token is parsed,
-                //   2) a desirable missing token is created and the parsed token is appended as skipped text,
-                //   3) an error is attached to the missing token describing the problem.
-                // If this occurs, then this.previousTokenTrailingTrivia is still populated with the trivia 
-                // of the undesirable token (now skipped text).  Since the trivia no longer precedes the
-                // node to which the error is to be attached, the computed offset will be incorrect.
-
-                // In other words, say we have the following:
+                // We have the following:
                 //
-                //      <missing token><whitespace trivia><skipped_token><current_token>
-                //      ^                                                ^
-                //      |                                                | position.
+                //      <missing token><whitespace trivia><skipped_token>+...<current_token_leading_trivia><current_token>
+                //      ^                                                    ^
+                //      |                                                    | position.
                 //      Input Token
                 //
                 // We want to place the diagnostic here:
                 //
-                //      <missing token><whitespace trivia><skipped_token><current_token>
+                //      <missing token><whitespace trivia><skipped_token>+...<current_token_leading_trivia><current_token>
                 //                                        ^
                 //                                        | here.
 
@@ -827,16 +826,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Given the following:
                 //
-                //      <missing token><trivia><current_token>
-                //      ^                      ^
-                //      |                      | position.
+                //      <missing token><missing token trailing trivia><current_token_leading_trivia><current_token>
+                //      ^                                             ^
+                //      |                                             | position.
                 //      Input Token
                 //
                 // We want to place the diagnostic here:
                 //
-                //      <missing token><trivia><current_token>
-                //                             ^
-                //                             | here.
+                //      <missing token><missing token trailing trivia><current_token_leading_trivia><current_token>
+                //                                                                                  ^
+                //                                                                                  | here.
                 this.GetDiagnosticSpanForMissingToken(out var offset, out var width);
                 return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
             }
