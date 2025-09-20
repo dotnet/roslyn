@@ -797,7 +797,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
-
         /// <summary>
         /// Gets a list of all the diagnostics associated with the token and any related trivia.
         /// </summary>
