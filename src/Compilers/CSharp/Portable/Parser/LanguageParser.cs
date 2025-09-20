@@ -14151,20 +14151,17 @@ tryAgain:
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                             {
-                                // If we got a semicolon instead of comma, consume it with error and act as if it were a comma.
+                                // If we got a semicolon instead of comma, consume it with error and act as if it were a
+                                // comma. Note: while odd, there are no strict requirements on the syntax kinds of
+                                // separators in separated syntax lists.  So it is acceptable and expected by consumers
+                                // that they may get semicolons or commas here (despite what the grammar may say).
                                 var semicolonToken = this.EatToken(SyntaxKind.SemicolonToken);
-                                var commaToken = SyntaxFactory.Token(
-                                    semicolonToken.GetLeadingTrivia(),
-                                    SyntaxKind.CommaToken,
-                                    semicolonToken.Text,
-                                    semicolonToken.GetTrailingTrivia());
-                                commaToken = WithAdditionalDiagnostics(
-                                    commaToken,
+                                nodes.AddSeparator(WithAdditionalDiagnostics(
+                                    semicolonToken,
                                     this.GetExpectedTokenError(
                                         SyntaxKind.CommaToken, SyntaxKind.SemicolonToken,
-                                        offset: commaToken.GetLeadingTriviaWidth(),
-                                        width: commaToken.Width));
-                                nodes.AddSeparator(commaToken);
+                                        offset: semicolonToken.GetLeadingTriviaWidth(),
+                                        width: semicolonToken.Width)));
                             }
                             else
                             {
