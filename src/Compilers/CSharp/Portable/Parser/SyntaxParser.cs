@@ -780,46 +780,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // could either be the real token that we're currently pointing at, *or* the first skipped token in the last
             // token if there was skipped tokens.
 
-            if (node is SyntaxToken { ContainsSkippedText: true, TrailingTrivia: var trailingTrivia })
-            {
-                // We have the following:
-                //
-                //      <missing token><whitespace trivia><skipped_token>+...<current_token_leading_trivia><current_token>
-                //      ^                                                    ^
-                //      |                                                    | position.
-                //      Input Token
-                //
-                // We want to place the diagnostic here:
-                //
-                //      <missing token><whitespace trivia><skipped_token>+...<current_token_leading_trivia><current_token>
-                //                                        ^
-                //                                        | here.
+            //if (node is SyntaxToken { ContainsSkippedText: true, TrailingTrivia: var trailingTrivia })
+            //{
+            //    // We have the following:
+            //    //
+            //    //      <missing token><whitespace trivia><skipped_token>+...<current_token_leading_trivia><current_token>
+            //    //      ^                                                    ^
+            //    //      |                                                    | position.
+            //    //      Input Token
+            //    //
+            //    // We want to place the diagnostic here:
+            //    //
+            //    //      <missing token><whitespace trivia><skipped_token>+...<current_token_leading_trivia><current_token>
+            //    //                                        ^
+            //    //                                        | here.
 
-                Debug.Assert(node.GetLeadingTriviaWidth() == 0, "Why are we producing a missing token that has both skipped text and leading trivia?");
-                Debug.Assert(node.Width == 0, "Why are we producing a missing token that has both skipped text and text contents?");
+            //    Debug.Assert(node.GetLeadingTriviaWidth() == 0, "Why are we producing a missing token that has both skipped text and leading trivia?");
+            //    Debug.Assert(node.Width == 0, "Why are we producing a missing token that has both skipped text and text contents?");
 
-                // Should always be zero, but at least we'll do something sensible if it's not.
-                var firstSkippedTokensOffset = node.GetLeadingTriviaWidth() + node.Width;
-                var firstSkippedTokensWidth = 0;
+            //    // Should always be zero, but at least we'll do something sensible if it's not.
+            //    var firstSkippedTokensOffset = node.GetLeadingTriviaWidth() + node.Width;
+            //    var firstSkippedTokensWidth = 0;
 
-                // The offset of the diagnostic should be the start of the first actual skipped-token in the trailing trivia.
-                var trailingTriviaIndex = 0;
-                while (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind != SyntaxKind.SkippedTokensTrivia)
-                {
-                    firstSkippedTokensOffset += trailingTrivia[trailingTriviaIndex].Width;
-                    trailingTriviaIndex++;
-                }
+            //    // The offset of the diagnostic should be the start of the first actual skipped-token in the trailing trivia.
+            //    var trailingTriviaIndex = 0;
+            //    while (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind != SyntaxKind.SkippedTokensTrivia)
+            //    {
+            //        firstSkippedTokensOffset += trailingTrivia[trailingTriviaIndex].Width;
+            //        trailingTriviaIndex++;
+            //    }
 
-                // Now consume all following contiguous skipped trivia to determine the full width of the diagnostic to
-                // report on them.
-                if (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind == SyntaxKind.SkippedTokensTrivia)
-                    firstSkippedTokensWidth += trailingTrivia[trailingTriviaIndex].Width;
+            //    // Now consume all following contiguous skipped trivia to determine the full width of the diagnostic to
+            //    // report on them.
+            //    if (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind == SyntaxKind.SkippedTokensTrivia)
+            //        firstSkippedTokensWidth += trailingTrivia[trailingTriviaIndex].Width;
 
-                Debug.Assert(firstSkippedTokensWidth > 0, "We should have found at least one skipped token.");
+            //    Debug.Assert(firstSkippedTokensWidth > 0, "We should have found at least one skipped token.");
 
-                return WithAdditionalDiagnostics(node, MakeError(firstSkippedTokensOffset, firstSkippedTokensWidth, code, args));
-            }
-            else
+            //    return WithAdditionalDiagnostics(node, MakeError(firstSkippedTokensOffset, firstSkippedTokensWidth, code, args));
+            //}
+            //else
             {
                 // Given the following:
                 //
