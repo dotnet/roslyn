@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // To accomplish this, we use the previousNonTriviaNode to find the token before us.  And we see if
                     // it had any end-of-lines in it.  If so, we'll move the back as well
                     var previousTrailingTrivia = lastTerminal.GetTrailingTriviaCore();
-                    if (sdi.Offset > 0 && sdi.Width > 0 && containsEndOfLineTrivia(previousTrailingTrivia))
+                    if (containsEndOfLineTrivia(previousTrailingTrivia))
                     {
                         var trailingTriviaStartPosition = Math.Min(currentPosition - previousTrailingTrivia.FullWidth, fullTreeLength);
                         return new TextSpan(trailingTriviaStartPosition, length: 0);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
                 var spanStart = Math.Min(currentPosition + sdi.Offset - leadingWidthAlreadyCounted, fullTreeLength);
-                var spanEnd = Math.Max(spanStart + sdi.Width, fullTreeLength);
+                var spanEnd = Math.Min(spanStart + sdi.Width, fullTreeLength);
 
                 return TextSpan.FromBounds(spanStart, spanEnd);
             }
