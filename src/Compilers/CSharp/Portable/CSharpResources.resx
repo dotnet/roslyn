@@ -3809,6 +3809,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInCatchFilter" xml:space="preserve">
     <value>Cannot await in the filter expression of a catch clause</value>
   </data>
+  <data name="ERR_BadSpreadInCatchFilter" xml:space="preserve">
+    <value>Cannot use '..' spread operator in the filter expression of a catch clause</value>
+  </data>
   <data name="ERR_BadAwaitInLock" xml:space="preserve">
     <value>Cannot await in the body of a lock statement</value>
   </data>

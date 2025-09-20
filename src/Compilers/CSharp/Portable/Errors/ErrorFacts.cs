@@ -2535,6 +2535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ExtensionBlockCollision
                 or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
                 or ErrorCode.ERR_AttributeCannotBeAppliedManually
+                or ErrorCode.ERR_BadSpreadInCatchFilter
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
