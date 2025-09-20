@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         yield return new CSDiagnostic(sdi, new SourceLocation(syntaxTree, new TextSpan(spanStart, spanWidth)));
                     }
 
-                    stack.MarkProcessedDiagnosticsForStackTop();
+                    stack.Top.ProcessedDiagnostics = true;
                 }
 
                 if (tryContinueWithThisNode(node))
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        stack.UpdateSlotIndexForStackTop(nextSlotIndex);
+                        stack.Top.SlotIndex = nextSlotIndex;
                         stack.PushNodeOrToken(child);
 
                         return true;
@@ -167,24 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly bool Any()
                 => _count > 0;
 
-            public readonly NodeIteration Top
-                => this[_count - 1];
-
-            public readonly NodeIteration this[int index]
-            {
-                get
-                {
-                    Debug.Assert(_stack != null);
-                    Debug.Assert(index >= 0 && index < _count);
-                    return _stack[index];
-                }
-            }
-
-            public readonly void UpdateSlotIndexForStackTop(int slotIndex)
-                => _stack[_count - 1].SlotIndex = slotIndex;
-
-            public readonly void MarkProcessedDiagnosticsForStackTop()
-                => _stack[_count - 1].ProcessedDiagnostics = true;
+            public readonly ref NodeIteration Top
+                => ref _stack[_count - 1];
         }
     }
 }
