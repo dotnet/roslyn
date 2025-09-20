@@ -11,6 +11,7 @@ using System;
 /// used in an <see cref="ISumType"/>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
+[Obsolete("This attribute is no longer necessary")]
 internal sealed class KindAttribute : Attribute
 {
     /// <summary>

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
-[Kind("rename")]
 internal sealed class RenameFile : IAnnotatedChange
 {
     /// <summary>
