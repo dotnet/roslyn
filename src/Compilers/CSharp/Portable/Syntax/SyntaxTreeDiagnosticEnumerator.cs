@@ -60,37 +60,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool tryContinueWithThisNode(GreenNode node)
             {
                 // SlotCount is 0 when we hit tokens or normal trivia. In this case, we just want to move past the
-                // normal width of the item.  Importantly, in the case of tokens, we don't want to move the
-                // full-width.  That would make us double-count the widths of the leading/trailing trivia which
-                // we're walking into as normal green nodes.
+                // normal width of the item.  Importantly, in the case of tokens, we don't want to move the full-width.
+                // That would make us double-count the widths of the leading/trailing trivia which we're walking into as
+                // normal green nodes.
+                //
+                // As this has no children and has had its diagnostics processed, return false so we pop it and process
+                // its parent.
                 if (node.SlotCount == 0)
                 {
                     position += node.Width;
+                    return false;
                 }
-                else
+
+                for (var nextSlotIndex = stack.Top.SlotIndex + 1; nextSlotIndex < node.SlotCount; nextSlotIndex++)
                 {
-                    var nextSlotIndex = stack.Top.SlotIndex;
-                    while (++nextSlotIndex < node.SlotCount)
+                    var child = node.GetSlot(nextSlotIndex);
+                    if (child == null)
+                        continue;
+
+                    // If the child doesn't have diagnostics anywhere in it, we can skip it entirely.
+                    if (!child.ContainsDiagnostics)
                     {
-                        var child = node.GetSlot(nextSlotIndex);
-                        if (child == null)
-                            continue;
-
-                        // If the child doesn't have diagnostics anywhere in it, we can skip it entirely.
-                        if (!child.ContainsDiagnostics)
-                        {
-                            position += child.FullWidth;
-                            continue;
-                        }
-
-                        stack.Top.SlotIndex = nextSlotIndex;
-                        stack.PushNodeOrToken(child);
-
-                        return true;
+                        position += child.FullWidth;
+                        continue;
                     }
+
+                    stack.Top.SlotIndex = nextSlotIndex;
+                    stack.PushNodeOrToken(child);
+
+                    return true;
                 }
 
-                // Weren't able to continue with this node. Pop it so we continue processing its parent.
+                // Done with all children in this node. Pop it so we continue processing its parent.
                 return false;
             }
         }
