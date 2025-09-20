@@ -69473,7 +69473,7 @@ public interface I6
         {
         } // end of method I::M
     } // end of class I
-"
+";
 
             var source1 =
 @"
