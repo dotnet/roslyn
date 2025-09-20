@@ -69433,7 +69433,7 @@ public interface I6
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
-            compilation1.VerifyDiagnostics(                    
+            compilation1.VerifyDiagnostics(
                 // (9,16): error CS0535: 'C1' does not implement interface member 'I1.M1()'
                 //     class C1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M1()").WithLocation(9, 16),
