@@ -799,28 +799,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(node.Width == 0, "Why are we producing a missing token that has both skipped text and text contents?");
 
                 // Should always be zero, but at least we'll do something sensible if it's not.
-                var contiguousSkippedTokensOffset = node.GetLeadingTriviaWidth() + node.Width;
-                var contiguousSkippedTokensWidth = 0;
+                var firstSkippedTokensOffset = node.GetLeadingTriviaWidth() + node.Width;
+                var firstSkippedTokensWidth = 0;
 
                 // The offset of the diagnostic should be the start of the first actual skipped-token in the trailing trivia.
                 var trailingTriviaIndex = 0;
                 while (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind != SyntaxKind.SkippedTokensTrivia)
                 {
-                    contiguousSkippedTokensOffset += trailingTrivia[trailingTriviaIndex].Width;
+                    firstSkippedTokensOffset += trailingTrivia[trailingTriviaIndex].Width;
                     trailingTriviaIndex++;
                 }
 
                 // Now consume all following contiguous skipped trivia to determine the full width of the diagnostic to
                 // report on them.
-                while (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind == SyntaxKind.SkippedTokensTrivia)
-                {
-                    contiguousSkippedTokensWidth += trailingTrivia[trailingTriviaIndex].Width;
-                    trailingTriviaIndex++;
-                }
+                if (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind == SyntaxKind.SkippedTokensTrivia)
+                    firstSkippedTokensWidth += trailingTrivia[trailingTriviaIndex].Width;
 
-                Debug.Assert(contiguousSkippedTokensWidth > 0, "We should have found at least one skipped token.");
+                Debug.Assert(firstSkippedTokensWidth > 0, "We should have found at least one skipped token.");
 
-                return WithAdditionalDiagnostics(node, MakeError(contiguousSkippedTokensOffset, contiguousSkippedTokensWidth, code, args));
+                return WithAdditionalDiagnostics(node, MakeError(firstSkippedTokensOffset, firstSkippedTokensWidth, code, args));
             }
             else
             {
