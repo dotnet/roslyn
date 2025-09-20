@@ -25,7 +25,7 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), Shared]
-internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
+internal sealed class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
     AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
         ExpressionSyntax,
         StatementSyntax,

@@ -19,7 +19,7 @@ internal sealed class XamlDiagnosticSource(IXamlDiagnosticSource xamlDiagnosticS
     bool IDiagnosticSource.IsLiveSource() => true;
     Project IDiagnosticSource.GetProject() => document.Project;
     ProjectOrDocumentId IDiagnosticSource.GetId() => new(document.Id);
-    TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => new() { Uri = document.GetURI() };
+    TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => new() { DocumentUri = document.GetURI() };
     string IDiagnosticSource.ToDisplayString() => $"{this.GetType().Name}: {document.FilePath ?? document.Name} in {document.Project.Name}";
 
     async Task<ImmutableArray<DiagnosticData>> IDiagnosticSource.GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)

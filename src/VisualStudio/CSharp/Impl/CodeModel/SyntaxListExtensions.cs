@@ -7,20 +7,19 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
-{
-    internal static class SyntaxListExtensions
-    {
-        public static IReadOnlyList<TNode> AsReadOnlyList<TNode>(this SyntaxList<TNode> list)
-            where TNode : SyntaxNode
-        {
-            return list;
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
 
-        public static IReadOnlyList<TNode> AsReadOnlyList<TNode>(this SeparatedSyntaxList<TNode> separatedList)
-            where TNode : SyntaxNode
-        {
-            return separatedList;
-        }
+internal static class SyntaxListExtensions
+{
+    public static IReadOnlyList<TNode> AsReadOnlyList<TNode>(this SyntaxList<TNode> list)
+        where TNode : SyntaxNode
+    {
+        return list;
+    }
+
+    public static IReadOnlyList<TNode> AsReadOnlyList<TNode>(this SeparatedSyntaxList<TNode> separatedList)
+        where TNode : SyntaxNode
+    {
+        return separatedList;
     }
 }

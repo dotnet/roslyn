@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol.Equals(this.LeftType, other.LeftType, TypeCompareKind.ConsiderEverything2) &&
                 TypeSymbol.Equals(this.RightType, other.RightType, TypeCompareKind.ConsiderEverything2) &&
                 TypeSymbol.Equals(this.ReturnType, other.ReturnType, TypeCompareKind.ConsiderEverything2) &&
-                this.Method == other.Method;
+                Symbol.Equals(this.Method, other.Method, TypeCompareKind.ConsiderEverything);
         }
 
         public static bool operator ==(BinaryOperatorSignature x, BinaryOperatorSignature y)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if ((object)Method != null)
+                if ((object)Method != null && Method.IsStatic)
                 {
                     Debug.Assert(Method.ParameterCount == 2);
 
@@ -115,13 +115,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)Method != null)
                 {
-                    Debug.Assert(Method.ParameterCount == 2);
+                    int rightIndex = Method.IsStatic ? 1 : 0;
+
+                    Debug.Assert(Method.ParameterCount == rightIndex + 1);
 
                     if (!Method.ParameterRefKinds.IsDefaultOrEmpty)
                     {
-                        Debug.Assert(Method.ParameterRefKinds.Length == 2);
+                        Debug.Assert(Method.ParameterRefKinds.Length == rightIndex + 1);
 
-                        return Method.ParameterRefKinds[1];
+                        return Method.ParameterRefKinds[rightIndex];
                     }
                 }
 

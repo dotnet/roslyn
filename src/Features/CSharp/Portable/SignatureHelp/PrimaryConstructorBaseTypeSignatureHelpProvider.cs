@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -35,11 +36,9 @@ internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : 
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private bool TryGetBaseTypeSyntax(
         SyntaxNode root,
@@ -65,7 +64,7 @@ internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : 
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<PrimaryConstructorBaseTypeSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<PrimaryConstructorBaseTypeSyntax>(token, TriggerCharacters);
 
     protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
@@ -75,8 +74,7 @@ internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : 
             return null;
 
         var baseList = baseTypeSyntax.Parent as BaseListSyntax;
-        var namedTypeSyntax = baseList?.Parent as BaseTypeDeclarationSyntax;
-        if (namedTypeSyntax is null)
+        if (baseList?.Parent is not BaseTypeDeclarationSyntax namedTypeSyntax)
             return null;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

@@ -19,7 +19,12 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
         _hostLogger = hostLogger;
     }
 
-    public override IDisposable? CreateContext(string context) => _hostLogger.BeginScope(new LspLoggingScope(context));
+    public override IDisposable? CreateContext(string context) => _hostLogger.BeginScope(new LspLoggingScope(context, null));
+
+    public override IDisposable? CreateLanguageContext(string? language)
+        => language is null
+            ? null
+            : _hostLogger.BeginScope(new LspLoggingScope(null, language));
 
     public override void LogDebug(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
 
@@ -30,7 +35,7 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
     /// <summary>
     /// TODO - Switch this to call LogInformation once appropriate callers have been changed to LogDebug.
     /// </summary>
-    public override void LogInformation(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
+    public override void LogInformation(string message, params object[] @params) => _hostLogger.LogInformation(message, @params);
 
     public override void LogWarning(string message, params object[] @params) => _hostLogger.LogWarning(message, @params);
 }

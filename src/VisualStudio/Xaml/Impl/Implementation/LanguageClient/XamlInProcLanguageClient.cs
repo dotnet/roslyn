@@ -14,49 +14,48 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml
+namespace Microsoft.VisualStudio.LanguageServices.Xaml;
+
+/// <summary>
+/// Experimental XAML Language Server Client used everywhere when
+/// <see cref="XamlOptions.EnableLspIntelliSenseFeatureFlag"/> is turned on.
+/// </summary>
+[ContentType(ContentTypeNames.XamlContentType)]
+[Export(typeof(ILanguageClient))]
+internal sealed class XamlInProcLanguageClient : AbstractInProcLanguageClient
 {
-    /// <summary>
-    /// Experimental XAML Language Server Client used everywhere when
-    /// <see cref="XamlOptions.EnableLspIntelliSenseFeatureFlag"/> is turned on.
-    /// </summary>
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [Export(typeof(ILanguageClient))]
-    internal class XamlInProcLanguageClient : AbstractInProcLanguageClient
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+    public XamlInProcLanguageClient(
+        XamlLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        IThreadingContext threadingContext,
+        ExportProvider exportProvider)
+        : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public XamlInProcLanguageClient(
-            XamlLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            ExportProvider exportProvider)
-            : base(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
-        {
-        }
-
-        protected override ImmutableArray<string> SupportedLanguages => [StringConstants.XamlLanguageName];
-
-        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
-        {
-            var isLspExperimentEnabled = IsXamlLspIntelliSenseEnabled();
-
-            return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
-        }
-
-        /// <summary>
-        /// Failures are only catastrophic when this server is providing intellisense features.
-        /// </summary>
-        public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
-
-        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.XamlLspServer;
-
-        private bool IsXamlLspIntelliSenseEnabled()
-            => GlobalOptions.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
     }
+
+    protected override ImmutableArray<string> SupportedLanguages => [StringConstants.XamlLanguageName];
+
+    public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    {
+        var isLspExperimentEnabled = IsXamlLspIntelliSenseEnabled();
+
+        return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
+    }
+
+    /// <summary>
+    /// Failures are only catastrophic when this server is providing intellisense features.
+    /// </summary>
+    public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
+
+    public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.XamlLspServer;
+
+    private bool IsXamlLspIntelliSenseEnabled()
+        => GlobalOptions.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
 }

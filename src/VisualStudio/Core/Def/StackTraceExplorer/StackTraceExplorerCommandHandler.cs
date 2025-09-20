@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDisposable
+internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDisposable
 {
     private readonly RoslynPackage _package;
     private readonly IThreadingContext _threadingContext;

@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Parameter_cannot_be_null_empty_or_contain_whitespace">
         <source>Parameter cannot be null, empty, or contain whitespace.</source>
-        <target state="new">Parameter cannot be null, empty, or contain whitespace.</target>
+        <target state="translated">Parametr nie może mieć wartości null, być pusty ani zawierać białych znaków.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_contain_0_target">
         <source>Project does not contain '{0}' target.</source>
-        <target state="new">Project does not contain '{0}' target.</target>
+        <target state="translated">Projekt nie zawiera celu „{0}”.</target>
         <note />
       </trans-unit>
     </body>

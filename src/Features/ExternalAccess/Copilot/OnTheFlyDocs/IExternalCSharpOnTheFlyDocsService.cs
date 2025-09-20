@@ -5,11 +5,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+
+internal interface IExternalCSharpOnTheFlyDocsService
 {
-    internal interface IExternalCSharpOnTheFlyDocsService
-    {
-        Task<string> GetOnTheFlyDocsPromptAsync(CopilotOnTheFlyDocsInfoWrapper onTheFlyDocsInfo, CancellationToken cancellationToken);
-        Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken);
-    }
+    Task<string> GetOnTheFlyDocsPromptAsync(CopilotOnTheFlyDocsInfoWrapper onTheFlyDocsInfo, CancellationToken cancellationToken);
+    Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken);
 }

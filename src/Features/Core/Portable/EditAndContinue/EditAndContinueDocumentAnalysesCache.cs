@@ -24,14 +24,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities, TraceLog log)
 {
     private readonly object _guard = new();
-    private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)> _analyses = [];
+    private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project oldProject, Document? newDocument, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)> _analyses = [];
     private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements = baseActiveStatements;
     private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities = capabilities;
     private readonly TraceLog _log = log;
 
     public async ValueTask<ImmutableArray<DocumentAnalysisResults>> GetDocumentAnalysesAsync(
         CommittedSolution oldSolution,
-        IReadOnlyList<(Document? oldDocument, Document newDocument)> documents,
+        Solution newSolution,
+        IReadOnlyList<(Document? oldDocument, Document? newDocument)> documents,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -42,7 +43,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
                 return [];
             }
 
-            var tasks = documents.Select(document => Task.Run(() => GetDocumentAnalysisAsync(oldSolution, document.oldDocument, document.newDocument, activeStatementSpanProvider, cancellationToken).AsTask(), cancellationToken));
+            var tasks = documents.Select(document => Task.Run(() => GetDocumentAnalysisAsync(oldSolution, newSolution, document.oldDocument, document.newDocument, activeStatementSpanProvider, cancellationToken).AsTask(), cancellationToken));
             var allResults = await Task.WhenAll(tasks).ConfigureAwait(false);
 
             return [.. allResults];
@@ -61,11 +62,14 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
     /// <param name="activeStatementSpanProvider">Provider of active statement spans tracked by the editor for the solution snapshot of the <paramref name="newDocument"/>.</param>
     public async ValueTask<DocumentAnalysisResults> GetDocumentAnalysisAsync(
         CommittedSolution oldSolution,
+        Solution newSolution,
         Document? oldDocument,
-        Document newDocument,
+        Document? newDocument,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
+        Contract.ThrowIfFalse(oldDocument != null || newDocument != null);
+
         try
         {
             var unmappedActiveStatementSpans = await GetLatestUnmappedActiveStatementSpansAsync(oldDocument, newDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -77,13 +81,14 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
             // but are not up-to-date. These documents do not have impact on the analysis unless we read semantic information
             // from the project compilation. When reading such information we need to be aware of its potential incompleteness
             // and consult the compiler output binary (see https://github.com/dotnet/roslyn/issues/51261).
-            var oldProject = oldDocument?.Project ?? oldSolution.GetRequiredProject(newDocument.Project.Id);
+            var oldProject = oldDocument?.Project ?? oldSolution.GetRequiredProject(newDocument!.Project.Id);
+            var newProject = newDocument?.Project ?? newSolution.GetRequiredProject(oldProject.Id);
 
             AsyncLazy<DocumentAnalysisResults> lazyResults;
 
             lock (_guard)
             {
-                lazyResults = GetDocumentAnalysisNoLock(oldProject, newDocument, unmappedActiveStatementSpans);
+                lazyResults = GetDocumentAnalysisNoLock(oldProject, newProject, oldDocument, newDocument, unmappedActiveStatementSpans);
             }
 
             return await lazyResults.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -97,17 +102,23 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
     /// <summary>
     /// Calculates unmapped active statement spans in the <paramref name="newDocument"/> from spans provided by <paramref name="newActiveStatementSpanProvider"/>.
     /// </summary>
-    private async Task<ImmutableArray<ActiveStatementLineSpan>> GetLatestUnmappedActiveStatementSpansAsync(Document? oldDocument, Document newDocument, ActiveStatementSpanProvider newActiveStatementSpanProvider, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<ActiveStatementLineSpan>> GetLatestUnmappedActiveStatementSpansAsync(Document? oldDocument, Document? newDocument, ActiveStatementSpanProvider newActiveStatementSpanProvider, CancellationToken cancellationToken)
     {
-        if (oldDocument == null)
+        if (newDocument == null)
         {
-            // document has been deleted or is out-of-sync
+            // document has been deleted - all active statements have been deleted (rude edits will be reported)
             return [];
         }
 
-        if (newDocument.FilePath == null)
+        if (oldDocument == null)
         {
-            // document has been added, or doesn't have a file path - we do not have tracking spans for it
+            // document has been added - it won't have active statements
+            return [];
+        }
+
+        if (oldDocument.FilePath == null || newDocument.FilePath == null)
+        {
+            // document doesn't have a file path - we do not have tracking spans for it
             return [];
         }
 
@@ -161,8 +172,13 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
         return activeStatementSpansBuilder.ToImmutableAndClear();
     }
 
-    private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)
+    private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project oldProject, Project newProject, Document? oldDocument, Document? newDocument, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)
     {
+        Debug.Assert(oldDocument == null || oldDocument.Project == oldProject);
+        Debug.Assert(newDocument == null || newDocument.Project == newProject);
+
+        var documentId = oldDocument?.Id ?? newDocument!.Id;
+
         // Do not reuse an analysis of the document unless its snasphot is exactly the same as was used to calculate the results.
         // Note that comparing document snapshots in effect compares the entire solution snapshots (when another document is changed a new solution snapshot is created
         // that creates new document snapshots for all queried documents).
@@ -174,9 +190,9 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
         // For example, when analyzing a partial class we can record all documents its declaration spans. However, in other cases the analysis
         // checks for absence of a top-level type symbol. Adding a symbol to any document thus invalidates such analysis. It'd be possible
         // to keep track of which type symbols an analysis is conditional upon, if it was worth the extra complexity.
-        if (_analyses.TryGetValue(document.Id, out var analysis) &&
-            analysis.baseProject == baseProject &&
-            analysis.document == document &&
+        if (_analyses.TryGetValue(documentId, out var analysis) &&
+            analysis.oldProject == oldProject &&
+            analysis.newDocument == newDocument &&
             analysis.activeStatementSpans.SequenceEqual(activeStatementSpans))
         {
             return analysis.results;
@@ -187,21 +203,29 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
             {
                 try
                 {
-                    var analyzer = arg.document.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
-                    return await analyzer.AnalyzeDocumentAsync(arg.baseProject, arg.self._baseActiveStatements, arg.document, arg.activeStatementSpans, arg.self._capabilities, arg.self._log, cancellationToken).ConfigureAwait(false);
+                    var analyzer = arg.oldProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
+                    return await analyzer.AnalyzeDocumentAsync(
+                        arg.documentId,
+                        arg.oldProject,
+                        arg.newProject,
+                        arg.self._baseActiveStatements,
+                        arg.activeStatementSpans,
+                        arg.self._capabilities,
+                        arg.self._log,
+                        cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
             },
-            arg: (self: this, document, baseProject, activeStatementSpans));
+            arg: (self: this, documentId, newDocument, oldProject, newProject, activeStatementSpans));
 
         // Previous results for this document id are discarded as they are no longer relevant.
         // The only relevant analysis is for the latest base and document snapshots.
         // Note that the base snapshot may evolve if documents are dicovered that were previously
         // out-of-sync with the compiled outputs and are now up-to-date.
-        _analyses[document.Id] = (lazyResults, baseProject, document, activeStatementSpans);
+        _analyses[documentId] = (lazyResults, oldProject, newDocument, activeStatementSpans);
 
         return lazyResults;
     }

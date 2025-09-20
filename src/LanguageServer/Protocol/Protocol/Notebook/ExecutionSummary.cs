@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class ExecutionSummary
+internal sealed class ExecutionSummary
 {
     /// <summary>
     /// A strict monotonically increasing value indicating the

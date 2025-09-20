@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 /// </summary>
 [Export(typeof(ITableColumnDefinition))]
 [Name(ColumnName)]
-internal class ContainingMemberColumnDefinition : TableColumnDefinitionBase
+internal sealed class ContainingMemberColumnDefinition : TableColumnDefinitionBase
 {
     public const string ColumnName = AbstractReferenceFinder.ContainingMemberInfoPropertyName;
 

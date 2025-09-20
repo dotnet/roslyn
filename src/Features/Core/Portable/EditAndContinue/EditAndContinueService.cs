@@ -220,7 +220,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSessionId sessionId,
         Solution solution,
-        IImmutableSet<ProjectId> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {

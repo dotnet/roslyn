@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -42,6 +43,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property FieldRvaSupported As Boolean
+            Get
+                Return True
             End Get
         End Property
 

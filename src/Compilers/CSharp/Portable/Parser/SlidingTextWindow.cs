@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -374,6 +370,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
+        public char PreviousChar()
+        {
+            Debug.Assert(this.Position > 0);
+            if (_offset > 0)
+            {
+                // The allowed region of the window that can be read is from 0 to _characterWindowCount (which _offset
+                // is in between).  So as long as _offset is greater than 0, we can read the previous character directly
+                // from the current chunk of characters in the window.
+                return this.CharacterWindow[_offset - 1];
+            }
+
+            // The prior character isn't in the window (trying to read the current character caused us to
+            // read in the next chunk of text into the window, throwing out the preceding characters).
+            // Just go back to the source text to find this character.  While more expensive, this should
+            // be rare given that most of the time we won't be calling this right after loading a new text
+            // chunk.
+            return this.Text[this.Position - 1];
+        }
+
         /// <summary>
         /// If the next characters in the window match the given string,
         /// then advance past those characters.  Otherwise, do nothing.
@@ -401,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string Intern(char[] array, int start, int length)
         {
-            return _strings.Add(array, start, length);
+            return _strings.Add(array.AsSpan(start, length));
         }
 
         public string GetInternedText()
@@ -466,19 +481,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor(SlidingTextWindow window)
         {
-            if (codepoint < (uint)0x00010000)
-            {
-                lowSurrogate = InvalidCharacter;
-                return (char)codepoint;
-            }
-            else
-            {
-                Debug.Assert(codepoint > 0x0000FFFF && codepoint <= 0x0010FFFF);
-                lowSurrogate = (char)((codepoint - 0x00010000) % 0x0400 + 0xDC00);
-                return (char)((codepoint - 0x00010000) / 0x0400 + 0xD800);
-            }
+            private readonly SlidingTextWindow _window = window;
+
+            internal void SetDefaultCharacterWindow()
+                => _window._characterWindow = new char[DefaultWindowLength];
         }
     }
 }

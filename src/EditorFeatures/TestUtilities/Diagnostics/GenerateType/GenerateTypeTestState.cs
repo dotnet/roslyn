@@ -11,69 +11,68 @@ using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
+
+internal sealed class GenerateTypeTestState
 {
-    internal sealed class GenerateTypeTestState
+    public static List<string> FixIds = ["CS0246", "CS0234", "CS0103", "BC30002", "BC30451", "BC30456"];
+    private readonly EditorTestHostDocument _testDocument;
+    public EditorTestWorkspace Workspace { get; }
+    public Document InvocationDocument { get; }
+    public Document ExistingDocument { get; }
+    public Project ProjectToBeModified { get; }
+    public Project TriggeredProject { get; }
+    public string TypeName { get; }
+
+    public GenerateTypeTestState(
+        EditorTestWorkspace workspace,
+        string projectToBeModified,
+        string typeName,
+        string existingFileName)
     {
-        public static List<string> FixIds = ["CS0246", "CS0234", "CS0103", "BC30002", "BC30451", "BC30456"];
-        private readonly EditorTestHostDocument _testDocument;
-        public EditorTestWorkspace Workspace { get; }
-        public Document InvocationDocument { get; }
-        public Document ExistingDocument { get; }
-        public Project ProjectToBeModified { get; }
-        public Project TriggeredProject { get; }
-        public string TypeName { get; }
+        Workspace = workspace;
+        _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);
+        Contract.ThrowIfNull(_testDocument, "markup does not contain a cursor position");
 
-        public GenerateTypeTestState(
-            EditorTestWorkspace workspace,
-            string projectToBeModified,
-            string typeName,
-            string existingFileName)
+        TriggeredProject = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
+
+        if (projectToBeModified == null)
         {
-            Workspace = workspace;
-            _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);
-            Contract.ThrowIfNull(_testDocument, "markup does not contain a cursor position");
-
-            TriggeredProject = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
-
-            if (projectToBeModified == null)
-            {
-                // Select the project from which the Codefix was triggered
-                ProjectToBeModified = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
-            }
-            else
-            {
-                ProjectToBeModified = Workspace.CurrentSolution.Projects.FirstOrDefault(proj => proj.Name.Equals(projectToBeModified));
-                Contract.ThrowIfNull(ProjectToBeModified, "Project with the given name does not exist");
-            }
-
-            InvocationDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
-            if (projectToBeModified == null && existingFileName == null)
-            {
-                ExistingDocument = InvocationDocument;
-            }
-            else if (existingFileName != null)
-            {
-                ExistingDocument = ProjectToBeModified.Documents.FirstOrDefault(doc => doc.Name.Equals(existingFileName));
-            }
-
-            TypeName = typeName;
+            // Select the project from which the Codefix was triggered
+            ProjectToBeModified = Workspace.CurrentSolution.GetProject(_testDocument.Project.Id);
+        }
+        else
+        {
+            ProjectToBeModified = Workspace.CurrentSolution.Projects.FirstOrDefault(proj => proj.Name.Equals(projectToBeModified));
+            Contract.ThrowIfNull(ProjectToBeModified, "Project with the given name does not exist");
         }
 
-        public TestGenerateTypeOptionsService TestGenerateTypeOptionsService
+        InvocationDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
+        if (projectToBeModified == null && existingFileName == null)
         {
-            get
-            {
-                return (TestGenerateTypeOptionsService)InvocationDocument.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
-            }
+            ExistingDocument = InvocationDocument;
+        }
+        else if (existingFileName != null)
+        {
+            ExistingDocument = ProjectToBeModified.Documents.FirstOrDefault(doc => doc.Name.Equals(existingFileName));
         }
 
-        public TestProjectManagementService TestProjectManagementService
+        TypeName = typeName;
+    }
+
+    public TestGenerateTypeOptionsService TestGenerateTypeOptionsService
+    {
+        get
         {
-            get
-            {
-                return (TestProjectManagementService)InvocationDocument.Project.Solution.Services.GetService<IProjectManagementService>();
-            }
+            return (TestGenerateTypeOptionsService)InvocationDocument.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
+        }
+    }
+
+    public TestProjectManagementService TestProjectManagementService
+    {
+        get
+        {
+            return (TestProjectManagementService)InvocationDocument.Project.Solution.Services.GetService<IProjectManagementService>();
         }
     }
 }

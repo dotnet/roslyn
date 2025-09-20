@@ -4,47 +4,47 @@
     <body>
       <trans-unit id="DuplicateBannedSymbolDescription">
         <source>The list of banned symbols contains a duplicate.</source>
-        <target state="new">The list of banned symbols contains a duplicate.</target>
+        <target state="translated">A lista de símbolos banidos contém uma duplicata.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolMessage">
         <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
-        <target state="new">The symbol '{0}' is listed multiple times in the list of banned APIs</target>
+        <target state="translated">O símbolo '{0}' está listado várias vezes na lista de APIs banidas</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolTitle">
         <source>The list of banned symbols contains a duplicate</source>
-        <target state="new">The list of banned symbols contains a duplicate</target>
+        <target state="translated">A lista de símbolos banidos contém uma duplicata</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToDescription">
         <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
-        <target state="new">RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</target>
+        <target state="translated">RestrictedInternalsVisibleToAttribute habilita uma versão restrita do InternalsVisibleToAttribute que limita o acesso a símbolos internos aos que estão nos namespaces especificados. Cada assembly de referência só pode acessar os símbolos internos definidos nos namespaces restritos que o assembly referenciado permite.</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
         <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</source>
-        <target state="new">External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</target>
+        <target state="translated">O acesso externo ao símbolo interno '{0}' é proibido. O assembly '{1}' permite acesso somente aos símbolos internos definidos nos seguintes namespaces: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">
         <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
-        <target state="new">External access to internal symbols outside the restricted namespace(s) is prohibited</target>
+        <target state="translated">O acesso externo a símbolos internos fora dos namespaces restritos é proibido</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
-        <target state="new">The symbol has been marked as banned in this project, and an alternate should be used instead.</target>
+        <target state="translated">O símbolo foi marcado como banido neste projeto. Nesse caso, é necessário usar um símbolo alternativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedMessage">
         <source>The symbol '{0}' is banned in this project{1}</source>
-        <target state="new">The symbol '{0}' is banned in this project{1}</target>
+        <target state="translated">O símbolo '{0}' foi banido deste projeto {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedTitle">
         <source>Do not use banned APIs</source>
-        <target state="new">Do not use banned APIs</target>
+        <target state="translated">Não use APIs banidas</target>
         <note />
       </trans-unit>
     </body>

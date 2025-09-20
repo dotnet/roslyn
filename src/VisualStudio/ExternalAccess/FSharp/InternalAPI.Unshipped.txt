@@ -10,6 +10,7 @@ abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpInlineRenameI
 abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpInlineRenameInfo.TriggerSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpInlineRenameReplacementInfo.ReplacementTextValid.get -> bool
 abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpInlineRenameServiceImplementation.GetRenameInfoAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpInlineRenameInfo?>!
+abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.AbstractFSharpSignatureHelpProvider.GetItemsAsync(Microsoft.CodeAnalysis.Document! document, int position, Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.FSharpSignatureHelpTriggerInfo triggerInfo, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.FSharpSignatureHelpItems!>!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.FSharpClassificationTags
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.IFSharpClassificationService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCommonCompletionItem
@@ -623,4 +624,5 @@ static Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockTypes.Nonstructural.get -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockTypes.PreprocessorRegion.get -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockTypes.Statement.get -> string
+~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockTypes.Type.get -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockTypes.Type.get -> string

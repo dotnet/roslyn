@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class TypingFormattingRule : BaseFormattingRule
+internal sealed class TypingFormattingRule : BaseFormattingRule
 {
     public static readonly TypingFormattingRule Instance = new();
 

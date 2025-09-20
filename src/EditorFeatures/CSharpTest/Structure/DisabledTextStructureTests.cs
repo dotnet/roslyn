@@ -12,61 +12,48 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTests
+public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTests
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new DisabledTextTriviaStructureProvider();
 
     [Fact]
-    public async Task TestDisabledIf()
-    {
-        var code = """
+    public Task TestDisabledIf()
+        => VerifyBlockSpansAsync("""
                 #if false
                 {|span:$$Blah
                 Blah
                 Blah|}
                 #endif
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestDisabledElse()
-    {
-        var code = """
+    public Task TestDisabledElse()
+        => VerifyBlockSpansAsync("""
                 #if true
                 #else
                 {|span:$$Blah
                 Blah
                 Blah|}
                 #endif
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestDisabledElIf()
-    {
-        var code = """
+    public Task TestDisabledElIf()
+        => VerifyBlockSpansAsync("""
                 #if true
                 #elif false
                 {|span:$$Blah
                 Blah
                 Blah|}
                 #endif
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
-    public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
-    {
-        var code = """
+    public Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if false
                 {|span:    void $$M()
@@ -77,16 +64,12 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                         }|}
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
-    public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
-    {
-        var code = """
+    public Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
+        => VerifyNoBlockSpansAsync("""
                 class P {
                 #if false
                 {|span:    void M()
@@ -97,15 +80,11 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                         }|}
                 #endif
                     }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
-    }
+                """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-    public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
-    {
-        var code = """
+    public Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -116,16 +95,12 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                         }|}
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-    public async Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
-    {
-        var code = """
+    public Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -138,16 +113,12 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                         }|}
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-    public async Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
-    {
-        var code = """
+    public Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -160,16 +131,12 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                         }|}
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-    public async Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
-    {
-        var code = """
+    public Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -184,16 +151,12 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                         }|}
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-    public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
-    {
-        var code = """
+    public Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                     void M()
@@ -205,16 +168,12 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                         }
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-    public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
-    {
-        var code = """
+    public Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -225,16 +184,12 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                         }
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-    public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
-    {
-        var code = """
+    public Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -254,16 +209,12 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                     }|}
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
-    public async Task PreprocessorDirectivesInTrailingTrivia()
-    {
-        var code = """
+    public Task PreprocessorDirectivesInTrailingTrivia()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -283,9 +234,6 @@ public class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStructureTes
                     }|}
                 #endif
                     }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

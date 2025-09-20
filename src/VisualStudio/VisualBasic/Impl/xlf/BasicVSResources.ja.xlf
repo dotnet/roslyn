@@ -52,11 +52,6 @@
         <target state="translated">'New' 式のヒントを表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ByRef_on_custom_structure">
-        <source>_Don't put ByRef on custom structure</source>
-        <target state="translated">カスタム構造に ByRef を置かない(_D)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
         <target state="translated">構造文の終端の自動挿入(_U)</target>

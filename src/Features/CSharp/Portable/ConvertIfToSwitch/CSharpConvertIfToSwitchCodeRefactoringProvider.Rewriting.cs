@@ -19,7 +19,7 @@ using static SyntaxFactory;
 
 internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
 {
-    private static readonly Dictionary<BinaryOperatorKind, SyntaxKind> s_operatorMap = new Dictionary<BinaryOperatorKind, SyntaxKind>
+    private static readonly Dictionary<BinaryOperatorKind, SyntaxKind> s_operatorMap = new()
     {
         { BinaryOperatorKind.LessThan, SyntaxKind.LessThanToken },
         { BinaryOperatorKind.GreaterThan, SyntaxKind.GreaterThanToken },
@@ -27,13 +27,12 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
         { BinaryOperatorKind.GreaterThanOrEqual, SyntaxKind.GreaterThanEqualsToken },
     };
 
-    public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections, Feature feature)
-    {
-        return ReturnStatement(
+    public override SyntaxNode CreateSwitchExpressionStatement(
+        ExpressionSyntax target, ImmutableArray<AnalyzedSwitchSection> sections, Feature feature)
+        => ReturnStatement(
             SwitchExpression(
-                (ExpressionSyntax)target,
+                target,
                 [.. sections.Select(section => AsSwitchExpressionArmSyntax(section, feature))]));
-    }
 
     private static SwitchExpressionArmSyntax AsSwitchExpressionArmSyntax(AnalyzedSwitchSection section, Feature feature)
     {
@@ -59,23 +58,24 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
     private static ExpressionSyntax AsExpressionSyntax(IOperation operation)
         => operation switch
         {
-            IReturnOperation { ReturnedValue: { } value } => (ExpressionSyntax)value.Syntax,
-            IThrowOperation { Exception: { } exception } => ThrowExpression((ExpressionSyntax)exception.Syntax),
-            IBlockOperation op => AsExpressionSyntax(op.Operations.Single()),
+            IReturnOperation { ReturnedValue.Syntax: ExpressionSyntax value } => value,
+            IThrowOperation { Exception.Syntax: ExpressionSyntax exception } => ThrowExpression(exception),
+            IBlockOperation { Operations: [var op] } => AsExpressionSyntax(op),
             var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
         };
 
-    public override SyntaxNode CreateSwitchStatement(IfStatementSyntax ifStatement, SyntaxNode expression, IEnumerable<SyntaxNode> sectionList)
+    public override SyntaxNode CreateSwitchStatement(
+        IfStatementSyntax ifStatement, ExpressionSyntax expression, IEnumerable<SyntaxNode> sectionList)
     {
         var block = ifStatement.Statement as BlockSyntax;
         return SwitchStatement(
-            switchKeyword: SwitchKeyword.WithTriviaFrom(ifStatement.IfKeyword),
-            openParenToken: ifStatement.OpenParenToken,
-            expression: (ExpressionSyntax)expression,
-            closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
-            openBraceToken: block?.OpenBraceToken ?? OpenBraceToken,
-            sections: [.. sectionList.Cast<SwitchSectionSyntax>()],
-            closeBraceToken: block?.CloseBraceToken.WithoutLeadingTrivia() ?? CloseBraceToken);
+            SwitchKeyword.WithTriviaFrom(ifStatement.IfKeyword),
+            ifStatement.OpenParenToken,
+            expression,
+            ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
+            block?.OpenBraceToken ?? OpenBraceToken,
+            [.. sectionList.Cast<SwitchSectionSyntax>()],
+            block?.CloseBraceToken.WithoutLeadingTrivia() ?? CloseBraceToken);
     }
 
     private static WhenClauseSyntax? AsWhenClause(AnalyzedSwitchLabel label)

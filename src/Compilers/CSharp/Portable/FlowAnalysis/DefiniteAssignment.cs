@@ -22,6 +22,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -369,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterSymbol extensionParameter = null;
-            if (TryGetInstanceExtensionParameter(out extensionParameter))
+            if (_symbol.TryGetInstanceExtensionParameter(out extensionParameter))
             {
                 EnterParameter(extensionParameter);
             }
@@ -400,21 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pendingReturns;
-        }
-
-        protected bool TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter)
-        {
-            if (_symbol is not null
-                && _symbol.GetIsNewExtensionMember()
-                && !_symbol.IsStatic
-                && _symbol.ContainingType.ExtensionParameter is { } foundExtensionParameter)
-            {
-                extensionParameter = foundExtensionParameter;
-                return true;
-            }
-
-            extensionParameter = null;
-            return false;
         }
 
         protected override ImmutableArray<PendingBranch> RemoveReturns()
@@ -1848,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
+                    if (_symbol.TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
                     {
                         if (extensionParameter.RefKind != RefKind.Out)
                         {

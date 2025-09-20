@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         analyzerLoader: AnalyzerAssemblyLoader,
                         _driverCache);
                     return true;
+                /* <Metalama>
                 case LanguageNames.VisualBasic:
                     compiler = new VisualBasicCompilerServer(
                         AssemblyReferenceProvider,
@@ -97,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         analyzerLoader: AnalyzerAssemblyLoader,
                         _driverCache);
                     return true;
+                    </Metalama> */
                 default:
                     compiler = null;
                     return false;

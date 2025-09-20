@@ -79,7 +79,7 @@ public partial class FixAllContext
                     {
                         case FixAllScope.Project:
                             var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
-                            return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(project, diagnostics)]);
+                            return ImmutableDictionary.CreateRange([KeyValuePair.Create(project, diagnostics)]);
 
                         case FixAllScope.Solution:
                             return await ProducerConsumer<(Project project, ImmutableArray<Diagnostic> diagnostics)>.RunParallelAsync(

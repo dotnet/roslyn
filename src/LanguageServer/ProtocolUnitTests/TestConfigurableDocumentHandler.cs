@@ -15,9 +15,9 @@ using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-internal record TestRequestWithDocument([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
+internal sealed record TestRequestWithDocument([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
 
-internal record TestConfigurableResponse([property: JsonPropertyName("response"), JsonRequired] string Response);
+internal sealed record TestConfigurableResponse([property: JsonPropertyName("response"), JsonRequired] string Response);
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(TestConfigurableDocumentHandler)), PartNotDiscoverable, Shared]
 [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]

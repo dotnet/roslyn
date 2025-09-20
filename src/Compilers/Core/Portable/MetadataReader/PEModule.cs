@@ -18,6 +18,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -1408,6 +1409,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
                     nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
+                    nameof(CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators) => CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators,
                     _ => CompilerFeatureRequiredFeatures.None,
                 };
         }
@@ -2331,19 +2333,6 @@ namespace Microsoft.CodeAnalysis
                 CrackStringInAttributeValue(out string? @string, ref sig))
             {
                 value = new BoolAndStringData(sense, @string);
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
-
-        private static bool CrackBoolAndBoolInAttributeValue(out (bool, bool) value, ref BlobReader sig)
-        {
-            if (CrackBooleanInAttributeValue(out bool item1, ref sig) &&
-                CrackBooleanInAttributeValue(out bool item2, ref sig))
-            {
-                value = (item1, item2);
                 return true;
             }
 

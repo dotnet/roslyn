@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 /// </remarks>
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [Export]
-internal class ServiceBrokerFactory
+internal sealed class ServiceBrokerFactory
 {
     private BrokeredServiceContainer? _container;
     private readonly ExportProvider _exportProvider;

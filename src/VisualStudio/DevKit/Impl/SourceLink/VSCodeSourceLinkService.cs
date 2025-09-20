@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services.SourceLink;
 [Export(typeof(ISourceLinkService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSCodeSourceLinkService(IServiceBrokerProvider serviceBrokerProvider, IPdbSourceDocumentLogger logger) : AbstractSourceLinkService
+internal sealed class VSCodeSourceLinkService(IServiceBrokerProvider serviceBrokerProvider, IPdbSourceDocumentLogger logger) : AbstractSourceLinkService
 {
     private readonly IServiceBroker _serviceBroker = serviceBrokerProvider.ServiceBroker;
 

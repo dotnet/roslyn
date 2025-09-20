@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 ///     }
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public CSharpUseLocalFunctionDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,

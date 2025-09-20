@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : these validation rules should also be applied to extension declarations
+                // Note: SynthesizedExtensionMarker implements similar checks, which should be kept in sync.
                 var syntax = GetSyntax();
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
@@ -246,6 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Verify ExtensionAttribute is available.
                     CheckExtensionAttributeAvailability(DeclaringCompilation, syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(), diagnostics);
                 }
+            }
+            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, _location, Name);
             }
         }
 
@@ -702,6 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
             bool isInterface = containingType.IsInterface;
+            bool isExtension = containingType.IsExtension;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
 
             // This is needed to make sure we can detect 'public' modifier specified explicitly and
@@ -714,27 +720,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isExplicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.New |
-                                    DeclarationModifiers.Sealed |
-                                    DeclarationModifiers.Abstract |
-                                    DeclarationModifiers.Static |
-                                    DeclarationModifiers.Virtual |
+                allowedModifiers |= DeclarationModifiers.Static |
                                     DeclarationModifiers.AccessibilityMask;
 
-                if (!isInterface)
+                if (!isExtension)
                 {
-                    allowedModifiers |= DeclarationModifiers.Override;
-                }
-                else
-                {
-                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
-                                                               DeclarationModifiers.Abstract |
-                                                               DeclarationModifiers.Static |
-                                                               DeclarationModifiers.Virtual |
-                                                               DeclarationModifiers.Extern |
-                                                               DeclarationModifiers.Async |
-                                                               DeclarationModifiers.Partial |
-                                                               DeclarationModifiers.AccessibilityMask;
+                    allowedModifiers |= DeclarationModifiers.New |
+                                        DeclarationModifiers.Sealed |
+                                        DeclarationModifiers.Abstract |
+                                        DeclarationModifiers.Virtual;
+
+                    if (!isInterface)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Override;
+                    }
+                    else
+                    {
+                        defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                                   DeclarationModifiers.Abstract |
+                                                                   DeclarationModifiers.Static |
+                                                                   DeclarationModifiers.Virtual |
+                                                                   DeclarationModifiers.Extern |
+                                                                   DeclarationModifiers.Async |
+                                                                   DeclarationModifiers.Partial |
+                                                                   DeclarationModifiers.AccessibilityMask;
+                    }
                 }
             }
             else
@@ -749,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
+            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern;
 
             if (containingType.IsStructType())
             {
@@ -787,7 +797,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (containingTypeIsInterface)
             {
                 mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, hasBody,
-                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation);
+                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation,
+                                                                         forMethod: true);
             }
             else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
             {

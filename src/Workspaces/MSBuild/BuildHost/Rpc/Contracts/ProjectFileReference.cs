@@ -6,40 +6,39 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+/// <summary>
+/// Represents a reference to another project file.
+/// </summary>
+[DataContract]
+internal sealed class ProjectFileReference
 {
     /// <summary>
-    /// Represents a reference to another project file.
+    /// The path on disk to the other project file. 
+    /// This path may be relative to the referencing project's file or an absolute path.
     /// </summary>
-    [DataContract]
-    internal sealed class ProjectFileReference
+    [DataMember(Order = 0)]
+    public string Path { get; }
+
+    /// <summary>
+    /// The aliases assigned to this reference, if any.
+    /// </summary>
+    [DataMember(Order = 1)]
+    public ImmutableArray<string> Aliases { get; }
+
+    /// <summary>
+    /// The value of "ReferenceOutputAssembly" metadata.
+    /// </summary>
+    [DataMember(Order = 2)]
+    public bool ReferenceOutputAssembly { get; }
+
+    public ProjectFileReference(string path, ImmutableArray<string> aliases, bool referenceOutputAssembly)
     {
-        /// <summary>
-        /// The path on disk to the other project file. 
-        /// This path may be relative to the referencing project's file or an absolute path.
-        /// </summary>
-        [DataMember(Order = 0)]
-        public string Path { get; }
+        Debug.Assert(!aliases.IsDefault);
 
-        /// <summary>
-        /// The aliases assigned to this reference, if any.
-        /// </summary>
-        [DataMember(Order = 1)]
-        public ImmutableArray<string> Aliases { get; }
-
-        /// <summary>
-        /// The value of "ReferenceOutputAssembly" metadata.
-        /// </summary>
-        [DataMember(Order = 2)]
-        public bool ReferenceOutputAssembly { get; }
-
-        public ProjectFileReference(string path, ImmutableArray<string> aliases, bool referenceOutputAssembly)
-        {
-            Debug.Assert(!aliases.IsDefault);
-
-            Path = path;
-            Aliases = aliases;
-            ReferenceOutputAssembly = referenceOutputAssembly;
-        }
+        Path = path;
+        Aliases = aliases;
+        ReferenceOutputAssembly = referenceOutputAssembly;
     }
 }

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 [Export(typeof(AlwaysActivateInProcLanguageClient))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-internal class AlwaysActivateInProcLanguageClient(
+internal sealed class AlwaysActivateInProcLanguageClient(
     CSharpVisualBasicLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,

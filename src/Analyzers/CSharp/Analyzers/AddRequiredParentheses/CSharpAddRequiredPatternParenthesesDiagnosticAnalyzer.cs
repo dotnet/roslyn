@@ -13,15 +13,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer :
+internal sealed class CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer() :
     AbstractAddRequiredParenthesesDiagnosticAnalyzer<
-        PatternSyntax, BinaryPatternSyntax, SyntaxKind>
+        PatternSyntax, BinaryPatternSyntax, SyntaxKind>(CSharpPatternPrecedenceService.Instance)
 {
-    public CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer()
-        : base(CSharpPatternPrecedenceService.Instance)
-    {
-    }
-
     private static readonly ImmutableArray<SyntaxKind> s_kinds = [SyntaxKind.AndPattern, SyntaxKind.OrPattern];
 
     protected override ImmutableArray<SyntaxKind> GetSyntaxNodeKinds()
@@ -41,4 +36,7 @@ internal class CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer :
 
     protected override PatternSyntax? TryGetAppropriateParent(BinaryPatternSyntax binaryLike)
         => binaryLike.Parent as PatternSyntax;
+
+    protected override bool IsAsExpression(BinaryPatternSyntax node)
+        => false;
 }

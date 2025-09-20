@@ -15,125 +15,90 @@ using VerifyCS = CSharpCodeFixVerifier<
     ConsecutiveBracePlacementDiagnosticAnalyzer,
     ConsecutiveBracePlacementCodeFixProvider>;
 
-public class ConsecutiveBracePlacementTests
+public sealed class ConsecutiveBracePlacementTests
 {
     [Fact]
-    public async Task NotForBracesOnSameLineDirectlyTouching()
-    {
-        var code =
-@"class C { void M() { }}";
-
-        await new VerifyCS.Test
+    public Task NotForBracesOnSameLineDirectlyTouching()
+        => new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"class C { void M() { }}",
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSameLineWithSpace()
-    {
-        var code =
-@"class C { void M() { } }";
-
-        await new VerifyCS.Test
+    public Task NotForBracesOnSameLineWithSpace()
+        => new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"class C { void M() { } }",
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSameLineWithComment()
-    {
-        var code =
-@"class C { void M() { }/*goo*/}";
-
-        await new VerifyCS.Test
+    public Task NotForBracesOnSameLineWithComment()
+        => new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"class C { void M() { }/*goo*/}",
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSameLineWithCommentAndSpaces()
-    {
-        var code =
-@"class C { void M() { } /*goo*/ }";
-
-        await new VerifyCS.Test
+    public Task NotForBracesOnSameLineWithCommentAndSpaces()
+        => new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"class C { void M() { } /*goo*/ }",
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLines_TopLevel()
-    {
-        var code =
-            """
+    public Task NotForBracesOnSubsequentLines_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesWithComment1_TopLevel()
-    {
-        var code =
-            """
+    public Task NotForBracesOnSubsequentLinesWithComment1_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
                 {
                 } // comment
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesWithComment2_TopLevel()
-    {
-        var code =
-            """
+    public Task NotForBracesOnSubsequentLinesWithComment2_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
                 {
                 } /* comment */
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesIndented()
-    {
-        var code =
-            """
+    public Task NotForBracesOnSubsequentLinesIndented()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -143,20 +108,15 @@ public class ConsecutiveBracePlacementTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesIndentedWithComment1()
-    {
-        var code =
-            """
+    public Task NotForBracesOnSubsequentLinesIndentedWithComment1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -166,20 +126,15 @@ public class ConsecutiveBracePlacementTests
                     } // comment
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesIndentedWithComment2()
-    {
-        var code =
-            """
+    public Task NotForBracesOnSubsequentLinesIndentedWithComment2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -189,20 +144,15 @@ public class ConsecutiveBracePlacementTests
                     } /* comment */
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfCommentBetween1_TopLevel()
-    {
-        var code =
-            """
+    public Task NotForBracesWithBlankLinesIfCommentBetween1_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -212,20 +162,15 @@ public class ConsecutiveBracePlacementTests
                 // comment
 
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfCommentBetween2_TopLevel()
-    {
-        var code =
-            """
+    public Task NotForBracesWithBlankLinesIfCommentBetween2_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -235,20 +180,15 @@ public class ConsecutiveBracePlacementTests
                 /* comment */
 
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfDirectiveBetween1_TopLeve()
-    {
-        var code =
-            """
+    public Task NotForBracesWithBlankLinesIfDirectiveBetween1_TopLeve()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -258,21 +198,16 @@ public class ConsecutiveBracePlacementTests
                 #nullable enable
 
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfCommentBetween1_Nested()
-    {
-        var code =
-            """
+    public Task NotForBracesWithBlankLinesIfCommentBetween1_Nested()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -285,20 +220,15 @@ public class ConsecutiveBracePlacementTests
 
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfCommentBetween2_Nested()
-    {
-        var code =
-            """
+    public Task NotForBracesWithBlankLinesIfCommentBetween2_Nested()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -311,20 +241,15 @@ public class ConsecutiveBracePlacementTests
 
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfDirectiveBetween_Nested()
-    {
-        var code =
-            """
+    public Task NotForBracesWithBlankLinesIfDirectiveBetween_Nested()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -337,21 +262,16 @@ public class ConsecutiveBracePlacementTests
 
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task OneBlankLineBetweenBraces_TopLevel()
-    {
-        var code =
-            """
+    public Task OneBlankLineBetweenBraces_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -359,30 +279,23 @@ public class ConsecutiveBracePlacementTests
                 }
 
             [|}|]
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M()
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task OneBlankLineBetweenBraces_TopLevel_OptionDisabled()
-    {
-        var code =
-            """
+    public Task OneBlankLineBetweenBraces_TopLevel_OptionDisabled()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -390,20 +303,15 @@ public class ConsecutiveBracePlacementTests
                 }
 
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.TrueWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TwoBlankLinesBetweenBraces_TopLevel()
-    {
-        var code =
-            """
+    public Task TwoBlankLinesBetweenBraces_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -412,30 +320,23 @@ public class ConsecutiveBracePlacementTests
 
 
             [|}|]
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M()
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ThreeBlankLinesBetweenBraces_TopLevel()
-    {
-        var code =
-            """
+    public Task ThreeBlankLinesBetweenBraces_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -445,30 +346,23 @@ public class ConsecutiveBracePlacementTests
 
 
             [|}|]
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M()
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task BlankLinesBetweenBraces_LeadingComment_TopLevel()
-    {
-        var code =
-            """
+    public Task BlankLinesBetweenBraces_LeadingComment_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -478,30 +372,23 @@ public class ConsecutiveBracePlacementTests
 
 
             /*comment*/[|}|]
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M()
                 {
                 }
             /*comment*/}
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task BlankLinesBetweenBraces_TrailingComment_TopLevel()
-    {
-        var code =
-            """
+    public Task BlankLinesBetweenBraces_TrailingComment_TopLevel()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -511,30 +398,23 @@ public class ConsecutiveBracePlacementTests
 
 
             [|}|]
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void M()
                 {
                 } /*comment*/
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task OneBlankLineBetweenBraces_Nested()
-    {
-        var code =
-            """
+    public Task OneBlankLineBetweenBraces_Nested()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -545,9 +425,8 @@ public class ConsecutiveBracePlacementTests
 
                 [|}|]
             }
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             namespace N
             {
                 class C
@@ -557,21 +436,15 @@ public class ConsecutiveBracePlacementTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TwoBlankLinesBetweenBraces_Nested()
-    {
-        var code =
-            """
+    public Task TwoBlankLinesBetweenBraces_Nested()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -583,9 +456,8 @@ public class ConsecutiveBracePlacementTests
 
                 [|}|]
             }
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             namespace N
             {
                 class C
@@ -595,21 +467,15 @@ public class ConsecutiveBracePlacementTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ThreeBlankLinesBetweenBraces_Nested()
-    {
-        var code =
-            """
+    public Task ThreeBlankLinesBetweenBraces_Nested()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -622,9 +488,8 @@ public class ConsecutiveBracePlacementTests
 
                 [|}|]
             }
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             namespace N
             {
                 class C
@@ -634,21 +499,15 @@ public class ConsecutiveBracePlacementTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task BlankLinesBetweenBraces_LeadingComment_Nested()
-    {
-        var code =
-            """
+    public Task BlankLinesBetweenBraces_LeadingComment_Nested()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -661,9 +520,8 @@ public class ConsecutiveBracePlacementTests
 
                 /*comment*/[|}|]
             }
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             namespace N
             {
                 class C
@@ -673,21 +531,15 @@ public class ConsecutiveBracePlacementTests
                     }
                 /*comment*/}
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task BlankLinesBetweenBraces_TrailingComment_Nested()
-    {
-        var code =
-            """
+    public Task BlankLinesBetweenBraces_TrailingComment_Nested()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -700,9 +552,8 @@ public class ConsecutiveBracePlacementTests
 
                 [|}|]
             }
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             namespace N
             {
                 class C
@@ -712,21 +563,15 @@ public class ConsecutiveBracePlacementTests
                     } /*comment*/
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAll1()
-    {
-        var code =
-            """
+    public Task FixAll1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 class C
@@ -738,9 +583,8 @@ public class ConsecutiveBracePlacementTests
                 [|}|]
 
             [|}|]
-            """;
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             namespace N
             {
                 class C
@@ -750,21 +594,15 @@ public class ConsecutiveBracePlacementTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task RealCode1()
-    {
-        var code =
-            """
+    public Task RealCode1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
 
             using System;
@@ -795,21 +633,16 @@ public class ConsecutiveBracePlacementTests
             #endif
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task RealCode2()
-    {
-        var code =
-            """
+    public Task RealCode2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             #define CODE_STYLE
             #nullable enable
 
@@ -841,13 +674,8 @@ public class ConsecutiveBracePlacementTests
             #endif
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 }

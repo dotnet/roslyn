@@ -161,11 +161,13 @@ internal interface ISyntaxKinds
     int ReferenceNotEqualsExpression { get; }
     int SimpleAssignmentExpression { get; }
     int SimpleMemberAccessExpression { get; }
+    int? SizeOfExpression { get; }
     int? SuppressNullableWarningExpression { get; }
     int TernaryConditionalExpression { get; }
     int ThisExpression { get; }
     int? ThrowExpression { get; }
     int TupleExpression { get; }
+    int TypeOfExpression { get; }
 
     #endregion
 

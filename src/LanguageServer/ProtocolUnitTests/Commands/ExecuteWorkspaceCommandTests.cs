@@ -18,7 +18,8 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Commands;
-public class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
+
+public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
 {
     protected override TestComposition Composition => base.Composition.AddParts(
             typeof(TestWorkspaceCommandHandler));
@@ -34,7 +35,7 @@ public class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
 
         var request = new ExecuteCommandParams()
         {
-            Arguments = new object[] { JsonSerializer.Serialize(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\someFile.cs") }) },
+            Arguments = [JsonSerializer.Serialize(new TextDocumentIdentifier { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\someFile.cs") })],
             Command = TestWorkspaceCommandHandler.CommandName
         };
         var response = await server.ExecuteRequestAsync<ExecuteCommandParams, object>(Methods.WorkspaceExecuteCommandName, request, CancellationToken.None);
@@ -45,7 +46,7 @@ public class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
 
     [ExportCSharpVisualBasicStatelessLspService(typeof(TestWorkspaceCommandHandler)), Shared, PartNotDiscoverable]
     [Command(CommandName)]
-    internal class TestWorkspaceCommandHandler : AbstractExecuteWorkspaceCommandHandler
+    internal sealed class TestWorkspaceCommandHandler : AbstractExecuteWorkspaceCommandHandler
     {
         internal const string CommandName = nameof(TestWorkspaceCommandHandler);
 

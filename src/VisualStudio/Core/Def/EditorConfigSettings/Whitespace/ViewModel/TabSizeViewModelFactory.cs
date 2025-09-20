@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
 [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-internal class TabSizeViewModelFactory : IEnumSettingViewModelFactory
+internal sealed class TabSizeViewModelFactory : IEnumSettingViewModelFactory
 {
     private readonly OptionKey2 _key;
 

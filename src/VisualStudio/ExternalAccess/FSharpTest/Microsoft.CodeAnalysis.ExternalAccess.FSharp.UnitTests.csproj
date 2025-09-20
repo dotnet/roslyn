@@ -7,14 +7,18 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 	<ItemGroup Label="Project References">
-	  <ProjectReference Include="..\..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj" />
 	  <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
 	  <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
 	  <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
 	  <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
 	  <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
 	  <ProjectReference Include="..\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
-	</ItemGroup>
+
+    <!-- <Metalama> -->
+    <ProjectReference Include="..\..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj" />
+    <!-- </Metalama> -->
+
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BasicUndo" />
     <!-- Microsoft.VisualStudio.Platform.VSEditor references Microsoft.VisualStudio.Text.Internal since it's needed at runtime; we want to ensure we are using

@@ -10,57 +10,54 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class DocumentState
+/// <summary>
+/// A source for <see cref="TextAndVersion"/> constructed from an syntax tree.
+/// </summary>
+internal sealed class TreeTextSource(AsyncLazy<SourceText> textSource, VersionStamp version) : ITextAndVersionSource
 {
+    private readonly VersionStamp _version = version;
+
+    public bool CanReloadText
+        => false;
+
     /// <summary>
-    /// A source for <see cref="TextAndVersion"/> constructed from an syntax tree.
+    /// Not created from a text loader.
     /// </summary>
-    private sealed class TreeTextSource(AsyncLazy<SourceText> textSource, VersionStamp version) : ITextAndVersionSource
+    public TextLoader? TextLoader
+        => null;
+
+    public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
     {
-        private readonly VersionStamp _version = version;
-
-        public bool CanReloadText
-            => false;
-
-        /// <summary>
-        /// Not created from a text loader.
-        /// </summary>
-        public TextLoader? TextLoader
-            => null;
-
-        public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        {
-            var text = await textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return TextAndVersion.Create(text, _version);
-        }
-
-        public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
-        {
-            var text = textSource.GetValue(cancellationToken);
-            return TextAndVersion.Create(text, _version);
-        }
-
-        public bool TryGetValue(LoadTextOptions options, [NotNullWhen(true)] out TextAndVersion? value)
-        {
-            if (textSource.TryGetValue(out var text))
-            {
-                value = TextAndVersion.Create(text, _version);
-                return true;
-            }
-            else
-            {
-                value = null;
-                return false;
-            }
-        }
-
-        public bool TryGetVersion(LoadTextOptions options, out VersionStamp version)
-        {
-            version = _version;
-            return version != default;
-        }
-
-        public ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-            => new(_version);
+        var text = await textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        return TextAndVersion.Create(text, _version);
     }
+
+    public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
+    {
+        var text = textSource.GetValue(cancellationToken);
+        return TextAndVersion.Create(text, _version);
+    }
+
+    public bool TryGetValue(LoadTextOptions options, [NotNullWhen(true)] out TextAndVersion? value)
+    {
+        if (textSource.TryGetValue(out var text))
+        {
+            value = TextAndVersion.Create(text, _version);
+            return true;
+        }
+        else
+        {
+            value = null;
+            return false;
+        }
+    }
+
+    public bool TryGetVersion(LoadTextOptions options, out VersionStamp version)
+    {
+        version = _version;
+        return version != default;
+    }
+
+    public ValueTask<VersionStamp> GetVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => new(_version);
 }

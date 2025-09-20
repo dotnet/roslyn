@@ -261,7 +261,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol primaryConstructor)
         => SemanticFacts.TryGetPrimaryConstructor(typeSymbol, out primaryConstructor);
 
-#if !CODE_STYLE
+#if WORKSPACE
 
     public Task<ISymbol> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
         => SemanticFacts.GetInterceptorSymbolAsync(document, position, cancellationToken);

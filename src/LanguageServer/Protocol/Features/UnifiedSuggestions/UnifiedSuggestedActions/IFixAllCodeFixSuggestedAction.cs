@@ -5,18 +5,17 @@
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
-namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions
+namespace Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
+
+/// <summary>
+/// Common interface used by both local Roslyn and LSP to implement
+/// their specific versions of FixAllCodeFixSuggestedAction.
+/// </summary>
+internal interface IFixAllCodeFixSuggestedAction
 {
-    /// <summary>
-    /// Common interface used by both local Roslyn and LSP to implement
-    /// their specific versions of FixAllCodeFixSuggestedAction.
-    /// </summary>
-    internal interface IFixAllCodeFixSuggestedAction
-    {
-        Diagnostic Diagnostic { get; }
+    Diagnostic Diagnostic { get; }
 
-        CodeAction OriginalCodeAction { get; }
+    CodeAction OriginalCodeAction { get; }
 
-        IFixAllState FixAllState { get; }
-    }
+    IFixAllState FixAllState { get; }
 }

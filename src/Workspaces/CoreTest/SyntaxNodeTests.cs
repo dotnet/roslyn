@@ -15,118 +15,113 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+[UseExportProvider]
+public sealed partial class SyntaxNodeTests : TestBase
 {
-    [UseExportProvider]
-    public partial class SyntaxNodeTests : TestBase
+    [Fact]
+    public async Task TestReplaceOneNodeAsync()
     {
-        [Fact]
-        public async Task TestReplaceOneNodeAsync()
+        var text = @"public class C { public int X; }";
+        var tree = SyntaxFactory.ParseSyntaxTree(text);
+        var root = tree.GetRoot();
+
+        var node = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+        var newRoot = await root.ReplaceNodesAsync([node], (o, n, c) =>
         {
-            var text = @"public class C { public int X; }";
-            var expected = @"public class C { public int Y; }";
+            var decl = (VariableDeclaratorSyntax)n;
+            return Task.FromResult<SyntaxNode>(decl.WithIdentifier(SyntaxFactory.Identifier("Y")));
+        }, CancellationToken.None);
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var root = tree.GetRoot();
+        var actual = newRoot.ToString();
 
-            var node = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-            var newRoot = await root.ReplaceNodesAsync([node], (o, n, c) =>
+        Assert.Equal(@"public class C { public int Y; }", actual);
+    }
+
+    [Fact]
+    public async Task TestReplaceNestedNodesAsync()
+    {
+        var text = @"public class C { public int X; }";
+        var tree = SyntaxFactory.ParseSyntaxTree(text);
+        var root = tree.GetRoot();
+
+        var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax or ClassDeclarationSyntax).ToList();
+        var computations = 0;
+        var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
+        {
+            computations++;
+            if (n is ClassDeclarationSyntax classDecl)
             {
-                var decl = (VariableDeclaratorSyntax)n;
-                return Task.FromResult<SyntaxNode>(decl.WithIdentifier(SyntaxFactory.Identifier("Y")));
-            }, CancellationToken.None);
+                var id = classDecl.Identifier;
+                return Task.FromResult<SyntaxNode>(classDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));
+            }
 
-            var actual = newRoot.ToString();
-
-            Assert.Equal(expected, actual);
-        }
-
-        [Fact]
-        public async Task TestReplaceNestedNodesAsync()
-        {
-            var text = @"public class C { public int X; }";
-            var expected = @"public class C1 { public int X1; }";
-
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var root = tree.GetRoot();
-
-            var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax or ClassDeclarationSyntax).ToList();
-            var computations = 0;
-            var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
+            if (n is VariableDeclaratorSyntax varDecl)
             {
-                computations++;
-                if (n is ClassDeclarationSyntax classDecl)
-                {
-                    var id = classDecl.Identifier;
-                    return Task.FromResult<SyntaxNode>(classDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));
-                }
+                var id = varDecl.Identifier;
+                return Task.FromResult<SyntaxNode>(varDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));
+            }
 
-                if (n is VariableDeclaratorSyntax varDecl)
-                {
-                    var id = varDecl.Identifier;
-                    return Task.FromResult<SyntaxNode>(varDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));
-                }
+            return Task.FromResult(n);
+        }, CancellationToken.None);
 
-                return Task.FromResult(n);
-            }, CancellationToken.None);
+        var actual = newRoot.ToString();
 
-            var actual = newRoot.ToString();
+        Assert.Equal(@"public class C1 { public int X1; }", actual);
+        Assert.Equal(computations, nodes.Count);
+    }
 
-            Assert.Equal(expected, actual);
-            Assert.Equal(computations, nodes.Count);
-        }
+    [Fact]
+    public async Task TestTrackNodesWithDocument()
+    {
+        var pid = ProjectId.CreateNewId();
+        var did = DocumentId.CreateNewId(pid);
 
-        [Fact]
-        public async Task TestTrackNodesWithDocument()
-        {
-            var pid = ProjectId.CreateNewId();
-            var did = DocumentId.CreateNewId(pid);
+        var sourceText = @"public class C { void M() { } }";
 
-            var sourceText = @"public class C { void M() { } }";
+        var sol = new AdhocWorkspace().CurrentSolution
+            .AddProject(pid, "proj", "proj", LanguageNames.CSharp)
+            .AddDocument(did, "doc", sourceText);
 
-            var sol = new AdhocWorkspace().CurrentSolution
-                .AddProject(pid, "proj", "proj", LanguageNames.CSharp)
-                .AddDocument(did, "doc", sourceText);
+        var doc = sol.GetDocument(did);
 
-            var doc = sol.GetDocument(did);
+        // find initial nodes of interest
+        var root = await doc.GetSyntaxRootAsync();
+        var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+        var methodDecl = classDecl.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
 
-            // find initial nodes of interest
-            var root = await doc.GetSyntaxRootAsync();
-            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            var methodDecl = classDecl.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+        // track these nodes
+        var trackedRoot = root.TrackNodes(classDecl, methodDecl);
 
-            // track these nodes
-            var trackedRoot = root.TrackNodes(classDecl, methodDecl);
+        // use some fancy document centric rewrites
+        var gen = SyntaxGenerator.GetGenerator(doc);
+        var cgenField = gen.FieldDeclaration("X", gen.TypeExpression(SpecialType.System_Int32), Accessibility.Private);
 
-            // use some fancy document centric rewrites
-            var gen = SyntaxGenerator.GetGenerator(doc);
-            var cgenField = gen.FieldDeclaration("X", gen.TypeExpression(SpecialType.System_Int32), Accessibility.Private);
+        var currentClassDecl = trackedRoot.GetCurrentNodes(classDecl).First();
+        var classDeclWithField = gen.InsertMembers(currentClassDecl, 0, [cgenField]);
 
-            var currentClassDecl = trackedRoot.GetCurrentNodes(classDecl).First();
-            var classDeclWithField = gen.InsertMembers(currentClassDecl, 0, [cgenField]);
+        // we can find related bits even from sub-tree fragments
+        var latestMethod = classDeclWithField.GetCurrentNodes(methodDecl).First();
+        Assert.NotNull(latestMethod);
+        Assert.NotEqual(latestMethod, methodDecl);
 
-            // we can find related bits even from sub-tree fragments
-            var latestMethod = classDeclWithField.GetCurrentNodes(methodDecl).First();
-            Assert.NotNull(latestMethod);
-            Assert.NotEqual(latestMethod, methodDecl);
+        trackedRoot = trackedRoot.ReplaceNode(currentClassDecl, classDeclWithField);
 
-            trackedRoot = trackedRoot.ReplaceNode(currentClassDecl, classDeclWithField);
+        // put back into document (branch solution, etc)
+        doc = doc.WithSyntaxRoot(trackedRoot);
 
-            // put back into document (branch solution, etc)
-            doc = doc.WithSyntaxRoot(trackedRoot);
+        // re-get root of new document
+        var root2 = await doc.GetSyntaxRootAsync();
+        Assert.NotEqual(trackedRoot, root2);
 
-            // re-get root of new document
-            var root2 = await doc.GetSyntaxRootAsync();
-            Assert.NotEqual(trackedRoot, root2);
+        // we can still find the tracked node in the new document
+        var finalClassDecl = root2.GetCurrentNodes(classDecl).First();
+        Assert.Equal("public class C\r\n{\r\n    private int X;\r\n    void M()\r\n    {\r\n    }\r\n}", finalClassDecl.NormalizeWhitespace().ToString());
 
-            // we can still find the tracked node in the new document
-            var finalClassDecl = root2.GetCurrentNodes(classDecl).First();
-            Assert.Equal("public class C\r\n{\r\n    private int X;\r\n    void M()\r\n    {\r\n    }\r\n}", finalClassDecl.NormalizeWhitespace().ToString());
-
-            // and other tracked nodes too
-            var finalMethodDecl = root2.GetCurrentNodes(methodDecl).First();
-            Assert.NotNull(finalMethodDecl);
-            Assert.NotEqual(finalMethodDecl, methodDecl);
-        }
+        // and other tracked nodes too
+        var finalMethodDecl = root2.GetCurrentNodes(methodDecl).First();
+        Assert.NotNull(finalMethodDecl);
+        Assert.NotEqual(finalMethodDecl, methodDecl);
     }
 }

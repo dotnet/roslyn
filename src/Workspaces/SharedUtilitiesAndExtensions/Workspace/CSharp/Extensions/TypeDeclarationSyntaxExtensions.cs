@@ -22,7 +22,7 @@ internal static class TypeDeclarationSyntaxExtensions
         var members = destination.Members;
 
         var indices = new List<bool>();
-        if (members.Count == 0)
+        if (members is not [var firstMember, ..])
         {
             var start = destination.OpenBraceToken.Span.End;
             var end = GetEndToken(destination).SpanStart;
@@ -32,7 +32,7 @@ internal static class TypeDeclarationSyntaxExtensions
         else
         {
             var start = destination.OpenBraceToken.Span.End;
-            var end = destination.Members.First().SpanStart;
+            var end = firstMember.SpanStart;
             indices.Add(!destination.OverlapsHiddenPosition(TextSpan.FromBounds(start, end), cancellationToken));
 
             for (var i = 0; i < members.Count - 1; i++)

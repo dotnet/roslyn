@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class LocalsWindowInProcess
+internal sealed partial class LocalsWindowInProcess
 {
     private async Task<EnvDTE100.Debugger5> GetDebuggerAsync(CancellationToken cancellationToken)
     {

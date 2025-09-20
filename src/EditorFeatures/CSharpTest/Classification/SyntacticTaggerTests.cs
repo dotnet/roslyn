@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Classification)]
-public class SyntacticTaggerTests
+public sealed class SyntacticTaggerTests
 {
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
     public async Task TestTagsChangedForPortionThatChanged()

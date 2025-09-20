@@ -73,7 +73,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     /// <summary>
     /// Only accessed and mutated in serial calls either from the UI thread or LSP queue.
     /// </summary>
-    private readonly HashSet<DocumentId> _openedDocumentIds = new();
+    private readonly HashSet<DocumentId> _openedDocumentIds = [];
 
     public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
         MetadataAsSourceWorkspace metadataWorkspace,

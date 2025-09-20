@@ -12,13 +12,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents;
 
 [UseExportProvider]
-public class AddConstructorParameterIntentTests : IntentTestsBase
+public sealed class AddConstructorParameterIntentTests : IntentTestsBase
 {
     [Fact]
     public async Task AddConstructorParameterWithField()
     {
-        var initialText =
-            """
+        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, """
             class C
             {
                 private readonly int _someInt;{|priorSelection:|}
@@ -27,10 +26,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-
-        var currentText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;
@@ -39,9 +35,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var expectedText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;
@@ -51,16 +45,13 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                     _someInt = someInt;
                 }
             }
-            """;
-
-        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 
     [Fact]
     public async Task AddConstructorParameterWithProperty()
     {
-        var initialText =
-            """
+        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, """
             class C
             {
                 public int SomeInt { get; }{|priorSelection:|}
@@ -69,9 +60,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var currentText =
-            """
+            """, """
             class C
             {
                 public int SomeInt { get; }
@@ -80,9 +69,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var expectedText =
-            """
+            """, """
             class C
             {
                 public int SomeInt { get; }
@@ -92,16 +79,13 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                     SomeInt = someInt;
                 }
             }
-            """;
-
-        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 
     [Fact]
     public async Task AddMultipleConstructorParameters()
     {
-        var initialText =
-            """
+        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, """
             class C
             {
                 {|priorSelection:private readonly int _someInt;
@@ -111,9 +95,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var currentText =
-            """
+            """, """
             class C
             {
                 {|priorSelection:private readonly int _someInt;
@@ -123,9 +105,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var expectedText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;
@@ -137,16 +117,13 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                     _someString = someString;
                 }
             }
-            """;
-
-        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 
     [Fact]
     public async Task AddConstructorParameterOnlyAddsSelected()
     {
-        var initialText =
-            """
+        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, """
             class C
             {
                 private readonly int _someInt;{|priorSelection:|}
@@ -156,9 +133,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var currentText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;{|priorSelection:|}
@@ -168,9 +143,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var expectedText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;
@@ -181,16 +154,13 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                     _someInt = someInt;
                 }
             }
-            """;
-
-        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 
     [Fact]
     public async Task AddConstructorParameterUsesCodeStyleOption()
     {
-        var initialText =
-            """
+        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, """
             class C
             {
                 private readonly int _someInt;{|priorSelection:|}
@@ -199,9 +169,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var currentText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;{|priorSelection:|}
@@ -210,9 +178,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var expectedText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;
@@ -222,8 +188,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                     this._someInt = someInt;
                 }
             }
-            """;
-        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText,
+            """,
             options: new OptionsCollection(LanguageNames.CSharp)
             {
                 { CodeStyleOptions2.QualifyFieldAccess, true }
@@ -233,8 +198,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
     [Fact]
     public async Task AddConstructorParameterUsesExistingAccessibility()
     {
-        var initialText =
-            """
+        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, """
             class C
             {
                 private readonly int _someInt;{|priorSelection:|}
@@ -243,9 +207,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var currentText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;{|priorSelection:|}
@@ -254,9 +216,7 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                 {
                 }
             }
-            """;
-        var expectedText =
-            """
+            """, """
             class C
             {
                 private readonly int _someInt;
@@ -266,8 +226,6 @@ public class AddConstructorParameterIntentTests : IntentTestsBase
                     _someInt = someInt;
                 }
             }
-            """;
-
-        await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 }

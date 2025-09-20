@@ -8,7 +8,7 @@
     <GenerateDependencyFile>false</GenerateDependencyFile>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <IsSourcePackage>true</IsSourcePackage>
     <PackageId>Microsoft.CodeAnalysis.Debugging</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -22,6 +22,7 @@
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.ValueTuple" />
-    <ProjectReference Include="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.Package.csproj" />
   </ItemGroup>
+  <Import Project="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

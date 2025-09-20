@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(OpenProjectHandler)), Shared]
 [Method(OpenProjectName)]
-internal class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
+internal sealed class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
 {
     internal const string OpenProjectName = "project/open";
 
@@ -34,7 +34,7 @@ internal class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHa
         return _projectSystem.OpenProjectsAsync(request.Projects.SelectAsArray(p => p.LocalPath));
     }
 
-    internal class NotificationParams
+    internal sealed class NotificationParams
     {
         [JsonPropertyName("projects")]
         public required Uri[] Projects { get; set; }

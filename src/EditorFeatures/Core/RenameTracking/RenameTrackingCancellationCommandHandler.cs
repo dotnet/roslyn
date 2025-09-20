@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
 [Order(After = PredefinedCommandHandlerNames.QuickInfo)]
 [Order(After = PredefinedCommandHandlerNames.EventHookup)]
-internal class RenameTrackingCancellationCommandHandler : ICommandHandler<EscapeKeyCommandArgs>
+internal sealed class RenameTrackingCancellationCommandHandler : ICommandHandler<EscapeKeyCommandArgs>
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

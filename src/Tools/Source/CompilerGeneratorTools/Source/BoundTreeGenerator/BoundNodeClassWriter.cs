@@ -303,7 +303,7 @@ namespace BoundTreeGenerator
 
         private void WriteTypes()
         {
-            foreach (var node in _tree.Types.Where(n => n is not PredefinedNode))
+            foreach (var node in _tree.Types.OfType<AbstractNode>())
             {
                 Blank();
                 WriteType(node);
@@ -935,10 +935,8 @@ namespace BoundTreeGenerator
             }
         }
 
-        private void WriteType(TreeType node)
+        private void WriteType(AbstractNode node)
         {
-            if (node is not AbstractNode)
-                return;
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);

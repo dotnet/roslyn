@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.VisualStudio.Extensibility;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
@@ -25,20 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 internal sealed class SemanticSearchToolWindowController(
     SemanticSearchToolWindowImpl toolWindowImpl,
     IThreadingContext threadingContext,
-    SVsServiceProvider serviceProvider) : ISemanticSearchToolWindowController
+    IVsService<VisualStudioExtensibility, VisualStudioExtensibility> lazyExtensibilityService) : ISemanticSearchToolWindowController
 {
-    private readonly AsyncLazy<VisualStudioExtensibility> _visualStudioExtensibility = new(
-        () =>
-        {
-            var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
-            ErrorHandler.ThrowOnFailure(shell.LoadPackage(Guids.CSharpPackageId, out var package));
-            return RoslynServiceExtensions.GetServiceAsync<VisualStudioExtensibility, VisualStudioExtensibility>((AsyncPackage)package, threadingContext.JoinableTaskFactory);
-        },
-        threadingContext.JoinableTaskFactory);
+    private readonly IVsService<VisualStudioExtensibility, VisualStudioExtensibility> _lazyExtensibilityService = lazyExtensibilityService;
 
     public async Task UpdateQueryAsync(string query, bool activateWindow, bool executeQuery, CancellationToken cancellationToken)
     {
-        var extensibility = await _visualStudioExtensibility.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        var extensibility = await _lazyExtensibilityService.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
         await extensibility.Shell().ShowToolWindowAsync<SemanticSearchToolWindow>(activateWindow, cancellationToken).ConfigureAwait(false);
 

@@ -69,7 +69,7 @@ It uses the below equivalence keys for its registered code actions to get the de
 - Qualified type name simplification: Formatted resource string "Simplify type name A.B", which explicitly includes the contents of the node being simplified.
 - Member access expressions: Formatted resource string "Simplify type name A.M", which explicitly includes the contents of the node being simplified.
 
-Note that '`this` expression simplification' fix requires a different kind of an equivalence class from the other two simplifications. See method [GetCodeActionId](https://github.com/dotnet/roslyn/blob/main/src/Features/Core/Portable/ImplementAbstractClass/AbstractImplementAbstractClassCodeFixProvider.cs) for the actual implementation.
+Note that '`this` expression simplification' fix requires a different kind of an equivalence class from the other two simplifications. See method [GetCodeActionId](https://github.com/dotnet/roslyn/blob/main/src/Analyzers/Core/CodeFixes/ImplementAbstractClass/AbstractImplementAbstractClassCodeFixProvider.cs) for the actual implementation.
 
 To summarize, use the equivalence key that best suits the category of fixes to be applied as part of a FixAll operation.
 

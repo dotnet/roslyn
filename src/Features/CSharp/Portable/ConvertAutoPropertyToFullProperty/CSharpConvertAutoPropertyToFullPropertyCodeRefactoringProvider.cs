@@ -37,7 +37,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
     {
         var rule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-            property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
+            property.IsStatic ? Modifiers.Static : Modifiers.None,
             Accessibility.Private,
             cancellationToken).ConfigureAwait(false);
 

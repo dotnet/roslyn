@@ -14,13 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 internal interface IFixAllContext
 {
     IFixAllState State { get; }
-    IFixAllProvider FixAllProvider { get; }
-    Solution Solution { get; }
-    Project Project { get; }
-    Document? Document { get; }
     object Provider { get; }
-    FixAllScope Scope { get; }
-    string? CodeActionEquivalenceKey { get; }
     CancellationToken CancellationToken { get; }
     IProgress<CodeAnalysisProgress> Progress { get; }
 

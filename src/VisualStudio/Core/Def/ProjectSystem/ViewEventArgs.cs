@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-internal class ViewEventArgs : EventArgs
+internal sealed class ViewEventArgs : EventArgs
 {
     public ViewEventArgs(IVsTextView textView)
         => TextView = textView;

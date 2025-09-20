@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 
@@ -331,6 +330,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
             if (operation is IInlineArrayAccessOperation)
             {
+                // to determine if this is safe to make into a ReadOnlySpan or not.
+                if (operation.Type.IsSpan())
+                    return true;
+
                 // If we're writing into an inline-array off of 'this'.  Then we can't make this `readonly`.
                 if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, operation.Syntax, cancellationToken))
                     return true;

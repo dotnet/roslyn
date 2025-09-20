@@ -25,169 +25,168 @@ using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
-namespace Microsoft.VisualStudio.LanguageServices
+namespace Microsoft.VisualStudio.LanguageServices;
+
+[Export(typeof(VisualStudioWorkspace))]
+[Export(typeof(VisualStudioWorkspaceImpl))]
+internal sealed class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
 {
-    [Export(typeof(VisualStudioWorkspace))]
-    [Export(typeof(VisualStudioWorkspaceImpl))]
-    internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
+    private readonly IThreadingContext _threadingContext;
+
+    /// <remarks>
+    /// Must be lazily constructed since the <see cref="IStreamingFindUsagesPresenter"/> implementation imports a
+    /// backreference to <see cref="VisualStudioWorkspace"/>.
+    /// </remarks>
+    private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RoslynVisualStudioWorkspace(
+        ExportProvider exportProvider,
+        IThreadingContext threadingContext,
+        Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+        [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
+        : base(exportProvider, asyncServiceProvider)
     {
-        private readonly IThreadingContext _threadingContext;
+        _threadingContext = threadingContext;
+        _streamingPresenter = streamingPresenter;
+    }
 
-        /// <remarks>
-        /// Must be lazily constructed since the <see cref="IStreamingFindUsagesPresenter"/> implementation imports a
-        /// backreference to <see cref="VisualStudioWorkspace"/>.
-        /// </remarks>
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+    internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
+    {
+        var globalUndoService = this.Services.GetRequiredService<IGlobalUndoService>();
+        var needsUndoDisabled = false;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RoslynVisualStudioWorkspace(
-            ExportProvider exportProvider,
-            IThreadingContext threadingContext,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
-            : base(exportProvider, asyncServiceProvider)
+        var textDocument = this.CurrentSolution.GetTextDocument(documentId);
+
+        if (textDocument == null)
         {
-            _threadingContext = threadingContext;
-            _streamingPresenter = streamingPresenter;
+            throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId));
         }
 
-        internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
+        // Do not save the file if is open and there is not a global undo transaction.
+        var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !this.IsDocumentOpen(documentId);
+        if (needsSave)
         {
-            var globalUndoService = this.Services.GetRequiredService<IGlobalUndoService>();
-            var needsUndoDisabled = false;
-
-            var textDocument = this.CurrentSolution.GetTextDocument(documentId);
-
-            if (textDocument == null)
+            if (textDocument is Document document)
             {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId));
+                // Disable undo on generated documents
+                needsUndoDisabled = document.IsGeneratedCode(CancellationToken.None);
             }
-
-            // Do not save the file if is open and there is not a global undo transaction.
-            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !this.IsDocumentOpen(documentId);
-            if (needsSave)
+            else
             {
-                if (textDocument is Document document)
-                {
-                    // Disable undo on generated documents
-                    needsUndoDisabled = document.IsGeneratedCode(CancellationToken.None);
-                }
-                else
-                {
-                    // Enable undo on "additional documents" or if no document can be found.
-                    needsUndoDisabled = false;
-                }
+                // Enable undo on "additional documents" or if no document can be found.
+                needsUndoDisabled = false;
             }
-
-            // Documents in the VisualStudioWorkspace always have file paths since that's how we get files given
-            // to us from the project system.
-            Contract.ThrowIfNull(textDocument.FilePath);
-
-            return new InvisibleEditor(ServiceProvider.GlobalProvider, textDocument.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 
-        [Obsolete("Use TryGoToDefinitionAsync instead", error: true)]
-        public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
-            => _threadingContext.JoinableTaskFactory.Run(() => TryGoToDefinitionAsync(symbol, project, cancellationToken));
+        // Documents in the VisualStudioWorkspace always have file paths since that's how we get files given
+        // to us from the project system.
+        Contract.ThrowIfNull(textDocument.FilePath);
 
-        public override async Task<bool> TryGoToDefinitionAsync(
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
-        {
-            var currentProject = project.Solution.Workspace.CurrentSolution.GetProject(project.Id);
-            if (currentProject == null)
-                return false;
+        return new InvisibleEditor(ServiceProvider.GlobalProvider, textDocument.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
+    }
 
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
-            if (symbolInfo.Symbol == null)
-                return false;
+    [Obsolete("Use TryGoToDefinitionAsync instead", error: true)]
+    public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        => _threadingContext.JoinableTaskFactory.Run(() => TryGoToDefinitionAsync(symbol, project, cancellationToken));
 
-            return await GoToDefinitionHelpers.TryNavigateToLocationAsync(
-                symbolInfo.Symbol, currentProject.Solution,
-                _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
-        }
-
-        public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
-        {
-            // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
-            // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
+    public override async Task<bool> TryGoToDefinitionAsync(
+        ISymbol symbol, Project project, CancellationToken cancellationToken)
+    {
+        var currentProject = project.Solution.Workspace.CurrentSolution.GetProject(project.Id);
+        if (currentProject == null)
             return false;
-        }
 
-        public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        var symbolId = SymbolKey.Create(symbol, cancellationToken);
+        var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
+        if (symbolInfo.Symbol == null)
+            return false;
+
+        return await GoToDefinitionHelpers.TryNavigateToLocationAsync(
+            symbolInfo.Symbol, currentProject.Solution,
+            _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+    }
+
+    public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
+    {
+        // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
+        // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
+        return false;
+    }
+
+    public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+    {
+        // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
+        // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
+    }
+
+    internal override async Task<object?> GetBrowseObjectAsync(
+        SymbolListItem symbolListItem, CancellationToken cancellationToken)
+    {
+        var compilation = await symbolListItem.GetCompilationAsync(this, cancellationToken).ConfigureAwait(true);
+        if (compilation == null)
+            return null;
+
+        var symbol = symbolListItem.ResolveSymbol(compilation);
+        var sourceLocation = symbol.Locations.Where(l => l.IsInSource).FirstOrDefault();
+
+        if (sourceLocation == null)
         {
-            // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
-            // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
-        }
-
-        internal override async Task<object?> GetBrowseObjectAsync(
-            SymbolListItem symbolListItem, CancellationToken cancellationToken)
-        {
-            var compilation = await symbolListItem.GetCompilationAsync(this, cancellationToken).ConfigureAwait(true);
-            if (compilation == null)
-                return null;
-
-            var symbol = symbolListItem.ResolveSymbol(compilation);
-            var sourceLocation = symbol.Locations.Where(l => l.IsInSource).FirstOrDefault();
-
-            if (sourceLocation == null)
-            {
-                return null;
-            }
-
-            var projectId = symbolListItem.ProjectId;
-            if (projectId == null)
-            {
-                return null;
-            }
-
-            var project = this.CurrentSolution.GetProject(projectId);
-            if (project == null)
-            {
-                return null;
-            }
-
-            var codeModelService = project.Services.GetService<ICodeModelService>();
-            if (codeModelService == null)
-            {
-                return null;
-            }
-
-            var tree = sourceLocation.SourceTree;
-            Contract.ThrowIfNull(tree, "We have a location that was in source, but doesn't have a SourceTree.");
-
-            var document = project.GetDocument(tree);
-            Contract.ThrowIfNull(document, "We have a symbol coming from a tree, and that tree isn't in the Project it supposedly came from.");
-
-            var vsFileCodeModel = this.GetFileCodeModel(document.Id);
-
-            var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(vsFileCodeModel);
-            if (fileCodeModel != null)
-            {
-                var syntaxNode = tree.GetRoot(cancellationToken).FindNode(sourceLocation.SourceSpan);
-                while (syntaxNode != null)
-                {
-                    if (!codeModelService.TryGetNodeKey(syntaxNode).IsEmpty)
-                    {
-                        break;
-                    }
-
-                    syntaxNode = syntaxNode.Parent;
-                }
-
-                if (syntaxNode != null)
-                {
-                    var codeElement = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(syntaxNode);
-                    if (codeElement != null)
-                    {
-                        return codeElement;
-                    }
-                }
-            }
-
             return null;
         }
+
+        var projectId = symbolListItem.ProjectId;
+        if (projectId == null)
+        {
+            return null;
+        }
+
+        var project = this.CurrentSolution.GetProject(projectId);
+        if (project == null)
+        {
+            return null;
+        }
+
+        var codeModelService = project.Services.GetService<ICodeModelService>();
+        if (codeModelService == null)
+        {
+            return null;
+        }
+
+        var tree = sourceLocation.SourceTree;
+        Contract.ThrowIfNull(tree, "We have a location that was in source, but doesn't have a SourceTree.");
+
+        var document = project.GetDocument(tree);
+        Contract.ThrowIfNull(document, "We have a symbol coming from a tree, and that tree isn't in the Project it supposedly came from.");
+
+        var vsFileCodeModel = this.GetFileCodeModel(document.Id);
+
+        var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(vsFileCodeModel);
+        if (fileCodeModel != null)
+        {
+            var syntaxNode = tree.GetRoot(cancellationToken).FindNode(sourceLocation.SourceSpan);
+            while (syntaxNode != null)
+            {
+                if (!codeModelService.TryGetNodeKey(syntaxNode).IsEmpty)
+                {
+                    break;
+                }
+
+                syntaxNode = syntaxNode.Parent;
+            }
+
+            if (syntaxNode != null)
+            {
+                var codeElement = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(syntaxNode);
+                if (codeElement != null)
+                {
+                    return codeElement;
+                }
+            }
+        }
+
+        return null;
     }
 }

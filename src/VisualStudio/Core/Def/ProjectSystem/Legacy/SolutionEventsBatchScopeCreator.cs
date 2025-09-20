@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
 {
-    private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = new List<(ProjectSystemProject, IVsHierarchy, ProjectSystemProject.BatchScope)>();
+    private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = [];
 
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IServiceProvider _serviceProvider = serviceProvider;
@@ -169,7 +169,7 @@ internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadin
         _runningDocumentTableEventsCookie = null;
     }
 
-    private class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
+    private sealed class SolutionEventsEventSink : IVsSolutionEvents, IVsSolutionLoadEvents
     {
         private readonly SolutionEventsBatchScopeCreator _scopeCreator;
 
@@ -247,7 +247,7 @@ internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadin
         #endregion
     }
 
-    private class RunningDocumentTableEventSink : IVsRunningDocTableEvents
+    private sealed class RunningDocumentTableEventSink : IVsRunningDocTableEvents
     {
         private readonly SolutionEventsBatchScopeCreator _scopeCreator;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;

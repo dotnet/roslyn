@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests;
 
-public class InfrastructureTests : AbstractEditorTest
+public sealed class InfrastructureTests : AbstractEditorTest
 {
     public InfrastructureTests()
         : base(nameof(InfrastructureTests), WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
@@ -25,11 +25,13 @@ public class InfrastructureTests : AbstractEditorTest
     public async Task CanCloseSaveDialog()
     {
         await SetUpEditorAsync(
-            @"
-namespace MyNamespace
-{
-$$
-}",
+            """
+
+            namespace MyNamespace
+            {
+            $$
+            }
+            """,
             HangMitigatingCancellationToken);
 
         // Trigger a call to File.Close to ensure we can recover from it

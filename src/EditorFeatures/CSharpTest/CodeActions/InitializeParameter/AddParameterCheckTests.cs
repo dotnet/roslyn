@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddParameterCheckCodeRefact
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-public class AddParameterCheckTests
+public sealed class AddParameterCheckTests
 {
     [Fact]
     public async Task TestEmptyFile()
@@ -30,9 +30,11 @@ public class AddParameterCheckTests
     }
 
     [Fact]
-    public async Task TestSimpleReferenceType_AlreadyNullChecked1()
-    {
-        var testCode = """
+    public Task TestSimpleReferenceType_AlreadyNullChecked1()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp11,
+            TestCode = """
             using System;
 
             class C
@@ -45,18 +47,12 @@ public class AddParameterCheckTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp11,
-            TestCode = testCode
+            """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
-    public async Task TestSimpleReferenceType_AlreadyNullChecked2()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleReferenceType_AlreadyNullChecked2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -72,12 +68,10 @@ public class AddParameterCheckTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleReferenceType()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestSimpleReferenceType()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -102,12 +96,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
-    public async Task TestSimpleReferenceType_ThrowIfNull()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleReferenceType_ThrowIfNull()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -132,12 +124,10 @@ public class AddParameterCheckTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleReferenceType_CSharp6()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleReferenceType_CSharp6()
+        => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp6,
             TestCode = """
@@ -165,12 +155,10 @@ public class AddParameterCheckTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNullable()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestNullable()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -195,7 +183,6 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47030")]
     public async Task TestNotOnOutParameter()
@@ -220,7 +207,7 @@ public class AddParameterCheckTests
 
             class C
             {
-                public C([||]int i)
+                public C([||]DateTime d)
                 {
                 }
             }
@@ -294,9 +281,11 @@ public class AddParameterCheckTests
     [Theory]
     [InlineData(LanguageVersion.CSharp11)]
     [InlineData(LanguageVersion.CSharp8)]
-    public async Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
-    {
-        var code = """
+    public Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
+        => new VerifyCS.Test
+        {
+            LanguageVersion = languageVersion,
+            TestCode = """
             using System;
 
             partial class C
@@ -307,18 +296,15 @@ public class AddParameterCheckTests
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = languageVersion,
-            TestCode = code
+            """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnExtendedPartialMethodDefinition1()
-    {
-        var code = """
+    public Task TestNotOnExtendedPartialMethodDefinition1()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestCode = """
             using System;
 
             partial class C
@@ -329,20 +315,17 @@ public class AddParameterCheckTests
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp9,
-            TestCode = code
+            """
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(LanguageVersion.CSharp11)]
     [InlineData(LanguageVersion.CSharp8)]
-    public async Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
-    {
-        var code = """
+    public Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
+        => new VerifyCS.Test
+        {
+            LanguageVersion = languageVersion,
+            TestCode = """
             using System;
 
             partial class C
@@ -353,18 +336,15 @@ public class AddParameterCheckTests
 
                 partial void M([||]string s);
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = languageVersion,
-            TestCode = code
+            """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnExtendedPartialMethodDefinition2()
-    {
-        var code = """
+    public Task TestNotOnExtendedPartialMethodDefinition2()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestCode = """
             using System;
 
             partial class C
@@ -375,18 +355,12 @@ public class AddParameterCheckTests
 
                 public partial void M([||]string s);
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp9,
-            TestCode = code
+            """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOnPartialMethodImplementation1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestOnPartialMethodImplementation1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -415,12 +389,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnExtendedPartialMethodImplementation1()
-    {
-        await new VerifyCS.Test
+    public Task TestOnExtendedPartialMethodImplementation1()
+        => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp9,
             TestCode = """
@@ -452,12 +424,10 @@ public class AddParameterCheckTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOnPartialMethodImplementation2()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestOnPartialMethodImplementation2()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -486,12 +456,10 @@ public class AddParameterCheckTests
                 partial void M(string s);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnExtendedPartialMethodImplementation2()
-    {
-        await new VerifyCS.Test
+    public Task TestOnExtendedPartialMethodImplementation2()
+        => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp9,
             TestCode = """
@@ -523,12 +491,10 @@ public class AddParameterCheckTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUpdateExistingFieldAssignment()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestUpdateExistingFieldAssignment()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -555,12 +521,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultiNullableParameters()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiNullableParameters()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -611,12 +575,10 @@ public class AddParameterCheckTests
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
-    public async Task TestMultiNullableParameters_Net7()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiNullableParameters_Net7()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -645,12 +607,10 @@ public class AddParameterCheckTests
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters),
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiNullableParametersSomeNullableReferenceTypes()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiNullableParametersSomeNullableReferenceTypes()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable enable
@@ -696,7 +656,6 @@ public class AddParameterCheckTests
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestCursorNotOnParameters()
@@ -715,9 +674,8 @@ public class AddParameterCheckTests
     }
 
     [Fact]
-    public async Task TestMultiNullableWithCursorOnNonNullable()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiNullableWithCursorOnNonNullable()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -756,15 +714,12 @@ public class AddParameterCheckTests
                 }
             }
             """,
-            CodeActionIndex = 0,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiNullableNonNullable()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiNullableNonNullable()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -806,12 +761,10 @@ public class AddParameterCheckTests
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiNullableStringsAndObjects()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiNullableStringsAndObjects()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -858,12 +811,10 @@ public class AddParameterCheckTests
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiNullableObjects()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiNullableObjects()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -902,12 +853,10 @@ public class AddParameterCheckTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiNullableStructs()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiNullableStructs()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -946,12 +895,10 @@ public class AddParameterCheckTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUpdateExistingPropertyAssignment()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestUpdateExistingPropertyAssignment()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -978,12 +925,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotUseThrowExpressionBeforeCSharp7()
-    {
-        await new VerifyCS.Test
+    public Task DoNotUseThrowExpressionBeforeCSharp7()
+        => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp6,
             TestCode = """
@@ -1018,12 +963,10 @@ public class AddParameterCheckTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task RespectUseThrowExpressionOption()
-    {
-        await new VerifyCS.Test
+    public Task RespectUseThrowExpressionOption()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1061,12 +1004,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUpdateExpressionBody1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestUpdateExpressionBody1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1089,12 +1030,10 @@ public class AddParameterCheckTests
                     => S = s ?? throw new ArgumentNullException(nameof(s));
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUpdateExpressionBody2()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestUpdateExpressionBody2()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1128,12 +1067,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUpdateExpressionBody3()
-    {
-        await new VerifyCS.Test
+    public Task TestUpdateExpressionBody3()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1173,12 +1110,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement }
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestUpdateLocalFunctionExpressionBody_NonVoid()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1213,12 +1148,10 @@ public class AddParameterCheckTests
                 private int Init() => 1;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestUpdateLocalFunctionExpressionBody_Void()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestUpdateLocalFunctionExpressionBody_Void()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1253,12 +1186,10 @@ public class AddParameterCheckTests
                 private int Init() => 1;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestUpdateLambdaExpressionBody_NonVoid()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestUpdateLambdaExpressionBody_NonVoid()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1293,12 +1224,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestUpdateLambdaExpressionBody_Void()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestUpdateLambdaExpressionBody_Void()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1333,12 +1262,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertAfterExistingNullCheck1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInsertAfterExistingNullCheck1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1370,12 +1297,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInsertBeforeExistingNullCheck1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInsertBeforeExistingNullCheck1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1407,7 +1332,6 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestMissingWithExistingNullCheck1()
@@ -1583,9 +1507,8 @@ public class AddParameterCheckTests
     }
 
     [Fact]
-    public async Task TestInMethod()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInMethod()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1610,12 +1533,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInOperator()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInOperator()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1643,12 +1564,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestOnSimpleLambdaParameter()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestOnSimpleLambdaParameter()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1679,12 +1598,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestOnSimpleLambdaParameter_EmptyBlock()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestOnSimpleLambdaParameter_EmptyBlock()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1713,12 +1630,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestOnParenthesizedLambdaParameter()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestOnParenthesizedLambdaParameter()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1749,12 +1664,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestOnDiscardLambdaParameter1()
-    {
-        await new VerifyCS.Test
+    public Task TestOnDiscardLambdaParameter1()
+        => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp11,
             TestCode = """
@@ -1788,12 +1701,13 @@ public class AddParameterCheckTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestOnDiscardLambdaParameter2()
-    {
-        var testCode = """
+    public Task TestOnDiscardLambdaParameter2()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp11,
+            TestCode = """
             using System;
 
             class C
@@ -1803,18 +1717,12 @@ public class AddParameterCheckTests
                     Func<string, string, int> f = ([||]_, _) => { return 0; };
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp11,
-            TestCode = testCode
+            """
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestOnAnonymousMethodParameter()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestOnAnonymousMethodParameter()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1845,12 +1753,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
-    public async Task TestOnLocalFunctionParameter()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestOnLocalFunctionParameter()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -1881,7 +1787,6 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestNotOnIndexerParameter()
@@ -1903,9 +1808,10 @@ public class AddParameterCheckTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63307")]
-    public async Task TestNotOnIndexerParameterInRecordWithParameter()
-    {
-        var code = """
+    public Task TestNotOnIndexerParameterInRecordWithParameter()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             record R(string S)
             {
                 int this[[||]string s]
@@ -1916,14 +1822,10 @@ public class AddParameterCheckTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestNotOnIndexerParameters()
@@ -1945,9 +1847,8 @@ public class AddParameterCheckTests
     }
 
     [Fact]
-    public async Task TestSpecialStringCheck1()
-    {
-        await new VerifyCS.Test
+    public Task TestSpecialStringCheck1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1978,14 +1879,12 @@ public class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSpecialStringCheck2()
-    {
-        await new VerifyCS.Test
+    public Task TestSpecialStringCheck2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2016,14 +1915,12 @@ public class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
-    public async Task TestSpecialStringCheck2_Net8()
-    {
-        await new VerifyCS.Test
+    public Task TestSpecialStringCheck2_Net8()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2047,16 +1944,14 @@ public class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check),
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check",
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51338")]
     [UseCulture("de-DE", "de-DE")]
-    public async Task TestSpecialStringCheck3()
-    {
-        await new VerifyCS.Test
+    public Task TestSpecialStringCheck3()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2087,9 +1982,8 @@ public class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19173")]
     public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
@@ -2110,9 +2004,8 @@ public class AddParameterCheckTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19174")]
-    public async Task TestRespectPredefinedTypePreferences()
-    {
-        await new VerifyCS.Test
+    public Task TestRespectPredefinedTypePreferences()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2143,20 +2036,18 @@ public class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check",
             Options =
             {
                 { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOption2.FalseWithSuggestionEnforcement }
             }
         }.RunAsync();
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/19172")]
     [InlineData((int)PreferBracesPreference.None)]
     [InlineData((int)PreferBracesPreference.WhenMultiline)]
-    public async Task TestPreferNoBlock(int preferBraces)
-    {
-        await new VerifyCS.Test
+    public Task TestPreferNoBlock(int preferBraces)
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2184,12 +2075,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent) },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19956")]
-    public async Task TestNoBlock()
-    {
-        await new VerifyCS.Test
+    public Task TestNoBlock()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2224,12 +2113,10 @@ public class AddParameterCheckTests
                 InheritanceMode = StateInheritanceMode.Explicit
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21501")]
-    public async Task TestInArrowExpression1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInArrowExpression1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Linq;
@@ -2261,12 +2148,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21501")]
-    public async Task TestInArrowExpression2()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInArrowExpression2()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Linq;
@@ -2298,7 +2183,6 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21501")]
     public async Task TestMissingInArrowExpression1()
@@ -2345,9 +2229,8 @@ public class AddParameterCheckTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21501")]
-    public async Task TestInArrowExpression3()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestInArrowExpression3()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Linq;
@@ -2379,12 +2262,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")]
-    public async Task TestSimpleReferenceTypeWithParameterNameSelected1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestSimpleReferenceTypeWithParameterNameSelected1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
 
@@ -2409,7 +2290,6 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29333")]
     public async Task TestLambdaWithIncorrectNumberOfParameters()
@@ -2458,9 +2338,8 @@ public class AddParameterCheckTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52383")]
-    public async Task TestImportSystem()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestImportSystem()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -2483,12 +2362,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_NullCheck_BracesNone_SameLineFalse()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_NullCheck_BracesNone_SameLineFalse()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2519,12 +2396,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineFalse()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineFalse()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2555,12 +2430,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineFalse()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_NullCheck_BracesAlways_SameLineFalse()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2593,12 +2466,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_NullCheck_BracesNone_SameLineTrue()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_NullCheck_BracesNone_SameLineTrue()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2628,12 +2499,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineTrue()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineTrue()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2663,12 +2532,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineTrue()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_NullCheck_BracesAlways_SameLineTrue()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2701,12 +2568,10 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineFalse()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineFalse()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2741,14 +2606,12 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineFalse()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineFalse()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2783,14 +2646,12 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineFalse()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineFalse()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2827,14 +2688,12 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineTrue()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineTrue()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2868,14 +2727,12 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineTrue()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineTrue()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2909,14 +2766,12 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineTrue()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineTrue()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2953,14 +2808,12 @@ public class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52385")]
-    public async Task SingleLineStatement_NullCheck_AllParameters()
-    {
-        await new VerifyCS.Test
+    public Task SingleLineStatement_NullCheck_AllParameters()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2994,7 +2847,6 @@ public class AddParameterCheckTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58811")]
     public async Task TestMissingParameter1()
@@ -3064,48 +2916,38 @@ public class AddParameterCheckTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/58779")]
     [InlineData(LanguageVersion.CSharp10)]
     [InlineData(LanguageVersion.CSharp11)]
-    public async Task TestNotInRecord(LanguageVersion version)
-    {
-        var code = """
-            record C([||]string s) { public string s; }
-            """;
-        await new VerifyCS.Test
+    public Task TestNotInRecord(LanguageVersion version)
+        => new VerifyCS.Test
         {
             LanguageVersion = version,
-            TestCode = code,
+            TestCode = """
+            record C([||]string s) { public string s; }
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInClass()
-    {
-        var code = """
+    public Task TestNotInClass()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestCode = """
             class C([||]string s) { public string s; }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp12,
-            TestCode = code,
+            """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInStruct()
-    {
-        var code = """
-            struct C([||]string s) { public string s; }
-            """;
-        await new VerifyCS.Test
+    public Task TestNotInStruct()
+        => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp12,
-            TestCode = code,
+            TestCode = """
+            struct C([||]string s) { public string s; }
+            """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38093")]
-    public async Task TestReadBeforeAssignment()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestReadBeforeAssignment()
+        => VerifyCS.VerifyRefactoringAsync("""
             using System;
             using System.IO;
 
@@ -3139,12 +2981,10 @@ public class AddParameterCheckTests
                 public Stream OutStream { get; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41140")]
-    public async Task TestAfterComma1()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestAfterComma1()
+        => VerifyCS.VerifyRefactoringAsync("""
             using System;
 
             class C
@@ -3170,12 +3010,10 @@ public class AddParameterCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41140")]
-    public async Task TestAfterComma2()
-    {
-        await VerifyCS.VerifyRefactoringAsync("""
+    public Task TestAfterComma2()
+        => VerifyCS.VerifyRefactoringAsync("""
             using System;
 
             class C
@@ -3203,5 +3041,699 @@ public class AddParameterCheckTests
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestSimpleEnumIsDefinedCheck_ModernEnumIsDefinedOverload()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestSimpleEnumIsDefinedCheck_OldEnumIsDefinedOverload()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+            
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestNoEnumIsDefinedCheckForOutEnumParameter()
+        => VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(out DayOfWeek [|result|])
+                {
+                    result = default;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestNoEnumIsDefinedCheckForFlagsEnumParameter()
+        => VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(MyFlags [|myFlags|])
+                {
+                }
+            }
+
+            [Flags]
+            enum MyFlags
+            {
+                A = 1,
+                B = 2
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckIfAlreadyExist_ModernEnumIsDefinedOverload()
+    {
+        var code = """
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(DayOfWeek [|dayOfWeek|])
+                {
+                    if (!Enum.IsDefined(dayOfWeek))
+                    {
+                        throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckIfAlreadyExist_OldEnumIsDefinedOverload()
+    {
+        var code = """
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(DayOfWeek [|dayOfWeek|])
+                {
+                    if (!Enum.IsDefined(typeof(DayOfWeek), dayOfWeek))
+                    {
+                        throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestEnumIsDefinedCheckAfterAnotherEnumIsDefinedCheck()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek [|dayOfWeek2|])
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestEnumIsDefinedCheckBeforeAnotherEnumIsDefinedCheck()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek1|], DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestEnumIsDefinedCheckAfterNullCheck()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(string s, DayOfWeek [|dayOfWeek|])
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(string s, DayOfWeek dayOfWeek)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestEnumIsDefinedCheckBeforeNullCheck()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|], object o)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek, object o)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public Task TestEnumIsDefinedCheckInBetweenChecks()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(object o, DayOfWeek [|dayOfWeek|], string s)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+
+                        ArgumentException.ThrowIfNullOrEmpty(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(object o, DayOfWeek dayOfWeek, string s)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                
+                        ArgumentException.ThrowIfNullOrEmpty(s);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("sbyte")]
+    [InlineData("short")]
+    [InlineData("int")]
+    [InlineData("long")]
+    public async Task TestSimpleNumericChecks_ModernOverloads(string validNumericType)
+    {
+        var code = $$"""
+            using System;
+
+            class C
+            {
+                void M({{validNumericType}} [|num|])
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(num);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 0,
+        }.RunAsync();
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(num);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("sbyte")]
+    [InlineData("short")]
+    [InlineData("int")]
+    [InlineData("long")]
+    public async Task TestSimpleNumericChecks_OldStyleCheckStatement(string validNumericType)
+    {
+        var code = $$"""
+            using System;
+
+            class C
+            {
+                void M({{validNumericType}} [|num|])
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        if (num < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(num)}").Replace("\"", "\\\"")}}");
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+            CodeActionIndex = 0,
+        }.RunAsync();
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        if (num <= 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative_or_zero, "{nameof(num)}").Replace("\"", "\\\"")}}");
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("byte")]
+    [InlineData("ushort")]
+    [InlineData("uint")]
+    [InlineData("ulong")]
+    [InlineData("float")]
+    [InlineData("double")]
+    public Task TestNoNumericChecksForUnsignedAndFloatingPointNumericTypes(string invalidNumericType)
+        => VerifyCS.VerifyRefactoringAsync($$"""
+            using System;
+            
+            class C
+            {
+                void M({{invalidNumericType}} [|num|])
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public Task TestNoNumericChecksForOutParameter()
+        => VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            
+            class C
+            {
+                void M(out int [|num|])
+                {
+                    num = 0;
+                }
+            }
+            """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("ThrowIfNegative(num)")]
+    [InlineData("ThrowIfNegativeOrZero(num)")]
+    [InlineData("ThrowIfEqual(num, 5)")]
+    [InlineData("ThrowIfGreaterThan(num, 6)")]
+    [InlineData("ThrowIfGreaterThanOrEqual(num, 1)")]
+    [InlineData("ThrowIfLessThan(num, 2)")]
+    [InlineData("ThrowIfLessThanOrEqual(num, 3)")]
+    [InlineData("ThrowIfEqual(num, 15)")]
+    [InlineData("ThrowIfNotEqual(num, 10)")]
+    [InlineData("ThrowIfZero(num)")]
+    public Task TestNoNumericChecksIfAlreadyExist_ModernOverloads(string methodInvocation)
+        => new VerifyCS.Test()
+        {
+            TestCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(int [|num|])
+                    {
+                        ArgumentOutOfRangeException.{{methodInvocation}};
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("num < 0")]
+    [InlineData("num <= 0")]
+    [InlineData("num > 11")]
+    [InlineData("num >= 12")]
+    [InlineData("0 > num")]
+    [InlineData("0 >= num")]
+    [InlineData("14 < num")]
+    [InlineData("22 <= num")]
+    [InlineData("num is < 0")]
+    [InlineData("num is <= 0")]
+    [InlineData("num < 1")]
+    [InlineData("num <= 39")]
+    [InlineData("25 > num")]
+    [InlineData("29 >= num")]
+    [InlineData("num is < 8")]
+    [InlineData("num is <= 18")]
+    [InlineData("num is > 5")]
+    [InlineData("num is >= 3")]
+    public Task TestNoNumericChecksIfAlreadyExist_OldStyleCheckStatements(string numericCheck)
+        => new VerifyCS.Test()
+        {
+            TestCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(int [|num|])
+                    {
+                        if ({{numericCheck}})
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num));
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Latest,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public Task TestNumericChecksAfterAnotherNumericCheck()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(sbyte a, short [|b|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(a);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(sbyte a, short [|b|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(a);
+                        ArgumentOutOfRangeException.ThrowIfNegative(b);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public Task TestNumericChecksBeforeAnotherNumericCheck()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(long [|a|], int b)
+                    {
+                        if (b < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(b));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(long a, int b)
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(a);
+                        if (b < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(b));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 1
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public Task TestNumericChecksInBetweenDifferentChecks()
+        => new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(DayOfWeek day, int [|i|], string s)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), day))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(day), (int)day, typeof(DayOfWeek));
+                        }
+
+                        if (string.IsNullOrEmpty(s))
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(DayOfWeek day, int i, string s)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), day))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(day), (int)day, typeof(DayOfWeek));
+                        }
+
+                        if (i < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(i), i, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(i)}").Replace("\"", "\\\"")}}");
+                        }
+
+                        if (string.IsNullOrEmpty(s))
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20
+        }.RunAsync();
 }

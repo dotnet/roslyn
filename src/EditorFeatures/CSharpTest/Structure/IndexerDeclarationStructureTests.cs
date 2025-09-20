@@ -12,14 +12,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<IndexerDeclarationSyntax>
+public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<IndexerDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new IndexerDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestIndexer1()
-    {
-        var code = """
+    public Task TestIndexer1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -27,16 +26,12 @@ public class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeStructur
                         get { }
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestIndexer2()
-    {
-        var code = """
+    public Task TestIndexer2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -45,16 +40,12 @@ public class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeStructur
                     }|}|}
                     int Value => 0;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestIndexer3()
-    {
-        var code = """
+    public Task TestIndexer3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -64,16 +55,12 @@ public class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeStructur
 
                     int Value => 0;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestIndexerWithComments()
-    {
-        var code = """
+    public Task TestIndexerWithComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -83,26 +70,19 @@ public class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeStructur
                         get { }
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestIndexerWithWithExpressionBodyAndComments()
-    {
-        var code = """
+    public Task TestIndexerWithWithExpressionBodyAndComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
                     // Bar|}
                     $$public string this[int index] => 0;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Goo ...", autoCollapse: true));
-    }
 }

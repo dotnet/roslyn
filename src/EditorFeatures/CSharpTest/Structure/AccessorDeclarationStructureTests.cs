@@ -12,14 +12,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<AccessorDeclarationSyntax>
+public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<AccessorDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new AccessorDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestPropertyGetter1()
-    {
-        var code = """
+    public Task TestPropertyGetter1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -29,16 +28,12 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithSingleLineComments1()
-    {
-        var code = """
+    public Task TestPropertyGetterWithSingleLineComments1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -50,17 +45,13 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// My ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetter2()
-    {
-        var code = """
+    public Task TestPropertyGetter2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -73,16 +64,12 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithSingleLineComments2()
-    {
-        var code = """
+    public Task TestPropertyGetterWithSingleLineComments2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -97,17 +84,13 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// My ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetter3()
-    {
-        var code = """
+    public Task TestPropertyGetter3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -121,16 +104,12 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithSingleLineComments3()
-    {
-        var code = """
+    public Task TestPropertyGetterWithSingleLineComments3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -146,17 +125,13 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// My ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetter1()
-    {
-        var code = """
+    public Task TestPropertySetter1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -166,16 +141,12 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetterWithSingleLineComments1()
-    {
-        var code = """
+    public Task TestPropertySetterWithSingleLineComments1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -187,17 +158,13 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// My ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetter2()
-    {
-        var code = """
+    public Task TestPropertySetter2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -210,16 +177,12 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetterWithSingleLineComments2()
-    {
-        var code = """
+    public Task TestPropertySetterWithSingleLineComments2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -234,17 +197,13 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// My ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetter3()
-    {
-        var code = """
+    public Task TestPropertySetter3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -258,16 +217,12 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetterWithSingleLineComments3()
-    {
-        var code = """
+    public Task TestPropertySetterWithSingleLineComments3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -283,10 +238,7 @@ public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructu
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// My ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

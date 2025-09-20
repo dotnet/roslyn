@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
-internal record DebugAttachParams(
+internal sealed record DebugAttachParams(
     [property: JsonPropertyName("processId")] int ProcessId
 );
 

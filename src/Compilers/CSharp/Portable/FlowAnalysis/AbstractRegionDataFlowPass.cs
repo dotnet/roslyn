@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MakeSlots(MethodParameters);
             if ((object)MethodThisParameter != null) GetOrCreateSlot(MethodThisParameter);
 
-            if (TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
+            if (_symbol.TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
                 GetOrCreateSlot(extensionParameter);
 
             var result = base.Scan(ref badRegion);

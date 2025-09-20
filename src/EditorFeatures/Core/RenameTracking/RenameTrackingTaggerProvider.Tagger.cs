@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
 internal sealed partial class RenameTrackingTaggerProvider
 {
-    private class Tagger : ITagger<RenameTrackingTag>, ITagger<IErrorTag>, IDisposable
+    private sealed class Tagger : ITagger<RenameTrackingTag>, ITagger<IErrorTag>, IDisposable
     {
         private readonly StateMachine _stateMachine;
 

@@ -15,17 +15,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(ExtensionMethodImportCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(ExtensionMethodImportCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(TypeImportCompletionProvider))]
-[Shared]
-internal sealed class ExtensionMethodImportCompletionProvider : AbstractExtensionMethodImportCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ExtensionMethodImportCompletionProvider() : AbstractExtensionMethodImportCompletionProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ExtensionMethodImportCompletionProvider()
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
 
     protected override string GenericSuffix => "<>";

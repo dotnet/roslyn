@@ -4,11 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableDictionary<Symbol, Symbol> _symbolMap;
 
         private RewrittenMethodSymbol _rewrittenContainingMethod;
+
+        /// <summary>
+        /// To allow regular capture analysis we do not want to reuse locals with an incorrect containing symbol
+        /// </summary>
+        protected override bool EnforceAccurateContainerForLocals => true;
 
         public ExtensionMethodBodyRewriter(MethodSymbol sourceMethod, SourceExtensionImplementationMethodSymbol implementationMethod)
         {
@@ -193,6 +197,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol?.GetIsNewExtensionMember() != true);
             return base.VisitPropertySymbol(symbol);
+        }
+
+        public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
+        {
+            return ExtensionMethodReferenceRewriter.VisitUnaryOperator(this, node);
+        }
+
+        protected override BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundBinaryOperator node)
+        {
+            return ExtensionMethodReferenceRewriter.VisitBinaryOperatorData(this, node);
         }
     }
 }

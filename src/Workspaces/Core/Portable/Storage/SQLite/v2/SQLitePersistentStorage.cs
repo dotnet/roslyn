@@ -174,11 +174,11 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
     }
 
     public static KeyValueLogMessage GetLogMessage(SqlException exception)
-        => KeyValueLogMessage.Create(d =>
+        => KeyValueLogMessage.Create(static (d, exception) =>
         {
             d["Result"] = exception.Result.ToString();
             d["Message"] = exception.Message;
-        });
+        }, exception);
 
     private void Initialize()
     {

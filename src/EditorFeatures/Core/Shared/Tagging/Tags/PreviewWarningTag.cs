@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
-internal class PreviewWarningTag : TextMarkerTag
+internal sealed class PreviewWarningTag : TextMarkerTag
 {
     public const string TagId = "RoslynPreviewWarningTag";
 

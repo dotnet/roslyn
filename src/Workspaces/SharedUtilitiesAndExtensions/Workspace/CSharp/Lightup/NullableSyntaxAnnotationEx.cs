@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection;
-using Microsoft.CodeAnalysis.Editing;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -19,7 +18,7 @@ internal static class NullableSyntaxAnnotationEx
 
     static NullableSyntaxAnnotationEx()
     {
-        var nullableSyntaxAnnotation = typeof(SyntaxGenerator).Assembly.GetType("Microsoft.CodeAnalysis.CodeGeneration.NullableSyntaxAnnotation", throwOnError: false);
+        var nullableSyntaxAnnotation = typeof(Workspace).Assembly.GetType("Microsoft.CodeAnalysis.CodeGeneration.NullableSyntaxAnnotation", throwOnError: false);
         if (nullableSyntaxAnnotation is object)
         {
             Oblivious = (SyntaxAnnotation?)nullableSyntaxAnnotation.GetField(nameof(Oblivious), BindingFlags.Static | BindingFlags.Public)?.GetValue(null);

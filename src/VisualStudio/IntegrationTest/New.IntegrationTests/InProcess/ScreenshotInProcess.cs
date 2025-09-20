@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 /// </summary>
 /// <seealso href="https://www.w3.org/TR/png">Portable Network Graphics (PNG) Specification (Third Edition)</seealso>
 [TestService]
-internal partial class ScreenshotInProcess
+internal sealed partial class ScreenshotInProcess
 {
     private static readonly SharedStopwatch s_timer = SharedStopwatch.StartNew();
 

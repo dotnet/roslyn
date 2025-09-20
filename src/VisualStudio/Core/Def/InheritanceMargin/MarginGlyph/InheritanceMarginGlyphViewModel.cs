@@ -17,12 +17,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 
-internal class InheritanceMarginGlyphViewModel
+internal sealed class InheritanceMarginGlyphViewModel
 {
     private readonly ClassificationTypeMap _classificationTypeMap;
     private readonly IClassificationFormatMap _classificationFormatMap;
     private readonly InheritanceMarginTag _tag;
-    private TextBlock? _lazyToolTipTextBlock;
 
     /// <summary>
     /// ImageMoniker used for the margin.
@@ -36,7 +35,7 @@ internal class InheritanceMarginGlyphViewModel
     {
         get
         {
-            if (_lazyToolTipTextBlock is null)
+            if (field is null)
             {
                 var members = _tag.MembersOnLine;
 
@@ -45,7 +44,7 @@ internal class InheritanceMarginGlyphViewModel
                     var member = _tag.MembersOnLine[0];
                     Contract.ThrowIfNull(member.TopLevelDisplayText);
 
-                    _lazyToolTipTextBlock = new[] { new TaggedText(TextTags.Text, member.TopLevelDisplayText) }.ToTextBlock(_classificationFormatMap, _classificationTypeMap);
+                    field = new[] { new TaggedText(TextTags.Text, member.TopLevelDisplayText) }.ToTextBlock(_classificationFormatMap, _classificationTypeMap);
                 }
                 else if (members.Length == 1)
                 {
@@ -61,20 +60,20 @@ internal class InheritanceMarginGlyphViewModel
                     inlines.Insert(0, new Run(prefixString));
                     inlines.Add(new Run(suffixString));
 
-                    _lazyToolTipTextBlock = inlines.ToTextBlock(_classificationFormatMap);
-                    _lazyToolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
+                    field = inlines.ToTextBlock(_classificationFormatMap);
+                    field.FlowDirection = FlowDirection.LeftToRight;
 
                 }
                 else
                 {
-                    _lazyToolTipTextBlock = new TextBlock
+                    field = new TextBlock
                     {
                         Text = ServicesVSResources.Multiple_members_are_inherited
                     };
                 }
             }
 
-            return _lazyToolTipTextBlock;
+            return field;
         }
     }
 

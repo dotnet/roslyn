@@ -12,10 +12,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.AddImport;
 
 /// <summary>
-/// Code action we use when just adding a using, possibly with a project or
-/// metadata reference.  We don't use the standard code action types because
-/// we want to do things like show a glyph if this will do more than just add
-/// an import.
+/// Code action we use when just adding a using, possibly with a project or metadata reference.  We don't use the
+/// standard code action types because we want to do things like show a glyph if this will do more than just add an
+/// import.
 /// </summary>
 internal abstract class AddImportCodeAction : CodeAction
 {

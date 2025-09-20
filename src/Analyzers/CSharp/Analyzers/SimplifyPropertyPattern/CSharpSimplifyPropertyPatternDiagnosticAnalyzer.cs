@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern;
 ///     <c>x is { a.b: ... }</c>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpSimplifyPropertyPatternDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpSimplifyPropertyPatternDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public CSharpSimplifyPropertyPatternDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.SimplifyPropertyPatternDiagnosticId,

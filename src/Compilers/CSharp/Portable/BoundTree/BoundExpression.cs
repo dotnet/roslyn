@@ -418,6 +418,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundUserDefinedConditionalLogicalOperator
     {
+        private partial void Validate()
+        {
+            Debug.Assert(LogicalOperator.ParameterCount == 2);
+            Debug.Assert(TrueOperator.ParameterCount == 1);
+            Debug.Assert(FalseOperator.ParameterCount == 1);
+        }
+
         public override Symbol ExpressionSymbol
         {
             get { return this.LogicalOperator; }

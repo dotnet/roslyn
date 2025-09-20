@@ -4,7 +4,7 @@
     <TargetFramework>net472</TargetFramework>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>

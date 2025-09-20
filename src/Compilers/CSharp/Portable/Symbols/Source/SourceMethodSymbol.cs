@@ -63,24 +63,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void ReportAsyncParameterErrors(BindingDiagnosticBag diagnostics, Location location)
         {
-            foreach (var parameter in Parameters)
+            var parameters = this.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
+
+            foreach (var parameter in parameters)
             {
+                bool isExtensionParameter = parameter.IsExtensionParameter();
                 if (parameter.RefKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, getLocation(parameter, location));
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, getLocation(parameter, location, isExtensionParameter));
                 }
-                else if (parameter.Type.IsPointerOrFunctionPointer())
+                else if (parameter.Type.IsPointerOrFunctionPointer() && !isExtensionParameter)
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location));
+                    // We already reported an error elsewhere if the receiver parameter of an extension is a pointer type.
+                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location, isExtensionParameter));
                 }
                 else if (parameter.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefParameter, getLocation(parameter, location), parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefParameter, getLocation(parameter, location, isExtensionParameter), parameter.Type);
                 }
             }
 
-            static Location getLocation(ParameterSymbol parameter, Location location)
-                => parameter.TryGetFirstLocation() ?? location;
+            static Location getLocation(ParameterSymbol parameter, Location location, bool isReceiverParameter)
+            {
+                return isReceiverParameter
+                    ? location
+                    : parameter.TryGetFirstLocation() ?? location;
+            }
         }
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
@@ -216,6 +224,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
+
+            if (IsInstanceIncrementDecrementOrCompoundAssignmentOperator(target))
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                    ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators)))
+                    ));
+            }
+        }
+
+        internal static bool IsInstanceIncrementDecrementOrCompoundAssignmentOperator(MethodSymbol target)
+        {
+            if (target.MethodKind == MethodKind.UserDefinedOperator && !target.IsStatic)
+            {
+                SyntaxKind syntaxKind = SyntaxFacts.GetOperatorKind(target.Name);
+
+                return syntaxKind is (SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken) ||
+                       SyntaxFacts.IsOverloadableCompoundAssignmentOperator(syntaxKind);
+            }
+
+            return false;
         }
     }
 }

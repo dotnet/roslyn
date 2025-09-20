@@ -125,7 +125,7 @@ internal sealed class ProjectOptionsChangeAction : SolutionChangeAction
     public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
 
     private ProjectOptionsChangeAction(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution)
-        : base(title, createChangedSolution, equivalenceKey: null, priority: CodeActionPriority.Default, createdFromFactoryMethod: true)
+        : base(title, createChangedSolution, equivalenceKey: null, priority: CodeActionPriority.Default, CodeActionCleanup.Default, createdFromFactoryMethod: true)
     {
     }
 

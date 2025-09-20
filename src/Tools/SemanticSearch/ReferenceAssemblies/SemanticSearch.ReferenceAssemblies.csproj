@@ -15,9 +15,10 @@
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
                       SetTargetFramework="TargetFramework=$(_BuildTaskTfm)" />
-    
+
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)ApiSet\*.txt" IsApiSet="true" />
@@ -42,7 +43,8 @@
                        Condition="'%(ReferencePath.FrameworkReferenceName)' == 'Microsoft.NETCore.App' or 
                                   '%(ReferencePath.FileName)' == 'System.Collections.Immutable' or
                                   '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis' or
-                                  '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.CSharp'" />
+                                  '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.CSharp' or
+                                  '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.VisualBasic'" />
 
       <ApiSet Include="@(None)" Condition="'%(None.IsApiSet)' == 'true'" />
       <Apis Include="@(ApiSet->'$(_ApisDir)%(FileName)%(Extension)')" />
@@ -54,7 +56,7 @@
       <_OutputFile Include="@(Apis)" />
     </ItemGroup>
   </Target>
-  
+
   <Target Name="GenerateFilteredReferenceAssemblies" Condition="Exists('$(_BuildTaskAssemblyFile)')" BeforeTargets="AfterBuild" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
 
     <MakeDir Directories="$(_OutputDir)" />

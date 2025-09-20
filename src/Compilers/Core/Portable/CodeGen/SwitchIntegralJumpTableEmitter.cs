@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ILBuilder _builder;
 
         /// <summary>
+        /// Associated syntax for diagnostic reporting.
+        /// </summary>
+        private readonly SyntaxNode _syntax;
+
+        /// <summary>
         /// Switch key for the jump table
         /// </summary>
         private readonly LocalOrParameter _key;
@@ -48,12 +53,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal SwitchIntegralJumpTableEmitter(
             ILBuilder builder,
+            SyntaxNode syntax,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
             Cci.PrimitiveTypeCode keyTypeCode,
             LocalOrParameter key)
         {
             _builder = builder;
+            _syntax = syntax;
             _key = key;
             _keyTypeCode = keyTypeCode;
             _fallThroughLabel = fallThroughLabel;
@@ -423,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // branch branchCode targetLabel
 
             _builder.EmitLoad(_key);
-            _builder.EmitConstantValue(constant);
+            _builder.EmitConstantValue(constant, _syntax);
             _builder.EmitBranch(branchCode, targetLabel, GetReverseBranchCode(branchCode));
         }
 
@@ -443,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                _builder.EmitConstantValue(constant);
+                _builder.EmitConstantValue(constant, _syntax);
                 _builder.EmitBranch(ILOpCode.Beq, targetLabel);
             }
         }
@@ -458,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //          sub
             if (!startConstant.IsDefaultValue)
             {
-                _builder.EmitConstantValue(startConstant);
+                _builder.EmitConstantValue(startConstant, _syntax);
                 _builder.EmitOpCode(ILOpCode.Sub);
             }
 
@@ -521,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //          sub
             if (!startConstant.IsDefaultValue)
             {
-                _builder.EmitConstantValue(startConstant);
+                _builder.EmitConstantValue(startConstant, _syntax);
                 _builder.EmitOpCode(ILOpCode.Sub);
             }
 

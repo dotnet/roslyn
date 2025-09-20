@@ -55,7 +55,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         private sealed class GlobalSuppressionSolutionChangeAction(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
-            string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey)
+            string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey, CodeActionPriority.Default, CodeActionCleanup.Default)
         {
             protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
             {
@@ -210,7 +210,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
             var builder = new List<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>();
             foreach (var (symbol, diagnostics) in diagnosticsMapBuilder)
-                builder.Add(KeyValuePairUtil.Create(symbol, GetUniqueDiagnostics(diagnostics)));
+                builder.Add(KeyValuePair.Create(symbol, GetUniqueDiagnostics(diagnostics)));
 
             return builder.OrderBy(kvp => kvp.Key.GetDocumentationCommentId() ?? string.Empty);
         }

@@ -24,7 +24,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// To represent this on <see cref="InitializeParams.WorkspaceFolders"/>, we use <see langword="null"/>
 /// to represent that the client does not support workspace folders, and use an empty array to represent that none are open.
 /// </summary>
-internal class InitializeParamsWorkspaceFoldersConverter : JsonConverter<WorkspaceFolder[]?>
+internal sealed class InitializeParamsWorkspaceFoldersConverter : JsonConverter<WorkspaceFolder[]?>
 {
     public override WorkspaceFolder[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

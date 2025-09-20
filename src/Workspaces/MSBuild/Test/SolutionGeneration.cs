@@ -12,358 +12,361 @@ using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 
-namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
+namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
+
+/// <summary>
+/// Flexible and extensible API to generate MSBuild projects and solutions without external files or resources.
+/// </summary>
+public static class SolutionGeneration
 {
-    /// <summary>
-    /// Flexible and extensible API to generate MSBuild projects and solutions without external files or resources.
-    /// </summary>
-    public static class SolutionGeneration
+    public const string NS = "http://schemas.microsoft.com/developer/msbuild/2003";
+
+    private const string CSharpProjectTemplate =
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+          <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+          <PropertyGroup>
+            <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+            <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+          </PropertyGroup>
+          <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+          </PropertyGroup>
+          <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+          </PropertyGroup>
+          <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+        </Project>
+        """;
+
+    private const string SolutionTemplate =
+        """
+        Microsoft Visual Studio Solution File, Format Version 12.00
+        # Visual Studio 2013
+        VisualStudioVersion = 12.0.30110.0
+        MinimumVisualStudioVersion = 10.0.40219.1
+        {0}Global
+        	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        		Debug|Any CPU = Debug|Any CPU
+        		Release|Any CPU = Release|Any CPU
+        	EndGlobalSection
+        	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        	EndGlobalSection
+        	GlobalSection(SolutionProperties) = preSolution
+        		HideSolutionNode = FALSE
+        	EndGlobalSection
+        EndGlobal
+        """;
+
+    public const string PublicKey = "00240000048000009400000006020000002400005253413100040000010001003bb5de1b79bee9bf5ba44bdb42974c6f40fdc4b329c8e1b833fa798cf0859529485b2bfc359a08e16f025fe57efd293c4dc3541cb2e0929b1c4a92db87eed7a9454dbd08beb7c7308941384b3bfb088de781b51caef23677f8f6defb671e97e1fc5e0979858e52828c86aca1d4ea1797f1f1254bf64073a28e5be520d5397fb0";
+    public const string PublicKeyToken = "39d7e8ec38707fde";
+    public static readonly byte[] KeySnk = Resources.Key_snk;
+
+    public static IEnumerable<(string fileName, object fileContent)> GetSolutionFiles(params IBuilder[] inputs)
     {
-        public const string NS = "http://schemas.microsoft.com/developer/msbuild/2003";
+        var list = new List<(string, object)>();
+        var projectBuilders = inputs.OfType<ProjectBuilder>();
+        var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var fileIndex = 1;
+        var projectIndex = 1;
 
-        private const string CSharpProjectTemplate =
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project ToolsVersion=""12.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
-  <PropertyGroup>
-    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
-    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
-  </PropertyGroup>
-  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
-  </PropertyGroup>
-  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
-  </PropertyGroup>
-  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>";
-
-        private const string SolutionTemplate =
-@"
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
-MinimumVisualStudioVersion = 10.0.40219.1
-{0}Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-EndGlobal
-";
-
-        public const string PublicKey = "00240000048000009400000006020000002400005253413100040000010001003bb5de1b79bee9bf5ba44bdb42974c6f40fdc4b329c8e1b833fa798cf0859529485b2bfc359a08e16f025fe57efd293c4dc3541cb2e0929b1c4a92db87eed7a9454dbd08beb7c7308941384b3bfb088de781b51caef23677f8f6defb671e97e1fc5e0979858e52828c86aca1d4ea1797f1f1254bf64073a28e5be520d5397fb0";
-        public const string PublicKeyToken = "39d7e8ec38707fde";
-        public static readonly byte[] KeySnk = Resources.Key_snk;
-
-        public static IEnumerable<(string fileName, object fileContent)> GetSolutionFiles(params IBuilder[] inputs)
+        // first make sure all projects have names, as a separate loop
+        foreach (var project in projectBuilders)
         {
-            var list = new List<(string, object)>();
-            var projectBuilders = inputs.OfType<ProjectBuilder>();
-            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var fileIndex = 1;
-            var projectIndex = 1;
-
-            // first make sure all projects have names, as a separate loop
-            foreach (var project in projectBuilders)
+            if (project.Name == null)
             {
-                if (project.Name == null)
+                project.Name = "Project" + projectIndex;
+                projectIndex++;
+            }
+        }
+
+        foreach (var project in projectBuilders)
+        {
+            foreach (var document in project.Documents)
+            {
+                if (document.FilePath == null)
                 {
-                    project.Name = "Project" + projectIndex;
-                    projectIndex++;
+                    document.FilePath = "Document" + fileIndex + (project.Language == LanguageNames.VisualBasic ? ".vb" : ".cs");
+                    fileIndex++;
                 }
             }
 
-            foreach (var project in projectBuilders)
+            foreach (var projectReference in project.ProjectReferences)
             {
-                foreach (var document in project.Documents)
+                if (projectReference.Guid == Guid.Empty)
                 {
-                    if (document.FilePath == null)
-                    {
-                        document.FilePath = "Document" + fileIndex + (project.Language == LanguageNames.VisualBasic ? ".vb" : ".cs");
-                        fileIndex++;
-                    }
-                }
-
-                foreach (var projectReference in project.ProjectReferences)
-                {
-                    if (projectReference.Guid == Guid.Empty)
-                    {
-                        var referencedProject = projectBuilders.First(p => p.Name == projectReference.ProjectName);
-                        projectReference.Guid = referencedProject.Guid;
-                        projectReference.ProjectFileName = referencedProject.Name + referencedProject.Extension;
-                    }
-                }
-
-                foreach (var (fileName, fileContent) in project.Files)
-                {
-                    if (files.Add(fileName + fileContent))
-                    {
-                        list.Add((fileName, fileContent));
-                    }
+                    var referencedProject = projectBuilders.First(p => p.Name == projectReference.ProjectName);
+                    projectReference.Guid = referencedProject.Guid;
+                    projectReference.ProjectFileName = referencedProject.Name + referencedProject.Extension;
                 }
             }
 
-            list.Add(("Solution.sln", GetSolutionContent(projectBuilders)));
-
-            return list;
-        }
-
-        public static IBuilder Project(params IBuilder[] inputs)
-        {
-            var projectReferences = inputs.OfType<ProjectReferenceBuilder>();
-            var documents = inputs.OfType<DocumentBuilder>().ToList();
-            var projectName = inputs.OfType<ProjectNameBuilder>().FirstOrDefault();
-            var properties = inputs.OfType<PropertyBuilder>().ToList();
-            var sign = inputs.OfType<SignBuilder>();
-            if (sign != null)
+            foreach (var (fileName, fileContent) in project.Files)
             {
-                properties.Add((PropertyBuilder)Property("SignAssembly", "true"));
-                properties.Add((PropertyBuilder)Property("AssemblyOriginatorKeyFile", "key.snk"));
-                documents.Add((DocumentBuilder)Document(KeySnk, "key.snk", "None"));
+                if (files.Add(fileName + fileContent))
+                {
+                    list.Add((fileName, fileContent));
+                }
             }
-
-            return new ProjectBuilder
-            {
-                Name = projectName?.Name,
-                Documents = documents,
-                ProjectReferences = projectReferences,
-                Properties = properties
-            };
         }
 
-        public static IBuilder ProjectReference(string projectName)
+        list.Add(("Solution.sln", GetSolutionContent(projectBuilders)));
+
+        return list;
+    }
+
+    public static IBuilder Project(params IBuilder[] inputs)
+    {
+        var projectReferences = inputs.OfType<ProjectReferenceBuilder>();
+        var documents = inputs.OfType<DocumentBuilder>().ToList();
+        var projectName = inputs.OfType<ProjectNameBuilder>().FirstOrDefault();
+        var properties = inputs.OfType<PropertyBuilder>().ToList();
+        var sign = inputs.OfType<SignBuilder>();
+        if (sign != null)
         {
-            return new ProjectReferenceBuilder
-            {
-                ProjectName = projectName
-            };
+            properties.Add((PropertyBuilder)Property("SignAssembly", "true"));
+            properties.Add((PropertyBuilder)Property("AssemblyOriginatorKeyFile", "key.snk"));
+            documents.Add((DocumentBuilder)Document(KeySnk, "key.snk", "None"));
         }
 
-        public static IBuilder ProjectName(string projectName)
+        return new ProjectBuilder
         {
-            return new ProjectNameBuilder
-            {
-                Name = projectName
-            };
-        }
+            Name = projectName?.Name,
+            Documents = documents,
+            ProjectReferences = projectReferences,
+            Properties = properties
+        };
+    }
 
-        public static IBuilder Property(string propertyName, string propertyValue)
+    public static IBuilder ProjectReference(string projectName)
+    {
+        return new ProjectReferenceBuilder
         {
-            return new PropertyBuilder
-            {
-                Name = propertyName,
-                Value = propertyValue
-            };
+            ProjectName = projectName
+        };
+    }
+
+    public static IBuilder ProjectName(string projectName)
+    {
+        return new ProjectNameBuilder
+        {
+            Name = projectName
+        };
+    }
+
+    public static IBuilder Property(string propertyName, string propertyValue)
+    {
+        return new PropertyBuilder
+        {
+            Name = propertyName,
+            Value = propertyValue
+        };
+    }
+
+    public static IBuilder Sign
+    {
+        get
+        {
+            return new SignBuilder();
+        }
+    }
+
+    public static IBuilder Document(
+        object content = null,
+        string filePath = null,
+        string itemType = "Compile")
+    {
+        return new DocumentBuilder
+        {
+            FilePath = filePath,
+            Content = content,
+            ItemType = itemType
+        };
+    }
+
+    private static string GetSolutionContent(IEnumerable<ProjectBuilder> projects)
+    {
+        var sb = new StringBuilder();
+        foreach (var project in projects)
+        {
+            var fileName = project.Name + project.Extension;
+            var languageGuid = project.Language == LanguageNames.VisualBasic
+                ? "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"
+                : "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
+            sb.AppendLine(
+                string.Format(
+                    """
+                    Project("{0}") = "{1}", "{2}", "{3}"
+                    """,
+                    languageGuid,
+                    project.Name,
+                    fileName,
+                    project.Guid.ToString("B")));
+            sb.AppendLine("EndProject");
         }
 
-        public static IBuilder Sign
+        return string.Format(SolutionTemplate, sb.ToString());
+    }
+
+    public interface IBuilder
+    {
+    }
+
+    private sealed class ProjectBuilder : IBuilder
+    {
+        public string Name { get; set; }
+        public string Language { get; set; }
+        public Guid Guid { get; set; }
+        public string OutputType { get; set; }
+        public string OutputPath { get; set; }
+        public IEnumerable<DocumentBuilder> Documents { get; set; }
+        public IEnumerable<ProjectReferenceBuilder> ProjectReferences { get; set; }
+        public IEnumerable<PropertyBuilder> Properties { get; set; }
+
+        public string Extension
         {
             get
             {
-                return new SignBuilder();
+                return Language == LanguageNames.VisualBasic ? ".vbproj" : ".csproj";
             }
         }
 
-        public static IBuilder Document(
-            object content = null,
-            string filePath = null,
-            string itemType = "Compile")
+        public IEnumerable<(string fileName, object fileContent)> Files
         {
-            return new DocumentBuilder
+            get
             {
-                FilePath = filePath,
-                Content = content,
-                ItemType = itemType
-            };
-        }
-
-        private static string GetSolutionContent(IEnumerable<ProjectBuilder> projects)
-        {
-            var sb = new StringBuilder();
-            foreach (var project in projects)
-            {
-                var fileName = project.Name + project.Extension;
-                var languageGuid = project.Language == LanguageNames.VisualBasic
-                    ? "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"
-                    : "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
-                sb.AppendLine(
-                    string.Format(
-                        @"Project(""{0}"") = ""{1}"", ""{2}"", ""{3}""",
-                        languageGuid,
-                        project.Name,
-                        fileName,
-                        project.Guid.ToString("B")));
-                sb.AppendLine("EndProject");
-            }
-
-            return string.Format(SolutionTemplate, sb.ToString());
-        }
-
-        public interface IBuilder
-        {
-        }
-
-        private class ProjectBuilder : IBuilder
-        {
-            public string Name { get; set; }
-            public string Language { get; set; }
-            public Guid Guid { get; set; }
-            public string OutputType { get; set; }
-            public string OutputPath { get; set; }
-            public IEnumerable<DocumentBuilder> Documents { get; set; }
-            public IEnumerable<ProjectReferenceBuilder> ProjectReferences { get; set; }
-            public IEnumerable<PropertyBuilder> Properties { get; set; }
-
-            public string Extension
-            {
-                get
+                foreach (var document in Documents)
                 {
-                    return Language == LanguageNames.VisualBasic ? ".vbproj" : ".csproj";
+                    yield return (document.FilePath, document.Content);
+                }
+
+                yield return (Name + Extension, GetProjectContent());
+            }
+        }
+
+        private string GetProjectContent()
+        {
+            if (Language == LanguageNames.VisualBasic)
+            {
+                throw new NotImplementedException("Need VB support");
+            }
+
+            if (Guid == Guid.Empty)
+            {
+                Guid = Guid.NewGuid();
+            }
+
+            if (string.IsNullOrEmpty(OutputType))
+            {
+                OutputType = "Library";
+            }
+
+            if (string.IsNullOrEmpty(OutputPath))
+            {
+                OutputPath = ".";
+            }
+
+            var document = XDocument.Parse(CSharpProjectTemplate);
+            var propertyGroup = document.Root.Descendants(XName.Get("PropertyGroup", NS)).First();
+            AddXElement(propertyGroup, "ProjectGuid", Guid.ToString("B"));
+            AddXElement(propertyGroup, "OutputType", OutputType);
+            AddXElement(propertyGroup, "OutputPath", OutputPath);
+            AddXElement(propertyGroup, "AssemblyName", Name);
+
+            if (Properties != null)
+            {
+                foreach (var property in Properties)
+                {
+                    AddXElement(propertyGroup, property.Name, property.Value);
                 }
             }
 
-            public IEnumerable<(string fileName, object fileContent)> Files
+            var importTargets = document.Root.Elements().Last();
+
+            if (ProjectReferences != null && ProjectReferences.Any())
             {
-                get
-                {
-                    foreach (var document in Documents)
+                AddItemGroup(
+                    importTargets,
+                    _ => "ProjectReference",
+                    ProjectReferences,
+                    i => i.ProjectFileName,
+                    (projectReference, xmlElement) =>
                     {
-                        yield return (document.FilePath, document.Content);
-                    }
-
-                    yield return (Name + Extension, GetProjectContent());
-                }
-            }
-
-            private string GetProjectContent()
-            {
-                if (Language == LanguageNames.VisualBasic)
-                {
-                    throw new NotImplementedException("Need VB support");
-                }
-
-                if (Guid == Guid.Empty)
-                {
-                    Guid = Guid.NewGuid();
-                }
-
-                if (string.IsNullOrEmpty(OutputType))
-                {
-                    OutputType = "Library";
-                }
-
-                if (string.IsNullOrEmpty(OutputPath))
-                {
-                    OutputPath = ".";
-                }
-
-                var document = XDocument.Parse(CSharpProjectTemplate);
-                var propertyGroup = document.Root.Descendants(XName.Get("PropertyGroup", NS)).First();
-                AddXElement(propertyGroup, "ProjectGuid", Guid.ToString("B"));
-                AddXElement(propertyGroup, "OutputType", OutputType);
-                AddXElement(propertyGroup, "OutputPath", OutputPath);
-                AddXElement(propertyGroup, "AssemblyName", Name);
-
-                if (Properties != null)
-                {
-                    foreach (var property in Properties)
-                    {
-                        AddXElement(propertyGroup, property.Name, property.Value);
-                    }
-                }
-
-                var importTargets = document.Root.Elements().Last();
-
-                if (ProjectReferences != null && ProjectReferences.Any())
-                {
-                    AddItemGroup(
-                        importTargets,
-                        _ => "ProjectReference",
-                        ProjectReferences,
-                        i => i.ProjectFileName,
-                        (projectReference, xmlElement) =>
+                        if (projectReference.Guid != Guid.Empty)
                         {
-                            if (projectReference.Guid != Guid.Empty)
-                            {
-                                AddXElement(xmlElement, "Project", projectReference.Guid.ToString("B"));
-                            }
+                            AddXElement(xmlElement, "Project", projectReference.Guid.ToString("B"));
+                        }
 
-                            AddXElement(xmlElement, "Name", Path.GetFileNameWithoutExtension(projectReference.ProjectName));
-                        });
-                }
-
-                if (Documents != null)
-                {
-                    AddItemGroup(
-                        importTargets,
-                        i => i.ItemType,
-                        Documents,
-                        i => i.FilePath);
-                }
-
-                return document.ToString();
+                        AddXElement(xmlElement, "Name", Path.GetFileNameWithoutExtension(projectReference.ProjectName));
+                    });
             }
 
-            private static void AddItemGroup<T>(
-                XElement addBefore,
-                Func<T, string> itemTypeSelector,
-                IEnumerable<T> items,
-                Func<T, string> attributeValueGetter,
-                Action<T, XElement> elementModifier = null)
+            if (Documents != null)
             {
-                var itemGroup = CreateXElement("ItemGroup");
-                addBefore.AddBeforeSelf(itemGroup);
-
-                foreach (var item in items)
-                {
-                    var itemElement = CreateXElement(itemTypeSelector(item));
-                    itemElement.SetAttributeValue("Include", attributeValueGetter(item));
-                    elementModifier?.Invoke(item, itemElement);
-
-                    itemGroup.Add(itemElement);
-                }
+                AddItemGroup(
+                    importTargets,
+                    i => i.ItemType,
+                    Documents,
+                    i => i.FilePath);
             }
 
-            private static XElement CreateXElement(string name)
+            return document.ToString();
+        }
+
+        private static void AddItemGroup<T>(
+            XElement addBefore,
+            Func<T, string> itemTypeSelector,
+            IEnumerable<T> items,
+            Func<T, string> attributeValueGetter,
+            Action<T, XElement> elementModifier = null)
+        {
+            var itemGroup = CreateXElement("ItemGroup");
+            addBefore.AddBeforeSelf(itemGroup);
+
+            foreach (var item in items)
             {
-                return new XElement(XName.Get(name, NS));
+                var itemElement = CreateXElement(itemTypeSelector(item));
+                itemElement.SetAttributeValue("Include", attributeValueGetter(item));
+                elementModifier?.Invoke(item, itemElement);
+
+                itemGroup.Add(itemElement);
             }
-
-            private static void AddXElement(XElement element, string elementName, string elementValue)
-            {
-                element.Add(new XElement(XName.Get(elementName, NS), elementValue));
-            }
         }
 
-        private class ProjectReferenceBuilder : IBuilder
+        private static XElement CreateXElement(string name)
         {
-            public string ProjectName { get; set; }
-            public Guid Guid { get; set; }
-            public string ProjectFileName { get; set; }
+            return new XElement(XName.Get(name, NS));
         }
 
-        private class ProjectNameBuilder : IBuilder
+        private static void AddXElement(XElement element, string elementName, string elementValue)
         {
-            public string Name { get; set; }
+            element.Add(new XElement(XName.Get(elementName, NS), elementValue));
         }
+    }
 
-        private class PropertyBuilder : IBuilder
-        {
-            public string Name { get; set; }
-            public string Value { get; set; }
-        }
+    private sealed class ProjectReferenceBuilder : IBuilder
+    {
+        public string ProjectName { get; set; }
+        public Guid Guid { get; set; }
+        public string ProjectFileName { get; set; }
+    }
 
-        private class SignBuilder : IBuilder { }
+    private sealed class ProjectNameBuilder : IBuilder
+    {
+        public string Name { get; set; }
+    }
 
-        private class DocumentBuilder : IBuilder
-        {
-            public string FilePath { get; set; }
-            public object Content { get; set; }
-            public string ItemType { get; set; }
-        }
+    private sealed class PropertyBuilder : IBuilder
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
+    private sealed class SignBuilder : IBuilder { }
+
+    private sealed class DocumentBuilder : IBuilder
+    {
+        public string FilePath { get; set; }
+        public object Content { get; set; }
+        public string ItemType { get; set; }
     }
 }

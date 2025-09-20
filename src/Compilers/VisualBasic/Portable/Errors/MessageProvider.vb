@@ -558,6 +558,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_TooManyUserStrings_RestartRequired As Integer
+            Get
+                Return ERRID.ERR_TooManyUserStrings_RestartRequired
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ERR_PeWritingFailure As Integer
             Get
                 Return ERRID.ERR_PeWritingFailure

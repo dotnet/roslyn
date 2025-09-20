@@ -2,31 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System.ComponentModel;
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Value representing the kind of a diagnostic.
+/// </summary>
+[JsonConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>))]
+[TypeConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>.TypeConverter))]
+internal readonly record struct VSInternalDiagnosticKind(string Value) : IStringEnum
 {
-    using System.ComponentModel;
-    using System.Text.Json.Serialization;
+    /// <summary>
+    /// Task list diagnostic kind.
+    /// </summary>
+    public static readonly VSInternalDiagnosticKind Task = new("task");
 
     /// <summary>
-    /// Value representing the kind of a diagnostic.
+    /// Edit and Continue diagnostic kind.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>))]
-    [TypeConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>.TypeConverter))]
-    internal readonly record struct VSInternalDiagnosticKind(string Value) : IStringEnum
-    {
-        /// <summary>
-        /// Task list diagnostic kind.
-        /// </summary>
-        public static readonly VSInternalDiagnosticKind Task = new("task");
+    public static readonly VSInternalDiagnosticKind EditAndContinue = new("enc");
 
-        /// <summary>
-        /// Edit and Continue diagnostic kind.
-        /// </summary>
-        public static readonly VSInternalDiagnosticKind EditAndContinue = new("enc");
-
-        /// <summary>
-        /// Syntax diagnostic kind.
-        /// </summary>
-        public static readonly VSInternalDiagnosticKind Syntax = new("syntax");
-    }
+    /// <summary>
+    /// Syntax diagnostic kind.
+    /// </summary>
+    public static readonly VSInternalDiagnosticKind Syntax = new("syntax");
 }

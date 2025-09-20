@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 
-public class DiagnosticRegistrationTests : AbstractLanguageServerProtocolTests
+public sealed class DiagnosticRegistrationTests : AbstractLanguageServerProtocolTests
 {
     public DiagnosticRegistrationTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
     {
@@ -94,9 +94,9 @@ public class DiagnosticRegistrationTests : AbstractLanguageServerProtocolTests
     /// <summary>
     /// Implements a client side callback target for client/registerCapability to inspect what was registered.
     /// </summary>
-    private class ClientCallbackTarget()
+    private sealed class ClientCallbackTarget()
     {
-        private readonly List<Registration> _registrations = new();
+        private readonly List<Registration> _registrations = [];
 
         [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]
         public void ClientRegisterCapability(RegistrationParams registrationParams, CancellationToken _)

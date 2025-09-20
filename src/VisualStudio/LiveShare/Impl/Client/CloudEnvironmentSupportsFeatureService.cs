@@ -11,23 +11,22 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
+
+[ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), [WorkspaceKind.CloudEnvironmentClientWorkspace]), Shared]
+internal sealed class CloudEnvironmentSupportsFeatureService : ITextBufferSupportsFeatureService
 {
-    [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), [WorkspaceKind.CloudEnvironmentClientWorkspace]), Shared]
-    internal class CloudEnvironmentSupportsFeatureService : ITextBufferSupportsFeatureService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CloudEnvironmentSupportsFeatureService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CloudEnvironmentSupportsFeatureService()
-        {
-        }
-
-        public bool SupportsCodeFixes(ITextBuffer textBuffer) => false;
-
-        public bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer) => false;
-
-        public bool SupportsRefactorings(ITextBuffer textBuffer) => false;
-
-        public bool SupportsRename(ITextBuffer textBuffer) => false;
     }
+
+    public bool SupportsCodeFixes(ITextBuffer textBuffer) => false;
+
+    public bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer) => false;
+
+    public bool SupportsRefactorings(ITextBuffer textBuffer) => false;
+
+    public bool SupportsRename(ITextBuffer textBuffer) => false;
 }

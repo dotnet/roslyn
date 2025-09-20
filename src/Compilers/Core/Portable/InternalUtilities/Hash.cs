@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -284,9 +286,7 @@ namespace Roslyn.Utilities
             => GetFNVHashCode(text.AsSpan(start, length));
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
-        {
-            return GetCaseInsensitiveFNVHashCode(text.AsSpan(0, text.Length));
-        }
+            => GetCaseInsensitiveFNVHashCode(text.AsSpan());
 
         internal static int GetCaseInsensitiveFNVHashCode(ReadOnlySpan<char> data)
         {
@@ -298,18 +298,6 @@ namespace Roslyn.Utilities
             }
 
             return hashCode;
-        }
-
-        /// <summary>
-        /// Compute the hashcode of a sub-string using FNV-1a
-        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-        /// </summary>
-        /// <param name="text">The input string</param>
-        /// <param name="start">The start index of the first character to hash</param>
-        /// <returns>The FNV-1a hash code of the substring beginning at <paramref name="start"/> and ending at the end of the string.</returns>
-        internal static int GetFNVHashCode(string text, int start)
-        {
-            return GetFNVHashCode(text, start, length: text.Length - start);
         }
 
         /// <summary>
@@ -361,17 +349,7 @@ namespace Roslyn.Utilities
         /// <param name="length">The number of characters, beginning with <paramref name="start"/> to hash</param>
         /// <returns>The FNV-1a hash code of the substring beginning at <paramref name="start"/> and ending after <paramref name="length"/> characters.</returns>
         internal static int GetFNVHashCode(char[] text, int start, int length)
-        {
-            int hashCode = Hash.FnvOffsetBias;
-            int end = start + length;
-
-            for (int i = start; i < end; i++)
-            {
-                hashCode = unchecked((hashCode ^ text[i]) * Hash.FnvPrime);
-            }
-
-            return hashCode;
-        }
+            => GetFNVHashCode(text.AsSpan(start, length));
 
         /// <summary>
         /// Compute the hashcode of a single character using the FNV-1a algorithm
@@ -395,14 +373,7 @@ namespace Roslyn.Utilities
         /// <param name="text">The string to combine</param>
         /// <returns>The result of combining <paramref name="hashCode"/> with <paramref name="text"/> using the FNV-1a algorithm</returns>
         internal static int CombineFNVHash(int hashCode, string text)
-        {
-            foreach (char ch in text)
-            {
-                hashCode = unchecked((hashCode ^ ch) * Hash.FnvPrime);
-            }
-
-            return hashCode;
-        }
+            => CombineFNVHash(hashCode, text.AsSpan());
 
         /// <summary>
         /// Combine a char with an existing FNV-1a hash code

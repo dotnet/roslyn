@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-internal class NamingStylesSeverityViewModel
+internal sealed class NamingStylesSeverityViewModel
 {
     private readonly NamingStyleSetting _setting;
 

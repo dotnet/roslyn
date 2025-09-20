@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class ShowMessageRequestClientCapabilities
+internal sealed class ShowMessageRequestClientCapabilities
 {
     /// <summary>
     /// Capabilities specific to the `MessageActionItem` type

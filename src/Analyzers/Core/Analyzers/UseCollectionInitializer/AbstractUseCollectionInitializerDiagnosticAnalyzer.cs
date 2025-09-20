@@ -6,11 +6,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -232,7 +232,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, preMatches, allowSemanticsChange, cancellationToken, out var changesSemantics2))
                 return null;
 
-            return (preMatches.Concat(postMatches), shouldUseCollectionExpression: true, changesSemantics1 || changesSemantics2);
+            return ([.. preMatches, .. postMatches], shouldUseCollectionExpression: true, changesSemantics1 || changesSemantics2);
         }
     }
 

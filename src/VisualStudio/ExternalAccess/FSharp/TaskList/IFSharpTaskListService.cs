@@ -6,10 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList;
+
+internal interface IFSharpTaskListService
 {
-    internal interface IFSharpTaskListService
-    {
-        Task<ImmutableArray<FSharpTaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<FSharpTaskListDescriptor> descriptors, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<FSharpTaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<FSharpTaskListDescriptor> descriptors, CancellationToken cancellationToken);
 }

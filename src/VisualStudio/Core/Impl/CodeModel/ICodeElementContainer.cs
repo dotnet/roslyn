@@ -4,13 +4,12 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+
+/// <summary>
+/// Interface implemented by code model objects that have a CodeElements collection.
+/// </summary>
+internal interface ICodeElementContainer<T>
 {
-    /// <summary>
-    /// Interface implemented by code model objects that have a CodeElements collection.
-    /// </summary>
-    internal interface ICodeElementContainer<T>
-    {
-        EnvDTE.CodeElements GetCollection();
-    }
+    EnvDTE.CodeElements GetCollection();
 }

@@ -4,7 +4,7 @@
     <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>

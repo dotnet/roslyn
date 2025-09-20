@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
-                    CodeAnalysisEventSource.Log.CreateAssemblyLoadContext(fullDirectoryPath);
                     loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
+                    CodeAnalysisEventSource.Log.CreateAssemblyLoadContext(fullDirectoryPath, loadContext.ToString());
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
             }
@@ -179,11 +179,11 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     context.Unload();
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory);
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory, context.ToString());
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString());
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString(), context.ToString());
                 }
             }
 
@@ -209,10 +209,12 @@ namespace Microsoft.CodeAnalysis
                     var assembly = resolver.Resolve(_loader, assemblyName, this, Directory);
                     if (assembly is not null)
                     {
+                        CodeAnalysisEventSource.Log.ResolvedAssembly(Directory, assemblyName.ToString(), resolver.GetType().Name, assembly.Location, GetLoadContext(assembly)!.ToString());
                         return assembly;
                     }
                 }
 
+                CodeAnalysisEventSource.Log.ResolveAssemblyFailed(Directory, assemblyName.ToString());
                 return null;
             }
 

@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
 using System.Runtime.Serialization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis;
 /// For methods, fields, properties, events, locals and parameters, this corresponds to values from <see cref="ValueUsageInfo"/>.
 /// </summary>
 [DataContract]
-internal readonly struct SymbolUsageInfo : IEquatable<SymbolUsageInfo>
+internal readonly record struct SymbolUsageInfo
 {
     public static readonly SymbolUsageInfo None = Create(ValueUsageInfo.None);
 
@@ -45,28 +43,4 @@ internal readonly struct SymbolUsageInfo : IEquatable<SymbolUsageInfo>
 
     public bool IsWrittenTo()
         => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsWrittenTo();
-
-    public bool IsNameOnly()
-        => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsNameOnly();
-
-    public override bool Equals(object? obj)
-        => obj is SymbolUsageInfo && Equals((SymbolUsageInfo)obj);
-
-    public bool Equals(SymbolUsageInfo other)
-    {
-        if (ValueUsageInfoOpt.HasValue)
-        {
-            return other.ValueUsageInfoOpt.HasValue &&
-                ValueUsageInfoOpt.Value == other.ValueUsageInfoOpt.Value;
-        }
-        else
-        {
-            RoslynDebug.Assert(TypeOrNamespaceUsageInfoOpt.HasValue);
-            return other.TypeOrNamespaceUsageInfoOpt.HasValue &&
-                TypeOrNamespaceUsageInfoOpt.Value == other.TypeOrNamespaceUsageInfoOpt.Value;
-        }
-    }
-
-    public override int GetHashCode()
-        => Hash.Combine(((int?)ValueUsageInfoOpt)?.GetHashCode() ?? 0, ((int?)TypeOrNamespaceUsageInfoOpt)?.GetHashCode() ?? 0);
 }

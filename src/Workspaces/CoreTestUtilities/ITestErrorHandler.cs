@@ -5,14 +5,13 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+public interface ITestErrorHandler
 {
-    public interface ITestErrorHandler
-    {
-        /// <summary>
-        /// Records unexpected exceptions thrown during test executino that can't be immediately
-        /// reported.
-        /// </summary>
-        ImmutableList<Exception> Exceptions { get; }
-    }
+    /// <summary>
+    /// Records unexpected exceptions thrown during test executino that can't be immediately
+    /// reported.
+    /// </summary>
+    ImmutableList<Exception> Exceptions { get; }
 }

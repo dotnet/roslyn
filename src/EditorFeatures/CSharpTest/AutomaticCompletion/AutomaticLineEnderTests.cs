@@ -1402,16 +1402,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     [WpfFact]
     public void TestGetAccessorOfProperty()
     {
-        var initialMarkup = """
-            public class Bar
-            {
-                public int P
-                {
-                    ge$$t$$
-                }
-            }
-            """;
-
         var firstResult = """
             public class Bar
             {
@@ -1424,7 +1414,16 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """;
-        var secondResult = """
+        Test(firstResult, """
+            public class Bar
+            {
+                public int P
+                {
+                    ge$$t$$
+                }
+            }
+            """);
+        Test("""
             public class Bar
             {
                 public int P
@@ -1433,23 +1432,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     $$
                 }
             }
-            """;
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestSetAccessorOfProperty()
     {
-        var initialMarkup = """
-            public class Bar
-            {
-                public int P
-                {
-                    set$$
-                }
-            }
-            """;
         var firstResult = """
             public class Bar
             {
@@ -1462,7 +1450,16 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """;
-        var secondResult = """
+        Test(firstResult, """
+            public class Bar
+            {
+                public int P
+                {
+                    set$$
+                }
+            }
+            """);
+        Test("""
             public class Bar
             {
                 public int P
@@ -1471,9 +1468,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     $$
                 }
             }
-            """;
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+            """, firstResult);
     }
 
     [WpfFact]
@@ -1787,12 +1782,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     [WpfFact]
     public void TestField()
     {
-        var initialMarkup = """
-            public class Bar
-            {
-                p$$ublic i$$nt i$$ii$$
-            }
-            """;
         var firstResult = """
             public class Bar
             {
@@ -1802,16 +1791,19 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """;
-        var secondResult = """
+        Test(firstResult, """
+            public class Bar
+            {
+                p$$ublic i$$nt i$$ii$$
+            }
+            """);
+        Test("""
             public class Bar
             {
                 public int iii;
                 $$
             }
-            """;
-
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+            """, firstResult);
     }
 
     [WpfFact]
@@ -1893,13 +1885,6 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     [WpfFact]
     public void TestEvent()
     {
-        var initialMarkup = """
-            using System;
-            public class Bar
-            {
-                pu$$blic e$$vent EventHand$$ler c$$c$$
-            }
-            """;
         var firstResult = """
             using System;
             public class Bar
@@ -1910,16 +1895,21 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 }
             }
             """;
-        var secondResult = """
+        Test(firstResult, """
+            using System;
+            public class Bar
+            {
+                pu$$blic e$$vent EventHand$$ler c$$c$$
+            }
+            """);
+        Test("""
             using System;
             public class Bar
             {
                 public event EventHandler cc;
                 $$
             }
-            """;
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+            """, firstResult);
     }
 
     [WpfFact]
@@ -1950,7 +1940,24 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     [WpfFact]
     public void TestObjectCreationExpressionWithParenthesis()
     {
-        var initialMarkup = """
+        var firstResult = """
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo()
+                    {
+                        $$
+                    };
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """;
+        Test(firstResult, """
             public class Bar
             {
                 public void M()
@@ -1963,8 +1970,27 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int HH { get; set; }
                 public int PP { get; set; }
             }
-            """;
+            """);
+        Test("""
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo();
+                    $$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """, firstResult);
+    }
 
+    [WpfFact]
+    public void TestObjectCreationExpressionWithNoParenthesis()
+    {
         var firstResult = """
             public class Bar
             {
@@ -1982,31 +2008,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int PP { get; set; }
             }
             """;
-
-        var secondResult = """
-            public class Bar
-            {
-                public void M()
-                {
-                    var f = new Foo();
-                    $$
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """;
-
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
-    }
-
-    [WpfFact]
-    public void TestObjectCreationExpressionWithNoParenthesis()
-    {
-        var initialMarkUp = """
+        Test(firstResult, """
             public class Bar
             {
                 public void M()
@@ -2019,8 +2021,27 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int HH { get; set; }
                 public int PP { get; set; }
             }
-            """;
+            """);
+        Test("""
+            public class Bar
+            {
+                public void M()
+                {
+                    var f = new Foo();
+                    $$
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """, firstResult);
+    }
 
+    [WpfFact]
+    public void TestObjectCreationExpressionWithCorrectSemicolon()
+    {
         var firstResult = """
             public class Bar
             {
@@ -2038,31 +2059,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int PP { get; set; }
             }
             """;
-
-        var secondResult = """
-            public class Bar
-            {
-                public void M()
-                {
-                    var f = new Foo();
-                    $$
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """;
-
-        Test(firstResult, initialMarkUp);
-        Test(secondResult, firstResult);
-    }
-
-    [WpfFact]
-    public void TestObjectCreationExpressionWithCorrectSemicolon()
-    {
-        var initialMarkUp = """
+        Test(firstResult, """
             public class Bar
             {
                 public void M()
@@ -2075,27 +2072,8 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int HH { get; set; }
                 public int PP { get; set; }
             }
-            """;
-
-        var firstResult = """
-            public class Bar
-            {
-                public void M()
-                {
-                    var f = new Foo()
-                    {
-                        $$
-                    };
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """;
-
-        var secondResult = """
+            """);
+        Test("""
             public class Bar
             {
                 public void M()
@@ -2109,34 +2087,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int HH { get; set; }
                 public int PP { get; set; }
             }
-            """;
-
-        Test(firstResult, initialMarkUp);
-        Test(secondResult, firstResult);
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionUsedAsExpression()
     {
-        var initialMarkUp = """
-            public class Bar
-            {
-                public void M()
-                {
-                    N(ne$$w Fo$$o$$);
-                }
-
-                private void N(Foo f)
-                {
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """;
-
         var firstResult = """
             public class Bar
             {
@@ -2158,8 +2114,25 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int PP { get; set; }
             }
             """;
+        Test(firstResult, """
+            public class Bar
+            {
+                public void M()
+                {
+                    N(ne$$w Fo$$o$$);
+                }
 
-        var secondResult = """
+                private void N(Foo f)
+                {
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """);
+        Test("""
             public class Bar
             {
                 public void M()
@@ -2177,30 +2150,12 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int HH { get; set; }
                 public int PP { get; set; }
             }
-            """;
-
-        Test(firstResult, initialMarkUp);
-        Test(secondResult, firstResult);
+            """, firstResult);
     }
 
     [WpfFact]
     public void TestObjectCreationExpressionInUsingStatement()
     {
-        var initialMarkup = """
-            public class Bar
-            {
-                public void M()
-                {
-                    using(var a = n$$ew F$$oo($$)$$)
-                }
-            }
-            public class Foo
-            {
-                public int HH { get; set; }
-                public int PP { get; set; }
-            }
-            """;
-
         var firstResult = """
             public class Bar
             {
@@ -2218,8 +2173,21 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int PP { get; set; }
             }
             """;
-
-        var secondResult = """
+        Test(firstResult, """
+            public class Bar
+            {
+                public void M()
+                {
+                    using(var a = n$$ew F$$oo($$)$$)
+                }
+            }
+            public class Foo
+            {
+                public int HH { get; set; }
+                public int PP { get; set; }
+            }
+            """);
+        Test("""
             public class Bar
             {
                 public void M()
@@ -2233,10 +2201,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                 public int HH { get; set; }
                 public int PP { get; set; }
             }
-            """;
-
-        Test(firstResult, initialMarkup);
-        Test(secondResult, firstResult);
+            """, firstResult);
     }
 
     [WpfFact]

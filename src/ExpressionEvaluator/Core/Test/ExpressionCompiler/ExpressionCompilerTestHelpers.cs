@@ -5,7 +5,6 @@
 #nullable disable
 
 extern alias PDB;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,10 +29,10 @@ using Microsoft.DiaSymReader;
 using Microsoft.Metadata.Tools;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using PDB::Roslyn.Test.PdbUtilities;
+using PDB::Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using PDB::Roslyn.Test.Utilities;
-using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {

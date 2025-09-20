@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
-public class SourceTextContainerExtensionsTests
+public sealed class SourceTextContainerExtensionsTests
 {
     [Fact]
     public void GetBufferTextFromNonTextContainerThrows()

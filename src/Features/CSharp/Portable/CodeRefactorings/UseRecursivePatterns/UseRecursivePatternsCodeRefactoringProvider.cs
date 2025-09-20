@@ -400,7 +400,7 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
     private static SubpatternSyntax Subpattern(IdentifierNameSyntax name, PatternSyntax pattern)
         => SyntaxFactory.Subpattern(NameColon(name), pattern);
 
-    private static RecursivePatternSyntax RecursivePattern(params SubpatternSyntax[] subpatterns)
+    private static RecursivePatternSyntax RecursivePattern(params ReadOnlySpan<SubpatternSyntax> subpatterns)
         => SyntaxFactory.RecursivePattern(type: null, positionalPatternClause: null, PropertyPatternClause([.. subpatterns]), designation: null);
 
     private static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, SubpatternSyntax subpattern, VariableDesignationSyntax? designation)

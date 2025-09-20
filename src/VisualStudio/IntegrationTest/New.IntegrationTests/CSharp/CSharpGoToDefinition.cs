@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
@@ -32,16 +33,20 @@ public partial class CSharpGoToDefinition : AbstractEditorTest
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileDef.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileDef.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"class SomeClass
-{
-}", HangMitigatingCancellationToken);
+            """
+            class SomeClass
+            {
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileConsumer.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileConsumer.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"class SomeOtherClass
-{
-    SomeClass sc;
-}", HangMitigatingCancellationToken);
+            """
+            class SomeOtherClass
+            {
+                SomeClass sc;
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("SomeClass", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
         Assert.Equal($"FileDef.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
@@ -56,18 +61,22 @@ public partial class CSharpGoToDefinition : AbstractEditorTest
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileDef.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileDef.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"class SomeClass
-{
-}
-", HangMitigatingCancellationToken);
+            """
+            class SomeClass
+            {
+            }
+
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.CloseCodeFileAsync(project, "FileDef.cs", saveFile: true, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(project, "FileConsumer.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "FileConsumer.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"class SomeOtherClass
-{
-    SomeClass sc;
-}", HangMitigatingCancellationToken);
+            """
+            class SomeOtherClass
+            {
+                SomeClass sc;
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("SomeClass", charsOffset: 0, HangMitigatingCancellationToken);
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
         Assert.Equal("FileDef.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -79,9 +88,11 @@ public partial class CSharpGoToDefinition : AbstractEditorTest
     public async Task GoToDefinitionWithMultipleResults()
     {
         await SetUpEditorAsync(
-@"partial class /*Marker*/ $$PartialClass { }
+            """
+            partial class /*Marker*/ $$PartialClass { }
 
-partial class PartialClass { int i = 0; }", HangMitigatingCancellationToken);
+            partial class PartialClass { int i = 0; }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
         Assert.Equal("'PartialClass' declarations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
@@ -115,15 +126,17 @@ partial class PartialClass { int i = 0; }", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"using System;
+            """
+            using System;
 
-class C
-{
-    public override string ToString()
-    {
-        return ""C"";
-    }
-}", HangMitigatingCancellationToken);
+            class C
+            {
+                public override string ToString()
+                {
+                    return "C";
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("override", charsOffset: -1, HangMitigatingCancellationToken);
 
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
@@ -146,15 +159,17 @@ class C
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"using System;
+            """
+            using System;
 
-class C
-{
-    public override string ToString()
-    {
-        return ""C"";
-    }
-}", HangMitigatingCancellationToken);
+            class C
+            {
+                public override string ToString()
+                {
+                    return "C";
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("override", charsOffset: -1, HangMitigatingCancellationToken);
 
         await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
@@ -173,15 +188,17 @@ class C
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@"using System;
+            """
+            using System;
 
-class C
-{
-    public void Test()
-    {
-        var helper = new Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToBase();
-    }
-}", HangMitigatingCancellationToken);
+            class C
+            {
+                public void Test()
+                {
+                    var helper = new Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToBase();
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         // Purposefully not using this test class as test data, or the strings in this test could be found
         await TestServices.Editor.PlaceCaretAsync("CSharpGoToBase", charsOffset: -1, HangMitigatingCancellationToken);
@@ -222,15 +239,17 @@ class C
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.SetTextAsync(
-@$"using System;
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{
-        {expression}
-    }}
-}}", HangMitigatingCancellationToken);
+            class C
+            {
+                void M()
+                {
+                    {{expression}}
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("ValueTuple", charsOffset: -1, HangMitigatingCancellationToken);
 

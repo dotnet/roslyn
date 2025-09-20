@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export, Shared]
-internal class ServerConfigurationFactory
+internal sealed class ServerConfigurationFactory
 {
     private readonly IGlobalOptionService _globalOptionService;
 
@@ -40,7 +40,7 @@ internal class ServerConfigurationFactory
     }
 }
 
-internal record class ServerConfiguration(
+internal sealed record class ServerConfiguration(
     bool LaunchDebugger,
     LogConfiguration LogConfiguration,
     string? StarredCompletionsPath,
@@ -48,13 +48,12 @@ internal record class ServerConfiguration(
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
-    string? RazorSourceGenerator,
     string? RazorDesignTimePath,
     string? ServerPipeName,
     bool UseStdIo,
     string ExtensionLogDirectory);
 
-internal class LogConfiguration
+internal sealed class LogConfiguration
 {
     private int _currentLogLevel;
 

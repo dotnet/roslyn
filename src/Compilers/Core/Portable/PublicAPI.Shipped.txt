@@ -3410,8 +3410,6 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetHashCode() -> int
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetPlugins() -> System.Collections.Immutable.ImmutableArray<object!>
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetTransformers() -> System.Collections.Immutable.ImmutableArray<Metalama.Compiler.ISourceTransformer!>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Id.get -> object!
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.Display.get -> string!
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.FullPath.get -> string?

@@ -8,7 +8,7 @@
     <UseWpf>true</UseWpf>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot</PackageId>
     <PackageDescription>
       A supporting package for Copilot features:

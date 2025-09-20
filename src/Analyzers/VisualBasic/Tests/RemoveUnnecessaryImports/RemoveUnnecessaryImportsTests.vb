@@ -1323,5 +1323,17 @@ End Namespace
 parseOptions:=TestOptions.Regular,
 compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System"), GlobalImport.Parse("Goo"), GlobalImport.Parse("Bar")}))
         End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78799")>
+        Public Async Function TestExplicitSelectionOfFullImportStatement() As Task
+            Await TestAsync(
+"[|Imports System.Collections.Generic|]
+
+Class C
+End Class",
+"Class C
+End Class",
+TestOptions.Regular)
+        End Function
     End Class
 End Namespace

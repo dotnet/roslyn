@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes;
 
 internal partial class ColorSchemeApplier
 {
-    private class RegistryItem
+    private sealed class RegistryItem
     {
         public string SectionName { get; }
         public static string ValueName => "Data";

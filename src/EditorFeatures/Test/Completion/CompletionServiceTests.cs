@@ -22,19 +22,19 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 
 [UseExportProvider]
-public class CompletionServiceTests
+public sealed class CompletionServiceTests
 {
     [Fact]
     public async Task TestNuGetCompletionProvider()
     {
-        var code = @"
-using System.Diagnostics;
-class Test {
-    void Method() {
-        Debug.Assert(true, ""$$"");
-    }
-}
-";
+        var code = """
+            using System.Diagnostics;
+            class Test {
+                void Method() {
+                    Debug.Assert(true, "$$");
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code, openDocuments: true);
 
@@ -70,7 +70,7 @@ class Test {
         Assert.Equal(expectedChange, actualChange);
     }
 
-    private class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory
+    private sealed class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory
     {
         private readonly CompletionProvider _completionProvider;
 

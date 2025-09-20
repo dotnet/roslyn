@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
@@ -15,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     <ExportLanguageService(GetType(SyntaxGeneratorInternal), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxGeneratorInternal
+    Friend NotInheritable Class VisualBasicSyntaxGeneratorInternal
         Inherits SyntaxGeneratorInternal
 
         Public Shared ReadOnly Instance As New VisualBasicSyntaxGeneratorInternal()

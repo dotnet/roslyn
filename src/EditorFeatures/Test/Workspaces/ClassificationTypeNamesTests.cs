@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
 [UseExportProvider]
-public class ClassificationTypeNamesTests
+public sealed class ClassificationTypeNamesTests
 {
     public static IEnumerable<object[]> AllPublicClassificationTypeNames
         => typeof(ClassificationTypeNames)

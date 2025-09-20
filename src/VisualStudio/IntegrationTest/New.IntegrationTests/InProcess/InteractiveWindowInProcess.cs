@@ -23,7 +23,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class InteractiveWindowInProcess : ITextViewWindowInProcess
+internal sealed partial class InteractiveWindowInProcess : ITextViewWindowInProcess
 {
     private static readonly Func<string, string, bool> s_equals = (expected, actual) => actual.Equals(expected);
     private static readonly Func<string, string, bool> s_contains = (expected, actual) => actual.Contains(expected);

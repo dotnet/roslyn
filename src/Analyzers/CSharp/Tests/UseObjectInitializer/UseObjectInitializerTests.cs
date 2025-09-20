@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseObjectInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-public partial class UseObjectInitializerTests
+public sealed partial class UseObjectInitializerTests
 {
     private static async Task TestMissingInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
@@ -36,9 +36,10 @@ public partial class UseObjectInitializerTests
     }
 
     [Fact]
-    public async Task TestOnVariableDeclarator()
-    {
-        var testCode = """
+    public Task TestOnVariableDeclarator()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -49,8 +50,13 @@ public partial class UseObjectInitializerTests
                     {|#2:c.|}i = 1{|#3:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -63,61 +69,43 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotForField1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 C c = new C();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotForField2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 C c = new C() { };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotForField3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 C c = new C { };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotForField4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField4()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -125,12 +113,10 @@ public partial class UseObjectInitializerTests
                 C c = new C() { P = 1 };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotForField5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField5()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -138,12 +124,12 @@ public partial class UseObjectInitializerTests
                 C c = new C { P = 1 };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
-    {
-        var testCode = """
+    public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -155,8 +141,13 @@ public partial class UseObjectInitializerTests
                     c.i = c.i + 1;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -170,25 +161,13 @@ public partial class UseObjectInitializerTests
                     c.i = c.i + 1;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue2Async()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue2Async()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -201,12 +180,12 @@ public partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
-    {
-        var testCode = """
+    public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -219,8 +198,13 @@ public partial class UseObjectInitializerTests
                     c.i = c.i + 1;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -235,25 +219,13 @@ public partial class UseObjectInitializerTests
                     c.i = c.i + 1;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue4Async()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue4Async()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -267,12 +239,12 @@ public partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentExpression()
-    {
-        var testCode = """
+    public Task TestOnAssignmentExpression()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -284,8 +256,13 @@ public partial class UseObjectInitializerTests
                     {|#2:c.|}i = 1{|#3:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(8,13): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -299,25 +276,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,13): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestStopOnDuplicateMember()
-    {
-        var testCode = """
+    public Task TestStopOnDuplicateMember()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -329,8 +296,13 @@ public partial class UseObjectInitializerTests
                     c.i = 2;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -344,25 +316,15 @@ public partial class UseObjectInitializerTests
                     c.i = 2;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestComplexInitializer()
-    {
-        var testCode = """
+    public Task TestComplexInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -375,8 +337,13 @@ public partial class UseObjectInitializerTests
                     {|#4:array[0].|}j = 2{|#5:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(8,20): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -391,25 +358,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,20): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnCompoundAssignment()
-    {
-        var testCode = """
+    public Task TestNotOnCompoundAssignment()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -422,8 +379,13 @@ public partial class UseObjectInitializerTests
                     c.j += 1;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -438,25 +400,15 @@ public partial class UseObjectInitializerTests
                     c.j += 1;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializer()
-    {
-        var testCode = """
+    public Task TestWithExistingInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -468,8 +420,13 @@ public partial class UseObjectInitializerTests
                     {|#2:c.|}j = 1{|#3:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -484,25 +441,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializerComma()
-    {
-        var testCode = """
+    public Task TestWithExistingInitializerComma()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -517,8 +464,13 @@ public partial class UseObjectInitializerTests
                     {|#2:c.|}j = 1{|#3:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -533,25 +485,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializerNotIfAlreadyInitialized()
-    {
-        var testCode = """
+    public Task TestWithExistingInitializerNotIfAlreadyInitialized()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -567,8 +509,13 @@ public partial class UseObjectInitializerTests
                     c.i = 2;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -584,25 +531,13 @@ public partial class UseObjectInitializerTests
                     c.i = 2;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingBeforeCSharp3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingBeforeCSharp3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -616,12 +551,12 @@ public partial class UseObjectInitializerTests
                 }
             }
             """, LanguageVersion.CSharp2);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument1()
-    {
-        var testCode = """
+    public Task TestFixAllInDocument1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -639,8 +574,15 @@ public partial class UseObjectInitializerTests
                     {|#2:v.|}j = 2{|#3:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(11,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+                // /0/Test0.cs(12,22): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithLocation(5).WithLocation(6).WithLocation(7),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -663,27 +605,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(11,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-                // /0/Test0.cs(12,22): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithLocation(5).WithLocation(6).WithLocation(7),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument2()
-    {
-        var testCode = """
+    public Task TestFixAllInDocument2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -698,8 +628,15 @@ public partial class UseObjectInitializerTests
                     }{|#3:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+                // /0/Test0.cs(10,22): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithLocation(5).WithLocation(6).WithLocation(7),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -719,27 +656,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-                // /0/Test0.cs(10,22): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithLocation(5).WithLocation(6).WithLocation(7),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument3()
-    {
-        var testCode = """
+    public Task TestFixAllInDocument3()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -755,8 +680,15 @@ public partial class UseObjectInitializerTests
                     {|#10:array[1].|}j = 4{|#11:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(8,20): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
+                // /0/Test0.cs(11,20): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(6).WithLocation(7).WithLocation(8).WithLocation(9).WithLocation(10).WithLocation(11),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -776,27 +708,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(8,20): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
-                // /0/Test0.cs(11,20): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(6).WithLocation(7).WithLocation(8).WithLocation(9).WithLocation(10).WithLocation(11),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        var testCode = """
+    public Task TestTrivia1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -808,8 +728,13 @@ public partial class UseObjectInitializerTests
                     {|#4:c.|}j = 2{|#5:;|} // Bar
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -823,25 +748,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
-    public async Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
-    {
-        var testCode = """
+    public Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -857,8 +772,13 @@ public partial class UseObjectInitializerTests
                     {|#4:c.|}j = 2{|#5:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -875,25 +795,13 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(7,17): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3).WithLocation(4).WithLocation(5),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15459")]
-    public async Task TestMissingInNonTopLevelObjectInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInNonTopLevelObjectInitializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C {
             	int a;
@@ -904,12 +812,10 @@ public partial class UseObjectInitializerTests
             	}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17853")]
-    public async Task TestMissingForDynamic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingForDynamic()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Dynamic;
 
@@ -922,12 +828,10 @@ public partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
-    public async Task TestMissingAcrossPreprocessorDirective()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingAcrossPreprocessorDirective()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -942,12 +846,12 @@ public partial class UseObjectInitializerTests
                 public string Value { get; set; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
-    public async Task TestAvailableInsidePreprocessorDirective()
-    {
-        var testCode = """
+    public Task TestAvailableInsidePreprocessorDirective()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             public class Goo
             {
                 public void M()
@@ -960,8 +864,13 @@ public partial class UseObjectInitializerTests
 
                 public string Value { get; set; }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             public class Goo
             {
                 public void M()
@@ -976,25 +885,15 @@ public partial class UseObjectInitializerTests
 
                 public string Value { get; set; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19253")]
-    public async Task TestKeepBlankLinesAfter()
-    {
-        var testCode = """
+    public Task TestKeepBlankLinesAfter()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class Goo
             {
                 public int Bar { get; set; }
@@ -1010,8 +909,13 @@ public partial class UseObjectInitializerTests
                     int horse = 1;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class Goo
             {
                 public int Bar { get; set; }
@@ -1029,25 +933,13 @@ public partial class UseObjectInitializerTests
                     int horse = 1;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")]
-    public async Task TestWithExplicitImplementedInterfaceMembers1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithExplicitImplementedInterfaceMembers1()
+        => TestMissingInRegularAndScriptAsync(
             """
             interface IExample {
                 string Name { get; set; }
@@ -1066,12 +958,10 @@ public partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")]
-    public async Task TestWithExplicitImplementedInterfaceMembers2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithExplicitImplementedInterfaceMembers2()
+        => TestMissingInRegularAndScriptAsync(
             """
             interface IExample {
                 string Name { get; set; }
@@ -1093,12 +983,12 @@ public partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")]
-    public async Task TestWithExplicitImplementedInterfaceMembers3()
-    {
-        var testCode = """
+    public Task TestWithExplicitImplementedInterfaceMembers3()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             interface IExample {
                 string Name { get; set; }
                 string LastName { get; set; }
@@ -1118,8 +1008,13 @@ public partial class UseObjectInitializerTests
                     e.Name = string.Empty;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(15,22): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             interface IExample {
                 string Name { get; set; }
                 string LastName { get; set; }
@@ -1141,25 +1036,13 @@ public partial class UseObjectInitializerTests
                     e.Name = string.Empty;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(15,22): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37675")]
-    public async Task TestDoNotOfferForUsingDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotOfferForUsingDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C : System.IDisposable
             {
@@ -1176,12 +1059,12 @@ public partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestImplicitObject()
-    {
-        var testCode = """
+    public Task TestImplicitObject()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int i;
@@ -1192,8 +1075,13 @@ public partial class UseObjectInitializerTests
                     {|#2:c.|}i = 1{|#3:;|}
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             class C
             {
                 int i;
@@ -1206,25 +1094,15 @@ public partial class UseObjectInitializerTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
-    public async Task TestInTopLevelStatements()
-    {
-        var testCode = """
+    public Task TestInTopLevelStatements()
+        => new VerifyCS.Test
+        {
+            TestCode = """
             MyClass cl = {|#1:{|#0:new|}()|};
             {|#2:cl.|}MyProperty = 5{|#3:;|}
 
@@ -1232,8 +1110,13 @@ public partial class UseObjectInitializerTests
             {
                 public int MyProperty { get; set; }
             }
-            """;
-        var fixedCode = """
+            """,
+            ExpectedDiagnostics =
+            {
+                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
+                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
+            },
+            FixedCode = """
             MyClass cl = new()
             {
                 MyProperty = 5
@@ -1243,21 +1126,10 @@ public partial class UseObjectInitializerTests
             {
                 public int MyProperty { get; set; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            ExpectedDiagnostics =
-            {
-                // /0/Test0.cs(6,19): info IDE0017: Object initialization can be simplified
-                VerifyCS.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3),
-            },
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
         }.RunAsync();
-    }
 
     [Theory]
     [CombinatorialData]
@@ -1382,17 +1254,6 @@ public partial class UseObjectInitializerTests
                 }
             }
             """;
-
-        var globalConfig =
-            $"""
-            is_global = true
-
-            dotnet_style_object_initializer = true
-            dotnet_diagnostic.IDE0017.severity = warning
-
-            build_property.EnableCodeStyleSeverity = {enabled}
-            """;
-
         await new VerifyCS.Test
         {
             TestState =
@@ -1405,7 +1266,14 @@ public partial class UseObjectInitializerTests
                 },
                 AnalyzerConfigFiles =
                 {
-                    ("/.globalconfig", globalConfig),
+                    ("/.globalconfig", $"""
+            is_global = true
+
+            dotnet_style_object_initializer = true
+            dotnet_diagnostic.IDE0017.severity = warning
+
+            build_property.EnableCodeStyleSeverity = {enabled}
+            """),
                 }
             },
             FixedState = { Sources = { fixedCode } },
@@ -1414,9 +1282,8 @@ public partial class UseObjectInitializerTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
-    public async Task TestIndentationOfMultiLineExpressions1()
-    {
-        await new VerifyCS.Test
+    public Task TestIndentationOfMultiLineExpressions1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1454,12 +1321,10 @@ public partial class UseObjectInitializerTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
-    public async Task TestIndentationOfMultiLineExpressions2()
-    {
-        await new VerifyCS.Test
+    public Task TestIndentationOfMultiLineExpressions2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1501,12 +1366,10 @@ public partial class UseObjectInitializerTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
-    public async Task TestIndentationOfMultiLineExpressions3()
-    {
-        await new VerifyCS.Test
+    public Task TestIndentationOfMultiLineExpressions3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1544,12 +1407,10 @@ public partial class UseObjectInitializerTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
-    public async Task TestIndentationOfMultiLineExpressions4()
-    {
-        await new VerifyCS.Test
+    public Task TestIndentationOfMultiLineExpressions4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1591,5 +1452,4 @@ public partial class UseObjectInitializerTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 }

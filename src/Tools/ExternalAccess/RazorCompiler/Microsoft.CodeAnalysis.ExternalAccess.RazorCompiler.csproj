@@ -10,7 +10,7 @@
     <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
 
     <!-- NuGet -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>False</IsPackable> <!-- <Metalama /> -->
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</PackageId>
     <PackageDescription>
       A supporting package for Razor source generator:

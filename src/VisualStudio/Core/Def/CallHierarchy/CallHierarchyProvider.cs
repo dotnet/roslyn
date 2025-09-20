@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
 [Export(typeof(CallHierarchyProvider))]
-internal partial class CallHierarchyProvider
+internal sealed partial class CallHierarchyProvider
 {
     public readonly IAsynchronousOperationListener AsyncListener;
     public readonly IUIThreadOperationExecutor ThreadOperationExecutor;

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 /// Keeps track of which project uses what TFM.
 /// </summary>
 [Export, Shared]
-internal class ProjectTargetFrameworkManager
+internal sealed class ProjectTargetFrameworkManager
 {
     private readonly ConcurrentDictionary<ProjectId, string?> _projectToTargetFrameworkIdentifer = new();
 

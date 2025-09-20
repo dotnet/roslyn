@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal interface ILspServiceLoggerFactory
 {
-    internal interface ILspServiceLoggerFactory
-    {
-        Task<AbstractLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken);
-    }
+    Task<AbstractLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken);
 }

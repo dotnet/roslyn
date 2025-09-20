@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,7 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using Microsoft.CodeAnalysis.Shared.Collections;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal sealed partial class LanguageParser : SyntaxParser
@@ -1979,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.ExtensionKeyword:
                         Debug.Assert(name is null);
                         Debug.Assert(baseList is null);
-                        return syntaxFactory.ExtensionDeclaration(
+                        return syntaxFactory.ExtensionBlockDeclaration(
                             attributes,
                             modifiers.ToList(),
                             keyword,
@@ -3920,32 +3920,54 @@ parse_member_name:;
             }
 
             // check for >> and >>>
-            var opKind = opToken.Kind;
-            var tk = this.CurrentToken;
-            if (opToken.Kind == SyntaxKind.GreaterThanToken && tk.Kind == SyntaxKind.GreaterThanToken &&
-                NoTriviaBetween(opToken, tk)) // no trailing trivia and no leading trivia
+            if (opToken.Kind == SyntaxKind.GreaterThanToken)
             {
-                var opToken2 = this.EatToken();
-                tk = this.CurrentToken;
+                var tk = this.CurrentToken;
 
-                if (tk.Kind == SyntaxKind.GreaterThanToken &&
-                    NoTriviaBetween(opToken2, tk)) // no trailing trivia and no leading trivia
+                if (tk.Kind == SyntaxKind.GreaterThanToken)
                 {
-                    opToken2 = this.EatToken();
-                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanGreaterThanToken, opToken2.GetTrailingTrivia());
+                    if (NoTriviaBetween(opToken, tk)) // no trailing trivia and no leading trivia
+                    {
+                        var opToken2 = this.EatToken();
+                        tk = this.CurrentToken;
+
+                        if (tk.Kind == SyntaxKind.GreaterThanToken &&
+                            NoTriviaBetween(opToken2, tk)) // no trailing trivia and no leading trivia
+                        {
+                            opToken2 = this.EatToken();
+                            opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanGreaterThanToken, opToken2.GetTrailingTrivia());
+                            opTokenErrorWidth = opToken.Width;
+                        }
+                        else if (tk.Kind == SyntaxKind.GreaterThanEqualsToken &&
+                                 NoTriviaBetween(opToken2, tk)) // no trailing trivia and no leading trivia
+                        {
+                            opToken2 = this.EatToken();
+                            opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken, opToken2.GetTrailingTrivia());
+                            opTokenErrorWidth = opToken.Width;
+                        }
+                        else
+                        {
+                            opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanToken, opToken2.GetTrailingTrivia());
+                            opTokenErrorWidth = opToken.Width;
+                        }
+                    }
                 }
-                else
+                else if (tk.Kind == SyntaxKind.GreaterThanEqualsToken &&
+                         NoTriviaBetween(opToken, tk)) // no trailing trivia and no leading trivia
                 {
-                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanToken, opToken2.GetTrailingTrivia());
+                    var opToken2 = this.EatToken();
+                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), SyntaxKind.GreaterThanGreaterThanEqualsToken, opToken2.GetTrailingTrivia());
+                    opTokenErrorWidth = opToken.Width;
                 }
             }
 
+            var opKind = opToken.Kind;
             var paramList = this.ParseParenthesizedParameterList(forExtension: false);
 
             switch (paramList.Parameters.Count)
             {
                 case 1:
-                    if (opToken.IsMissing || !SyntaxFacts.IsOverloadableUnaryOperator(opKind))
+                    if (opToken.IsMissing || !(SyntaxFacts.IsOverloadableUnaryOperator(opKind) || SyntaxFacts.IsOverloadableCompoundAssignmentOperator(opKind)))
                     {
                         SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlUnaryOperatorExpected);
                         opToken = WithAdditionalDiagnostics(opToken, diagInfo);
@@ -3972,7 +3994,14 @@ parse_member_name:;
                     }
                     else if (SyntaxFacts.IsOverloadableUnaryOperator(opKind))
                     {
-                        opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
+                        if (opKind is not (SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken) || paramList.Parameters.Count != 0)
+                        {
+                            opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
+                        }
+                    }
+                    else if (SyntaxFacts.IsOverloadableCompoundAssignmentOperator(opKind))
+                    {
+                        opToken = this.AddError(opToken, ErrorCode.ERR_BadCompoundAssignmentOpArgs, SyntaxFacts.GetText(opKind));
                     }
                     else
                     {
@@ -3988,7 +4017,8 @@ parse_member_name:;
             // we can finish building the tree
             if (!(opKind == SyntaxKind.IsKeyword ||
                   SyntaxFacts.IsOverloadableUnaryOperator(opKind) ||
-                  SyntaxFacts.IsOverloadableBinaryOperator(opKind)))
+                  SyntaxFacts.IsOverloadableBinaryOperator(opKind) ||
+                  SyntaxFacts.IsOverloadableCompoundAssignmentOperator(opKind)))
             {
                 opToken = ConvertToMissingWithTrailingTrivia(opToken, SyntaxKind.PlusToken);
             }
@@ -4656,7 +4686,7 @@ parse_member_name:;
                 allowTrailingSeparator: false,
                 requireOneElement: forExtension, // For extension declarations, we require at least one receiver parameter
                 allowSemicolonAsSeparator: false);
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider suppressing parsing diagnostics on extension parameters beyond the first one
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider suppressing parsing diagnostics on extension parameters beyond the first one
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
@@ -11477,7 +11507,13 @@ done:
 
         /// <summary>Check if we're currently at a .. sequence that can then be parsed out as a <see cref="SyntaxKind.DotDotToken"/>.</summary>
         public bool IsAtDotDotToken()
-            => IsAtDotDotToken(this.CurrentToken, this.PeekToken(1));
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.DotToken)
+                return false;
+
+            var nextToken = this.PeekToken(1);
+            return nextToken.Kind == SyntaxKind.DotToken && NoTriviaBetween(this.CurrentToken, nextToken);
+        }
 
         public static bool IsAtDotDotToken(SyntaxToken token1, SyntaxToken token2)
             => token1.Kind == SyntaxKind.DotToken &&

@@ -15,45 +15,38 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpTransposeRecordKeywordCodeFixProvider>;
 
-public class TransposeRecordKeywordTests
+public sealed class TransposeRecordKeywordTests
 {
     [Fact]
-    public async Task TestStructRecord()
-    {
-        await new VerifyCS.Test
+    public Task TestStructRecord()
+        => new VerifyCS.Test
         {
             TestCode = @"struct {|CS9012:record|} C { }",
             FixedCode = @"record struct C { }",
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestClassRecord()
-    {
-        await new VerifyCS.Test
+    public Task TestClassRecord()
+        => new VerifyCS.Test
         {
             TestCode = @"class {|CS9012:record|} C { }",
             FixedCode = @"record class C { }",
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithModifiers()
-    {
-        await new VerifyCS.Test
+    public Task TestWithModifiers()
+        => new VerifyCS.Test
         {
             TestCode = @"public struct {|CS9012:record|} C { }",
             FixedCode = @"public record struct C { }",
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithComment()
-    {
-        await new VerifyCS.Test
+    public Task TestWithComment()
+        => new VerifyCS.Test
         {
             TestCode = """
             // my struct
@@ -65,12 +58,10 @@ public class TransposeRecordKeywordTests
             """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithDocComment()
-    {
-        await new VerifyCS.Test
+    public Task TestWithDocComment()
+        => new VerifyCS.Test
         {
             TestCode = """
             /// <summary></summary>
@@ -82,12 +73,10 @@ public class TransposeRecordKeywordTests
             """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithAttributes1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithAttributes1()
+        => new VerifyCS.Test
         {
             TestCode = """
             [System.CLSCompliant(false)]
@@ -99,12 +88,10 @@ public class TransposeRecordKeywordTests
             """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithAttributes2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithAttributes2()
+        => new VerifyCS.Test
         {
             TestCode = """
             [System.CLSCompliant(false)] struct {|CS9012:record|} C { }
@@ -114,12 +101,10 @@ public class TransposeRecordKeywordTests
             """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedRecord()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedRecord()
+        => new VerifyCS.Test
         {
             TestCode = """
             class {|CS9012:record|} C
@@ -135,12 +120,10 @@ public class TransposeRecordKeywordTests
             """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedRecordWithComments()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedRecordWithComments()
+        => new VerifyCS.Test
         {
             TestCode = """
             // my class
@@ -160,12 +143,10 @@ public class TransposeRecordKeywordTests
             """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTriviaBeforeAfter()
-    {
-        await new VerifyCS.Test
+    public Task TestTriviaBeforeAfter()
+        => new VerifyCS.Test
         {
             TestCode = """
             /*1*/
@@ -181,5 +162,4 @@ public class TransposeRecordKeywordTests
             """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 }

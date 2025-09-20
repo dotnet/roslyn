@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter
+internal sealed partial class CSharpTriviaFormatter : AbstractTriviaFormatter
 {
     private bool _succeeded = true;
 

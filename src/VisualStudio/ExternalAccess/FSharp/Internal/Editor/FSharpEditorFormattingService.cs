@@ -16,88 +16,87 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+
+[Shared]
+[ExportLanguageService(typeof(IFormattingInteractionService), LanguageNames.FSharp)]
+internal class FSharpEditorFormattingService : IFormattingInteractionService
 {
-    [Shared]
-    [ExportLanguageService(typeof(IFormattingInteractionService), LanguageNames.FSharp)]
-    internal class FSharpEditorFormattingService : IFormattingInteractionService
+    private readonly IFSharpEditorFormattingService _service;
+    private readonly IGlobalOptionService _globalOptions;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpEditorFormattingService(IFSharpEditorFormattingService service, IGlobalOptionService globalOptions)
     {
-        private readonly IFSharpEditorFormattingService _service;
-        private readonly IGlobalOptionService _globalOptions;
+        _service = service;
+        _globalOptions = globalOptions;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpEditorFormattingService(IFSharpEditorFormattingService service, IGlobalOptionService globalOptions)
+    public bool SupportsFormatDocument => _service.SupportsFormatDocument;
+
+    public bool SupportsFormatSelection => _service.SupportsFormatSelection;
+
+    public bool SupportsFormatOnPaste => _service.SupportsFormatOnPaste;
+
+    public bool SupportsFormatOnReturn => _service.SupportsFormatOnReturn;
+
+    public Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
+    {
+        return _service.GetFormattingChangesAsync(document, textSpan, cancellationToken);
+    }
+
+    public Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, CancellationToken cancellationToken)
+    {
+        return _service.GetFormattingChangesAsync(document, typedChar, position, cancellationToken);
+    }
+
+    public Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+    {
+        return _service.GetFormattingChangesOnPasteAsync(document, textSpan, cancellationToken);
+    }
+
+    public Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        return _service.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
+    }
+
+    public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
+    {
+        if (_service is IFSharpEditorFormattingServiceWithOptions serviceWithOptions)
         {
-            _service = service;
-            _globalOptions = globalOptions;
+            var indentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.FSharp);
+            var options = _globalOptions.GetAutoFormattingOptions(LanguageNames.FSharp);
+
+            return serviceWithOptions.SupportsFormattingOnTypedCharacter(document, new AutoFormattingOptionsWrapper(options, indentStyle), ch);
         }
-
-        public bool SupportsFormatDocument => _service.SupportsFormatDocument;
-
-        public bool SupportsFormatSelection => _service.SupportsFormatSelection;
-
-        public bool SupportsFormatOnPaste => _service.SupportsFormatOnPaste;
-
-        public bool SupportsFormatOnReturn => _service.SupportsFormatOnReturn;
-
-        public Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
+        else
         {
-            return _service.GetFormattingChangesAsync(document, textSpan, cancellationToken);
+            return _service.SupportsFormattingOnTypedCharacter(document, ch);
         }
+    }
 
-        public Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, CancellationToken cancellationToken)
-        {
-            return _service.GetFormattingChangesAsync(document, typedChar, position, cancellationToken);
-        }
+    async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, TextSpan? textSpan, CancellationToken cancellationToken)
+    {
+        var changes = await GetFormattingChangesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        return changes?.ToImmutableArray() ?? [];
+    }
 
-        public Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            return _service.GetFormattingChangesOnPasteAsync(document, textSpan, cancellationToken);
-        }
+    async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
+    {
+        var changes = await GetFormattingChangesAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false);
+        return changes?.ToImmutableArray() ?? [];
+    }
 
-        public Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            return _service.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
-        }
+    async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
+    {
+        var changes = await GetFormattingChangesOnPasteAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        return changes?.ToImmutableArray() ?? [];
+    }
 
-        public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
-        {
-            if (_service is IFSharpEditorFormattingServiceWithOptions serviceWithOptions)
-            {
-                var indentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.FSharp);
-                var options = _globalOptions.GetAutoFormattingOptions(LanguageNames.FSharp);
-
-                return serviceWithOptions.SupportsFormattingOnTypedCharacter(document, new AutoFormattingOptionsWrapper(options, indentStyle), ch);
-            }
-            else
-            {
-                return _service.SupportsFormattingOnTypedCharacter(document, ch);
-            }
-        }
-
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, TextSpan? textSpan, CancellationToken cancellationToken)
-        {
-            var changes = await GetFormattingChangesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return changes?.ToImmutableArray() ?? [];
-        }
-
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
-        {
-            var changes = await GetFormattingChangesAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false);
-            return changes?.ToImmutableArray() ?? [];
-        }
-
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            var changes = await GetFormattingChangesOnPasteAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return changes?.ToImmutableArray() ?? [];
-        }
-
-        async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var changes = await GetFormattingChangesOnReturnAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return changes?.ToImmutableArray() ?? [];
-        }
+    async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var changes = await GetFormattingChangesOnReturnAsync(document, position, cancellationToken).ConfigureAwait(false);
+        return changes?.ToImmutableArray() ?? [];
     }
 }

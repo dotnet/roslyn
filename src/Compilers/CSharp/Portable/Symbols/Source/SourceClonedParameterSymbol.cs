@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override ScopedKind DeclaredScope => _originalParam.DeclaredScope;
+
         internal sealed override ScopedKind EffectiveScope => _originalParam.EffectiveScope;
 
         internal override bool HasUnscopedRefAttribute => _originalParam.HasUnscopedRefAttribute;
@@ -123,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _originalParam.RefCustomModifiers; }
+        }
+
+        internal sealed override bool HasEnumeratorCancellationAttribute
+        {
+            get { return _originalParam.HasEnumeratorCancellationAttribute; }
         }
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation

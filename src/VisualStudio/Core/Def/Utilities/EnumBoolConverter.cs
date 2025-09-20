@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 /// Usage: 
 ///   BoolProperty="{Binding EnumProperty, Converter={StaticResource converter}, ConverterParameter={x:Static namespace:Enum.Value}}"
 /// </summary>
-internal class EnumBoolConverter : IValueConverter
+internal sealed class EnumBoolConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         => value?.Equals(parameter) ?? DependencyProperty.UnsetValue;

@@ -100,7 +100,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
 
                 var spansByDocument = await spanMappingService.GetFixAllSpansAsync(
                     Document, _selectionSpan, Scope, cancellationToken).ConfigureAwait(false);
-                return spansByDocument.Select(kvp => KeyValuePairUtil.Create(kvp.Key, new Optional<ImmutableArray<TextSpan>>(kvp.Value)))
+                return spansByDocument.Select(kvp => KeyValuePair.Create(kvp.Key, new Optional<ImmutableArray<TextSpan>>(kvp.Value)))
                     .ToImmutableDictionaryOrEmpty();
 
             case FixAllScope.Document:

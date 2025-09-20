@@ -8,18 +8,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
+namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+
+/// <summary>
+/// Workspace service responsible for starting a Visual Diagnostic session on the LSP server
+/// </summary>
+internal interface IVisualDiagnosticsLanguageService : IWorkspaceService, IDisposable
 {
     /// <summary>
-    /// Workspace service responsible for starting a Visual Diagnostic session on the LSP server
+    /// Initialize the diagnostic host
     /// </summary>
-    internal interface IVisualDiagnosticsLanguageService : IWorkspaceService, IDisposable
-    {
-        /// <summary>
-        /// Initialize the diagnostic host
-        /// </summary>
-        /// <param name="serviceBroker">Service broker</param>
-        /// <param name="token">Cancellation token</param>
-        Task InitializeAsync(IServiceBroker serviceBroker, CancellationToken token);
-    }
+    /// <param name="serviceBroker">Service broker</param>
+    /// <param name="token">Cancellation token</param>
+    Task InitializeAsync(IServiceBroker serviceBroker, CancellationToken token);
 }

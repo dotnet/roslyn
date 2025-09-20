@@ -4846,6 +4846,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       44 (0x2c)
                           .maxstack  2
@@ -4864,6 +4865,7 @@ class C
                           IL_0026:  stsfld     0x04000003
                           IL_002b:  ret
                         }
+                        <F>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -4872,6 +4874,7 @@ class C
                           IL_0007:  newobj     0x06000007
                           IL_000c:  throw
                         }
+                        <F>b__0_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -4880,6 +4883,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -4892,6 +4896,7 @@ class C
                           IL_000a:  stfld      0x04000004
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -4900,6 +4905,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -4986,6 +4992,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       12 (0xc)
                           .maxstack  2
@@ -4997,6 +5004,7 @@ class C
                           IL_000a:  nop
                           IL_000b:  ret
                         }
+                        <F>g__L1|0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5005,6 +5013,7 @@ class C
                           IL_0007:  newobj     0x06000006
                           IL_000c:  throw
                         }
+                        <F>g__L2|0_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5013,6 +5022,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>g__L1|0_0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5022,6 +5032,7 @@ class C
                           IL_000b:  nop
                           IL_000c:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -5089,6 +5100,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       44 (0x2c)
                           .maxstack  2
@@ -5107,6 +5119,7 @@ class C
                           IL_0026:  stsfld     0x04000003
                           IL_002b:  ret
                         }
+                        <F>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5115,6 +5128,7 @@ class C
                           IL_0007:  newobj     0x06000007
                           IL_000c:  throw
                         }
+                        <F>b__0_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5123,6 +5137,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -5135,6 +5150,7 @@ class C
                           IL_000a:  stfld      0x04000004
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5143,6 +5159,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5226,6 +5243,7 @@ class C
                         g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1", ".ctor");
 
                         g.VerifyIL("""
+                        F
                         {
                           // Code size       12 (0xc)
                           .maxstack  2
@@ -5237,6 +5255,7 @@ class C
                           IL_000a:  nop
                           IL_000b:  ret
                         }
+                        <F>g__L1|0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5245,6 +5264,7 @@ class C
                           IL_0007:  newobj     0x06000006
                           IL_000c:  throw
                         }
+                        <F>g__L2|0_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5253,6 +5273,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>g__L1|0_0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5262,6 +5283,7 @@ class C
                           IL_000b:  nop
                           IL_000c:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -5331,6 +5353,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       34 (0x22)
                           .maxstack  2
@@ -5347,6 +5370,7 @@ class C
                           IL_0020:  stloc.0
                           IL_0021:  ret
                         }
+                        <F>b__1_0
                         {
                           // Code size       31 (0x1f)
                           .maxstack  2
@@ -5361,6 +5385,7 @@ class C
                           IL_0019:  call       0x06000001
                           IL_001e:  ret
                         }
+                        <F>b__1_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -5369,6 +5394,7 @@ class C
                           IL_0006:  newobj     0x06000008
                           IL_000b:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -5381,6 +5407,7 @@ class C
                           IL_000a:  stfld      0x04000004
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5389,6 +5416,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__1#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -5453,6 +5481,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        .ctor
                         {
                           // Code size       42 (0x2a)
                           .maxstack  3
@@ -5474,6 +5503,7 @@ class C
                           IL_0028:  nop
                           IL_0029:  ret
                         }
+                        <.ctor>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5482,6 +5512,7 @@ class C
                           IL_0007:  newobj     0x06000007
                           IL_000c:  throw
                         }
+                        <.ctor>b__0_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -5490,6 +5521,7 @@ class C
                           IL_0006:  newobj     0x06000007
                           IL_000b:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -5502,6 +5534,7 @@ class C
                           IL_000a:  stfld      0x04000004
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5510,6 +5543,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <.ctor>b__0#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -5517,6 +5551,7 @@ class C
                           IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
+                        <.ctor>b__1#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5569,6 +5604,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        .ctor
                         {
                           // Code size       33 (0x21)
                           .maxstack  3
@@ -5585,6 +5621,7 @@ class C
                           IL_001f:  nop
                           IL_0020:  ret
                         }
+                        <.ctor>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5593,6 +5630,7 @@ class C
                           IL_0007:  newobj     0x06000006
                           IL_000c:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -5605,6 +5643,7 @@ class C
                           IL_000a:  stfld      0x04000003
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5613,6 +5652,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <.ctor>b__0#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -5663,6 +5703,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        <Main>$
                         {
                           // Code size       27 (0x1b)
                           .maxstack  2
@@ -5677,6 +5718,7 @@ class C
                           IL_0019:  stloc.2
                           IL_001a:  ret
                         }
+                        <<Main>$>b__0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5685,6 +5727,7 @@ class C
                           IL_0007:  newobj     0x06000006
                           IL_000c:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -5697,6 +5740,7 @@ class C
                           IL_000a:  stfld      0x04000003
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5705,6 +5749,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <<Main>$>b__0#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -5793,6 +5838,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       31 (0x1f)
                           .maxstack  8
@@ -5806,6 +5852,7 @@ class C
                           IL_0019:  stsfld     0x04000004
                           IL_001e:  ret
                         }
+                        <F>b__1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5814,6 +5861,7 @@ class C
                           IL_0007:  newobj     0x06000008
                           IL_000c:  throw
                         }
+                        <F>b__1_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5822,6 +5870,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__1_0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5831,6 +5880,7 @@ class C
                           IL_000b:  nop
                           IL_000c:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -5922,6 +5972,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size        4 (0x4)
                           .maxstack  8
@@ -5930,6 +5981,7 @@ class C
                           IL_0002:  nop
                           IL_0003:  ret
                         }
+                        <F>g__L1|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5938,6 +5990,7 @@ class C
                           IL_0007:  newobj     0x06000006
                           IL_000c:  throw
                         }
+                        <F>g__L2|1_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -5946,6 +5999,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>g__L1|1_0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -5955,6 +6009,7 @@ class C
                           IL_000b:  nop
                           IL_000c:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -6021,6 +6076,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       31 (0x1f)
                           .maxstack  8
@@ -6034,6 +6090,7 @@ class C
                           IL_0019:  stsfld     0x04000003
                           IL_001e:  ret
                         }
+                        <F>b__1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6042,6 +6099,7 @@ class C
                           IL_0007:  newobj     0x06000008
                           IL_000c:  throw
                         }
+                        <F>b__1_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6050,6 +6108,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__1_0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6059,6 +6118,7 @@ class C
                           IL_000b:  nop
                           IL_000c:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -6122,6 +6182,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size        4 (0x4)
                           .maxstack  8
@@ -6130,6 +6191,7 @@ class C
                           IL_0002:  nop
                           IL_0003:  ret
                         }
+                        <F>g__L1|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6138,6 +6200,7 @@ class C
                           IL_0007:  newobj     0x06000006
                           IL_000c:  throw
                         }
+                        <F>g__L2|1_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6146,6 +6209,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>g__L1|1_0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6155,6 +6219,7 @@ class C
                           IL_000b:  nop
                           IL_000c:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -6257,6 +6322,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       35 (0x23)
                           .maxstack  2
@@ -6275,6 +6341,7 @@ class C
                           IL_0021:  nop
                           IL_0022:  ret
                         }
+                        <F>b__0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -6356,6 +6423,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       13 (0xd)
                           .maxstack  2
@@ -6368,6 +6436,7 @@ class C
                           IL_000b:  nop
                           IL_000c:  ret
                         }
+                        <F>g__L|0_0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -6427,6 +6496,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       32 (0x20)
                           .maxstack  2
@@ -6441,6 +6511,7 @@ class C
                           IL_001a:  stsfld     0x04000004
                           IL_001f:  ret
                         }
+                        <F>b__0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6449,6 +6520,7 @@ class C
                           IL_0007:  newobj     0x06000005
                           IL_000c:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -6461,6 +6533,7 @@ class C
                           IL_000a:  stfld      0x04000002
                           IL_000f:  ret
                         }
+                        .cctor
                         {
                           // Code size       11 (0xb)
                           .maxstack  8
@@ -6468,6 +6541,7 @@ class C
                           IL_0005:  stsfld     0x04000003
                           IL_000a:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6476,6 +6550,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__0_0#1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6518,6 +6593,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       16 (0x10)
                           .maxstack  2
@@ -6530,6 +6606,7 @@ class C
                           IL_000e:  nop
                           IL_000f:  ret
                         }
+                        <F>b__0_0#1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -6538,6 +6615,7 @@ class C
                           IL_0006:  newobj     0x06000005
                           IL_000b:  throw
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6546,6 +6624,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__0#2
                         {
                           // Code size       15 (0xf)
                           .maxstack  8
@@ -6643,6 +6722,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       14 (0xe)
                           .maxstack  1
@@ -6661,6 +6741,7 @@ class C
                           IL_000c:  nop
                           IL_000d:  ret
                         }
+                        <F>g__L|0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6669,6 +6750,7 @@ class C
                           IL_0007:  newobj     0x06000007
                           IL_000c:  throw
                         }
+                        <F>g__L|0_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -6677,6 +6759,7 @@ class C
                           IL_0006:  newobj     0x06000007
                           IL_000b:  throw
                         }
+                        <F>g__L|0_0#1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6685,6 +6768,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>g__L|0_1#1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6693,6 +6777,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -6807,6 +6892,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       58 (0x3a)
                           .maxstack  8
@@ -6825,6 +6911,7 @@ class C
                           IL_0034:  stsfld     0x04000003
                           IL_0039:  ret
                         }
+                        <F>b__1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6833,6 +6920,7 @@ class C
                           IL_0007:  newobj     0x06000007
                           IL_000c:  throw
                         }
+                        <F>b__1_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6841,6 +6929,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -6853,6 +6942,7 @@ class C
                           IL_000a:  stfld      0x04000004
                           IL_000f:  ret
                         }
+                        <F>b__1_0#1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6959,6 +7049,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size        4 (0x4)
                           .maxstack  8
@@ -6967,6 +7058,7 @@ class C
                           IL_0002:  nop
                           IL_0003:  ret
                         }
+                        <F>g__L1|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -6975,6 +7067,7 @@ class C
                           IL_0007:  newobj     0x06000006
                           IL_000c:  throw
                         }
+                        <F>g__L2|1_1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6983,6 +7076,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>g__L1|1_0#1
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -6991,6 +7085,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -7056,6 +7151,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       16 (0x10)
                           .maxstack  2
@@ -7068,6 +7164,7 @@ class C
                           IL_000e:  nop
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -7076,6 +7173,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -7116,6 +7214,7 @@ class C
                         g.VerifyMethodDefNames("F", "<F>b__0#1", ".ctor");
 
                         g.VerifyIL("""
+                        F
                         {
                           // Code size        4 (0x4)
                           .maxstack  1
@@ -7124,6 +7223,7 @@ class C
                           IL_0002:  stloc.2
                           IL_0003:  ret
                         }
+                        <F>b__0#1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7132,6 +7232,7 @@ class C
                           IL_0006:  newobj     0x06000005
                           IL_000b:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -7195,6 +7296,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       11 (0xb)
                           .maxstack  2
@@ -7205,6 +7307,7 @@ class C
                           IL_0009:  nop
                           IL_000a:  ret
                         }
+                        <F>g__L|0#1_0#1
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -7242,6 +7345,7 @@ class C
                         g.VerifyMethodDefNames("F", "<F>g__L|0#1_0#1", ".ctor");
 
                         g.VerifyIL("""
+                        F
                         {
                           // Code size        4 (0x4)
                           .maxstack  1
@@ -7250,6 +7354,7 @@ class C
                           IL_0002:  stloc.2
                           IL_0003:  ret
                         }
+                        <F>g__L|0#1_0#1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7258,6 +7363,7 @@ class C
                           IL_0006:  newobj     0x06000004
                           IL_000b:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -7360,6 +7466,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       82 (0x52)
                           .maxstack  3
@@ -7396,6 +7503,7 @@ class C
                           IL_0050:  nop
                           IL_0051:  ret
                         }
+                        <F>b__0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -7403,6 +7511,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>b__1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7411,6 +7520,7 @@ class C
                           IL_0006:  newobj     0x06000008
                           IL_000b:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -7423,6 +7533,7 @@ class C
                           IL_000a:  stfld      0x04000003
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -7431,6 +7542,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__1#1
                         {
                           // Code size       19 (0x13)
                           .maxstack  8
@@ -7552,6 +7664,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       24 (0x18)
                           .maxstack  2
@@ -7570,6 +7683,7 @@ class C
                           IL_0016:  nop
                           IL_0017:  ret
                         }
+                        <F>g__L1|0_0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -7577,6 +7691,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>g__L2|0_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7585,6 +7700,7 @@ class C
                           IL_0006:  newobj     0x06000006
                           IL_000b:  throw
                         }
+                        <F>g__L2|0_1#1
                         {
                           // Code size       14 (0xe)
                           .maxstack  8
@@ -7595,6 +7711,7 @@ class C
                           IL_000c:  add
                           IL_000d:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -7698,6 +7815,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       68 (0x44)
                           .maxstack  2
@@ -7728,6 +7846,7 @@ class C
                           IL_0042:  nop
                           IL_0043:  ret
                         }
+                        <F>b__0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -7735,6 +7854,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>b__1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7743,6 +7863,7 @@ class C
                           IL_0006:  newobj     0x06000008
                           IL_000b:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -7755,6 +7876,7 @@ class C
                           IL_000a:  stfld      0x04000004
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -7763,6 +7885,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__1#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -7883,6 +8006,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       24 (0x18)
                           .maxstack  2
@@ -7901,6 +8025,7 @@ class C
                           IL_0016:  nop
                           IL_0017:  ret
                         }
+                        <F>g__L1|0_0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -7908,6 +8033,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>g__L2|0_1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -7916,6 +8042,7 @@ class C
                           IL_0006:  newobj     0x06000006
                           IL_000b:  throw
                         }
+                        <F>g__L2|0_1#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -7923,6 +8050,7 @@ class C
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -8019,6 +8147,7 @@ class C
                             "<F>b__2#1");
 
                         g.VerifyIL("""
+                        F
                         {
                           // Code size      131 (0x83)
                           .maxstack  2
@@ -8069,6 +8198,7 @@ class C
                           IL_0081:  nop
                           IL_0082:  ret
                         }
+                        <F>b__0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -8076,6 +8206,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>b__1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8084,6 +8215,7 @@ class C
                           IL_0006:  newobj     0x06000008
                           IL_000b:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -8096,6 +8228,7 @@ class C
                           IL_000a:  stfld      0x04000004
                           IL_000f:  ret
                         }
+                        .ctor, .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -8104,6 +8237,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>b__1#1
                         {
                           // Code size       24 (0x18)
                           .maxstack  8
@@ -8116,6 +8250,7 @@ class C
                           IL_0016:  add
                           IL_0017:  ret
                         }
+                        <F>b__2#1
                         {
                           // Code size       36 (0x24)
                           .maxstack  8
@@ -8249,6 +8384,7 @@ class C
                         g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L3|0_2#1");
 
                         g.VerifyIL("""
+                        F
                         {
                           // Code size       35 (0x23)
                           .maxstack  2
@@ -8273,6 +8409,7 @@ class C
                           IL_0021:  nop
                           IL_0022:  ret
                         }
+                        <F>g__L1|0_0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -8280,6 +8417,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>g__L2|0_1
                         {
                           // Code size       14 (0xe)
                           .maxstack  8
@@ -8290,6 +8428,7 @@ class C
                           IL_000c:  add
                           IL_000d:  ret
                         }
+                        <F>g__L3|0_2#1
                         {
                           // Code size       21 (0x15)
                           .maxstack  8
@@ -8427,6 +8566,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       84 (0x54)
                           .maxstack  2
@@ -8460,6 +8600,7 @@ class C
                           IL_0052:  nop
                           IL_0053:  ret
                         }
+                        <F>b__0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -8467,6 +8608,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>b__2
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8475,6 +8617,7 @@ class C
                           IL_0006:  newobj     0x06000009
                           IL_000b:  throw
                         }
+                        <F>b__1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -8482,6 +8625,7 @@ class C
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -8494,6 +8638,7 @@ class C
                           IL_000a:  stfld      0x04000003
                           IL_000f:  ret
                         }
+                        <F>b__2#1
                         {
                           // Code size        9 (0x9)
                           .maxstack  8
@@ -8625,6 +8770,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       23 (0x17)
                           .maxstack  2
@@ -8642,6 +8788,7 @@ class C
                           IL_0015:  nop
                           IL_0016:  ret
                         }
+                        <F>g__L1|0_0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -8649,6 +8796,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>g__L2|0_1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -8656,6 +8804,7 @@ class C
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
                         }
+                        <F>g__L3|0_2
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8664,6 +8813,7 @@ class C
                           IL_0006:  newobj     0x06000007
                           IL_000b:  throw
                         }
+                        <F>g__L3|0_2#1
                         {
                           // Code size        9 (0x9)
                           .maxstack  8
@@ -8673,6 +8823,7 @@ class C
                           IL_0007:  add
                           IL_0008:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -8789,6 +8940,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       62 (0x3e)
                           .maxstack  2
@@ -8816,6 +8968,7 @@ class C
                           IL_003c:  nop
                           IL_003d:  ret
                         }
+                        <F>g__L1|0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -8824,6 +8977,7 @@ class C
                           IL_0007:  newobj     0x0600000A
                           IL_000c:  throw
                         }
+                        <F>b__2
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -8832,6 +8986,7 @@ class C
                           IL_0006:  newobj     0x0600000A
                           IL_000b:  throw
                         }
+                        <F>b__1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -8839,6 +8994,7 @@ class C
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
                         }
+                        <F>g__L1|1_0#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -8846,6 +9002,7 @@ class C
                           IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -8858,6 +9015,7 @@ class C
                           IL_000a:  stfld      0x04000003
                           IL_000f:  ret
                         }
+                        <F>b__2#1
                         {
                           // Code size        9 (0x9)
                           .maxstack  8
@@ -8990,6 +9148,7 @@ class C
                         g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L3|1_2", "<F>b__1", ".ctor", "<F>g__L3|2#1");
 
                         g.VerifyIL("""
+                        F
                         {
                           // Code size       45 (0x2d)
                           .maxstack  2
@@ -9013,6 +9172,7 @@ class C
                           IL_002b:  nop
                           IL_002c:  ret
                         }
+                        <F>g__L1|1_0
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -9020,6 +9180,7 @@ class C
                           IL_0001:  ldfld      0x04000001
                           IL_0006:  ret
                         }
+                        <F>g__L3|1_2
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -9028,6 +9189,7 @@ class C
                           IL_0006:  newobj     0x06000008
                           IL_000b:  throw
                         }
+                        <F>b__1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -9035,6 +9197,7 @@ class C
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -9047,6 +9210,7 @@ class C
                           IL_000a:  stfld      0x04000003
                           IL_000f:  ret
                         }
+                        <F>g__L3|2#1
                         {
                           // Code size        9 (0x9)
                           .maxstack  8
@@ -9128,6 +9292,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       40 (0x28)
                           .maxstack  2
@@ -9147,6 +9312,7 @@ class C
                           IL_0026:  nop
                           IL_0027:  ret
                         }
+                        <F>b__0
                         {
                           // Code size       14 (0xe)
                           .maxstack  8
@@ -9224,6 +9390,7 @@ class C
                         g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_0#1", ".ctor");
 
                         g.VerifyIL("""
+                        F
                         {
                           // Code size       19 (0x13)
                           .maxstack  2
@@ -9237,6 +9404,7 @@ class C
                           IL_0011:  nop
                           IL_0012:  ret
                         }
+                        <F>g__L|0_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9245,6 +9413,7 @@ class C
                           IL_0007:  newobj     0x06000005
                           IL_000c:  throw
                         }
+                        <F>g__L|0_0#1
                         {
                           // Code size       14 (0xe)
                           .maxstack  8
@@ -9255,6 +9424,7 @@ class C
                           IL_000c:  add
                           IL_000d:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -9342,6 +9512,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       40 (0x28)
                           .maxstack  2
@@ -9361,6 +9532,7 @@ class C
                           IL_0026:  nop
                           IL_0027:  ret
                         }
+                        <F>b__0
                         {
                           // Code size       14 (0xe)
                           .maxstack  8
@@ -9442,6 +9614,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       11 (0xb)
                           .maxstack  2
@@ -9452,6 +9625,7 @@ class C
                           IL_0009:  nop
                           IL_000a:  ret
                         }
+                        <F>g__L|0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9460,6 +9634,7 @@ class C
                           IL_0007:  newobj     0x06000008
                           IL_000c:  throw
                         }
+                        <F>b__1
                         {
                           // Code size       12 (0xc)
                           .maxstack  8
@@ -9468,6 +9643,7 @@ class C
                           IL_0006:  newobj     0x06000008
                           IL_000b:  throw
                         }
+                        <F>g__L|1_0#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -9475,6 +9651,7 @@ class C
                           IL_0001:  ldfld      0x04000003
                           IL_0006:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -9573,6 +9750,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       11 (0xb)
                           .maxstack  2
@@ -9583,6 +9761,7 @@ class C
                           IL_0009:  nop
                           IL_000a:  ret
                         }
+                        <F>g__L|0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9591,6 +9770,7 @@ class C
                           IL_0007:  newobj     0x06000007
                           IL_000c:  throw
                         }
+                        <F>g__L|1_0#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -9598,6 +9778,7 @@ class C
                           IL_0001:  ldfld      0x04000003
                           IL_0006:  ret
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -9676,6 +9857,7 @@ class C
                         g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1", "<F>b__1#1");
 
                         g.VerifyIL("""
+                        F
                         {
                           // Code size       34 (0x22)
                           .maxstack  2
@@ -9693,6 +9875,7 @@ class C
                           IL_0020:  nop
                           IL_0021:  ret
                         }
+                        <F>g__L|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9701,6 +9884,7 @@ class C
                           IL_0007:  newobj     0x06000005
                           IL_000c:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -9713,6 +9897,7 @@ class C
                           IL_000a:  stfld      0x04000002
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -9721,6 +9906,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>g__L|0#1, <F>b__1#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -9794,7 +9980,8 @@ class C
 
                         g.VerifyIL(
                         """
-                         {
+                        F
+                        {
                           // Code size       34 (0x22)
                           .maxstack  2
                           IL_0000:  newobj     0x06000006
@@ -9811,6 +9998,7 @@ class C
                           IL_0020:  nop
                           IL_0021:  ret
                         }
+                        <F>g__L|1_0
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
@@ -9819,6 +10007,7 @@ class C
                           IL_0007:  newobj     0x06000005
                           IL_000c:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -9831,6 +10020,7 @@ class C
                           IL_000a:  stfld      0x04000002
                           IL_000f:  ret
                         }
+                        .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -9839,6 +10029,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
+                        <F>g__L|0#1
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -9906,6 +10097,7 @@ class C
 
                         g.VerifyIL(
                         """
+                        F
                         {
                           // Code size       30 (0x1e)
                           .maxstack  8
@@ -9918,6 +10110,7 @@ class C
                           IL_0018:  stsfld     0x04000004
                           IL_001d:  ret
                         }
+                        <F>b__0_0
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -9926,6 +10119,7 @@ class C
                           IL_000a:  newobj     0x06000006
                           IL_000f:  throw
                         }
+                        .ctor
                         {
                           // Code size       16 (0x10)
                           .maxstack  8
@@ -9938,6 +10132,7 @@ class C
                           IL_000a:  stfld      0x04000003
                           IL_000f:  ret
                         }
+                        <F>b__0_0#1
                         {
                           // Code size       10 (0xa)
                           .maxstack  8

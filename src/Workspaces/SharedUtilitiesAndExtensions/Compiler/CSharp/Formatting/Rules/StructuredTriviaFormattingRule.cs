@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class StructuredTriviaFormattingRule : BaseFormattingRule
+internal sealed class StructuredTriviaFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Structured Trivia Formatting Rule";
 

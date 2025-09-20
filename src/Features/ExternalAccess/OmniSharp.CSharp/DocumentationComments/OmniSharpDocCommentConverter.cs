@@ -7,14 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.DocumentationComments
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.DocumentationComments;
+
+internal static class OmniSharpDocCommentConverter
 {
-    internal static class OmniSharpDocCommentConverter
+    public static SyntaxNode ConvertToRegularComments(SyntaxNode node, Project project, CancellationToken cancellationToken)
     {
-        public static SyntaxNode ConvertToRegularComments(SyntaxNode node, Project project, CancellationToken cancellationToken)
-        {
-            var formattingService = project.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
-            return DocCommentConverter.ConvertToRegularComments(node, formattingService, cancellationToken);
-        }
+        var formattingService = project.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+        return DocCommentConverter.ConvertToRegularComments(node, formattingService, cancellationToken);
     }
 }

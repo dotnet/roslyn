@@ -16,7 +16,7 @@ internal interface IStringCopyPasteService : IWorkspaceService
 }
 
 [ExportWorkspaceService(typeof(IStringCopyPasteService)), Shared]
-internal class DefaultStringCopyPasteService : IStringCopyPasteService
+internal sealed class DefaultStringCopyPasteService : IStringCopyPasteService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,10 +26,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// </summary>
 internal sealed class CommittedSolution
 {
-    private readonly DebuggingSession _debuggingSession;
-
-    private Solution _solution;
-
     internal enum DocumentState
     {
         None = 0,
@@ -60,6 +57,25 @@ internal sealed class CommittedSolution
         MatchesBuildOutput = 4
     }
 
+    private readonly DebuggingSession _debuggingSession;
+
+    /// <summary>
+    /// Current solution snapshot used as a baseline for calculating EnC delta.
+    /// </summary>
+    private Solution _solution;
+
+    /// <summary>
+    /// Tracks stale projects. Changes in these projects are ignored and their representation in the <see cref="_solution"/> does not match the binaries on disk.
+    /// 
+    /// Build of a multi-targeted project that sets <c>SingleTargetBuildForStartupProjects</c> msbuild property (e.g. MAUI) only 
+    /// builds TFM that's active. Other TFMs of the projects remain unbuilt or stale (from previous build).
+    /// 
+    /// A project is removed from this set if it's rebuilt.
+    /// 
+    /// Lock <see cref="_guard"/> to access.
+    /// </summary>
+    private readonly HashSet<ProjectId> _staleProjects = [];
+
     /// <summary>
     /// Implements workaround for https://github.com/dotnet/project-system/issues/5457.
     /// 
@@ -85,6 +101,8 @@ internal sealed class CommittedSolution
     /// A document state can only change from <see cref="DocumentState.OutOfSync"/> to <see cref="DocumentState.MatchesBuildOutput"/>.
     /// Once a document state is <see cref="DocumentState.MatchesBuildOutput"/> or <see cref="DocumentState.DesignTimeOnly"/>
     /// it will never change.
+    /// 
+    /// Lock <see cref="_guard"/> to access.
     /// </summary>
     private readonly Dictionary<DocumentId, DocumentState> _documentState = [];
 
@@ -124,6 +142,14 @@ internal sealed class CommittedSolution
     public Project GetRequiredProject(ProjectId id)
         => _solution.GetRequiredProject(id);
 
+    public bool IsStaleProject(ProjectId id)
+    {
+        lock (_guard)
+        {
+            return _staleProjects.Contains(id);
+        }
+    }
+
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string path)
         => _solution.GetDocumentIdsWithFilePath(path);
 
@@ -137,12 +163,11 @@ internal sealed class CommittedSolution
     /// 
     /// The result is cached and the next lookup uses the cached value, including failures unless <paramref name="reloadOutOfSyncDocument"/> is true.
     /// </summary>
-    public async Task<(Document? Document, DocumentState State)> GetDocumentAndStateAsync(DocumentId documentId, Document? currentDocument, CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false)
+    public async Task<(Document? Document, DocumentState State)> GetDocumentAndStateAsync(Document currentDocument, CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false)
     {
-        Contract.ThrowIfFalse(currentDocument == null || documentId == currentDocument.Id);
-
         Solution solution;
         var documentState = DocumentState.None;
+        var documentId = currentDocument.Id;
 
         lock (_guard)
         {
@@ -259,6 +284,12 @@ internal sealed class CommittedSolution
             }
             else
             {
+                // The following patches the current committed solution with the actual baseline content of the document, if we could retrieve it.
+                // This patch is temporary, in effect for the current delta calculation. Once the changes are applied and committed we 
+                // update the committed solution to the latest snapshot of the main workspace solution. This operation drops the changes made here.
+                // That's ok since we only patch documents that have been modified and therefore their new versions will be the correct baseline for the 
+                // next delta calculation. The baseline content loaded here won't be needed anymore.
+
                 // Document exists in the PDB but not in the committed solution.
                 // Add the document to the committed solution with its current (possibly out-of-sync) text.
                 if (committedDocument == null)
@@ -306,7 +337,7 @@ internal sealed class CommittedSolution
         }
     }
 
-    private async ValueTask<(Optional<SourceText?> matchingSourceText, bool? hasDocument)> TryGetMatchingSourceTextAsync(Document document, SourceText sourceText, Document? currentDocument, CancellationToken cancellationToken)
+    private async ValueTask<(Optional<SourceText?> matchingSourceText, bool? hasDocument)> TryGetMatchingSourceTextAsync(Document document, SourceText sourceText, Document currentDocument, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(document.FilePath);
 
@@ -403,7 +434,7 @@ internal sealed class CommittedSolution
 
         var documentIdArrays = await Task.WhenAll(projectTasks).ConfigureAwait(false);
 
-        return documentIdArrays.SelectMany(ids => ids.WhereNotNull()).Select(id => KeyValuePairUtil.Create(id, DocumentState.MatchesBuildOutput));
+        return documentIdArrays.SelectMany(ids => ids.WhereNotNull()).Select(id => KeyValuePair.Create(id, DocumentState.MatchesBuildOutput));
     }
 
     private static DebugInformationReaderProvider? GetMethodDebugInfoReader(TraceLog log, CompilationOutputs compilationOutputs, string projectName)
@@ -427,11 +458,16 @@ internal sealed class CommittedSolution
         }
     }
 
-    public void CommitSolution(Solution solution)
+    public void CommitChanges(Solution solution, ImmutableArray<ProjectId> projectsToStale, IReadOnlyCollection<ProjectId> projectsToUnstale)
     {
+        Debug.Assert(projectsToStale.Intersect(projectsToUnstale).IsEmpty());
+
         lock (_guard)
         {
             _solution = solution;
+            _staleProjects.AddRange(projectsToStale);
+            _staleProjects.RemoveRange(projectsToUnstale);
+            _documentState.RemoveAll(static (documentId, _, projectsToUnstale) => projectsToUnstale.Contains(documentId.ProjectId), projectsToUnstale);
         }
     }
 

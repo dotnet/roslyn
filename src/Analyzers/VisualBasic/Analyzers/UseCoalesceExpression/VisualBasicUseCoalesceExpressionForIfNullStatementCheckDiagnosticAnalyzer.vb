@@ -3,11 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Diagnostics.CodeAnalysis
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.UseCoalesceExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 

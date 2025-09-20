@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ServiceHub.Framework;
-using System.Threading.Tasks;
 using System.IO.Pipelines;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 
-internal class MockServiceBroker : IServiceBroker
+internal sealed class MockServiceBroker : IServiceBroker
 {
     public Func<Type, object>? CreateService;
 

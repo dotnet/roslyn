@@ -120,7 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_ToolName = MessageBase + 12697,
         IDS_LogoLine1 = MessageBase + 12698,
         IDS_LogoLine2 = MessageBase + 12699,
+        // <Metalama>
         IDS_LogoLine3 = MessageBase + 99999,
+        // </Metalama>
         IDS_CSCHelp = MessageBase + 12700,
 
         IDS_FeatureUsingStatic = MessageBase + 12701,
@@ -302,6 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
         IDS_FeatureExtensions = MessageBase + 12853,
         IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
+        IDS_FeatureExpressionOptionalAndNamedArguments = MessageBase + 12855,
+        IDS_CollectionExpression = MessageBase + 12856,
+
+        IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12857,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -489,6 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePartialEventsAndConstructors:
                 case MessageID.IDS_FeatureExtensions:
                 case MessageID.IDS_FeatureNullConditionalAssignment:
+                case MessageID.IDS_FeatureExpressionOptionalAndNamedArguments:
+                case MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.

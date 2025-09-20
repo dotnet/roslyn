@@ -10605,7 +10605,7 @@ record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X
                 "System.Object[] C.P4 { get; }",
                 "(System.Int32 X, System.Int32 Y) C.P5 { get; }",
                 "(System.Int32, System.Int32)[] C.P6 { get; }",
-                "nint C.P7 { get; }",
+                "System.IntPtr C.P7 { get; }",
                 "System.UIntPtr[] C.P8 { get; }"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
