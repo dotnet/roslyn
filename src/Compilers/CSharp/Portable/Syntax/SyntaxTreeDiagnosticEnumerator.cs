@@ -48,48 +48,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stack.Top.ProcessedDiagnostics = true;
                 }
 
-                if (processNodeAndPopIfComplete(node))
-                    stack.Pop();
+                processNode(node);
             }
 
             yield break;
 
-            bool processNodeAndPopIfComplete(GreenNode node)
+            void processNode(GreenNode node)
             {
                 // SlotCount is 0 when we hit tokens or normal trivia. In this case, we just want to move past the
                 // normal width of the item.  Importantly, in the case of tokens, we don't want to move the full-width.
                 // That would make us double-count the widths of the leading/trailing trivia which we're walking into as
                 // normal green nodes.
                 //
-                // As this has no children and has had its diagnostics processed, return true so we pop it and process
-                // its parent.
+                // As this has no children and has had its diagnostics processed, pop it and process its parent.
                 if (node.SlotCount == 0)
                 {
                     position += node.Width;
-                    return true;
                 }
-
-                for (var nextSlotIndex = stack.Top.SlotIndex + 1; nextSlotIndex < node.SlotCount; nextSlotIndex++)
+                else
                 {
-                    var child = node.GetSlot(nextSlotIndex);
-                    if (child == null)
-                        continue;
-
-                    // If the child doesn't have diagnostics anywhere in it, we can skip it entirely.
-                    if (!child.ContainsDiagnostics)
+                    for (var nextSlotIndex = stack.Top.SlotIndex + 1; nextSlotIndex < node.SlotCount; nextSlotIndex++)
                     {
-                        position += child.FullWidth;
-                        continue;
+                        var child = node.GetSlot(nextSlotIndex);
+                        if (child == null)
+                            continue;
+
+                        // If the child doesn't have diagnostics anywhere in it, we can skip it entirely.
+                        if (!child.ContainsDiagnostics)
+                        {
+                            position += child.FullWidth;
+                            continue;
+                        }
+
+                        stack.Top.SlotIndex = nextSlotIndex;
+                        stack.PushNodeOrToken(child);
+
+                        // Pushed a child to process, return out to continue processing it.
+                        return;
                     }
-
-                    stack.Top.SlotIndex = nextSlotIndex;
-                    stack.PushNodeOrToken(child);
-
-                    return false;
                 }
 
-                // Done with all children in this node. Pop it so we continue processing its parent.
-                return true;
+                // Done with this node. Pop it so we continue processing its parent.
+                stack.Pop();
             }
         }
 
