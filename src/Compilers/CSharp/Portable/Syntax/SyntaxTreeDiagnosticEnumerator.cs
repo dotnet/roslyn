@@ -22,9 +22,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!root.ContainsDiagnostics)
                 yield break;
 
+            // Note: for the duration of this method, 'position' is:
+            //
+            // 1. The FullStart of a node when we're on a node.
+            // 2. The FullStart of a trivia when we're on trivia.
+            // 3. The FullStart of a list whne we're on a list.
+            // 4. The *Start* (not FullStart) of a token when we're on a token.
+            //
+            // This is because when we hit a token, we will have processed its leading trivia, and will have moved foward.
+            //
+            // However, 
+
             using var stack = new NodeIterationStack(DefaultStackCapacity);
             stack.PushNodeOrToken(root);
 
+            // don't produce locations outside of tree span
+            var fullTreeLength = syntaxTree.GetRoot().FullSpan.Length;
+
+            GreenNode? previousNonTriviaNode = null;
             while (stack.Any())
             {
                 var node = stack.Top.Node;
@@ -33,16 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (SyntaxDiagnosticInfo sdi in node.GetDiagnostics())
                     {
-                        // For tokens, we've already seen leading trivia (as we push leading/trailing trivia explicit as
-                        // green nodes to process on the stack), so we have to roll back.  For nodes, we have yet to see the
-                        // leading trivia, so those don't need an adjustment.
-                        int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
-
-                        // don't produce locations outside of tree span
-                        var length = syntaxTree.GetRoot().FullSpan.Length;
-                        var spanStart = Math.Min(position - leadingWidthAlreadyCounted + sdi.Offset, length);
-                        var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
-
+                        var (spanStart, spanWidth) = computeDiagnosticStartAndWidth(sdi, node);
                         yield return new CSDiagnostic(sdi, new SourceLocation(syntaxTree, new TextSpan(spanStart, spanWidth)));
                     }
 
@@ -58,6 +64,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             yield break;
 
+            (int spanStart, int spanWidth) computeDiagnosticStartAndWidth(SyntaxDiagnosticInfo sdi, GreenNode node)
+            {
+                if (node.IsMissing)
+                {
+
+                }
+
+                // Normal case.  
+
+                // For tokens, we've already seen leading trivia (as we push leading/trailing trivia explicit as
+                // green nodes to process on the stack), so we have to roll back.  For nodes, we have yet to see the
+                // leading trivia, so those don't need an adjustment.
+                int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
+
+                var spanStart = Math.Min(position - leadingWidthAlreadyCounted + sdi.Offset, fullTreeLength);
+                var spanWidth = Math.Min(spanStart + sdi.Width, fullTreeLength) - spanStart;
+            }
+
             bool tryContinueWithThisNode(GreenNode node)
             {
                 // SlotCount is 0 when we hit tokens or normal trivia. In this case, we just want to move past the
@@ -67,6 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.SlotCount == 0)
                 {
                     position += node.Width;
+
+                    // We're done with this node.  If it isn't trivia, remember it as the last non-trivia node we've seen.
+                    if (!node.IsTrivia)
+                        previousNonTriviaNode = node;
                 }
                 else
                 {
@@ -81,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!child.ContainsDiagnostics)
                         {
                             position += child.FullWidth;
+
+                            // We're skipping this node.  If it isn't trivia, remember it as the last non-trivia node we've seen.
+                            if (!child.IsTrivia)
+                                previousNonTriviaNode = node;
+
                             continue;
                         }
 
