@@ -41865,13 +41865,8 @@ unsafe static class E
         comp.VerifyEmitDiagnostics(
             // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
             //     extension(int* i)
-            Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(3, 15),
-            // (5,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //         public static async void M() => throw null;
-            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(5, 34),
-            // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //         public async void M2() => throw null;
-            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(6, 27));
+            Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(3, 15)
+        );
     }
 
     [Fact]
@@ -50855,6 +50850,66 @@ static class E
             // (4,18): error CS0692: Duplicate type parameter 'T'
             //     extension<T, T>(int)
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(4, 18));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80294")]
+    public void XmlDoc_17(bool withDocumentationProvider)
+    {
+        string source = """
+public static class E
+{
+    extension(int i)
+    {
+        public void M() { }
+    }
+}
+""" + ExtensionMarkerAttributeDefinition;
+
+        var moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        var moduleRef = moduleComp.EmitToImageReference(documentation: withDocumentationProvider ? new TestDocumentationProvider() : null);
+
+        var comp = CreateCompilation("", references: [moduleRef], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        Assert.Equal("", e.GetDocumentationCommentXml());
+
+        var extension = e.GetTypeMembers().Single();
+        Assert.True(extension.IsExtension);
+        Assert.Equal("", extension.GetDocumentationCommentXml());
+        Assert.Equal("", extension.ContainingSymbol.GetDocumentationCommentXml());
+
+        Assert.Equal("", comp.GlobalNamespace.GetDocumentationCommentXml());
+
+        // Baseline without extensions
+        source = """
+/// <summary>Summary</summary>
+public class C { }
+""";
+
+        moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        moduleRef = moduleComp.EmitToImageReference(documentation: withDocumentationProvider ? new TestDocumentationProvider() : null);
+        string source2 = """
+/// <summary>Summary for D</summary>
+public class D { }
+""";
+
+        comp = CreateCompilation(source2, assemblyName: "name", references: [moduleRef], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        AssertEx.Equal("""
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>name</name>
+    </assembly>
+    <members>
+        <member name="T:D">
+            <summary>Summary for D</summary>
+        </member>
+    </members>
+</doc>
+""", GetDocumentationCommentText(comp));
     }
 
     [Fact]

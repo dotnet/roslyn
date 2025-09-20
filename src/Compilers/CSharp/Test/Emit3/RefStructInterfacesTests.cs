@@ -22471,8 +22471,6 @@ namespace System.Runtime.CompilerServices
         public void AsyncParameter()
         {
             var src = @"
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously.
-
 public class Helper
 {
     static async void Test1<T>(T x)
@@ -22492,12 +22490,12 @@ ref struct S
 
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyDiagnostics(
-                // (6,34): error CS4012: Parameters of type 'T' cannot be declared in async methods or async lambda expressions.
+                // (4,34): error CS4012: Parameters of type 'T' cannot be declared in async methods or async lambda expressions.
                 //     static async void Test1<T>(T x)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "x").WithArguments("T").WithLocation(6, 34),
-                // (11,31): error CS4012: Parameters of type 'S' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "x").WithArguments("T").WithLocation(4, 34),
+                // (9,31): error CS4012: Parameters of type 'S' cannot be declared in async methods or async lambda expressions.
                 //     static async void Test2(S y)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "y").WithArguments("S").WithLocation(11, 31)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "y").WithArguments("S").WithLocation(9, 31)
                 );
         }
 
@@ -29516,8 +29514,6 @@ static class CSharpCompilerCrash
         {
             var source =
 @"
-#pragma warning disable CS1998 // This async method lacks 'await' operators
-
 using System.Collections.Generic;
 
 static class CSharpCompilerCrash
@@ -29533,9 +29529,9 @@ static class CSharpCompilerCrash
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (8,47): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                // (6,47): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
                 //     static async IAsyncEnumerable<RefStructA> B()
-                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(8, 47)
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(6, 47)
                 );
         }
 
@@ -29546,8 +29542,6 @@ static class CSharpCompilerCrash
         {
             var source =
 @"
-#pragma warning disable CS1998 // This async method lacks 'await' operators
-
 using System.Collections.Generic;
 
 static class CSharpCompilerCrash
@@ -29563,9 +29557,9 @@ static class CSharpCompilerCrash
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (8,47): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                // (6,47): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
                 //     static async IAsyncEnumerator<RefStructA> B()
-                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(8, 47)
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(6, 47)
                 );
         }
 
@@ -29576,8 +29570,6 @@ static class CSharpCompilerCrash
         {
             var source =
 @"
-#pragma warning disable CS1998 // This async method lacks 'await' operators
-
 using System.Collections.Generic;
 
 static class CSharpCompilerCrash
@@ -29591,9 +29583,9 @@ static class CSharpCompilerCrash
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (8,38): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                // (6,38): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
                 //     static async IAsyncEnumerator<T> B<T>() where T : allows ref struct
-                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(8, 38)
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(6, 38)
                 );
         }
 

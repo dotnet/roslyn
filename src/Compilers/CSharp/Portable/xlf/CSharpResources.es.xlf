@@ -11125,17 +11125,7 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
         <target state="translated">El operador 'await' solo se puede usar en una expresión de consulta dentro de la primera expresión de colección de la cláusula 'from' inicial o de la expresión de colección de una cláusula 'join'</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">El método asincrónico carece de operadores "await" y se ejecutará de forma sincrónica. Puede usar el operador 'await' para esperar llamadas API que no sean de bloqueo o 'await Task.Run(...)' para hacer tareas enlazadas a la CPU en un subproceso en segundo plano.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">El método asincrónico carece de operadores "await" y se ejecutará de forma sincrónica</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnobservedAwaitableExpression">
+                  <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Como esta llamada no es 'awaited', la ejecución del método actual continuará antes de que se complete la llamada. Puede aplicar el operador 'await' al resultado de la llamada.</target>
         <note />
