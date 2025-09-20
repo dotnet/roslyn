@@ -157,8 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (current.IsToken)
                 {
-
-                    if (currentFullStart == desiredFullStartPosition)
+                    if (current.Width > 0 && currentFullStart == desiredFullStartPosition)
                         return current;
 
                     // The token we're looking for might be skipped trailing trivia in this current token.
