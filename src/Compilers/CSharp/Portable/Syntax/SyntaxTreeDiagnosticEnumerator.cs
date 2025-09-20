@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<Diagnostic> EnumerateDiagnostics(SyntaxTree syntaxTree, GreenNode root, int position)
         {
-            if (!root.ContainsDiagnostics)
-                yield break;
+            Debug.Assert(root.ContainsDiagnostics, "Caller should have checked that the root has diagnostics");
 
             using var stack = new NodeIterationStack(DefaultStackCapacity);
             stack.PushNodeOrToken(root);
