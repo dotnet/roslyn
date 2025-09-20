@@ -802,16 +802,15 @@ class Test : Itest
                 // (1,17): error CS1001: Identifier expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 17),
-                // (1,17): error CS1003: Syntax error, ',' expected
-                // public class S.D 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 17),
+                // (2,1): error CS1003: Syntax error, ',' expected
+                // {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 1),
                 // (2,2): error CS1002: ; expected
                 // {
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-                );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
