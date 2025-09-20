@@ -277,8 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 //the next character is neither the brace we expect, nor a token that could follow the expected
                 //brace so we assume it's a mistake and replace it with a missing brace 
-                openBrace = this.EatTokenWithPrejudiceForSkippedTokenList(SyntaxKind.OpenBraceToken);
-                openBrace = this.ConvertToMissingWithTrailingTrivia(openBrace, SyntaxKind.OpenBraceToken);
+                openBrace = this.ConvertToMissingWithTrailingTrivia(
+                    this.EatTokenWithPrejudiceForSkippedTokenList(SyntaxKind.OpenBraceToken),
+                    SyntaxKind.OpenBraceToken);
             }
 
             Debug.Assert(semicolon != null || openBrace != null);
