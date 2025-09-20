@@ -81,9 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // To accomplish this, we use the previousNonTriviaNode to find the token before us.  And we see if
                         // it had any end-of-lines in it.  If so, we'll move the back as well
                         var previousTrailingTrivia = priorToken.GetTrailingTriviaCore();
-                        if (containsEndOfLineTrivia(previousTrailingTrivia))
+                        var widthToSubtract = determineWidthToSubtract(previousTrailingTrivia);
+                        if (widthToSubtract > 0)
                         {
-                            var trailingTriviaStartPosition = Math.Min(currentPosition - previousTrailingTrivia.FullWidth, fullTreeLength);
+                            var trailingTriviaStartPosition = Math.Min(currentPosition - widthToSubtract, fullTreeLength);
                             return new TextSpan(trailingTriviaStartPosition, length: 0);
                         }
                     }
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     var childFullEnd = currentChildFullStart + child.FullWidth;
-                    if (childFullEnd <= desiredFullEndPosition)
+                    if (childFullEnd < desiredFullEndPosition)
                     {
                         currentChildFullStart += child.FullWidth;
                         continue;
@@ -195,25 +196,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            bool containsEndOfLineTrivia([NotNullWhen(true)] GreenNode? trivia)
+            int determineWidthToSubtract([NotNullWhen(true)] GreenNode? trivia)
             {
                 // Empty list.
                 if (trivia is null)
-                    return false;
+                    return 0;
 
                 // Singleton list.
                 if (trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia)
-                    return true;
+                    return trivia.FullWidth;
 
-                // Multi-item list.
-                for (var i = 0; i < trivia.SlotCount; i++)
+                var containsEndOfLine = false;
+                var widthToSubtract = 0;
+
+                for (var i = trivia.SlotCount - 1; i >= 0; i--)
                 {
                     var child = trivia.GetSlot(i);
-                    if (containsEndOfLineTrivia(child))
-                        return true;
+                    if (child is null)
+                        continue;
+
+                    if (child.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
+                        break;
+
+                    if (child.RawKind == (int)SyntaxKind.EndOfLineTrivia)
+                        containsEndOfLine = true;
+
+                    widthToSubtract += child.FullWidth;
                 }
 
-                return false;
+                return containsEndOfLine ? widthToSubtract : 0;
             }
 
             bool isMissingNodeOrToken(GreenNode node)
