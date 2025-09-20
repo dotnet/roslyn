@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             public int SlotIndex = -1;
 
             /// <summary>
-            /// We'll hit nodes multiple times.  First, when we run into them, and next, when we've processed all their
-            /// children and are on the way back up.  This tracks whether we've processed the diagnostics already so we
-            /// don't do it twice.
+            /// We'll hit nodes multiple times.  First, when we run into them, and then after processing each chiild and
+            /// popping back up to it.  This tracks whether we've processed the diagnostics already so we don't do it
+            /// twice.
             /// </summary>
             public bool ProcessedDiagnostics;
         }
