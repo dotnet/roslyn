@@ -9897,9 +9897,9 @@ partial class Partial : Generic<Argument>, ITest
 ";
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource,
-                                                 options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                       options: TestOptions.DebugDll,
+                                                       parseOptions: TestOptions.Regular,
+                                                       targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (6,18): error CS9333: 'C1.M()': return type must be 'string' to match implemented member 'I.M()'
                 //         object I.M() { return null; }
