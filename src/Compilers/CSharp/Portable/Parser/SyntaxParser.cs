@@ -773,10 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return WithAdditionalDiagnostics(node, MakeError(node, code, args));
             }
 
-            int offset, width;
-
-            SyntaxToken token = node as SyntaxToken;
-            if (token != null && token.ContainsSkippedText)
+            if (node is SyntaxToken { ContainsSkippedText: true, TrailingTrivia: var trailingTrivia })
             {
                 // This code exists to clean up an anti-pattern:
                 //   1) an undesirable token is parsed,
@@ -786,34 +783,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // of the undesirable token (now skipped text).  Since the trivia no longer precedes the
                 // node to which the error is to be attached, the computed offset will be incorrect.
 
-                offset = token.GetLeadingTriviaWidth(); // Should always be zero, but at least we'll do something sensible if it's not.
-                Debug.Assert(offset == 0, "Why are we producing a missing token that has both skipped text and leading trivia?");
+                // In other words, say we have the following:
+                //
+                //      <missing token><whitespace trivia><skipped_token><current_token>
+                //      ^                                                ^
+                //      |                                                | position.
+                //      Input Token
+                //
+                // We want to place the diagnostic here:
+                //
+                //      <missing token><whitespace trivia><skipped_token><current_token>
+                //                                        ^
+                //                                        | here.
 
-                width = 0;
-                bool seenSkipped = false;
-                foreach (var trivia in token.TrailingTrivia)
+                Debug.Assert(node.GetLeadingTriviaWidth() == 0, "Why are we producing a missing token that has both skipped text and leading trivia?");
+                Debug.Assert(node.Width == 0, "Why are we producing a missing token that has both skipped text and text contents?");
+
+                // Should always be zero, but at least we'll do something sensible if it's not.
+                var contiguousSkippedTokensOffset = node.GetLeadingTriviaWidth() + node.Width;
+                var contiguousSkippedTokensWidth = 0;
+
+                // The offset of the diagnostic should be the start of the first actual skipped-token in the trailing trivia.
+                var trailingTriviaIndex = 0;
+                while (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind != SyntaxKind.SkippedTokensTrivia)
                 {
-                    if (trivia.Kind == SyntaxKind.SkippedTokensTrivia)
-                    {
-                        seenSkipped = true;
-                        width += trivia.Width;
-                    }
-                    else if (seenSkipped)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        offset += trivia.Width;
-                    }
+                    contiguousSkippedTokensOffset += trailingTrivia[trailingTriviaIndex].Width;
+                    trailingTriviaIndex++;
                 }
+
+                // Now consume all following contiguous skipped trivia to determine the full width of the diagnostic to
+                // report on them.
+                while (trailingTriviaIndex < trailingTrivia.Count && trailingTrivia[trailingTriviaIndex].Kind == SyntaxKind.SkippedTokensTrivia)
+                {
+                    contiguousSkippedTokensWidth += trailingTrivia[trailingTriviaIndex].Width;
+                    trailingTriviaIndex++;
+                }
+
+                Debug.Assert(contiguousSkippedTokensWidth > 0, "We should have found at least one skipped token.");
+
+                return WithAdditionalDiagnostics(node, MakeError(contiguousSkippedTokensOffset, contiguousSkippedTokensWidth, code, args));
             }
             else
             {
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                // Given the following:
+                //
+                //      <missing token><trivia><current_token>
+                //      ^                      ^
+                //      |                      | position.
+                //      Input Token
+                //
+                // We want to place the diagnostic here:
+                //
+                //      <missing token><trivia><current_token>
+                //                             ^
+                //                             | here.
+                this.GetDiagnosticSpanForMissingToken(out var offset, out var width);
+                return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
             }
 
-            return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
         }
 
         protected TNode AddError<TNode>(TNode node, int offset, int length, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
