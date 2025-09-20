@@ -699,7 +699,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
                                     {
                                         RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
-                                        attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
+
+                                        attribute = attribute.Update(
+                                            attribute.OpenBracketToken,
+                                            attribute.Target.Update(
+                                                this.AddError(attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst),
+                                                attribute.Target.ColonToken),
+                                            attribute.Attributes,
+                                            attribute.CloseBracketToken);
+
                                         this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
                                     }
                                     else
@@ -3818,7 +3826,7 @@ parse_member_name:;
 
                 if (separator.Kind != SyntaxKind.DotToken)
                 {
-                    separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, separator.GetLeadingTriviaWidth(), separator.Width));
+                    separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, offset: 0, separator.Width));
                     separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                 }
 
@@ -3884,7 +3892,7 @@ parse_member_name:;
             {
                 opToken = this.EatToken();
                 Debug.Assert(!opToken.IsMissing);
-                opTokenErrorOffset = opToken.GetLeadingTriviaWidth();
+                opTokenErrorOffset = 0;
                 opTokenErrorWidth = opToken.Width;
             }
             else
@@ -3916,7 +3924,7 @@ parse_member_name:;
                     // message if they do `operator ..`
                     opToken = IsAtDotDotToken() ? EatDotDotToken() : EatToken();
                     Debug.Assert(!opToken.IsMissing);
-                    opTokenErrorOffset = opToken.GetLeadingTriviaWidth();
+                    opTokenErrorOffset = 0;
                     opTokenErrorWidth = opToken.Width;
                 }
             }
@@ -6611,7 +6619,7 @@ parse_member_name:;
                 {
                     if (separator.Kind != SyntaxKind.DotToken)
                     {
-                        separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, separator.GetLeadingTriviaWidth(), separator.Width));
+                        separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, offset: 0, separator.Width));
                         separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                     }
 
@@ -6793,7 +6801,7 @@ parse_member_name:;
 
             if (separator.Kind != SyntaxKind.DotToken)
             {
-                separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, separator.GetLeadingTriviaWidth(), separator.Width));
+                separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, offset: 0, separator.Width));
                 separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
             }
 
@@ -7646,6 +7654,10 @@ done:
             var list = _pool.AllocateSeparated<ExpressionSyntax>();
 
             var omittedArraySizeExpressionInstance = _syntaxFactory.OmittedArraySizeExpression(SyntaxFactory.Token(SyntaxKind.OmittedArraySizeExpressionToken));
+            Debug.Assert(omittedArraySizeExpressionInstance.Width == 0);
+            Debug.Assert(omittedArraySizeExpressionInstance.FullWidth == 0);
+            Debug.Assert(omittedArraySizeExpressionInstance.GetLeadingTriviaWidth() == 0);
+
             int lastTokenPosition = -1;
             while (IsMakingProgress(ref lastTokenPosition) && this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
             {
@@ -7689,9 +7701,12 @@ done:
                 {
                     if (list[i].RawKind == (int)SyntaxKind.OmittedArraySizeExpression)
                     {
-                        int width = list[i].Width;
-                        int offset = list[i].GetLeadingTriviaWidth();
-                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset, width, ErrorCode.ERR_ValueExpected);
+                        Debug.Assert(list[i] == omittedArraySizeExpressionInstance);
+                        Debug.Assert(list[i].Width == 0);
+                        Debug.Assert(list[i].FullWidth == 0);
+                        Debug.Assert(list[i].GetLeadingTriviaWidth() == 0);
+
+                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset: 0, length: 0, ErrorCode.ERR_ValueExpected);
                     }
                 }
             }
@@ -11568,7 +11583,7 @@ done:
                 // `...` at all in case we want to use that syntax in the future.
                 dotDotToken = AddError(
                     dotDotToken,
-                    offset: dotDotToken.GetLeadingTriviaWidth(),
+                    offset: 0,
                     length: 0,
                     ErrorCode.ERR_TripleDotNotAllowed);
 
@@ -13853,7 +13868,7 @@ done:
                 //keyword or a literal, for example), but we can see that the "in" is in the right place, then
                 //just replace whatever is here with a missing identifier
                 name = this.EatToken();
-                name = WithAdditionalDiagnostics(name, this.GetExpectedTokenError(SyntaxKind.IdentifierToken, name.ContextualKind, name.GetLeadingTriviaWidth(), name.Width));
+                name = WithAdditionalDiagnostics(name, this.GetExpectedTokenError(SyntaxKind.IdentifierToken, name.ContextualKind, 0, name.Width));
                 name = this.ConvertToMissingWithTrailingTrivia(name, SyntaxKind.IdentifierToken);
             }
             else

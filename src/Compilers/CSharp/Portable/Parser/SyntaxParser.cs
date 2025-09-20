@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             //slow part of EatToken(SyntaxKind kind)
-            return CreateMissingToken(kind, this.CurrentToken.Kind, reportError: true);
+            return CreateMissingToken(kind, this.CurrentToken.Kind);
         }
 
         // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
@@ -545,18 +545,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return ct;
             }
 
-            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind);
             return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
-        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
+        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual)
         {
             // should we eat the current ParseToken's leading trivia?
             var token = SyntaxFactory.MissingToken(expected);
-            if (reportError)
-            {
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
-            }
+            token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
 
             return token;
         }
@@ -621,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected SyntaxToken EatTokenWithPrejudice(ErrorCode errorCode, params object[] args)
         {
             var token = this.EatToken();
-            token = WithAdditionalDiagnostics(token, MakeError(token.GetLeadingTriviaWidth(), token.Width, errorCode, args));
+            token = WithAdditionalDiagnostics(token, MakeError(offset: 0, token.Width, errorCode, args));
             return token;
         }
 
@@ -639,14 +636,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxToken EatContextualToken(SyntaxKind kind, bool reportError = true)
+        protected SyntaxToken EatContextualToken(SyntaxKind kind)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
 
             var contextualKind = this.CurrentToken.ContextualKind;
             if (contextualKind != kind)
             {
-                return CreateMissingToken(kind, contextualKind, reportError);
+                return CreateMissingToken(kind, contextualKind);
             }
             else
             {
@@ -734,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             SyntaxToken ct = this.CurrentToken;
-            offset = ct.GetLeadingTriviaWidth();
+            offset = 0;
             width = ct.Width;
         }
 
@@ -821,24 +818,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, MakeError(offset, length, code, args));
         }
 
-        protected TNode AddError<TNode>(TNode node, CSharpSyntaxNode location, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
-        {
-            // assumes non-terminals will at most appear once in sub-tree
-            int offset;
-            FindOffset(node, location, out offset);
-            return WithAdditionalDiagnostics(node, MakeError(offset, location.Width, code, args));
-        }
-
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
         {
             var firstToken = node.GetFirstToken();
-            return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code));
+            return WithAdditionalDiagnostics(node, MakeError(offset: 0, firstToken.Width, code));
         }
 
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
         {
             var firstToken = node.GetFirstToken();
-            return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code, args));
+            return WithAdditionalDiagnostics(node, MakeError(offset: 0, firstToken.Width, code, args));
         }
 
         protected TNode AddErrorToLastToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
@@ -849,14 +838,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, MakeError(offset, width, code));
         }
 
-        protected TNode AddErrorToLastToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
-        {
-            int offset;
-            int width;
-            GetOffsetAndWidthForLastToken(node, out offset, out width);
-            return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
-        }
-
         private static void GetOffsetAndWidthForLastToken<TNode>(TNode node, out int offset, out int width) where TNode : CSharpSyntaxNode
         {
             var lastToken = node.GetLastNonmissingToken();
@@ -864,8 +845,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             width = 0;
             if (lastToken != null) //will be null if all tokens are missing
             {
-                offset -= lastToken.FullWidth; //rewind past last token
-                offset += lastToken.GetLeadingTriviaWidth(); //advance past last token leading trivia - now at start of last token
+                // Get to the start position of the last token
+                offset -= lastToken.GetTrailingTriviaWidth();
+                offset -= lastToken.Width;
+
                 width += lastToken.Width;
             }
         }
@@ -882,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected static SyntaxDiagnosticInfo MakeError(GreenNode node, ErrorCode code, params object[] args)
         {
-            return new SyntaxDiagnosticInfo(node.GetLeadingTriviaWidth(), node.Width, code, args);
+            return new SyntaxDiagnosticInfo(offset: 0, node.Width, code, args);
         }
 
         protected static SyntaxDiagnosticInfo MakeError(ErrorCode code, params object[] args)
@@ -939,15 +922,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // the error in we'll attach to the node
             SyntaxDiagnosticInfo diagnostic = null;
+            var diagnosticOffsetInSkippedSyntax = 0;
 
-            // the position of the error within the skippedSyntax node full tree
-            int diagnosticOffset = 0;
+            //// the position of the error within the skippedSyntax node full tree
+            //int diagnosticOffset = 0;
 
-            int currentOffset = 0;
+            var currentOffsetInSkippedSyntax = 0;
             foreach (var node in skippedSyntax.EnumerateNodes())
             {
-                SyntaxToken token = node as SyntaxToken;
-                if (token != null)
+                if (node is SyntaxToken token)
                 {
                     builder.Add(token.GetLeadingTrivia());
 
@@ -956,33 +939,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // separate trivia from the tokens
                         SyntaxToken tk = token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null);
 
-                        // adjust relative offsets of diagnostics attached to the token:
-                        int leadingWidth = token.GetLeadingTriviaWidth();
-                        if (leadingWidth > 0)
-                        {
-                            var tokenDiagnostics = tk.GetDiagnostics();
-                            for (int i = 0; i < tokenDiagnostics.Length; i++)
-                            {
-                                var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
-                                tokenDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset - leadingWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                            }
-                        }
+                        //// adjust relative offsets of diagnostics attached to the token:
+                        //int leadingWidth = token.GetLeadingTriviaWidth();
+                        //if (leadingWidth > 0)
+                        //{
+                        //    var tokenDiagnostics = tk.GetDiagnostics();
+                        //    for (int i = 0; i < tokenDiagnostics.Length; i++)
+                        //    {
+                        //        var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
+                        //        tokenDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset - leadingWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
+                        //    }
+                        //}
 
+                        // Don't need to do anything with diagnostics here.  Any diagnostics attached to tk stay attached to tk.
                         builder.Add(SyntaxFactory.SkippedTokensTrivia(tk));
                     }
                     else
                     {
                         // do not create zero-width structured trivia, GetStructure doesn't work well for them
-                        var existing = (SyntaxDiagnosticInfo)token.GetDiagnostics().FirstOrDefault();
-                        if (existing != null)
+
+                        // However, if there is a diagnostic on the zero-width token, and we haven't captured any others
+                        // already, then capture this one.
+                        if (diagnostic == null)
                         {
-                            diagnostic = existing;
-                            diagnosticOffset = currentOffset;
+                            var existing = (SyntaxDiagnosticInfo)token.GetDiagnostics().FirstOrDefault();
+                            if (existing != null)
+                            {
+                                diagnostic = existing;
+                                diagnosticOffsetInSkippedSyntax = currentOffsetInSkippedSyntax + token.GetLeadingTriviaWidth() + existing.Offset;
+                            }
                         }
                     }
                     builder.Add(token.GetTrailingTrivia());
 
-                    currentOffset += token.FullWidth;
+                    currentOffsetInSkippedSyntax += token.FullWidth;
                 }
                 else if (node.ContainsDiagnostics && diagnostic == null)
                 {
@@ -991,106 +981,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (existing != null)
                     {
                         diagnostic = existing;
-                        diagnosticOffset = currentOffset;
+                        diagnosticOffsetInSkippedSyntax = currentOffsetInSkippedSyntax + node.GetLeadingTriviaWidth() + existing.Offset;
                     }
                 }
             }
 
-            int triviaWidth = currentOffset;
             var trivia = builder.ToListNode();
 
-            // total width of everything preceding the added trivia
-            int triviaOffset;
             if (trailing)
             {
-                var trailingTrivia = target.GetTrailingTrivia();
-                triviaOffset = target.FullWidth; //added trivia is full width (before addition)
-                target = target.TokenWithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
+                var initialTrailingTrivia = target.GetTrailingTrivia();
+                var initialTrailingTriviaFullWidth = target.GetTrailingTriviaWidth();
+
+                // We are potentially moving a diagnostic in the skipped syntax that follows the target token to belong
+                // to the target token. In that case it's offset will be reletive to the target token's Start (not its
+                // FullStart).  So to compute where it should go, we have to add the target token's Width, then the
+                // Width of the trivia that follows the target token, then where the diagnostic was located in the
+                // original skipped syntax.
+                var diagnosticOffset = target.Width + initialTrailingTriviaFullWidth + diagnosticOffsetInSkippedSyntax;
+
+                target = target.TokenWithTrailingTrivia(SyntaxList.Concat(initialTrailingTrivia, trivia));
+
+                if (diagnostic != null)
+                {
+                    target = WithAdditionalDiagnostics(target,
+                        new SyntaxDiagnosticInfo(diagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
+                }
             }
             else
             {
                 // Since we're adding triviaWidth before the token, we have to add that much to
                 // the offset of each of its diagnostics.
-                if (triviaWidth > 0)
+                //if (triviaWidth > 0)
+                //{
+                //    var targetDiagnostics = target.GetDiagnostics();
+                //    for (int i = 0; i < targetDiagnostics.Length; i++)
+                //    {
+                //        var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
+                //        targetDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset + triviaWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
+                //    }
+                //}
+
+                var initialLeadingTrivia = target.GetLeadingTrivia();
+                var initialLeadingTriviaFullWidth = target.GetLeadingTriviaWidth();
+
+                target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, initialLeadingTrivia));
+
+                if (diagnostic != null)
                 {
-                    var targetDiagnostics = target.GetDiagnostics();
-                    for (int i = 0; i < targetDiagnostics.Length; i++)
-                    {
-                        var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
-                        targetDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset + triviaWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                    }
+                    // Since offsets are relative to the *Start* of the target token, not the *FullStart*, we want to
+                    // move it backwards, skipping over the target token's leading trivia, then the right amount that
+                    // the diagnostic was originally found (backwards) in the skipped syntax.  This will form the final
+                    // offset (relative to the target token).
+                    var offsetFromEndOfSkippedSyntax = skippedSyntax.FullWidth - diagnosticOffsetInSkippedSyntax;
+                    Debug.Assert(offsetFromEndOfSkippedSyntax >= 0);
+
+                    var diagnosticOffset = -(initialLeadingTriviaFullWidth + offsetFromEndOfSkippedSyntax);
+                    target = WithAdditionalDiagnostics(target,
+                        new SyntaxDiagnosticInfo(diagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
                 }
-
-                var leadingTrivia = target.GetLeadingTrivia();
-                target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
-                triviaOffset = 0; //added trivia is first, so offset is zero
             }
 
-            if (diagnostic != null)
-            {
-                int newOffset = triviaOffset + diagnosticOffset + diagnostic.Offset;
+            //    if (diagnostic != null)
+            //{
+            //    // We found a diagnotic on 
 
-                target = WithAdditionalDiagnostics(target,
-                    new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments)
-                );
-            }
+            //    int newOffset = triviaOffset + diagnosticOffset + diagnostic.Offset;
+
+            //    target = WithAdditionalDiagnostics(target,
+            //        new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
+            //}
 
             return target;
-        }
-
-        /// <summary>
-        /// This function searches for the given location node within the subtree rooted at root node. 
-        /// If it finds it, the function computes the offset span of that child node within the root and returns true, 
-        /// otherwise it returns false.
-        /// </summary>
-        /// <param name="root">Root node</param>
-        /// <param name="location">Node to search in the subtree rooted at root node</param>
-        /// <param name="offset">Offset of the location node within the subtree rooted at child</param>
-        /// <returns></returns>
-        private bool FindOffset(GreenNode root, CSharpSyntaxNode location, out int offset)
-        {
-            int currentOffset = 0;
-            offset = 0;
-            if (root != null)
-            {
-                for (int i = 0, n = root.SlotCount; i < n; i++)
-                {
-                    var child = root.GetSlot(i);
-                    if (child == null)
-                    {
-                        // ignore null slots
-                        continue;
-                    }
-
-                    // check if the child node is the location node
-                    if (child == location)
-                    {
-                        // Found the location node in the subtree
-                        // Initialize offset with the offset of the location node within its parent
-                        // and walk up the stack of recursive calls adding the offset of each node
-                        // within its parent
-                        offset = currentOffset;
-                        return true;
-                    }
-
-                    // search for the location node in the subtree rooted at child node
-                    if (this.FindOffset(child, location, out offset))
-                    {
-                        // Found the location node in child's subtree
-                        // Add the offset of child node within its parent to offset
-                        // and continue walking up the stack
-                        offset += child.GetLeadingTriviaWidth() + currentOffset;
-                        return true;
-                    }
-
-                    // We didn't find the location node in the subtree rooted at child
-                    // Move on to the next child
-                    currentOffset += child.FullWidth;
-                }
-            }
-
-            // We didn't find the location node within the subtree rooted at root node
-            return false;
         }
 
         protected static SyntaxToken ConvertToKeyword(SyntaxToken token)

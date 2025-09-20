@@ -5119,6 +5119,19 @@ class Test
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
         }
 
+        [Fact, WorkItem(863438, "DevDiv/Personal")]
+        public void CS1730ERR_GlobalAttributesNotFirst2()
+        {
+            var test = """
+                class Test
+                {
+                }
+                [  assembly  :System.Attribute]
+                """;
+
+            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
+        }
+
         [Fact(), WorkItem(527039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527039")]
         public void CS1732ERR_ParameterExpected()
         {

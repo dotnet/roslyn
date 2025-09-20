@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (!_foundOldToken)
                 {
-                    var token = node as SyntaxToken;
-                    if (token != null)
+                    if (node is SyntaxToken token)
                     {
                         Debug.Assert(token == _oldToken);
                         _foundOldToken = true;
