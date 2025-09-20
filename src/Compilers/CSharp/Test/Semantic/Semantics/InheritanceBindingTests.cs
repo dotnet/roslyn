@@ -9867,7 +9867,7 @@ partial class Partial : Generic<Argument>, ITest
         }
 
         [Fact]
-        public void DuplicatedExplicitInterfaceMemberReturnTypeMismatch()
+        public void DuplicateExplicitInterfaceMemberReturnTypeMismatch()
         {
             var ilSource =
 @"
