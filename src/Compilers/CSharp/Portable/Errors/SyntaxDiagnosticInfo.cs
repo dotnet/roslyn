@@ -21,6 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the exact syntactic construct they may be reporting their span under.
         /// </summary>
         internal readonly int Offset;
+
+        /// <summary>
+        /// Represents the width of the diagnostic.  Must be non-negative, but may be zero.
+        /// </summary>
         internal readonly int Width;
 
         internal SyntaxDiagnosticInfo(int offset, int width, ErrorCode code, params object[] args)
