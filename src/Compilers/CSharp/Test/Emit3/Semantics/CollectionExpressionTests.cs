@@ -5093,15 +5093,12 @@ static class Program
 
             verifier.VerifyIL("Program.M", $$"""
                 {
-                  // Code size       15 (0xf)
+                  // Code size       13 (0xd)
                   .maxstack  1
-                  .locals init (Base[] V_0)
                   IL_0000:  ldarga.s   V_0
                   IL_0002:  call       "Derived[] System.{{spanType}}<Derived>.ToArray()"
-                  IL_0007:  stloc.0
-                  IL_0008:  ldloc.0
-                  IL_0009:  newobj     "<>z__ReadOnlyArray<Base>..ctor(Base[])"
-                  IL_000e:  ret
+                  IL_0007:  newobj     "<>z__ReadOnlyArray<Base>..ctor(Base[])"
+                  IL_000c:  ret
                 }
                 """);
         }
@@ -5254,15 +5251,12 @@ static class Program
 
             verifier.VerifyIL("Program.M", """
                 {
-                  // Code size       14 (0xe)
+                  // Code size       12 (0xc)
                   .maxstack  1
-                  .locals init (Base[] V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  callvirt   "Derived[] System.Collections.Generic.List<Derived>.ToArray()"
-                  IL_0006:  stloc.0
-                  IL_0007:  ldloc.0
-                  IL_0008:  newobj     "<>z__ReadOnlyArray<Base>..ctor(Base[])"
-                  IL_000d:  ret
+                  IL_0006:  newobj     "<>z__ReadOnlyArray<Base>..ctor(Base[])"
+                  IL_000b:  ret
                 }
                 """);
         }
@@ -28141,12 +28135,11 @@ partial class Program
 
             verifier.VerifyIL("Program.Main", $$"""
                 {
-                  // Code size       83 (0x53)
+                  // Code size       81 (0x51)
                   .maxstack  2
                   .locals init (System.{{spanType}}<Derived> V_0, //d
                                 System.ReadOnlySpan<Base> V_1, //b
-                                <>y__InlineArray3<Derived> V_2,
-                                Base[] V_3)
+                                <>y__InlineArray3<Derived> V_2)
                   IL_0000:  ldloca.s   V_2
                   IL_0002:  initobj    "<>y__InlineArray3<Derived>"
                   IL_0008:  ldloca.s   V_2
@@ -28171,12 +28164,10 @@ partial class Program
                   IL_003b:  ldloca.s   V_1
                   IL_003d:  ldloca.s   V_0
                   IL_003f:  call       "Derived[] System.{{spanType}}<Derived>.ToArray()"
-                  IL_0044:  stloc.3
-                  IL_0045:  ldloc.3
-                  IL_0046:  call       "System.ReadOnlySpan<Base>..ctor(Base[])"
-                  IL_004b:  ldloca.s   V_1
-                  IL_004d:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
-                  IL_0052:  ret
+                  IL_0044:  call       "System.ReadOnlySpan<Base>..ctor(Base[])"
+                  IL_0049:  ldloca.s   V_1
+                  IL_004b:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
+                  IL_0050:  ret
                 }
                 """);
         }
@@ -28225,22 +28216,19 @@ partial class Program
 
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       29 (0x1d)
+                  // Code size       27 (0x1b)
                   .maxstack  2
                   .locals init (System.Collections.Generic.List<Derived> V_0, //d
-                                System.ReadOnlySpan<Base> V_1, //b
-                                Base[] V_2)
+                                System.ReadOnlySpan<Base> V_1) //b
                   IL_0000:  call       "System.Collections.Generic.List<Derived> Program.CreateList()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloca.s   V_1
                   IL_0008:  ldloc.0
                   IL_0009:  callvirt   "Derived[] System.Collections.Generic.List<Derived>.ToArray()"
-                  IL_000e:  stloc.2
-                  IL_000f:  ldloc.2
-                  IL_0010:  call       "System.ReadOnlySpan<Base>..ctor(Base[])"
-                  IL_0015:  ldloca.s   V_1
-                  IL_0017:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
-                  IL_001c:  ret
+                  IL_000e:  call       "System.ReadOnlySpan<Base>..ctor(Base[])"
+                  IL_0013:  ldloca.s   V_1
+                  IL_0015:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
+                  IL_001a:  ret
                 }
                 """);
         }
@@ -37916,15 +37904,12 @@ partial class Program
             var verifier = CompileAndVerify(source, expectedOutput: "a");
             verifier.VerifyIL("C.M", """
                 {
-                  // Code size       14 (0xe)
+                  // Code size       12 (0xc)
                   .maxstack  1
-                  .locals init (object[] V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  callvirt   "string[] System.Collections.Generic.List<string>.ToArray()"
-                  IL_0006:  stloc.0
-                  IL_0007:  ldloc.0
-                  IL_0008:  newobj     "<>z__ReadOnlyArray<object>..ctor(object[])"
-                  IL_000d:  ret
+                  IL_0006:  newobj     "<>z__ReadOnlyArray<object>..ctor(object[])"
+                  IL_000b:  ret
                 }
                 """);
         }

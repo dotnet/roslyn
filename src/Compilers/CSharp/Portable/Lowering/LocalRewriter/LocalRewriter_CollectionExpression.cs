@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression array;
-            if (TryOptimizeSingleSpreadToArray(node, targetsReadOnlyCollection: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan, arrayType) is { } optimizedArray)
+            if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan, arrayType) is { } optimizedArray)
             {
                 array = optimizedArray;
             }
@@ -323,8 +323,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return array;
             }
 
-            Debug.Assert(TypeSymbol.Equals(array.Type, spanConstructor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions));
+            verifyTypesAreCompatible(_compilation, array.Type, spanConstructor.Parameters[0].Type);
             return new BoundObjectCreationExpression(syntax, spanConstructor, array);
+
+            [Conditional("DEBUG")]
+            static void verifyTypesAreCompatible(CSharpCompilation compilation, TypeSymbol? arrayType, TypeSymbol constructorParameterType)
+            {
+                Debug.Assert(arrayType is not null);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                Debug.Assert(compilation.Conversions.ClassifyImplicitConversionFromType(arrayType, constructorParameterType, ref discardedUseSiteInfo).IsValid);
+            }
         }
 
         private BoundExpression VisitCollectionInitializerCollectionExpression(BoundCollectionExpression node, TypeSymbol collectionType)
@@ -456,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression createArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
             {
-                if (TryOptimizeSingleSpreadToArray(node, targetsReadOnlyCollection: true, arrayType) is { } optimizedArray)
+                if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection: true, arrayType) is { } optimizedArray)
                     return optimizedArray;
 
                 return CreateAndPopulateArray(node, arrayType);
@@ -648,11 +656,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Attempt to optimize conversion of a single-spread collection expr to array, even if the spread length is not known.</summary>
         /// <remarks>
         /// The following optimizations are tried, in order:
-        /// 1. 'List.ToArray' if the spread value is a list
-        /// 2. 'Enumerable.ToArray' if we can convert the spread value to IEnumerable and additional conditions are met
-        /// 3. 'Span/ReadOnlySpan.ToArray' if we can convert the spread value to Span or ReadOnlySpan
+        /// <list type="number">
+        /// <item><c>List.ToArray</c> if the spread value is a list</item>
+        /// <item><c>Enumerable.ToArray</c> if we can convert the spread value to IEnumerable and additional conditions are met</item>
+        /// <item><c>Span/ReadOnlySpan.ToArray</c> if we can convert the spread value to Span or ReadOnlySpan</item>
+        /// </list>
+        /// Applying conversion to the resulting array is up to the caller
         /// </remarks>
-        private BoundExpression? TryOptimizeSingleSpreadToArray(BoundCollectionExpression node, bool targetsReadOnlyCollection, ArrayTypeSymbol arrayType)
+        private BoundExpression? TryOptimizeSingleSpreadToArray_NoConversionApplied(BoundCollectionExpression node, bool targetsReadOnlyCollection, ArrayTypeSymbol arrayType)
         {
             // Collection-expr is of the form `[..spreadExpression]`.
             // Optimize to `spreadExpression.ToArray()` if possible.
@@ -673,8 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     && tryGetToArrayMethod(spreadTypeOriginalDefinition, WellKnownType.System_Collections_Generic_List_T, WellKnownMember.System_Collections_Generic_List_T__ToArray, out MethodSymbol? listToArrayMethod))
                 {
                     var rewrittenSpreadExpression = VisitExpression(spreadExpression);
-                    var listToArray = _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
-                    return _factory.Convert(arrayType, listToArray, spreadElementConversion);
+                    return _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
                 }
 
                 // See if 'Enumerable.ToArray<T>(IEnumerable<T>)' will work, possibly due to a covariant conversion on the spread value.
@@ -698,8 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         || tryGetToArrayMethod(spanType, WellKnownType.System_Span_T, WellKnownMember.System_Span_T__ToArray, out toArrayMethod))
                     {
                         var rewrittenSpreadExpression = CallAsSpanMethod(VisitExpression(spreadExpression), asSpanMethod);
-                        var spanToArray = _factory.Call(rewrittenSpreadExpression, toArrayMethod.AsMember((NamedTypeSymbol)rewrittenSpreadExpression.Type!));
-                        return _factory.Convert(arrayType, spanToArray, spreadElementConversion);
+                        return _factory.Call(rewrittenSpreadExpression, toArrayMethod.AsMember((NamedTypeSymbol)rewrittenSpreadExpression.Type!));
                     }
                 }
 
@@ -738,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Shouldn't call this method if the single spread optimization would work.
             // Passing `targetsReadOnlyCollection` as false since it is more restrictive case.
             // Having a separate parameter just to make an assert doesn't make much sense to me
-            Debug.Assert(TryOptimizeSingleSpreadToArray(node, targetsReadOnlyCollection: false, arrayType) is null);
+            Debug.Assert(TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection: false, arrayType) is null);
 
             if (numberIncludingLastSpread == 0)
             {
