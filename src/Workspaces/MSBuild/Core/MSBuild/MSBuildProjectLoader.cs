@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,9 +157,7 @@ public partial class MSBuildProjectLoader
     public async Task<SolutionInfo> LoadSolutionInfoAsync(
         string solutionFilePath,
         IProgress<ProjectLoadProgress>? progress = null,
-#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
         ILogger? msbuildLogger = null,
-#pragma warning restore IDE0060
         CancellationToken cancellationToken = default)
     {
         if (solutionFilePath == null)
@@ -180,7 +179,11 @@ public partial class MSBuildProjectLoader
             SetSolutionProperties(absoluteSolutionPath);
         }
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+        var binLogPathProvider = IsBinaryLogger(msbuildLogger)
+            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters)
+            : null;
+
+        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var worker = new Worker(
@@ -223,9 +226,7 @@ public partial class MSBuildProjectLoader
         string projectFilePath,
         ProjectMap? projectMap = null,
         IProgress<ProjectLoadProgress>? progress = null,
-#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
         ILogger? msbuildLogger = null,
-#pragma warning restore IDE0060
         CancellationToken cancellationToken = default)
     {
         if (projectFilePath == null)
@@ -241,7 +242,11 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+        var binLogPathProvider = IsBinaryLogger(msbuildLogger)
+            ? new DefaultBinLogPathProvider(msbuildLogger.Parameters)
+            : null;
+
+        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var worker = new Worker(
@@ -259,5 +264,15 @@ public partial class MSBuildProjectLoader
             this.LoadMetadataForReferencedProjects);
 
         return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private static bool IsBinaryLogger([NotNullWhen(returnValue: true)] ILogger? logger)
+    {
+        return logger?.GetType().FullName == "Microsoft.Build.Logging.BinaryLogger";
+    }
+
+    private sealed class DefaultBinLogPathProvider(string? logFilePath) : IBinLogPathProvider
+    {
+        public string? GetNewLogPath() => logFilePath;
     }
 }
