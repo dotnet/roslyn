@@ -11125,17 +11125,7 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <target state="translated">Operatora „await” można użyć tylko w wyrażeniu zapytania w pierwszym wyrażeniu kolekcji początkowej klauzuli „from” albo w wyrażeniu kolekcji klauzuli „join”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">W tej metodzie asynchronicznej brakuje operatorów „await”, dlatego będzie wykonywana synchronicznie. Rozważ możliwość użycia operatora „await” w celu zdefiniowania oczekiwania na nieblokujące wywołania interfejsów API albo wyrażenia „await Task.Run(...)” w celu przeniesienia wykonywania zadań intensywnie angażujących procesor do wątku w tle.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">Metoda asynchroniczna nie zawiera operatorów „await” i zostanie uruchomiona synchronicznie</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnobservedAwaitableExpression">
+                  <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Ponieważ to wywołanie nie jest oczekiwane, wykonywanie bieżącej metody będzie kontynuowane bez oczekiwania na ukończenie wywołania. Rozważ możliwość zastosowania operatora „await” do wyniku wywołania.</target>
         <note />

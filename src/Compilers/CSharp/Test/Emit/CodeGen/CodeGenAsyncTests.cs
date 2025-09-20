@@ -373,11 +373,7 @@ class Test
                     {ReturnValueMissing("<F>g__Impl|1_0", "0x7")}
                     """
             }, symbolValidator: verify);
-            verifier.VerifyDiagnostics(
-                // (13,25): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async ValueTask Impl()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Impl").WithLocation(13, 25)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.F", """
                 {
@@ -2111,7 +2107,6 @@ class Driver
             var source = """
                 using System.Threading.Tasks;
                 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                #pragma warning disable 1998
                 class Program
                 {
                     int F;
@@ -2150,41 +2145,41 @@ class Driver
                 """;
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-                // (11,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // (10,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* ptr = &prog.F; // 1
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(11, 20),
-                // (15,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(10, 20),
+                // (14,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         int* localPtr = &local; // 2
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(15, 26),
-                // (16,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(14, 26),
+                // (15,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(16, 33),
-                // (16,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(15, 33),
+                // (15,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(16, 34),
-                // (19,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(15, 34),
+                // (18,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         int* innerPtr = &structLocal.F; // 5
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(19, 26),
-                // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(18, 26),
+                // (19,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33),
-                // (20,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(19, 33),
+                // (19,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(20, 34),
-                // (33,39): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(19, 34),
+                // (32,39): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //             int* localFuncLocalPtr = &localFuncLocal; // 8
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "localFuncLocal").WithLocation(33, 39));
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "localFuncLocal").WithLocation(32, 39));
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugExe.WithWarningLevel(7)).VerifyDiagnostics(
-                // (11,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // (10,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* ptr = &prog.F; // 1
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(11, 20),
-                // (16,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(10, 20),
+                // (15,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(16, 33),
-                // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(15, 33),
+                // (19,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33));
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(19, 33));
         }
 
         [Fact]
@@ -4905,9 +4900,6 @@ class C
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void M() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
                 // (4,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
                 //     async void M() {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{}").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder").WithLocation(4, 20),
@@ -4933,9 +4925,6 @@ class C
 }";
             var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async Task M() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
                 // (4,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder' is not defined or imported
                 //     async Task M() {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{}").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder").WithLocation(4, 20),
@@ -4964,9 +4953,6 @@ class C
 }";
             var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
-                // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async Task<int> F() => 3;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(4, 21),
                 // (4,25): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
                 //     async Task<int> F() => 3;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=> 3").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1").WithLocation(4, 25),
@@ -7521,15 +7507,8 @@ class IntCode
     }
 }
 ";
-            var diags = new[]
-            {
-                // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task CompletedTask()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "CompletedTask").WithLocation(12, 30)
-            };
-
-            CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
+            CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
@@ -9205,7 +9184,6 @@ class Test1
                         }
                     }
 
-                #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
                     public static async Task<int> Throw(int value) => throw new IntegerException(value);
                 }
 
@@ -9312,7 +9290,6 @@ class Test1
                         }
                     }
 
-                #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
                     public static async Task<int> Throw(int value) => throw new IntegerException(value);
                 }
 
@@ -9665,9 +9642,6 @@ class Test1
                 // (18,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
                 //     [MethodImpl(MethodImplOptions.Async)]
                 Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(18, 6),
-                // (19,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task M3()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M3").WithLocation(19, 30),
                 // (24,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
                 //     [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
                 Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)").WithLocation(24, 6)

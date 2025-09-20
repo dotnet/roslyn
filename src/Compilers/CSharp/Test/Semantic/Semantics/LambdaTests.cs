@@ -2866,11 +2866,8 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(8, 13),
                 // (6,93): error CS4010: Cannot convert async lambda expression to delegate type 'Task<Action<bool>>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Task<Action<bool>>'.
                 //         System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
-                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "x2 =>").WithArguments("lambda expression", "System.Threading.Tasks.Task<System.Action<bool>>").WithLocation(6, 93),
-                // (6,90): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         System.Func<bool, System.Threading.Tasks.Task<System.Action<bool>>> x = async x1 => x2 =>
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 90)
-                );
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "x2 =>").WithArguments("lambda expression", "System.Threading.Tasks.Task<System.Action<bool>>").WithLocation(6, 93)
+            );
         }
 
         [Fact, WorkItem(22662, "https://github.com/dotnet/roslyn/issues/22662")]
@@ -4061,10 +4058,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecurityCritical").WithArguments("SecurityCritical").WithLocation(8, 14),
                 // (9,14): error CS4030: Security attribute 'SecuritySafeCriticalAttribute' cannot be applied to an Async method.
                 //             [SecuritySafeCriticalAttribute] // 2
-                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(9, 14),
-                // (10,22): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //             async () => { }; // 3
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(9, 14)
+            );
         }
 
         [Fact]
@@ -5432,10 +5427,8 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,35): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //         Delegate d = async int () => 0;
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=>").WithLocation(6, 35),
-                // (6,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Delegate d = async int () => 0;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 35));
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=>").WithLocation(6, 35)
+            );
         }
 
         [Fact]
@@ -9203,6 +9196,88 @@ class Test1
                     ["Preserve1Attribute"],
                     m.GlobalNamespace.GetMember("Test1.<>c__DisplayClass0_0.x").GetAttributes().Select(a => a.ToString()));
             }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79130")]
+        public void ConstrainedTypeParameter()
+        {
+            CompileAndVerify(@"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        var expressionCreatedDirectly = ExpressionBuilder<ClassWithIntProperty>.OrderBy(x => x.IntProperty);
+        var expressionViaGenericMethodConstrainedToClass = CreateExpressionConstrainedToClass<ClassWithIntProperty>();
+        var expressionViaGenericMethodConstrainedToInterface = CreateExpressionConstrainedToInterface<ClassWithIntProperty>();
+        var expressionViaGenericMethodConstrainedToInterfaceAndClass = CreateExpressionConstrainedToInterfaceAndClass<ClassWithIntProperty>();
+
+        AssertIsMemberExpressionWithParameterExpression(expressionCreatedDirectly);
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToClass);
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToInterface);
+        AssertIsMemberExpressionWithParameterExpression(expressionViaGenericMethodConstrainedToInterfaceAndClass);
+    }
+
+    static Expression<Func<T, int>> CreateExpressionConstrainedToClass<T>()
+        where T : ClassWithIntProperty
+    {
+        return ExpressionBuilder<T>.OrderBy(x => x.IntProperty);
+    }
+
+    static Expression<Func<T, int>> CreateExpressionConstrainedToInterface<T>()
+        where T : IWithIntProperty
+    {
+        return ExpressionBuilder<T>.OrderBy(x => x.IntProperty);
+    }
+
+    static Expression<Func<T, int>> CreateExpressionConstrainedToInterfaceAndClass<T>()
+        where T : class, IWithIntProperty
+    {
+        return ExpressionBuilder<T>.OrderBy(x => x.IntProperty);
+    }
+
+    static void AssertIsMemberExpressionWithParameterExpression<T>(Expression<Func<T, int>> expression)
+    {
+        var memberExpression = (MemberExpression)expression.Body;
+        var nestedExpression = memberExpression.Expression;
+        Console.WriteLine(nestedExpression.NodeType);
+        Console.WriteLine(memberExpression);
+    }
+}
+
+static class ExpressionBuilder<TSource>
+{
+    public static Expression<Func<TSource, TKey>> OrderBy<TKey>(
+        Expression<Func<TSource, TKey>> keySelector)
+    {
+        return keySelector;
+    }
+}
+
+public interface IWithIntProperty
+{
+    int IntProperty { get; }    
+}
+
+class ClassWithIntProperty : IWithIntProperty
+{
+    public int IntProperty { get; set; }
+}
+",
+                options: TestOptions.DebugExe,
+                expectedOutput: @"
+Parameter
+x.IntProperty
+Parameter
+x.IntProperty
+Convert
+Convert(x" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", IWithIntProperty" : "") + @").IntProperty
+Parameter
+x.IntProperty
+");
         }
     }
 }

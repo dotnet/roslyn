@@ -79,7 +79,7 @@ internal static partial class SyntaxGeneratorExtensions
             return GetNegationOfBinaryExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
 
         if (syntaxFacts.IsLiteralExpression(expressionOrPattern))
-            return GetNegationOfLiteralExpression(expressionOrPattern, generator, semanticModel);
+            return GetNegationOfLiteralExpression(expressionOrPattern, generator, generatorInternal, semanticModel);
 
         if (syntaxFacts.IsLogicalNotExpression(expressionOrPattern))
             return GetNegationOfLogicalNotExpression(expressionOrPattern, syntaxFacts);
@@ -126,9 +126,7 @@ internal static partial class SyntaxGeneratorExtensions
         }
 
         if (syntaxFacts.IsRelationalPattern(expressionOrPattern))
-        {
             return GetNegationOfRelationalPattern(expressionOrPattern, generatorInternal, patternValueType);
-        }
 
         return syntaxFacts.IsAnyPattern(expressionOrPattern)
             ? generatorInternal.NotPattern(expressionOrPattern)
@@ -469,16 +467,22 @@ internal static partial class SyntaxGeneratorExtensions
     private static SyntaxNode GetNegationOfLiteralExpression(
         SyntaxNode expression,
         SyntaxGenerator generator,
+        SyntaxGeneratorInternal generatorInternal,
         SemanticModel semanticModel)
     {
+        var syntaxFacts = generatorInternal.SyntaxFacts;
+
         var operation = semanticModel.GetOperation(expression);
         SyntaxNode newLiteralExpression;
 
-        if (operation?.Kind == OperationKind.Literal && operation.ConstantValue.HasValue && operation.ConstantValue.Value is true)
+        if (expression.RawKind == syntaxFacts.SyntaxKinds.TrueLiteralExpression ||
+            operation is { Kind: OperationKind.Literal, ConstantValue: { HasValue: true, Value: true } })
         {
             newLiteralExpression = generator.FalseLiteralExpression();
         }
-        else if (operation?.Kind == OperationKind.Literal && operation.ConstantValue.HasValue && operation.ConstantValue.Value is false)
+        else if (
+            expression.RawKind == syntaxFacts.SyntaxKinds.FalseLiteralExpression ||
+            operation is { Kind: OperationKind.Literal, ConstantValue: { HasValue: true, Value: false } })
         {
             newLiteralExpression = generator.TrueLiteralExpression();
         }

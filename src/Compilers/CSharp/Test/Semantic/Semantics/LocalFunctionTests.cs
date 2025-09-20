@@ -52,16 +52,10 @@ public class C
                 // (4,11): error CS1073: Unexpected token 'ref'
                 //     async ref System.Threading.Tasks.Task M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 11),
-                // (4,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async ref System.Threading.Tasks.Task M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 43),
                 // (10,15): error CS1073: Unexpected token 'ref'
                 //         async ref System.Threading.Tasks.Task local() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(10, 15),
-                // (10,47): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async ref System.Threading.Tasks.Task local() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(10, 47)
-                );
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(10, 15)
+            );
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -2067,10 +2061,8 @@ class C
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecurityCritical").WithArguments("SecurityCritical").WithLocation(10, 10),
                 // (11,10): error CS4030: Security attribute 'SecuritySafeCriticalAttribute' cannot be applied to an Async method.
                 //         [SecuritySafeCriticalAttribute] // 2
-                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(11, 10),
-                // (12,20): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async void local1() // 3
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local1").WithLocation(12, 20));
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(11, 10)
+            );
         }
 
         [Fact]
@@ -5330,10 +5322,8 @@ class C
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "async d => await d").WithLocation(8, 37),
                 // (8,35): error CS8322: Cannot pass argument with dynamic type to generic local function 'L' with inferred type arguments.
                 //             => await L(async m => L(async d => await d, m), p);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L(async d => await d, m)").WithArguments("L").WithLocation(8, 35),
-                // (8,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //             => await L(async m => L(async d => await d, m), p);
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 32));
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L(async d => await d, m)").WithArguments("L").WithLocation(8, 35)
+            );
         }
 
         [Fact]
@@ -7426,7 +7416,7 @@ namespace N
         public void AwaitWithinAsyncOuterScope_01()
         {
             var source =
-@"#pragma warning disable 1998
+@"
 #pragma warning disable 8321
 using System.Threading.Tasks;
 class Program
@@ -7476,7 +7466,7 @@ class Program
         public void AwaitWithinAsyncOuterScope_02()
         {
             var source =
-@"#pragma warning disable 1998
+@"
 #pragma warning disable 8321
 class Program
 {
@@ -10506,7 +10496,6 @@ using System;
 using System.Threading.Tasks;
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
 
 public class C
 {
@@ -10530,9 +10519,9 @@ public class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (14,27): error CS0165: Use of unassigned local variable 'a'
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
                 //         Console.WriteLine(a);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(14, 27)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
                 );
         }
 
@@ -10615,8 +10604,6 @@ public class C
 using System;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-
 public class C
 {
     public async Task M()
@@ -10639,9 +10626,9 @@ public class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                // (11,27): error CS0165: Use of unassigned local variable 'a'
                 //         Console.WriteLine(a);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
                 );
         }
 
