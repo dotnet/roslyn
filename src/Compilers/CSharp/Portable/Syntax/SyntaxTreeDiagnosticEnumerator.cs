@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // don't produce locations outside of tree span
             var fullTreeLength = syntaxTree.GetRoot().FullSpan.Length;
 
-            GreenNode? previousNonTriviaNode = null;
+            GreenNode? previousNonEmptyNonTriviaNode = null;
             while (stack.Any())
             {
                 var node = stack.Top.Node;
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TextSpan computeDiagnosticSpan(SyntaxDiagnosticInfo sdi, GreenNode node)
             {
-                if (isMissingNodeOrToken(node) && previousNonTriviaNode != null)
+                if (isMissingNodeOrToken(node) && previousNonEmptyNonTriviaNode != null)
                 {
-                    var lastTerminal = previousNonTriviaNode.GetLastTerminal() ?? previousNonTriviaNode;
+                    var lastTerminal = previousNonEmptyNonTriviaNode.GetLastTerminal() ?? previousNonEmptyNonTriviaNode;
 
                     // Missing nodes/tokens are handled specially.  They are reported at the start of the token that
                     // follows them (since that is the information the parser has when creating them).  However, that's
@@ -164,11 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we're walking into as normal green nodes.
                 if (node.SlotCount == 0)
                 {
-                    currentPosition += node.Width;
-
-                    // We're done with this node.  If it isn't trivia, remember it as the last non-trivia node we've seen.
-                    if (!node.IsTrivia)
-                        previousNonTriviaNode = node;
+                    updatePositionAndPreviousNonTriviaNode(node, node.Width);
                 }
                 else
                 {
@@ -182,12 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the child doesn't have diagnostics anywhere in it, we can skip it entirely.
                         if (!child.ContainsDiagnostics)
                         {
-                            currentPosition += child.FullWidth;
-
-                            // We're skipping this node.  If it isn't trivia, remember it as the last non-trivia node we've seen.
-                            if (!child.IsTrivia)
-                                previousNonTriviaNode = child;
-
+                            updatePositionAndPreviousNonTriviaNode(child, child.FullWidth);
                             continue;
                         }
 
@@ -200,6 +191,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Weren't able to continue with this node. Pop it so we continue processing its parent.
                 return false;
+            }
+
+            void updatePositionAndPreviousNonTriviaNode(GreenNode node, int width)
+            {
+                currentPosition += width;
+
+                // If we're skipping a non-trivia node, remember it as the last non-trivia node we've seen.
+                if (!node.IsTrivia && width > 0)
+                    previousNonEmptyNonTriviaNode = node;
             }
         }
 
