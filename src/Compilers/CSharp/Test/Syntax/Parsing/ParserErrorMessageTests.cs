@@ -1375,7 +1375,10 @@ public class clx
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpected, ""));
+            ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //             'a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "'a'").WithLocation(6, 13));
         }
 
         [Fact, WorkItem(542408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542408")]
@@ -2966,8 +2969,12 @@ class MyClass {
 }";
 
             ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "const"),
-Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly"));
+                // (3,5): error CS1041: Identifier expected; 'const' is a keyword
+                //     const Red,
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "const").WithArguments("", "const").WithLocation(3, 5),
+                // (5,5): error CS1041: Identifier expected; 'readonly' is a keyword
+                //     readonly Blue,
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "readonly").WithArguments("", "readonly").WithLocation(5, 5));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -4154,9 +4161,9 @@ public class mine
 }";
 
             ParseAndValidate(test,
-    // (4,6): error CS1513: } expected
-    //     {
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
+                // (5,9): error CS1513: } expected
+                //         => // error
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(5, 9));
         }
 
         [WorkItem(540245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540245")]

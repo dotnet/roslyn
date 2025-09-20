@@ -5939,7 +5939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 11),
                 // (4,11): error CS1001: Identifier expected
                 //     extern
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 11),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(4, 11),
                 // (4,11): error CS1003: Syntax error, ',' expected
                 //     extern
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 11),
@@ -6610,9 +6610,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """,
                 options: null,
-                // (3,17): error CS1001: Identifier expected
-                //     List<Type> [
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 17),
+                // (4,1): error CS1001: Identifier expected
+                // }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(4, 1),
                 // (4,2): error CS1003: Syntax error, ']' expected
                 // }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(4, 2),
@@ -6621,7 +6621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
                 // (4,2): error CS1513: } expected
                 // }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2)));
             N(SyntaxKind.MethodDeclaration);
             {
                 N(SyntaxKind.PredefinedType);

@@ -237,15 +237,15 @@ fg implicit//
 class C { }
 ";
             UsingTree(text,
+                // (1,2): error CS1037: Overloadable operator expected
+                // 
+                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "").WithLocation(1, 2),
                 // (2,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
                 // fg implicit//
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "fg").WithArguments("+").WithLocation(2, 1),
                 // (2,4): error CS1003: Syntax error, 'operator' expected
                 // fg implicit//
                 Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(2, 4),
-                // (2,4): error CS1037: Overloadable operator expected
-                // fg implicit//
-                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "implicit").WithLocation(2, 4),
                 // (2,12): error CS1003: Syntax error, '(' expected
                 // fg implicit//
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(2, 12),
@@ -254,8 +254,7 @@ class C { }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 12),
                 // (2,12): error CS1002: ; expected
                 // fg implicit//
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 12)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 12));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3556,16 +3555,15 @@ partial ext X
                 // (1,13): error CS1525: Invalid expression term 'partial'
                 // struct S { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
-                // (1,13): error CS1003: Syntax error, ',' expected
-                // struct S { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial ext X
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                // (2,1): error CS1003: Syntax error, ',' expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(2, 1),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
 
             N(SyntaxKind.CompilationUnit);
             {
