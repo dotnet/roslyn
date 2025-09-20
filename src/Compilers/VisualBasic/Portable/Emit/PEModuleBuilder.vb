@@ -378,14 +378,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Loop While stack.Count > 0
         End Function
 
-        Public NotOverridable Overrides Function GetExportedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of Cci.ExportedType)
+        Public NotOverridable Overrides Function GetExportedTypes(context As EmitContext) As ImmutableArray(Of Cci.ExportedType)
             Debug.Assert(HaveDeterminedTopLevelTypes)
 
             If _lazyExportedTypes.IsDefault Then
                 Dim initialized = ImmutableInterlocked.InterlockedInitialize(_lazyExportedTypes, CalculateExportedTypes())
 
                 If initialized AndAlso _lazyExportedTypes.Length > 0 Then
-                    ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics)
+                    ReportExportedTypeNameCollisions(_lazyExportedTypes, context.Diagnostics)
                 End If
             End If
 
