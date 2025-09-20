@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression array;
-            if (TryOptimizeSingleSpreadToArray(node, arrayType) is { } optimizedArray)
+            if (TryOptimizeSingleSpreadToArray(node, targetsReadOnlyCollection: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan, arrayType) is { } optimizedArray)
             {
                 array = optimizedArray;
             }
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression createArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
             {
-                if (TryOptimizeSingleSpreadToArray(node, arrayType) is { } optimizedArray)
+                if (TryOptimizeSingleSpreadToArray(node, targetsReadOnlyCollection: true, arrayType) is { } optimizedArray)
                     return optimizedArray;
 
                 return CreateAndPopulateArray(node, arrayType);
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 2. 'Enumerable.ToArray' if we can convert the spread value to IEnumerable and additional conditions are met
         /// 3. 'Span/ReadOnlySpan.ToArray' if we can convert the spread value to Span or ReadOnlySpan
         /// </remarks>
-        private BoundExpression? TryOptimizeSingleSpreadToArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
+        private BoundExpression? TryOptimizeSingleSpreadToArray(BoundCollectionExpression node, bool targetsReadOnlyCollection, ArrayTypeSymbol arrayType)
         {
             // Collection-expr is of the form `[..spreadExpression]`.
             // Optimize to `spreadExpression.ToArray()` if possible.
@@ -660,7 +660,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && spreadElement.IteratorBody is BoundExpressionStatement expressionStatement)
             {
                 var spreadElementConversion = expressionStatement.Expression is BoundConversion { Conversion: var actualConversion } ? actualConversion : Conversion.Identity;
-                var spreadElementHasCompatibleConversion = spreadElementConversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference;
+                // Allow implicit reference conversion only if we target readonly collection types like
+                // ReadOnlySpan, IEnumerable, IReadOnlyList etc. Cause otherwise user may get an array with different
+                // actual underlying array type which may lead to unexpected behavior, e.g. an exception
+                // when trying to insert an element of the base type
+                var spreadElementHasCompatibleConversion = targetsReadOnlyCollection
+                    ? spreadElementConversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference
+                    : spreadElementConversion.Kind is ConversionKind.Identity;
                 var spreadTypeOriginalDefinition = spreadExpression.Type!.OriginalDefinition;
 
                 if (spreadElementHasCompatibleConversion
@@ -730,7 +736,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Shouldn't call this method if the single spread optimization would work.
-            Debug.Assert(TryOptimizeSingleSpreadToArray(node, arrayType) is null);
+            // Passing `targetsReadOnlyCollection` as false since it is more restrictive case.
+            // Having a separate parameter just to make an assert doesn't make much sense to me
+            Debug.Assert(TryOptimizeSingleSpreadToArray(node, targetsReadOnlyCollection: false, arrayType) is null);
 
             if (numberIncludingLastSpread == 0)
             {
