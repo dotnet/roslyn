@@ -6621,7 +6621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
                 // (4,2): error CS1513: } expected
                 // }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2)));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2));
             N(SyntaxKind.MethodDeclaration);
             {
                 N(SyntaxKind.PredefinedType);
