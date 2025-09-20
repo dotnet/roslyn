@@ -2,7 +2,21 @@
   "feeds": {
     "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
     "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json",
-    "vs": "https://pkgs.dev.azure.com/DevDiv/_packaging/VS/nuget/v3/index.json"
+    "vs": "https://devdiv.pkgs.visualstudio.com/_packaging/VS/nuget/v3/index.json"
+  },
+  "packageFeedOverride": {
+    "Microsoft.CodeAnalysis.LanguageServer.alpine-arm64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.linux-arm64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.linux-x64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.linux-musl-x64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.linux-musl-arm64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.neutral": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.osx-arm64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.osx-x64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.win-arm64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.win-x64": "vs-impl",
+    "Microsoft.CodeAnalysis.LanguageServer.win-x86": "vs-impl"
   },
   "packages": {
     "default": {
@@ -189,22 +203,20 @@
       "insertionCreateDraftPR": false
     },
     "community": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
       "vsBranch": "main",
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Validation]"
     },
     "main": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
       "vsBranch": "main",
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[dNext]"
+    },
+    "dev/dibarbet/vs_packages": {
+      "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]",
+      "feed": "vs"
     }
   }
 }

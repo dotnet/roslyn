@@ -28,7 +28,7 @@ steps:
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact Packages
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release'
         ArtifactName: 'Bootstrap Packages - ${{parameters.toolset}}'
         publishLocation: Container
 
