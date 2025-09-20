@@ -13,11 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal struct SyntaxTreeDiagnosticEnumerator
     {
+        private const int DefaultStackCapacity = 8;
+
         private readonly SyntaxTree? _syntaxTree;
         private NodeIterationStack _stack;
         private Diagnostic? _current;
         private int _position;
-        private const int DefaultStackCapacity = 8;
+        private GreenNode? _priorNode;
 
         internal SyntaxTreeDiagnosticEnumerator(SyntaxTree syntaxTree, GreenNode? node, int position)
         {
@@ -53,21 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagIndex++;
                     var sdi = (SyntaxDiagnosticInfo)diags[diagIndex];
 
-                    //for tokens, we've already seen leading trivia on the stack, so we have to roll back
-                    //for nodes, we have yet to see the leading trivia
-                    int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
-
-                    // don't produce locations outside of tree span
-                    Debug.Assert(_syntaxTree is object);
-                    var length = _syntaxTree.GetRoot().FullSpan.Length;
-                    var spanStart = Math.Min(_position - leadingWidthAlreadyCounted + sdi.Offset, length);
-                    var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
-
+                    var (spanStart, spanWidth) = GetSpanStartAndWidth(node, sdi);
                     _current = new CSDiagnostic(sdi, new SourceLocation(_syntaxTree, new TextSpan(spanStart, spanWidth)));
 
                     _stack.UpdateDiagnosticIndexForStackTop(diagIndex);
                     return true;
                 }
+
+                _priorNode = node;
 
                 var slotIndex = _stack.Top.SlotIndex;
 tryAgain:
@@ -82,6 +77,8 @@ tryAgain:
 
                     if (!child.ContainsDiagnostics)
                     {
+                        // Skipping past a child, keep track of it as it is needed to know how to move back diagnostics on empty items.
+                        _priorNode = child;
                         _position += child.FullWidth;
                         goto tryAgain;
                     }
@@ -101,6 +98,43 @@ tryAgain:
             }
 
             return false;
+        }
+
+        private (int spanStart, int spanWidth) GetSpanStartAndWidth(
+            GreenNode node,
+            SyntaxDiagnosticInfo sdi)
+        {
+            if (node.FullWidth == 0)
+            {
+                var lastGreenToken = _priorNode is Syntax.InternalSyntax.SyntaxToken token ? token : _priorNode?.GetLastTerminal();
+                if (lastGreenToken != null)
+                {
+                    // If the previous token has a trailing EndOfLineTrivia, the missing token diagnostic position is
+                    // moved to the end of line containing the previous token and its width is set to zero. Otherwise
+                    // the diagnostic offset and width is set to the corresponding values of the current token
+
+                    var trivia = lastGreenToken.GetTrailingTrivia();
+                    if (HasEndOfLine(trivia))
+                    {
+                        offset = -trivia.FullWidth;
+                        width = 0;
+                        return;
+                    }
+                }
+            }
+
+            // don't produce locations outside of tree span
+            Debug.Assert(_syntaxTree is object);
+            var length = _syntaxTree.GetRoot().FullSpan.Length;
+
+            // for tokens, we've already seen leading trivia on the stack, so we have to roll back for nodes, we have
+            // yet to see the leading trivia
+            int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
+
+            var spanStart = Math.Min(_position - leadingWidthAlreadyCounted + sdi.Offset, length);
+            var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
+            
+            return (spanStart, spanWidth) 
         }
 
         /// <summary>
