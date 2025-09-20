@@ -270,7 +270,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        if (_fileTrackingMetadataAsSourceService.Value.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer(), out var _))
+        if (TryOpenDocumentInMetadataWorkspace(moniker, textBuffer.AsTextContainer()))
         {
             // We already added it, so we will keep it excluded from the misc files workspace
             return;
@@ -304,7 +304,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     private void DetachFromDocument(string moniker)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (_fileTrackingMetadataAsSourceService.Value.TryRemoveDocumentFromWorkspace(moniker))
+        if (TryCloseDocumentInMetadataWorkspace(moniker))
         {
             return;
         }
@@ -332,5 +332,50 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
                 break;
             }
         }
+    }
+
+    private bool TryOpenDocumentInMetadataWorkspace(string filePath, SourceTextContainer sourceTextContainer)
+    {
+        var workspace = _fileTrackingMetadataAsSourceService.Value.TryGetWorkspace();
+        if (workspace is null)
+        {
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
+            // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
+            // MetadataAsSource instead of itself.
+            return false;
+        }
+
+        // There are no linked files in the MetadataAsSource workspace, so we can just use the first document id
+        var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).SingleOrDefault();
+        if (documentId is null)
+        {
+            return false;
+        }
+
+        workspace.OnDocumentOpened(documentId, sourceTextContainer);
+        return true;
+    }
+
+    private bool TryCloseDocumentInMetadataWorkspace(string filePath)
+    {
+        var workspace = _fileTrackingMetadataAsSourceService.Value.TryGetWorkspace();
+        if (workspace is null)
+        {
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be removed
+            // from it. This happens when the MiscWorkspace is hearing about a doc closing, and calls into the
+            // MetadataAsSource system to see if it owns the file and should handle that event.
+            return false;
+        }
+
+        // There are no linked files in the MetadataAsSource workspace, so we can just use the first document id
+        var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
+        if (documentId is null)
+        {
+            return false;
+        }
+
+        var loader = new WorkspaceFileTextLoader(workspace.CurrentSolution.Services, filePath, defaultEncoding: null);
+        workspace.OnDocumentClosed(documentId, loader);
+        return true;
     }
 }
