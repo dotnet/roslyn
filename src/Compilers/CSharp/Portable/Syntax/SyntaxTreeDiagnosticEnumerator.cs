@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private const int DefaultStackCapacity = 8;
 
-        public static IEnumerable<Diagnostic> EnumerateDiagnostics(SyntaxTree syntaxTree, GreenNode root, int position)
+        public static IEnumerable<Diagnostic> EnumerateDiagnostics(SyntaxTree syntaxTree, GreenNode root, int rootStartPosition)
         {
             if (!root.ContainsDiagnostics)
                 yield break;
 
-            // Note: for the duration of this method, 'position' is:
+            // Note: for the duration of this method, 'currentPosition' is:
             //
             // 1. The FullStart of a node when we're on a node.
             // 2. The FullStart of a trivia when we're on trivia.
@@ -31,7 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // This is because when we hit a token, we will have processed its leading trivia, and will have moved foward.
             //
-            // However, 
+            // However, the offset for a diagnostic is relative to its FullStart (see SyntaxDiagnosticInfo.Offset).  Because
+            // of this, the offset can be directly combined with the position for the first 3, but will need to be adjusted
+            // when processing a token itself.
+            var currentPosition = rootStartPosition;
 
             using var stack = new NodeIterationStack(DefaultStackCapacity);
             stack.PushNodeOrToken(root);
@@ -48,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (SyntaxDiagnosticInfo sdi in node.GetDiagnostics())
                     {
-                        var (spanStart, spanWidth) = computeDiagnosticStartAndWidth(sdi, node);
-                        yield return new CSDiagnostic(sdi, new SourceLocation(syntaxTree, new TextSpan(spanStart, spanWidth)));
+                        var span = computeDiagnosticSpan(sdi, node);
+                        yield return new CSDiagnostic(sdi, new SourceLocation(syntaxTree, span));
                     }
 
                     stack.MarkProcessedDiagnosticsForStackTop();
@@ -64,11 +67,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             yield break;
 
-            (int spanStart, int spanWidth) computeDiagnosticStartAndWidth(SyntaxDiagnosticInfo sdi, GreenNode node)
+            TextSpan computeDiagnosticSpan(SyntaxDiagnosticInfo sdi, GreenNode node)
             {
-                if (node.IsMissing)
+                if (isMissingNodeOrToken(node) && previousNonTriviaNode != null)
                 {
+                    // Missing nodes/tokens are handled specially.  They are reported at the start of the token that
+                    // follows them (since that is the information the parser has when creating them).  However, that's
+                    // highly undesireable from a UX perspective.  Consider something like:
+                    //
+                    //      var v = a[0
+                    //
+                    //      private ...
+                    //
+                    // There will be two missing tokens after the `0`, the `]` and the `;`, leading to this tree:
+                    //
+                    //      var v = a[0\r\n
+                    //      <missing_token1><missing_token2>\r\n\r\n
+                    //      private ...
+                    //
+                    // (note: the `\r\n` are the leading trivia of the `private` token).
+                    // When we discover and create the missing tokens we want to give their diagnostics a reasonable location.
+                    // To do this, we offset them by the leading trivia of the token that follows (the 'private') causing their
+                    // diagnostics to be reported here:
+                    //
+                    //      var v = a[0\r\n
+                    //      <missing_token1><missing_token2>\r\n\r\n
+                    //      private ...
+                    //      ^
+                    //      | here
+                    //
+                    // However, what we really want in this case is to report them at the end of the `0` token.
 
+                    // To accomplish this, we use the previousNonTriviaNode to find the token before us.  And we see if
+                    // it had any end-of-lines in it.  If so, we'll move the back as well
                 }
 
                 // Normal case.  
@@ -78,8 +109,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // leading trivia, so those don't need an adjustment.
                 int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
-                var spanStart = Math.Min(position - leadingWidthAlreadyCounted + sdi.Offset, fullTreeLength);
-                var spanWidth = Math.Min(spanStart + sdi.Width, fullTreeLength) - spanStart;
+                var spanStart = Math.Min(currentPosition + sdi.Offset - leadingWidthAlreadyCounted, fullTreeLength);
+                var spanEnd = Math.Max(spanStart + sdi.Width, fullTreeLength);
+
+                return TextSpan.FromBounds(spanStart, spanEnd);
+            }
+
+            bool isMissingNodeOrToken(GreenNode node)
+            {
+                if (!node.IsMissing)
+                    return false;
+
+                if (node.IsToken)
+                    return true;
+
+                return !node.IsList && !node.IsTrivia;
             }
 
             bool tryContinueWithThisNode(GreenNode node)
@@ -90,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we're walking into as normal green nodes.
                 if (node.SlotCount == 0)
                 {
-                    position += node.Width;
+                    currentPosition += node.Width;
 
                     // We're done with this node.  If it isn't trivia, remember it as the last non-trivia node we've seen.
                     if (!node.IsTrivia)
@@ -108,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the child doesn't have diagnostics anywhere in it, we can skip it entirely.
                         if (!child.ContainsDiagnostics)
                         {
-                            position += child.FullWidth;
+                            currentPosition += child.FullWidth;
 
                             // We're skipping this node.  If it isn't trivia, remember it as the last non-trivia node we've seen.
                             if (!child.IsTrivia)
