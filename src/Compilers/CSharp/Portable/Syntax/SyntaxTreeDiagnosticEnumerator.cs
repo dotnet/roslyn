@@ -6,6 +6,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -71,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (isMissingNodeOrToken(node) && previousNonTriviaNode != null)
                 {
+                    var lastTerminal = previousNonTriviaNode.GetLastTerminal() ?? previousNonTriviaNode;
+
                     // Missing nodes/tokens are handled specially.  They are reported at the start of the token that
                     // follows them (since that is the information the parser has when creating them).  However, that's
                     // highly undesireable from a UX perspective.  Consider something like:
@@ -100,6 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // To accomplish this, we use the previousNonTriviaNode to find the token before us.  And we see if
                     // it had any end-of-lines in it.  If so, we'll move the back as well
+                    var previousTrailingTrivia = lastTerminal.GetTrailingTriviaCore();
+                    if (sdi.Offset > 0 && sdi.Width > 0 && containsEndOfLineTrivia(previousTrailingTrivia))
+                    {
+                        var trailingTriviaStartPosition = Math.Min(currentPosition - previousTrailingTrivia.FullWidth, fullTreeLength);
+                        return new TextSpan(trailingTriviaStartPosition, length: 0);
+                    }
                 }
 
                 // Normal case.  
@@ -113,6 +122,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var spanEnd = Math.Max(spanStart + sdi.Width, fullTreeLength);
 
                 return TextSpan.FromBounds(spanStart, spanEnd);
+            }
+
+            bool containsEndOfLineTrivia([NotNullWhen(true)] GreenNode? trivia)
+            {
+                // Empty list.
+                if (trivia is null)
+                    return false;
+
+                // Singleton list.
+                if (trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia)
+                    return true;
+
+                // Multi-item list.
+                for (var i = 0; i < trivia.SlotCount; i++)
+                {
+                    var child = trivia.GetSlot(i);
+                    if (containsEndOfLineTrivia(child))
+                        return true;
+                }
+
+                return false;
             }
 
             bool isMissingNodeOrToken(GreenNode node)
