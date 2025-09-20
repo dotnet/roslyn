@@ -7725,47 +7725,33 @@ class Test
 
             CreateCompilation(source).VerifyDiagnostics(
                 // (44,15): error CS0540: 'Outer<T>.Inner<U>.Derived4.Property': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<T, U>'
-                //             U Interface<T, U>.Property
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Property", "Outer<T>.Inner<U>.Interface<T, U>").WithLocation(44, 15),
-                // (44,31): error CS9331: 'Outer<T>.Inner<U>.Derived4.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<U>.Interface<T, U>.Property'
-                //             U Interface<T, U>.Property
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived4.Property", "T", "Outer<T>.Inner<U>.Interface<T, U>.Property").WithLocation(44, 31),
-                // (48,18): error CS0540: 'Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], List<T>, Dictionary<U, K>)': containing type does not implement interface 'Outer<T>.Inner<T>.Interface<T, U>'
-                //             void Inner<T>.Interface<T, U>.Method<K>(U a, T[] b, List<T> C, Dictionary<U, K> d)
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<T>.Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)", "Outer<T>.Inner<T>.Interface<T, U>").WithLocation(48, 18),
-                // (48,43): error CS0539: 'Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], List<T>, Dictionary<U, K>)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //             void Inner<T>.Interface<T, U>.Method<K>(U a, T[] b, List<T> C, Dictionary<U, K> d)
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)").WithLocation(48, 43),
-                // (14,15): error CS0540: 'Outer<T>.Inner<U>.Derived1.Outer<T>.Inner<U>.Interface<long, string>.Property': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<long, string>'
-                //             T Interface<long, string>.Property
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived1.Outer<T>.Inner<U>.Interface<long, string>.Property", "Outer<T>.Inner<U>.Interface<long, string>").WithLocation(14, 15),
-                // (23,19): error CS0540: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property': containing type does not implement interface 'Outer<T>.Inner<int>.Interface<long, Y>'
-                //                 X Inner<int>.Interface<long, Y>.Property
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property", "Outer<T>.Inner<int>.Interface<long, Y>").WithLocation(23, 19),
-                // (23,49): error CS9331: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<int>.Interface<long, Y>.Property'
-                //                 X Inner<int>.Interface<long, Y>.Property
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property", "T", "Outer<T>.Inner<int>.Interface<long, Y>.Property").WithLocation(23, 49),
-                // (27,22): error CS0540: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], List<long>, Dictionary<Y, K>)': containing type does not implement interface 'Outer<T>.Inner<long>.Interface<long, Y>'
-                //                 void Inner<long>.Interface<long, Y>.Method<K>(X A, int[] b, List<long> C, Dictionary<Y, K> d)
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<long>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)", "Outer<T>.Inner<long>.Interface<long, Y>").WithLocation(27, 22),
-                // (27,53): error CS0539: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], List<long>, Dictionary<Y, K>)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //                 void Inner<long>.Interface<long, Y>.Method<K>(X A, int[] b, List<long> C, Dictionary<Y, K> d)
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)").WithLocation(27, 53),
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Property", "Outer<T>.Inner<U>.Interface<T, U>"),
+                // (44,31): error CS0539: 'Outer<T>.Inner<U>.Derived4.Property' in explicit interface declaration is not a member of interface
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property").WithArguments("Outer<T>.Inner<U>.Derived4.Property"),
+                // (48,18): error CS0540: 'Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)': containing type does not implement interface 'Outer<T>.Inner<T>.Interface<T, U>'
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<T>.Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)", "Outer<T>.Inner<T>.Interface<T, U>"),
+                // (48,43): error CS0539: 'Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)' in explicit interface declaration is not a member of interface
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)"),
+                // (42,35): error CS0535: 'Outer<T>.Inner<U>.Derived4' does not implement interface member 'Outer<U>.Inner<T>.Interface<T, U>.Method<Z>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, Z>)'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<U>.Inner<T>.Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4", "Outer<U>.Inner<T>.Interface<T, U>.Method<Z>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, Z>)"),
                 // (42,35): error CS0535: 'Outer<T>.Inner<U>.Derived4' does not implement interface member 'Outer<U>.Inner<T>.Interface<T, U>.Property'
-                //         internal class Derived4 : Outer<U>.Inner<T>.Interface<T, U>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<U>.Inner<T>.Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4", "Outer<U>.Inner<T>.Interface<T, U>.Property").WithLocation(42, 35),
-                // (42,35): error CS0535: 'Outer<T>.Inner<U>.Derived4' does not implement interface member 'Outer<U>.Inner<T>.Interface<T, U>.Method<Z>(U, T[], List<T>, Dictionary<U, Z>)'
-                //         internal class Derived4 : Outer<U>.Inner<T>.Interface<T, U>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<U>.Inner<T>.Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4", "Outer<U>.Inner<T>.Interface<T, U>.Method<Z>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, Z>)").WithLocation(42, 35),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<U>.Inner<T>.Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4", "Outer<U>.Inner<T>.Interface<T, U>.Property"),
+                // (14,15): error CS0540: 'Outer<T>.Inner<U>.Derived1.Outer<T>.Inner<U>.Interface<long, string>.Property': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<long, string>'
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived1.Outer<T>.Inner<U>.Interface<long, string>.Property", "Outer<T>.Inner<U>.Interface<long, string>"),
                 // (12,35): error CS0535: 'Outer<T>.Inner<U>.Derived1' does not implement interface member 'Outer<T>.Inner<int>.Interface<long, string>.Property'
-                //         internal class Derived1 : Inner<int>.Interface<long, string>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Inner<int>.Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived1", "Outer<T>.Inner<int>.Interface<long, string>.Property").WithLocation(12, 35),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Inner<int>.Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived1", "Outer<T>.Inner<int>.Interface<long, string>.Property"),
+                // (23,19): error CS0540: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property': containing type does not implement interface 'Outer<T>.Inner<int>.Interface<long, Y>'
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property", "Outer<T>.Inner<int>.Interface<long, Y>"),
+                // (23,49): error CS0539: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property' in explicit interface declaration is not a member of interface
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property"),
+                // (27,22): error CS0540: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)': containing type does not implement interface 'Outer<T>.Inner<long>.Interface<long, Y>'
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<long>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)", "Outer<T>.Inner<long>.Interface<long, Y>"),
+                // (27,53): error CS0539: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)' in explicit interface declaration is not a member of interface
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)"),
+                // (21,45): error CS0535: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>' does not implement interface member 'Outer<X>.Inner<int>.Interface<long, Y>.Method<Z>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, Z>)'
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<X>.Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<X>.Inner<int>.Interface<long, Y>.Method<Z>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, Z>)"),
                 // (21,45): error CS0535: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>' does not implement interface member 'Outer<X>.Inner<int>.Interface<long, Y>.Property'
-                //             internal class Derived2<X, Y> : Outer<X>.Inner<int>.Interface<long, Y>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<X>.Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<X>.Inner<int>.Interface<long, Y>.Property").WithLocation(21, 45),
-                // (21,45): error CS0535: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>' does not implement interface member 'Outer<X>.Inner<int>.Interface<long, Y>.Method<Z>(X, int[], List<long>, Dictionary<Y, Z>)'
-                //             internal class Derived2<X, Y> : Outer<X>.Inner<int>.Interface<long, Y>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<X>.Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<X>.Inner<int>.Interface<long, Y>.Method<Z>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, Z>)").WithLocation(21, 45));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<X>.Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<X>.Inner<int>.Interface<long, Y>.Property"));
         }
 
         [Fact]
