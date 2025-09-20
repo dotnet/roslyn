@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -660,14 +659,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { } spreadExpression } spreadElement] }
                 && spreadElement.IteratorBody is BoundExpressionStatement expressionStatement)
             {
-                var spreadElementHasIdentityConversion = expressionStatement.Expression is not BoundConversion;
+                var spreadElementConversion = expressionStatement.Expression is BoundConversion { Conversion: var actualConversion } ? actualConversion : Conversion.Identity;
+                var spreadElementHasCompatibleConversion = spreadElementConversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference;
                 var spreadTypeOriginalDefinition = spreadExpression.Type!.OriginalDefinition;
 
-                if (spreadElementHasIdentityConversion
+                if (spreadElementHasCompatibleConversion
                     && tryGetToArrayMethod(spreadTypeOriginalDefinition, WellKnownType.System_Collections_Generic_List_T, WellKnownMember.System_Collections_Generic_List_T__ToArray, out MethodSymbol? listToArrayMethod))
                 {
                     var rewrittenSpreadExpression = VisitExpression(spreadExpression);
-                    return _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
+                    var listToArray = _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
+                    return _factory.Convert(arrayType, listToArray, spreadElementConversion);
                 }
 
                 // See if 'Enumerable.ToArray<T>(IEnumerable<T>)' will work, possibly due to a covariant conversion on the spread value.
@@ -683,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (spreadElementHasIdentityConversion
+                if (spreadElementHasCompatibleConversion
                     && TryGetSpanConversion(spreadExpression.Type, writableOnly: false, out var asSpanMethod))
                 {
                     var spanType = CallAsSpanMethod(spreadExpression, asSpanMethod).Type!.OriginalDefinition;
@@ -691,7 +692,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         || tryGetToArrayMethod(spanType, WellKnownType.System_Span_T, WellKnownMember.System_Span_T__ToArray, out toArrayMethod))
                     {
                         var rewrittenSpreadExpression = CallAsSpanMethod(VisitExpression(spreadExpression), asSpanMethod);
-                        return _factory.Call(rewrittenSpreadExpression, toArrayMethod.AsMember((NamedTypeSymbol)rewrittenSpreadExpression.Type!));
+                        var spanToArray = _factory.Call(rewrittenSpreadExpression, toArrayMethod.AsMember((NamedTypeSymbol)rewrittenSpreadExpression.Type!));
+                        return _factory.Convert(arrayType, spanToArray, spreadElementConversion);
                     }
                 }
 
