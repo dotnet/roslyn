@@ -198,27 +198,27 @@ class C : CSharpErrors.InterfaceMethods
     // (5,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass[] CSharpErrors.InterfaceMethods.ReturnType2() { return null; }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(5, 5),
-    // (5,54): error CS9332: 'C.ReturnType2()': return type must be 'UnavailableClass[]' to match implemented member 'InterfaceMethods.ReturnType2()'
+    // (5,54): error CS0539: 'C.ReturnType2()' in explicit interface declaration is not a member of interface
     //     UnavailableClass[] CSharpErrors.InterfaceMethods.ReturnType2() { return null; }
-    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "ReturnType2").WithArguments("C.ReturnType2()", "UnavailableClass[]", "CSharpErrors.InterfaceMethods.ReturnType2()").WithLocation(5, 54),
+    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "ReturnType2").WithArguments("C.ReturnType2()").WithLocation(5, 54),
     // (6,55): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     void CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass x) { }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(6, 55),
-    // (6,40): error CS0539: 'C.ParameterType1(UnavailableClass)' in explicit interface declaration is not found among members of the interface that can be implemented
+    // (6,40): error CS0539: 'C.ParameterType1(UnavailableClass)' in explicit interface declaration is not a member of interface
     //     void CSharpErrors.InterfaceMethods.ParameterType1(UnavailableClass x) { }
     Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "ParameterType1").WithArguments("C.ParameterType1(UnavailableClass)").WithLocation(6, 40),
     // (7,55): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     void CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[] x) { }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(7, 55),
-    // (7,40): error CS0539: 'C.ParameterType2(UnavailableClass[])' in explicit interface declaration is not found among members of the interface that can be implemented
+    // (7,40): error CS0539: 'C.ParameterType2(UnavailableClass[])' in explicit interface declaration is not a member of interface
     //     void CSharpErrors.InterfaceMethods.ParameterType2(UnavailableClass[] x) { }
     Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "ParameterType2").WithArguments("C.ParameterType2(UnavailableClass[])").WithLocation(7, 40),
     // (4,5): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
     //     UnavailableClass CSharpErrors.InterfaceMethods.ReturnType1() { return null; }
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass").WithLocation(4, 5),
-    // (4,52): error CS9332: 'C.ReturnType1()': return type must be 'UnavailableClass' to match implemented member 'InterfaceMethods.ReturnType1()'
+    // (4,52): error CS0539: 'C.ReturnType1()' in explicit interface declaration is not a member of interface
     //     UnavailableClass CSharpErrors.InterfaceMethods.ReturnType1() { return null; }
-    Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "ReturnType1").WithArguments("C.ReturnType1()", "UnavailableClass", "CSharpErrors.InterfaceMethods.ReturnType1()").WithLocation(4, 52),
+    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "ReturnType1").WithArguments("C.ReturnType1()").WithLocation(4, 52),
     // (2,11): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     // class C : CSharpErrors.InterfaceMethods
     Diagnostic(ErrorCode.ERR_NoTypeDef, "CSharpErrors.InterfaceMethods").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 11),
