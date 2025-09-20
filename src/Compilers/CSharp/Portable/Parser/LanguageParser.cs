@@ -5359,8 +5359,7 @@ parse_member_name:;
                     var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia);
                     if (isAfterNewLine)
                     {
-                        int offset, width;
-                        this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                        var diagnostic = GetExpectedTokenError(SyntaxKind.IdentifierToken, this.PeekToken(1).Kind);
 
                         this.EatToken();
                         currentTokenKind = this.CurrentToken.Kind;
@@ -5377,11 +5376,12 @@ parse_member_name:;
                             // Make sure this isn't a local function
                             if (!isPossibleLocalFunctionToken || !IsLocalFunctionAfterIdentifier())
                             {
-                                var missingIdentifier = CreateMissingIdentifierToken();
-                                missingIdentifier = this.AddError(missingIdentifier, offset, width, ErrorCode.ERR_IdentifierExpected);
+                                var missingIdentifier = this.WithAdditionalDiagnostics(
+                                    CreateMissingIdentifierToken(), diagnostic);
 
                                 localFunction = null;
-                                return _syntaxFactory.VariableDeclarator(missingIdentifier, null, null);
+                                return _syntaxFactory.VariableDeclarator(
+                                    missingIdentifier, argumentList: null, initializer: null);
                             }
                         }
                     }
