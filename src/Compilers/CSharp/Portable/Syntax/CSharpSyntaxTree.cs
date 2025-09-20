@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -791,20 +792,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (greenNode.ContainsDiagnostics)
             {
-                return EnumerateDiagnostics(greenNode, position);
+                return SyntaxTreeDiagnosticEnumerator.EnumerateDiagnostics(this, greenNode, position);
             }
 
             return SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
-        private IEnumerable<Diagnostic> EnumerateDiagnostics(GreenNode node, int position)
-        {
-            var enumerator = new SyntaxTreeDiagnosticEnumerator(this, node, position);
-            while (enumerator.MoveNext())
-            {
-                yield return enumerator.Current;
-            }
-        }
 
         /// <summary>
         /// Gets a list of all the diagnostics associated with the token and any related trivia.
