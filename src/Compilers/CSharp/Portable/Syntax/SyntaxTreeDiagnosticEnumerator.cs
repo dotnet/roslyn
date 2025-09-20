@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // don't produce locations outside of tree span
             var fullTreeLength = syntaxTree.GetRoot().FullSpan.Length;
 
-            GreenNode? previousNonEmptyNonTriviaNode = null;
             while (stack.Any())
             {
                 var node = stack.Top.Node;
@@ -70,44 +69,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TextSpan computeDiagnosticSpan(SyntaxDiagnosticInfo sdi, GreenNode node)
             {
-                if (isMissingNodeOrToken(node) && previousNonEmptyNonTriviaNode != null)
+                if (isMissingNodeOrToken(node))
                 {
-                    var lastTerminal = previousNonEmptyNonTriviaNode.GetLastTerminal() ?? previousNonEmptyNonTriviaNode;
-
-                    // Missing nodes/tokens are handled specially.  They are reported at the start of the token that
-                    // follows them (since that is the information the parser has when creating them).  However, that's
-                    // highly undesireable from a UX perspective.  Consider something like:
-                    //
-                    //      var v = a[0
-                    //
-                    //      private ...
-                    //
-                    // There will be two missing tokens after the `0`, the `]` and the `;`, leading to this tree:
-                    //
-                    //      var v = a[0\r\n
-                    //      <missing_token1><missing_token2>\r\n\r\n
-                    //      private ...
-                    //
-                    // (note: the `\r\n` are the leading trivia of the `private` token).
-                    // When we discover and create the missing tokens we want to give their diagnostics a reasonable location.
-                    // To do this, we offset them by the leading trivia of the token that follows (the 'private') causing their
-                    // diagnostics to be reported here:
-                    //
-                    //      var v = a[0\r\n
-                    //      <missing_token1><missing_token2>\r\n\r\n
-                    //      private ...
-                    //      ^
-                    //      | here
-                    //
-                    // However, what we really want in this case is to report them at the end of the `0` token.
-
-                    // To accomplish this, we use the previousNonTriviaNode to find the token before us.  And we see if
-                    // it had any end-of-lines in it.  If so, we'll move the back as well
-                    var previousTrailingTrivia = lastTerminal.GetTrailingTriviaCore();
-                    if (containsEndOfLineTrivia(previousTrailingTrivia))
+                    var priorToken = findTokenThatEndsAtCurrentPosition(root, rootStartPosition, currentPosition);
+                    if (priorToken != null)
                     {
-                        var trailingTriviaStartPosition = Math.Min(currentPosition - previousTrailingTrivia.FullWidth, fullTreeLength);
-                        return new TextSpan(trailingTriviaStartPosition, length: 0);
+                        // Missing nodes/tokens are handled specially.  They are reported at the start of the token that
+                        // follows them (since that is the information the parser has when creating them).  However, that's
+                        // highly undesireable from a UX perspective.  Consider something like:
+
+                        // To accomplish this, we use the previousNonTriviaNode to find the token before us.  And we see if
+                        // it had any end-of-lines in it.  If so, we'll move the back as well
+                        var previousTrailingTrivia = priorToken.GetTrailingTriviaCore();
+                        if (containsEndOfLineTrivia(previousTrailingTrivia))
+                        {
+                            var trailingTriviaStartPosition = Math.Min(currentPosition - previousTrailingTrivia.FullWidth, fullTreeLength);
+                            return new TextSpan(trailingTriviaStartPosition, length: 0);
+                        }
+                    }
+
+                    var currentToken = findTokenThatStartsAtCurrentPosition(root, rootStartPosition, currentPosition);
+                    if (currentToken != null)
+                    {
+                        var currentTokenStart = Math.Min(currentPosition + currentToken.GetLeadingTriviaWidth(), fullTreeLength);
+                        var currentTokenEnd = Math.Min(currentTokenStart + currentToken.Width, fullTreeLength);
+                        return TextSpan.FromBounds(currentTokenStart, currentTokenEnd);
                     }
                 }
 
@@ -122,6 +108,91 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var spanEnd = Math.Min(spanStart + sdi.Width, fullTreeLength);
 
                 return TextSpan.FromBounds(spanStart, spanEnd);
+            }
+
+            static GreenNode? findTokenThatEndsAtCurrentPosition(GreenNode current, int currentFullStart, int desiredFullEndPosition)
+            {
+                // If we're moved past the token we're lookign for, we won't it here.
+                if (currentFullStart > desiredFullEndPosition)
+                    return null;
+
+                if (current.IsToken)
+                {
+                    // We're looking at a token.  Return it if it's the one that ends at the position we're looking for.
+                    return currentFullStart + current.FullWidth == desiredFullEndPosition ? current : null;
+                }
+
+                // Otherwise, we're before the token.  Recurse into children, skiping those that end before the position
+                // we're looking, and recursing into those that overlap it.
+                var currentChildFullStart = currentFullStart;
+                for (var i = 0; i < current.SlotCount; i++)
+                {
+                    var child = current.GetSlot(i);
+                    if (child is null || child.FullWidth == 0)
+                        continue;
+
+                    var childFullEnd = currentChildFullStart + child.FullWidth;
+                    if (childFullEnd <= desiredFullEndPosition)
+                    {
+                        currentChildFullStart += child.FullWidth;
+                        continue;
+                    }
+                    else
+                    {
+                        return findTokenThatEndsAtCurrentPosition(child, currentChildFullStart, desiredFullEndPosition);
+                    }
+                }
+
+                return null;
+            }
+
+            static GreenNode? findTokenThatStartsAtCurrentPosition(GreenNode? current, int currentFullStart, int desiredFullStartPosition)
+            {
+                if (current is null)
+                    return null;
+
+                // If we're moved past the token we're lookign for, we won't it here.
+                if (currentFullStart > desiredFullStartPosition)
+                    return null;
+
+                if (current.IsToken)
+                {
+
+                    if (currentFullStart == desiredFullStartPosition)
+                        return current;
+
+                    // The token we're looking for might be skipped trailing trivia in this current token.
+                    if (current.ContainsSkippedText && currentFullStart + current.FullWidth > desiredFullStartPosition)
+                    {
+                        var trivia = current.GetTrailingTriviaCore();
+                        return findTokenThatStartsAtCurrentPosition(trivia, currentFullStart + current.Width, desiredFullStartPosition);
+                    }
+
+                    return null;
+                }
+
+                // Otherwise, we're before the token.  Recurse into children, skiping those that end before the position
+                // we're looking, and recursing into those that overlap it.
+                var currentChildFullStart = currentFullStart;
+                for (var i = 0; i < current.SlotCount; i++)
+                {
+                    var child = current.GetSlot(i);
+                    if (child is null || child.FullWidth == 0)
+                        continue;
+
+                    var childFullEnd = currentChildFullStart + child.FullWidth;
+                    if (childFullEnd < desiredFullStartPosition)
+                    {
+                        currentChildFullStart += child.FullWidth;
+                        continue;
+                    }
+                    else
+                    {
+                        return findTokenThatStartsAtCurrentPosition(child, currentChildFullStart, desiredFullStartPosition);
+                    }
+                }
+
+                return null;
             }
 
             bool containsEndOfLineTrivia([NotNullWhen(true)] GreenNode? trivia)
@@ -164,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we're walking into as normal green nodes.
                 if (node.SlotCount == 0)
                 {
-                    updatePositionAndPreviousNonTriviaNode(node, node.Width);
+                    currentPosition += node.Width;
                 }
                 else
                 {
@@ -178,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the child doesn't have diagnostics anywhere in it, we can skip it entirely.
                         if (!child.ContainsDiagnostics)
                         {
-                            updatePositionAndPreviousNonTriviaNode(child, child.FullWidth);
+                            currentPosition += child.FullWidth;
                             continue;
                         }
 
@@ -191,15 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Weren't able to continue with this node. Pop it so we continue processing its parent.
                 return false;
-            }
-
-            void updatePositionAndPreviousNonTriviaNode(GreenNode node, int width)
-            {
-                currentPosition += width;
-
-                // If we're skipping a non-trivia node, remember it as the last non-trivia node we've seen.
-                if (!node.IsTrivia && width > 0)
-                    previousNonEmptyNonTriviaNode = node;
             }
         }
 
