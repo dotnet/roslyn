@@ -28461,7 +28461,7 @@ public interface I2<T> where T : I2<T>
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.explicit operator int(C6)'
                 //     C6 : I1<C6>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>." + op + " operator " + checkedKeyword + "int(C6)").WithLocation(36, 10),
-                // (38,37): error CS9333: 'C6.explicit operator long(C6)' return type must be 'int' to match implemented member 'I1<C6>.explicit operator long(C6)'
+                // (38,37): error CS9333: 'C6.explicit operator long(C6)' return type must be 'int' to match implemented member 'I1<C6>.explicit operator int(C6)'
                 //     static explicit I1<C6>.operator long(C6 x) => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "long").WithArguments("C6." + op + " operator " + checkedKeyword + "long(C6)", "int", "I1<C6>." + op + " operator " + checkedKeyword + "int(C6)").WithLocation(38, 37 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.explicit operator int(C7)'
