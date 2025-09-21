@@ -12,6 +12,7 @@ ENV PSExecutionPolicyPreference=Bypass
 ENV POWERSHELL_UPDATECHECK=FALSE
 ENV TEMP=C:\Temp
 ENV TMP=C:\Temp
+ENV RUNNING_IN_DOCKER=TRUE
 
 # Enable long path support
 RUN Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1
@@ -44,12 +45,12 @@ RUN Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet
     [Environment]::SetEnvironmentVariable('PATH', $newPath, 'Machine'); 
 
 
-# Install .NET Sdk 10.0.100-preview.6.25358.103
-RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 10.0.100-preview.6.25358.103 -InstallDir 'C:\Program Files\dotnet'; 
-
-
 # Install .NET Sdk 9.0.305
 RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 9.0.305 -InstallDir 'C:\Program Files\dotnet'; 
+
+
+# Install .NET Sdk 10.0.100-preview.6.25358.103
+RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 10.0.100-preview.6.25358.103 -InstallDir 'C:\Program Files\dotnet'; 
 
 
 # Install VS Build Tools
