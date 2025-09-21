@@ -932,18 +932,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected void AddTrailingSkippedSyntax(SyntaxListBuilder list, GreenNode skippedSyntax)
         {
-            list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], skippedSyntax);
+            list[^1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[^1], skippedSyntax);
         }
 
         protected void AddTrailingSkippedSyntax<TNode>(SyntaxListBuilder<TNode> list, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
-            list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], skippedSyntax);
+            list[^1] = AddTrailingSkippedSyntax(list[^1], skippedSyntax);
         }
 
         protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
-            var token = node as SyntaxToken;
-            if (token != null)
+            if (node is SyntaxToken token)
             {
                 return (TNode)(object)AddSkippedSyntax(token, skippedSyntax, trailing: true);
             }
@@ -1003,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (existing != null)
                         {
                             diagnostic = existing;
-                            diagnosticOffset = currentOffset;
+                            diagnosticOffset = currentOffset + token.GetLeadingTriviaWidth() + existing.Offset;
                         }
                     }
                     builder.Add(token.GetTrailingTrivia());
@@ -1017,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (existing != null)
                     {
                         diagnostic = existing;
-                        diagnosticOffset = currentOffset;
+                        diagnosticOffset = currentOffset + node.GetLeadingTriviaWidth() + existing.Offset;
                     }
                 }
             }
@@ -1030,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (trailing)
             {
                 var trailingTrivia = target.GetTrailingTrivia();
-                triviaOffset = target.FullWidth; //added trivia is full width (before addition)
+                triviaOffset = target.Width;
                 target = target.TokenWithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
             }
             else
@@ -1049,16 +1048,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 var leadingTrivia = target.GetLeadingTrivia();
                 target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
-                triviaOffset = 0; //added trivia is first, so offset is zero
+                triviaOffset = -target.GetLeadingTriviaWidth();
             }
 
             if (diagnostic != null)
             {
-                int newOffset = triviaOffset + diagnosticOffset + diagnostic.Offset;
+                int newOffset = triviaOffset + diagnosticOffset;
 
                 target = WithAdditionalDiagnostics(target,
-                    new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments)
-                );
+                    new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
             }
 
             return target;
