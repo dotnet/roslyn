@@ -985,26 +985,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     if (token.Width > 0)
                     {
-                        // separate trivia from the tokens
-
-                        //// adjust relative offsets of diagnostics attached to the token:
-                        //int leadingWidth = token.GetLeadingTriviaWidth();
-                        //if (leadingWidth > 0)
-                        //{
-                        //    var tokenDiagnostics = tk.GetDiagnostics();
-                        //    for (int i = 0; i < tokenDiagnostics.Length; i++)
-                        //    {
-                        //        var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
-                        //        tokenDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset - leadingWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                        //    }
-                        //}
-
                         builder.Add(SyntaxFactory.SkippedTokensTrivia(
                             token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null)));
                     }
                     else
                     {
-                        // do not create zero-width structured trivia, GetStructure doesn't work well for them
+                        // Do not bother adding zero-width tokens to the skipped trivia list.  Lots of code (like GetStructure) does not like it at all.
+                        // But do keep around any diagnostics that might have been on this zero width token, and move it to the target.
                         var existing = (SyntaxDiagnosticInfo)token.GetDiagnostics().FirstOrDefault();
                         if (existing != null)
                         {
@@ -1018,7 +1005,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else if (node.ContainsDiagnostics && diagnostic == null)
                 {
-                    // only propagate the first error to reduce noise:
+                    // Ensure we don't lose any diagnostics on non-token nodes that we're diving into.
+                    // Only propagate the first error to reduce noise:
                     var existing = (SyntaxDiagnosticInfo)node.GetDiagnostics().FirstOrDefault();
                     if (existing != null)
                     {
@@ -1036,22 +1024,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         new SyntaxDiagnosticInfo(finalDiagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
                 }
 
-                target = target.TokenWithTrailingTrivia(builder.ToListNode());
+                return target.TokenWithTrailingTrivia(builder.ToListNode());
             }
             else
             {
-                // Since we're adding triviaWidth before the token, we have to add that much to
-                // the offset of each of its diagnostics.
-                //if (triviaWidth > 0)
-                //{
-                //    var targetDiagnostics = target.GetDiagnostics();
-                //    for (int i = 0; i < targetDiagnostics.Length; i++)
-                //    {
-                //        var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
-                //        targetDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset + triviaWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                //    }
-                //}
-
                 if (diagnostic != null)
                 {
                     target = WithAdditionalDiagnostics(target,
@@ -1059,10 +1035,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 builder.AddRange(target.GetLeadingTrivia());
-                target = target.TokenWithLeadingTrivia(builder.ToListNode());
+                return target.TokenWithLeadingTrivia(builder.ToListNode());
             }
-
-            return target;
         }
 
         protected static SyntaxToken ConvertToKeyword(SyntaxToken token)
