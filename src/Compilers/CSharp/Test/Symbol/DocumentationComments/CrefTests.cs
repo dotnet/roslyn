@@ -5393,9 +5393,9 @@ class Program
 
             var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
-                // (2,20): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
+                // (2,21): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
                 // /// <see cref="int" cref="long"/>
-                Diagnostic(ErrorCode.WRN_XMLParseError, @" cref=""long").WithArguments("cref"));
+                Diagnostic(ErrorCode.WRN_XMLParseError, @"cref=""long""").WithArguments("cref").WithLocation(2, 21));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntaxes = GetCrefSyntaxes(compilation).ToArray();

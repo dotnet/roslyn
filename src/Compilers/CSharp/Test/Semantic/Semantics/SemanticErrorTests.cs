@@ -21728,13 +21728,13 @@ namespace ns
             CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (5,35): warning CS1570: XML comment has badly formed XML -- 'An identifier was expected.'
                 //    /// <summary> returns true if < 5 </summary>
-                Diagnostic(ErrorCode.WRN_XMLParseError, ""),
-                // (5,35): warning CS1570: XML comment has badly formed XML -- '5'
+                Diagnostic(ErrorCode.WRN_XMLParseError, "").WithLocation(5, 35),
+                // (5,36): warning CS1570: XML comment has badly formed XML -- 'The character(s) '5' cannot be used at this location.'
                 //    /// <summary> returns true if < 5 </summary>
-                Diagnostic(ErrorCode.WRN_XMLParseError, " ").WithArguments("5"),
-                // (11,26): warning CS1591: Missing XML comment for publicly visible type or member 'ns.MyClass.Main()'
+                Diagnostic(ErrorCode.WRN_XMLParseError, "5").WithArguments("5").WithLocation(5, 36),
+                // (11,26): warning CS1591: Missing XML comment for publicly visible type or member 'MyClass.Main()'
                 //       public static void Main ()
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("ns.MyClass.Main()"));
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("ns.MyClass.Main()").WithLocation(11, 26));
         }
 
         [Fact]
