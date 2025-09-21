@@ -5395,7 +5395,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (2,20): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
                 // /// <see cref="int" cref="long"/>
-                Diagnostic(ErrorCode.WRN_XMLParseError, @" cref=""long").WithArguments("cref"));
+                Diagnostic(ErrorCode.WRN_XMLParseError, @"cref=""long""").WithArguments("cref"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntaxes = GetCrefSyntaxes(compilation).ToArray();
