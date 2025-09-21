@@ -2971,7 +2971,10 @@ parse_member_name:;
                 var misplacedModifier = this.CurrentToken;
                 type = this.AddError(
                     type,
-                    type.Width + type.GetTrailingTriviaWidth() + misplacedModifier.GetLeadingTriviaWidth(),
+                    // We're discussing the misplaced modifier *relative* to the *start* (not *full start*) of 'type'.
+                    // So the offset of it will be the width of type itself, plus any trailing trivia it has, plus the
+                    // leading trivia of the modifier itself.
+                    offset: type.Width + type.GetTrailingTriviaWidth() + misplacedModifier.GetLeadingTriviaWidth(),
                     misplacedModifier.Width,
                     ErrorCode.ERR_BadModifierLocation,
                     misplacedModifier.Text);
