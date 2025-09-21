@@ -1217,7 +1217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(node.Name, useSiteInfo);
-
             return;
 
             int getOrdinalIncludingExtensionParameter()
