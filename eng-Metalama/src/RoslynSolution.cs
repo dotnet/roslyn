@@ -101,6 +101,8 @@ internal class RoslynSolution : Solution
         if (testAll && !string.IsNullOrEmpty(settings.TestsFilter))
         {
             context.Console.WriteError("Tests filter and TestAll property cannot be set at the same time.");
+            
+            return false;
         }
 
         var filter = testAll ? "" : settings.TestsFilter ?? context.Product.DefaultTestsFilter;
