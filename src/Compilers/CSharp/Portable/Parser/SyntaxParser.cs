@@ -947,8 +947,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Converts skippedSyntax node into tokens and adds these as trivia on the target token.
-        /// Also adds the first error (in depth-first preorder) found in the skipped syntax tree to the target token.
+        /// Converts skippedSyntax node into all its constituent tokens (and their constituent trivias) and adds these
+        /// all as trivia on the target token.  For example, given <c>token1-token2</c>, then target will have
+        /// <c>leading_trivia1-token1-trailing_trivia1-leading_trivia2-token2-trailing_trivia2-</c> added to it.
+        /// <para/>
+        /// Also adds the first node-based error (in depth-first preorder) found in the skipped syntax tree to the
+        /// target token.
         /// </summary>
         internal SyntaxToken AddSkippedSyntax(SyntaxToken target, GreenNode skippedSyntax, bool trailing)
         {
@@ -978,20 +982,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             foreach (var node in skippedSyntax.EnumerateNodes())
             {
-                SyntaxToken token = node as SyntaxToken;
-                if (token != null)
+                if (node is SyntaxToken token)
                 {
+                    // Strip the leading trivia of the token, and add it to the target's final trivia list.
                     builder.Add(token.GetLeadingTrivia());
 
                     if (token.Width > 0)
                     {
+                        // Then add the token (stripped of its own trivia) to the target's final trivia list.
+
                         builder.Add(SyntaxFactory.SkippedTokensTrivia(
                             token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null)));
                     }
                     else
                     {
-                        // Do not bother adding zero-width tokens to the skipped trivia list.  Lots of code (like GetStructure) does not like it at all.
-                        // But do keep around any diagnostics that might have been on this zero width token, and move it to the target.
+                        // Do not bother adding zero-width tokens to target's final trivia list.  Lots of code (like
+                        // GetStructure) does not like it at all. But do keep around any diagnostics that might have
+                        // been on this zero width token, and move it to the target.
                         var existing = (SyntaxDiagnosticInfo)token.GetDiagnostics().FirstOrDefault();
                         if (existing != null)
                         {
@@ -999,6 +1006,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             finalDiagnosticOffset = currentOffset + token.GetLeadingTriviaWidth() + existing.Offset;
                         }
                     }
+
+                    // Finally strip the trailing trivia of the token, and add it to the target's final list.
                     builder.Add(token.GetTrailingTrivia());
 
                     currentOffset += token.FullWidth;
@@ -1016,27 +1025,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            if (trailing)
+            // If we found a diagnostic on a node (or empty-width token) in the skipped syntax, ensure it is moved
+            // over to the target.
+            if (diagnostic != null)
             {
-                if (diagnostic != null)
-                {
-                    target = WithAdditionalDiagnostics(target,
-                        new SyntaxDiagnosticInfo(finalDiagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
-                }
-
-                return target.TokenWithTrailingTrivia(builder.ToListNode());
+                target = WithAdditionalDiagnostics(target,
+                    new SyntaxDiagnosticInfo(finalDiagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
             }
-            else
-            {
-                if (diagnostic != null)
-                {
-                    target = WithAdditionalDiagnostics(target,
-                        new SyntaxDiagnosticInfo(finalDiagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
-                }
 
-                builder.AddRange(target.GetLeadingTrivia());
-                return target.TokenWithLeadingTrivia(builder.ToListNode());
-            }
+            // If we were adding the skipped token as trailing trivia, then at this point we're done.  Otherwise, we
+            // were adding it as leading trivia, so we need to tack on the existing leading trivia of the target.
+            return trailing
+                ? target.TokenWithTrailingTrivia(builder.ToListNode())
+                : target.TokenWithLeadingTrivia(builder.AddRange(target.GetLeadingTrivia()).ToListNode());
         }
 
         protected static SyntaxToken ConvertToKeyword(SyntaxToken token)
