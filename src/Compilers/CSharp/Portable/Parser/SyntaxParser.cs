@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            int triviaWidth = currentOffset;
+            // int triviaWidth = currentOffset;
             var trivia = builder.ToListNode();
 
             // total width of everything preceding the added trivia
@@ -1037,15 +1037,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Since we're adding triviaWidth before the token, we have to add that much to
                 // the offset of each of its diagnostics.
-                if (triviaWidth > 0)
-                {
-                    var targetDiagnostics = target.GetDiagnostics();
-                    for (int i = 0; i < targetDiagnostics.Length; i++)
-                    {
-                        var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
-                        targetDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset + triviaWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                    }
-                }
+                //if (triviaWidth > 0)
+                //{
+                //    var targetDiagnostics = target.GetDiagnostics();
+                //    for (int i = 0; i < targetDiagnostics.Length; i++)
+                //    {
+                //        var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
+                //        targetDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset + triviaWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
+                //    }
+                //}
 
                 var leadingTrivia = target.GetLeadingTrivia();
                 target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
