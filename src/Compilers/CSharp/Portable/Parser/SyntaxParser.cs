@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Reflection;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal abstract partial class SyntaxParser : IDisposable
@@ -758,17 +759,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             (int offset, int width) getOffsetAndWidthBasedOnPriorAndNextTokens()
             {
-                // If the previous token has a trailing EndOfLineTrivia, the missing token diagnostic position is moved to
-                // the end of line containing the previous token and its width is set to zero. 
+                // If the previous token has a trailing EndOfLineTrivia, the missing token diagnostic position is moved
+                // to the end of line containing the previous token and its width is set to zero. Otherwise we squiggle
+                // the token following the missing token (the token we're currently pointing at).
 
                 var trivia = _prevTokenTrailingTrivia;
                 var triviaList = new SyntaxList<CSharpSyntaxNode>(_prevTokenTrailingTrivia);
                 if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
-                    return (offset: -(trivia.FullWidth + missingNodeOrToken.GetLeadingTriviaWidth()), width: 0);
-
-                // Otherwise the diagnostic offset and width is set to the corresponding values of the current token
-                var token = this.CurrentToken;
-                return (missingNodeOrToken.Width + missingNodeOrToken.GetTrailingTriviaWidth() + token.GetLeadingTriviaWidth(), token.Width);
+                {
+                    // Offsets is relative to the start (not full start) of the missing node/token. So to move before
+                    // the preceding trivia, we have to subtract the leading trivia on the node, and then the trailing
+                    // trivia on the previous token.
+                    return (offset: -missingNodeOrToken.GetLeadingTriviaWidth() - trivia.FullWidth, width: 0);
+                }
+                else
+                {
+                    // Offsets is relative to the start (not full start) of the missing node/token. So to move to the location
+                    // of the next token we have to move past missing token's content, and it's trailing trivia, and the leading
+                    // trivia of the next token.
+                    var token = this.CurrentToken;
+                    return (missingNodeOrToken.Width + missingNodeOrToken.GetTrailingTriviaWidth() + token.GetLeadingTriviaWidth(), token.Width);
+                }
             }
 
             (int offset, int width) getOffsetAndWidthOfSkippedToken()
