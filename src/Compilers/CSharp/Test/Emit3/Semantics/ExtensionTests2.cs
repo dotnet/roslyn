@@ -33159,6 +33159,11 @@ static class E
             // (5,28): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect because it's self-referential.
             //         public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
             Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(5, 28));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var parameter = extension.GetMember<MethodSymbol>("Print").Parameters[0];
+        AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
+        Assert.Equal(1, parameter.CallerArgumentExpressionParameterIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
@@ -33464,6 +33469,67 @@ public static class E
         var libComp = CreateCompilation(src);
         var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
         CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_17()
+    {
+        // the maker method has vararg, no implementation method, CallerArgumentExpression points to parameter "s"
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends System.Object
+        {
+            .method public hidebysig specialname static vararg void '<Extension>$' ( ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig instance void Print ( string s, [opt] string caller ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            .param [2] = ""
+                .custom instance void System.Runtime.CompilerServices.::.ctor(string) = (
+                    01 00 01 73 00 00
+                )
+            ldnull
+            throw
+        }
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CallerArgumentExpressionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string parameterName ) cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Attribute::.ctor()
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var comp = CreateCompilationWithIL("", ilSrc);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        Assert.True(extension.IsExtension);
+        var parameter = extension.GetMember<MethodSymbol>("Print").Parameters[1];
+        AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
+        Assert.Equal(1, parameter.CallerArgumentExpressionParameterIndex);
     }
 }
 

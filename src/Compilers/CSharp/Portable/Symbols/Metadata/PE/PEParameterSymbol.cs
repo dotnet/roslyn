@@ -762,12 +762,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
                     var parameters = ContainingSymbol.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
+                    bool hasNullExtensionParameter = ContainingSymbol.GetIsNewExtensionMember() && !ContainingSymbol.IsStatic && ContainingType.ExtensionParameter is null;
+                    int offset = hasNullExtensionParameter ? 1 : 0;
+
                     for (int i = 0; i < parameters.Length; i++)
                     {
                         if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
                         {
-                            _lazyCallerArgumentExpressionParameterIndex = i;
-                            return i;
+                            int index = i + offset;
+                            _lazyCallerArgumentExpressionParameterIndex = index;
+                            return index;
                         }
                     }
                 }

@@ -192,20 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol.GetParameters();
         }
 
-        internal static int GetOrdinalIncludingExtensionParameter(this ParameterSymbol parameter)
-        {
-            int offset = 0;
-            Symbol containingSymbol = parameter.ContainingSymbol;
-            if (containingSymbol.GetIsNewExtensionMember()
-                && !containingSymbol.IsStatic
-                && parameter.ContainingType.ExtensionParameter is not null)
-            {
-                offset = 1;
-            }
-
-            return parameter.Ordinal + offset;
-        }
-
         internal static int GetParameterCountIncludingExtensionParameter(this Symbol symbol)
         {
             bool hasExtensionParameter = symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { };
