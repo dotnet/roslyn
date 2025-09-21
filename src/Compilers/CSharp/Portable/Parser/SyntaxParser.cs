@@ -549,13 +549,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
-        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual)
+        protected SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual)
         {
-            // should we eat the current ParseToken's leading trivia?
             var token = SyntaxFactory.MissingToken(expected);
-            token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
-
-            return token;
+            return WithAdditionalDiagnostics(token, this.GetExpectedMissingNodeOrTokenError(token, expected, actual));
         }
 
         private SyntaxToken CreateMissingToken(SyntaxKind expected, ErrorCode code, bool reportError)
@@ -684,9 +681,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
+        protected virtual SyntaxDiagnosticInfo GetExpectedMissingNodeOrTokenError(
+            GreenNode missingNodeOrToken, SyntaxKind expected, SyntaxKind actual)
         {
-            var (offset, width) = this.GetDiagnosticSpanForMissingToken();
+            Debug.Assert(missingNodeOrToken.IsMissing);
+
+            var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(missingNodeOrToken);
             return this.GetExpectedTokenError(expected, actual, offset, width);
         }
 
@@ -722,22 +722,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected (int offset, int width) GetDiagnosticSpanForMissingToken()
+        protected (int offset, int width) GetDiagnosticSpanForMissingNodeOrToken(GreenNode missingNodeOrToken)
         {
-            // If the previous token has a trailing EndOfLineTrivia,
-            // the missing token diagnostic position is moved to the
-            // end of line containing the previous token and
-            // its width is set to zero.
-            // Otherwise the diagnostic offset and width is set
-            // to the corresponding values of the current token
+            Debug.Assert(missingNodeOrToken.IsMissing);
+
+            // If the previous token has a trailing EndOfLineTrivia, the missing token diagnostic position is moved to
+            // the end of line containing the previous token and its width is set to zero. 
 
             var trivia = _prevTokenTrailingTrivia;
             var triviaList = new SyntaxList<CSharpSyntaxNode>(_prevTokenTrailingTrivia);
             if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
-                return (offset: -trivia.FullWidth, width: 0);
+                return (offset: -(trivia.FullWidth + missingNodeOrToken.GetLeadingTriviaWidth()), width: 0);
 
+            // Otherwise the diagnostic offset and width is set to the corresponding values of the current token
             var token = this.CurrentToken;
-            return (token.GetLeadingTriviaWidth(), token.Width);
+            return (missingNodeOrToken.Width + missingNodeOrToken.GetTrailingTriviaWidth() + token.GetLeadingTriviaWidth(), token.Width);
         }
 
         protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
@@ -795,8 +794,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Simple case this node/token does not contain any skipped text.  Place the diagnostic at the start of
                 // the token that follows.
-                var (offset, width) = this.GetDiagnosticSpanForMissingToken();
-                return WithAdditionalDiagnostics(nodeOrToken, MakeError(nodeOrToken.FullWidth + offset, width, code, args));
+                var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(nodeOrToken);
+                return WithAdditionalDiagnostics(nodeOrToken, MakeError(offset, width, code, args));
             }
             else
             {

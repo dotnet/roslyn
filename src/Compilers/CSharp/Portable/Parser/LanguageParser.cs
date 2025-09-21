@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //NB: there's no way this could be true for a set of tokens that form a valid 
                 //using directive, so there's no danger in checking the error case first.
 
-                type = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
+                type = _syntaxFactory.IdentifierName(CreateMissingToken(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
             else
@@ -1843,15 +1843,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                     }
 
-                    if (openBrace.IsMissing)
-                    {
-                        closeBrace = SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);
-                        closeBrace = WithAdditionalDiagnostics(closeBrace, this.GetExpectedTokenError(SyntaxKind.CloseBraceToken, this.CurrentToken.Kind));
-                    }
-                    else
-                    {
-                        closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                    }
+                    closeBrace = openBrace.IsMissing
+                        ? this.CreateMissingToken(SyntaxKind.CloseBraceToken, this.CurrentToken.Kind)
+                        : this.EatToken(SyntaxKind.CloseBraceToken);
 
                     semicolon = TryEatToken(SyntaxKind.SemicolonToken);
                 }
@@ -5374,7 +5368,9 @@ parse_member_name:;
                     var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia);
                     if (isAfterNewLine)
                     {
-                        var (offset, width) = this.GetDiagnosticSpanForMissingToken();
+                        // Note: this token is free to get.  There is a cached singleton in SyntaxFactory for it.
+                        var missingIdentifier = this.CreateMissingIdentifierName();
+                        var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(missingIdentifier);
 
                         this.EatToken();
                         currentTokenKind = this.CurrentToken.Kind;
@@ -5391,7 +5387,6 @@ parse_member_name:;
                             // Make sure this isn't a local function
                             if (!isPossibleLocalFunctionToken || !IsLocalFunctionAfterIdentifier())
                             {
-                                var missingIdentifier = CreateMissingIdentifierToken();
                                 missingIdentifier = this.AddError(missingIdentifier, offset, width, ErrorCode.ERR_IdentifierExpected);
 
                                 localFunction = null;
@@ -7806,7 +7801,7 @@ done:
 
             if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
             {
-                var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
+                var lessThanTokenError = CreateMissingToken(SyntaxKind.LessThanToken, SyntaxKind.None);
 
                 var missingTypes = _pool.AllocateSeparated<FunctionPointerParameterSyntax>();
                 var missingType = SyntaxFactory.FunctionPointerParameter(attributeLists: default, modifiers: default, CreateMissingIdentifierName());
