@@ -875,13 +875,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static void GetOffsetAndWidthForLastToken<TNode>(TNode node, out int offset, out int width) where TNode : CSharpSyntaxNode
         {
             var lastToken = node.GetLastNonmissingToken();
-            offset = node.FullWidth; //advance to end of entire node
+            offset = node.Width + node.GetTrailingTriviaWidth(); //advance to end of entire node
             width = 0;
             if (lastToken != null) //will be null if all tokens are missing
             {
                 offset -= lastToken.FullWidth; //rewind past last token
                 offset += lastToken.GetLeadingTriviaWidth(); //advance past last token leading trivia - now at start of last token
-                width += lastToken.Width;
+                width = lastToken.Width;
             }
         }
 
