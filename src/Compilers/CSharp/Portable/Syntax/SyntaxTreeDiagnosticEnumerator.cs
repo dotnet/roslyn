@@ -16,6 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntaxTree? _syntaxTree;
         private NodeIterationStack _stack;
         private Diagnostic? _current;
+
+        /// <summary>
+        /// Note:during iteration, '_position' is:
+        /// <list type="number">
+        /// <item>The FullStart of a node when we're on a node.</item>
+        /// <item>The FullStart of a trivia when we're on trivia.</item>
+        /// <item>The FullStart of a list whne we're on a list.</item>
+        /// <item>The *Start* (not FullStart) of a token when we're on a token.</item>
+        /// </list>
+        ///
+        /// The last is because when we hit a token, we will have processed its leading trivia, and will have moved
+        /// foward.
+        /// <para/>However, the offset for a diagnostic is relative to its FullStart (see <see
+        /// cref="SyntaxDiagnosticInfo.Offset"/>). Because of this, the offset can be directly combined with the
+        /// position for the first 3, but will need to be adjusted when processing a token itself.
+        /// </summary>
         private int _position;
         private const int DefaultStackCapacity = 8;
 
@@ -53,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagIndex++;
                     var sdi = (SyntaxDiagnosticInfo)diags[diagIndex];
 
-                    //for tokens, we've already seen leading trivia on the stack, so we have to roll back
-                    //for nodes, we have yet to see the leading trivia
+                    //for tokens, we've already seen leading trivia on the stack, so we have to roll back for nodes, we
+                    //have yet to see the leading trivia.  See documention of _position above.
                     int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
                     // don't produce locations outside of tree span
