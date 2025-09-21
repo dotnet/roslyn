@@ -100,12 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxDiagnosticInfo(offset, width, code, args);
         }
 
-        protected XmlSyntaxDiagnosticInfo MakeError(int position, int width, XmlParseErrorCode code, params object[] args)
-        {
-            int offset = GetLexemeOffsetFromPosition(position);
-            return new XmlSyntaxDiagnosticInfo(offset, width, code, args);
-        }
-
         private int GetLexemeOffsetFromPosition(int position)
         {
             return position >= LexemeStartPosition ? position - LexemeStartPosition : position;
