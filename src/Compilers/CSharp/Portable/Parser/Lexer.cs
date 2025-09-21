@@ -289,21 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static int GetFullWidth(SyntaxListBuilder? builder)
-        {
-            int width = 0;
-
-            if (builder != null)
-            {
-                for (int i = 0; i < builder.Count; i++)
-                {
-                    width += builder[i]!.FullWidth;
-                }
-            }
-
-            return width;
-        }
-
         private SyntaxToken LexSyntaxToken()
         {
             _leadingTriviaCache.Clear();
