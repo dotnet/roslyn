@@ -2846,7 +2846,7 @@ top:
 
             this.Start();
             this.ScanXmlToken(ref xmlTokenInfo);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in xmlTokenInfo, leading, null, errors);
         }
@@ -3542,7 +3542,7 @@ top:
 
             this.Start();
             this.ScanXmlCharacter(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -4010,7 +4010,7 @@ top:
 
             this.Start();
             this.ScanXmlCDataSectionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }
@@ -4262,7 +4262,7 @@ top:
 
             this.Start();
             this.ScanXmlProcessingInstructionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(leading));
+            var errors = this.GetErrors();
 
             return Create(in info, leading, null, errors);
         }

@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Note:during iteration, '_position' is:
         /// <list type="number">
         /// <item>The FullStart of a node when we're on a node.</item>
-        /// <item>The FullStart of a trivia when we're on trivia.</item>
-        /// <item>The FullStart of a list whne we're on a list.</item>
-        /// <item>The *Start* (not FullStart) of a token when we're on a token.</item>
+        /// <item>The Start of a trivia when we're on trivia.</item>
+        /// <item>The Start of a list when we're on a list.</item>
+        /// <item>The Start (not FullStart) of a token when we're on a token.</item>
         /// </list>
         ///
         /// The last is because when we hit a token, we will have processed its leading trivia, and will have moved
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     //for tokens, we've already seen leading trivia on the stack, so we have to roll back for nodes, we
                     //have yet to see the leading trivia.  See documention of _position above.
-                    int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
+                    int leadingWidthToAdd = node is Syntax.InternalSyntax.CSharpSyntaxNode { IsToken: false } ? node.GetLeadingTriviaWidth() : 0;
 
                     // don't produce locations outside of tree span
                     Debug.Assert(_syntaxTree is object);
                     var length = _syntaxTree.GetRoot().FullSpan.Length;
-                    var spanStart = Math.Min(_position - leadingWidthAlreadyCounted + sdi.Offset, length);
+                    var spanStart = Math.Min(_position + leadingWidthToAdd + sdi.Offset, length);
                     var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
 
                     _current = new CSDiagnostic(sdi, new SourceLocation(_syntaxTree, new TextSpan(spanStart, spanWidth)));

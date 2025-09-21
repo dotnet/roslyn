@@ -2971,7 +2971,7 @@ parse_member_name:;
                 var misplacedModifier = this.CurrentToken;
                 type = this.AddError(
                     type,
-                    type.FullWidth + misplacedModifier.GetLeadingTriviaWidth(),
+                    type.Width + type.GetTrailingTriviaWidth() + misplacedModifier.GetLeadingTriviaWidth(),
                     misplacedModifier.Width,
                     ErrorCode.ERR_BadModifierLocation,
                     misplacedModifier.Text);
@@ -3012,7 +3012,7 @@ parse_member_name:;
                     //the error position should indicate CurrentToken
                     result = this.AddError(
                         incompleteMember,
-                        incompleteMember.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
+                        incompleteMember.Width + incompleteMember.GetTrailingTriviaWidth() + this.CurrentToken.GetLeadingTriviaWidth(),
                         this.CurrentToken.Width,
                         ErrorCode.ERR_InvalidMemberDecl,
                         this.CurrentToken.Text);
@@ -7697,8 +7697,8 @@ done:
                     if (list[i].RawKind == (int)SyntaxKind.OmittedArraySizeExpression)
                     {
                         int width = list[i].Width;
-                        int offset = list[i].GetLeadingTriviaWidth();
-                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset, width, ErrorCode.ERR_ValueExpected);
+                        // int offset = list[i].GetLeadingTriviaWidth();
+                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset: 0, width, ErrorCode.ERR_ValueExpected);
                     }
                 }
             }

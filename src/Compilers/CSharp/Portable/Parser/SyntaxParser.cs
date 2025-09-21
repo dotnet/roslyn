@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // We have a normal node or token that has actual SyntaxToken.Text within it (or the EOF token). Place
                 // the diagnostic at the start (not full start) of that real node/token, with a width that encompasses
                 // the entire normal width of the node or token.
-                Debug.Assert(nodeOrToken.Width > 0 || nodeOrToken.RawKind is (int)SyntaxKind.EndOfFileToken) ;
+                Debug.Assert(nodeOrToken.Width > 0 || nodeOrToken.RawKind is (int)SyntaxKind.EndOfFileToken);
                 return WithAdditionalDiagnostics(nodeOrToken, MakeError(nodeOrToken, code, args));
             }
 
@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected static SyntaxDiagnosticInfo MakeError(GreenNode node, ErrorCode code, params object[] args)
         {
-            return new SyntaxDiagnosticInfo(node.GetLeadingTriviaWidth(), node.Width, code, args);
+            return new SyntaxDiagnosticInfo(offset: 0, node.Width, code, args);
         }
 
         protected static SyntaxDiagnosticInfo MakeError(ErrorCode code, params object[] args)
