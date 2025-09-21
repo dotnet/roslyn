@@ -7702,11 +7702,7 @@ done:
                 for (int i = 0; i < list.Count; i++)
                 {
                     if (list[i].RawKind == (int)SyntaxKind.OmittedArraySizeExpression)
-                    {
-                        int width = list[i].Width;
-                        // int offset = list[i].GetLeadingTriviaWidth();
-                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset: 0, width, ErrorCode.ERR_ValueExpected);
-                    }
+                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset: 0, list[i].Width, ErrorCode.ERR_ValueExpected);
                 }
             }
 
