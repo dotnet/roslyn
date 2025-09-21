@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Note:during iteration, '_position' is:
         /// <list type="number">
         /// <item>The FullStart of a node when we're on a node.</item>
-        /// <item>The Start of a trivia when we're on trivia.</item>
-        /// <item>The Start of a list when we're on a list.</item>
+        /// <item>The FullStart of a trivia when we're on trivia.</item>
+        /// <item>The FullStart of a list when we're on a list.</item>
         /// <item>The Start (not FullStart) of a token when we're on a token.</item>
         /// </list>
         ///
         /// The last is because when we hit a token, we will have processed its leading trivia, and will have moved
         /// foward.
-        /// <para/>However, the offset for a diagnostic is relative to its FullStart (see <see
-        /// cref="SyntaxDiagnosticInfo.Offset"/>). Because of this, the offset can be directly combined with the
-        /// position for the first 3, but will need to be adjusted when processing a token itself.
+        /// <para/>Note that the offset for a diagnostic is relative to its Start (see <see
+        /// cref="SyntaxDiagnosticInfo.Offset"/>). So for tokens we don't need to do anything.  For all other
+        /// constructs, we need to add the leading trivia width to the offset to get the correct location.
         /// </summary>
         private int _position;
         private const int DefaultStackCapacity = 8;
@@ -69,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagIndex++;
                     var sdi = (SyntaxDiagnosticInfo)diags[diagIndex];
 
-                    //for tokens, we've already seen leading trivia on the stack, so we have to roll back for nodes, we
-                    //have yet to see the leading trivia.  See documention of _position above.
-                    int leadingWidthToAdd = node is Syntax.InternalSyntax.CSharpSyntaxNode { IsToken: false } ? node.GetLeadingTriviaWidth() : 0;
+                    // For tokens, we've already seen leading trivia on the stack.  So we don't need to adjust the
+                    // offset. For everything else, we need to add the leading trivia offset so that we are at the right
+                    // 'Start' position that offset is relative to.  See documention of _position above.
+                    int leadingWidthToAdd = node.IsToken ? 0 : node.GetLeadingTriviaWidth();
 
                     // don't produce locations outside of tree span
                     Debug.Assert(_syntaxTree is object);
