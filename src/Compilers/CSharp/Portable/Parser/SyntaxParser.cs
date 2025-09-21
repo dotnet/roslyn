@@ -722,21 +722,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        /// <summary>
+        /// Given a "missing" node or token (one where <see cref="GreenNode.IsMissing"/> must be true, determines the
+        /// ideal location to place the diagnostic for it.  The intuition here is that we want to place the diagnostic
+        /// on the token that "follows" this 'missing' entity if they're on the same line.  Or, place it at the end of
+        /// the 'preceding' token if the following token is on the next line.
+        /// </summary>
         protected (int offset, int width) GetDiagnosticSpanForMissingNodeOrToken(GreenNode missingNodeOrToken)
         {
             Debug.Assert(missingNodeOrToken.IsMissing);
 
-            // If the previous token has a trailing EndOfLineTrivia, the missing token diagnostic position is moved to
-            // the end of line containing the previous token and its width is set to zero. 
+            // Note: missingNodeOrToken.IsMissing means this is either a MissingToken itself, or a node comprised
+            // (transitively) only from MissingTokens.  Missing tokens are guaranteed to have no text.  But they are
+            // allowed to have trivia.  This is a common pattern the parser will follow when it encounters unexpected
+            // tokens.  It will make a missing token of the expected kind for the current location, then attach the
+            // unexpected tokens as missed tokens to it.
 
-            var trivia = _prevTokenTrailingTrivia;
-            var triviaList = new SyntaxList<CSharpSyntaxNode>(_prevTokenTrailingTrivia);
-            if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
-                return (offset: -(trivia.FullWidth + missingNodeOrToken.GetLeadingTriviaWidth()), width: 0);
+            // At this point, we have a node or token without real text in it.  The intuition we have here is that we
+            // want to place the diagnostic on the token that "follows" this 'missing' entity.  There is a subtlety
+            // here.  If the node or token contains skipped tokens, then we consider that skipped token the "following"
+            // token, and we will want to placce the diagnostic on it.  Otherwise, we want to place it on the true 'next
+            // token' the parser is currently pointing at.
 
-            // Otherwise the diagnostic offset and width is set to the corresponding values of the current token
-            var token = this.CurrentToken;
-            return (missingNodeOrToken.Width + missingNodeOrToken.GetTrailingTriviaWidth() + token.GetLeadingTriviaWidth(), token.Width);
+            if (!missingNodeOrToken.ContainsSkippedText)
+            {
+                // Simple case this node/token does not contain any skipped text.  Place the diagnostic at the start of
+                // the token that follows.
+                return getOffsetAndWidthBasedOnPriorAndNextTokens();
+            }
+            else
+            {
+                // Complex case.  This node or token contains skipped text.  Place the diagnostic on the skipped text.
+                return getOffsetAndWidthOfSkippedToken();
+            }
+
+            (int offset, int width) getOffsetAndWidthBasedOnPriorAndNextTokens()
+            {
+                // If the previous token has a trailing EndOfLineTrivia, the missing token diagnostic position is moved to
+                // the end of line containing the previous token and its width is set to zero. 
+
+                var trivia = _prevTokenTrailingTrivia;
+                var triviaList = new SyntaxList<CSharpSyntaxNode>(_prevTokenTrailingTrivia);
+                if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
+                    return (offset: -(trivia.FullWidth + missingNodeOrToken.GetLeadingTriviaWidth()), width: 0);
+
+                // Otherwise the diagnostic offset and width is set to the corresponding values of the current token
+                var token = this.CurrentToken;
+                return (missingNodeOrToken.Width + missingNodeOrToken.GetTrailingTriviaWidth() + token.GetLeadingTriviaWidth(), token.Width);
+            }
+
+            (int offset, int width) getOffsetAndWidthOfSkippedToken()
+            {
+                var offset = 0;
+
+                // Walk all the children of this nodeOrToken (including itself).  Note: this does not walk into trivia.
+                // We are looking for the first token that has skipped text.  When we find that token (which must exist,
+                // based on the check above), we will place the diagnostic on the skipped token within that token.
+                foreach (var child in missingNodeOrToken.EnumerateNodes())
+                {
+                    Debug.Assert(child.IsMissing, "All children of a missing node or token should themselves be missing.");
+                    if (!child.IsToken)
+                        continue;
+
+                    var childToken = (Syntax.InternalSyntax.SyntaxToken)child;
+                    Debug.Assert(childToken.Text == "", "All missing tokens should have no text");
+                    if (!child.ContainsSkippedText)
+                    {
+                        offset += child.FullWidth;
+                        continue;
+                    }
+
+                    // Now, walk the trivia of this token, looking for the skipped tokens trivia.
+                    var allTrivia = new SyntaxList<GreenNode>(SyntaxList.Concat(childToken.GetLeadingTrivia(), childToken.GetTrailingTrivia()));
+                    Debug.Assert(allTrivia.Count > 0, "How can a token with skipped text not have trivia at all?");
+
+                    foreach (var trivia in allTrivia)
+                    {
+                        if (!trivia.IsSkippedTokensTrivia)
+                        {
+                            offset += trivia.FullWidth;
+                            continue;
+                        }
+
+                        // Found the skipped tokens trivia.  Place the diagnostic on it.
+                        return (offset, trivia.Width);
+                    }
+
+                    Debug.Fail("This shuld not be reachable.  We should have hit a skipped token in the trivia of this token.");
+                    return default;
+                }
+
+                Debug.Fail("This shuld not be reachable.  We should have hit a child token with skipped text within this node.");
+                return default;
+            }
         }
 
         protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
@@ -777,76 +855,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(nodeOrToken.Width > 0 || nodeOrToken.RawKind is (int)SyntaxKind.EndOfFileToken);
                 return WithAdditionalDiagnostics(nodeOrToken, MakeError(nodeOrToken, code, args));
             }
-
-            // Note: nodeOrToken.IsMissing means this is either a MissingToken itself, or a node comprised
-            // (transitively) only from MissingTokens.  Missing tokens are guaranteed to have no text.  But they are
-            // allowed to have trivia.  This is a common pattern the parser will follow when it encounters unexpected
-            // tokens.  It will make a missing token of the expected kind for the current location, then attach the 
-            // unexpected tokens as missed tokens to it.
-
-            // At this point, we have a node or token without real text in it.  The intuition we have here is that we
-            // want to place the diagnostic on the token that "follows" this 'missing' entity.  There is a subtlety
-            // here.  If the node or token contains skipped tokens, then we consider that skipped token the "following"
-            // token, and we will want to placce the diagnostic on it.  Otherwise, we want to place it on the true 'next
-            // token' the parser is currently pointing at.
-
-            if (!nodeOrToken.ContainsSkippedText)
-            {
-                // Simple case this node/token does not contain any skipped text.  Place the diagnostic at the start of
-                // the token that follows.
-                var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(nodeOrToken);
-                return WithAdditionalDiagnostics(nodeOrToken, MakeError(offset, width, code, args));
-            }
             else
             {
-                // Complex case.  This node or token contains skipped text.  Place the diagnostic on the skipped text.
-                var (offset, width) = getOffsetAndWidthOfSkippedToken();
+                var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(nodeOrToken);
                 return WithAdditionalDiagnostics(nodeOrToken, MakeError(offset, width, code, args));
-            }
-
-            (int offset, int width) getOffsetAndWidthOfSkippedToken()
-            {
-                var offset = 0;
-
-                // Walk all the children of this nodeOrToken (including itself).  Note: this does not walk into trivia.
-                // We are looking for the first token that has skipped text.  When we find that token (which must exist,
-                // based on the check above), we will place the diagnostic on the skipped token within that token.
-                foreach (var child in nodeOrToken.EnumerateNodes())
-                {
-                    Debug.Assert(child.IsMissing, "All children of a missing node or token should themselves be missing.");
-                    if (!child.IsToken)
-                        continue;
-
-                    var childToken = (Syntax.InternalSyntax.SyntaxToken)child;
-                    Debug.Assert(childToken.Text == "", "All missing tokens should have no text");
-                    if (!child.ContainsSkippedText)
-                    {
-                        offset += child.FullWidth;
-                        continue;
-                    }
-
-                    // Now, walk the trivia of this token, looking for the skipped tokens trivia.
-                    var allTrivia = new SyntaxList<GreenNode>(SyntaxList.Concat(childToken.GetLeadingTrivia(), childToken.GetTrailingTrivia()));
-                    Debug.Assert(allTrivia.Count > 0, "How can a token with skipped text not have trivia at all?");
-
-                    foreach (var trivia in allTrivia)
-                    {
-                        if (!trivia.IsSkippedTokensTrivia)
-                        {
-                            offset += trivia.FullWidth;
-                            continue;
-                        }
-
-                        // Found the skipped tokens trivia.  Place the diagnostic on it.
-                        return (offset, trivia.Width);
-                    }
-
-                    Debug.Fail("This shuld not be reachable.  We should have hit a skipped token in the trivia of this token.");
-                    return default;
-                }
-
-                Debug.Fail("This shuld not be reachable.  We should have hit a child token with skipped text within this node.");
-                return default;
             }
         }
 
