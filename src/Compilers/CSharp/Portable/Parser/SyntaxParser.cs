@@ -617,6 +617,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             (int offset, int width) getDiagnosticSpan()
             {
+                // We got the wrong kind while forcefully eating this token.  If it's on the same line as the last
+                // token, just squiggle it as being the wrong kind. If it's on the next line, move the squiggle back to
+                // the end of the previous token and make it zero width, indicating the expected token was missed at
+                // that location.
+
                 var trivia = _prevTokenTrailingTrivia;
                 var triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
                 if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
