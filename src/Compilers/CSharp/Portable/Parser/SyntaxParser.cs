@@ -670,9 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
         {
-            int offset, width;
-            this.GetDiagnosticSpanForMissingToken(out offset, out width);
-
+            var (offset, width) = this.GetDiagnosticSpanForMissingToken();
             return this.GetExpectedTokenError(expected, actual, offset, width);
         }
 
@@ -708,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected void GetDiagnosticSpanForMissingToken(out int offset, out int width)
+        protected (int offset, int width) GetDiagnosticSpanForMissingToken()
         {
             // If the previous token has a trailing EndOfLineTrivia,
             // the missing token diagnostic position is moved to the
@@ -723,16 +721,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
                 bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
                 if (prevTokenHasEndOfLineTrivia)
-                {
-                    offset = -trivia.FullWidth;
-                    width = 0;
-                    return;
-                }
+                    return (offset: -trivia.FullWidth, width: 0);
             }
 
-            SyntaxToken ct = this.CurrentToken;
-            offset = ct.GetLeadingTriviaWidth();
-            width = ct.Width;
+            var token = this.CurrentToken;
+            return (token.GetLeadingTriviaWidth(), token.Width);
         }
 
         protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
@@ -790,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Simple case this node/token does not contain any skipped text.  Place the diagnostic at the start of
                 // the token that follows.
-                this.GetDiagnosticSpanForMissingToken(out var offset, out var width);
+                var (offset, width) = this.GetDiagnosticSpanForMissingToken();
                 return WithAdditionalDiagnostics(nodeOrToken, MakeError(nodeOrToken.FullWidth + offset, width, code, args));
             }
             else

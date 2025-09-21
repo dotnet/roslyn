@@ -1027,9 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
 
                 // Grab the offset and width before we consume the invalid keyword and change our position.
-                int offset;
-                int width;
-                GetDiagnosticSpanForMissingToken(out offset, out width);
+                var (offset, width) = this.GetDiagnosticSpanForMissingToken();
 
                 if (SyntaxFacts.IsUnaryOperatorDeclarationToken(CurrentToken.Kind) || SyntaxFacts.IsBinaryExpressionOperatorToken(CurrentToken.Kind))
                 {
