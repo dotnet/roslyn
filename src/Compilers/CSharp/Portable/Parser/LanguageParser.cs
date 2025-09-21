@@ -3901,7 +3901,7 @@ parse_member_name:;
                 if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                 {
                     // Grab the offset and width before we consume the invalid keyword and change our position.
-                    (opTokenErrorOffset, opTokenErrorWidth) = this.GetDiagnosticSpanForMissingToken();
+                    (opTokenErrorOffset, opTokenErrorWidth) = (0, this.CurrentToken.Width);
                     opToken = this.ConvertToMissingWithTrailingTrivia(this.EatToken(), SyntaxKind.PlusToken);
                     Debug.Assert(opToken.IsMissing); //Which is why we used GetDiagnosticSpanForMissingToken above.
 
@@ -5369,7 +5369,7 @@ parse_member_name:;
                     if (isAfterNewLine)
                     {
                         // Note: this token is free to get.  There is a cached singleton in SyntaxFactory for it.
-                        var missingIdentifier = this.CreateMissingIdentifierName();
+                        var missingIdentifier = CreateMissingIdentifierToken();
                         var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(missingIdentifier);
 
                         this.EatToken();
