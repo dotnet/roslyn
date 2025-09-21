@@ -8,7 +8,7 @@ using System.IO;
 using System.Text.Json;
 using PostSharp.Engineering.BuildTools.Build;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal class DotNetToolDependenciesSource : NuGetDependenciesSourceBase
 {

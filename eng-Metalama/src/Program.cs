@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Build;
-using Build.NuGetDependencies;
+using BuildMetalamaCompiler;
+using BuildMetalamaCompiler.NuGetDependencies;
 using PostSharp.Engineering.BuildTools;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;

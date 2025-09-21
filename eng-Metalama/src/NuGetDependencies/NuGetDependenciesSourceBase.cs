@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using PostSharp.Engineering.BuildTools.Build;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal abstract class NuGetDependenciesSourceBase
 {

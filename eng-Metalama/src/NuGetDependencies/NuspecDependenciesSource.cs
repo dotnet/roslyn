@@ -9,7 +9,7 @@ using System.Linq;
 using System.Xml.Linq;
 using PostSharp.Engineering.BuildTools.Build;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal class NuspecDependenciesSource : NuGetDependenciesSourceBase
 {

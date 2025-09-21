@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -11,15 +10,14 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.VisualStudio.Services.Common;
 using PostSharp.Engineering.BuildTools;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
-using PostSharp.Engineering.BuildTools.Build.Publishers;
+using PostSharp.Engineering.BuildTools.Build.Publishing;
 using PostSharp.Engineering.BuildTools.Utilities;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
 {
