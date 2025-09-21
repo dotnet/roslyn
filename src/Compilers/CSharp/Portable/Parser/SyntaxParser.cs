@@ -767,10 +767,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (!nodeOrToken.IsMissing)
             {
-                // We have a normal node or token that has actual SyntaxToken.Text within it. Place the diagnostic at
-                // the start of that real Text, with a width that encompasses the entire normal width of the node or
-                // token.
-                Debug.Assert(nodeOrToken.Width > 0);
+                // We have a normal node or token that has actual SyntaxToken.Text within it (or the EOF token). Place
+                // the diagnostic at the start (not full start) of that real node/token, with a width that encompasses
+                // the entire normal width of the node or token.
+                Debug.Assert(nodeOrToken.Width > 0 || nodeOrToken.RawKind is (int)SyntaxKind.EndOfFileToken) ;
                 return WithAdditionalDiagnostics(nodeOrToken, MakeError(nodeOrToken, code, args));
             }
 
