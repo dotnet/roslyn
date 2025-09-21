@@ -966,16 +966,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (trailing)
             {
                 // The normal offset for a node/token is its start (not full start).  So if we're placing the skipped
-                // syntax at the end of the trivia, then the offset will be adjsuted forward by the width of the
-                // node/token plus the existing trailing trivia.
+                // syntax at the end of the trivia, then the offset relative to the node/token start will be adjusted
+                // forward by the width of the node/token plus the existing trailing trivia.
                 currentOffset = target.Width + target.GetTrailingTriviaWidth();
                 builder.Add(target.GetTrailingTrivia());
             }
             else
             {
                 // The normal offset for a node/token is its start (not full start). So if we're placing the skipped
-                // syntax at the start of the trivia, then the offset will be adjusted backward by the width of the
-                // existing leading trivia plus the width of the skipped syntax we're tacking on at the front.
+                // syntax at the start of the trivia, then the offset relative to the node/token start will be adjusted
+                // backward by the width of the existing leading trivia plus the width of the skipped syntax we're
+                // tacking on at the front.
                 currentOffset = -target.GetLeadingTriviaWidth() - skippedSyntax.FullWidth;
             }
 
