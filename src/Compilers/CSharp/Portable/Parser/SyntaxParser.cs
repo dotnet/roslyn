@@ -732,13 +732,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // to the corresponding values of the current token
 
             var trivia = _prevTokenTrailingTrivia;
-            if (trivia != null)
-            {
-                SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
-                bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
-                if (prevTokenHasEndOfLineTrivia)
-                    return (offset: -trivia.FullWidth, width: 0);
-            }
+            var triviaList = new SyntaxList<CSharpSyntaxNode>(_prevTokenTrailingTrivia);
+            if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
+                return (offset: -trivia.FullWidth, width: 0);
 
             var token = this.CurrentToken;
             return (token.GetLeadingTriviaWidth(), token.Width);
