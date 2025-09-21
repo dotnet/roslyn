@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected SyntaxToken EatTokenWithPrejudice(ErrorCode errorCode, params object[] args)
         {
             var token = this.EatToken();
-            token = WithAdditionalDiagnostics(token, MakeError(token.GetLeadingTriviaWidth(), token.Width, errorCode, args));
+            token = WithAdditionalDiagnostics(token, MakeError(offset: 0, token.Width, errorCode, args));
             return token;
         }
 
