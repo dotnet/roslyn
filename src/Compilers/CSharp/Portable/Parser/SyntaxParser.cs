@@ -608,11 +608,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
             if (token.Kind != kind)
             {
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind));
+                var (offset, width) = getDiagnosticSpan();
+                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind, offset, width));
             }
 
             this.MoveToNextToken();
             return token;
+
+            (int offset, int width) getDiagnosticSpan()
+            {
+                var trivia = _prevTokenTrailingTrivia;
+                var triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
+                if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
+                    return (offset: -(trivia.FullWidth + token.GetLeadingTriviaWidth()), width: 0);
+
+                return (offset: 0, token.Width);
+            }
         }
 
         protected SyntaxToken EatTokenWithPrejudice(ErrorCode errorCode, params object[] args)
