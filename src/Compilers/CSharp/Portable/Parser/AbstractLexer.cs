@@ -55,11 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddError(this.MakeError(position, width, code, args));
         }
 
-        protected void AddError(int position, int width, XmlParseErrorCode code, params object[] args)
-        {
-            this.AddError(this.MakeError(position, width, code, args));
-        }
-
         protected void AddError(ErrorCode code)
         {
             this.AddError(MakeError(code));
