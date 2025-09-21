@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
         {
             var firstToken = node.GetFirstToken();
-            return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code));
+            return WithAdditionalDiagnostics(node, MakeError(offset: 0, firstToken.Width, code));
         }
 
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
@@ -969,21 +969,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (token.Width > 0)
                     {
                         // separate trivia from the tokens
-                        SyntaxToken tk = token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null);
 
-                        // adjust relative offsets of diagnostics attached to the token:
-                        int leadingWidth = token.GetLeadingTriviaWidth();
-                        if (leadingWidth > 0)
-                        {
-                            var tokenDiagnostics = tk.GetDiagnostics();
-                            for (int i = 0; i < tokenDiagnostics.Length; i++)
-                            {
-                                var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
-                                tokenDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset - leadingWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                            }
-                        }
+                        //// adjust relative offsets of diagnostics attached to the token:
+                        //int leadingWidth = token.GetLeadingTriviaWidth();
+                        //if (leadingWidth > 0)
+                        //{
+                        //    var tokenDiagnostics = tk.GetDiagnostics();
+                        //    for (int i = 0; i < tokenDiagnostics.Length; i++)
+                        //    {
+                        //        var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
+                        //        tokenDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset - leadingWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
+                        //    }
+                        //}
 
-                        builder.Add(SyntaxFactory.SkippedTokensTrivia(tk));
+                        builder.Add(SyntaxFactory.SkippedTokensTrivia(
+                            token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null)));
                     }
                     else
                     {
