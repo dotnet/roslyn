@@ -6,7 +6,7 @@
   </PropertyGroup>
 <!-- <Metalama> -->
   <PropertyGroup>
-    <PostSharpEngineeringVersion>2023.2.176</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion>2023.2.201</PostSharpEngineeringVersion>
   </PropertyGroup>
 <!-- </Metalama> -->
   <Import Project="eng\Directory.Packages.props" />

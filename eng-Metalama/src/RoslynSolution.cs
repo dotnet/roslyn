@@ -10,145 +10,143 @@ using System.Text;
 using System.Text.RegularExpressions;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
-using PostSharp.Engineering.BuildTools.ContinuousIntegration;
+using PostSharp.Engineering.BuildTools.Tools.TeamCity;
 using PostSharp.Engineering.BuildTools.Utilities;
 
-namespace Build
+namespace BuildMetalamaCompiler;
+
+internal class RoslynSolution : Solution
 {
-    internal class RoslynSolution : Solution
+    public RoslynSolution() : base("Build.ps1")
     {
-        public RoslynSolution() : base("Build.ps1")
+    }
+
+
+    public override bool Build(BuildContext context, BuildSettings settings)
+    {
+        return ExecuteScript(context, settings, "-build");
+    }
+
+    private bool ExecuteScript(BuildContext context, BuildSettings settings, string args)
+    {
+        var msBuildConfiguration =
+            context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
+
+        var argsBuilder = new StringBuilder();
+
+        argsBuilder.Append(CultureInfo.InvariantCulture, $"-c {msBuildConfiguration}");
+        argsBuilder.Append(' ');
+        argsBuilder.Append(args);
+
+        if (settings.BuildConfiguration != BuildConfiguration.Debug)
         {
-        }
+            var revisionNumber = settings.BuildNumber ?? 1;
 
+            // The official build ID is assumed to have format "20yymmdd.r", where R is the revision number of the day.
+            // Metalama.Compiler uses the build number as the revision number regardless of the actual date.
+            // (See .packages\microsoft.dotnet.arcade.sdk\9.0.0-beta.24416.2\tools\Version.BeforeCommonTargets.targets.)
+            var officialBuildId = $"{DateTime.UtcNow:yyyyMMdd}.{revisionNumber}";
 
-        public override bool Build(BuildContext context, BuildSettings settings)
-        {
-            return ExecuteScript(context, settings, "-build");
-        }
+            var releaseBranch = context.Product.DependencyDefinition.ReleaseBranch;
 
-        private bool ExecuteScript(BuildContext context, BuildSettings settings, string args)
-        {
-            var msBuildConfiguration =
-                context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
-
-            var argsBuilder = new StringBuilder();
-
-            argsBuilder.Append(CultureInfo.InvariantCulture, $"-c {msBuildConfiguration}");
-            argsBuilder.Append(' ');
-            argsBuilder.Append(args);
-
-            if (settings.BuildConfiguration != BuildConfiguration.Debug)
-            {
-                var revisionNumber = settings.BuildNumber ?? 1;
-
-                // The official build ID is assumed to have format "20yymmdd.r", where R is the revision number of the day.
-                // Metalama.Compiler uses the build number as the revision number regardless of the actual date.
-                // (See .packages\microsoft.dotnet.arcade.sdk\9.0.0-beta.24416.2\tools\Version.BeforeCommonTargets.targets.)
-                var officialBuildId = $"{DateTime.UtcNow:yyyyMMdd}.{revisionNumber}";
-
-                var releaseBranch = context.Product.DependencyDefinition.ReleaseBranch;
-
-                if (releaseBranch == null)
-                {
-                    context.Console.WriteError(
-                        "Release branch must be specified when building a public configuration.");
-                    return false;
-                }
-
-                // This parameter is not used by Metalama.Compiler, but it is required by the build script.
-                var officialVisualStudioDropAccessToken = "N/A";
-
-                argsBuilder.Append($" -officialBuildId {officialBuildId}");
-                argsBuilder.Append(" -officialSkipTests true");
-                argsBuilder.Append(" -officialSkipApplyOptimizationData true");
-                argsBuilder.Append($" -officialSourceBranchName {releaseBranch}");
-                argsBuilder.Append($" -officialVisualStudioDropAccessToken {officialVisualStudioDropAccessToken}");
-            }
-
-            // The DOTNET_ROOT_X64 environment variable is used by Arcade.
-            var toolOptions = new ToolInvocationOptions()
-            {
-                BlockedEnvironmentVariables = ImmutableArray.Create("MSBuildSDKsPath", "MSBUILD_EXE_PATH"),
-                // Retry build when the file is locked by another process.
-                Retry = new ToolInvocationRetry(
-                    new Regex(".+The process cannot access the file.+because it is being used by another process."), 1)
-            };
-
-            return ToolInvocationHelper.InvokePowershell(
-                context.Console,
-                Path.Combine(context.RepoDirectory, "eng", "build.ps1"),
-                argsBuilder.ToString(),
-                context.RepoDirectory,
-                toolOptions);
-        }
-
-        public override bool Pack(BuildContext context, BuildSettings settings)
-        {
-            return ExecuteScript(context, settings, "-build -pack");
-        }
-
-        public override bool Restore(BuildContext context, BuildSettings options)
-        {
-            return ExecuteScript(context, options, "-restore");
-        }
-
-        // We run Metalama's unit tests.
-        public override bool Test(BuildContext context, BuildSettings settings)
-        {
-            var testAll = settings.Properties.ContainsKey("TestAll");
-
-            if (testAll && !string.IsNullOrEmpty(settings.TestsFilter))
-            {
-                context.Console.WriteError("Tests filter and TestAll property cannot be set at the same time.");
-            }
-
-            var filter = testAll ? "" : settings.TestsFilter ?? context.Product.DefaultTestsFilter;
-
-            var configuration = context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
-
-            // We run Metalama's unit tests.
-            var testsBinDirectory = Path.Combine("artifacts", "bin", "Metalama.Compiler.UnitTests", configuration);
-            var testFileName = "Metalama.Compiler.UnitTests.dll";
-            var testFiles = Directory.GetFiles(testsBinDirectory, testFileName, SearchOption.AllDirectories);
-            var actualTestFilesCount = testFiles.Length;
-
-            // Update when the number of target frameworks changes.
-            var expectedTestFilesCount = 2;
-
-            if (actualTestFilesCount != expectedTestFilesCount)
+            if (releaseBranch == null)
             {
                 context.Console.WriteError(
-                    $"{actualTestFilesCount} files found instead of {expectedTestFilesCount} in {testsBinDirectory}.");
+                    "Release branch must be specified when building a public configuration.");
                 return false;
             }
 
-            var resultsRelativeDirectory =
-                context.Product.TestResultsDirectory.ToString(new BuildInfo(null, settings.BuildConfiguration,
-                    context.Product, null));
+            // This parameter is not used by Metalama.Compiler, but it is required by the build script.
+            var officialVisualStudioDropAccessToken = "N/A";
 
-            var resultsDirectory = Path.Combine(context.RepoDirectory, resultsRelativeDirectory);
-
-            var args =
-                $"--filter \"{filter}\" --logger \"trx\" --logger \"console;verbosity=minimal\" --results-directory \"{resultsDirectory}\"";
-            var success = true;
-
-            foreach (var testFile in testFiles)
-            {
-                success &= DotNetHelper.Run(context, settings, testFile, "test", args);
-            }
-
-            if (TeamCityHelper.IsTeamCityBuild(settings))
-            {
-                // Export test result files to TeamCity.
-                TeamCityHelper.SendImportDataMessage(
-                    "vstest",
-                    Path.Combine(resultsRelativeDirectory, "*.trx").Replace(Path.DirectorySeparatorChar, '/'),
-                    Path.GetFileName(testFileName),
-                    false);
-            }
-
-            return success;
+            argsBuilder.Append($" -officialBuildId {officialBuildId}");
+            argsBuilder.Append(" -officialSkipTests true");
+            argsBuilder.Append(" -officialSkipApplyOptimizationData true");
+            argsBuilder.Append($" -officialSourceBranchName {releaseBranch}");
+            argsBuilder.Append($" -officialVisualStudioDropAccessToken {officialVisualStudioDropAccessToken}");
         }
+
+        // The DOTNET_ROOT_X64 environment variable is used by Arcade.
+        var toolOptions = new ToolInvocationOptions
+        {
+            BlockedEnvironmentVariables = ImmutableArray.Create("MSBuildSDKsPath", "MSBUILD_EXE_PATH"),
+            // Retry build when the file is locked by another process.
+            Retry = new ToolInvocationRetry(
+                new Regex(".+The process cannot access the file.+because it is being used by another process."), 1)
+        };
+
+        return ToolInvocationHelper.InvokePowershell(
+            context.Console,
+            Path.Combine(context.RepoDirectory, "eng", "build.ps1"),
+            argsBuilder.ToString(),
+            context.RepoDirectory,
+            toolOptions);
+    }
+
+    public override bool Pack(BuildContext context, BuildSettings settings)
+    {
+        return ExecuteScript(context, settings, "-build -pack");
+    }
+
+    public override bool Restore(BuildContext context, BuildSettings options)
+    {
+        return ExecuteScript(context, options, "-restore");
+    }
+
+    // We run Metalama's unit tests.
+    public override bool Test(BuildContext context, BuildSettings settings)
+    {
+        var testAll = settings.Properties.ContainsKey("TestAll");
+
+        if (testAll && !string.IsNullOrEmpty(settings.TestsFilter))
+        {
+            context.Console.WriteError("Tests filter and TestAll property cannot be set at the same time.");
+        }
+
+        var filter = testAll ? "" : settings.TestsFilter ?? context.Product.DefaultTestsFilter;
+
+        var configuration = context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
+
+        // We run Metalama's unit tests.
+        var testsBinDirectory = Path.Combine("artifacts", "bin", "Metalama.Compiler.UnitTests", configuration);
+        var testFileName = "Metalama.Compiler.UnitTests.dll";
+        var testFiles = Directory.GetFiles(testsBinDirectory, testFileName, SearchOption.AllDirectories);
+        var actualTestFilesCount = testFiles.Length;
+
+        // Update when the number of target frameworks changes.
+        var expectedTestFilesCount = 2;
+
+        if (actualTestFilesCount != expectedTestFilesCount)
+        {
+            context.Console.WriteError(
+                $"{actualTestFilesCount} files found instead of {expectedTestFilesCount} in {testsBinDirectory}.");
+            return false;
+        }
+
+        var resultsRelativeDirectory =
+            context.Product.TestResultsDirectory.ToString(BuildArguments.Read(context, settings.BuildConfiguration));
+
+        var resultsDirectory = Path.Combine(context.RepoDirectory, resultsRelativeDirectory);
+
+        var args =
+            $"--filter \"{filter}\" --logger \"trx\" --logger \"console;verbosity=minimal\" --results-directory \"{resultsDirectory}\"";
+        var success = true;
+
+        foreach (var testFile in testFiles)
+        {
+            success &= DotNetHelper.Run(context, settings, testFile, "test", args);
+        }
+
+        if (context.IsContinuousIntegrationBuild)
+        {
+            // Export test result files to TeamCity.
+            TeamCityHelper.SendImportDataMessage(
+                "vstest",
+                Path.Combine(resultsRelativeDirectory, "*.trx").Replace(Path.DirectorySeparatorChar, '/'),
+                Path.GetFileName(testFileName),
+                false);
+        }
+
+        return success;
     }
 }
