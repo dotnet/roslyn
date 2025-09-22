@@ -4072,8 +4072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Conversion,
                     conversion,
                     node.ExpressionPlaceholder,
-                    node.EnumeratorInfoOpt,
-                    awaitOpt: null);
+                    node.EnumeratorInfoOpt);
                 RemovePlaceholderReplacement(node.ExpressionPlaceholder);
             }
             else
@@ -11685,7 +11684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we're in this scenario, there was a binding error, and we should suppress any further warnings.
                 Debug.Assert(node.HasErrors);
                 VisitRvalue(node.Expression);
-                Visit(node.AwaitOpt);
+                Visit(node.EnumeratorInfoOpt?.MoveNextAwaitableInfo);
                 return;
             }
 
@@ -11697,8 +11696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Expression,
                 conversion,
                 expr,
-                node.EnumeratorInfoOpt,
-                node.AwaitOpt);
+                node.EnumeratorInfoOpt);
         }
 
         private void VisitForEachExpression(
@@ -11706,8 +11704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression collectionExpression,
             Conversion conversion,
             BoundExpression expr,
-            ForEachEnumeratorInfo? enumeratorInfoOpt,
-            BoundAwaitableInfo? awaitOpt)
+            ForEachEnumeratorInfo? enumeratorInfoOpt)
         {
             // There are 7 ways that a foreach can be created:
             //    1. The collection type is an array type. For this, initial binding will generate an implicit reference conversion to
@@ -11772,7 +11769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (conversion.IsImplicit)
             {
-                bool isAsync = awaitOpt != null;
+                bool isAsync = enumeratorInfoOpt?.MoveNextAwaitableInfo != null;
                 if (collectionExpression.Type!.SpecialType == SpecialType.System_Collections_IEnumerable)
                 {
                     // If this is a conversion to IEnumerable (non-generic), nothing to do. This is cases 1, 2, and 5.
@@ -11878,7 +11875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations);
 
                 // Analyze `await MoveNextAsync()`
-                if (awaitOpt is { AwaitableInstancePlaceholder: BoundAwaitableValuePlaceholder moveNextPlaceholder } awaitMoveNextInfo)
+                if (enumeratorInfoOpt is { MoveNextAwaitableInfo: { AwaitableInstancePlaceholder: BoundAwaitableValuePlaceholder moveNextPlaceholder } awaitMoveNextInfo })
                 {
                     var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, enumeratorInfoOpt.MoveNextInfo.Method);
 
