@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </list>
         ///
         /// The last is because when we hit a token, we will have processed its leading trivia, and will have moved
-        /// foward.
+        /// forward.
         /// <para/>However, the offset for a diagnostic is relative to its FullStart (see <see
         /// cref="SyntaxDiagnosticInfo.Offset"/>). Because of this, the offset can be directly combined with the
         /// position for the first 3, but will need to be adjusted when processing a token itself.
