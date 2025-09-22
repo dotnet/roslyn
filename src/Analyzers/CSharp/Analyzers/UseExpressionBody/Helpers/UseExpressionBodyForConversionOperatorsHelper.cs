@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -46,6 +47,6 @@ internal sealed class UseExpressionBodyForConversionOperatorsHelper :
     protected override ConversionOperatorDeclarationSyntax WithBody(ConversionOperatorDeclarationSyntax declaration, BlockSyntax? body)
         => declaration.WithBody(body);
 
-    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, ConversionOperatorDeclarationSyntax declaration)
+    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, ConversionOperatorDeclarationSyntax declaration, CancellationToken cancellationToken)
         => true;
 }
