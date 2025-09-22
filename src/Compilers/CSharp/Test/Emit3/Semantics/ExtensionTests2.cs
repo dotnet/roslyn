@@ -29140,7 +29140,7 @@ public static class C1
                 ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0002",
                 ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0002",
             ], actual);
-        });
+        }).VerifyDiagnostics();
     }
 
     [Fact]
@@ -29180,7 +29180,7 @@ public static class C1
                 ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0002",
                 ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0002",
             ], actual);
-        });
+        }).VerifyDiagnostics();
     }
 
     [Fact]
@@ -29304,6 +29304,567 @@ internal static class C1
             // error CS0101: The namespace '<global namespace>' already contains a definition for 'C1'
             Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("C1", "<global namespace>").WithLocation(1, 1)
             );
+    }
+
+    [Fact]
+    public void ExportedTypes_06()
+    {
+        string source = @"
+public static class C1
+{
+    extension<T>(int i)
+    {
+    }
+}
+";
+        var moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+        var moduleRef = moduleComp.EmitToImageReference();
+
+        CompileAndVerify("", references: [moduleRef], assemblyValidator: (assembly) =>
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x26000001 (AssemblyFile) 0x0001",
+                ".<G>$B8D310208B4544F25EEBACB9990FC73B`1 0x27000001 (ExportedType) 0x0002",
+                ".<M>$B39C5C386A2E3E9242B293D9323EC48A 0x27000002 (ExportedType) 0x0002",
+            ], actual);
+        }).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ForwardedTypes_01()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]";
+
+        CompileAndVerify(source2, references: [comp1.EmitToImageReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+                ".C2 0x27000001 (ExportedType) 0x0000",
+                ".C3 0x27000002 (ExportedType) 0x0000",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0000",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0000",
+                ".<M>$56B5C634B2E52051C75D91F71BA8833A 0x27000004 (ExportedType) 0x0000",
+                ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0000",
+                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_02()
+    {
+        string source1 = @"
+namespace NS1.NS2;
+
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(NS1.NS2.C1))]";
+
+        CompileAndVerify(source2, references: [comp1.EmitToImageReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                "NS1.NS2.C1 0x23000002 (AssemblyReference) 0x200000",
+                ".C2 0x27000001 (ExportedType) 0x0000",
+                ".C3 0x27000002 (ExportedType) 0x0000",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0000",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0000",
+                ".<M>$56B5C634B2E52051C75D91F71BA8833A 0x27000004 (ExportedType) 0x0000",
+                ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0000",
+                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_03()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension<T>(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]";
+
+        CompileAndVerify(source2, references: [comp1.EmitToImageReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+                ".<G>$B8D310208B4544F25EEBACB9990FC73B`1 0x27000001 (ExportedType) 0x0000",
+                ".<M>$B39C5C386A2E3E9242B293D9323EC48A 0x27000002 (ExportedType) 0x0000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_04()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+        var source2 = @"
+extern alias A;
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A::C1))]
+
+static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+
+        var comp = CreateCompilation(source2, references: [comp1.EmitToImageReference().WithAliases(["A"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8006: Forwarded type 'C1' conflicts with type declared in primary module of this assembly.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("C1").WithLocation(1, 1)
+            );
+
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8006: Forwarded type 'C1' conflicts with type declared in primary module of this assembly.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("C1").WithLocation(1, 1)
+            );
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8006: Forwarded type 'C1' conflicts with type declared in primary module of this assembly.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("C1").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ForwardedTypes_05()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+        var comp1ImageRef = comp1.EmitToImageReference();
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]";
+
+        var comp2 = CreateCompilation(source2, options: TestOptions.DebugModule, references: [comp1ImageRef]);
+        var comp2ImageRef = comp2.EmitToImageReference();
+
+        CompileAndVerify("", references: [comp1ImageRef, comp2ImageRef], assemblyValidator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        CompileAndVerify("", references: [comp1.ToMetadataReference(), comp2ImageRef], assemblyValidator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        CompileAndVerify("", references: [comp1.ToMetadataReference(), comp2ImageRef], assemblyValidator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+                ".C2 0x27000001 (ExportedType) 0x0000",
+                ".C3 0x27000002 (ExportedType) 0x0000",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0000",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0000",
+                ".<M>$56B5C634B2E52051C75D91F71BA8833A 0x27000004 (ExportedType) 0x0000",
+                ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0000",
+                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_06()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions");
+        var comp1ImageRef = comp1.EmitToImageReference();
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]";
+
+        var comp2 = CreateCompilation(source2, options: TestOptions.DebugModule, references: [comp1ImageRef]);
+        var comp2ImageRef = comp2.EmitToImageReference();
+
+        CreateCompilation("", references: [comp2ImageRef]).VerifyEmitDiagnostics(
+            // error CS0012: The type 'C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("C1", "Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        string source3 = @"
+public static class C1
+{
+}
+";
+        comp1 = CreateCompilation(source3, options: TestOptions.ReleaseDll, assemblyName: "Extensions");
+
+        CompileAndVerify("", references: [comp1.ToMetadataReference(), comp2ImageRef], assemblyValidator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_07()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions");
+
+        var module = CreateCompilation(source1, options: TestOptions.ReleaseModule, assemblyName: "Module");
+        var moduleRef = module.EmitToImageReference();
+
+        var source2 = @"
+extern alias A;
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A::C1))]
+";
+
+        var comp = CreateCompilation(source2, references: [comp1.EmitToImageReference().WithAliases(["A"]), moduleRef]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8008: Type 'C1' forwarded to assembly 'Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' exported from module 'Module.netmodule'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("C1", "Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Module.netmodule").WithLocation(1, 1)
+            );
+
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"]), moduleRef]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8008: Type 'C1' forwarded to assembly 'Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' exported from module 'Module.netmodule'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("C1", "Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Module.netmodule").WithLocation(1, 1)
+            );
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"]), moduleRef]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8008: Type 'C1' forwarded to assembly 'Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' exported from module 'Module.netmodule'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("C1", "Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Module.netmodule").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ForwardedTypes_08()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions1");
+        var comp2 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions2");
+
+        var source2 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]
+";
+
+        var module1 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.ReleaseModule, assemblyName: "Module1");
+        var module1Ref = module1.EmitToImageReference();
+
+        var module2 = CreateCompilation(source2, references: [comp2.ToMetadataReference()], options: TestOptions.ReleaseModule, assemblyName: "Module2");
+        var module2Ref = module2.EmitToImageReference();
+
+        var comp = CreateCompilation("", references: [comp1.EmitToImageReference(), comp2.EmitToImageReference(), module1Ref, module2Ref]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        comp = CreateCompilation("", references: [comp1.ToMetadataReference(), comp2.ToMetadataReference(), module1Ref, module2Ref]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        comp2 = comp2.AddReferences(comp3Ref);
+
+        comp = CreateCompilation("", references: [comp1.ToMetadataReference(), comp2.ToMetadataReference(), module1Ref, module2Ref]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ForwardedTypes_09()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions1");
+        var comp2 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions2");
+
+        var source2 = @"
+extern alias A;
+extern alias B;
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A::C1))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(B::C1))]
+";
+
+        var comp = CreateCompilation(source2, references: [comp1.EmitToImageReference().WithAliases(["A"]), comp2.EmitToImageReference().WithAliases(["B"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"]), comp2.ToMetadataReference().WithAliases(["B"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        comp2 = comp2.AddReferences(comp3Ref);
+
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"]), comp2.ToMetadataReference().WithAliases(["B"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ForwardedTypes_10()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions1");
+
+        var source2 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]
+";
+
+        var module1 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.ReleaseModule, assemblyName: "Module1");
+        var module1Ref = module1.EmitToImageReference();
+
+        var module2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.ReleaseModule, assemblyName: "Module2");
+        var module2Ref = module2.EmitToImageReference();
+
+        var comp = CreateCompilation("", references: [comp1.EmitToImageReference(), module1Ref, module2Ref]);
+        CompileAndVerify(comp, validator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        comp = CreateCompilation("", references: [comp1.ToMetadataReference(), module1Ref, module2Ref]);
+        CompileAndVerify(comp, validator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+
+        comp = CreateCompilation("", references: [comp1.ToMetadataReference(), module1Ref, module2Ref]);
+        CompileAndVerify(comp, validator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0000",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000002 (ExportedType) 0x0000",
+            ], actual);
+        }
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
