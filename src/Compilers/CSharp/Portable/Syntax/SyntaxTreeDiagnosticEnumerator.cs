@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var sdi = (SyntaxDiagnosticInfo)diags[diagIndex];
 
                     //for tokens, we've already seen leading trivia on the stack, so we have to roll back for nodes, we
-                    //have yet to see the leading trivia.  See documention of _position above.
+                    //have yet to see the leading trivia.  See documentation of _position above.
                     int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
                     // don't produce locations outside of tree span
