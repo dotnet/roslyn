@@ -4,6 +4,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -16,12 +17,14 @@ internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHan
     private const string MethodName = "workspace/debugConfiguration";
 
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
+    private readonly LanguageServerProjectSystem _projectSystem;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceDebugConfigurationHandler(ProjectTargetFrameworkManager targetFrameworkManager)
+    public WorkspaceDebugConfigurationHandler(ProjectTargetFrameworkManager targetFrameworkManager, LanguageServerProjectSystem projectSystem)
     {
         _targetFrameworkManager = targetFrameworkManager;
+        _projectSystem = projectSystem;
     }
 
     public bool MutatesSolutionState => false;
@@ -48,7 +51,7 @@ internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHan
     {
         var isExe = project.CompilationOptions?.OutputKind is OutputKind.ConsoleApplication or OutputKind.WindowsApplication;
         var targetsDotnetCore = _targetFrameworkManager.IsDotnetCoreProject(project.Id);
-        return new ProjectDebugConfiguration(project.FilePath!, project.OutputFilePath!, GetProjectName(project), targetsDotnetCore, isExe, project.Solution.FilePath);
+        return new ProjectDebugConfiguration(project.FilePath!, project.OutputFilePath!, GetProjectName(project), targetsDotnetCore, isExe, _projectSystem.SolutionPath);
     }
 
     private static string GetProjectName(Project project)
