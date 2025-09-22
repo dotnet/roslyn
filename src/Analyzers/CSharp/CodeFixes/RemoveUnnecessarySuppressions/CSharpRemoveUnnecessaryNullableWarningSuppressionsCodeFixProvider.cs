@@ -27,6 +27,9 @@ internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixP
     protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
         => (AnalyzersResources.Remove_unnecessary_suppression, nameof(AnalyzersResources.Remove_unnecessary_suppression));
 
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
+        => true;
+
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
