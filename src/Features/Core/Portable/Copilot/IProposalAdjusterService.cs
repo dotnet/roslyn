@@ -118,14 +118,17 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         }
 
         // Apply the FormatCode fix, and get a new document
-        (changed, forkedDocument) = await TryGetFormattingTextChangesAsync(
+        var documentWithFormattingChanges = await TryGetFormattingTextChangesAsync(
             originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
-        if (changed)
+        if (forkedDocument != documentWithFormattingChanges)
+        {
             adjustmentKinds.Add(ProposalAdjusterKinds.FormatCode);
+            forkedDocument = documentWithFormattingChanges;
+        }
 
         // If none of the adjustments were made, then just return what we were given.
         if (adjustmentKinds.IsEmpty)
-            return new(normalizedChanges, format, default);
+            return new(normalizedChanges, format, AdjustmentKinds: default);
 
         // Keep the new root around, in case something needs it while processing.  This way we don't throw it away unnecessarily.
         GC.KeepAlive(forkedRoot);
@@ -158,11 +161,11 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         return withImportsDocument;
     }
 
-    private async Task<(bool changed, Document document)> TryGetFormattingTextChangesAsync(
+    private async Task<Document> TryGetFormattingTextChangesAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
         if (!globalOptions.GetOption(CopilotOptions.FixCodeFormat))
-            return (false, forkedDocument);
+            return forkedDocument;
 
         var syntaxFormattingService = originalDocument.GetRequiredLanguageService<ISyntaxFormattingService>();
 
@@ -177,7 +180,7 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         var formattedRoot = formatResult.GetFormattedRoot(cancellationToken);
         var formattedDocument = forkedDocument.WithSyntaxRoot(formattedRoot);
 
-        return (true, formattedDocument);
+        return formattedDocument;
     }
 
     private static TextSpan GetSpanToAnalyze(SyntaxNode forkedRoot, ImmutableArray<TextSpan> newSpans)
