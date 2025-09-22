@@ -82,4 +82,41 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                 """,
         }.RunAsync();
 
+    [Fact]
+    public Task RemoveWhenNotNeeded_FixAll()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    void M()
+                    {
+                        object o = ((""[|!|]) + "")[|!|];
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                class C
+                {
+                    void M()
+                    {
+                        object o = (("") + "");
+                    }
+                }
+                """,
+            NumberOfFixAllIterations = 2,
+        }.RunAsync();
+
+    class C
+    {
+        string? M(object o)
+        {
+            var v = M(null!);
+            return null;
+        }
+    }
 }
