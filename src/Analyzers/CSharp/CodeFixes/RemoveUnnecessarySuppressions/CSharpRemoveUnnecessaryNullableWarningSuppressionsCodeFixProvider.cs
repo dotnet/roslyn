@@ -20,27 +20,33 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider()
-    : ForkingSyntaxEditorBasedCodeFixProvider<PostfixUnaryExpressionSyntax>
+    : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression];
 
-    protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
-        => (AnalyzersResources.Remove_unnecessary_suppression, nameof(AnalyzersResources.Remove_unnecessary_suppression));
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_suppression, nameof(AnalyzersResources.Remove_unnecessary_suppression));
+        return Task.CompletedTask;
+    }
 
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
-        => true;
-
-    protected override async Task FixAsync(
+    protected override Task FixAllAsync(
         Document document,
+        ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        PostfixUnaryExpressionSyntax diagnosticNode,
-        ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        if (UnnecessaryNullableWarningSuppressionsUtilities.IsUnnecessary(semanticModel, diagnosticNode, cancellationToken))
+        foreach (var diagnostic in diagnostics)
         {
-            editor.ReplaceNode(diagnosticNode, diagnosticNode.Operand.WithTriviaFrom(diagnosticNode));
+            var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            if (node is PostfixUnaryExpressionSyntax postfixUnary)
+            {
+                editor.ReplaceNode(
+                    postfixUnary,
+                    postfixUnary.Operand.WithTriviaFrom(postfixUnary));
+            }
         }
+
+        return Task.CompletedTask;
     }
 }
