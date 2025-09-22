@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
+using Adjuster = Func<Document, Document, CancellationToken, Task<Document>>;
+
 internal static class ProposalAdjusterKinds
 {
     public const string AddMissingImports = nameof(AddMissingImports);
@@ -46,10 +48,21 @@ internal interface IRemoteCopilotProposalAdjusterService
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
-internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionService globalOptions)
-    : ICopilotProposalAdjusterService
+internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
 {
-    protected readonly IGlobalOptionService globalOptions = globalOptions;
+    protected readonly IGlobalOptionService globalOptions;
+
+    private readonly ImmutableArray<(string name, Adjuster adjuster)> _adjusters;
+
+    public AbstractCopilotProposalAdjusterService(IGlobalOptionService globalOptions)
+    {
+        this.globalOptions = globalOptions;
+        _adjusters = [
+            (ProposalAdjusterKinds.AddMissingTokens, this.AddMissingTokensIfAppropriateAsync),
+            (ProposalAdjusterKinds.AddMissingImports, this.TryGetAddImportTextChangesAsync),
+            (ProposalAdjusterKinds.FormatCode, this.TryGetFormattingTextChangesAsync),
+        ];
+    }
 
     protected abstract Task<Document> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken);
@@ -69,11 +82,9 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
                 cancellationToken).ConfigureAwait(false);
             return result.HasValue ? result.Value : default;
         }
-        else
-        {
-            return await TryAdjustProposalInCurrentProcessAsync(
-                document, normalizedChanges, cancellationToken).ConfigureAwait(false);
-        }
+
+        return await TryAdjustProposalInCurrentProcessAsync(
+            document, normalizedChanges, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ProposalAdjustmentResult> TryAdjustProposalInCurrentProcessAsync(
@@ -95,40 +106,19 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         var forkedDocument = originalDocument.WithText(newText);
         var forkedRoot = await forkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var format = false;
-
-        // Apply the AddMissingTokens fix, and get a new document
-        var documentWithMissingTokensAdded = await AddMissingTokensIfAppropriateAsync(
-                originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
-        if (forkedDocument != documentWithMissingTokensAdded)
+        foreach (var (adjusterName, adjuster) in _adjusters)
         {
-            adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingTokens);
-            forkedDocument = documentWithMissingTokensAdded;
-            format = true;
-        }
-
-        // Apply the AddMissingImports fix, and get a new document
-        var documentWithImportsAdded = await TryGetAddImportTextChangesAsync(
-            originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
-        if (forkedDocument != documentWithImportsAdded)
-        {
-            adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingImports);
-            forkedDocument = documentWithImportsAdded;
-            format = true;
-        }
-
-        // Apply the FormatCode fix, and get a new document
-        var documentWithFormattingChanges = await TryGetFormattingTextChangesAsync(
-            originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
-        if (forkedDocument != documentWithFormattingChanges)
-        {
-            adjustmentKinds.Add(ProposalAdjusterKinds.FormatCode);
-            forkedDocument = documentWithFormattingChanges;
+            var adjustedDocument = await adjuster(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
+            if (forkedDocument != adjustedDocument)
+            {
+                adjustmentKinds.Add(adjusterName);
+                forkedDocument = adjustedDocument;
+            }
         }
 
         // If none of the adjustments were made, then just return what we were given.
         if (adjustmentKinds.IsEmpty)
-            return new(normalizedChanges, format, AdjustmentKinds: default);
+            return new(normalizedChanges, Format: false, AdjustmentKinds: default);
 
         // Keep the new root around, in case something needs it while processing.  This way we don't throw it away unnecessarily.
         GC.KeepAlive(forkedRoot);
@@ -137,7 +127,7 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         var totalChanges = allChanges.AsImmutableOrEmpty();
 
-        return new(totalChanges, format, adjustmentKinds.ToImmutableAndClear());
+        return new(totalChanges, Format: true, adjustmentKinds.ToImmutableAndClear());
     }
 
     private async Task<Document> TryGetAddImportTextChangesAsync(
