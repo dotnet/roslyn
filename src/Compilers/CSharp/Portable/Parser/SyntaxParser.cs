@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return default;
                 }
 
-                Debug.Fail("This shuld not be reachable.  We should have hit a child token with skipped text within this node.");
+                Debug.Fail("This should not be reachable.  We should have hit a child token with skipped text within this node.");
                 return default;
             }
         }
