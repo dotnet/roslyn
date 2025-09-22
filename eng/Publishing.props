@@ -15,15 +15,16 @@
   </ItemGroup>
 
   <!--
-    During PR Validation we only need to publish symbols with Arcade,
-    since our packages are published separately to the CoreXT feed.
+    In the Roslyn official build, we only want to publish symbols with Arcade.
+    Packages for VS are published separately to the CoreXT feed.
+    Roslyn official packages are produced by the VMR build.
 
     Also, do not publish any symbols packages in source-only builds.
   -->
   <Target Name="_ResolvePublishRoslynNuGetPackages"
           DependsOnTargets="BeforePublish"
           BeforeTargets="PublishToAzureDevOpsArtifacts"
-          Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' or '$(DotNetBuildSourceOnly)' == 'true' ">
+          Condition=" '$(DotNetBuildFromVMR)' != 'true' or '$(DotNetBuildSourceOnly)' == 'true' ">
 
     <ItemGroup>
       <!-- Determine all NuGet packages being published -->
@@ -37,7 +38,7 @@
                              Condition="$([System.String]::Copy(%(FullPath)).Contains('.Symbols.'))" />
     </ItemGroup>
 
-    <ItemGroup Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' ">
+    <ItemGroup Condition=" '$(DotNetBuildFromVMR)' != 'true' ">
       <!-- Remove all NuGet packages from being published -->
       <ItemsToPushToBlobFeed Remove="@(_NuGetPackagesToPush)" />
     </ItemGroup>

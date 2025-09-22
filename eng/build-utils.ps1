@@ -21,7 +21,7 @@ function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [s
   return Join-Path $ArtifactsDir "bin\$projectName\$configuration\$tfm\$ridDir$publishDir$fileName"
 }
 
-function GetPublishData() {
+function GetPublishData([string]$branchName) {
   if (Test-Path variable:global:_PublishData) {
     return $global:_PublishData
   }
@@ -35,7 +35,7 @@ function GetPublishData() {
 }
 
 function GetBranchPublishData([string]$branchName) {
-  $data = GetPublishData
+  $data = GetPublishData $branchName
 
   if (Get-Member -InputObject $data.branches -Name $branchName) {
     return $data.branches.$branchName
@@ -49,10 +49,10 @@ function GetFeedPublishData() {
   return $data.feeds
 }
 
-function GetPackagesPublishData([string]$packageFeeds) {
+function GetPackageFeedOverrideData() {
   $data = GetPublishData
-  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
-    return $data.packages.$packageFeeds
+  if (Get-Member -InputObject $data.packageFeedOverride) {
+    return $data.packageFeedOverride
   } else {
     return $null
   }

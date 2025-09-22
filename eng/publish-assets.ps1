@@ -27,6 +27,7 @@ function Get-PublishKey([string]$uploadUrl) {
   switch ($url.Host) {
     "api.nuget.org" { return $nugetApiKey }
     # For publishing to azure, the API key can be any non-empty string as authentication is done in the pipeline.
+    "devdiv.pkgs.visualstudio.com" { return "DevDivAzureArtifacts" }
     "pkgs.dev.azure.com" { return "AzureArtifacts"}
     default { throw "Cannot determine publish key for $uploadUrl" }
   }
@@ -38,27 +39,14 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     # Retrieve the feed name to source mapping.
     $feedData = GetFeedPublishData
     
-    # Let packageFeeds default to the default set of feeds
-    $packageFeeds = "default"
-    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
-      $packageFeeds = $publishData.packageFeeds
+    # The default feed we publish to for our official build is the VS feed.
+    $feedName = "vs"
+
+    if ($publishData.PSobject.Properties.Name -contains "feed") {
+      $feedName = $publishData.feed
     }
 
-    # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
-    if ($packageFeeds.equals("arcade") -and -not $prValidation) {
-      Write-Host "    Skipping publishing for all packages as they will be published by arcade"
-      continue
-    }
-
-    # Let packageFeeds default to the default set of feeds
-    $packageFeeds = "default"
-    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
-      $packageFeeds = $publishData.packageFeeds
-    }
-
-    # Each branch stores the name of the package to feed map it should use.
-    # Retrieve the correct map for this particular branch.
-    $packagesData = GetPackagesPublishData $packageFeeds
+    $packageOverrideData = GetPackageFeedOverrideData
 
     foreach ($package in Get-ChildItem *.nupkg) {
       Write-Host ""
@@ -80,21 +68,16 @@ function Publish-Nuget($publishData, [string]$packageDir) {
         continue
       }
 
-      # Lookup the feed name from the packages map using the package name without the version or extension.
-      if (-not (Get-Member -InputObject $packagesData -Name $nupkgWithoutVersion)) {
-        throw "$nupkg has no configured feed (looked for $nupkgWithoutVersion)"
+      # Check if the specific package has a feed override.
+      if (Get-Member -InputObject $packageOverrideData -Name $nupkgWithoutVersion) {
+        $feedName = $packageOverrideData.$nupkgWithoutVersion
+        Write-Host "Using package feed override $feedName for $nupkg"
       }
 
-      $feedName = $packagesData.$nupkgWithoutVersion
-
+      # If we're doing PR validation, we always publish to the VS feed as it runs in the DevDiv AzDo instance
+      # and does not have permissions to publish anywhere else.
       if ($prValidation) {
         $feedName = "vs"
-      }
-
-      # If the configured feed is arcade, then skip publishing here.  Arcade will handle publishing to their feeds.
-      if ($feedName.equals("arcade")) {
-        Write-Host "Skipping publishing for $nupkg as it is published by arcade"
-        continue
       }
 
       # Use the feed name to get the source to upload the package to.
@@ -116,23 +99,11 @@ function Publish-Nuget($publishData, [string]$packageDir) {
   }
 }
 
-# Do basic verification on the values provided in the publish configuration
-function Test-Entry($publishData, [switch]$isBranch) {
-  if ($isBranch) {
-    foreach ($nugetKind in $publishData.nugetKind) {
-      if ($nugetKind -ne "PerBuildPreRelease" -and $nugetKind -ne "Shipping" -and $nugetKind -ne "NonShipping") {
-                    throw "Branches are only allowed to publish Shipping, NonShipping, or PerBuildPreRelease"
-      }
-    }
-  }
-}
-
 # Publish a given entry: branch or release.
 function Publish-Entry($publishData, [switch]$isBranch) {
-  Test-Entry $publishData -isBranch:$isBranch
-
   # First publish the NuGet packages to the specified feeds
-  foreach ($nugetKind in $publishData.nugetKind) {
+  $nugetKinds = @('Shipping', 'NonShipping')
+  foreach ($nugetKind in $nugetKinds) {
     Publish-NuGet $publishData (Join-Path $PackagesDir $nugetKind)
   }
 

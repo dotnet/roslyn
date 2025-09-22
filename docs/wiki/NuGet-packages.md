@@ -13,6 +13,40 @@ This package is primarily intended as a method for rapidly shipping hotfixes to 
 Note: this package is intended as a replacement for Microsoft.Net.Compilers (which is a Windows-only package) and Microsoft.NETCore.Compilers. Those packages are now deprecated and will be deleted in the future.
 
 ## Versioning
+Starting on Roslyn versions `5.0` and above, Roslyn NuGet packages are shipped with the .NET SDK instead of VS.  New Roslyn packages will be published on every SDK preview and GA release.
+   
+Prior to this change, a Roslyn package was matched exactly to a VS version, and did not exactly match SDK versions.  Now, Roslyn packages will exactly align with an SDK version, but will no longer exactly match a VS version.  While generally the SDK releases ship alongside new VS versions, there may be drift in the exact commit of Roslyn when compared to VS (especially for prereleases).
+
+### Version Schema
+Generally Roslyn package versions are in the form A.B.C-D.  With the new publishing mode this will be represented as
+* A = Associated with the current VS Major version (`5` = VS 18, same as before).
+* B = The current VS Minor version (same as before)
+* C = Our own patch version if we need to service the package for any reason, generally `0`.
+* D = The VS prerelease version `.` VMR build version (if any).
+
+We still use VS versions in our version scheme as Roslyn currently branches for releases with VS in mind.
+
+What this actually looks like:
+
+| SDK Version | 11.0.100-preview.4 | 11.0.100-rc.2 | 11.0.100 | 11.0.200 |
+|---|---|---|---|---|
+| Roslyn version | 5.6.0-2.25465.10 | 5.8.0-3.25501.82 | 5.9.0 | 5.10.0 |
+
+SDK GA releases align with VS Minor versions.  So going from `11.0.100` to `11.0.200` means a new VS Minor version, hence incrementing the Roslyn package minor version.
+
+However, SDK prereleases do not always correspond to new VS Minor or VS preview versions.  For example, while `11.0.100-preview.4` might produce Roslyn `5.6.0-2.25465.101`, the subsequent `11.0.100-preview.5` could produce Roslyn `5.6.0-2.25503.114` without any change to the VS minor or preview version.  In these cases, we need to include the VMR build number to differentiate between packages.  This typically occurs with early SDK versions or during extended VS preview cycles (such as preview 1 for a new VS major version).
+
+Additionally, very early in the SDK preview cycle, Roslyn main is consumed by the new SDK preview and the prior SDK feature band.  The SDK preview releases will publish the prerelease packages for a specific version, and the feature band release will end up publishing the GA packages for that version.
+
+| SDK Version | Roslyn Package version |
+|---|---|
+| 11.0.100-preview1 | 5.6.0-2.25465.10 |
+| 10.0.200 | 5.6.0 |
+
+By the later previews for .NET 11, the feature bands for 10 will be locked to an older branch of Roslyn associated with an older VS minor version, hence the GA packages for the next SDK will always have a higher minor version than any GA packages for the prior feature band release.  See also https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs#supported-net-versions
+
+### Past Versions
+
 Below are the versions of the language available in the NuGet packages. Remember to set a specific language version (or "latest") if you want to use one that is newer than "default" (ie. latest major version).
 
 - Versions `1.x` mean C# 6.0 and VB 14 (Visual Studio 2015 and updates). For instance, `1.3.2` corresponds to the most recent update (update 3) of Visual Studio 2015.
@@ -52,6 +86,7 @@ Below are the versions of the language available in the NuGet packages. Remember
 - Version `4.11` includes C# 12.0 (Visual Studio 2022 version 17.11, .NET 8)
 - Version `4.12` includes C# 13.0 (Visual Studio 2022 version 17.12, .NET 9)
 - Version `4.13` includes C# 13.0 (Visual Studio 2022 version 17.13, .NET 9)
+- Version `4.14` includes C# 13.0 (Visual Studio 2022 version 17.14, .NET 9)
 
 See the [history of C# language features](https://github.com/dotnet/csharplang/blob/main/Language-Version-History.md) for more details.
 
