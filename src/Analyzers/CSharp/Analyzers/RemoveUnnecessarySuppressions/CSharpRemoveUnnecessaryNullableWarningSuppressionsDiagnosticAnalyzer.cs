@@ -17,8 +17,6 @@ internal sealed partial class CSharpRemoveUnnecessaryNullableWarningSuppressions
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_suppression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Suppression_is_unnecessary), AnalyzersResources.ResourceManager, typeof(CompilerExtensionsResources)))
 {
-    private static readonly SyntaxAnnotation s_annotation = new();
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -31,9 +29,11 @@ internal sealed partial class CSharpRemoveUnnecessaryNullableWarningSuppressions
             return;
 
         var unaryNode = (PostfixUnaryExpressionSyntax)context.Node;
-        var analyzer = new Analyzer(context.SemanticModel, unaryNode, context.CancellationToken);
-        if (!analyzer.CanRemove())
+        if (!UnnecessaryNullableWarningSuppressionsUtilities.IsUnnecessary(
+             context.SemanticModel, unaryNode, context.CancellationToken))
+        {
             return;
+        }
 
         context.ReportDiagnostic(Diagnostic.Create(
             Descriptor,
