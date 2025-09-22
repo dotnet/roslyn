@@ -1,0 +1,68 @@
+name: "Copilot Setup Steps"
+
+# Allow testing of the setup steps from your repository's "Actions" tab.
+on: workflow_dispatch
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  # See https://docs.github.com/en/copilot/customizing-copilot/customizing-the-development-environment-for-copilot-coding-agent
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    # You can define any steps you want, and they will run before the agent starts.
+    # If you do not check out your code, Copilot will do this for you.
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      # Install .NET 10.0 SDK as specified in global.json
+      - name: Setup .NET 10.0
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # Restore dependencies - this is critical for Copilot to understand the project structure
+      - name: Restore dependencies
+        env:
+          # Prevent GitInfo errors and other CI-specific issues
+          CI: false
+        # Use restore script, but don't fail on errors so Copilot can still attempt to work
+        run: ./restore.sh || true
+
+      # Attempt a basic build to set up build artifacts that Copilot might need
+      - name: Build solution (best effort)
+        env:
+          CI: false
+        # Do a minimal build without failing the setup if it has issues
+        # This helps establish the build environment for Copilot
+        run: ./build.sh --build --configuration Debug || true
+
+      # Install global tools that might be useful for Roslyn development
+      - name: Install useful .NET tools
+        run: |
+          dotnet tool install --global dotnet-format || true
+          dotnet tool install --global complog || true
+
+      # Setup PATH to include .NET tools
+      - name: Setup PATH
+        run: |
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+          echo "$PWD/.dotnet/" >> $GITHUB_PATH
+
+      # Diagnostics in the log
+      - name: Show .NET info
+        run: dotnet --info
+
+      # Show build environment info that might be helpful for debugging
+      - name: Show environment info
+        run: |
+          echo "=== Git Status ==="
+          git status || true
+          echo "=== Directory structure ==="
+          ls -la
+          echo "=== Build artifacts ==="
+          ls -la artifacts/ || echo "No artifacts directory found"
+          echo "=== Global.json ==="
+          cat global.json
