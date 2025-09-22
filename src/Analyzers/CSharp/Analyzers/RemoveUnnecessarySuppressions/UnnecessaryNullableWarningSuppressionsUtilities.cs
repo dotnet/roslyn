@@ -76,7 +76,9 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
                 (original, current) => current.Operand.WithAdditionalAnnotations(nodeToAnnotation[original])),
             originalTree.Options);
         var updateRoot = updatedTree.GetRoot(cancellationToken);
-        var updatedCompilation = semanticModel.Compilation.ReplaceSyntaxTree(originalTree, updatedTree);
+        var updatedCompilation = semanticModel.Compilation
+            .ReplaceSyntaxTree(originalTree, updatedTree)
+            .WithOptions(semanticModel.Compilation.Options.WithSpecificDiagnosticOptions([]));
         var updatedSemanticModel = updatedCompilation.GetSemanticModel(updatedTree);
 
         foreach (var (node, annotation) in nodeToAnnotation)
