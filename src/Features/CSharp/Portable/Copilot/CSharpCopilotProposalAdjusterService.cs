@@ -18,25 +18,24 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
 [ExportLanguageService(typeof(ICopilotProposalAdjusterService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpCopilotProposalAdjusterService : AbstractCopilotProposalAdjusterService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpCopilotProposalAdjusterService(IGlobalOptionService globalOptions)
+    : AbstractCopilotProposalAdjusterService(globalOptions)
 {
     private const string CS1513 = nameof(CS1513); // } expected
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpCopilotProposalAdjusterService(IGlobalOptionService globalOptions) : base(globalOptions) { }
 
     protected override async Task<(bool changed, Document document)> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
         if (!globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
-            return (false, forkedDocument);
+            return (changed: false, forkedDocument);
 
         var newRoot = await forkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var changes = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         if (changes.IsEmpty())
-            return (false, forkedDocument);
+            return (changed: false, forkedDocument);
 
         // Check if we introduced a missing close-brace error by getting
         // missing closing brace diagnostics that are after the last text change.
@@ -46,7 +45,7 @@ internal sealed class CSharpCopilotProposalAdjusterService : AbstractCopilotProp
 
         var closeBraceDiagnostics = newDiagnostics.WhereAsArray(d => d.Id == CS1513 && d.Location.SourceSpan.Start >= lastChangeEndPos);
         if (closeBraceDiagnostics.IsEmpty)
-            return (false, forkedDocument);
+            return (changed: false, forkedDocument);
 
         // Insert a close brace at each qualifying diagnostic position
         var insertCloseBraceTextChanges = closeBraceDiagnostics.SelectAsArray(

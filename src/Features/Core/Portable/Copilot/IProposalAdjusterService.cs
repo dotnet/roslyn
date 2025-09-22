@@ -46,16 +46,12 @@ internal interface IRemoteCopilotProposalAdjusterService
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
-internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
+internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionService globalOptions)
+    : ICopilotProposalAdjusterService
 {
-    protected readonly IGlobalOptionService globalOptions;
+    protected readonly IGlobalOptionService globalOptions = globalOptions;
 
-    protected AbstractCopilotProposalAdjusterService(IGlobalOptionService globalOptions)
-    {
-        this.globalOptions = globalOptions;
-    }
-
-    protected abstract Task<(bool changed, Document document)> AddMissingTokensIfAppropriateAsync(
+    protected abstract Task<Document> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken);
 
     public async ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
@@ -103,11 +99,12 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var changed = false;
 
         // Apply the AddMissingTokens fix, and get a new document
-        (changed, forkedDocument) = await AddMissingTokensIfAppropriateAsync(
+        var documentWithMissingTokensAdded = await AddMissingTokensIfAppropriateAsync(
                 originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
-        if (changed)
+        if (forkedDocument != documentWithMissingTokensAdded)
         {
             adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingTokens);
+            forkedDocument = documentWithMissingTokensAdded;
             format = true;
         }
 
