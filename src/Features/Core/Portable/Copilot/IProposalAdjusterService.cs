@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
@@ -32,7 +33,12 @@ internal static class ProposalAdjusterKinds
 internal readonly record struct ProposalAdjustmentResult(
     [property: DataMember(Order = 0)] ImmutableArray<TextChange> TextChanges,
     [property: DataMember(Order = 1)] bool Format,
-    [property: DataMember(Order = 2)] ImmutableArray<string> AdjustmentKinds);
+    [property: DataMember(Order = 2)] ImmutableArray<AdjustmentResult> AdjustmentResults);
+
+[DataContract]
+internal readonly record struct AdjustmentResult(
+    [property: DataMember(Order = 0)] string AdjustmentKind,
+    [property: DataMember(Order = 1)] TimeSpan AdjustmentTime);
 
 internal interface ICopilotProposalAdjusterService : ILanguageService
 {
@@ -95,7 +101,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
 
-        using var _ = ArrayBuilder<string>.GetInstance(out var adjustmentKinds);
+        using var _ = ArrayBuilder<AdjustmentResult>.GetInstance(out var adjustmentResults);
 
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
         // move to in the forked document, as that is what we will want to analyze.
@@ -108,17 +114,18 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         foreach (var (adjusterName, adjuster) in _adjusters)
         {
+            var timer = SharedStopwatch.StartNew();
             var adjustedDocument = await adjuster(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
             if (forkedDocument != adjustedDocument)
             {
-                adjustmentKinds.Add(adjusterName);
+                adjustmentResults.Add(new(adjusterName, AdjustmentTime: timer.Elapsed));
                 forkedDocument = adjustedDocument;
             }
         }
 
         // If none of the adjustments were made, then just return what we were given.
-        if (adjustmentKinds.IsEmpty)
-            return new(normalizedChanges, Format: false, AdjustmentKinds: default);
+        if (adjustmentResults.IsEmpty)
+            return new(normalizedChanges, Format: false, AdjustmentResults: default);
 
         // Keep the new root around, in case something needs it while processing.  This way we don't throw it away unnecessarily.
         GC.KeepAlive(forkedRoot);
@@ -127,7 +134,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         var totalChanges = allChanges.AsImmutableOrEmpty();
 
-        return new(totalChanges, Format: true, adjustmentKinds.ToImmutableAndClear());
+        return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
     }
 
     private async Task<Document> TryGetAddImportTextChangesAsync(
