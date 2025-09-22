@@ -5283,6 +5283,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
             {
+                // Spreads are blocked in exception filters because the try/finally from disposing the enumerator is not allowed in a filter.
+                if (@this.Flags.Includes(BinderFlags.InCatchFilter))
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadSpreadInCatchFilter, syntax);
+                }
+
                 var expression = @this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 ForEachEnumeratorInfo.Builder builder;
                 bool hasErrors = !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
