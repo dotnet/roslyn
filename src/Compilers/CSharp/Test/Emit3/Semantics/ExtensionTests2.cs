@@ -30043,7 +30043,7 @@ class C<T> { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x212f
+                // Method begins at RVA 0x2133
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -30062,10 +30062,10 @@ class C<T> { }
                 42 46 39 33 44 46 33 00 00
             )
             // Method begins at RVA 0x212c
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$DCC6408136F6EFC8A90FB693F174BE24'::SelectMany
         .method public hidebysig 
             instance class C`1<!!T> Cast<T> () cil managed 
@@ -30076,10 +30076,10 @@ class C<T> { }
                 42 46 39 33 44 46 33 00 00
             )
             // Method begins at RVA 0x212c
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$DCC6408136F6EFC8A90FB693F174BE24'::Cast
     } // end of class <G>$DCC6408136F6EFC8A90FB693F174BE24
     // Methods
@@ -31499,10 +31499,10 @@ public class AAttribute : System.Attribute { }
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -31514,8 +31514,8 @@ public class AAttribute : System.Attribute { }
             } // end of method '<M>$73F5560BE55A0A0B23905153DB511F4E'::'<Extension>$'
         } // end of class <M>$73F5560BE55A0A0B23905153DB511F4E
         // Methods
-        .method public hidebysig
-            instance void M () cil managed
+        .method public hidebysig 
+            instance void M () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 37 33 46 35 35 36 30 42 45
@@ -31523,17 +31523,17 @@ public class AAttribute : System.Attribute { }
                 42 35 31 31 46 34 45 00 00
             )
             // Method begins at RVA 0x2069
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$B8D310208B4544F25EEBACB9990FC73B`1'::M
     } // end of class <G>$B8D310208B4544F25EEBACB9990FC73B`1
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M<T> (
             int32 i
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -32003,10 +32003,10 @@ public static class E
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
@@ -32018,8 +32018,8 @@ public static class E
             } // end of method '<M>$A888E0AEEFB4AB1872CCB8E7D5472CC8'::'<Extension>$'
         } // end of class <M>$A888E0AEEFB4AB1872CCB8E7D5472CC8
         // Methods
-        .method public hidebysig
-            instance void M () cil managed
+        .method public hidebysig 
+            instance void M () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 41 38 38 38 45 30 41 45 45
@@ -32027,17 +32027,17 @@ public static class E
                 35 34 37 32 43 43 38 00 00
             )
             // Method begins at RVA 0x2069
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$8A1E908054B5C3DCE56554F1F294FA98`1'::M
     } // end of class <G>$8A1E908054B5C3DCE56554F1F294FA98`1
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T> (
             int32 i
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -32262,23 +32262,23 @@ public class AAttribute : System.Attribute { }
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206d
+                // Method begins at RVA 0x2071
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
         } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
         // Methods
-        .method public hidebysig specialname
-            instance int32 get_P () cil managed
+        .method public hidebysig specialname 
+            instance int32 get_P () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
@@ -32290,10 +32290,10 @@ public class AAttribute : System.Attribute { }
                     01 00 00 00
                 )
             // Method begins at RVA 0x206a
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         // Properties
         .property instance int32 P()
@@ -32307,10 +32307,10 @@ public class AAttribute : System.Attribute { }
         }
     } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         int32 get_P (
             int32 i
-        ) cil managed
+        ) cil managed 
     {
         .param [0]
             .custom instance void AAttribute::.ctor() = (
@@ -32450,10 +32450,10 @@ public class CAttribute : System.Attribute { }
                 39 34 35 35 44 36 30 00 00
             )
             // Method begins at RVA 0x2071
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
     } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods

@@ -470,5 +470,11 @@ start:
                         ? F.Block(F.ExpressionStatement(invocation), F.Return())
                         : F.Block(F.Return(invocation));
         }
+
+        internal static BoundThrowStatement ConstructThrowNotSupportedExceptionMethodBody(SyntheticBoundNodeFactory F)
+        {
+            var ctor = F.WellKnownMethod(WellKnownMember.System_NotSupportedException__ctor);
+            return F.Throw(F.New(ctor));
+        }
     }
 }

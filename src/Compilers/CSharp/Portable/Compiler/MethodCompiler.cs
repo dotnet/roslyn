@@ -549,17 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method.MethodKind == MethodKind.StaticConstructor ? processedStaticInitializers :
                                 default(Binder.ProcessedFieldInitializers);
 
-                            // Compile extension methods without implementation normally, to bind the body and get errors.
-                            // Also, extension marker method should always be compiled normally. 
-                            if (containingType.IsExtension &&
-                                method.TryGetCorrespondingExtensionImplementationMethod() is not null)
-                            {
-                                EmitSkeletonMethodInExtension(method);
-                            }
-                            else
-                            {
-                                CompileMethod(method, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
-                            }
+                            CompileMethod(method, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
                             break;
                         }
 
@@ -767,28 +757,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     try
                     {
-                        // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
-                        IteratorStateMachine iteratorStateMachine;
-                        BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
-                        StateMachineTypeSymbol stateMachine = iteratorStateMachine;
-
-                        if (!loweredBody.HasErrors)
+                        BoundStatement loweredBody;
+                        StateMachineTypeSymbol stateMachine = null;
+                        if (method.GetIsNewExtensionMember())
                         {
-                            AsyncStateMachine asyncStateMachine = null;
-                            if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
-                            {
-                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
-                            }
-                            else
-                            {
-                                loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
-                            }
-
-                            Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
-                            stateMachine = stateMachine ?? asyncStateMachine;
+                            loweredBody = methodWithBody.Body;
                         }
+                        else
+                        {
+                            // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
+                            IteratorStateMachine iteratorStateMachine;
+                            loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
+                            stateMachine = iteratorStateMachine;
 
-                        SetGlobalErrorIfTrue(diagnosticsThisMethod.HasAnyErrors());
+                            if (!loweredBody.HasErrors)
+                            {
+                                AsyncStateMachine asyncStateMachine = null;
+                                if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
+                                {
+                                    loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                                }
+                                else
+                                {
+                                    loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, stateMachineStateDebugInfoBuilder, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+                                }
+
+                                Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
+                                stateMachine = stateMachine ?? asyncStateMachine;
+                            }
+
+                            SetGlobalErrorIfTrue(diagnosticsThisMethod.HasAnyErrors());
+                        }
 
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
@@ -952,8 +951,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            bool isExtensionMethod = methodSymbol.GetIsNewExtensionMember()
+                && methodSymbol.TryGetCorrespondingExtensionImplementationMethod() is not null
+                && extensionImplementation is null;
+
             // get cached diagnostics if not building and we have 'em
-            if (_moduleBeingBuiltOpt == null && (object)sourceMethod != null)
+            if (_moduleBeingBuiltOpt == null && (object)sourceMethod != null && !isExtensionMethod)
             {
                 var cachedDiagnostics = sourceMethod.Diagnostics;
 
@@ -972,11 +975,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 // if synthesized method returns its body in lowered form
-                if (methodSymbol.SynthesizesLoweredBoundBody)
+                if (methodSymbol.SynthesizesLoweredBoundBody || isExtensionMethod)
                 {
                     if (_moduleBeingBuiltOpt != null)
                     {
-                        methodSymbol.GenerateMethodBody(compilationState, diagsForCurrentMethod);
+                        if (isExtensionMethod)
+                        {
+                            GenerateExtensionMethodBody(methodSymbol, compilationState, diagsForCurrentMethod);
+                        }
+                        else
+                        {
+                            methodSymbol.GenerateMethodBody(compilationState, diagsForCurrentMethod);
+                        }
+
                         _diagnostics.AddRange(diagsForCurrentMethod);
                     }
 
@@ -1407,56 +1418,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private void EmitSkeletonMethodInExtension(MethodSymbol methodSymbol)
+        private static void GenerateExtensionMethodBody(MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
-            if (!_emitMethodBodies)
+            Debug.Assert(method.GetIsNewExtensionMember());
+            Debug.Assert(method.IsDefinition);
+            var F = new SyntheticBoundNodeFactory(method, method.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            F.CurrentFunction = method;
+
+            try
             {
-                return;
+                // throw new NotSupportedException();
+                F.CloseMethod(Symbols.MethodBodySynthesizer.ConstructThrowNotSupportedExceptionMethodBody(F));
             }
-
-            Debug.Assert(_diagnostics.DiagnosticBag != null);
-            Debug.Assert(_moduleBeingBuiltOpt != null);
-
-            ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), _diagnostics.DiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
-
-            // Emit methods in extensions as skeletons:
-            // => throw null;
-            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Should throw NotSupportedException instead
-            builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
-            builder.EmitThrow(isRethrow: false);
-            builder.Realize();
-
-            _moduleBeingBuiltOpt.TestData?.SetMethodILBuilder(methodSymbol, builder);
-
-            _moduleBeingBuiltOpt.SetMethodBody(
-                methodSymbol,
-                new MethodBody(
-                    builder.RealizedIL,
-                    maxStack: 1,
-                    methodSymbol.GetCciAdapter(),
-                    new DebugId(ordinal: -1, _moduleBeingBuiltOpt.CurrentGenerationOrdinal),
-                    locals: [],
-                    SequencePointList.Empty,
-                    debugDocumentProvider: null,
-                    exceptionHandlers: ImmutableArray<Cci.ExceptionHandlerRegion>.Empty,
-                    areLocalsZeroed: false,
-                    hasStackalloc: false,
-                    localScopes: ImmutableArray<Cci.LocalScope>.Empty,
-                    hasDynamicLocalVariables: false,
-                    importScopeOpt: null,
-                    lambdaDebugInfo: ImmutableArray<EncLambdaInfo>.Empty,
-                    orderedLambdaRuntimeRudeEdits: ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty,
-                    closureDebugInfo: ImmutableArray<EncClosureInfo>.Empty,
-                    stateMachineTypeNameOpt: null,
-                    stateMachineHoistedLocalScopes: default,
-                    stateMachineHoistedLocalSlots: default,
-                    stateMachineAwaiterSlots: default,
-                    StateMachineStatesDebugInfo.Create(variableSlotAllocator: null, ImmutableArray<StateMachineStateDebugInfo>.Empty),
-                    stateMachineMoveNextDebugInfoOpt: null,
-                    codeCoverageSpans: ImmutableArray<SourceSpan>.Empty,
-                    isPrimaryConstructor: false));
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                F.CloseMethod(F.ThrowNull());
+            }
         }
 #nullable disable
+
         private static MethodSymbol GetSymbolForEmittedBody(MethodSymbol methodSymbol)
         {
             return methodSymbol.PartialDefinitionPart ?? methodSymbol;
