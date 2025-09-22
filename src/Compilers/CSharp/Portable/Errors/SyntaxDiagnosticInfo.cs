@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class SyntaxDiagnosticInfo : DiagnosticInfo
     {
         /// <summary>
-        /// The offset of this diagnostic reletive to the <em>FullStart</em> of the <see cref="GreenNode"/> it is
+        /// The offset of this diagnostic relative to the <em>FullStart</em> of the <see cref="GreenNode"/> it is
         /// attached to. Often this will be equivalent to the <see cref="GreenNode.GetLeadingTriviaWidth"/> of the node,
         /// so that it will be located at the <em>Start</em> of that respective node. However, that is not always the
         /// case.
