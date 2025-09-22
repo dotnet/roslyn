@@ -24,6 +24,10 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         if (node is not PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression) postfixUnary)
             return false;
 
+        var spanToCheck = GetSpanToCheck(postfixUnary);
+        if (spanToCheck is null)
+            return false;
+
         if (ContainsErrorOrWarning(postfixUnary.GetDiagnostics()))
             return false;
 
@@ -87,36 +91,30 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         foreach (var (node, annotation) in nodeToAnnotation)
         {
             var updatedNode = updateRoot.GetAnnotatedNodes(annotation).Single();
-            var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(GetSpanToCheck(updatedNode), cancellationToken);
-            if (!ContainsErrorOrWarning(updatedDiagnostics))
-                result.Add(node);
+            var span = GetSpanToCheck(updatedNode);
+            if (span is null)
+                continue;
+
+            var updatedDiagnostics = updatedSemanticModel.GetDiagnostics(span, cancellationToken);
+            if (ContainsErrorOrWarning(updatedDiagnostics))
+                continue;
+
+            result.Add(node);
         }
     }
 
-    private static TextSpan GetSpanToCheck(SyntaxNode updatedNode)
+    private static TextSpan? GetSpanToCheck(SyntaxNode updatedNode)
     {
-        var firstAncestor = updatedNode.Ancestors().FirstOrDefault(
-            n => n is StatementSyntax or ArrowExpressionClauseSyntax or BaseMethodDeclarationSyntax or BasePropertyDeclarationSyntax);
-
-        if (firstAncestor is StatementSyntax containingStatement)
+        var globalStatement = updatedNode.Ancestors().OfType<GlobalStatementSyntax>().FirstOrDefault();
+        if (globalStatement is not null)
         {
-            if (containingStatement.Parent is GlobalStatementSyntax globalStatement)
-            {
-                var compilationUnit = (CompilationUnitSyntax)globalStatement.GetRequiredParent();
-                return TextSpan.FromBounds(globalStatement.SpanStart, compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
-            }
-
-            if (containingStatement.Parent is BlockSyntax block)
-                return TextSpan.FromBounds(containingStatement.SpanStart, block.Statements.Last().Span.End);
-            else if (containingStatement.Parent is SwitchSectionSyntax switchSection)
-                return TextSpan.FromBounds(containingStatement.SpanStart, switchSection.Statements.Last().Span.End);
-            else
-                return containingStatement.Span;
+            var compilationUnit = (CompilationUnitSyntax)globalStatement.GetRequiredParent();
+            return TextSpan.FromBounds(globalStatement.SpanStart, compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
         }
 
-        if (firstAncestor is not null)
-            return firstAncestor.Span;
+        var ancestor = updatedNode.Ancestors().LastOrDefault(
+            n => n is BaseFieldDeclarationSyntax or BaseMethodDeclarationSyntax or BasePropertyDeclarationSyntax);
 
-        return updatedNode.Span;
+        return ancestor?.Span;
     }
 }
