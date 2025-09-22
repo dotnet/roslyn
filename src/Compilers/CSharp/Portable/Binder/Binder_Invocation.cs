@@ -1793,19 +1793,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     [NotNullWhen(true)] out BoundExpression? argument)
                 {
                     Debug.Assert(parameterIndex >= 0);
-                    int argumentIndex = getArgumentIndex(parameterIndex, argsToParamsOpt, hasExtensionParameter: extensionReceiver is not null);
-                    if (extensionReceiver is not null)
+                    bool hasExtensionReceiver = extensionReceiver is not null;
+                    int argumentIndex = getArgumentIndex(parameterIndex, argsToParamsOpt, hasExtensionReceiver);
+                    if (hasExtensionReceiver)
                     {
                         if (argumentIndex == 0)
                         {
-                            argument = extensionReceiver;
+                            argument = extensionReceiver!;
                             return true;
                         }
 
                         argumentIndex--;
                     }
 
-                    if (argumentIndex > -1 && argumentIndex < argumentsCount)
+                    if (argumentIndex >= 0 && argumentIndex < argumentsCount)
                     {
                         argument = argumentsBuilder[argumentIndex];
                         return true;
@@ -1815,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                static int getArgumentIndex(int parameterIndex, ImmutableArray<int> argsToParamsOpt, bool hasExtensionParameter)
+                static int getArgumentIndex(int parameterIndex, ImmutableArray<int> argsToParamsOpt, bool hasExtensionReceiver)
                 {
                     if (argsToParamsOpt.IsDefault)
                     {
@@ -1823,8 +1824,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     int offset = 0;
-                    if (hasExtensionParameter)
+                    if (hasExtensionReceiver)
                     {
+                        // For new non-static extension methods, the argument corresponding to the extension parameter is at index 0,
+                        // and all other arguments are shifted by 1.
                         if (parameterIndex == 0)
                         {
                             return 0;
