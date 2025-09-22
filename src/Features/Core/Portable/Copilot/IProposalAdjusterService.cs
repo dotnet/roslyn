@@ -96,7 +96,6 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         var forkedRoot = await forkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var format = false;
-        var changed = false;
 
         // Apply the AddMissingTokens fix, and get a new document
         var documentWithMissingTokensAdded = await AddMissingTokensIfAppropriateAsync(
@@ -109,11 +108,12 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         }
 
         // Apply the AddMissingImports fix, and get a new document
-        (changed, forkedDocument) = await TryGetAddImportTextChangesAsync(
+        var documentWithImportsAdded = await TryGetAddImportTextChangesAsync(
             originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
-        if (changed)
+        if (forkedDocument != documentWithImportsAdded)
         {
             adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingImports);
+            forkedDocument = documentWithImportsAdded;
             format = true;
         }
 
@@ -137,11 +137,11 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         return new(totalChanges, format, adjustmentKinds.ToImmutableAndClear());
     }
 
-    private async Task<(bool changed, Document forkedDocument)> TryGetAddImportTextChangesAsync(
+    private async Task<Document> TryGetAddImportTextChangesAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
         if (!globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
-            return (false, forkedDocument);
+            return forkedDocument;
 
         var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
@@ -155,7 +155,7 @@ internal abstract class AbstractCopilotProposalAdjusterService(IGlobalOptionServ
         var withImportsDocument = await missingImportsService.AddMissingImportsAsync(
             forkedDocument, totalNewSpan, cleanupDocument: false, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
 
-        return (true, withImportsDocument);
+        return withImportsDocument;
     }
 
     private async Task<(bool changed, Document document)> TryGetFormattingTextChangesAsync(
