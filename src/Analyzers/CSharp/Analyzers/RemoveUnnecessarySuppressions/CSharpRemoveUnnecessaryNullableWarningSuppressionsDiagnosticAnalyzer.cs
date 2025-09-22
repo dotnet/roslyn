@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 
@@ -18,26 +19,25 @@ internal sealed partial class CSharpRemoveUnnecessaryNullableWarningSuppressions
         new LocalizableResourceString(nameof(AnalyzersResources.Suppression_is_unnecessary), AnalyzersResources.ResourceManager, typeof(CompilerExtensionsResources)))
 {
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.SuppressNullableWarningExpression);
+        => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
 
-    private void Analyze(SyntaxNodeAnalysisContext context)
+    private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
     {
         if (ShouldSkipAnalysis(context, notification: null))
             return;
 
-        var unaryNode = (PostfixUnaryExpressionSyntax)context.Node;
-        if (!UnnecessaryNullableWarningSuppressionsUtilities.IsUnnecessary(
-             context.SemanticModel, unaryNode, context.CancellationToken))
-        {
-            return;
-        }
+        using var _ = ArrayBuilder<PostfixUnaryExpressionSyntax>.GetInstance(out var unnecessaryNodes);
+        UnnecessaryNullableWarningSuppressionsUtilities.AddUnnecessaryNodes(context.SemanticModel, unnecessaryNodes, context.CancellationToken);
 
-        context.ReportDiagnostic(Diagnostic.Create(
-            Descriptor,
-            unaryNode.OperatorToken.GetLocation(),
-            [unaryNode.GetLocation()]));
+        foreach (var unaryNode in unnecessaryNodes)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                Descriptor,
+                unaryNode.OperatorToken.GetLocation(),
+                [unaryNode.GetLocation()]));
+        }
     }
 }
