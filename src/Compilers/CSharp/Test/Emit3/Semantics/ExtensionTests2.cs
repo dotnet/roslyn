@@ -33484,5 +33484,593 @@ public static class E
         Assert.True(extension.IsExtension);
         Assert.Equal("E.[Rem].[New]", VisualBasic.SymbolDisplay.ToDisplayString(extension));
     }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_01(bool useCompilationReference)
+    {
+        var callerSrc = """
+"A".Print();
+E.Print("B");
+"C".Print2();
+
+""";
+        var src = callerSrc + """
+public static class E
+{
+    public static void Print2(this string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "")
+    {
+        System.Console.Write($"{caller}={s} ");
+    }
+
+    extension(string s)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "")
+        {
+            System.Console.Write($"{caller}={s} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B "C"=C
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(comp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_02()
+    {
+        var src = """
+static class E
+{
+    extension(string s)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "")
+        {
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect because it's self-referential.
+            //         public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(5, 28));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_03()
+    {
+        // caller expression in static extension member refers to extension parameter
+        var src = """
+static class E
+{
+    extension(string s)
+    {
+        public static void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "")
+        {
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,35): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect. It is applied with an invalid parameter name.
+            //         public static void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(5, 35));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_04()
+    {
+        // self-referential caller expression on extension parameter
+        var src = """
+static class E
+{
+    extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s)
+    {
+        public void Print() { }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            //     extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s)
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "System.Runtime.CompilerServices.CallerArgumentExpression").WithLocation(3, 16));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_05()
+    {
+        // self-referential caller expression on extension parameter with default value
+        var src = """
+static class E
+{
+    extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s = "")
+    {
+        public void Print() { }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
+            //     extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s = "")
+            Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, @"[System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s = """"").WithLocation(3, 15),
+            // (3,16): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 's' will have no effect because it's self-referential.
+            //     extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s = "")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("s").WithLocation(3, 16));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_06(bool useCompilationReference)
+    {
+        // non-static extension, caller expression refers to last parameter
+        var callerSrc = """
+"".Print(s2: "A");
+E.Print("", s2: "B");
+
+""";
+
+        var src = callerSrc + """
+public static class E
+{
+    extension(string s1)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s2))] string caller = "", string s2 = "")
+        {
+            System.Console.Write($"{caller}={s2} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(comp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_07(bool useCompilationReference)
+    {
+        // static extension, caller expression refers to last parameter
+        var callerSrc = """
+string.Print(s2: "A");
+E.Print(s2: "B");
+
+""";
+
+        var src = callerSrc + """
+public static class E
+{
+    extension(string s1)
+    {
+        public static void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s2))] string caller = "", string s2 = "")
+        {
+            System.Console.Write($"{caller}={s2} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(comp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_08()
+    {
+        // self-referential caller expression with null extension parameter
+        var src = """
+static class E
+{
+    extension(__arglist)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
+            // (5,28): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect because it's self-referential.
+            //         public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(5, 28));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var parameter = extension.GetMember<MethodSymbol>("Print").Parameters[0];
+        AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
+        Assert.Equal(1, parameter.CallerArgumentExpressionParameterIndex);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_09()
+    {
+        // self-referential caller expression in local function
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M()
+        {
+            local();
+            void local([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (8,25): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect because it's self-referential.
+            //             void local([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(8, 25));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_10()
+    {
+        var srcCaller = """
+foreach (var x in 42) { }
+
+""";
+
+        var src = """
+public static class E
+{
+    extension(int i)
+    {
+        public System.Collections.Generic.IEnumerator<int> GetEnumerator(
+            int ignored = 0,
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(i))] string caller = "")
+        {
+            System.Console.Write($"{caller}={i} ");
+            yield return 0;
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation([src, srcCaller]);
+        CompileAndVerify(comp, expectedOutput: "42=42").VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        comp = CreateCompilation(srcCaller, references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp, expectedOutput: "42=42").VerifyDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var getEnumerator = extension.GetMember<MethodSymbol>("GetEnumerator");
+        var parameter = getEnumerator.Parameters[1];
+        AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
+        Assert.Equal(0, parameter.CallerArgumentExpressionParameterIndex);
+
+        src = """
+foreach (var x in 42) { }
+
+static class E
+{
+    public static System.Collections.Generic.IEnumerator<int> GetEnumerator(
+        this int i,
+        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(i))] string caller = "")
+    {
+        System.Console.Write($"{caller}={i} ");
+        yield return 0;
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "42=42").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_11()
+    {
+        var srcCaller = """
+foreach (var x in 42) { }
+
+""";
+        var src = """
+public static class E
+{
+    extension(int i)
+    {
+        public static System.Collections.Generic.IEnumerator<int> GetEnumerator(
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(i))] string caller = "")
+        {
+            throw null;
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation([src, srcCaller]);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0176: Member 'E.extension(int).GetEnumerator(string)' cannot be accessed with an instance reference; qualify it with a type name instead
+            // foreach (var x in 42) { }
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "42").WithArguments("E.extension(int).GetEnumerator(string)").WithLocation(1, 19),
+            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in 42) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "42").WithArguments("int", "GetEnumerator").WithLocation(1, 19),
+            // (6,14): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect. It is applied with an invalid parameter name.
+            //             [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(i))] string caller = "")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(6, 14));
+
+        var libComp = CreateCompilation(src);
+        comp = CreateCompilation(srcCaller, references: [libComp.EmitToImageReference()]);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0176: Member 'E.extension(int).GetEnumerator(string)' cannot be accessed with an instance reference; qualify it with a type name instead
+            // foreach (var x in 42) { }
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "42").WithArguments("E.extension(int).GetEnumerator(string)").WithLocation(1, 19),
+            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in 42) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "42").WithArguments("int", "GetEnumerator").WithLocation(1, 19));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var getEnumerator = extension.GetMember<MethodSymbol>("GetEnumerator");
+        Assert.Equal(-1, getEnumerator.Parameters[0].CallerArgumentExpressionParameterIndex);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_12()
+    {
+        var src = """
+static class E
+{
+    extension(C)
+    {
+        public static C operator +(C c1, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(c1))] C c2 = null) => throw null;
+    }
+}
+
+public class C { }
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,43): warning CS8966: The CallerArgumentExpressionAttribute applied to parameter 'c2' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         public static C operator +(C c1, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(c1))] C c2 = null) => throw null;
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("c2").WithLocation(5, 43),
+            // (5,115): warning CS1066: The default value specified for parameter 'c2' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         public static C operator +(C c1, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(c1))] C c2 = null) => throw null;
+            Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c2").WithArguments("c2").WithLocation(5, 115));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_13(bool useCompilationReference)
+    {
+        var callerSrc = """
+"A".Print();
+E.Print("B");
+"C".Print2();
+
+"A".Print(i: 0);
+E.Print("B", i: 0);
+"C".Print2(i: 0);
+
+""";
+        var src = """
+public static class E
+{
+    public static void Print2(this string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+    {
+        System.Console.Write($"{caller}={s} ");
+    }
+
+    extension(string s)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+        {
+            System.Console.Write($"{caller}={s} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B "C"=C "A"=A "B"=B "C"=C
+""";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_14(bool useCompilationReference)
+    {
+        var callerSrc = """
+object o = new object();
+o.Print("A");
+E.Print(o, "B");
+o.Print2("C");
+
+o.Print("A", i: 0);
+E.Print(o, "B", i: 0);
+o.Print2("C", i: 0);
+
+""";
+        var src = """
+public static class E
+{
+    public static void Print2(this object o, string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+    {
+        System.Console.Write($"{caller}={s} ");
+    }
+
+    extension(object o)
+    {
+        public void Print(string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+        {
+            System.Console.Write($"{caller}={s} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B "C"=C "A"=A "B"=B "C"=C
+""";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_15(bool useCompilationReference)
+    {
+        var callerSrc = """
+object.Print("A");
+object.Print("A", i: 0);
+
+""";
+        var src = """
+public static class E
+{
+    extension(object)
+    {
+        public static void Print(string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+        {
+            System.Console.Write($"{caller}={s} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "A"=A
+""";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_16(bool useCompilationReference)
+    {
+        var callerSrc = """
+"A".Print(s2: "C");
+
+""";
+        var src = """
+public static class E
+{
+    extension(string s0)
+    {
+        public void Print(string s1 = "B", string s2 = "", 
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s0))] string expr_s0 = "",
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s1))] string expr_s1 = "",
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s2))] string expr_s2 = "")
+        {
+            System.Console.Write($"{expr_s0}={s0} {expr_s1}={s1} {expr_s2}={s2}");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A =B "C"=C
+""";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_17()
+    {
+        // the maker method has vararg, no implementation method, CallerArgumentExpression points to parameter "s"
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends System.Object
+        {
+            .method public hidebysig specialname static vararg void '<Extension>$' ( ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig instance void Print ( string s, [opt] string caller ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            .param [2] = ""
+                .custom instance void System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                    01 00 01 73 00 00
+                )
+            ldnull
+            throw
+        }
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CallerArgumentExpressionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string parameterName ) cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Attribute::.ctor()
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var comp = CreateCompilationWithIL("", ilSrc);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        Assert.True(extension.IsExtension);
+        var parameter = extension.GetMember<MethodSymbol>("Print").Parameters[1];
+        AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
+        Assert.Equal(1, parameter.CallerArgumentExpressionParameterIndex);
+    }
 }
 
