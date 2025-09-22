@@ -191,10 +191,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     /// <summary>
     /// Get a TextSpan that covers all the changes between the old and new document.
     /// </summary>
-    /// <param name="oldDocument"></param>
-    /// <param name="newDocument"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     private static async Task<TextSpan> GetSpanOfChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
     {
         var forkedRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
