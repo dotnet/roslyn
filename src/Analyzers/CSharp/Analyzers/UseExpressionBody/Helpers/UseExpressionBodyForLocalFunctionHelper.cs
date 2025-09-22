@@ -57,7 +57,7 @@ internal sealed class UseExpressionBodyForLocalFunctionHelper :
         {
             // if it's 'async TaskLike' (where TaskLike is non-generic) we do *not* want to
             // create a return statement.  This is just the 'async' version of a 'void' local function.
-            var symbol = semanticModel.GetRequiredDeclaredSymbol(statement, cancellationToken);
+            var symbol = semanticModel.GetDeclaredSymbol(statement, cancellationToken);
             return symbol is IMethodSymbol { ReturnType: INamedTypeSymbol { Arity: not 0 } };
         }
 
