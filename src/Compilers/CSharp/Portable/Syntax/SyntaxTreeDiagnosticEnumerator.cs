@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <list type="number">
         /// <item>The FullStart of a node when we're on a node.</item>
         /// <item>The FullStart of a trivia when we're on trivia.</item>
-        /// <item>The FullStart of a list whne we're on a list.</item>
+        /// <item>The FullStart of a list when we're on a list.</item>
         /// <item>The *Start* (not FullStart) of a token when we're on a token.</item>
         /// </list>
         ///
