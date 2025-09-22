@@ -111,12 +111,20 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
             NumberOfFixAllIterations = 2,
         }.RunAsync();
 
-    class C
-    {
-        string? M(object o)
+    [Fact]
+    public Task TestWithDefaultAndTypeParameter()
+        => new VerifyCS.Test
         {
-            var v = M(null!);
-            return null;
-        }
-    }
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public TLanguageService GetService<TLanguageService>()
+                    {
+                        return default!;
+                    }
+                }
+                """,
+        }.RunAsync();
 }

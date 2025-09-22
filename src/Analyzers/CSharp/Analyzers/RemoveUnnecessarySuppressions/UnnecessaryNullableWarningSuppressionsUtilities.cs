@@ -87,26 +87,4 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
                 result.Add(node);
         }
     }
-
-    public static bool IsUnnecessary(
-        SemanticModel semanticModel,
-        PostfixUnaryExpressionSyntax node,
-        CancellationToken cancellationToken)
-    {
-        if (!ShouldAnalyzeNode(semanticModel, node, cancellationToken))
-            return false;
-
-        using var _1 = ArrayBuilder<PostfixUnaryExpressionSyntax>.GetInstance(out var nodesToCheck);
-        nodesToCheck.Add(node);
-
-        using var _2 = PooledDictionary<PostfixUnaryExpressionSyntax, SyntaxAnnotation>.GetInstance(out var nodeToAnnotation);
-        nodeToAnnotation.Add(node, new());
-
-        using var _3 = ArrayBuilder<PostfixUnaryExpressionSyntax>.GetInstance(out var result);
-
-        ForkSemanticModelAndCheckNodes(
-            semanticModel, nodesToCheck, nodeToAnnotation, result, cancellationToken);
-
-        return result.Contains(node);
-    }
 }
