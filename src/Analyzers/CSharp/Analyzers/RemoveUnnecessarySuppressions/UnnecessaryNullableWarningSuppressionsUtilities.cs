@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
@@ -92,11 +93,19 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         }
     }
 
-    private static TextSpan? GetSpanToCheck(SyntaxNode updatedNode)
+    private static TextSpan GetSpanToCheck(SyntaxNode updatedNode)
     {
-        var containingStatement = updatedNode.FirstAncestorOrSelf<StatementSyntax>();
-        if (containingStatement is not null)
+        var firstAncestor = updatedNode.Ancestors().FirstOrDefault(
+            n => n is StatementSyntax or ArrowExpressionClauseSyntax or BaseMethodDeclarationSyntax or BasePropertyDeclarationSyntax);
+
+        if (firstAncestor is StatementSyntax containingStatement)
         {
+            if (containingStatement.Parent is GlobalStatementSyntax globalStatement)
+            {
+                var compilationUnit = (CompilationUnitSyntax)globalStatement.GetRequiredParent();
+                return TextSpan.FromBounds(globalStatement.SpanStart, compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
+            }
+
             if (containingStatement.Parent is BlockSyntax block)
                 return TextSpan.FromBounds(containingStatement.SpanStart, block.Statements.Last().Span.End);
             else if (containingStatement.Parent is SwitchSectionSyntax switchSection)
@@ -105,9 +114,8 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
                 return containingStatement.Span;
         }
 
-        var containingArrowExpression = updatedNode.FirstAncestorOrSelf<ArrowExpressionClauseSyntax>();
-        if (containingArrowExpression is not null)
-            return containingArrowExpression.Span;
+        if (firstAncestor is not null)
+            return firstAncestor.Span;
 
         return updatedNode.Span;
     }
