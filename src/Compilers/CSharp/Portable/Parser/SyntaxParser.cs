@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return (offset, trivia.Width);
                     }
 
-                    Debug.Fail("This shuld not be reachable.  We should have hit a skipped token in the trivia of this token.");
+                    Debug.Fail("This should not be reachable.  We should have hit a skipped token in the trivia of this token.");
                     return default;
                 }
 
