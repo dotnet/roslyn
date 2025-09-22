@@ -758,26 +758,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     && !HasCallerMemberNameAttribute
                     && ContainingAssembly.TypeConversions.HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
-                if (isCallerArgumentExpression)
+                int index = -1;
+                if (isCallerArgumentExpression
+                    && _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName)
+                    && parameterName is not null)
                 {
-                    _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
-                    var parameters = ContainingSymbol.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
-                    bool hasNullExtensionParameter = ContainingSymbol.GetIsNewExtensionMember() && !ContainingSymbol.IsStatic && ContainingType.ExtensionParameter is null;
-                    int offset = hasNullExtensionParameter ? 1 : 0;
-
-                    for (int i = 0; i < parameters.Length; i++)
-                    {
-                        if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
-                        {
-                            int index = i + offset;
-                            _lazyCallerArgumentExpressionParameterIndex = index;
-                            return index;
-                        }
-                    }
+                    index = SourceComplexParameterSymbolBase.GetCallerArgumentExpressionParameterIndex(this, parameterName);
                 }
 
-                _lazyCallerArgumentExpressionParameterIndex = -1;
-                return -1;
+                _lazyCallerArgumentExpressionParameterIndex = index;
+                return index;
             }
         }
 

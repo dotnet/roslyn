@@ -682,20 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var constructorArguments = attributeData.CommonConstructorArguments;
                         Debug.Assert(constructorArguments.Length == 1);
-                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName))
+                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName)
+                            && parameterName is not null)
                         {
-                            var parameters = ContainingSymbol.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
-                            bool hasNullExtensionParameter = ContainingSymbol.GetIsNewExtensionMember() && !ContainingSymbol.IsStatic && ContainingType.ExtensionParameter is null;
-                            int offset = hasNullExtensionParameter ? 1 : 0;
-
-                            for (int i = 0; i < parameters.Length; i++)
-                            {
-                                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
-                                {
-                                    index = i + offset;
-                                    break;
-                                }
-                            }
+                            index = GetCallerArgumentExpressionParameterIndex(this, parameterName);
                         }
                     }
 
@@ -704,6 +694,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
+        /// <summary>
+        /// Given a parameter (marked with CallerArgumentExpression attribute) and the parameter name specified in the attribute,
+        /// returns the index of the parameter the attribute refers to, or -1 if no such parameter exists.
+        /// For new non-static extension members, the extension parameter is considered to be at index 0.
+        /// </summary>
+        internal static int GetCallerArgumentExpressionParameterIndex(ParameterSymbol parameter, string parameterName)
+        {
+            int offset = 0;
+            Symbol containingSymbol = parameter.ContainingSymbol;
+            if (containingSymbol.GetIsNewExtensionMember() && !containingSymbol.IsStatic)
+            {
+                if (parameter.ContainingType.ExtensionParameter is { } extensionParameter
+                    && extensionParameter.Name.Equals(parameterName, StringComparison.Ordinal))
+                {
+                    return 0;
+                }
+
+                offset = 1;
+            }
+
+            var parameters = containingSymbol.GetParameters();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
+                {
+                    return i + offset;
+                }
+            }
+
+            return -1;
         }
 
         private (CSharpAttributeData?, BoundAttribute?) EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription description, ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
