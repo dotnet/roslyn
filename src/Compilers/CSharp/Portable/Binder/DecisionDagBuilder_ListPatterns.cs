@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = list.Syntax;
             var subpatterns = list.Subpatterns;
             var tests = ArrayBuilder<Tests>.GetInstance(4 + subpatterns.Length * 2);
-            output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
+            output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests, checkNotNull: true);
 
             if (list.HasErrors)
             {

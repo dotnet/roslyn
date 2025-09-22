@@ -284,14 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            if (!pattern.HasErrors && !pattern.InputType.IsErrorType() && !pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions))
-            {
-                var builder = ArrayBuilder<Tests>.GetInstance(1);
-                input = MakeConvertToType(input: input, syntax: pattern.Syntax, type: pattern.InputType, isExplicitTest: false, tests: builder);
-            }
-
-            Debug.Assert(pattern.HasErrors || pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType());
-
             switch (pattern)
             {
                 case BoundDeclarationPattern declaration:
@@ -405,8 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tests = ArrayBuilder<Tests>.GetInstance(1);
 
             // Add a null and type test if needed.
-            if (!declaration.IsVar)
-                input = MakeConvertToType(input, declaration.Syntax, type!, isExplicitTest: false, tests);
+            input = MakeConvertToType(input, declaration.Syntax, type!, isExplicitTest: false, tests, checkNotNull: !declaration.IsVar);
 
             BoundExpression? variableAccess = declaration.VariableAccess;
             if (variableAccess is { })
@@ -430,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = typePattern.DeclaredType.Type;
             var tests = ArrayBuilder<Tests>.GetInstance(4);
-            output = MakeConvertToType(input: input, syntax: typePattern.Syntax, type: type, isExplicitTest: typePattern.IsExplicitNotNullTest, tests: tests);
+            output = MakeConvertToType(input: input, syntax: typePattern.Syntax, type: type, isExplicitTest: typePattern.IsExplicitNotNullTest, tests: tests, checkNotNull: true);
             return Tests.AndSequence.Create(tests);
         }
 
@@ -457,12 +448,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeSymbol type,
             bool isExplicitTest,
-            ArrayBuilder<Tests> tests)
+            ArrayBuilder<Tests> tests,
+            bool checkNotNull)
         {
-            MakeCheckNotNull(input, syntax, isExplicitTest, tests);
+            if (checkNotNull)
+            {
+                MakeCheckNotNull(input, syntax, isExplicitTest, tests);
+            }
+
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
-                TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
+                TypeSymbol inputType = checkNotNull
+                    ? input.Type.StrippedType() // since a null check has already been done
+                    : input.Type;
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
                 Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, isChecked: false, ref useSiteInfo);
                 Debug.Assert(!conversion.IsUserDefined);
@@ -505,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);
                 Debug.Assert(constant.Value.Type is not null || constant.HasErrors);
-                output = input = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests) : input;
+                output = input = constant.Value.Type is { } type ? MakeConvertToType(input, constant.Syntax, type, isExplicitTest: false, tests, checkNotNull: true) : input;
                 if (ValueSetFactory.ForInput(input)?.Related(BinaryOperatorKind.Equal, constant.ConstantValue).IsEmpty == true)
                 {
                     // This could only happen for a length input where the permitted value domain (>=0) is a strict subset of possible values for the type (int)
@@ -529,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(input.Type.IsErrorType() || recursive.HasErrors || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
             var tests = ArrayBuilder<Tests>.GetInstance(5);
-            output = input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
+            output = input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests, checkNotNull: true);
 
             if (!recursive.Deconstruction.IsDefault)
             {
@@ -618,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (tryMakeTestsForSubpatternMember(member.Receiver, ref input, isLengthOrCount: false))
                 {
                     // If this is not the first member, add null test, unwrap nullables, and continue.
-                    input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
+                    input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests, checkNotNull: true);
                 }
 
                 BoundDagEvaluation evaluation;
@@ -706,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type is { });
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, type, isExplicitTest: false, tests);
+            output = MakeConvertToType(input, rel.Syntax, type, isExplicitTest: false, tests, checkNotNull: true);
             var fac = ValueSetFactory.ForInput(output);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
