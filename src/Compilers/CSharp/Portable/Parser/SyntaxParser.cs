@@ -956,6 +956,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Also adds the first node-based error, or error on a missing-token, in depth-first preorder, found in the
         /// skipped syntax tree to the target token.  This ensures that we do not lose token/node errors found in
         /// skipped syntax.
+        /// 
+        /// Note: This behavior could technically lead to buggy behavior.  Specifically, because we only take the first
+        /// diagnostic we find, we might miss a more relevant diagnostic later in the tree.  For example, we might
+        /// preserve a 'warning' while missing an error.
+        /// 
+        /// We should either:
+        /// 
+        /// 1. ensure that we copy over an error if it exists, overwriting any warnings we found along the way.
+        /// 
+        /// 2. just copy over everything.  This seems saner, as it means not losing anything. But it might be the case
+        /// that when we recover from a big error recovery scan, we might report a ton of errors.
+        ///
+        /// For now, we do neither, and just take the first error/warning we find.  This can/should be revisited later
+        /// if we discover it means we're losing important diagnostics.
         /// </summary>
         internal SyntaxToken AddSkippedSyntax(SyntaxToken target, GreenNode skippedSyntax, bool trailing)
         {
