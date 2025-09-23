@@ -5601,7 +5601,7 @@ namespace System.Threading.Tasks
                 // (7,15): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
                 //     ValueTask IAsyncDisposable.DisposeAsync()
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(7, 15),
-                // (7,32): error CS9333: 'Class1.DisposeAsync()' return type must be 'System.Threading.Tasks.ValueTask' to match implemented member 'System.IAsyncDisposable.DisposeAsync()'
+                // (7,32): error CS9334: 'Class1.DisposeAsync()' return type must be 'System.Threading.Tasks.ValueTask' to match implemented member 'System.IAsyncDisposable.DisposeAsync()'
                 //     ValueTask IAsyncDisposable.DisposeAsync()
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "DisposeAsync").WithArguments("Class1.DisposeAsync()", "System.Threading.Tasks.ValueTask", "System.IAsyncDisposable.DisposeAsync()").WithLocation(7, 32),
                 // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.

@@ -7437,7 +7437,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<K, T>)"),
                 // (51,39): error CS0535: 'Outer<T>.Inner<U>.Derived4.Derived5' does not implement interface member 'Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, Z>)'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<T>.Inner<U>.Interface<U, T>").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5", "Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, Z>)"),
-                // (72,75): error CS9332: 'Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Property': type must be 'System.Collections.Generic.List<T>' to match implemented member 'Outer<List<T>>.Inner<U>.Interface<List<U>, T>.Property'
+                // (72,75): error CS9333: 'Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Property': type must be 'System.Collections.Generic.List<T>' to match implemented member 'Outer<List<T>>.Inner<U>.Interface<List<U>, T>.Property'
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Property", "System.Collections.Generic.List<T>", "Outer<System.Collections.Generic.List<T>>.Inner<U>.Interface<System.Collections.Generic.List<U>, T>.Property"),
                 // (76,72): error CS0539: 'Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Method<K>(System.Collections.Generic.List<T>, U[], System.Collections.Generic.List<System.Collections.Generic.List<u>>, System.Collections.Generic.Dictionary<T, K>)' in explicit interface declaration is not a member of interface
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Derived7<u>.Method<K>(System.Collections.Generic.List<T>, U[], System.Collections.Generic.List<System.Collections.Generic.List<u>>, System.Collections.Generic.Dictionary<T, K>)"),
@@ -7469,7 +7469,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<Y>.Inner<int>.Interface<long, X>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<Y>.Inner<int>.Interface<long, X>.Method<Z>(Y, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<X, Z>)"),
                 // (21,45): error CS0535: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>' does not implement interface member 'Outer<Y>.Inner<int>.Interface<long, X>.Property'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<Y>.Inner<int>.Interface<long, X>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>", "Outer<Y>.Inner<int>.Interface<long, X>.Property"),
-                // (34,48): error CS9332: 'Outer<T>.Inner<U>.Derived3.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<U>.Interface<long, string>.Property'
+                // (34,48): error CS9333: 'Outer<T>.Inner<U>.Derived3.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<U>.Interface<long, string>.Property'
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived3.Property", "T", "Outer<T>.Inner<U>.Interface<long, string>.Property"),
                 // (38,60): error CS0539: 'Outer<T>.Inner<U>.Derived3.Method<K>(T, K[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, K>)' in explicit interface declaration is not a member of interface
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived3.Method<K>(T, K[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, K>)"),
@@ -7726,7 +7726,7 @@ class Test
             CreateCompilation(source).VerifyDiagnostics(
                 // (44,15): error CS0540: 'Outer<T>.Inner<U>.Derived4.Property': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<T, U>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Property", "Outer<T>.Inner<U>.Interface<T, U>"),
-                // (44,31): error CS9332: 'Outer<T>.Inner<U>.Derived4.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<U>.Interface<T, U>.Property'
+                // (44,31): error CS9333: 'Outer<T>.Inner<U>.Derived4.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<U>.Interface<T, U>.Property'
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived4.Property", "T", "Outer<T>.Inner<U>.Interface<T, U>.Property"),
                 // (48,18): error CS0540: 'Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)': containing type does not implement interface 'Outer<T>.Inner<T>.Interface<T, U>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<T>.Interface<T, U>").WithArguments("Outer<T>.Inner<U>.Derived4.Method<K>(U, T[], System.Collections.Generic.List<T>, System.Collections.Generic.Dictionary<U, K>)", "Outer<T>.Inner<T>.Interface<T, U>"),
@@ -7742,7 +7742,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Inner<int>.Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived1", "Outer<T>.Inner<int>.Interface<long, string>.Property"),
                 // (23,19): error CS0540: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property': containing type does not implement interface 'Outer<T>.Inner<int>.Interface<long, Y>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<int>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property", "Outer<T>.Inner<int>.Interface<long, Y>"),
-                // (23,49): error CS9332: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<int>.Interface<long, Y>.Property'
+                // (23,49): error CS9333: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property': type must be 'T' to match implemented member 'Outer<T>.Inner<int>.Interface<long, Y>.Property'
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "Property").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Property", "T", "Outer<T>.Inner<int>.Interface<long, Y>.Property"),
                 // (27,22): error CS0540: 'Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)': containing type does not implement interface 'Outer<T>.Inner<long>.Interface<long, Y>'
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<long>.Interface<long, Y>").WithArguments("Outer<T>.Inner<U>.Derived1.Derived2<X, Y>.Method<K>(X, int[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<Y, K>)", "Outer<T>.Inner<long>.Interface<long, Y>"),
@@ -9854,13 +9854,13 @@ partial class Partial : Generic<Argument>, ITest
                 // (9,16): error CS0535: 'C1' does not implement interface member 'I1.M3'
                 //     class C1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M3").WithLocation(9, 16),
-                // (11,19): error CS9333: 'C1.M1()': return type must be 'int' to match implemented member 'I1.M1()'
+                // (11,19): error CS9334: 'C1.M1()': return type must be 'int' to match implemented member 'I1.M1()'
                 //         object I1.M1() { return null; }
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M1").WithArguments("C1.M1()", "int", "I1.M1()").WithLocation(11, 19),
-                // (12,19): error CS9332: 'C1.M2': type must be 'int' to match implemented member 'I1.M2'
+                // (12,19): error CS9333: 'C1.M2': type must be 'int' to match implemented member 'I1.M2'
                 //         object I1.M2 { get; set; }
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M2").WithArguments("C1.M2", "int", "I1.M2").WithLocation(12, 19),
-                // (13,40): error CS9332: 'C1.M3': type must be 'System.Action' to match implemented member 'I1.M3'
+                // (13,40): error CS9333: 'C1.M3': type must be 'System.Action' to match implemented member 'I1.M3'
                 //         event System.Action<object> I1.M3 { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M3").WithArguments("C1.M3", "System.Action", "I1.M3").WithLocation(13, 40)
                 );
@@ -9900,13 +9900,13 @@ partial class Partial : Generic<Argument>, ITest
                 // (10,16): error CS0535: 'C1' does not implement interface member 'I1.M3'
                 //     class C1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M3").WithLocation(10, 16),
-                // (12,19): error CS9333: 'C1.M1()': return type must be 'int?' to match implemented member 'I1.M1()'
+                // (12,19): error CS9334: 'C1.M1()': return type must be 'int?' to match implemented member 'I1.M1()'
                 //         object I1.M1() { return null; }
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M1").WithArguments("C1.M1()", "int?", "I1.M1()").WithLocation(12, 19),
-                // (13,19): error CS9332: 'C1.M2': type must be 'int?' to match implemented member 'I1.M2'
+                // (13,19): error CS9333: 'C1.M2': type must be 'int?' to match implemented member 'I1.M2'
                 //         object I1.M2 { get; set; }
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M2").WithArguments("C1.M2", "int?", "I1.M2").WithLocation(13, 19),
-                // (14,40): error CS9332: 'C1.M3': type must be 'System.Action?' to match implemented member 'I1.M3'
+                // (14,40): error CS9333: 'C1.M3': type must be 'System.Action?' to match implemented member 'I1.M3'
                 //         event System.Action<object> I1.M3 { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M3").WithArguments("C1.M3", "System.Action?", "I1.M3").WithLocation(14, 40)
                 );
@@ -9947,7 +9947,7 @@ partial class Partial : Generic<Argument>, ITest
                                                        parseOptions: TestOptions.Regular,
                                                        targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
-                // (6,18): error CS9333: 'C1.M()': return type must be 'string' to match implemented member 'I.M()'
+                // (6,18): error CS9334: 'C1.M()': return type must be 'string' to match implemented member 'I.M()'
                 //         object I.M() { return null; }
                 Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M").WithArguments("C1.M()", "string", "I.M()").WithLocation(6, 18)
                 );
