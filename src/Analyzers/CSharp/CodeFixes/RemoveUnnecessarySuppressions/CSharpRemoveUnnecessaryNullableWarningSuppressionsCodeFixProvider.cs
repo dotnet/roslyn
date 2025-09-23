@@ -23,37 +23,48 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider()
-    : SyntaxEditorBasedCodeFixProvider
+    : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryNullableWarningSuppression];
 
-#if !CODE_STYLE
-    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
-#endif
+    public override FixAllProvider? GetFixAllProvider()
+        => new RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider();
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_suppression, nameof(AnalyzersResources.Remove_unnecessary_suppression));
-        return Task.CompletedTask;
-    }
-
-    protected override Task FixAllAsync(
-        Document document,
-        ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor,
-        CancellationToken cancellationToken)
-    {
-        foreach (var diagnostic in diagnostics.OrderByDescending(d => d.AdditionalLocations[0].SourceSpan.Start))
+        var cancellationToken = context.CancellationToken;
+        var diagnostic = context.Diagnostics[0];
+        var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+        if (node is PostfixUnaryExpressionSyntax postfixUnary)
         {
-            var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            if (node is not PostfixUnaryExpressionSyntax postfixUnary)
-                continue;
-
-            editor.ReplaceNode(
-                postfixUnary,
-                postfixUnary.Operand.WithTriviaFrom(postfixUnary));
+            context.RegisterCodeFix(CodeAction.Create(
+                AnalyzersResources.Remove_unnecessary_suppression,
+                cancellationToken => FixDocumentAsync(context.Document, postfixUnary, cancellationToken),
+                nameof(AnalyzersResources.Remove_unnecessary_suppression)),
+                context.Diagnostics);
         }
 
         return Task.CompletedTask;
+    }
+
+    private Task<Document> FixDocumentAsync(Document document, PostfixUnaryExpressionSyntax postFixUnary, CancellationToken cancellationToken)
+    {
+        var root = postFixUnary.SyntaxTree.GetRoot(cancellationToken);
+        var newRoot = root.ReplaceNode(
+            postFixUnary,
+            postFixUnary.Operand.WithTriviaFrom(postFixUnary));
+        return Task.FromResult(document.WithSyntaxRoot(newRoot));
+    }
+
+    private sealed class RemoveUnnecessaryNullableWarningSuppressionsFixAllProvider : FixAllProvider
+    {
+#if !CODE_STYLE
+        internal override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+#endif
+
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        {
+            fixAllContext.get
+        }
     }
 }
