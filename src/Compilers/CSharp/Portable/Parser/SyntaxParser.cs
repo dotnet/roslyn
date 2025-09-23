@@ -722,6 +722,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
+        {
+            DiagnosticInfo[] existingDiags = node.GetDiagnostics();
+            int existingLength = existingDiags.Length;
+            if (existingLength == 0)
+            {
+                return node.WithDiagnosticsGreen(diagnostics);
+            }
+            else
+            {
+                DiagnosticInfo[] result = new DiagnosticInfo[existingDiags.Length + diagnostics.Length];
+                existingDiags.CopyTo(result, 0);
+                diagnostics.CopyTo(result, existingLength);
+                return node.WithDiagnosticsGreen(result);
+            }
+        }
+
         /// <summary>
         /// Given a "missing" node or token (one where <see cref="GreenNode.IsMissing"/> must be true, determines the
         /// ideal location to place the diagnostic for it.  The intuition here is that we want to place the diagnostic
@@ -824,23 +841,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 Debug.Fail("This should not be reachable.  We should have hit a child token with skipped text within this node.");
                 return default;
-            }
-        }
-
-        protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
-        {
-            DiagnosticInfo[] existingDiags = node.GetDiagnostics();
-            int existingLength = existingDiags.Length;
-            if (existingLength == 0)
-            {
-                return node.WithDiagnosticsGreen(diagnostics);
-            }
-            else
-            {
-                DiagnosticInfo[] result = new DiagnosticInfo[existingDiags.Length + diagnostics.Length];
-                existingDiags.CopyTo(result, 0);
-                diagnostics.CopyTo(result, existingLength);
-                return node.WithDiagnosticsGreen(result);
             }
         }
 
