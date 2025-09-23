@@ -16,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
-public sealed class UseCoalesceExpressionForNullableTernaryConditionalCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class UseCoalesceExpressionForNullableTernaryConditionalCheckTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public UseCoalesceExpressionForNullableTernaryConditionalCheckTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer(),
             new UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider());

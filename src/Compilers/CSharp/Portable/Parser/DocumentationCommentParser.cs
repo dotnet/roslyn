@@ -812,10 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // NOTE: There are no errors in crefs - only warnings.  We accomplish this by wrapping every diagnostic in ErrorCode.WRN_ErrorOverride.
             if (InCref)
             {
-                int offset, width;
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
-
-                return GetExpectedTokenError(expected, actual, offset, width);
+                return base.GetExpectedTokenError(expected, actual);
             }
 
             switch (expected)
@@ -1030,9 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
 
                 // Grab the offset and width before we consume the invalid keyword and change our position.
-                int offset;
-                int width;
-                GetDiagnosticSpanForMissingToken(out offset, out width);
+                var (offset, width) = this.GetDiagnosticSpanForMissingToken();
 
                 if (SyntaxFacts.IsUnaryOperatorDeclarationToken(CurrentToken.Kind) || SyntaxFacts.IsBinaryExpressionOperatorToken(CurrentToken.Kind))
                 {

@@ -28,9 +28,7 @@ internal static partial class ExpressionSyntaxExtensions
         // on a ref-expression node.  But this node isn't a true expression that be operated
         // on like with everything else.
         if (expression.IsKind(SyntaxKind.RefExpression))
-        {
             return expression;
-        }
 
         // Throw expressions are not permitted to be parenthesized:
         //
@@ -42,9 +40,7 @@ internal static partial class ExpressionSyntaxExtensions
         //
         // is not.
         if (expression.IsKind(SyntaxKind.ThrowExpression))
-        {
             return expression;
-        }
 
         var result = ParenthesizeWorker(expression, includeElasticTrivia);
         return addSimplifierAnnotation
@@ -52,7 +48,7 @@ internal static partial class ExpressionSyntaxExtensions
             : result;
     }
 
-    private static ExpressionSyntax ParenthesizeWorker(
+    private static ParenthesizedExpressionSyntax ParenthesizeWorker(
         this ExpressionSyntax expression, bool includeElasticTrivia)
     {
         var withoutTrivia = expression.WithoutTrivia();

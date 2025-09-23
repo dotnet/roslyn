@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1258,8 +1259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CheckAndCoerceArguments(node, methodResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: invokedAsExtensionMethod, out argsToParams);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-
-            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+            var extensionReceiver = isNewExtensionMethod && !method.IsStatic ? receiver : null;
+            BindDefaultArguments(node, method.Parameters, extensionReceiver, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -1539,9 +1540,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter;
         }
 
+        /// <param name="extensionReceiver">The receiver for new extension members that are non-static.</param>
         internal void BindDefaultArguments(
             SyntaxNode node,
             ImmutableArray<ParameterSymbol> parameters,
+            BoundExpression? extensionReceiver,
             ArrayBuilder<BoundExpression> argumentsBuilder,
             ArrayBuilder<RefKind>? argumentRefKindsBuilder,
             ArrayBuilder<(string Name, Location Location)?>? namesBuilder,
@@ -1624,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(parameter.IsOptional);
 
                         defaultArguments[argumentsBuilder.Count] = true;
-                        argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder, argumentsCount, argsToParamsOpt));
+                        argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, extensionReceiver, argumentsBuilder, argumentsCount, argsToParamsOpt));
 
                         if (argumentRefKindsBuilder is { Count: > 0 })
                         {
@@ -1673,7 +1676,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.Free();
             }
 
-            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol? containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt)
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol? containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics,
+                BoundExpression? extensionReceiver, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt)
             {
                 TypeSymbol parameterType = parameter.Type;
                 if (Flags.Includes(BinderFlags.ParameterDefaultValue))
@@ -1718,11 +1722,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (callerSourceLocation is object
                     && !parameter.IsCallerMemberName
+                    && parameter.CallerArgumentExpressionParameterIndex >= 0
                     && Conversions.ClassifyBuiltInConversion(Compilation.GetSpecialType(SpecialType.System_String), parameterType, isChecked: false, ref discardedUseSiteInfo).Exists
-                    && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex
-                    && argumentIndex > -1 && argumentIndex < argumentsCount)
+                    && tryGetArgument(parameter.CallerArgumentExpressionParameterIndex, extensionReceiver, argumentsBuilder, argumentsCount, argsToParamsOpt, out var argument))
                 {
-                    var argument = argumentsBuilder[argumentIndex];
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (defaultConstantValue == ConstantValue.NotAvailable)
@@ -1785,10 +1788,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return defaultValue;
 
-                static int getArgumentIndex(int parameterIndex, ImmutableArray<int> argsToParamsOpt)
-                    => argsToParamsOpt.IsDefault
-                        ? parameterIndex
-                        : argsToParamsOpt.IndexOf(parameterIndex);
+                static bool tryGetArgument(int parameterIndex,
+                    BoundExpression? extensionReceiver, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt,
+                    [NotNullWhen(true)] out BoundExpression? argument)
+                {
+                    Debug.Assert(parameterIndex >= 0);
+                    bool hasExtensionReceiver = extensionReceiver is not null;
+                    int argumentIndex = getArgumentIndex(parameterIndex, argsToParamsOpt, hasExtensionReceiver);
+                    if (hasExtensionReceiver)
+                    {
+                        if (argumentIndex == 0)
+                        {
+                            argument = extensionReceiver!;
+                            return true;
+                        }
+
+                        argumentIndex--;
+                    }
+
+                    if (argumentIndex >= 0 && argumentIndex < argumentsCount)
+                    {
+                        argument = argumentsBuilder[argumentIndex];
+                        return true;
+                    }
+
+                    argument = null;
+                    return false;
+                }
+
+                static int getArgumentIndex(int parameterIndex, ImmutableArray<int> argsToParamsOpt, bool hasExtensionReceiver)
+                {
+                    if (argsToParamsOpt.IsDefault)
+                    {
+                        return parameterIndex;
+                    }
+
+                    int offset = 0;
+                    if (hasExtensionReceiver)
+                    {
+                        // For new non-static extension methods, the argument corresponding to the extension parameter is at index 0,
+                        // and all other arguments are shifted by 1.
+                        if (parameterIndex == 0)
+                        {
+                            return 0;
+                        }
+
+                        offset = 1;
+                    }
+
+                    int foundArgIndex = argsToParamsOpt.IndexOf(parameterIndex - offset);
+                    if (foundArgIndex < 0)
+                    {
+                        return -1;
+                    }
+
+                    return foundArgIndex + offset;
+                }
             }
         }
 

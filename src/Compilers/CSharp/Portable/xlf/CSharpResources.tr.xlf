@@ -332,6 +332,11 @@
         <target state="translated">Diğer ad kullanımı bir 'ref' türü olamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpreadInCatchFilter">
+        <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
+        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
         <source>'static' modifier must precede 'unsafe' modifier.</source>
         <target state="translated">'static' değiştiricisi 'unsafe' değiştiricisinden önce olmalıdır.</target>

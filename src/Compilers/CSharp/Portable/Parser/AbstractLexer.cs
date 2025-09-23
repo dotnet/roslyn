@@ -76,11 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AddError(this.MakeError(position, width, code, args));
         }
 
-        protected void AddError(int position, int width, XmlParseErrorCode code, params object[] args)
-        {
-            this.AddError(this.MakeError(position, width, code, args));
-        }
-
         protected void AddError(ErrorCode code)
         {
             this.AddError(MakeError(code));
@@ -124,12 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             int offset = GetLexemeOffsetFromPosition(position);
             return new SyntaxDiagnosticInfo(offset, width, code, args);
-        }
-
-        protected XmlSyntaxDiagnosticInfo MakeError(int position, int width, XmlParseErrorCode code, params object[] args)
-        {
-            int offset = GetLexemeOffsetFromPosition(position);
-            return new XmlSyntaxDiagnosticInfo(offset, width, code, args);
         }
 
         private int GetLexemeOffsetFromPosition(int position)

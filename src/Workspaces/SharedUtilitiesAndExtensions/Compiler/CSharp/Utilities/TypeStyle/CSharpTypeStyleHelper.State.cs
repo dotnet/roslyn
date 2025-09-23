@@ -53,8 +53,7 @@ internal partial class CSharpTypeStyleHelper
             {
                 this.Context = Context.BuiltInType;
             }
-            else if (
-                declaration is VariableDeclarationSyntax varDecl &&
+            else if (declaration is VariableDeclarationSyntax varDecl &&
                 IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken))
             {
                 this.Context = Context.TypeIsApparent;

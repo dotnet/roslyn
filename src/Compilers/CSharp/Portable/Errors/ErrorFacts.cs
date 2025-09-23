@@ -2535,6 +2535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ExtensionBlockCollision
                 or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
                 or ErrorCode.ERR_AttributeCannotBeAppliedManually
+                or ErrorCode.ERR_BadSpreadInCatchFilter
                 or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                 or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
                     => false,
