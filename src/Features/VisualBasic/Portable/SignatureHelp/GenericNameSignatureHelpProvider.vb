@@ -8,7 +8,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -108,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim _syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleSymbols.SelectAsArray(Function(s) Convert(s, genericName, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)),
+                accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken), selectedItemIndex:=Nothing, parameterIndexOverride:=-1)
         End Function
 
@@ -125,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                     GetPreambleParts(namedType, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(),
-                    namedType.TypeParameters.SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
+                    namedType.TypeParameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
             Else
                 Dim method = DirectCast(symbol, IMethodSymbol)
                 item = CreateItem(
@@ -136,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                     GetPreambleParts(method, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(method, semanticModel, position),
-                    method.TypeParameters.SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
+                    method.TypeParameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
             End If
 
             Return item
@@ -145,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared ReadOnly s_minimallyQualifiedFormat As SymbolDisplayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions Or SymbolDisplayGenericsOptions.IncludeVariance)
 
         Private Overloads Shared Function Convert(parameter As ITypeParameterSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpSymbolParameter
-            Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+            Dim parts = New List(Of SymbolDisplayPart)
             parts.AddRange(parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat))
             AddConstraints(parameter, parts, semanticModel, position)
 
@@ -153,14 +152,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 parameter.Name,
                 isOptional:=False,
                 documentationFactory:=parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                displayParts:=parts.ToImmutableAndFree())
+                displayParts:=parts)
         End Function
 
-        Private Shared Sub AddConstraints(
-                typeParam As ITypeParameterSymbol,
-                parts As ArrayBuilder(Of SymbolDisplayPart),
-                semanticModel As SemanticModel,
-                position As Integer)
+        Private Shared Function AddConstraints(typeParam As ITypeParameterSymbol,
+                                        parts As List(Of SymbolDisplayPart),
+                                        semanticModel As SemanticModel,
+                                        position As Integer) As IList(Of SymbolDisplayPart)
             Dim constraintTypes = typeParam.ConstraintTypes
             Dim constraintCount = TypeParameterSpecialConstraintCount(typeParam) + constraintTypes.Length
 
@@ -205,7 +203,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                     parts.Add(Punctuation(SyntaxKind.CloseBraceToken))
                 End If
             End If
-        End Sub
+
+            Return parts
+        End Function
 
         Private Shared Function TypeParameterSpecialConstraintCount(typeParam As ITypeParameterSymbol) As Integer
             Return If(typeParam.HasReferenceTypeConstraint, 1, 0) +
