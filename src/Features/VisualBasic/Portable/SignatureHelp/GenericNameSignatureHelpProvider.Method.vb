@@ -2,13 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.PooledObjects
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
+
     Partial Friend Class GenericNameSignatureHelpProvider
-        Private Shared Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+
+        Private Shared Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+            Dim result = New List(Of SymbolDisplayPart)()
 
             AddExtensionPreamble(method, result)
 
@@ -23,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
             result.Add(Keyword(SyntaxKind.OfKeyword))
             result.Add(Space())
-            Return result.ToImmutableAndFree()
+            Return result
         End Function
 
         Private Shared Function GetContainingType(method As IMethodSymbol) As ITypeSymbol
@@ -36,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
         End Function
 
-        Private Shared Function GetPostambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+        Private Shared Function GetPostambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+            Dim result = New List(Of SymbolDisplayPart)()
             result.Add(Punctuation(SyntaxKind.CloseParenToken))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
 
@@ -61,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 result.AddRange(method.ReturnType.ToMinimalDisplayParts(semanticModel, position))
             End If
 
-            Return result.ToImmutableAndFree()
+            Return result
         End Function
     End Class
 End Namespace
