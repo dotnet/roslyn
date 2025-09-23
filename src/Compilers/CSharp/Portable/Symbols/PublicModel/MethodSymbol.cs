@@ -349,15 +349,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                     return null;
                 }
 
-                if (_underlying.IsDefinition)
+                var enclosing = _underlying.ContainingType.ContainingType;
+                var implementation = implDefinition.AsMember(enclosing);
+                if (implementation.Arity != 0)
                 {
-                    return implDefinition.GetPublicSymbol();
+                    var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(implementation.Arity);
+                    typeArguments.AddRange(_underlying.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+                    typeArguments.AddRange(_underlying.TypeArgumentsWithAnnotations);
+                    implementation = implementation.Construct(typeArguments.ToImmutableAndFree());
                 }
 
-                var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(implDefinition.Arity);
-                typeArguments.AddRange(_underlying.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
-                typeArguments.AddRange(_underlying.TypeArgumentsWithAnnotations);
-                return implDefinition.Construct(typeArguments.ToImmutableAndFree()).GetPublicSymbol();
+                return implementation.GetPublicSymbol();
             }
         }
 #nullable disable
