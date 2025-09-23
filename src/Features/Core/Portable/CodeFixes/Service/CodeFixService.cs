@@ -326,13 +326,12 @@ internal sealed partial class CodeFixService : ICodeFixService
         return null;
     }
 
-    public async Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(
-        TDocument document,
+    public async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
+        Document document,
         string diagnosticId,
         DiagnosticSeverity severity,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
-        where TDocument : TextDocument
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -352,7 +351,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             new FixAllContext(fixCollection.FixAllState!, progressTracker, cancellationToken)).ConfigureAwait(false);
         Contract.ThrowIfNull(solution);
 
-        return (TDocument)(solution.GetTextDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported));
+        return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
     }
 
     private bool TryGetWorkspaceFixersMap(TextDocument document, [NotNullWhen(true)] out ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>? fixerMap)
