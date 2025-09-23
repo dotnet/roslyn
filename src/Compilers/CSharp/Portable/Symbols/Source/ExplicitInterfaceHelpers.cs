@@ -276,11 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var implementingMemberTypeMap = MemberSignatureComparer.GetTypeMap(implementingMember);
                 var interfaceMemberTypeMap = MemberSignatureComparer.GetTypeMap(interfaceMember);
                 if (MemberSignatureComparer.HaveSameReturnTypes(
-                    implementingMember,
-                    implementingMemberTypeMap,
-                    interfaceMember,
-                    interfaceMemberTypeMap,
-                    TypeCompareKind.AllIgnoreOptions))
+                        implementingMember,
+                        implementingMemberTypeMap,
+                        interfaceMember,
+                        interfaceMemberTypeMap,
+                        TypeCompareKind.AllIgnoreOptions))
                 {
                     foundMatchingMember = true;
                     // Cannot implement accessor directly unless
