@@ -23,7 +23,7 @@ resources:
     ref: $(Build.SourceBranch)
     trigger:
     - main
-    
+
 parameters:
   - name: prNumber
     type: string
@@ -31,7 +31,7 @@ parameters:
   - name: sha
     type: string
     default: 'None'
-    
+
 variables:
 - name: XUNIT_LOGS
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
