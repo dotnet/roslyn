@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// The offset of this diagnostic relative to the <em>Start</em> of the <see cref="GreenNode"/> (not the
-        /// FullStart). it is attached to.
+        /// FullStart) it is attached to.
         /// <para/>
         /// It is legal for the offset to be negative.  Or for the final calculated position to extend beyond the
         /// FullSpan or Span of the entity that it is on.  For example, a diagnostic may be placed on a node
