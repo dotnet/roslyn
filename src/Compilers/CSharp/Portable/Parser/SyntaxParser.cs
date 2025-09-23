@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // At this point, we have a node or token without real text in it.  The intuition we have here is that we
             // want to place the diagnostic on the token that "follows" this 'missing' entity.  There is a subtlety
             // here.  If the node or token contains skipped tokens, then we consider that skipped token the "following"
-            // token, and we will want to placce the diagnostic on it.  Otherwise, we want to place it on the true 'next
+            // token, and we will want to place the diagnostic on it.  Otherwise, we want to place it on the true 'next
             // token' the parser is currently pointing at.
 
             if (!nodeOrToken.ContainsSkippedText)
@@ -842,11 +842,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return (offset, trivia.Width);
                     }
 
-                    Debug.Fail("This shuld not be reachable.  We should have hit a skipped token in the trivia of this token.");
+                    Debug.Fail("This should not be reachable.  We should have hit a skipped token in the trivia of this token.");
                     return default;
                 }
 
-                Debug.Fail("This shuld not be reachable.  We should have hit a child token with skipped text within this node.");
+                Debug.Fail("This should not be reachable.  We should have hit a child token with skipped text within this node.");
                 return default;
             }
         }

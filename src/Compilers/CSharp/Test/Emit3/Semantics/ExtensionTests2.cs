@@ -29140,7 +29140,7 @@ public static class C1
                 ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0002",
                 ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0002",
             ], actual);
-        });
+        }).VerifyDiagnostics();
     }
 
     [Fact]
@@ -29180,7 +29180,7 @@ public static class C1
                 ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0002",
                 ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0002",
             ], actual);
-        });
+        }).VerifyDiagnostics();
     }
 
     [Fact]
@@ -29304,6 +29304,567 @@ internal static class C1
             // error CS0101: The namespace '<global namespace>' already contains a definition for 'C1'
             Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("C1", "<global namespace>").WithLocation(1, 1)
             );
+    }
+
+    [Fact]
+    public void ExportedTypes_06()
+    {
+        string source = @"
+public static class C1
+{
+    extension<T>(int i)
+    {
+    }
+}
+";
+        var moduleComp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+        var moduleRef = moduleComp.EmitToImageReference();
+
+        CompileAndVerify("", references: [moduleRef], assemblyValidator: (assembly) =>
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x26000001 (AssemblyFile) 0x0001",
+                ".<G>$B8D310208B4544F25EEBACB9990FC73B`1 0x27000001 (ExportedType) 0x0002",
+                ".<M>$B39C5C386A2E3E9242B293D9323EC48A 0x27000002 (ExportedType) 0x0002",
+            ], actual);
+        }).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ForwardedTypes_01()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]";
+
+        CompileAndVerify(source2, references: [comp1.EmitToImageReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+                ".C2 0x27000001 (ExportedType) 0x0000",
+                ".C3 0x27000002 (ExportedType) 0x0000",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0000",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0000",
+                ".<M>$56B5C634B2E52051C75D91F71BA8833A 0x27000004 (ExportedType) 0x0000",
+                ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0000",
+                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_02()
+    {
+        string source1 = @"
+namespace NS1.NS2;
+
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(NS1.NS2.C1))]";
+
+        CompileAndVerify(source2, references: [comp1.EmitToImageReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                "NS1.NS2.C1 0x23000002 (AssemblyReference) 0x200000",
+                ".C2 0x27000001 (ExportedType) 0x0000",
+                ".C3 0x27000002 (ExportedType) 0x0000",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0000",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0000",
+                ".<M>$56B5C634B2E52051C75D91F71BA8833A 0x27000004 (ExportedType) 0x0000",
+                ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0000",
+                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_03()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension<T>(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]";
+
+        CompileAndVerify(source2, references: [comp1.EmitToImageReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        CompileAndVerify(source2, references: [comp1.ToMetadataReference()], assemblyValidator: validateAssembly).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+                ".<G>$B8D310208B4544F25EEBACB9990FC73B`1 0x27000001 (ExportedType) 0x0000",
+                ".<M>$B39C5C386A2E3E9242B293D9323EC48A 0x27000002 (ExportedType) 0x0000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_04()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+
+        var source2 = @"
+extern alias A;
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A::C1))]
+
+static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+
+        var comp = CreateCompilation(source2, references: [comp1.EmitToImageReference().WithAliases(["A"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8006: Forwarded type 'C1' conflicts with type declared in primary module of this assembly.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("C1").WithLocation(1, 1)
+            );
+
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8006: Forwarded type 'C1' conflicts with type declared in primary module of this assembly.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("C1").WithLocation(1, 1)
+            );
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8006: Forwarded type 'C1' conflicts with type declared in primary module of this assembly.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("C1").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ForwardedTypes_05()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll);
+        var comp1ImageRef = comp1.EmitToImageReference();
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]";
+
+        var comp2 = CreateCompilation(source2, options: TestOptions.DebugModule, references: [comp1ImageRef]);
+        var comp2ImageRef = comp2.EmitToImageReference();
+
+        CompileAndVerify("", references: [comp1ImageRef, comp2ImageRef], assemblyValidator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        CompileAndVerify("", references: [comp1.ToMetadataReference(), comp2ImageRef], assemblyValidator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        CompileAndVerify("", references: [comp1.ToMetadataReference(), comp2ImageRef], assemblyValidator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+                ".C2 0x27000001 (ExportedType) 0x0000",
+                ".C3 0x27000002 (ExportedType) 0x0000",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0000",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000004 (ExportedType) 0x0000",
+                ".<M>$56B5C634B2E52051C75D91F71BA8833A 0x27000004 (ExportedType) 0x0000",
+                ".<G>$34505F560D9EACF86A87F3ED1F85E448 0x27000001 (ExportedType) 0x0000",
+                ".<M>$69A44968D4F2B90D6BA4472A51F540A4 0x27000007 (ExportedType) 0x0000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_06()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+
+    extension(string s)
+    {
+    }
+
+    extension(ref int i)
+    {
+    }
+
+    public class C2
+    {
+        public class C3;
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions");
+        var comp1ImageRef = comp1.EmitToImageReference();
+
+        var source2 = "[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]";
+
+        var comp2 = CreateCompilation(source2, options: TestOptions.DebugModule, references: [comp1ImageRef]);
+        var comp2ImageRef = comp2.EmitToImageReference();
+
+        CreateCompilation("", references: [comp2ImageRef]).VerifyEmitDiagnostics(
+            // error CS0012: The type 'C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("C1", "Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        string source3 = @"
+public static class C1
+{
+}
+";
+        comp1 = CreateCompilation(source3, options: TestOptions.ReleaseDll, assemblyName: "Extensions");
+
+        CompileAndVerify("", references: [comp1.ToMetadataReference(), comp2ImageRef], assemblyValidator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+            ], actual);
+        }
+    }
+
+    [Fact]
+    public void ForwardedTypes_07()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions");
+
+        var module = CreateCompilation(source1, options: TestOptions.ReleaseModule, assemblyName: "Module");
+        var moduleRef = module.EmitToImageReference();
+
+        var source2 = @"
+extern alias A;
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A::C1))]
+";
+
+        var comp = CreateCompilation(source2, references: [comp1.EmitToImageReference().WithAliases(["A"]), moduleRef]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8008: Type 'C1' forwarded to assembly 'Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' exported from module 'Module.netmodule'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("C1", "Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Module.netmodule").WithLocation(1, 1)
+            );
+
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"]), moduleRef]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8008: Type 'C1' forwarded to assembly 'Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' exported from module 'Module.netmodule'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("C1", "Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Module.netmodule").WithLocation(1, 1)
+            );
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"]), moduleRef]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8008: Type 'C1' forwarded to assembly 'Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' exported from module 'Module.netmodule'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("C1", "Extensions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Module.netmodule").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ForwardedTypes_08()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions1");
+        var comp2 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions2");
+
+        var source2 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]
+";
+
+        var module1 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.ReleaseModule, assemblyName: "Module1");
+        var module1Ref = module1.EmitToImageReference();
+
+        var module2 = CreateCompilation(source2, references: [comp2.ToMetadataReference()], options: TestOptions.ReleaseModule, assemblyName: "Module2");
+        var module2Ref = module2.EmitToImageReference();
+
+        var comp = CreateCompilation("", references: [comp1.EmitToImageReference(), comp2.EmitToImageReference(), module1Ref, module2Ref]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        comp = CreateCompilation("", references: [comp1.ToMetadataReference(), comp2.ToMetadataReference(), module1Ref, module2Ref]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        comp2 = comp2.AddReferences(comp3Ref);
+
+        comp = CreateCompilation("", references: [comp1.ToMetadataReference(), comp2.ToMetadataReference(), module1Ref, module2Ref]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ForwardedTypes_09()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions1");
+        var comp2 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions2");
+
+        var source2 = @"
+extern alias A;
+extern alias B;
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(A::C1))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(B::C1))]
+";
+
+        var comp = CreateCompilation(source2, references: [comp1.EmitToImageReference().WithAliases(["A"]), comp2.EmitToImageReference().WithAliases(["B"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"]), comp2.ToMetadataReference().WithAliases(["B"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+        comp2 = comp2.AddReferences(comp3Ref);
+
+        comp = CreateCompilation(source2, references: [comp1.ToMetadataReference().WithAliases(["A"]), comp2.ToMetadataReference().WithAliases(["B"])]);
+        comp.VerifyEmitDiagnostics(
+            // error CS8007: Type 'C1' forwarded to assembly 'Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'C1' forwarded to assembly 'Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("C1", "Extensions2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C1", "Extensions1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            );
+    }
+
+    [Fact]
+    public void ForwardedTypes_10()
+    {
+        string source1 = @"
+public static class C1
+{
+    extension(int i)
+    {
+    }
+}
+";
+        var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Extensions1");
+
+        var source2 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C1))]
+";
+
+        var module1 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.ReleaseModule, assemblyName: "Module1");
+        var module1Ref = module1.EmitToImageReference();
+
+        var module2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.ReleaseModule, assemblyName: "Module2");
+        var module2Ref = module2.EmitToImageReference();
+
+        var comp = CreateCompilation("", references: [comp1.EmitToImageReference(), module1Ref, module2Ref]);
+        CompileAndVerify(comp, validator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        comp = CreateCompilation("", references: [comp1.ToMetadataReference(), module1Ref, module2Ref]);
+        CompileAndVerify(comp, validator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+        var comp3Ref = comp3.EmitToImageReference();
+
+        comp1 = comp1.AddReferences(comp3Ref);
+
+        comp = CreateCompilation("", references: [comp1.ToMetadataReference(), module1Ref, module2Ref]);
+        CompileAndVerify(comp, validator: validateAssembly, verify: Verification.Skipped).VerifyDiagnostics();
+
+        static void validateAssembly(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+
+            var actual = from h in reader.ExportedTypes
+                         let et = reader.GetExportedType(h)
+                         select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+            AssertEx.Equal(
+            [
+                ".C1 0x23000002 (AssemblyReference) 0x200000",
+                ".<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69 0x27000001 (ExportedType) 0x0000",
+                ".<M>$F4B4FFE41AB49E80A4ECF390CF6EB372 0x27000002 (ExportedType) 0x0000",
+            ], actual);
+        }
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79193")]
@@ -32922,6 +33483,594 @@ public static class E
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetPublicSymbol();
         Assert.True(extension.IsExtension);
         Assert.Equal("E.[Rem].[New]", VisualBasic.SymbolDisplay.ToDisplayString(extension));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_01(bool useCompilationReference)
+    {
+        var callerSrc = """
+"A".Print();
+E.Print("B");
+"C".Print2();
+
+""";
+        var src = callerSrc + """
+public static class E
+{
+    public static void Print2(this string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "")
+    {
+        System.Console.Write($"{caller}={s} ");
+    }
+
+    extension(string s)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "")
+        {
+            System.Console.Write($"{caller}={s} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B "C"=C
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(comp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_02()
+    {
+        var src = """
+static class E
+{
+    extension(string s)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "")
+        {
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect because it's self-referential.
+            //         public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(5, 28));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_03()
+    {
+        // caller expression in static extension member refers to extension parameter
+        var src = """
+static class E
+{
+    extension(string s)
+    {
+        public static void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "")
+        {
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,35): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect. It is applied with an invalid parameter name.
+            //         public static void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(5, 35));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_04()
+    {
+        // self-referential caller expression on extension parameter
+        var src = """
+static class E
+{
+    extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s)
+    {
+        public void Print() { }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            //     extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s)
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "System.Runtime.CompilerServices.CallerArgumentExpression").WithLocation(3, 16));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_05()
+    {
+        // self-referential caller expression on extension parameter with default value
+        var src = """
+static class E
+{
+    extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s = "")
+    {
+        public void Print() { }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
+            //     extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s = "")
+            Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, @"[System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s = """"").WithLocation(3, 15),
+            // (3,16): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 's' will have no effect because it's self-referential.
+            //     extension([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string s = "")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("s").WithLocation(3, 16));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_06(bool useCompilationReference)
+    {
+        // non-static extension, caller expression refers to last parameter
+        var callerSrc = """
+"".Print(s2: "A");
+E.Print("", s2: "B");
+
+""";
+
+        var src = callerSrc + """
+public static class E
+{
+    extension(string s1)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s2))] string caller = "", string s2 = "")
+        {
+            System.Console.Write($"{caller}={s2} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(comp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_07(bool useCompilationReference)
+    {
+        // static extension, caller expression refers to last parameter
+        var callerSrc = """
+string.Print(s2: "A");
+E.Print(s2: "B");
+
+""";
+
+        var src = callerSrc + """
+public static class E
+{
+    extension(string s1)
+    {
+        public static void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s2))] string caller = "", string s2 = "")
+        {
+            System.Console.Write($"{caller}={s2} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(comp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_08()
+    {
+        // self-referential caller expression with null extension parameter
+        var src = """
+static class E
+{
+    extension(__arglist)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
+            // (5,28): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect because it's self-referential.
+            //         public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(5, 28));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var parameter = extension.GetMember<MethodSymbol>("Print").Parameters[0];
+        AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
+        Assert.Equal(1, parameter.CallerArgumentExpressionParameterIndex);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_09()
+    {
+        // self-referential caller expression in local function
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M()
+        {
+            local();
+            void local([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (8,25): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect because it's self-referential.
+            //             void local([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(caller))] string caller = "") { }
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(8, 25));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_10()
+    {
+        var srcCaller = """
+foreach (var x in 42) { }
+
+""";
+
+        var src = """
+public static class E
+{
+    extension(int i)
+    {
+        public System.Collections.Generic.IEnumerator<int> GetEnumerator(
+            int ignored = 0,
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(i))] string caller = "")
+        {
+            System.Console.Write($"{caller}={i} ");
+            yield return 0;
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation([src, srcCaller]);
+        CompileAndVerify(comp, expectedOutput: "42=42").VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        comp = CreateCompilation(srcCaller, references: [libComp.EmitToImageReference()]);
+        CompileAndVerify(comp, expectedOutput: "42=42").VerifyDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var getEnumerator = extension.GetMember<MethodSymbol>("GetEnumerator");
+        var parameter = getEnumerator.Parameters[1];
+        AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
+        Assert.Equal(0, parameter.CallerArgumentExpressionParameterIndex);
+
+        src = """
+foreach (var x in 42) { }
+
+static class E
+{
+    public static System.Collections.Generic.IEnumerator<int> GetEnumerator(
+        this int i,
+        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(i))] string caller = "")
+    {
+        System.Console.Write($"{caller}={i} ");
+        yield return 0;
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "42=42").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_11()
+    {
+        var srcCaller = """
+foreach (var x in 42) { }
+
+""";
+        var src = """
+public static class E
+{
+    extension(int i)
+    {
+        public static System.Collections.Generic.IEnumerator<int> GetEnumerator(
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(i))] string caller = "")
+        {
+            throw null;
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation([src, srcCaller]);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0176: Member 'E.extension(int).GetEnumerator(string)' cannot be accessed with an instance reference; qualify it with a type name instead
+            // foreach (var x in 42) { }
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "42").WithArguments("E.extension(int).GetEnumerator(string)").WithLocation(1, 19),
+            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in 42) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "42").WithArguments("int", "GetEnumerator").WithLocation(1, 19),
+            // (6,14): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'caller' will have no effect. It is applied with an invalid parameter name.
+            //             [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(i))] string caller = "")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("caller").WithLocation(6, 14));
+
+        var libComp = CreateCompilation(src);
+        comp = CreateCompilation(srcCaller, references: [libComp.EmitToImageReference()]);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0176: Member 'E.extension(int).GetEnumerator(string)' cannot be accessed with an instance reference; qualify it with a type name instead
+            // foreach (var x in 42) { }
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "42").WithArguments("E.extension(int).GetEnumerator(string)").WithLocation(1, 19),
+            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'int' because 'int' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in 42) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "42").WithArguments("int", "GetEnumerator").WithLocation(1, 19));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var getEnumerator = extension.GetMember<MethodSymbol>("GetEnumerator");
+        Assert.Equal(-1, getEnumerator.Parameters[0].CallerArgumentExpressionParameterIndex);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_12()
+    {
+        var src = """
+static class E
+{
+    extension(C)
+    {
+        public static C operator +(C c1, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(c1))] C c2 = null) => throw null;
+    }
+}
+
+public class C { }
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,43): warning CS8966: The CallerArgumentExpressionAttribute applied to parameter 'c2' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         public static C operator +(C c1, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(c1))] C c2 = null) => throw null;
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, "System.Runtime.CompilerServices.CallerArgumentExpression").WithArguments("c2").WithLocation(5, 43),
+            // (5,115): warning CS1066: The default value specified for parameter 'c2' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         public static C operator +(C c1, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(c1))] C c2 = null) => throw null;
+            Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "c2").WithArguments("c2").WithLocation(5, 115));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_13(bool useCompilationReference)
+    {
+        var callerSrc = """
+"A".Print();
+E.Print("B");
+"C".Print2();
+
+"A".Print(i: 0);
+E.Print("B", i: 0);
+"C".Print2(i: 0);
+
+""";
+        var src = """
+public static class E
+{
+    public static void Print2(this string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+    {
+        System.Console.Write($"{caller}={s} ");
+    }
+
+    extension(string s)
+    {
+        public void Print([System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+        {
+            System.Console.Write($"{caller}={s} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B "C"=C "A"=A "B"=B "C"=C
+""";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_14(bool useCompilationReference)
+    {
+        var callerSrc = """
+object o = new object();
+o.Print("A");
+E.Print(o, "B");
+o.Print2("C");
+
+o.Print("A", i: 0);
+E.Print(o, "B", i: 0);
+o.Print2("C", i: 0);
+
+""";
+        var src = """
+public static class E
+{
+    public static void Print2(this object o, string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+    {
+        System.Console.Write($"{caller}={s} ");
+    }
+
+    extension(object o)
+    {
+        public void Print(string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+        {
+            System.Console.Write($"{caller}={s} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "B"=B "C"=C "A"=A "B"=B "C"=C
+""";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_15(bool useCompilationReference)
+    {
+        var callerSrc = """
+object.Print("A");
+object.Print("A", i: 0);
+
+""";
+        var src = """
+public static class E
+{
+    extension(object)
+    {
+        public static void Print(string s, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s))] string caller = "", int i = 0)
+        {
+            System.Console.Write($"{caller}={s} ");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A "A"=A
+""";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_16(bool useCompilationReference)
+    {
+        var callerSrc = """
+"A".Print(s2: "C");
+
+""";
+        var src = """
+public static class E
+{
+    extension(string s0)
+    {
+        public void Print(string s1 = "B", string s2 = "", 
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s0))] string expr_s0 = "",
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s1))] string expr_s1 = "",
+            [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(s2))] string expr_s2 = "")
+        {
+            System.Console.Write($"{expr_s0}={s0} {expr_s1}={s1} {expr_s2}={s2}");
+        }
+    }
+}
+""" + CallerArgumentExpressionAttributeDefinition;
+
+        var expectedOutput = """
+"A"=A =B "C"=C
+""";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void CallerArgumentExpression_17()
+    {
+        // the maker method has vararg, no implementation method, CallerArgumentExpression points to parameter "s"
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends System.Object
+        {
+            .method public hidebysig specialname static vararg void '<Extension>$' ( ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig instance void Print ( string s, [opt] string caller ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            .param [2] = ""
+                .custom instance void System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                    01 00 01 73 00 00
+                )
+            ldnull
+            throw
+        }
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CallerArgumentExpressionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string parameterName ) cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Attribute::.ctor()
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        var comp = CreateCompilationWithIL("", ilSrc);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        Assert.True(extension.IsExtension);
+        var parameter = extension.GetMember<MethodSymbol>("Print").Parameters[1];
+        AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
+        Assert.Equal(1, parameter.CallerArgumentExpressionParameterIndex);
     }
 }
 
