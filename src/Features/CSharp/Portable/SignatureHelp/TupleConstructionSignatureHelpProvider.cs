@@ -153,8 +153,9 @@ internal sealed class TupleConstructionSignatureHelpProvider : AbstractCSharpSig
         var suffixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")")).ToTaggedText();
         var separatorParts = GetSeparatorParts().ToTaggedText();
 
-        var items = tupleTypes.SelectAsArray(tupleType => Convert(
-            tupleType, prefixParts, suffixParts, separatorParts, semanticModel, position));
+        var items = tupleTypes.Select(tupleType => Convert(
+            tupleType, prefixParts, suffixParts, separatorParts, semanticModel, position))
+            .ToList();
 
         var state = GetCurrentArgumentState(root, position, syntaxFacts, targetExpression.FullSpan, cancellationToken);
         return CreateSignatureHelpItems(items, targetExpression.Span, state, selectedItemIndex: null, parameterIndexOverride: -1);
@@ -191,7 +192,7 @@ internal sealed class TupleConstructionSignatureHelpProvider : AbstractCSharpSig
                 typeParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, null, elementName));
             }
 
-            result.Add(new SignatureHelpParameter(name: string.Empty, isOptional: false, documentationFactory: null, displayParts: [.. typeParts]));
+            result.Add(new SignatureHelpParameter(name: string.Empty, isOptional: false, documentationFactory: null, displayParts: typeParts));
         }
 
         return result;
