@@ -17,9 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
-    /// Cached data from a <see cref="ProjectState"/> to the <see cref="CompilationWithAnalyzers"/>s
-    /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
-    /// cref="DiagnosticAnalyzer"/>s passed along with the project.
+    /// Cached data from a <see cref="Project"/> to the <see cref="CompilationWithAnalyzers"/>s we've created for it.
+    /// Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see cref="DiagnosticAnalyzer"/>s
+    /// passed along with the project.  It is important to be associated with the project as the <see
+    /// cref="CompilationWithAnalyzers"/> will use the <see cref="Compilation"/> it produces, and must see
+    /// agree on that for correctness.
     /// <para/>
     /// The value of the table is a SmallDictionary that maps from the 
     /// <see cref="Project"/> checksum the set of <see cref="DiagnosticAnalyzer"/>s being requested.
