@@ -9867,6 +9867,52 @@ partial class Partial : Generic<Argument>, ITest
         }
 
         [Fact]
+        public void ExplicitInterfaceMemberNullableTypeOrReturnTypeMismatch()
+        {
+            var source1 =
+@"
+    #nullable enable
+    interface I1
+    {
+        public int? M1();
+        public int? M2 { get; set; }
+        public event System.Action? M3;
+    }
+
+    class C1 : I1
+    {
+        object I1.M1() { return null!; }
+        object I1.M2 { get; set; } = null!;
+        event System.Action<object> I1.M3 { add { } remove { } }
+    }
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (10,16): error CS0535: 'C1' does not implement interface member 'I1.M1()'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M1()").WithLocation(10, 16),
+                // (10,16): error CS0535: 'C1' does not implement interface member 'I1.M2'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M2").WithLocation(10, 16),
+                // (10,16): error CS0535: 'C1' does not implement interface member 'I1.M3'
+                //     class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M3").WithLocation(10, 16),
+                // (12,19): error CS9333: 'C1.M1()': return type must be 'int?' to match implemented member 'I1.M1()'
+                //         object I1.M1() { return null; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M1").WithArguments("C1.M1()", "int?", "I1.M1()").WithLocation(12, 19),
+                // (13,19): error CS9332: 'C1.M2': type must be 'int?' to match implemented member 'I1.M2'
+                //         object I1.M2 { get; set; }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M2").WithArguments("C1.M2", "int?", "I1.M2").WithLocation(13, 19),
+                // (14,40): error CS9332: 'C1.M3': type must be 'System.Action?' to match implemented member 'I1.M3'
+                //         event System.Action<object> I1.M3 { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M3").WithArguments("C1.M3", "System.Action?", "I1.M3").WithLocation(14, 40)
+                );
+        }
+
+        [Fact]
         public void DuplicateExplicitInterfaceMemberReturnTypeMismatch()
         {
             var ilSource =
