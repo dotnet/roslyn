@@ -321,8 +321,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     triviaWidth += node.FullWidth;
                 }
 
-                // Relative to start of eod. Can be negative if part of the error text comes from the trailing trivia of
-                // the keyword token
+                // Relative to Start (not FullStart) of eod. Can be negative if part of the error text comes from the
+                // trailing trivia of the keyword token.
                 var triviaOffset = -triviaWidth;
 
                 string errorText = triviaBuilder.ToString();
