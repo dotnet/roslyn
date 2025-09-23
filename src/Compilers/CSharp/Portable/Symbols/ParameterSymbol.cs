@@ -409,6 +409,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        /// <summary>
+        /// The index of the parameter which the CallerArgumentExpressionAttribute refers to.
+        /// For non-static extension members, index zero refers to the extension parameter (even in error scenarios where it doesn't exist).
+        /// </summary>
         internal abstract int CallerArgumentExpressionParameterIndex { get; }
 
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }

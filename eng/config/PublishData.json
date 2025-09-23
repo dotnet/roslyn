@@ -184,18 +184,9 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d18.0",
-      "insertionTitlePrefix": "[d18.0]",
-      "insertionCreateDraftPR": false
-    },
-    "community": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
       "vsBranch": "main",
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionTitlePrefix": "[d18.0 P2]",
+      "insertionCreateDraftPR": false
     },
     "main": {
       "nugetKind": [
@@ -203,8 +194,8 @@
         "NonShipping"
       ],
       "vsBranch": "main",
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[dNext]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d18.1 P1]"
     }
   }
 }

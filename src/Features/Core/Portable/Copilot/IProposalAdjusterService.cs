@@ -4,14 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,17 +20,25 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
+using Adjuster = Func<Document, Document, CancellationToken, Task<Document>>;
+
 internal static class ProposalAdjusterKinds
 {
     public const string AddMissingImports = nameof(AddMissingImports);
     public const string AddMissingTokens = nameof(AddMissingTokens);
+    public const string FormatCode = nameof(FormatCode);
 }
 
 [DataContract]
 internal readonly record struct ProposalAdjustmentResult(
     [property: DataMember(Order = 0)] ImmutableArray<TextChange> TextChanges,
     [property: DataMember(Order = 1)] bool Format,
-    [property: DataMember(Order = 2)] ImmutableArray<string> AdjustmentKinds);
+    [property: DataMember(Order = 2)] ImmutableArray<AdjustmentResult> AdjustmentResults);
+
+[DataContract]
+internal readonly record struct AdjustmentResult(
+    [property: DataMember(Order = 0)] string AdjustmentKind,
+    [property: DataMember(Order = 1)] TimeSpan AdjustmentTime);
 
 internal interface ICopilotProposalAdjusterService : ILanguageService
 {
@@ -46,10 +54,24 @@ internal interface IRemoteCopilotProposalAdjusterService
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
-internal abstract class AbstractCopilotProposalAdjusterService() : ICopilotProposalAdjusterService
+internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
 {
-    protected abstract Task<ImmutableArray<TextChange>> AddMissingTokensIfAppropriateAsync(
-        Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+    protected readonly IGlobalOptionService globalOptions;
+
+    private readonly ImmutableArray<(string name, Adjuster adjuster)> _adjusters;
+
+    public AbstractCopilotProposalAdjusterService(IGlobalOptionService globalOptions)
+    {
+        this.globalOptions = globalOptions;
+        _adjusters = [
+            (ProposalAdjusterKinds.AddMissingTokens, this.AddMissingTokensIfAppropriateAsync),
+            (ProposalAdjusterKinds.AddMissingImports, this.TryGetAddImportTextChangesAsync),
+            (ProposalAdjusterKinds.FormatCode, this.TryGetFormattingTextChangesAsync),
+        ];
+    }
+
+    protected abstract Task<Document> AddMissingTokensIfAppropriateAsync(
+        Document originalDocument, Document forkedDocument, CancellationToken cancellationToken);
 
     public async ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
@@ -66,63 +88,65 @@ internal abstract class AbstractCopilotProposalAdjusterService() : ICopilotPropo
                 cancellationToken).ConfigureAwait(false);
             return result.HasValue ? result.Value : default;
         }
-        else
-        {
-            return await TryAdjustProposalInCurrentProcessAsync(
-                document, normalizedChanges, cancellationToken).ConfigureAwait(false);
-        }
+
+        return await TryAdjustProposalInCurrentProcessAsync(
+            document, normalizedChanges, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ProposalAdjustmentResult> TryAdjustProposalInCurrentProcessAsync(
         Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
+        if (normalizedChanges.IsDefaultOrEmpty)
+            return default;
+
         CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
 
+        using var _ = ArrayBuilder<AdjustmentResult>.GetInstance(out var adjustmentResults);
+
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
-        // move to in the forked doucment, as that is what we will want to analyze.
+        // move to in the forked document, as that is what we will want to analyze.
         var oldText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-        var changesWhenMissingTokens = await AddMissingTokensIfAppropriateAsync(
-            originalDocument, normalizedChanges, cancellationToken).ConfigureAwait(false);
-
-        using var _ = ArrayBuilder<string>.GetInstance(out var adjustmentKinds);
-
-        var format = false;
-        if (!changesWhenMissingTokens.IsDefault)
-        {
-            adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingTokens);
-            normalizedChanges = changesWhenMissingTokens;
-            format = true;
-        }
-
         var (newText, newSpans) = CopilotUtilities.GetNewTextAndChangedSpans(oldText, normalizedChanges);
 
         // Get the semantic model and keep it alive so none of the work we do causes it to be dropped.
         var forkedDocument = originalDocument.WithText(newText);
         var forkedRoot = await forkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var totalNewSpan = GetSpanToAnalyze(forkedRoot, newSpans);
 
-        var (success, addImportChanges) = await TryGetAddImportTextChangesAsync(
-            originalDocument, forkedDocument, normalizedChanges.First(), totalNewSpan, cancellationToken).ConfigureAwait(false);
-        if (success)
-            adjustmentKinds.Add(ProposalAdjusterKinds.AddMissingImports);
+        foreach (var (adjusterName, adjuster) in _adjusters)
+        {
+            var timer = SharedStopwatch.StartNew();
+            var adjustedDocument = await adjuster(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
+            if (forkedDocument != adjustedDocument)
+            {
+                adjustmentResults.Add(new(adjusterName, AdjustmentTime: timer.Elapsed));
+                forkedDocument = adjustedDocument;
+            }
+        }
 
-        if (adjustmentKinds.IsEmpty)
-            return default;
+        // If none of the adjustments were made, then just return what we were given.
+        if (adjustmentResults.IsEmpty)
+            return new(normalizedChanges, Format: false, AdjustmentResults: default);
 
         // Keep the new root around, in case something needs it while processing.  This way we don't throw it away unnecessarily.
         GC.KeepAlive(forkedRoot);
 
-        // Return the add-import changes concatenated with the original changes.  This way we ensure
-        // that the copilot changes themselves are not themselves modified by the add-import changes.
-        var totalChanges = addImportChanges.IsDefault ? normalizedChanges : addImportChanges.Concat(normalizedChanges);
-        return new(totalChanges, format, adjustmentKinds.ToImmutableAndClear());
+        // Get the final set of changes between the original document and the new document.
+        var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
+        var totalChanges = allChanges.AsImmutableOrEmpty();
+
+        return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
     }
 
-    private static async Task<(bool success, ImmutableArray<TextChange> addImportChanges)> TryGetAddImportTextChangesAsync(
-        Document originalDocument, Document forkedDocument, TextChange firstTextChange, TextSpan totalNewSpan, CancellationToken cancellationToken)
+    private async Task<Document> TryGetAddImportTextChangesAsync(
+        Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
+        if (!globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
+            return forkedDocument;
+
         var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
+
+        // Find the span of changes made to the forked document.
+        var totalNewSpan = await GetSpanOfChangesAsync(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
 
         // Add the missing imports, but do not clean up the document.  We don't want the cleanup phase making edits that
         // may interfere with the changes copilot is making.  For example, in VB this may cause us to try to case correct
@@ -131,22 +155,29 @@ internal abstract class AbstractCopilotProposalAdjusterService() : ICopilotPropo
         var withImportsDocument = await missingImportsService.AddMissingImportsAsync(
             forkedDocument, totalNewSpan, cleanupDocument: false, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
 
-        var allChanges = await withImportsDocument.GetTextChangesAsync(forkedDocument, cancellationToken).ConfigureAwait(false);
-        var addImportChanges = allChanges.AsImmutableOrEmpty();
+        return withImportsDocument;
+    }
 
-        // If there are no add-import changes, then we can just return the original changes.
-        if (addImportChanges.IsEmpty)
-            return default;
+    private async Task<Document> TryGetFormattingTextChangesAsync(
+        Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
+    {
+        if (!globalOptions.GetOption(CopilotOptions.FixCodeFormat))
+            return forkedDocument;
 
-        // We only want to use the add-import changes if they're all before the earliest text change.
-        // Otherwise, we might have a situation where the add-import changes intersect the copilot
-        // changes and all bets are off.
-        //
-        // Note, as the text changes are normalized, we can assume that the first text change is the earliest one.
-        if (!addImportChanges.All(textChange => textChange.Span.End < firstTextChange.Span.Start))
-            return default;
+        var syntaxFormattingService = originalDocument.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-        return (true, addImportChanges);
+        var formattingOptions = await originalDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        // Find the span of changes made to the forked document.
+        var totalNewSpan = await GetSpanOfChangesAsync(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
+
+        // Run the formatter on that span, and get the updated document.
+        var forkedRoot = await forkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var formatResult = syntaxFormattingService.GetFormattingResult(forkedRoot, [totalNewSpan], formattingOptions, rules: default, cancellationToken);
+        var formattedRoot = formatResult.GetFormattedRoot(cancellationToken);
+        var formattedDocument = forkedDocument.WithSyntaxRoot(formattedRoot);
+
+        return formattedDocument;
     }
 
     private static TextSpan GetSpanToAnalyze(SyntaxNode forkedRoot, ImmutableArray<TextSpan> newSpans)
@@ -162,5 +193,17 @@ internal abstract class AbstractCopilotProposalAdjusterService() : ICopilotPropo
         return TextSpan.FromBounds(
             startToken.FullSpan.Start,
             endToken.FullSpan.End);
+    }
+
+    /// <summary>
+    /// Get a TextSpan that covers all the changes between the old and new document.
+    /// </summary>
+    private static async Task<TextSpan> GetSpanOfChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+    {
+        var forkedRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
+        var totalSpans = CopilotUtilities.GetTextSpansFromTextChanges(changes);
+        var totalNewSpan = GetSpanToAnalyze(forkedRoot, totalSpans);
+        return totalNewSpan;
     }
 }

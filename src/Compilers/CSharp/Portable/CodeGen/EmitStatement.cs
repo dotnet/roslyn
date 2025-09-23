@@ -701,6 +701,16 @@ oneMoreTime:
 
             if (instrumentation.Epilogue != null)
             {
+                // Check if we're emitting instrumentation try/finally in a catch filter, which produces invalid IL
+                if (_inCatchFilterLevel > 0)
+                {
+                    // Try/finallys are not allowed in catch filters by spec, an error should be reported for this in initial binding.
+                    Debug.Fail("Exception handling constructs should be blocked at the binding layer, not here at emit time");
+
+                    // Report an error as this would produce invalid IL
+                    _diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, block.Syntax.Location, ((Cci.INamedEntity)_module).Name, "Exception handling is not allowed in exception filters");
+                }
+
                 _builder.OpenLocalScope(ScopeType.TryCatchFinally);
 
                 _builder.OpenLocalScope(ScopeType.Try);
@@ -921,6 +931,15 @@ oneMoreTime:
 
         private void EmitTryStatement(BoundTryStatement statement, bool emitCatchesOnly = false)
         {
+            if (_inCatchFilterLevel > 0)
+            {
+                // Try/finallys are not allowed in catch filters by spec, an error should be reported for this in initial binding.
+                Debug.Fail("Exception handling constructs should be blocked at the binding layer, not here at emit time");
+
+                // Report an error as this would produce invalid IL
+                _diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, statement.Syntax.Location, ((Cci.INamedEntity)_module).Name, "Exception handling is not allowed in exception filters");
+            }
+
             Debug.Assert(!statement.CatchBlocks.IsDefault);
 
             // Stack must be empty at beginning of try block.
@@ -1037,6 +1056,9 @@ oneMoreTime:
         private void EmitCatchBlock(BoundCatchBlock catchBlock)
         {
             object typeCheckFailedLabel = null;
+#if DEBUG
+            int currentCatchFilterLevel = _inCatchFilterLevel;
+#endif
 
             _builder.AdjustStack(1); // Account for exception on the stack.
 
@@ -1083,6 +1105,7 @@ oneMoreTime:
             else
             {
                 _builder.OpenLocalScope(ScopeType.Filter);
+                _inCatchFilterLevel++;
 
                 RecordAsyncCatchHandlerOffset(catchBlock);
 
@@ -1206,12 +1229,16 @@ oneMoreTime:
 
                 // Now we are starting the actual handler
                 _builder.MarkFilterConditionEnd();
+                _inCatchFilterLevel--;
 
                 // Pop the exception; it should have already been stored to the
                 // variable by the filter.
                 _builder.EmitOpCode(ILOpCode.Pop);
             }
 
+#if DEBUG
+            Debug.Assert(currentCatchFilterLevel == _inCatchFilterLevel);
+#endif
             EmitBlock(catchBlock.Body);
 
             _builder.CloseLocalScope();

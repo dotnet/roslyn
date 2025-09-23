@@ -1038,6 +1038,60 @@ class Test
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80331")]
+        public void BadSpreadInCatchFilter()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                public class C
+                {
+                    // Use a custom list type to ensure that an AddRange isn't used
+                    public class MyList<T> : IEnumerable<T>
+                    {
+                        public void Add(T s) { throw null!; }
+                        public class MyEnumerator : IEnumerator<T>
+                        {
+                            public bool MoveNext() => false;
+                            public void Dispose() { }
+                            public void Reset() { }
+                            public T Current { get {  throw null!; } }
+                            object IEnumerator.Current { get { throw null!; } }
+                        }
+
+                        public IEnumerator<T> GetEnumerator() { throw null!; }
+                        IEnumerator IEnumerable.GetEnumerator() { throw null!; }
+
+                        public int Count;
+                    }
+
+                    public class MyException : Exception
+                    {
+                        public IEnumerable<String> Strings = [];
+                    }
+
+                    public bool A(MyList<string> s) { return false; }
+
+                    public void M()
+                    {
+                        try
+                        {
+                            throw new Exception();
+                        }
+                        catch (MyException e) when (A([.. e.Strings, "foo"]))
+                        {
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (38,40): error CS9332: Cannot use '..' spread operator in the filter expression of a catch clause
+                //         catch (MyException e) when (A([.. e.Strings, "foo"]))
+                Diagnostic(ErrorCode.ERR_BadSpreadInCatchFilter, ".. e.Strings").WithLocation(38, 40)
+                );
+        }
+
         [Fact]
         public void BadAwaitInLock()
         {

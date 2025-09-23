@@ -682,17 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var constructorArguments = attributeData.CommonConstructorArguments;
                         Debug.Assert(constructorArguments.Length == 1);
-                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName))
+                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName)
+                            && parameterName is not null)
                         {
-                            var parameters = ContainingSymbol.GetParameters();
-                            for (int i = 0; i < parameters.Length; i++)
-                            {
-                                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
-                                {
-                                    index = i;
-                                    break;
-                                }
-                            }
+                            index = GetCallerArgumentExpressionParameterIndex(this, parameterName);
                         }
                     }
 
@@ -701,6 +694,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
+        /// <summary>
+        /// Given a parameter (marked with CallerArgumentExpression attribute) and the parameter name specified in the attribute,
+        /// returns the index of the parameter the attribute refers to, or -1 if no such parameter exists.
+        /// For new non-static extension members, the extension parameter is considered to be at index 0.
+        /// </summary>
+        internal static int GetCallerArgumentExpressionParameterIndex(ParameterSymbol parameter, string parameterName)
+        {
+            int offset = 0;
+            Symbol containingSymbol = parameter.ContainingSymbol;
+            if (containingSymbol.GetIsNewExtensionMember() && !containingSymbol.IsStatic)
+            {
+                if (parameter.ContainingType.ExtensionParameter is { } extensionParameter
+                    && extensionParameter.Name.Equals(parameterName, StringComparison.Ordinal))
+                {
+                    return 0;
+                }
+
+                offset = 1;
+            }
+
+            var parameters = containingSymbol.GetParameters();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
+                {
+                    return i + offset;
+                }
+            }
+
+            return -1;
         }
 
         private (CSharpAttributeData?, BoundAttribute?) EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription description, ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
@@ -1207,13 +1232,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS8963: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, ParameterSyntax.Identifier.ValueText);
             }
-            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == Ordinal)
+            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == getOrdinalIncludingExtensionParameter())
             {
                 // CS8965: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, ParameterSyntax.Identifier.ValueText);
             }
 
             diagnostics.Add(node.Name, useSiteInfo);
+            return;
+
+            int getOrdinalIncludingExtensionParameter()
+            {
+                int offset = 0;
+                Symbol containingSymbol = this.ContainingSymbol;
+                if (containingSymbol.GetIsNewExtensionMember()
+                    && !containingSymbol.IsStatic)
+                {
+                    // Note: the offset applies to all non-static extension methods,
+                    // even in error scenarios where there is no extension parameter
+                    offset = 1;
+                }
+
+                return this.Ordinal + offset;
+            }
         }
 
         private void ValidateCancellationTokenAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)

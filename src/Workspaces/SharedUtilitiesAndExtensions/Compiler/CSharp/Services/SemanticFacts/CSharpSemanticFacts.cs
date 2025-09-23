@@ -321,6 +321,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                 }
 
                 return [];
+
             case QueryClauseSyntax queryClauseSyntax:
                 var queryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
                 var hasCastInfo = queryInfo.CastInfo.Symbol != null;
@@ -338,8 +339,22 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                     return queryInfo.CastInfo.GetBestOrAllSymbols();
 
                 return queryInfo.OperationInfo.GetBestOrAllSymbols();
+
             case IdentifierNameSyntax { Parent: PrimaryConstructorBaseTypeSyntax baseType }:
                 return semanticModel.GetSymbolInfo(baseType, cancellationToken).GetBestOrAllSymbols();
+
+            case ObjectCreationExpressionSyntax objectCreation:
+                var symbols = semanticModel.GetSymbolInfo(objectCreation, cancellationToken).GetBestOrAllSymbols();
+                if (symbols.Length > 0)
+                    return symbols;
+
+                // `new T()` where `T` is a type parameter ends up returning nothing.  But we still want to consider
+                // this a suitable reference for type parameter.
+                var symbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).GetAnySymbol();
+                if (symbol is ITypeParameterSymbol)
+                    return [symbol];
+
+                return [];
         }
 
         //Only in the orderby clause a comma can bind to a symbol.
