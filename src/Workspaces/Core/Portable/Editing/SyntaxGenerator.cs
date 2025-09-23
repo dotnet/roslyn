@@ -832,7 +832,7 @@ public abstract class SyntaxGenerator : ILanguageService
                     {
                         if (extensionMember is IMethodSymbol { OriginalDefinition.AssociatedExtensionImplementation: { } toShadow })
                         {
-                            implementationsToHide.Add(toShadow);
+                            implementationsToHide.Add(toShadow.OriginalDefinition);
                         }
                     }
                 }
