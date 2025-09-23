@@ -29,9 +29,9 @@ internal sealed partial class DiagnosticAnalyzerService
     /// a single analyzer is performed.
     /// </summary>
     private static readonly ConditionalWeakTable<
-        ProjectState,
+        Project,
         SmallDictionary<
-            (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers),
+            ImmutableArray<DiagnosticAnalyzer>,
             AsyncLazy<CompilationWithAnalyzers?>>> s_projectToCompilationWithAnalyzers = new();
 
     /// <summary> 
@@ -49,23 +49,20 @@ internal sealed partial class DiagnosticAnalyzerService
         if (!project.SupportsCompilation)
             return null;
 
-        var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
-
         // Make sure the cached pair was computed with the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
         var map = s_projectToCompilationWithAnalyzers.GetValue(
-            project.State, static _ => new(ChecksumAndAnalyzersEqualityComparer.Instance));
+            project, static _ => new(AnalyzersEqualityComparer.Instance));
 
         AsyncLazy<CompilationWithAnalyzers?>? lazy;
         using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            var checksumAndAnalyzers = (checksum, analyzers);
-            if (!map.TryGetValue(checksumAndAnalyzers, out lazy))
+            if (!map.TryGetValue(analyzers, out lazy))
             {
                 lazy = AsyncLazy.Create(
                     asynchronousComputeFunction: CreateCompilationWithAnalyzersAsync,
                     arg: (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException));
-                map.Add(checksumAndAnalyzers, lazy);
+                map.Add(analyzers, lazy);
             }
         }
 
