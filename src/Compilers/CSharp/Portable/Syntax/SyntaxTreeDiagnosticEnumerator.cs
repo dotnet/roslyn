@@ -19,6 +19,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<Diagnostic> EnumerateDiagnostics(SyntaxTree syntaxTree, GreenNode root, int position)
         {
+            // Note:during iteration, '_position' is:
+            // <list type="number">
+            // <item>The FullStart of a node when we're on a node.</item>
+            // <item>The FullStart of a trivia when we're on trivia.</item>
+            // <item>The FullStart of a list when we're on a list.</item>
+            // <item>The *Start* (not FullStart) of a token when we're on a token.</item>
+            // </list>
+            //
+            // The last is because when we hit a token, we will have processed its leading trivia, and will have moved
+            // forward.
+            // <para/>However, the offset for a diagnostic is relative to its FullStart (see <see
+            // cref="SyntaxDiagnosticInfo.Offset"/>). Because of this, the offset can be directly combined with the
+            // position for the first 3, but will need to be adjusted when processing a token itself.
+
             Debug.Assert(root.ContainsDiagnostics, "Caller should have checked that the root has diagnostics");
 
             using var stack = new NodeIterationStack(DefaultStackCapacity);
