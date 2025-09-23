@@ -23,13 +23,14 @@ internal sealed partial class SyntaxTreeIndex
     public bool ProbablyContainsInt64Value(long value) => _literalInfo.ProbablyContainsInt64Value(value);
 
     public bool ContainsAwait => _contextInfo.ContainsAwait;
-    public bool ContainsBaseConstructorInitializer => _contextInfo.ContainsBaseConstructorInitializer;
     public bool ContainsConversion => _contextInfo.ContainsConversion;
     public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
+    public bool ContainsExplicitBaseConstructorInitializer => _contextInfo.ContainsExplicitBaseConstructorInitializer;
     public bool ContainsExplicitOrImplicitElementAccessExpression => _contextInfo.ContainsExplicitOrImplicitElementAccessExpression;
     public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
     public bool ContainsGlobalKeyword => _contextInfo.ContainsGlobalKeyword;
     public bool ContainsGlobalSuppressMessageAttribute => _contextInfo.ContainsGlobalSuppressMessageAttribute;
+    public bool ContainsImplicitBaseConstructorInitializer => _contextInfo.ContainsImplicitBaseConstructorInitializer;
     public bool ContainsImplicitObjectCreation => _contextInfo.ContainsImplicitObjectCreation;
     public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
     public bool ContainsLockStatement => _contextInfo.ContainsLockStatement;

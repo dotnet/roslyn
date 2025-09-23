@@ -1758,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (containingSymbol.GetIsNewExtensionMember()
-                && variable is ParameterSymbol { ContainingSymbol: TypeSymbol { IsExtension: true } })
+                && variable is ParameterSymbol { ContainingSymbol: NamedTypeSymbol { IsExtension: true } })
             {
                 // An extension member doesn't capture the extension parameter
                 return false;

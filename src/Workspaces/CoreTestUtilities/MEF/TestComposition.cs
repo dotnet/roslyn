@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 /// </summary>
 public sealed class TestComposition
 {
-    public static readonly TestComposition Empty = new TestComposition([], [], []);
+    public static readonly TestComposition Empty = new([], [], []);
+    public static readonly TestComposition Default = Empty.AddAssemblies(MefHostServices.DefaultAssemblies);
 
     private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
 
@@ -88,7 +89,10 @@ public sealed class TestComposition
     /// depending on what layer the composition is for. Editor Features and VS layers use VS MEF composition while anything else uses System.Composition.
     /// </summary>
     public HostServices GetHostServices()
-        => VisualStudioMefHostServices.Create(ExportProviderFactory.CreateExportProvider());
+        => GetHostServices(out _);
+
+    public HostServices GetHostServices(out ExportProvider exportProvider)
+        => VisualStudioMefHostServices.Create(exportProvider = ExportProviderFactory.CreateExportProvider());
 
     /// <summary>
     /// VS MEF <see cref="ExportProvider"/>.

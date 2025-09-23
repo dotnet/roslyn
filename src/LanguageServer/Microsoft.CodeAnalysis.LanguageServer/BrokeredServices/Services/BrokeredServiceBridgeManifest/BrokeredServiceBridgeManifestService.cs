@@ -16,7 +16,7 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
 {
     internal const string MonikerName = "Microsoft.VisualStudio.Server.IBrokeredServiceBridgeManifest";
     internal const string MonikerVersion = "0.1";
-    private static readonly ServiceMoniker s_serviceMoniker = new ServiceMoniker(MonikerName, new Version(MonikerVersion));
+    private static readonly ServiceMoniker s_serviceMoniker = new(MonikerName, new Version(MonikerVersion));
     private static readonly ServiceRpcDescriptor s_serviceDescriptor = new ServiceJsonRpcDescriptor(
         s_serviceMoniker,
         ServiceJsonRpcDescriptor.Formatters.UTF8,

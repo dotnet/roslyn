@@ -144,9 +144,9 @@ internal sealed class SymbolSpecificationViewModel : AbstractNotifyPropertyChang
         return new SymbolSpecification(
             ID,
             ItemName,
-            [.. SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolOrTypeOrMethodKind())],
-            [.. AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility)],
-            [.. ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier.Modifiers))]);
+            SymbolKindList.SelectAsArray(s => s.IsChecked, s => s.CreateSymbolOrTypeOrMethodKind()),
+            AccessibilityList.SelectAsArray(a => a.IsChecked, a => a._accessibility),
+            ModifierList.SelectAsArray(m => m.IsChecked, m => new ModifierKind(m._modifier.Modifiers)));
     }
 
     internal bool TrySubmit()

@@ -20,12 +20,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Async)]
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
-        // https://github.com/dotnet/roslyn/issues/79792: Use the real value when possible
-        private const MethodImplAttributes MethodImplOptionsAsync = (MethodImplAttributes)0x2000;
-        private static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
-
         internal static string ExpectedOutput(string output, bool isRuntimeAsync = false)
         {
             return ExecutionConditionUtil.IsMonoOrCoreClr
@@ -44,19 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
             return CreateCompilationWithMscorlib461(source, options: options, references: references);
-        }
-
-        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
-        {
-            parseOptions ??= WithRuntimeAsync(TestOptions.RegularPreview);
-            var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName: "");
-            if (options == null)
-            {
-                options = CheckForTopLevelStatements(syntaxTrees);
-                options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
-            }
-
-            return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = default)
@@ -345,7 +329,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
             }
         }
@@ -389,11 +373,7 @@ class Test
                     {ReturnValueMissing("<F>g__Impl|1_0", "0x7")}
                     """
             }, symbolValidator: verify);
-            verifier.VerifyDiagnostics(
-                // (13,25): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async ValueTask Impl()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Impl").WithLocation(13, 25)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.F", """
                 {
@@ -409,7 +389,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 Assert.Empty(test.GetTypeMembers());
             }
         }
@@ -472,7 +452,7 @@ O brave new world...
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
             }
         }
@@ -525,7 +505,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -645,7 +625,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 if (!useValueTask && useGeneric)
                 {
                     AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
@@ -780,7 +760,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -900,7 +880,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -1032,7 +1012,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -1143,7 +1123,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -1251,7 +1231,7 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Equal(MethodImplAttributes.Async, f.ImplementationAttributes);
                 AssertEx.Empty(test.GetTypeMembers());
             }
         }
@@ -2127,7 +2107,6 @@ class Driver
             var source = """
                 using System.Threading.Tasks;
                 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                #pragma warning disable 1998
                 class Program
                 {
                     int F;
@@ -2166,41 +2145,41 @@ class Driver
                 """;
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-                // (11,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // (10,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* ptr = &prog.F; // 1
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(11, 20),
-                // (15,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(10, 20),
+                // (14,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         int* localPtr = &local; // 2
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(15, 26),
-                // (16,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(14, 26),
+                // (15,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(16, 33),
-                // (16,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(15, 33),
+                // (15,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(16, 34),
-                // (19,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "local").WithLocation(15, 34),
+                // (18,26): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         int* innerPtr = &structLocal.F; // 5
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(19, 26),
-                // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(18, 26),
+                // (19,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33),
-                // (20,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(19, 33),
+                // (19,34): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(20, 34),
-                // (33,39): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "structLocal.F").WithLocation(19, 34),
+                // (32,39): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
                 //             int* localFuncLocalPtr = &localFuncLocal; // 8
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "localFuncLocal").WithLocation(33, 39));
+                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "localFuncLocal").WithLocation(32, 39));
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugExe.WithWarningLevel(7)).VerifyDiagnostics(
-                // (11,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                // (10,20): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* ptr = &prog.F; // 1
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(11, 20),
-                // (16,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&prog.F").WithLocation(10, 20),
+                // (15,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* localPtr1 = &local) { } // 3, 4
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(16, 33),
-                // (20,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&local").WithLocation(15, 33),
+                // (19,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* innerPtr1 = &structLocal.F) { } // 6, 7
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(20, 33));
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&structLocal.F").WithLocation(19, 33));
         }
 
         [Fact]
@@ -2375,6 +2354,28 @@ class Driver
     public static int Result = -1;
 }";
             CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [getBaseMyProp]: Unexpected type on the stack. { Offset = 0x11, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+
+            verifier.VerifyIL("TestClass.getBaseMyProp()", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  ldarg.0
+                  IL_000c:  call       "int Base.MyProp.get"
+                  IL_0011:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4899,9 +4900,6 @@ class C
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void M() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
                 // (4,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder' is not defined or imported
                 //     async void M() {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{}").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder").WithLocation(4, 20),
@@ -4927,9 +4925,6 @@ class C
 }";
             var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async Task M() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 16),
                 // (4,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder' is not defined or imported
                 //     async Task M() {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{}").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder").WithLocation(4, 20),
@@ -4958,9 +4953,6 @@ class C
 }";
             var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
-                // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async Task<int> F() => 3;
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(4, 21),
                 // (4,25): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
                 //     async Task<int> F() => 3;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=> 3").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1").WithLocation(4, 25),
@@ -7515,15 +7507,8 @@ class IntCode
     }
 }
 ";
-            var diags = new[]
-            {
-                // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task CompletedTask()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "CompletedTask").WithLocation(12, 30)
-            };
-
-            CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
+            CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
@@ -7995,6 +7980,106 @@ class Test1
                 AssertEx.SequenceEqual(
                     ["Preserve1Attribute"],
                     m.GlobalNamespace.GetMember("Test1.<M2>d__0.x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_03()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test()
+    {
+        async Task<T> local<[Preserve1][Preserve2]T>(T x)
+        {
+            await Task.Yield();
+            return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<<Test>g__local|0_0>d").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_04()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test()
+    {
+        async Task<int> local([Preserve1][Preserve2][Preserve3]int x)
+        {
+            await Task.Yield();
+            return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute", "Preserve3Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|0_0").Parameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|0_0>d.x").GetAttributes().Select(a => a.ToString()));
             }
         }
 
@@ -9199,7 +9284,6 @@ class Test1
                         }
                     }
 
-                #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
                     public static async Task<int> Throw(int value) => throw new IntegerException(value);
                 }
 
@@ -9306,7 +9390,6 @@ class Test1
                         }
                     }
 
-                #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
                     public static async Task<int> Throw(int value) => throw new IntegerException(value);
                 }
 
@@ -9612,6 +9695,226 @@ class Test1
                 // await Task.Yield();
                 Diagnostic("SYSLIB5007", "Task.Yield()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(11, 7).WithWarningAsError(true)
             );
+        }
+
+        [Fact]
+        public void MethodImplOptionsAsyncIsBlocked()
+        {
+            var code = """
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    [MethodImpl(MethodImplOptions.Async)]
+                    public static void M1()
+                    {
+                        throw null;
+                    }
+
+                    [MethodImpl(MethodImplOptions.Async)]
+                    public static Task M2()
+                    {
+                        throw null;
+                    }
+
+                    [MethodImpl(MethodImplOptions.Async)]
+                    public static async Task M3()
+                    {
+                        throw null;
+                    }
+
+                    [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                    public static void M4()
+                    {
+                        throw null;
+                    }
+                }
+                """;
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // (6,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //     [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(6, 6),
+                // (12,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //     [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(12, 6),
+                // (18,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //     [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(18, 6),
+                // (24,6): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //     [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)").WithLocation(24, 6)
+            ];
+
+            // With runtime async enabled
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            // With runtime async globally disabled
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void MethodImplOptionsAsyncIsBlocked_AsyncHelpersInCorlibIsExempted()
+        {
+            var code = """
+                namespace System
+                {
+                    public class Attribute { }
+                    public class Object { }
+                    public class ValueType { }
+                    public class Enum { }
+                    public class Void { }
+                    public struct Int32 { }
+                    public class Exception { }
+
+                    namespace Threading.Tasks
+                    {
+                        public class Task { }
+                    }
+
+                    namespace Runtime.CompilerServices
+                    {
+                        public sealed class MethodImplAttribute : Attribute
+                        {
+                            public MethodImplAttribute(MethodImplOptions options) {}
+                        }
+                        public enum MethodImplOptions
+                        {
+                            Unmanaged = 0x0004,
+                            NoInlining = 0x0008,
+                            ForwardRef = 0x0010,
+                            Synchronized = 0x0020,
+                            NoOptimization = 0x0040,
+                            PreserveSig = 0x0080,
+                            AggressiveInlining = 0x0100,
+                            AggressiveOptimization = 0x0200,
+                            Async = 0x2000,
+                            InternalCall = 0x1000
+                        }
+
+                        public class AsyncHelpers
+                        {
+                            [MethodImpl(MethodImplOptions.Async)]
+                            public static void M1()
+                            {
+                                throw null;
+                            }
+
+                            [MethodImpl(MethodImplOptions.Async)]
+                            public static Threading.Tasks.Task M2()
+                            {
+                                throw null;
+                            }
+
+                            [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                            public static void M3()
+                            {
+                                throw null;
+                            }
+                        }
+
+                        public class OtherType
+                        {
+                #line 1000
+                            [MethodImpl(MethodImplOptions.Async)]
+                            public static void M4()
+                            {
+                                throw null;
+                            }
+
+                #line 2000
+                            [MethodImpl(MethodImplOptions.Async)]
+                            public static Threading.Tasks.Task M5()
+                            {
+                                throw null;
+                            }
+
+                #line 3000
+                            [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                            public static void M6()
+                            {
+                                throw null;
+                            }
+                        }
+                    }
+                }
+                """;
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // (1000,14): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //             [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(1000, 14),
+                // (2000,14): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //             [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(2000, 14),
+                // (3000,14): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //             [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)").WithLocation(3000, 14)
+            ];
+
+            // With runtime async enabled
+            var comp = CreateEmptyCompilation(code, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            // With runtime async globally disabled
+            comp = CreateEmptyCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void MethodImplOptionsAsyncIsBlocked_AsyncHelpersOutOfCorlibIsNotExempted()
+        {
+            var code = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public class AsyncHelpers
+                    {
+                #line 1000
+                        [MethodImpl(MethodImplOptions.Async)]
+                        public static void M1()
+                        {
+                            throw null;
+                        }
+
+                #line 2000
+                        [MethodImpl(MethodImplOptions.Async)]
+                        public static Threading.Tasks.Task M2()
+                        {
+                            throw null;
+                        }
+
+                #line 3000
+                        [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                        public static void M3()
+                        {
+                            throw null;
+                        }
+                    }
+                }
+                """;
+
+            DiagnosticDescription[] expectedDiagnostics = [
+                // (1000,10): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //         [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(1000, 10),
+                // (2000,10): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //         [MethodImpl(MethodImplOptions.Async)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async)").WithLocation(2000, 10),
+                // (3000,10): error CS9330: 'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.
+                //         [MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)]
+                Diagnostic(ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed, "MethodImpl(MethodImplOptions.Async | MethodImplOptions.Synchronized)").WithLocation(3000, 10)
+            ];
+
+            // With runtime async enabled
+            var comp = CreateRuntimeAsyncCompilation(code);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            // With runtime async globally disabled
+            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
     }
 }

@@ -2707,8 +2707,12 @@ public sealed class TopLevelEditingTests : EditingTestBase
     {
         var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { void F() {} }";
         var srcA2 = ReloadableAttributeSrc;
+
+        var srcB1 = "";
+        var srcB2 = "using System.Runtime.CompilerServices; [CreateNewOnMetadataUpdate]class C { void F() {} }";
+
         EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits("", "[CreateNewOnMetadataUpdate]class C { void F() {} }")],
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
             [
                 DocumentResults(),
                 DocumentResults(
@@ -5408,7 +5412,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 ]),
                 DocumentResults(semanticEdits:
                 [
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
+                    SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
                 ])
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
@@ -5427,7 +5431,6 @@ public sealed class TopLevelEditingTests : EditingTestBase
             semanticEdits:
             [
                 SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
     }
@@ -5444,8 +5447,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             edits,
             semanticEdits:
             [
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
+                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))
             ],
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
     }
@@ -5873,6 +5875,36 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifySemanticDiagnostics(
              Diagnostic(RudeEditKind.Move, "public class X", FeaturesResources.class_));
+    }
+
+    /// <summary>
+    /// Scenario: Razor page types are marked with CreateNewOnMetadataUpdateAttribute.
+    /// It is possible to define nested types via <c>@functions</c> block and any changes to this block should be allowed.
+    /// </summary>
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76989")]
+    public void NestedType_Enum_Update()
+    {
+        var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { enum E { A } }";
+        var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { enum E { A, B } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemantics(
+            semanticEdits: [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
+            capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76989")]
+    public void NestedType_Rename_Reloadable()
+    {
+        var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { class D1 { public void F() { Console.WriteLine(1); }}; }";
+        var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { class D2 { public void F() { Console.WriteLine(2); }}; }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemantics(
+            semanticEdits: [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
+            capabilities: EditAndContinueCapabilities.NewTypeDefinition);
     }
 
     /// <summary>
@@ -8496,6 +8528,21 @@ public sealed class TopLevelEditingTests : EditingTestBase
             capabilities: EditAndContinueCapabilities.NewTypeDefinition);
     }
 
+    [Fact]
+    public void Namespace_Insert_NewType_HidingMetadataType()
+    {
+        var srcA1 = "";
+        var srcA2 = """
+            namespace Microsoft.CodeAnalysis;
+            public readonly partial class EmbeddedAttribute;
+            """;
+
+        EditAndContinueValidation.VerifySemantics(
+            GetTopEdits(srcA1, srcA2),
+            [SemanticEdit(SemanticEditKind.Insert, c => c.Assembly.GlobalNamespace.GetMember<INamespaceSymbol>("Microsoft").GetMember<INamespaceSymbol>("CodeAnalysis").GetMember("EmbeddedAttribute"))],
+            capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+    }
+
     [Theory]
     [InlineData("class")]
     [InlineData("interface")]
@@ -8759,7 +8806,12 @@ public sealed class TopLevelEditingTests : EditingTestBase
     [Fact]
     public void Namespace_Update_MultiplePartials1()
         => EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(@"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }", @"namespace N { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"), GetTopEdits(@"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }", @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }")],
+            [GetTopEdits(
+                @"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }",
+                @"namespace N { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"),
+             GetTopEdits(
+                @"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }",
+                @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }")],
             [
                 DocumentResults(
                     semanticEdits:
@@ -8777,7 +8829,12 @@ public sealed class TopLevelEditingTests : EditingTestBase
     [Fact]
     public void Namespace_Update_MultiplePartials2()
         => EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(@"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }", @"namespace M { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"), GetTopEdits(@"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }", @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }")],
+            [GetTopEdits(
+                @"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }",
+                @"namespace M { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }"),
+             GetTopEdits(
+                 @"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }",
+                 @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }")],
             [
                 DocumentResults(diagnostics:
                 [

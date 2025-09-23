@@ -14,10 +14,9 @@ public static class DiagnosticProviderTestUtilities
         Workspace workspace,
         Document document,
         TextSpan span,
-        bool includeSuppressedDiagnostics = false,
-        bool includeNonLocalDocumentDiagnostics = false)
+        bool includeSuppressedDiagnostics = false)
     {
-        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics);
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics);
         return await testDriver.GetAllDiagnosticsAsync(document, span);
     }
 
@@ -25,20 +24,18 @@ public static class DiagnosticProviderTestUtilities
         Workspace workspace,
         Document document,
         TextSpan span,
-        bool includeSuppressedDiagnostics = false,
-        bool includeNonLocalDocumentDiagnostics = false)
+        bool includeSuppressedDiagnostics = false)
     {
-        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics);
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics);
         return await testDriver.GetDocumentDiagnosticsAsync(document, span);
     }
 
     public static async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(
         Workspace workspace,
         Project project,
-        bool includeSuppressedDiagnostics = false,
-        bool includeNonLocalDocumentDiagnostics = false)
+        bool includeSuppressedDiagnostics = false)
     {
-        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics);
+        var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics);
         return await testDriver.GetProjectDiagnosticsAsync(project);
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -16,30 +17,30 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider : AbstractSi
         .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
     protected static SymbolDisplayPart Keyword(SyntaxKind kind)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
+        => new(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
 
     protected static SymbolDisplayPart Operator(SyntaxKind kind)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Operator, null, SyntaxFacts.GetText(kind));
+        => new(SymbolDisplayPartKind.Operator, null, SyntaxFacts.GetText(kind));
 
     protected static SymbolDisplayPart Punctuation(SyntaxKind kind)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
+        => new(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
 
     protected static SymbolDisplayPart Text(string text)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
+        => new(SymbolDisplayPartKind.Text, null, text);
 
     protected static SymbolDisplayPart Space()
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
+        => new(SymbolDisplayPartKind.Space, null, " ");
 
     protected static SymbolDisplayPart NewLine()
-        => new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
+        => new(SymbolDisplayPartKind.LineBreak, null, "\r\n");
 
-    private static readonly IList<SymbolDisplayPart> _separatorParts =
+    private static readonly ImmutableArray<SymbolDisplayPart> _separatorParts =
         [
             Punctuation(SyntaxKind.CommaToken),
             Space()
         ];
 
-    protected static IList<SymbolDisplayPart> GetSeparatorParts() => _separatorParts;
+    protected static ImmutableArray<SymbolDisplayPart> GetSeparatorParts() => _separatorParts;
 
     protected static SignatureHelpSymbolParameter Convert(
         IParameterSymbol parameter,

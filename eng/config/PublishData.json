@@ -14,6 +14,7 @@
       "Microsoft.CodeAnalysis.Workspaces.Common": "vssdk",
       "Microsoft.CodeAnalysis.Workspaces.MSBuild": "arcade",
       "Microsoft.CodeAnalysis.Workspaces.Desktop": "arcade",
+      "Microsoft.CodeAnalysis.Workspaces.Test.Utilities": "vs-impl",
       "Microsoft.CodeAnalysis.Compiler.Test.Resources": "vs-impl",
       "Microsoft.CodeAnalysis.CSharp": "vssdk",
       "Microsoft.CodeAnalysis.CSharp.CodeStyle": "arcade",
@@ -116,94 +117,14 @@
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
   "branches": {
-    "release/vscode": {
+    "release/dev18.0": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
       "vsBranch": "main",
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "dev15.9.x-vs-deps": {
-      "nugetKind": "PerBuildPreRelease",
-      "vsBranch": "rel/d15.9"
-    },
-    "release/dev16.11-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d16.11",
-      "insertionTitlePrefix": "[d16.11]"
-    },
-    "release/dev17.8": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.8",
-      "insertionTitlePrefix": "[d17.8]"
-    },
-    "release/dev17.10": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.10",
-      "insertionTitlePrefix": "[d17.10]"
-    },
-    "release/dev17.12": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.12",
-      "insertionTitlePrefix": "[d17.12]"
-    },
-    "release/dev17.13": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.13",
-      "insertionTitlePrefix": "[d17.13]"
-    },
-    "release/dev17.14": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.14",
-      "insertionTitlePrefix": "[d17.14]",
+      "insertionTitlePrefix": "[d18.0 P2]",
       "insertionCreateDraftPR": false
-    },
-    "release/dev-next": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "insertionTitlePrefix": "[Validation]",
-      "insertionCreateDraftPR": true
-    },
-    "community": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "main": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[dNext]"
     }
   }
 }

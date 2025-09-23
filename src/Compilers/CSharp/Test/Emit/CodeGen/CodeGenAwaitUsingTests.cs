@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [CompilerTrait(CompilerFeature.AsyncStreams)]
+    [CompilerTrait(CompilerFeature.AsyncStreams, CompilerFeature.Async)]
     public class CodeGenAwaitUsingTests : CSharpTestBase
     {
         [Fact]
@@ -172,10 +172,7 @@ class C : System.IAsyncDisposable
             comp.VerifyDiagnostics(
                 // (3,11): error CS0738: 'C' does not implement interface member 'IAsyncDisposable.DisposeAsync()'. 'C.DisposeAsync()' cannot implement 'IAsyncDisposable.DisposeAsync()' because it does not have the matching return type of 'ValueTask'.
                 // class C : System.IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "System.IAsyncDisposable").WithArguments("C", "System.IAsyncDisposable.DisposeAsync()", "C.DisposeAsync()", "System.Threading.Tasks.ValueTask").WithLocation(3, 11),
-                // (9,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async Task DisposeAsync() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "DisposeAsync").WithLocation(9, 23)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "System.IAsyncDisposable").WithArguments("C", "System.IAsyncDisposable.DisposeAsync()", "C.DisposeAsync()", "System.Threading.Tasks.ValueTask").WithLocation(3, 11)
                 );
         }
 
@@ -215,7 +212,7 @@ class C : System.IAsyncDisposable
             string expectedOutput = "C body DisposeAsync1 DisposeAsync2 end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -456,7 +453,7 @@ class C : System.IAsyncDisposable
             string expectedOutput = "try using dispose_start dispose_end end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -555,11 +552,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (4,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Threading.Tasks.Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(4, 53)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -598,14 +591,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (17,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async System.Threading.Tasks.Task local()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(17, 43),
-                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         System.Action lambda1 = async () =>
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -643,7 +629,7 @@ class C : System.IAsyncDisposable
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -754,7 +740,7 @@ class C : System.IAsyncDisposable
             string expectedOutput = "using caught message";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -848,7 +834,7 @@ class C
             string expectedOutput = "before after";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -1236,7 +1222,7 @@ class C : System.IAsyncDisposable, System.IDisposable
             string expectedOutput = "body DisposeAsync";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -1458,7 +1444,7 @@ class C : System.IAsyncDisposable
 
             // https://github.com/dotnet/roslyn/issues/79762: Test dynamic
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (6,30): error CS9328: Method 'C.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         await using (dynamic x = new C())
@@ -1494,7 +1480,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             // https://github.com/dotnet/roslyn/issues/79762: Test dynamic
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (6,30): error CS9328: Method 'C.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
                 //         await using (dynamic x = new C())
@@ -1677,7 +1663,7 @@ class C : System.IAsyncDisposable
   IL_0131:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -1912,7 +1898,7 @@ class C : System.IAsyncDisposable
 }
 ");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -2148,7 +2134,7 @@ class C
 }
 ");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -2228,7 +2214,7 @@ class C
             string expectedOutput = "body";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -2296,7 +2282,7 @@ class C : System.IAsyncDisposable
             string expectedOutput = "body DisposeAsync";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2542,7 +2528,7 @@ struct S : System.IAsyncDisposable
   IL_0129:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -2769,7 +2755,7 @@ struct S : System.IAsyncDisposable
   IL_0123:  ret
 }");
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -2862,7 +2848,7 @@ struct S : IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "True");
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("True", isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -2943,7 +2929,7 @@ struct S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("body DisposeAsync", isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -3038,7 +3024,7 @@ struct S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body");
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("body", isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -3177,7 +3163,7 @@ class S : System.IAsyncDisposable
             string expectedOutput = "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -3317,7 +3303,7 @@ class S : System.IAsyncDisposable
             string expectedOutput = "ctor1 ctor2 body dispose2 dispose1 caught";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -3455,7 +3441,7 @@ class S : System.IAsyncDisposable
             string expectedOutput = "ctor1 ctor2 dispose1 caught";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -3564,31 +3550,36 @@ public class D
     bool IsCompleted => true;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
             var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
             var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
             var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");
-            var first = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
+            var awaitRuntimeCall1 = (MethodSymbol)comp.GetMembers("System.Runtime.CompilerServices.AsyncHelpers.Await")[0];
+            var first = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), awaitRuntimeCall1.GetPublicSymbol(), false);
 
-            var nulls1 = new AwaitExpressionInfo(null, isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
-            var nulls2 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), null, getResult1.GetPublicSymbol(), false);
-            var nulls3 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), null, false);
-            var nulls4 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), null, true);
+            var nulls1 = new AwaitExpressionInfo(null, isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), awaitRuntimeCall1.GetPublicSymbol(), false);
+            var nulls2 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), null, getResult1.GetPublicSymbol(), awaitRuntimeCall1.GetPublicSymbol(), false);
+            var nulls3 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), null, awaitRuntimeCall1.GetPublicSymbol(), false);
+            var nulls4 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), null, false);
+            var nulls5 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), awaitRuntimeCall1.GetPublicSymbol(), true);
 
             Assert.False(first.Equals(nulls1));
             Assert.False(first.Equals(nulls2));
             Assert.False(first.Equals(nulls3));
             Assert.False(first.Equals(nulls4));
+            Assert.False(first.Equals(nulls5));
 
             Assert.False(nulls1.Equals(first));
             Assert.False(nulls2.Equals(first));
             Assert.False(nulls3.Equals(first));
             Assert.False(nulls4.Equals(first));
+            Assert.False(nulls5.Equals(first));
 
             _ = nulls1.GetHashCode();
             _ = nulls2.GetHashCode();
             _ = nulls3.GetHashCode();
             _ = nulls4.GetHashCode();
+            _ = nulls5.GetHashCode();
 
             object nullObj = null;
             Assert.False(first.Equals(nullObj));
@@ -3596,25 +3587,28 @@ public class D
             var getAwaiter2 = (MethodSymbol)comp.GetMember("D.GetAwaiter");
             var isCompleted2 = (PropertySymbol)comp.GetMember("D.IsCompleted");
             var getResult2 = (MethodSymbol)comp.GetMember("D.GetResult");
-            var second1 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
-            var second2 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
-            var second3 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult2.GetPublicSymbol(), false);
-            var second4 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult2.GetPublicSymbol(), false);
-
+            var awaitRuntimeCall2 = (MethodSymbol)comp.GetMembers("System.Runtime.CompilerServices.AsyncHelpers.Await")[1];
+            var second1 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), awaitRuntimeCall2.GetPublicSymbol(), false);
+            var second2 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult1.GetPublicSymbol(), awaitRuntimeCall2.GetPublicSymbol(), false);
+            var second3 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult2.GetPublicSymbol(), awaitRuntimeCall2.GetPublicSymbol(), false);
+            var second4 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult2.GetPublicSymbol(), awaitRuntimeCall2.GetPublicSymbol(), false);
+            var second5 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult2.GetPublicSymbol(), awaitRuntimeCall2.GetPublicSymbol(), false);
             Assert.False(first.Equals(second1));
             Assert.False(first.Equals(second2));
             Assert.False(first.Equals(second3));
             Assert.False(first.Equals(second4));
+            Assert.False(first.Equals(second5));
 
             Assert.False(second1.Equals(first));
             Assert.False(second2.Equals(first));
             Assert.False(second3.Equals(first));
             Assert.False(second4.Equals(first));
+            Assert.False(second5.Equals(first));
 
             Assert.True(first.Equals(first));
             Assert.True(first.Equals((object)first));
 
-            var another = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
+            var another = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), awaitRuntimeCall1.GetPublicSymbol(), false);
             Assert.True(first.GetHashCode() == another.GetHashCode());
         }
 
@@ -3678,7 +3672,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -3790,7 +3784,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -3873,7 +3867,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("using dispose_start dispose_end return", isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -3959,7 +3953,7 @@ public class C : System.IAsyncDisposable
             string expectedOutput = "using dispose_start dispose_end return";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -4042,7 +4036,7 @@ public class C
             string expectedOutput = "using dispose_start dispose_end return";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -4126,7 +4120,7 @@ public class C
             string expectedOutput = "using dispose_start dispose_end(0) return";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -4462,7 +4456,7 @@ public class C
 }
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -4556,7 +4550,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = """
                 [Main]: Unexpected type on the stack. { Offset = 0x5e, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -4643,7 +4637,7 @@ public struct C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -4726,7 +4720,7 @@ public struct C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = """
                 [Main]: Unexpected type on the stack. { Offset = 0x49, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
@@ -4843,7 +4837,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("StructAwaitable", isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -4923,7 +4917,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "DISPOSED");
 
             // Runtime async verification (Note: This test doesn't require IAsyncDisposableDefinition since the interface is missing)
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_IAsyncDisposable);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("DISPOSED", isRuntimeAsync: true), verify: Verification.Fails with
@@ -5479,7 +5473,7 @@ internal static class EnumerableExtensions
             CompileAndVerify(comp, expectedOutput: "DISPOSED").VerifyDiagnostics();
 
             // Runtime async verification
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("DISPOSED", isRuntimeAsync: true), verify: Verification.Fails with
             {

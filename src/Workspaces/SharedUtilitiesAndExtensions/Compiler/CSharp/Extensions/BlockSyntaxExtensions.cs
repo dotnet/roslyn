@@ -11,12 +11,25 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static class BlockSyntaxExtensions
 {
+    /// <summary>
+    /// The conditional directives must be of the form `if elif* else endif`.  This ensures that no matter what the
+    /// conditional values evaluate to, there is code that will run in the final expression body.
+    /// </summary>
+    private static readonly Matcher<DirectiveTriviaSyntax> s_conditionalDirectivesMatches =
+        Matcher<DirectiveTriviaSyntax>.Sequence(
+            Matcher<DirectiveTriviaSyntax>.Single(d => d.IsKind(SyntaxKind.IfDirectiveTrivia), nameof(IfDirectiveTriviaSyntax)),
+            Matcher<DirectiveTriviaSyntax>.Repeat(
+                Matcher<DirectiveTriviaSyntax>.Single(d => d.IsKind(SyntaxKind.ElifDirectiveTrivia), nameof(ElifDirectiveTriviaSyntax))),
+            Matcher<DirectiveTriviaSyntax>.Single(d => d.IsKind(SyntaxKind.ElseDirectiveTrivia), nameof(ElseDirectiveTriviaSyntax)),
+            Matcher<DirectiveTriviaSyntax>.Single(d => d.IsKind(SyntaxKind.EndIfDirectiveTrivia), nameof(EndIfDirectiveTriviaSyntax)));
+
     public static bool TryConvertToExpressionBody(
         this BlockSyntax? block,
         LanguageVersion languageVersion,
@@ -78,6 +91,15 @@ internal static class BlockSyntaxExtensions
             // Last directive has to come after our statement.
             if (conditionalDirectives.Last().Span.End <= statement.Span.Start)
                 return false;
+
+            // Ensure the directives we found are actually of the right form.  That way when we convert to an expression
+            // form, it will remain that way.
+            var matchIndex = 0;
+            if (!s_conditionalDirectivesMatches.TryMatch(conditionalDirectives, ref matchIndex) ||
+                matchIndex != conditionalDirectives.Length)
+            {
+                return false;
+            }
 
             // Now, check each part of the conditional chain
             foreach (var conditionalDirective in conditionalDirectives)

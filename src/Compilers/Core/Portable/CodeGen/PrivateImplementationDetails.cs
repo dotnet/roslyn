@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
         private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
 
-        private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
+        private readonly Cci.ICustomAttribute? _compilerGeneratedAttribute;
 
         private readonly string _name;
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference systemInt16Type,
             Cci.ITypeReference systemInt32Type,
             Cci.ITypeReference systemInt64Type,
-            Cci.ICustomAttribute compilerGeneratedAttribute)
+            Cci.ICustomAttribute? compilerGeneratedAttribute)
         {
             RoslynDebug.Assert(systemObject != null);
             RoslynDebug.Assert(systemValueType != null);

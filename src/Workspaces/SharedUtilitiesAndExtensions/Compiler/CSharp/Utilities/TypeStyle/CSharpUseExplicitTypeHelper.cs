@@ -23,19 +23,13 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
     protected override bool IsStylePreferred(in State state)
     {
         var stylePreferences = state.TypeStylePreference;
-
-        if (state.IsInIntrinsicTypeContext)
+        return state.Context switch
         {
-            return !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
-        }
-        else if (state.IsTypeApparentInContext)
-        {
-            return !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent);
-        }
-        else
-        {
-            return !stylePreferences.HasFlag(UseVarPreference.Elsewhere);
-        }
+            Context.BuiltInType => !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes),
+            Context.TypeIsApparent => !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent),
+            Context.Elsewhere => !stylePreferences.HasFlag(UseVarPreference.Elsewhere),
+            _ => throw ExceptionUtilities.UnexpectedValue(state.Context),
+        };
     }
 
     public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
@@ -81,8 +75,7 @@ internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
             return false;
         }
 
-        if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
-            typeName.Parent.Parent is (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement))
+        if (typeName is { Parent: VariableDeclarationSyntax variableDeclaration, Parent.Parent: (kind: SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement) })
         {
             // check assignment for variable declarations.
             var variable = variableDeclaration.Variables.First();

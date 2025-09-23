@@ -13508,4 +13508,82 @@ public sealed class RemoveUnnecessaryCastTests
                 OutputKind = OutputKind.ConsoleApplication,
             },
         }.RunAsync();
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80115")]
+    [InlineData("Span")]
+    [InlineData("ReadOnlySpan")]
+    public Task TestInlineArrayToSpanInConditionalExpression(string spanType)
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(10)]
+                public struct Buffer10
+                {
+                    private int _element0;
+                }
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        Buffer10 a = default, b = default;
+                        bool myBool = false;
+                        {{spanType}}<int> s2 = myBool ? ({{spanType}}<int>)a : b;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80115")]
+    [InlineData("Span")]
+    [InlineData("ReadOnlySpan")]
+    public Task TestInlineArrayToSpan(string spanType)
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(10)]
+                public struct Buffer10
+                {
+                    private int _element0;
+                }
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        Buffer10 a = default;
+                        {{spanType}}<int> s2 = [|({{spanType}}<int>)|]a;
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(10)]
+                public struct Buffer10
+                {
+                    private int _element0;
+                }
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        Buffer10 a = default;
+                        {{spanType}}<int> s2 = a;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
 }

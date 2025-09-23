@@ -2111,10 +2111,7 @@ partial class C
     async partial void M() { }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-              // (15,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-              //     async partial void M() { }
-              Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
@@ -2267,9 +2264,6 @@ static class C
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 26),
                 // (4,26): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
@@ -2291,9 +2285,6 @@ static class C
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref readonly int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
                 // (4,35): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)

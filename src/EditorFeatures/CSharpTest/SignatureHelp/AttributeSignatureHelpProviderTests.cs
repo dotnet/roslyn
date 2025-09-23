@@ -26,11 +26,6 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     [Fact]
     public async Task TestInvocationWithoutParameters()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -40,17 +35,13 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             class D
             {
             }
-            """, expectedOrderedItems);
+            """,
+            [new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithoutParametersMethodXmlComments()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute()", "Summary For Attribute", null, currentParameterIndex: 0)
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -62,18 +53,13 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             class D
             {
             }
-            """, expectedOrderedItems);
+            """,
+            [new("SomethingAttribute()", "Summary For Attribute", null, currentParameterIndex: 0)]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickInt()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute(int i)", currentParameterIndex: 0, isSelected: true),
-            new SignatureHelpTestItem("SomethingAttribute(string i)", currentParameterIndex: 0),
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -83,18 +69,14 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             }
             [[|Something(i: 1$$|])]
             class D { }
-            """, expectedOrderedItems);
+            """, [
+                new("SomethingAttribute(int i)", currentParameterIndex: 0, isSelected: true),
+                new("SomethingAttribute(string i)", currentParameterIndex: 0)]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickString()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute(int i)", currentParameterIndex: 0),
-            new SignatureHelpTestItem("SomethingAttribute(string i)", currentParameterIndex: 0, isSelected: true),
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -104,17 +86,14 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             }
             [[|Something(i: null$$|])]
             class D { }
-            """, expectedOrderedItems);
+            """, [
+                new("SomethingAttribute(int i)", currentParameterIndex: 0),
+                new("SomethingAttribute(string i)", currentParameterIndex: 0, isSelected: true)]);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersOn1()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute(int someInteger, string someString)", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -125,17 +104,13 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             class D
             {
             }
-            """, expectedOrderedItems);
+            """,
+            [new("SomethingAttribute(int someInteger, string someString)", string.Empty, string.Empty, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersXmlCommentsOn1()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute(int someInteger, string someString)", "Summary For Attribute", "Param someInteger", currentParameterIndex: 0)
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -151,17 +126,13 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             |]class D
             {
             }
-            """, expectedOrderedItems);
+            """,
+            [new("SomethingAttribute(int someInteger, string someString)", "Summary For Attribute", "Param someInteger", currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersOn2()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute(int someInteger, string someString)", string.Empty, string.Empty, currentParameterIndex: 1)
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -172,17 +143,13 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             class D
             {
             }
-            """, expectedOrderedItems);
+            """,
+            [new("SomethingAttribute(int someInteger, string someString)", string.Empty, string.Empty, currentParameterIndex: 1)]);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersXmlComentsOn2()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute(int someInteger, string someString)", "Summary For Attribute", "Param someString", currentParameterIndex: 1)
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -198,17 +165,13 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             |]class D
             {
             }
-            """, expectedOrderedItems);
+            """,
+            [new("SomethingAttribute(int someInteger, string someString)", "Summary For Attribute", "Param someString", currentParameterIndex: 1)]);
     }
 
     [Fact]
     public async Task TestInvocationWithClosingParen()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
-        };
-
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             { }
@@ -217,7 +180,8 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             class D
             {
             }
-            """, expectedOrderedItems);
+            """,
+            [new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)]);
     }
 
     [Fact]
@@ -297,7 +261,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute({FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new($"SomethingAttribute({FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -318,7 +282,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
+            new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -339,7 +303,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
+            new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -360,7 +324,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
+            new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -386,7 +350,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute({FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new($"SomethingAttribute({FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -408,7 +372,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
+            new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -429,7 +393,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
+            new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -450,7 +414,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
+            new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -471,7 +435,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
+            new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -492,7 +456,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
+            new("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -514,7 +478,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"DerivedAttribute({FeaturesResources.Properties}: [Name = string])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new($"DerivedAttribute({FeaturesResources.Properties}: [Name = string])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -548,7 +512,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
+            new($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -575,7 +539,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1)
+            new($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -602,7 +566,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2)
+            new($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -629,7 +593,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {FeaturesResources.Properties}: [goo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
+            new($"SomethingAttribute([int goo = 0], {FeaturesResources.Properties}: [goo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -654,7 +618,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 1)
+            new($"SomethingAttribute([int goo = 0], {FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -682,7 +646,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute(int someParameter, bool somethingElse)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("SomethingAttribute(int someParameter, bool somethingElse)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync("""
@@ -705,7 +669,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     {
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("SomethingAttribute(int someParameter, bool somethingElse)", string.Empty, string.Empty, currentParameterIndex: 1)
+            new("SomethingAttribute(int someParameter, bool somethingElse)", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         await TestAsync("""
@@ -776,7 +740,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -809,7 +773,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -842,7 +806,7 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -889,13 +853,13 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
 
         var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
-            new SignatureHelpTestItem("MyAttribute(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0)
+            new("MyAttribute(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("MyAttribute(int x, int y)", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -997,7 +961,6 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081535")]
     public async Task TestInvocationWithBadParameterList()
     {
-        var expectedOrderedItems = new List<SignatureHelpTestItem>();
         await TestAsync("""
             class SomethingAttribute : System.Attribute
             {
@@ -1007,6 +970,6 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             class D
             {
             }
-            """, expectedOrderedItems);
+            """, []);
     }
 }

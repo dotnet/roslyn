@@ -3,28 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
-internal readonly struct StructuralTypeDisplayInfo
+internal readonly struct StructuralTypeDisplayInfo(
+    IDictionary<INamedTypeSymbol, string> structuralTypeToName,
+    ImmutableArray<SymbolDisplayPart> typesParts)
 {
-    public IDictionary<INamedTypeSymbol, string> StructuralTypeToName { get; }
-    public IList<SymbolDisplayPart> TypesParts { get; }
+    public static readonly StructuralTypeDisplayInfo Empty = default;
 
-    public StructuralTypeDisplayInfo(
-        IDictionary<INamedTypeSymbol, string> structuralTypeToName,
-        IList<SymbolDisplayPart> typesParts)
-        : this()
-    {
-        StructuralTypeToName = structuralTypeToName;
-        TypesParts = typesParts;
-    }
+    public IDictionary<INamedTypeSymbol, string> StructuralTypeToName => structuralTypeToName ?? SpecializedCollections.EmptyDictionary<INamedTypeSymbol, string>();
+    public ImmutableArray<SymbolDisplayPart> TypesParts => typesParts.NullToEmpty();
 
-    public IList<SymbolDisplayPart> ReplaceStructuralTypes(IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
+    public ImmutableArray<SymbolDisplayPart> ReplaceStructuralTypes(ImmutableArray<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
         => ReplaceStructuralTypes(parts, StructuralTypeToName, semanticModel, position);
 
-    public static IList<SymbolDisplayPart> ReplaceStructuralTypes(
-        IList<SymbolDisplayPart> parts,
+    public static ImmutableArray<SymbolDisplayPart> ReplaceStructuralTypes(
+        ImmutableArray<SymbolDisplayPart> parts,
         IDictionary<INamedTypeSymbol, string> structuralTypeToName,
         SemanticModel semanticModel,
         int position)
@@ -37,14 +35,14 @@ internal readonly struct StructuralTypeDisplayInfo
     }
 
     public static bool ReplaceStructuralTypes(
-        IList<SymbolDisplayPart> parts,
+        ImmutableArray<SymbolDisplayPart> parts,
         IDictionary<INamedTypeSymbol, string> structuralTypeToName,
         SemanticModel semanticModel,
         int position,
-        out List<SymbolDisplayPart> newParts)
+        out ImmutableArray<SymbolDisplayPart> newParts)
     {
         var changed = false;
-        newParts = [];
+        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var newPartsBuilder);
 
         foreach (var part in parts)
         {
@@ -53,7 +51,7 @@ internal readonly struct StructuralTypeDisplayInfo
                 if (structuralTypeToName.TryGetValue(type, out var name) &&
                     part.ToString() != name)
                 {
-                    newParts.Add(new SymbolDisplayPart(part.Kind, symbol: null, name));
+                    newPartsBuilder.Add(new SymbolDisplayPart(part.Kind, symbol: null, name));
                     changed = true;
                     continue;
                 }
@@ -62,15 +60,22 @@ internal readonly struct StructuralTypeDisplayInfo
                 if (type.IsTupleType && part.ToString() == "<tuple>")
                 {
                     var displayParts = type.ToMinimalDisplayParts(semanticModel, position);
-                    newParts.AddRange(displayParts);
+                    newPartsBuilder.AddRange(displayParts);
                     changed = true;
                     continue;
                 }
             }
 
-            newParts.Add(part);
+            newPartsBuilder.Add(part);
         }
 
-        return changed;
+        if (!changed)
+        {
+            newParts = [];
+            return false;
+        }
+
+        newParts = newPartsBuilder.ToImmutableAndClear();
+        return true;
     }
 }

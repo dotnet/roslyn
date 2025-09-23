@@ -107,7 +107,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 class Program
 {
-    #pragma warning disable CS1998
     static void Main()
     {
         var s = (<<arg>>);

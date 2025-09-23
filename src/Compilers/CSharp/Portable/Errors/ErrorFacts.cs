@@ -411,7 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
-                case ErrorCode.WRN_AsyncLacksAwaits:
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
@@ -1485,7 +1484,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadAwaitInQuery
                 or ErrorCode.ERR_BadAwaitInLock
                 or ErrorCode.ERR_TaskRetNoObjectRequired
-                or ErrorCode.WRN_AsyncLacksAwaits
                 or ErrorCode.ERR_FileNotFound
                 or ErrorCode.WRN_FileAlreadyIncluded
                 or ErrorCode.ERR_NoFileSpec
@@ -2535,6 +2533,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_MemberNameSameAsExtendedType
                 or ErrorCode.ERR_FeatureNotAvailableInVersion14
                 or ErrorCode.ERR_ExtensionBlockCollision
+                or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
+                or ErrorCode.ERR_AttributeCannotBeAppliedManually
+                or ErrorCode.ERR_BadSpreadInCatchFilter
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

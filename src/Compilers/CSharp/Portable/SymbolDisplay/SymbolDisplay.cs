@@ -279,8 +279,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt);
                 symbol.Accept(visitor);
+
+                if (symbol is INamedTypeSymbol { IsExtension: true } extension
+                    && format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
+                {
+                    visitor.AddExtensionMarkerName(extension);
+                }
+
                 visitor.Free();
             }
+
             return builder;
         }
 

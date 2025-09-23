@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [CompilerTrait(CompilerFeature.AsyncStreams)]
+    [CompilerTrait(CompilerFeature.AsyncStreams, CompilerFeature.Async)]
     public class CodeGenAwaitForeachTests : EmitMetadataTestBase
     {
         [Fact]
@@ -183,7 +183,7 @@ public class C : IAsyncEnumerable<uint>
             comp_unchecked.VerifyDiagnostics();
             CompileAndVerify(comp_unchecked, expectedOutput: "0xFFFFFFFF");
 
-            var runtimeAsyncCompChecked = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(checkedSource);
+            var runtimeAsyncCompChecked = CreateRuntimeAsyncCompilation(checkedSource);
             var verifierChecked = CompileAndVerify(runtimeAsyncCompChecked, expectedOutput: CodeGenAsyncTests.ExpectedOutput("overflow", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -271,7 +271,7 @@ public class C : IAsyncEnumerable<uint>
                 }
                 """);
 
-            var runtimeAsyncCompUnchecked = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(uncheckedSource);
+            var runtimeAsyncCompUnchecked = CreateRuntimeAsyncCompilation(uncheckedSource);
             var verifierUnchecked = CompileAndVerify(runtimeAsyncCompUnchecked, expectedOutput: CodeGenAsyncTests.ExpectedOutput("0xFFFFFFFF", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -994,7 +994,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync 1");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync 1", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1062,7 +1062,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync 0");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync 0", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1285,7 +1285,7 @@ class Element
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1406,7 +1406,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Captured(1)");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Got(1) Got(2) Captured(1)", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1557,7 +1557,7 @@ class C<T> where T : IntContainer, new()
             var expectedOutput = "NextAsync(1) Current(1) Got(1) NextAsync(2) Current(2) Got(2) NextAsync(3) Current(3) Got(3) NextAsync(4) Dispose(4)";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1676,7 +1676,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "exception");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("exception", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1790,7 +1790,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "dispose exception");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("dispose exception", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1909,7 +1909,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "wait dispose exception");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("wait dispose exception", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2021,7 +2021,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "wait exception");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("wait exception", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2109,7 +2109,7 @@ class C
             DiagnosticDescription expected = Diagnostic(ErrorCode.ERR_BadDynamicAwaitForEach, "(dynamic)new C()").WithLocation(6, 33);
             comp.VerifyDiagnostics(expected);
 
-            comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(expected);
         }
 
@@ -2374,7 +2374,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2586,7 +2586,7 @@ class C
             comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2926,7 +2926,7 @@ public ref struct S
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3163,7 +3163,7 @@ public ref struct S
             var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1 2 Done").VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3272,7 +3272,7 @@ public ref struct S
             var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "2 4 -1 Done").VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("2 4 -1 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3453,7 +3453,7 @@ public ref struct S
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3591,7 +3591,7 @@ public ref struct S
             comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3766,7 +3766,7 @@ public struct S
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 3 Done", verify: Verification.Fails);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 3 Done", isRuntimeAsync: true), verify: Verification.Fails);
             verifier.VerifyIL("C.Main()", """
                 {
@@ -3853,7 +3853,7 @@ public struct S
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3971,7 +3971,7 @@ public struct S
             comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -4271,85 +4271,79 @@ class C
             var expectedOutput = "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) DisposeAsync Done";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            runtimeAsyncComp.VerifyEmitDiagnostics(
-                // (31,33): error CS9328: Method 'C.AsyncEnumerator.MoveNextAsync()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         public async Task<bool> MoveNextAsync()
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "MoveNextAsync").WithArguments("C.AsyncEnumerator.MoveNextAsync()").WithLocation(31, 33)
-            );
-            // https://github.com/dotnet/roslyn/issues/79763
-            // var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            // {
-            //     ILVerifyMessage = """
-            //         [Main]: Return value missing on the stack. { Offset = 0x8c }
-            //         [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x5d, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
-            //         [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
-            //         """
-            // });
-            // verifier.VerifyIL("C.Main()", """
-            //     {
-            //       // Code size      141 (0x8d)
-            //       .maxstack  2
-            //       .locals init (C.AsyncEnumerator V_0,
-            //                     object V_1,
-            //                     int V_2, //i
-            //                     System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3)
-            //       IL_0000:  newobj     "C..ctor()"
-            //       IL_0005:  call       "C.AsyncEnumerator C.GetAsyncEnumerator()"
-            //       IL_000a:  stloc.0
-            //       IL_000b:  ldnull
-            //       IL_000c:  stloc.1
-            //       .try
-            //       {
-            //         IL_000d:  br.s       IL_004b
-            //         IL_000f:  ldloca.s   V_0
-            //         IL_0011:  call       "int C.AsyncEnumerator.Current.get"
-            //         IL_0016:  stloc.2
-            //         IL_0017:  ldc.i4.6
-            //         IL_0018:  ldc.i4.1
-            //         IL_0019:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
-            //         IL_001e:  stloc.3
-            //         IL_001f:  ldloca.s   V_3
-            //         IL_0021:  ldstr      "Got("
-            //         IL_0026:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
-            //         IL_002b:  ldloca.s   V_3
-            //         IL_002d:  ldloc.2
-            //         IL_002e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
-            //         IL_0033:  ldloca.s   V_3
-            //         IL_0035:  ldstr      ") "
-            //         IL_003a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
-            //         IL_003f:  ldloca.s   V_3
-            //         IL_0041:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
-            //         IL_0046:  call       "void System.Console.Write(string)"
-            //         IL_004b:  ldloca.s   V_0
-            //         IL_004d:  call       "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
-            //         IL_0052:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
-            //         IL_0057:  brtrue.s   IL_000f
-            //         IL_0059:  leave.s    IL_005e
-            //       }
-            //       catch object
-            //       {
-            //         IL_005b:  stloc.1
-            //         IL_005c:  leave.s    IL_005e
-            //       }
-            //       IL_005e:  ldloca.s   V_0
-            //       IL_0060:  call       "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
-            //       IL_0065:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
-            //       IL_006a:  ldloc.1
-            //       IL_006b:  brfalse.s  IL_0082
-            //       IL_006d:  ldloc.1
-            //       IL_006e:  isinst     "System.Exception"
-            //       IL_0073:  dup
-            //       IL_0074:  brtrue.s   IL_0078
-            //       IL_0076:  ldloc.1
-            //       IL_0077:  throw
-            //       IL_0078:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-            //       IL_007d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-            //       IL_0082:  ldstr      "Done"
-            //       IL_0087:  call       "void System.Console.Write(string)"
-            //       IL_008c:  ret
-            //     }
-            //     """);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x8c }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x65, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      141 (0x8d)
+                  .maxstack  2
+                  .locals init (C.AsyncEnumerator V_0,
+                                object V_1,
+                                int V_2, //i
+                                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.AsyncEnumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_004b
+                    IL_000f:  ldloca.s   V_0
+                    IL_0011:  call       "int C.AsyncEnumerator.Current.get"
+                    IL_0016:  stloc.2
+                    IL_0017:  ldc.i4.6
+                    IL_0018:  ldc.i4.1
+                    IL_0019:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldloca.s   V_3
+                    IL_0021:  ldstr      "Got("
+                    IL_0026:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                    IL_002b:  ldloca.s   V_3
+                    IL_002d:  ldloc.2
+                    IL_002e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                    IL_0033:  ldloca.s   V_3
+                    IL_0035:  ldstr      ") "
+                    IL_003a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                    IL_003f:  ldloca.s   V_3
+                    IL_0041:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                    IL_0046:  call       "void System.Console.Write(string)"
+                    IL_004b:  ldloca.s   V_0
+                    IL_004d:  call       "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
+                    IL_0052:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0057:  brtrue.s   IL_000f
+                    IL_0059:  leave.s    IL_005e
+                  }
+                  catch object
+                  {
+                    IL_005b:  stloc.1
+                    IL_005c:  leave.s    IL_005e
+                  }
+                  IL_005e:  ldloca.s   V_0
+                  IL_0060:  call       "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                  IL_0065:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_006a:  ldloc.1
+                  IL_006b:  brfalse.s  IL_0082
+                  IL_006d:  ldloc.1
+                  IL_006e:  isinst     "System.Exception"
+                  IL_0073:  dup
+                  IL_0074:  brtrue.s   IL_0078
+                  IL_0076:  ldloc.1
+                  IL_0077:  throw
+                  IL_0078:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_007d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0082:  ldstr      "Done"
+                  IL_0087:  call       "void System.Console.Write(string)"
+                  IL_008c:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4415,7 +4409,7 @@ class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -4555,7 +4549,7 @@ class C
             Assert.Equal("C.Awaitable C.AsyncEnumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Item(1) Dispose Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -4903,7 +4897,7 @@ public class C
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -5231,7 +5225,7 @@ class C
             var expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -5485,7 +5479,7 @@ class C : IAsyncEnumerable<int>
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -5834,7 +5828,7 @@ struct C : IAsyncEnumerable<int>
   IL_01ef:  ret
 }");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var runtimeAsyncVerifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -5968,7 +5962,7 @@ class C : IAsyncEnumerable<int>
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6103,7 +6097,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6270,7 +6264,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6446,93 +6440,85 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp,
                 expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            runtimeAsyncComp.VerifyEmitDiagnostics(
-                // (32,38): error CS9328: Method 'C.AsyncEnumerator.MoveNextAsync()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         public async ValueTask<bool> MoveNextAsync()
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "MoveNextAsync").WithArguments("C.AsyncEnumerator.MoveNextAsync()").WithLocation(32, 38),
-                // (39,32): error CS9328: Method 'C.AsyncEnumerator.DisposeAsync()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         public async ValueTask DisposeAsync()
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "DisposeAsync").WithArguments("C.AsyncEnumerator.DisposeAsync()").WithLocation(39, 32)
-            );
-            // var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
-            // {
-            //     ILVerifyMessage = """
-            //         [Main]: Return value missing on the stack. { Offset = 0x96 }
-            //         [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x5d, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-            //         [DisposeAsync]: Return value missing on the stack. { Offset = 0x5f }
-            //         """
-            // });
-            // verifier.VerifyIL("C.Main()", """
-            //     {
-            //       // Code size      151 (0x97)
-            //       .maxstack  2
-            //       .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
-            //                     System.Threading.CancellationToken V_1,
-            //                     object V_2,
-            //                     int V_3, //i
-            //                     System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4)
-            //       IL_0000:  newobj     "C..ctor()"
-            //       IL_0005:  ldloca.s   V_1
-            //       IL_0007:  initobj    "System.Threading.CancellationToken"
-            //       IL_000d:  ldloc.1
-            //       IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
-            //       IL_0013:  stloc.0
-            //       IL_0014:  ldnull
-            //       IL_0015:  stloc.2
-            //       .try
-            //       {
-            //         IL_0016:  br.s       IL_0054
-            //         IL_0018:  ldloc.0
-            //         IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
-            //         IL_001e:  stloc.3
-            //         IL_001f:  ldc.i4.6
-            //         IL_0020:  ldc.i4.1
-            //         IL_0021:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
-            //         IL_0026:  stloc.s    V_4
-            //         IL_0028:  ldloca.s   V_4
-            //         IL_002a:  ldstr      "Got("
-            //         IL_002f:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
-            //         IL_0034:  ldloca.s   V_4
-            //         IL_0036:  ldloc.3
-            //         IL_0037:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
-            //         IL_003c:  ldloca.s   V_4
-            //         IL_003e:  ldstr      ") "
-            //         IL_0043:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
-            //         IL_0048:  ldloca.s   V_4
-            //         IL_004a:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
-            //         IL_004f:  call       "void System.Console.Write(string)"
-            //         IL_0054:  ldloc.0
-            //         IL_0055:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
-            //         IL_005a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
-            //         IL_005f:  brtrue.s   IL_0018
-            //         IL_0061:  leave.s    IL_0066
-            //       }
-            //       catch object
-            //       {
-            //         IL_0063:  stloc.2
-            //         IL_0064:  leave.s    IL_0066
-            //       }
-            //       IL_0066:  ldloc.0
-            //       IL_0067:  brfalse.s  IL_0074
-            //       IL_0069:  ldloc.0
-            //       IL_006a:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
-            //       IL_006f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
-            //       IL_0074:  ldloc.2
-            //       IL_0075:  brfalse.s  IL_008c
-            //       IL_0077:  ldloc.2
-            //       IL_0078:  isinst     "System.Exception"
-            //       IL_007d:  dup
-            //       IL_007e:  brtrue.s   IL_0082
-            //       IL_0080:  ldloc.2
-            //       IL_0081:  throw
-            //       IL_0082:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-            //       IL_0087:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-            //       IL_008c:  ldstr      "Done"
-            //       IL_0091:  call       "void System.Console.Write(string)"
-            //       IL_0096:  ret
-            //     }
-            //     """);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x96 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x65, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x66 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      151 (0x97)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3, //i
+                                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_4)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0054
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldc.i4.6
+                    IL_0020:  ldc.i4.1
+                    IL_0021:  newobj     "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                    IL_0026:  stloc.s    V_4
+                    IL_0028:  ldloca.s   V_4
+                    IL_002a:  ldstr      "Got("
+                    IL_002f:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                    IL_0034:  ldloca.s   V_4
+                    IL_0036:  ldloc.3
+                    IL_0037:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)"
+                    IL_003c:  ldloca.s   V_4
+                    IL_003e:  ldstr      ") "
+                    IL_0043:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                    IL_0048:  ldloca.s   V_4
+                    IL_004a:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                    IL_004f:  call       "void System.Console.Write(string)"
+                    IL_0054:  ldloc.0
+                    IL_0055:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_005a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_005f:  brtrue.s   IL_0018
+                    IL_0061:  leave.s    IL_0066
+                  }
+                  catch object
+                  {
+                    IL_0063:  stloc.2
+                    IL_0064:  leave.s    IL_0066
+                  }
+                  IL_0066:  ldloc.0
+                  IL_0067:  brfalse.s  IL_0074
+                  IL_0069:  ldloc.0
+                  IL_006a:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_006f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0074:  ldloc.2
+                  IL_0075:  brfalse.s  IL_008c
+                  IL_0077:  ldloc.2
+                  IL_0078:  isinst     "System.Exception"
+                  IL_007d:  dup
+                  IL_007e:  brtrue.s   IL_0082
+                  IL_0080:  ldloc.2
+                  IL_0081:  throw
+                  IL_0082:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0087:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_008c:  ldstr      "Done"
+                  IL_0091:  call       "void System.Console.Write(string)"
+                  IL_0096:  ret
+                }
+                """);
         }
 
         [Fact, WorkItem(27651, "https://github.com/dotnet/roslyn/issues/27651")]
@@ -6623,7 +6609,7 @@ class C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Success", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -6755,7 +6741,7 @@ class C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var expectedOutput = "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -6967,7 +6953,7 @@ class Element
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var expectedOutput = "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done";
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
@@ -7123,7 +7109,7 @@ struct C : IAsyncEnumerable<int>
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -7246,7 +7232,7 @@ struct C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Success", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -7402,7 +7388,7 @@ public static class Extensions
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -7592,7 +7578,7 @@ class C : IAsyncEnumerable<(string, int)>
             Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -7748,7 +7734,7 @@ public static class Extensions
             string expectedOutput = "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8087,7 +8073,7 @@ class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8373,7 +8359,7 @@ class C
   IL_011a:  ret
 }", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8478,7 +8464,7 @@ class C
 
             Assert.Null(info.DisposeMethod);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier2 = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8778,7 +8764,7 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -8903,7 +8889,7 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9049,7 +9035,7 @@ public static class Extension
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9127,7 +9113,7 @@ public static class Extension2
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9201,7 +9187,7 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9393,7 +9379,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9504,7 +9490,7 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9608,7 +9594,7 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9712,7 +9698,7 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync 1 Done");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync 1 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -9826,7 +9812,7 @@ class Program
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable1StructAwaitable2");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("StructAwaitable1StructAwaitable2", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10000,7 +9986,7 @@ public struct C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10090,7 +10076,7 @@ public struct C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10251,7 +10237,7 @@ public static class Extensions
             Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10308,7 +10294,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10365,7 +10351,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10422,7 +10408,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10667,7 +10653,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10731,7 +10717,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10791,7 +10777,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10850,7 +10836,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -10976,7 +10962,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11038,7 +11024,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11095,7 +11081,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11161,7 +11147,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11218,7 +11204,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11278,7 +11264,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11335,7 +11321,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11398,7 +11384,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11488,7 +11474,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11584,7 +11570,7 @@ public static class Extensions
 3.3";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11804,7 +11790,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -11918,7 +11904,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12011,7 +11997,7 @@ public static class Extensions
             CreateCompilationWithCSharp(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             comp.VerifyEmitDiagnostics(expected);
         }
 
@@ -12168,7 +12154,7 @@ public static class Extensions2
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12315,7 +12301,7 @@ public static class Extensions2
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12418,7 +12404,7 @@ public static class Extensions2
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12516,7 +12502,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "23");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("23", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12611,7 +12597,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12775,7 +12761,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12838,7 +12824,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12931,7 +12917,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -12988,7 +12974,7 @@ internal static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13164,7 +13150,7 @@ internal static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13224,7 +13210,7 @@ internal static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13284,7 +13270,7 @@ struct Enumerator : IAsyncDisposable
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13370,7 +13356,7 @@ struct Enumerator : IAsyncDisposable
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13456,7 +13442,7 @@ struct Enumerator
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13538,7 +13524,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13614,7 +13600,7 @@ public static class Extensions
                 );
             CompileAndVerify(comp, expectedOutput: "123Disposed");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13702,7 +13688,7 @@ namespace N
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13847,7 +13833,7 @@ namespace N1
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13926,7 +13912,7 @@ namespace N3
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N3;").WithLocation(5, 1));
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -14095,7 +14081,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -14157,7 +14143,7 @@ public class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -14254,7 +14240,7 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123123");
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123123", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -14349,7 +14335,7 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
 
-                var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
                 var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -14486,7 +14472,7 @@ struct AsyncEnumerator : IAsyncDisposable
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
 
-                var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
                 var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -14625,7 +14611,7 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
 
-                var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
                 var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -14821,7 +14807,7 @@ struct AsyncEnumerator : IAsyncEnumerator<(int, int)>
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
 
-                var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+                var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source);
                 var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
                 {
                     ILVerifyMessage = """
@@ -14987,7 +14973,7 @@ class C
                 expectedOutput: expectedOutput,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(src);
+            var runtimeAsyncComp = CreateRuntimeAsyncCompilation(src);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """

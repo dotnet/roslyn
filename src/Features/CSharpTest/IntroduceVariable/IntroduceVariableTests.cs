@@ -28,7 +28,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         => GetNestedActions(actions);
 
-    private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+    private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
 
     // specify all options explicitly to override defaults.
     private OptionsCollection ImplicitTypingEverywhere()
@@ -8455,4 +8455,46 @@ namespace ConsoleApp1
             
             [||]Console.WriteLine();
             """);
+
+    [Fact]
+    public Task TestInTopLevelLoop1()
+        => TestAsync(
+            """
+            for (var i = 0; i < 10; i++)
+            {
+                Console.Write([|args[i]|]);
+            }
+            """,
+            """
+            for (var i = 0; i < 10; i++)
+            {
+                string {|Rename:v|} = args[i];
+                Console.Write(v);
+            }
+            """,
+            new(parseOptions: TestOptions.Regular));
+
+    [Fact]
+    public Task TestInTopLevelLoop2()
+        => TestAsync(
+            """
+            void M(object[] p)
+            {
+                for (var i = 0; i < 10; i++)
+                {
+                    Console.Write([|p[i]|]);
+                }
+            }
+            """,
+            """
+            void M(object[] p)
+            {
+                for (var i = 0; i < 10; i++)
+                {
+                    object {|Rename:v|} = p[i];
+                    Console.Write(v);
+                }
+            }
+            """,
+            new(parseOptions: TestOptions.Regular));
 }

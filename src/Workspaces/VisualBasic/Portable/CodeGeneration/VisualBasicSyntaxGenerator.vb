@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     <ExportLanguageService(GetType(SyntaxGenerator), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxGenerator
+    Friend NotInheritable Class VisualBasicSyntaxGenerator
         Inherits SyntaxGenerator
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
@@ -98,12 +98,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AddressOf AsSimpleArgument)))
         End Function
 
-        Private Shared Function Parenthesize(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ParenthesizedExpressionSyntax
-            Return VisualBasicSyntaxGeneratorInternal.Parenthesize(expression, addSimplifierAnnotation)
+        Private Shared Function ParenthesizeNonSimple(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ExpressionSyntax
+            Return VisualBasicSyntaxGeneratorInternal.ParenthesizeNonSimple(expression, addSimplifierAnnotation)
         End Function
 
         Public Overrides Function AddExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.AddExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.AddExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overloads Overrides Function Argument(name As String, refKind As RefKind, expression As SyntaxNode) As SyntaxNode
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function BitwiseAndExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.AndExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.AndExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function ConditionalExpression(condition As SyntaxNode, whenTrue As SyntaxNode, whenFalse As SyntaxNode) As SyntaxNode
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function IsTypeExpression(expression As SyntaxNode, type As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.TypeOfIsExpression(Parenthesize(expression), DirectCast(type, TypeSyntax))
+            Return SyntaxFactory.TypeOfIsExpression(ParenthesizeNonSimple(expression), DirectCast(type, TypeSyntax))
         End Function
 
         Public Overrides Function TypeOfExpression(type As SyntaxNode) As SyntaxNode
@@ -239,15 +239,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function LogicalAndExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.AndAlsoExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.AndAlsoExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function LogicalNotExpression(expression As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.NotExpression(Parenthesize(expression))
+            ' This helper is used in some locations where the formatter is not available.  So try to ensure
+            ' that we generate proper code with a space between the 'Not' and the expression when necessary.
+            Return SyntaxFactory.NotExpression(
+                SyntaxFactory.Token(SyntaxKind.NotKeyword).WithTrailingTrivia(SyntaxFactory.ElasticSpace),
+                ParenthesizeNonSimple(expression))
         End Function
 
         Public Overrides Function LogicalOrExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.OrElseExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.OrElseExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
@@ -264,11 +268,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function MultiplyExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.MultiplyExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.MultiplyExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function NegateExpression(expression As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.UnaryMinusExpression(Parenthesize(expression))
+            Return SyntaxFactory.UnaryMinusExpression(ParenthesizeNonSimple(expression))
         End Function
 
         Private Shared Function AsExpressionList(expressions As IEnumerable(Of SyntaxNode)) As SeparatedSyntaxList(Of ExpressionSyntax)
@@ -312,11 +316,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function ReferenceEqualsExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.IsExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.IsExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function ReferenceNotEqualsExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.IsNotExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.IsNotExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function ReturnStatement(Optional expressionOpt As SyntaxNode = Nothing) As SyntaxNode
@@ -402,11 +406,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function ValueEqualsExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.EqualsExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.EqualsExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function ValueNotEqualsExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.NotEqualsExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.NotEqualsExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Private Function CreateArgumentList(arguments As IEnumerable(Of SyntaxNode)) As ArgumentListSyntax
@@ -545,19 +549,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function SubtractExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.SubtractExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.SubtractExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function DivideExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.DivideExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.DivideExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function ModuloExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.ModuloExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.ModuloExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function BitwiseNotExpression(operand As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.NotExpression(Parenthesize(operand))
+            Return SyntaxFactory.NotExpression(ParenthesizeNonSimple(operand))
         End Function
 
         Public Overrides Function CoalesceExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
@@ -565,19 +569,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function LessThanExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.LessThanExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.LessThanExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function LessThanOrEqualExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.LessThanOrEqualExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.LessThanOrEqualExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function GreaterThanExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.GreaterThanExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.GreaterThanExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function GreaterThanOrEqualExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.GreaterThanOrEqualExpression(Parenthesize(left), Parenthesize(right))
+            Return SyntaxFactory.GreaterThanOrEqualExpression(ParenthesizeNonSimple(left), ParenthesizeNonSimple(right))
         End Function
 
         Public Overrides Function TryCatchStatement(tryStatements As IEnumerable(Of SyntaxNode), catchClauses As IEnumerable(Of SyntaxNode), Optional finallyStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
@@ -3637,6 +3641,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function RemoveCommentLines(syntaxList As SyntaxTriviaList) As SyntaxTriviaList
             Return syntaxList.Where(Function(s) Not IsRegularOrDocComment(s)).ToSyntaxTriviaList()
         End Function
+
+        Friend Overrides Function ExtensionBlockDeclaration(extensionParameter As SyntaxNode, typeParameters As IEnumerable(Of SyntaxNode), members As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Throw New NotSupportedException("Extension blocks are not supported in Visual Basic")
+        End Function
+
 #End Region
 
     End Class

@@ -9,14 +9,9 @@ internal static class ConversionExtensions
     public static bool IsIdentityOrImplicitReference(this Conversion conversion)
     {
         return conversion.IsIdentity ||
-            (conversion.IsImplicit && conversion.IsReference);
+            (conversion is { IsImplicit: true, IsReference: true });
     }
 
     public static bool IsImplicitUserDefinedConversion(this Conversion conversion)
-    {
-        return conversion.IsUserDefined &&
-            conversion.MethodSymbol != null &&
-            conversion.MethodSymbol.MethodKind == MethodKind.Conversion &&
-            conversion.MethodSymbol.Name == "op_Implicit";
-    }
+        => conversion is { IsUserDefined: true, MethodSymbol: { MethodKind: MethodKind.Conversion, Name: "op_Implicit" } };
 }

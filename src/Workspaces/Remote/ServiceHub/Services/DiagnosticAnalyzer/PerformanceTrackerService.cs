@@ -37,7 +37,7 @@ internal sealed class PerformanceTrackerService : IPerformanceTrackerService
     private static readonly Func<IEnumerable<AnalyzerPerformanceInfo>, int, bool, string> s_snapshotLogger = SnapshotLogger;
 
     private readonly PerformanceQueue _queueForDocumentAnalysis, _queueForSpanAnalysis;
-    private readonly ConcurrentDictionary<string, bool> _builtInMap = new ConcurrentDictionary<string, bool>(concurrencyLevel: 2, capacity: 10);
+    private readonly ConcurrentDictionary<string, bool> _builtInMap = new(concurrencyLevel: 2, capacity: 10);
 
     public event EventHandler SnapshotAdded;
 

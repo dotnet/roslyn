@@ -62,12 +62,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
     internal sealed class TestSpanMapper : ISpanMappingService
     {
-        private static readonly LinePositionSpan s_mappedLinePosition = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 5));
+        private static readonly LinePositionSpan s_mappedLinePosition = new(new LinePosition(0, 0), new LinePosition(0, 5));
         private static readonly string s_mappedFilePath = "c:\\MappedFile_\ue25b\ud86d\udeac.cs";
 
         internal static readonly string GeneratedFileName = "GeneratedFile_\ue25b\ud86d\udeac.cs";
 
-        internal static readonly LSP.Location MappedFileLocation = new LSP.Location
+        internal static readonly LSP.Location MappedFileLocation = new()
         {
             Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
             DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_mappedFilePath)
@@ -208,14 +208,14 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     private protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
-        => new LSP.TextDocumentPositionParams()
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri, projectContext),
             Position = caret.Range.Start
         };
 
     private protected static LSP.MarkupContent CreateMarkupContent(LSP.MarkupKind kind, string value)
-        => new LSP.MarkupContent()
+        => new()
         {
             Kind = kind,
             Value = value
@@ -226,7 +226,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         LSP.VSInternalCompletionInvokeKind invokeKind,
         string triggerCharacter,
         LSP.CompletionTriggerKind triggerKind)
-        => new LSP.CompletionParams()
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
@@ -284,7 +284,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     private protected static LSP.TextEdit GenerateTextEdit(string newText, int startLine, int startChar, int endLine, int endChar)
-        => new LSP.TextEdit
+        => new()
         {
             NewText = newText,
             Range = new LSP.Range
@@ -359,9 +359,39 @@ public abstract partial class AbstractLanguageServerProtocolTests
         return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
     }
 
+    private void CheckForCompositionErrors(TestComposition composition)
+    {
+        // The test compositions tend to have a bunch of errors.
+        // We only want to fail the test if we're seeing errors in relevant parts to the language server.
+        // This isn't foolproof, but helps catch issues early.
+
+        var config = composition.GetCompositionConfiguration();
+        var hasLanguageServerErrors = config.CompositionErrors.Flatten().Any(error => error.Parts.Any(IsRelevantPartError));
+
+        if (hasLanguageServerErrors)
+        {
+            try
+            {
+                config.ThrowOnErrors();
+            }
+            catch (CompositionFailedException ex)
+            {
+                // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
+                this.TestOutputLspLogger.LogError($"Encountered errors in the MEF composition: {ex.Message}{Environment.NewLine}{ex.ErrorsAsString}");
+                throw;
+            }
+        }
+
+        bool IsRelevantPartError(ComposedPart part)
+        {
+            return part.Definition.Type.FullName?.Contains("Microsoft.CodeAnalysis.LanguageServer") == true;
+        }
+    }
+
     internal async Task<LspTestWorkspace> CreateWorkspaceAsync(
         InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace, TestComposition? composition = null)
     {
+        CheckForCompositionErrors(composition ?? Composition);
         var workspace = new LspTestWorkspace(
             composition?.ExportProviderFactory.CreateExportProvider() ?? await CreateExportProviderAsync(),
             workspaceKind,
@@ -494,7 +524,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
     private static LSP.DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(
         DocumentUri documentUri,
-        ImmutableArray<(LSP.Range Range, string Text)> changes)
+        ImmutableArray<(LSP.Range Range, string Text)> changes,
+        int version = 0)
     {
         var changeEvents = changes.Select(change => new LSP.TextDocumentContentChangeEvent
         {
@@ -506,25 +537,27 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             TextDocument = new LSP.VersionedTextDocumentIdentifier
             {
-                DocumentUri = documentUri
+                DocumentUri = documentUri,
+                Version = version
             },
             ContentChanges = changeEvents
         };
     }
 
-    private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(DocumentUri uri, string source, string languageId = "")
-        => new LSP.DidOpenTextDocumentParams
+    private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(DocumentUri uri, string source, string languageId = "", int version = 0)
+        => new()
         {
             TextDocument = new LSP.TextDocumentItem
             {
                 Text = source,
                 DocumentUri = uri,
-                LanguageId = languageId
+                LanguageId = languageId,
+                Version = version
             }
         };
 
     private static LSP.DidCloseTextDocumentParams CreateDidCloseTextDocumentParams(DocumentUri uri)
-       => new LSP.DidCloseTextDocumentParams()
+       => new()
        {
            TextDocument = new LSP.TextDocumentIdentifier
            {
@@ -704,7 +737,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return _clientRpc.InvokeWithParameterObjectAsync(methodName, serializedRequest);
         }
 
-        public async Task OpenDocumentAsync(DocumentUri documentUri, string? text = null, string languageId = "")
+        public async Task OpenDocumentAsync(DocumentUri documentUri, string? text = null, string languageId = "", int version = 0)
         {
             if (text == null)
             {
@@ -714,13 +747,13 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 text = sourceText.ToString();
             }
 
-            var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString(), languageId);
+            var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString(), languageId, version);
             await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
         }
 
         /// <summary>
         /// Opens a document in the workspace only, and waits for workspace operations.
-        /// Use <see cref="OpenDocumentAsync(DocumentUri, string, string)"/> if the document should be opened in LSP"/>
+        /// Use <see cref="OpenDocumentAsync(DocumentUri, string, string, int)"/> if the document should be opened in LSP"/>
         /// </summary>
         public async Task OpenDocumentInWorkspaceAsync(DocumentId documentId, bool openAllLinkedDocuments, SourceText? text = null)
         {
@@ -745,21 +778,32 @@ public abstract partial class AbstractLanguageServerProtocolTests
             await WaitForWorkspaceOperationsAsync(TestWorkspace);
         }
 
-        public Task ReplaceTextAsync(DocumentUri documentUri, params (LSP.Range Range, string Text)[] changes)
+        public Task ReplaceTextAsync(DocumentUri documentUri, int version, params (LSP.Range Range, string Text)[] changes)
         {
             var didChangeParams = CreateDidChangeTextDocumentParams(
                 documentUri,
-                [.. changes]);
+                [.. changes],
+                version);
             return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
         }
 
-        public Task InsertTextAsync(DocumentUri documentUri, params (int Line, int Column, string Text)[] changes)
+        public Task ReplaceTextAsync(DocumentUri documentUri, params (LSP.Range Range, string Text)[] changes)
         {
-            return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
+            return ReplaceTextAsync(documentUri, version: 0, changes);
+        }
+
+        public Task InsertTextAsync(DocumentUri documentUri, int version, params (int Line, int Column, string Text)[] changes)
+        {
+            return ReplaceTextAsync(documentUri, version, [.. changes.Select(change => (new LSP.Range
             {
                 Start = new LSP.Position { Line = change.Line, Character = change.Column },
                 End = new LSP.Position { Line = change.Line, Character = change.Column }
             }, change.Text))]);
+        }
+
+        public Task InsertTextAsync(DocumentUri documentUri, params (int Line, int Column, string Text)[] changes)
+        {
+            return InsertTextAsync(documentUri, version: 0, changes);
         }
 
         public Task DeleteTextAsync(DocumentUri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)

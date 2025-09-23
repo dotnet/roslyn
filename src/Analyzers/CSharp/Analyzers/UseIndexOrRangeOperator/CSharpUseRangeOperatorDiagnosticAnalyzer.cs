@@ -329,8 +329,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer()
     }
 
     private static bool IsConstantInt32(IOperation operation, int? value = null)
-        => operation.ConstantValue.HasValue &&
-           operation.ConstantValue.Value is int i &&
+        => operation.ConstantValue is { HasValue: true, Value: int i } &&
            (value == null || i == value);
 
     private static bool IsWriteableIndexer(IInvocationOperation invocation, IPropertySymbol indexer)

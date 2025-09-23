@@ -258,7 +258,6 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
     public override SyntaxNode OperatorDeclaration(OperatorKind kind, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
     {
         return OperatorDeclaration(GetOperatorName(kind), isImplicitConversion: kind == OperatorKind.ImplicitConversion, parameters, returnType, accessibility, modifiers, statements);
-
     }
 
     private protected override SyntaxNode OperatorDeclaration(string operatorName, bool isImplicitConversion, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
@@ -3235,10 +3234,10 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
     #region Statements and Expressions
 
     public override SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler)
-        => SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, (ExpressionSyntax)@event, (ExpressionSyntax)Parenthesize(handler));
+        => SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, (ExpressionSyntax)@event, (ExpressionSyntax)ParenthesizeNonSimple(handler));
 
     public override SyntaxNode RemoveEventHandler(SyntaxNode @event, SyntaxNode handler)
-        => SyntaxFactory.AssignmentExpression(SyntaxKind.SubtractAssignmentExpression, (ExpressionSyntax)@event, (ExpressionSyntax)Parenthesize(handler));
+        => SyntaxFactory.AssignmentExpression(SyntaxKind.SubtractAssignmentExpression, (ExpressionSyntax)@event, (ExpressionSyntax)ParenthesizeNonSimple(handler));
 
     public override SyntaxNode AwaitExpression(SyntaxNode expression)
         => SyntaxFactory.AwaitExpression((ExpressionSyntax)expression);
@@ -3364,20 +3363,20 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
     internal override SyntaxToken NumericLiteralToken(string text, ulong value)
         => SyntaxFactory.Literal(text, value);
 
-    private static SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
-        => CSharpSyntaxGeneratorInternal.Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
+    private static SyntaxNode ParenthesizeNonSimple(SyntaxNode expression)
+        => CSharpSyntaxGeneratorInternal.ParenthesizeNonSimple(expression);
 
     public override SyntaxNode IsTypeExpression(SyntaxNode expression, SyntaxNode type)
-        => SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, (ExpressionSyntax)Parenthesize(expression), (TypeSyntax)type);
+        => SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, (ExpressionSyntax)ParenthesizeNonSimple(expression), (TypeSyntax)type);
 
     public override SyntaxNode TypeOfExpression(SyntaxNode type)
         => SyntaxFactory.TypeOfExpression((TypeSyntax)type);
 
     public override SyntaxNode TryCastExpression(SyntaxNode expression, SyntaxNode type)
-        => SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression, (ExpressionSyntax)Parenthesize(expression), (TypeSyntax)type);
+        => SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression, (ExpressionSyntax)ParenthesizeNonSimple(expression), (TypeSyntax)type);
 
     public override SyntaxNode AssignmentStatement(SyntaxNode left, SyntaxNode right)
-        => SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, (ExpressionSyntax)left, (ExpressionSyntax)Parenthesize(right));
+        => SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, (ExpressionSyntax)left, (ExpressionSyntax)ParenthesizeNonSimple(right));
 
     private static SyntaxNode CreateBinaryExpression(SyntaxKind syntaxKind, SyntaxNode left, SyntaxNode right)
         => CSharpSyntaxGeneratorInternal.CreateBinaryExpression(syntaxKind, left, right);
@@ -3407,7 +3406,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         => CreateBinaryExpression(SyntaxKind.GreaterThanOrEqualExpression, left, right);
 
     public override SyntaxNode NegateExpression(SyntaxNode expression)
-        => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, (ExpressionSyntax)Parenthesize(expression));
+        => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, (ExpressionSyntax)ParenthesizeNonSimple(expression));
 
     public override SyntaxNode AddExpression(SyntaxNode left, SyntaxNode right)
         => CreateBinaryExpression(SyntaxKind.AddExpression, left, right);
@@ -3428,7 +3427,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         => CreateBinaryExpression(SyntaxKind.BitwiseAndExpression, left, right);
 
     public override SyntaxNode BitwiseNotExpression(SyntaxNode operand)
-        => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.BitwiseNotExpression, (ExpressionSyntax)Parenthesize(operand));
+        => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.BitwiseNotExpression, (ExpressionSyntax)ParenthesizeNonSimple(operand));
 
     public override SyntaxNode LogicalAndExpression(SyntaxNode left, SyntaxNode right)
         => CreateBinaryExpression(SyntaxKind.LogicalAndExpression, left, right);
@@ -3437,10 +3436,10 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         => CreateBinaryExpression(SyntaxKind.LogicalOrExpression, left, right);
 
     public override SyntaxNode LogicalNotExpression(SyntaxNode expression)
-        => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, (ExpressionSyntax)Parenthesize(expression));
+        => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, (ExpressionSyntax)ParenthesizeNonSimple(expression));
 
     public override SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse)
-        => SyntaxFactory.ConditionalExpression((ExpressionSyntax)Parenthesize(condition), (ExpressionSyntax)Parenthesize(whenTrue), (ExpressionSyntax)Parenthesize(whenFalse));
+        => SyntaxFactory.ConditionalExpression((ExpressionSyntax)ParenthesizeNonSimple(condition), (ExpressionSyntax)ParenthesizeNonSimple(whenTrue), (ExpressionSyntax)ParenthesizeNonSimple(whenFalse));
 
     public override SyntaxNode CoalesceExpression(SyntaxNode left, SyntaxNode right)
         => CreateBinaryExpression(SyntaxKind.CoalesceExpression, left, right);
@@ -3738,6 +3737,19 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     internal override SyntaxNode ParseTypeName(string stringToParse)
         => SyntaxFactory.ParseTypeName(stringToParse);
+
+    internal override SyntaxNode ExtensionBlockDeclaration(
+        SyntaxNode extensionParameter,
+        IEnumerable<SyntaxNode>? typeParameters,
+        IEnumerable<SyntaxNode> members)
+    {
+        SyntaxList<MemberDeclarationSyntax> extensionMembers = [.. members.OfType<MemberDeclarationSyntax>().WhereNotNull()];
+        var typeParameterList = AsTypeParameterList(typeParameters);
+
+        return SyntaxFactory.ExtensionBlockDeclaration(attributeLists: default, modifiers: default, ExtensionKeyword,
+            typeParameterList, parameterList: AsParameterList([extensionParameter]),
+            constraintClauses: default, OpenBraceToken, extensionMembers, CloseBraceToken, default);
+    }
 
     #endregion
 }

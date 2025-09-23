@@ -843,5 +843,107 @@ class Test1
                     m.GlobalNamespace.GetMember("Test1.<M2>d__0.<>3__x").GetAttributes().Select(a => a.ToString()));
             }
         }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_03()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test()
+    {
+        IEnumerable<T> local<[Preserve1][Preserve2]T>(T x)
+        {
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<<Test>g__local|0_0>d").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_04()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test()
+    {
+        IEnumerable<int> local([Preserve1][Preserve2][Preserve3]int x)
+        {
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute", "Preserve3Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|0_0").Parameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|0_0>d.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|0_0>d.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
     }
 }

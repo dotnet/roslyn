@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Async)]
     public class CodeGenAsyncEHTests : EmitMetadataTestBase
     {
         private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
@@ -144,7 +145,7 @@ class Test
             var expected = @"";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics(
                 // (3,1): hidden CS8019: Unnecessary using directive.
@@ -579,7 +580,7 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -628,7 +629,7 @@ namespace ConsoleApplication1
 ";
             CompileAndVerify(source, expectedOutput: "3");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("3", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -677,7 +678,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(
                 comp,
                 expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
@@ -687,11 +688,7 @@ class Test
                         [G]: Unexpected type on the stack. { Offset = 0x13, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -731,18 +728,14 @@ exception
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [H]: Unexpected type on the stack. { Offset = 0xa, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -894,7 +887,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -903,11 +896,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                         [G]: Unexpected type on the stack. { Offset = 0x29, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -1000,18 +989,14 @@ class Test
 
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0xb, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -1359,7 +1344,7 @@ class Test
   IL_01cc:  ret
 }", sequencePoints: "Test+<G>d__1.MoveNext");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -1367,11 +1352,7 @@ class Test
                     [G]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -1479,7 +1460,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -1488,11 +1469,7 @@ class Test
                         [G]: Unexpected type on the stack. { Offset = 0x3e, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -1765,18 +1742,14 @@ class Test
                 }
                 """);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(6, 28)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
                 {
                   // Code size       72 (0x48)
@@ -2043,18 +2016,14 @@ class Test
                 }
                 """);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(6, 28)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G(System.Threading.SemaphoreSlim)", """
                 {
                   // Code size       43 (0x2b)
@@ -2296,18 +2265,14 @@ class Test
                 }
                 """);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (6,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(6, 28)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G(System.Threading.SemaphoreSlim)", """
                 {
                   // Code size       43 (0x2b)
@@ -2377,7 +2342,7 @@ class Test
             var expected = "4";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -2385,11 +2350,7 @@ class Test
                     [G]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
-            verifier.VerifyDiagnostics(
-                // (5,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(5, 28)
-            );
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.G()", """
                 {
                   // Code size       70 (0x46)
@@ -2504,7 +2465,7 @@ class Test
             var expected = @"15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -2592,7 +2553,7 @@ class Test
 15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -2684,7 +2645,7 @@ class Test
 15";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -2847,7 +2808,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(
                 comp,
                 expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
@@ -2858,11 +2819,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                         [G]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
-            verifier.VerifyDiagnostics(
-                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<int> F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
-            );
+            verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.G()", """
                 {
@@ -2964,7 +2921,7 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3044,7 +3001,7 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3129,7 +3086,7 @@ Attempted to divide by zero.
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3194,7 +3151,7 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3374,7 +3331,7 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3466,7 +3423,7 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3561,7 +3518,7 @@ hello
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3608,7 +3565,7 @@ class Driver
 ";
             CompileAndVerify(source, expected);
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(
                 comp,
                 expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
@@ -3686,7 +3643,7 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3797,7 +3754,7 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true),
                 verify: Verification.Fails with
                 {
@@ -3895,7 +3852,7 @@ class Driver
                     [M2]: Return value missing on the stack. { Offset = 0x3f }
                     """;
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage });
             verifier.VerifyDiagnostics();
         }
@@ -3979,7 +3936,7 @@ class Driver
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput,
                 targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var ilVerifyMessage = (await1, await2) switch
             {
                 (true, true) => """
@@ -4012,7 +3969,6 @@ class Driver
         public void NestedRethrow_02(bool await1, bool await2, bool await3)
         {
             var source = $$"""
-                #pragma warning disable 1998 // async method lacks 'await' operators
                 using System;
                 using System.Threading.Tasks;
 
@@ -4064,7 +4020,7 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x1d }"
@@ -4779,7 +4735,7 @@ class Driver
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.DebugExe), expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe), expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
