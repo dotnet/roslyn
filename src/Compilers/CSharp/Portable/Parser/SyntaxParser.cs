@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using System.Reflection;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal abstract partial class SyntaxParser : IDisposable
