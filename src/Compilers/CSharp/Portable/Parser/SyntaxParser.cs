@@ -818,11 +818,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return (offset, trivia.Width);
                     }
 
-                    Debug.Fail("This shuld not be reachable.  We should have hit a skipped token in the trivia of this token.");
+                    Debug.Fail("This should not be reachable.  We should have hit a skipped token in the trivia of this token.");
                     return default;
                 }
 
-                Debug.Fail("This shuld not be reachable.  We should have hit a child token with skipped text within this node.");
+                Debug.Fail("This should not be reachable.  We should have hit a child token with skipped text within this node.");
                 return default;
             }
         }
