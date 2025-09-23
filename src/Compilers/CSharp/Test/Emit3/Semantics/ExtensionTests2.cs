@@ -34072,5 +34072,94 @@ public static class E
         AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
         Assert.Equal(1, parameter.CallerArgumentExpressionParameterIndex);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void Repro_78189()
+    {
+        var callerSrc = """
+            #nullable enable
+            E.Extension1(new C());
+            C.Extension1(new C());
+            E.Extension2(new C());
+            C.Extension2(new C());
+            """;
+
+        var src = $$"""
+            #nullable enable
+
+            using System.Collections.Generic;
+
+            public class C;
+
+            public static class E
+            {
+                extension(C)
+                {
+                    public static void Extension1(params C[] values)
+                    {
+                        System.Console.Write(values.Length);
+                    }
+
+                    public static void Extension2(params List<C> values)
+                    {
+                        System.Console.Write(values.Count);
+                    }
+                }
+            }
+            """;
+
+        var expectedOutput = "1111";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference: false)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference: true)]);
+        CompileAndVerify(comp3, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void Repro_78189_Reinference()
+    {
+        var source = """
+            #nullable enable
+
+            string x = "a";
+            if (x != null)
+                return;
+
+            C.Extension(C.Create(x));
+
+            public class C
+            {
+                public static C<T> Create<T>(T value) => throw null!;
+            }
+            public class C<T>;
+
+            public static class E
+            {
+                extension(C)
+                {
+                    public static void Extension<T>(params C<T>[] values)
+                    {
+                        System.Console.Write(values.Length);
+                    }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var root = tree.GetRoot();
+
+        var call = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbol = model.GetSymbolInfo(call);
+        AssertEx.Equal("void E.extension(C!).Extension<System.String?>(params C<System.String?>![]! values)", symbol.Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
 }
 
