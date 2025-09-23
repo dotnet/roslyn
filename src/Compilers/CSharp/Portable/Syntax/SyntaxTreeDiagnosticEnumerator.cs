@@ -47,10 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (SyntaxDiagnosticInfo sdi in node.GetDiagnostics())
                     {
-
                         // For tokens, we've already seen leading trivia on the stack.  So we don't need to adjust the
-                        // offset. For everything else, we need to add the leading trivia offset so that we are at the right
-                        // 'Start' position that offset is relative to.  See documention of _position above.
+                        // offset. For everything else, we need to add the leading trivia offset so that we are at the
+                        // right 'Start' position that offset is relative to.  See documentation of position above.
                         int leadingWidthToAdd = node.IsToken ? 0 : node.GetLeadingTriviaWidth();
 
                         // don't produce locations outside of tree span
