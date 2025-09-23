@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -337,12 +338,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                if (!_underlying.IsDefinition || !_underlying.GetIsNewExtensionMember())
+                if (!_underlying.GetIsNewExtensionMember())
                 {
                     return null;
                 }
 
-                return _underlying.TryGetCorrespondingExtensionImplementationMethod().GetPublicSymbol();
+                var implDefinition = _underlying.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod();
+                if (implDefinition is null)
+                {
+                    return null;
+                }
+
+                if (_underlying.IsDefinition)
+                {
+                    return implDefinition.GetPublicSymbol();
+                }
+
+                var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(implDefinition.Arity);
+                typeArguments.AddRange(_underlying.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+                typeArguments.AddRange(_underlying.TypeArgumentsWithAnnotations);
+                return implDefinition.Construct(typeArguments.ToImmutableAndFree()).GetPublicSymbol();
             }
         }
 #nullable disable

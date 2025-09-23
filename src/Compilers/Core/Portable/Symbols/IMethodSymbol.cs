@@ -305,7 +305,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsIterator { get; }
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, add support for constructed symbols
         /// <summary>
         /// For a method/accessor/operator in an extension block, returns the corresponding implementation method if one exists.
         /// Returns null otherwise.
