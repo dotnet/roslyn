@@ -901,15 +901,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case CompletionPart.Attributes:
                         GetAttributes();
-
-                        if (this is SynthesizedPrimaryConstructor primaryConstructor)
-                        {
-                            // The constructor is responsible for completion of the backing fields
-                            foreach (var field in primaryConstructor.GetBackingFields())
-                            {
-                                field.GetAttributes();
-                            }
-                        }
                         break;
 
                     case CompletionPart.ReturnTypeAttributes:
@@ -925,6 +916,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var parameter in this.Parameters)
                         {
                             parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
+                        }
+
+                        if (this is SynthesizedPrimaryConstructor primaryConstructor)
+                        {
+                            // The constructor is responsible for completion of the backing fields
+                            foreach (var field in primaryConstructor.GetBackingFields())
+                            {
+                                field.GetAttributes();
+                            }
                         }
 
                         state.NotePartComplete(CompletionPart.Parameters);
