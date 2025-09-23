@@ -952,8 +952,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// all as trivia on the target token.  For example, given <c>token1-token2</c>, then target will have
         /// <c>leading_trivia1-token1-trailing_trivia1-leading_trivia2-token2-trailing_trivia2-</c> added to it.
         /// <para/>
-        /// Also adds the first node-based error (in depth-first preorder) found in the skipped syntax tree to the
-        /// target token.
+        /// 
+        /// Also adds the first node-based error, or error on a missing-token, in depth-first preorder, found in the
+        /// skipped syntax tree to the target token.  This ensures that we do not lose token/node errors found in
+        /// skipped syntax.
         /// </summary>
         internal SyntaxToken AddSkippedSyntax(SyntaxToken target, GreenNode skippedSyntax, bool trailing)
         {
