@@ -34074,7 +34074,7 @@ public static class E
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
-    public void Repro_78189()
+    public void Params_Nullable_01()
     {
         var callerSrc = """
             #nullable enable
@@ -34121,7 +34121,7 @@ public static class E
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
-    public void Repro_78189_Reinference()
+    public void Params_Nullable_02()
     {
         var source = """
             #nullable enable
@@ -34160,6 +34160,38 @@ public static class E
         var call = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         var symbol = model.GetSymbolInfo(call);
         AssertEx.Equal("void E.extension(C!).Extension<System.String?>(params C<System.String?>![]! values)", symbol.Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void Params_Nullable_03()
+    {
+        var source = """
+            #nullable enable
+
+            string[]? arr = null;
+            string.Extension(arr); // 1
+
+            string? str = null;
+            string.Extension(str); // 2
+
+            public static class E
+            {
+                extension(string)
+                {
+                    public static void Extension(params string[] values) { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+                // (4,18): warning CS8604: Possible null reference argument for parameter 'values' in 'void extension(string).Extension(params string[] values)'.
+                // string.Extension(arr); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "arr").WithArguments("values", "void extension(string).Extension(params string[] values)").WithLocation(4, 18),
+                // (7,18): warning CS8604: Possible null reference argument for parameter 'values' in 'void extension(string).Extension(params string[] values)'.
+                // string.Extension(str); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "str").WithArguments("values", "void extension(string).Extension(params string[] values)").WithLocation(7, 18)
+                );
     }
 }
 
