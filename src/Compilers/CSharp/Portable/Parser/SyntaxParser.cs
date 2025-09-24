@@ -609,12 +609,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected SyntaxToken EatTokenEvenWithIncorrectKind(SyntaxKind kind)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
-            Debug.Assert(this.CurrentToken.Kind != kind);
 
             var token = this.CurrentToken;
 
-            var (offset, width) = getDiagnosticSpan();
-            token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind, offset, width));
+            if (token.Kind != kind)
+            {
+                var (offset, width) = getDiagnosticSpan();
+                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind, offset, width));
+            }
 
             this.MoveToNextToken();
             return token;
