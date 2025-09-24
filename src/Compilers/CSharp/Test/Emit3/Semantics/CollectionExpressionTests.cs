@@ -5476,15 +5476,12 @@ static class Program
 
             verifier.VerifyIL("Program.M", $$"""
                 {
-                  // Code size       84 (0x54)
-                  .maxstack  2
+                  // Code size       65 (0x41)
+                  .maxstack  5
                   .locals init (System.{{spanType}}<object> V_0,
                                 int V_1,
-                                System.Collections.Generic.List<dynamic> V_2,
-                                System.Span<dynamic> V_3,
-                                int V_4,
-                                System.{{spanType}}<object>.Enumerator V_5,
-                                object V_6)
+                                System.Span<dynamic> V_2,
+                                int V_3)
                   IL_0000:  ldarg.0
                   IL_0001:  stloc.0
                   IL_0002:  ldloca.s   V_0
@@ -5492,37 +5489,27 @@ static class Program
                   IL_0009:  stloc.1
                   IL_000a:  ldloc.1
                   IL_000b:  newobj     "System.Collections.Generic.List<dynamic>..ctor(int)"
-                  IL_0010:  stloc.2
-                  IL_0011:  ldloc.2
-                  IL_0012:  ldloc.1
-                  IL_0013:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<dynamic>(System.Collections.Generic.List<dynamic>, int)"
-                  IL_0018:  ldloc.2
-                  IL_0019:  call       "System.Span<dynamic> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<dynamic>(System.Collections.Generic.List<dynamic>)"
-                  IL_001e:  stloc.3
-                  IL_001f:  ldc.i4.0
-                  IL_0020:  stloc.s    V_4
-                  IL_0022:  ldloca.s   V_0
-                  IL_0024:  call       "System.{{spanType}}<object>.Enumerator System.{{spanType}}<object>.GetEnumerator()"
-                  IL_0029:  stloc.s    V_5
-                  IL_002b:  br.s       IL_0049
-                  IL_002d:  ldloca.s   V_5
-                  IL_002f:  call       "ref {{(readOnlySpan ? "readonly " : "")}}object System.{{spanType}}<object>.Enumerator.Current.get"
-                  IL_0034:  ldind.ref
-                  IL_0035:  stloc.s    V_6
-                  IL_0037:  ldloca.s   V_3
-                  IL_0039:  ldloc.s    V_4
-                  IL_003b:  call       "ref dynamic System.Span<dynamic>.this[int].get"
-                  IL_0040:  ldloc.s    V_6
-                  IL_0042:  stind.ref
-                  IL_0043:  ldloc.s    V_4
-                  IL_0045:  ldc.i4.1
-                  IL_0046:  add
-                  IL_0047:  stloc.s    V_4
-                  IL_0049:  ldloca.s   V_5
-                  IL_004b:  call       "bool System.{{spanType}}<object>.Enumerator.MoveNext()"
-                  IL_0050:  brtrue.s   IL_002d
-                  IL_0052:  ldloc.2
-                  IL_0053:  ret
+                  IL_0010:  dup
+                  IL_0011:  ldloc.1
+                  IL_0012:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<dynamic>(System.Collections.Generic.List<dynamic>, int)"
+                  IL_0017:  dup
+                  IL_0018:  call       "System.Span<dynamic> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<dynamic>(System.Collections.Generic.List<dynamic>)"
+                  IL_001d:  stloc.2
+                  IL_001e:  ldc.i4.0
+                  IL_001f:  stloc.3
+                  IL_0020:  ldloca.s   V_0
+                  IL_0022:  ldloca.s   V_2
+                  IL_0024:  ldloc.3
+                  IL_0025:  ldloca.s   V_0
+                  IL_0027:  call       "int System.{{spanType}}<object>.Length.get"
+                  IL_002c:  call       "System.Span<dynamic> System.Span<dynamic>.Slice(int, int)"
+                  IL_0031:  call       "void System.{{spanType}}<object>.CopyTo(System.Span<object>)"
+                  IL_0036:  ldloc.3
+                  IL_0037:  ldloca.s   V_0
+                  IL_0039:  call       "int System.{{spanType}}<object>.Length.get"
+                  IL_003e:  add
+                  IL_003f:  stloc.3
+                  IL_0040:  ret
                 }
                 """);
         }
@@ -5631,14 +5618,13 @@ static class Program
 
             verifier.VerifyIL("Program.M", """
                 {
-                  // Code size       91 (0x5b)
-                  .maxstack  3
+                  // Code size       72 (0x48)
+                  .maxstack  4
                   .locals init (int V_0,
                                 System.Collections.Generic.List<dynamic> V_1,
                                 System.Span<dynamic> V_2,
                                 int V_3,
-                                System.Collections.Generic.List<object>.Enumerator V_4,
-                                object V_5)
+                                System.Span<object> V_4)
                   IL_0000:  ldarg.0
                   IL_0001:  dup
                   IL_0002:  callvirt   "int System.Collections.Generic.List<object>.Count.get"
@@ -5654,37 +5640,22 @@ static class Program
                   IL_001c:  stloc.2
                   IL_001d:  ldc.i4.0
                   IL_001e:  stloc.3
-                  IL_001f:  callvirt   "System.Collections.Generic.List<object>.Enumerator System.Collections.Generic.List<object>.GetEnumerator()"
+                  IL_001f:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
                   IL_0024:  stloc.s    V_4
-                  .try
-                  {
-                    IL_0026:  br.s       IL_0040
-                    IL_0028:  ldloca.s   V_4
-                    IL_002a:  call       "object System.Collections.Generic.List<object>.Enumerator.Current.get"
-                    IL_002f:  stloc.s    V_5
-                    IL_0031:  ldloca.s   V_2
-                    IL_0033:  ldloc.3
-                    IL_0034:  call       "ref dynamic System.Span<dynamic>.this[int].get"
-                    IL_0039:  ldloc.s    V_5
-                    IL_003b:  stind.ref
-                    IL_003c:  ldloc.3
-                    IL_003d:  ldc.i4.1
-                    IL_003e:  add
-                    IL_003f:  stloc.3
-                    IL_0040:  ldloca.s   V_4
-                    IL_0042:  call       "bool System.Collections.Generic.List<object>.Enumerator.MoveNext()"
-                    IL_0047:  brtrue.s   IL_0028
-                    IL_0049:  leave.s    IL_0059
-                  }
-                  finally
-                  {
-                    IL_004b:  ldloca.s   V_4
-                    IL_004d:  constrained. "System.Collections.Generic.List<object>.Enumerator"
-                    IL_0053:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0058:  endfinally
-                  }
-                  IL_0059:  ldloc.1
-                  IL_005a:  ret
+                  IL_0026:  ldloca.s   V_4
+                  IL_0028:  ldloca.s   V_2
+                  IL_002a:  ldloc.3
+                  IL_002b:  ldloca.s   V_4
+                  IL_002d:  call       "int System.Span<object>.Length.get"
+                  IL_0032:  call       "System.Span<dynamic> System.Span<dynamic>.Slice(int, int)"
+                  IL_0037:  call       "void System.Span<object>.CopyTo(System.Span<object>)"
+                  IL_003c:  ldloc.3
+                  IL_003d:  ldloca.s   V_4
+                  IL_003f:  call       "int System.Span<object>.Length.get"
+                  IL_0044:  add
+                  IL_0045:  stloc.3
+                  IL_0046:  ldloc.1
+                  IL_0047:  ret
                 }
                 """);
         }
