@@ -464,6 +464,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression createArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
             {
+                Debug.Assert(node.Type.OriginalDefinition.SpecialType is
+                    SpecialType.System_Collections_Generic_IEnumerable_T or
+                    SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
+                    SpecialType.System_Collections_Generic_IReadOnlyList_T);
+
                 if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection: true, arrayType) is { } optimizedArray)
                     return optimizedArray;
 
