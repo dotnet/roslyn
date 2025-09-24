@@ -3200,6 +3200,26 @@ public class C
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80300")]
+        public void CS0121ERR_AmbigCall_AcrossAssemblies()
+        {
+            var libSource = """
+                public static class E
+                {
+                    public static void M(this object o) { }
+                }
+                """;
+            var a1 = CreateCompilation(libSource, assemblyName: "A1").VerifyDiagnostics().EmitToImageReference();
+            var a2 = CreateCompilation(libSource, assemblyName: "A2").VerifyDiagnostics().EmitToImageReference();
+            var exeSource = """
+                new object().M();
+                """;
+            CreateCompilation(exeSource, [a1, a2]).VerifyDiagnostics(
+                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E.M(object) [A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]' and 'E.M(object) [A2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'
+                // new object().M();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.M(object) [A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "E.M(object) [A2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]").WithLocation(1, 14));
+        }
+
         [WorkItem(539817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539817")]
         [Fact]
         public void CS0122ERR_BadAccess()

@@ -1506,18 +1506,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(Symbol first, Symbol second, ImmutableArray<Symbol> symbols)
         {
-            var arguments = (first.ContainingNamespace != second.ContainingNamespace) ?
-                new object[]
-                    {
-                            new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                            new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat)
-                    } :
-                new object[]
-                    {
-                            first,
-                            second
-                    };
-            return new DiagnosticInfoWithSymbols(ErrorCode.ERR_AmbigCall, arguments, symbols);
+            var distinguisher = new SymbolDistinguisher(compilation: null, first, second);
+            return new DiagnosticInfoWithSymbols(ErrorCode.ERR_AmbigCall, [distinguisher.First, distinguisher.Second], symbols);
         }
 
         [Conditional("DEBUG")]
