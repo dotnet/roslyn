@@ -37714,6 +37714,10 @@ partial class Program
         [Fact]
         public void SingleSpread_ListToArray_Covariant()
         {
+            // Linq ToArray method is applicable, but we do not use it in this case,
+            // because the List<string> has a struct enumerator and doesn't implement ICollection<object>.
+            // If we could get a Span<string> out of the List, then covariant-convert, we could use ReadOnlySpan<object>.ToArray() here.
+            // https://github.com/dotnet/roslyn/issues/71106
             var source = """
                 using System;
                 using System.Collections.Generic;
