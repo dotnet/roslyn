@@ -15,33 +15,34 @@ jobs:
     # You can define any steps you want, and they will run before the agent starts.
     # If you do not check out your code, Copilot will do this for you.
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v5
 
-      # Install .NET 10.0 SDK as specified in global.json
-      - name: Setup .NET 10.0
-        uses: actions/setup-dotnet@v4
+      # Install .NET SDK as specified in global.json
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
 
       # Restore dependencies - this is critical for Copilot to understand the project structure
       - name: Restore dependencies
+        continue-on-error: true
         env:
           # Prevent GitInfo errors and other CI-specific issues
           CI: false
         # Use restore script, but don't fail on errors so Copilot can still attempt to work
-        run: ./restore.sh || true
+        run: ./restore.sh
 
       # Install global tools that might be useful for Roslyn development
       - name: Install useful .NET tools
+        continue-on-error: true
         run: |
-          dotnet tool install --global dotnet-format || true
-          dotnet tool install --global complog || true
+          dotnet tool install --global dotnet-format
+          dotnet tool install --global complog
 
       # Setup PATH to include .NET tools
       - name: Setup PATH
         run: |
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-          echo "$PWD/.dotnet/" >> $GITHUB_PATH
 
       # Diagnostics in the log
       - name: Show .NET info
@@ -55,6 +56,6 @@ jobs:
           echo "=== Directory structure ==="
           ls -la
           echo "=== Build artifacts ==="
-          ls -la artifacts/ || echo "No artifacts directory found"
+          ls -la artifacts/ || true
           echo "=== Global.json ==="
           cat global.json
