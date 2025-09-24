@@ -608,10 +608,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         protected SyntaxToken EatTokenEvenWithIncorrectKind(SyntaxKind kind)
         {
-            Debug.Assert(SyntaxFacts.IsAnyToken(kind));
-
             var token = this.CurrentToken;
-
+            Debug.Assert(SyntaxFacts.IsAnyToken(kind));
             if (token.Kind != kind)
             {
                 var (offset, width) = getDiagnosticSpan();
