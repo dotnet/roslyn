@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(arrayType is not null);
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                Debug.Assert(compilation.Conversions.ClassifyImplicitConversionFromType(arrayType, constructorParameterType, ref discardedUseSiteInfo).IsValid);
+                Debug.Assert(compilation.Conversions.ClassifyConversionFromType(arrayType, constructorParameterType, isChecked: false, ref discardedUseSiteInfo).Kind is ConversionKind.Identity or ConversionKind.ImplicitReference);
             }
         }
 
