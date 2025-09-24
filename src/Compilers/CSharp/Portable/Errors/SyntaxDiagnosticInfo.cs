@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class SyntaxDiagnosticInfo : DiagnosticInfo
     {
         /// <summary>
-        /// The offset of this diagnostic relative to the <em>Start</em> of the <see cref="GreenNode"/> (not the
+        /// The offset of this diagnostic, relative to the <em>Start</em> of the <see cref="GreenNode"/> (not the
         /// FullStart) it is attached to.  (Note: 'Start'/'FullStart' are properties of red Syntax elements, not
         /// GreenNodes. However, the above holds for the red elements created for the green node in its particular
         /// context.
