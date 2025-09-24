@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (containingType.IsExtension &&
                                 method.TryGetCorrespondingExtensionImplementationMethod() is not null)
                             {
-                                EmitSkeletonMethodInExtension(method, compilationState);
+                                EmitSkeletonMethodInExtension(method);
                             }
                             else
                             {
@@ -1407,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private void EmitSkeletonMethodInExtension(MethodSymbol methodSymbol, TypeCompilationState compilationState)
+        private void EmitSkeletonMethodInExtension(MethodSymbol methodSymbol)
         {
             if (!_emitMethodBodies)
             {
@@ -1416,53 +1416,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(_diagnostics.DiagnosticBag != null);
             Debug.Assert(_moduleBeingBuiltOpt != null);
-            Debug.Assert(methodSymbol.GetIsNewExtensionMember());
-            var diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics);
-            var F = new SyntheticBoundNodeFactory(methodSymbol, methodSymbol.GetNonNullSyntaxNode(), compilationState, diagnosticsThisMethod);
-            F.CurrentFunction = methodSymbol;
 
-            BoundStatement body;
-            try
+            ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), _diagnostics.DiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
+            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+            var ctor = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_NotSupportedException__ctor, _diagnostics, syntax: syntax, isOptional: false);
+
+            if (ctor is not null)
             {
-                // throw new NotSupportedException();
-                body = Symbols.MethodBodySynthesizer.ConstructThrowNotSupportedExceptionMethodBody(F);
+                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Newobj, stackAdjustment: 1);
+                builder.EmitToken(_moduleBeingBuiltOpt.Translate(ctor, syntax, _diagnostics.DiagnosticBag, optArgList: null, needDeclaration: false), syntax, 0);
             }
-            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            else
             {
-                diagnosticsThisMethod.Add(ex.Diagnostic);
-                body = F.ThrowNull();
+                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
             }
 
-            MethodBody? emittedBody = null;
-            if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
-            {
-                const int methodOrdinal = -1;
-                emittedBody = GenerateMethodBody(
-                    _moduleBeingBuiltOpt,
-                    methodSymbol,
-                    methodOrdinal,
-                    body,
-                    lambdaDebugInfo: [],
-                    orderedLambdaRuntimeRudeEdits: [],
-                    closureDebugInfo: [],
-                    stateMachineStateDebugInfos: [],
-                    stateMachineTypeOpt: null,
-                    variableSlotAllocatorOpt: null,
-                    diagnosticsThisMethod,
+            builder.EmitThrow(isRethrow: false);
+            builder.Realize();
+
+            _moduleBeingBuiltOpt.TestData?.SetMethodILBuilder(methodSymbol, builder);
+
+            _moduleBeingBuiltOpt.SetMethodBody(
+                methodSymbol,
+                new MethodBody(
+                    builder.RealizedIL,
+                    maxStack: 1,
+                    methodSymbol.GetCciAdapter(),
+                    new DebugId(ordinal: -1, _moduleBeingBuiltOpt.CurrentGenerationOrdinal),
+                    locals: [],
+                    SequencePointList.Empty,
                     debugDocumentProvider: null,
-                    importChainOpt: null,
-                    emittingPdb: false,
-                    codeCoverageSpans: [],
-                    entryPointOpt: null);
-            }
-
-            _diagnostics.AddRange(diagnosticsThisMethod);
-            diagnosticsThisMethod.Free();
-
-            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol, emittedBody);
+                    exceptionHandlers: ImmutableArray<Cci.ExceptionHandlerRegion>.Empty,
+                    areLocalsZeroed: false,
+                    hasStackalloc: false,
+                    localScopes: ImmutableArray<Cci.LocalScope>.Empty,
+                    hasDynamicLocalVariables: false,
+                    importScopeOpt: null,
+                    lambdaDebugInfo: ImmutableArray<EncLambdaInfo>.Empty,
+                    orderedLambdaRuntimeRudeEdits: ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty,
+                    closureDebugInfo: ImmutableArray<EncClosureInfo>.Empty,
+                    stateMachineTypeNameOpt: null,
+                    stateMachineHoistedLocalScopes: default,
+                    stateMachineHoistedLocalSlots: default,
+                    stateMachineAwaiterSlots: default,
+                    StateMachineStatesDebugInfo.Create(variableSlotAllocator: null, ImmutableArray<StateMachineStateDebugInfo>.Empty),
+                    stateMachineMoveNextDebugInfoOpt: null,
+                    codeCoverageSpans: ImmutableArray<SourceSpan>.Empty,
+                    isPrimaryConstructor: false));
         }
 #nullable disable
-
         private static MethodSymbol GetSymbolForEmittedBody(MethodSymbol methodSymbol)
         {
             return methodSymbol.PartialDefinitionPart ?? methodSymbol;
