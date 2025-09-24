@@ -384,8 +384,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 switch (member.Kind)
                                 {
                                     case SymbolKind.NamedType:
-                                        if (!((NamedTypeSymbol)member).IsExtension) // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Figure out what to do about extensions, if anything
+                                        if (!((NamedTypeSymbol)member).IsExtension)
                                         {
+                                            // Since this method is used only for WinMD native PDB generation, and 
+                                            // since in metadata extension blocks have different representation
+                                            // and none of their members have user code in them, skip the blocks.
                                             namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
                                         }
                                         break;
