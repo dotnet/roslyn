@@ -757,6 +757,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return AddError(node, ErrorCode.WRN_ErrorOverride, MakeError(node, code, args), (int)code);
         }
 
+        protected TNode AddError<TNode>(TNode nodeOrToken, ErrorCode code, params object[] args) where TNode : GreenNode
+        {
+            if (!nodeOrToken.IsMissing)
+            {
+                // We have a normal node or token that has actual SyntaxToken.Text within it (or the EOF token). Place
+                // the diagnostic at the start (not full start) of that real node/token, with a width that encompasses
+                // the entire normal width of the node or token.
+                Debug.Assert(nodeOrToken.Width > 0 || nodeOrToken.RawKind is (int)SyntaxKind.EndOfFileToken);
+                return WithAdditionalDiagnostics(nodeOrToken, MakeError(nodeOrToken, code, args));
+            }
+            else
+            {
+                var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(nodeOrToken);
+                return WithAdditionalDiagnostics(nodeOrToken, MakeError(offset, width, code, args));
+            }
+        }
+
         /// <summary>
         /// Given a "missing" node or token (one where <see cref="GreenNode.IsMissing"/> must be true, determines the
         /// ideal location to place the diagnostic for it.  The intuition here is that we want to place the diagnostic
@@ -859,23 +876,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 Debug.Fail("This should not be reachable.  We should have hit a child token with skipped text within this node.");
                 return default;
-            }
-        }
-
-        protected TNode AddError<TNode>(TNode nodeOrToken, ErrorCode code, params object[] args) where TNode : GreenNode
-        {
-            if (!nodeOrToken.IsMissing)
-            {
-                // We have a normal node or token that has actual SyntaxToken.Text within it (or the EOF token). Place
-                // the diagnostic at the start (not full start) of that real node/token, with a width that encompasses
-                // the entire normal width of the node or token.
-                Debug.Assert(nodeOrToken.Width > 0 || nodeOrToken.RawKind is (int)SyntaxKind.EndOfFileToken);
-                return WithAdditionalDiagnostics(nodeOrToken, MakeError(nodeOrToken, code, args));
-            }
-            else
-            {
-                var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(nodeOrToken);
-                return WithAdditionalDiagnostics(nodeOrToken, MakeError(offset, width, code, args));
             }
         }
 
