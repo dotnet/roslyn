@@ -9,92 +9,92 @@
       </trans-unit>
       <trans-unit id="Failed_to_load_solution_filter_0">
         <source>Failed to load solution filter: '{0}'</source>
-        <target state="translated">No se pudo cargar el filtro de la solución: "{0}"</target>
+        <target state="new">Failed to load solution filter: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
         <source>Found project reference without a matching metadata reference: {0}</source>
-        <target state="translated">Se ha encontrado referencia de proyecto sin una referencia de metadatos coincidentes: {0}</target>
+        <target state="new">Found project reference without a matching metadata reference: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_0_specified_1">
         <source>Invalid {0} specified: {1}</source>
-        <target state="translated">{0} no válido especificado: {1}</target>
+        <target state="new">Invalid {0} specified: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="translated">Error de Msbuild al procesar el archivo "{0}"</target>
+        <target state="new">Msbuild failed when processing the file '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">Error de MSBuild al procesar el archivo "{0}" con el mensaje: {1}</target>
+        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_additional_document_0_was_null">
         <source>Path for additional document '{0}' was null}</source>
-        <target state="translated">Ruta de acceso del documento adicional "{0}" era null}</target>
+        <target state="new">Path for additional document '{0}' was null}</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_document_0_was_null">
         <source>Path for document '{0}' was null</source>
-        <target state="translated">La ruta de acceso del documento '{0}' era null</target>
+        <target state="new">Path for document '{0}' was null</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_already_added">
         <source>Project already added.</source>
-        <target state="translated">El proyecto ya se agregó.</target>
+        <target state="new">Project already added.</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
         <source>Found project with the same file path and output path as another project: {0}</source>
-        <target state="translated">Se encontró un proyecto con la misma ruta de acceso de archivo y la misma ruta de acceso de salida que otro proyecto: {0}</target>
+        <target state="new">Found project with the same file path and output path as another project: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_project_discovered_and_skipped_0">
         <source>Duplicate project discovered and skipped: {0}</source>
-        <target state="translated">Se detectó un proyecto duplicado y se omitió: {0}</target>
+        <target state="new">Duplicate project discovered and skipped: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_have_a_path">
         <source>Project does not have a path.</source>
-        <target state="translated">El proyecto no tiene una ruta de acceso.</target>
+        <target state="new">Project does not have a path.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_path_for_0_was_null">
         <source>Project path for '{0}' was null</source>
-        <target state="translated">La ruta de acceso del proyecto para '{0}' era null</target>
+        <target state="new">Project path for '{0}' was null</target>
         <note />
       </trans-unit>
       <trans-unit id="The_build_host_could_not_be_found_at_0">
         <source>The build host could not be found at '{0}'</source>
-        <target state="translated">No se encontró el host de compilación en '{0}'</target>
+        <target state="new">The build host could not be found at '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">
         <source>Unable to add metadata reference '{0}'</source>
-        <target state="translated">No se puede agregar la referencia de metadatos '{0}'</target>
+        <target state="new">Unable to add metadata reference '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_0">
         <source>Unable to find '{0}'</source>
-        <target state="translated">No se encuentra "{0}"</target>
+        <target state="new">Unable to find '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_a_0_for_1">
         <source>Unable to find a '{0}' for '{1}'</source>
-        <target state="translated">No se encuentra '{0}' para '{1}'</target>
+        <target state="new">Unable to find a '{0}' for '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_remove_metadata_reference_0">
         <source>Unable to remove metadata reference '{0}'</source>
-        <target state="translated">No se puede quitar la referencia de metadatos ' {0} '</target>
+        <target state="new">Unable to remove metadata reference '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
         <source>Unresolved metadata reference removed from project: {0}</source>
-        <target state="translated">Referencia de metadatos por resolver retirada del proyecto: {0}</target>
+        <target state="new">Unresolved metadata reference removed from project: {0}</target>
         <note />
       </trans-unit>
     </body>
