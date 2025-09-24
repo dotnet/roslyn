@@ -187,13 +187,9 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider() : SyntaxEditorBasedC
 
     private static ExpressionSyntax CreateUtf8String(SyntaxTriviaList leadingTrivia, string stringValue, SyntaxTriviaList trailingTrivia, bool isConvertedToReadOnlySpan)
     {
-        var stringLiteral = LiteralExpression(SyntaxKind.Utf8StringLiteralExpression,
-            Token(
-                leading: leadingTrivia,
-                kind: SyntaxKind.Utf8StringLiteralToken,
-                text: QuoteCharacter + stringValue + QuoteCharacter + Suffix,
-                valueText: "",
-                trailing: SyntaxTriviaList.Empty));
+        var text = QuoteCharacter + stringValue + QuoteCharacter + Suffix;
+        var stringLiteral = ParseExpression(text)
+            .WithLeadingTrivia(leadingTrivia);
 
         if (isConvertedToReadOnlySpan)
         {
