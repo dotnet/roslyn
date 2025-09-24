@@ -790,14 +790,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var triviaList = new SyntaxList<CSharpSyntaxNode>(_prevTokenTrailingTrivia);
                 if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
                 {
-                    // Offsets is relative to the start (not full start) of the missing node/token. So to move before
+                    // Offset is relative to the start (not full start) of the missing node/token. So to move before
                     // the preceding trivia, we have to subtract the leading trivia on the node, and then the trailing
                     // trivia on the previous token.
                     return (offset: -missingNodeOrToken.GetLeadingTriviaWidth() - trivia.FullWidth, width: 0);
                 }
                 else
                 {
-                    // Offsets is relative to the start (not full start) of the missing node/token. So to move to the location
+                    // Offset is relative to the start (not full start) of the missing node/token. So to move to the location
                     // of the next token we have to move past missing token's content, and it's trailing trivia, and the leading
                     // trivia of the next token.
                     var token = this.CurrentToken;
