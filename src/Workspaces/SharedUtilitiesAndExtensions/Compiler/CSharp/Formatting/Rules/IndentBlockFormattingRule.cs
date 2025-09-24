@@ -293,7 +293,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
     private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
         // increase indentation - embedded statement cases
-        if (node is IfStatementSyntax { Statement: not null } ifStatement && !(ifStatement.Statement is BlockSyntax))
+        if (node is IfStatementSyntax { Statement: not (null or BlockSyntax) } ifStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, ifStatement.Statement);
             return;
@@ -302,50 +302,48 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         if (node is ElseClauseSyntax { Statement: not null } elseClause)
         {
             if (elseClause.Statement is not (BlockSyntax or IfStatementSyntax))
-            {
                 AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
-            }
 
             return;
         }
 
-        if (node is WhileStatementSyntax { Statement: not null } whileStatement && !(whileStatement.Statement is BlockSyntax))
+        if (node is WhileStatementSyntax { Statement: not (null or BlockSyntax) } whileStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, whileStatement.Statement);
             return;
         }
 
-        if (node is ForStatementSyntax { Statement: not null } forStatement && !(forStatement.Statement is BlockSyntax))
+        if (node is ForStatementSyntax { Statement: not (null or BlockSyntax) } forStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, forStatement.Statement);
             return;
         }
 
-        if (node is CommonForEachStatementSyntax { Statement: not null } foreachStatement && !(foreachStatement.Statement is BlockSyntax))
+        if (node is CommonForEachStatementSyntax { Statement: not (null or BlockSyntax) } foreachStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, foreachStatement.Statement);
             return;
         }
 
-        if (node is UsingStatementSyntax { Statement: not null } usingStatement && !(usingStatement.Statement is BlockSyntax or UsingStatementSyntax))
+        if (node is UsingStatementSyntax { Statement: not (null or BlockSyntax or UsingStatementSyntax) } usingStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, usingStatement.Statement);
             return;
         }
 
-        if (node is FixedStatementSyntax { Statement: not null } fixedStatement && !(fixedStatement.Statement is BlockSyntax or FixedStatementSyntax))
+        if (node is FixedStatementSyntax { Statement: not (null or BlockSyntax or FixedStatementSyntax) } fixedStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, fixedStatement.Statement);
             return;
         }
 
-        if (node is DoStatementSyntax { Statement: not null } doStatement && !(doStatement.Statement is BlockSyntax))
+        if (node is DoStatementSyntax { Statement: not (null or BlockSyntax) } doStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, doStatement.Statement);
             return;
         }
 
-        if (node is LockStatementSyntax { Statement: not null } lockStatement && !(lockStatement.Statement is BlockSyntax))
+        if (node is LockStatementSyntax { Statement: not (null or BlockSyntax or LockStatementSyntax) } lockStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, lockStatement.Statement);
             return;

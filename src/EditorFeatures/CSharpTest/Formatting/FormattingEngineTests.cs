@@ -145,6 +145,28 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 }
                 """);
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70672")]
+    public void FormatLockStatementWhenTypingCloseParen()
+        => AssertFormatAfterTypeChar("""
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        lock (null)
+                                lock (null)$$
+                    }
+                }
+                """, """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        lock (null)
+                        lock (null)
+                    }
+                }
+                """);
+
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
     public void FormatNotUsingStatementOnReturn()
         => AssertFormatWithPasteOrReturn("""

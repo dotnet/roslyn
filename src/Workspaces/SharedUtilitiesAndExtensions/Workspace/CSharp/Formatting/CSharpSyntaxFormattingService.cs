@@ -54,7 +54,7 @@ internal sealed class CSharpSyntaxFormattingService(LanguageServices languageSer
 
         // If the token is a )  we only want to format if it's the close paren of a using statement.  That way if we
         // have nested usings, the inner using will align with the outer one when the user types the close paren.
-        if (token.IsKind(SyntaxKind.CloseParenToken) && !token.Parent.IsKind(SyntaxKind.UsingStatement))
+        if (token.IsKind(SyntaxKind.CloseParenToken) && token.Parent is not (kind: SyntaxKind.UsingStatement or SyntaxKind.LockStatement))
             return false;
 
         // If the token is a :  we only want to format if it's a labeled statement or case.  When the colon is typed
