@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            thisParameter = IsStatic ? null :
+            thisParameter = IsStatic || this.GetIsNewExtensionMember() ? null :
                            _uncommonFields?._lazyThisParameter ?? InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyThisParameter, new ThisParameterSymbol(this));
             return true;
         }

@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
+            Debug.Assert(!this.GetIsNewExtensionMember());
+
             if (IsStatic)
             {
                 thisParameter = null;
