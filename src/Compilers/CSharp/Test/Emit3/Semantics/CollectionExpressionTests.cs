@@ -28234,7 +28234,7 @@ partial class Program
         }
 
         [Theory, CombinatorialData]
-        public void ReadOnlySpan_FromSingleSpread_ToArray_SameRuntimeType_Span(bool readOnlySpan)
+        public void ReadOnlySpan_FromSingleSpread_ToArray_SameRuntimeType_Spans(bool readOnlySpan)
         {
             var spanType = readOnlySpan ? "ReadOnlySpan" : "Span";
 
@@ -28371,7 +28371,7 @@ partial class Program
                 expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
             verifier.VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.Main", $$"""
+            verifier.VerifyIL("Program.Main", """
                 {
                   // Code size      125 (0x7d)
                   .maxstack  3
@@ -28463,7 +28463,7 @@ partial class Program
                 expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
             verifier.VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.Main", $$"""
+            verifier.VerifyIL("Program.Main", """
                 {
                   // Code size       86 (0x56)
                   .maxstack  3
@@ -33534,6 +33534,369 @@ partial class Program
                   IL_003c:  ldloc.2
                   IL_003d:  call       "System.Collections.Immutable.ImmutableArray<object> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<object>(object[])"
                   IL_0042:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        public void ImmutableArray_11(bool readOnlySpan)
+        {
+            var spanType = readOnlySpan ? "ReadOnlySpan" : "Span";
+
+            var source = $$"""
+                using System;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([new(), new(), new()]).Report();
+                    }
+
+                    static ImmutableArray<Base> M({{spanType}}<Derived> span) => [.. span];
+                }
+
+                class Base
+                {
+                    private static int _totalCount;
+                    private readonly int _id;
+
+                    public Base()
+                    {
+                        _id = _totalCount++;
+                    }
+
+                    public override string ToString() => $"{GetType().Name} {_id}";
+                }
+
+                class Derived : Base;
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[Derived 0, Derived 1, Derived 2], "));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", $$"""
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  call       "Derived[] System.{{spanType}}<Derived>.ToArray()"
+                  IL_0007:  call       "System.Collections.Immutable.ImmutableArray<Base> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<Base>(Base[])"
+                  IL_000c:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_12()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([new(), new(), new()]).Report();
+                    }
+
+                    static ImmutableArray<Base> M(List<Derived> list) => [.. list];
+                }
+
+                class Base
+                {
+                    private static int _totalCount;
+                    private readonly int _id;
+
+                    public Base()
+                    {
+                        _id = _totalCount++;
+                    }
+
+                    public override string ToString() => $"{GetType().Name} {_id}";
+                }
+
+                class Derived : Base;
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[Derived 0, Derived 1, Derived 2], "));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  callvirt   "Derived[] System.Collections.Generic.List<Derived>.ToArray()"
+                  IL_0006:  call       "System.Collections.Immutable.ImmutableArray<Base> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<Base>(Base[])"
+                  IL_000b:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_13()
+        {
+            var source = """
+                using System;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static ImmutableArray<dynamic> M(Span<object> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  call       "object[] System.Span<object>.ToArray()"
+                  IL_0007:  call       "System.Collections.Immutable.ImmutableArray<dynamic> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<dynamic>(dynamic[])"
+                  IL_000c:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_14()
+        {
+            var source = """
+                using System;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static ImmutableArray<dynamic> M(ReadOnlySpan<object> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Immutable.ImmutableArray<dynamic> System.Collections.Immutable.ImmutableArray.Create<dynamic>(params System.ReadOnlySpan<dynamic>)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_15()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static ImmutableArray<dynamic> M(List<object> list) => [.. list];
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  callvirt   "object[] System.Collections.Generic.List<object>.ToArray()"
+                  IL_0006:  call       "System.Collections.Immutable.ImmutableArray<dynamic> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<dynamic>(dynamic[])"
+                  IL_000b:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        public void ImmutableArray_16(bool readOnlySpan)
+        {
+            var spanType = readOnlySpan ? "ReadOnlySpan" : "Span";
+
+            var source = $$"""
+                using System;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static ImmutableArray<object> M({{spanType}}<int> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", $$"""
+                {
+                  // Code size       67 (0x43)
+                  .maxstack  3
+                  .locals init (System.{{spanType}}<int> V_0,
+                                int V_1,
+                                object[] V_2,
+                                System.{{spanType}}<int>.Enumerator V_3,
+                                int V_4)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloca.s   V_0
+                  IL_0006:  call       "int System.{{spanType}}<int>.Length.get"
+                  IL_000b:  newarr     "object"
+                  IL_0010:  stloc.2
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "System.{{spanType}}<int>.Enumerator System.{{spanType}}<int>.GetEnumerator()"
+                  IL_0018:  stloc.3
+                  IL_0019:  br.s       IL_0033
+                  IL_001b:  ldloca.s   V_3
+                  IL_001d:  call       "ref {{(readOnlySpan ? "readonly " : "")}}int System.{{spanType}}<int>.Enumerator.Current.get"
+                  IL_0022:  ldind.i4
+                  IL_0023:  stloc.s    V_4
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.1
+                  IL_0027:  ldloc.s    V_4
+                  IL_0029:  box        "int"
+                  IL_002e:  stelem.ref
+                  IL_002f:  ldloc.1
+                  IL_0030:  ldc.i4.1
+                  IL_0031:  add
+                  IL_0032:  stloc.1
+                  IL_0033:  ldloca.s   V_3
+                  IL_0035:  call       "bool System.{{spanType}}<int>.Enumerator.MoveNext()"
+                  IL_003a:  brtrue.s   IL_001b
+                  IL_003c:  ldloc.2
+                  IL_003d:  call       "System.Collections.Immutable.ImmutableArray<object> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<object>(object[])"
+                  IL_0042:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_17()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static ImmutableArray<object> M(List<int> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       76 (0x4c)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                object[] V_1,
+                                System.Collections.Generic.List<int>.Enumerator V_2,
+                                int V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
+                  IL_0009:  newarr     "object"
+                  IL_000e:  stloc.1
+                  IL_000f:  callvirt   "System.Collections.Generic.List<int>.Enumerator System.Collections.Generic.List<int>.GetEnumerator()"
+                  IL_0014:  stloc.2
+                  .try
+                  {
+                    IL_0015:  br.s       IL_002c
+                    IL_0017:  ldloca.s   V_2
+                    IL_0019:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldloc.1
+                    IL_0020:  ldloc.0
+                    IL_0021:  ldloc.3
+                    IL_0022:  box        "int"
+                    IL_0027:  stelem.ref
+                    IL_0028:  ldloc.0
+                    IL_0029:  ldc.i4.1
+                    IL_002a:  add
+                    IL_002b:  stloc.0
+                    IL_002c:  ldloca.s   V_2
+                    IL_002e:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
+                    IL_0033:  brtrue.s   IL_0017
+                    IL_0035:  leave.s    IL_0045
+                  }
+                  finally
+                  {
+                    IL_0037:  ldloca.s   V_2
+                    IL_0039:  constrained. "System.Collections.Generic.List<int>.Enumerator"
+                    IL_003f:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0044:  endfinally
+                  }
+                  IL_0045:  ldloc.1
+                  IL_0046:  call       "System.Collections.Immutable.ImmutableArray<object> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<object>(object[])"
+                  IL_004b:  ret
                 }
                 """);
         }

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.Span:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                         Debug.Assert(elementType is { });
-                        return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
+                        return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, forImmutableArray: false, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         // A few special cases when a collection type is an ImmutableArray<T>
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
@@ -235,13 +235,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayCreation = VisitArrayOrSpanCollectionExpression(
                 node,
                 CollectionExpressionTypeKind.Array,
+                forImmutableArray: true,
                 ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType),
                 elementType);
             // ImmutableCollectionsMarshal.AsImmutableArray(arrayCreation)
             return _factory.StaticCall(asImmutableArray.Construct(ImmutableArray.Create(elementType)), ImmutableArray.Create(arrayCreation));
         }
 
-        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol collectionType, TypeWithAnnotations elementType)
+        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, CollectionExpressionTypeKind collectionTypeKind, bool forImmutableArray, TypeSymbol collectionType, TypeWithAnnotations elementType)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(_additionalLocals is { });
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression array;
-            if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan, arrayType) is { } optimizedArray)
+            if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection: forImmutableArray || collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan, arrayType) is { } optimizedArray)
             {
                 array = optimizedArray;
             }
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
             BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
                 ? VisitExpression(spreadExpression)
-                : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
+                : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, forImmutableArray: false, spanType, elementType);
 
             var invocation = new BoundCall(
                 node.Syntax,
