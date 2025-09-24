@@ -691,9 +691,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (prefixTrailingWidth > 0 || colonLeadingWidth > 0)
                 {
-                    // NOTE: offset is relative to full-span start of colon (i.e. before leading trivia).
-                    int offset = -prefixTrailingWidth;
+                    // NOTE: offset is relative to Start (not FullStart) of colon.
                     int width = prefixTrailingWidth + colonLeadingWidth;
+                    int offset = -width;
                     colon = WithAdditionalDiagnostics(colon, new XmlSyntaxDiagnosticInfo(offset, width, XmlParseErrorCode.XML_InvalidWhitespace));
                 }
 
@@ -704,9 +704,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int localNameLeadingWidth = id.GetLeadingTriviaWidth();
                 if (colonTrailingWidth > 0 || localNameLeadingWidth > 0)
                 {
-                    // NOTE: offset is relative to full-span start of identifier (i.e. before leading trivia).
-                    int offset = -colonTrailingWidth;
+                    // NOTE: offset is relative to Start (not FullStart) of identifier.
                     int width = colonTrailingWidth + localNameLeadingWidth;
+                    int offset = -width;
                     id = WithAdditionalDiagnostics(id, new XmlSyntaxDiagnosticInfo(offset, width, XmlParseErrorCode.XML_InvalidWhitespace));
 
                     // CONSIDER: Another interpretation would be that the local part of this name is a missing identifier and the identifier
