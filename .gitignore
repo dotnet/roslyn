@@ -203,3 +203,5 @@ publish/
 Metalama.Compiler.Import.props
 *.g.props
 /dependencies/
+*.g.json
+*.g.ps1
