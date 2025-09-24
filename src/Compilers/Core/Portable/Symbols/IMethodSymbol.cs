@@ -320,7 +320,10 @@ namespace Microsoft.CodeAnalysis
         /// }
         /// </code>
         /// When given the method symbol for <c>E.extension(int i).M()</c>,
-        /// it will return the corresponding static implementation method <c>E.M(this int i)</c>.
+        /// it returns the corresponding static implementation method <c>E.M(this int i)</c>.
+        ///
+        /// When given a generic extension member definition, it returns an implementation method constructed
+        /// with the extension member's type parameters.
         /// </summary>
         IMethodSymbol? AssociatedExtensionImplementation { get; }
     }
