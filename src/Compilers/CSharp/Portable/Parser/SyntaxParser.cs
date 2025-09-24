@@ -599,15 +599,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxToken EatTokenWithPrejudice(SyntaxKind kind)
+        /// <summary>
+        /// Called when we need to eat a token even if its kind is different from what we're looking for.  This will
+        /// place a diagnostic on the resultant token if the kind is not correct.  Note: the token's kind will
+        /// <em>not</em> be the same as <paramref name="kind"/>.  As such, callers should take great care here to ensure
+        /// they process the result properly in their context.  For example, adding the token as skipped syntax, or
+        /// forcibly changing its kind by some other means.
+        /// </summary>
+        protected SyntaxToken EatTokenEvenWithIncorrectKind(SyntaxKind kind)
         {
-            var token = this.CurrentToken;
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
-            if (token.Kind != kind)
-            {
-                var (offset, width) = getDiagnosticSpan();
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind, offset, width));
-            }
+            Debug.Assert(this.CurrentToken.Kind != kind);
+
+            var token = this.CurrentToken;
+
+            var (offset, width) = getDiagnosticSpan();
+            token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind, offset, width));
 
             this.MoveToNextToken();
             return token;
@@ -617,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // We got the wrong kind while forcefully eating this token.  If it's on the same line as the last
                 // token, just squiggle it as being the wrong kind. If it's on the next line, move the squiggle back to
                 // the end of the previous token and make it zero width, indicating the expected token was missed at
-                // that location.
+                // that location (even though we're still unilaterally consuming this token).
 
                 var trivia = _prevTokenTrailingTrivia;
                 var triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);

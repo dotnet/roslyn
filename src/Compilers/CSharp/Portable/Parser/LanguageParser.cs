@@ -275,8 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 //the next character is neither the brace we expect, nor a token that could follow the expected
                 //brace so we assume it's a mistake and replace it with a missing brace 
-                openBrace = this.EatTokenWithPrejudice(SyntaxKind.OpenBraceToken);
-                openBrace = this.ConvertToMissingWithTrailingTrivia(openBrace, SyntaxKind.OpenBraceToken);
+                openBrace = this.ConvertToMissingWithTrailingTrivia(
+                    this.EatTokenEvenWithIncorrectKind(SyntaxKind.OpenBraceToken), SyntaxKind.OpenBraceToken);
             }
 
             Debug.Assert(semicolon != null || openBrace != null);
@@ -4126,7 +4126,7 @@ parse_member_name:;
             // Error recovery: add an errant semicolon to the identifier token and keep going.
             if (this.CurrentToken.Kind is SyntaxKind.SemicolonToken)
             {
-                identifier = AddTrailingSkippedSyntax(identifier, this.EatTokenWithPrejudice(SyntaxKind.OpenBraceToken));
+                identifier = AddTrailingSkippedSyntax(identifier, this.EatTokenEvenWithIncorrectKind(SyntaxKind.OpenBraceToken));
             }
 
             // We know we are parsing a property because we have seen either an open brace or an arrow token
@@ -4441,7 +4441,7 @@ parse_member_name:;
                     break;
                 }
 
-                var token = (first && !this.CurrentToken.ContainsDiagnostics) ? this.EatTokenWithPrejudice(expected) : this.EatToken();
+                var token = (first && !this.CurrentToken.ContainsDiagnostics) ? this.EatTokenEvenWithIncorrectKind(expected) : this.EatToken();
                 first = false;
                 nodes.Add(token);
             }
@@ -9410,7 +9410,7 @@ done:
                 var skippedTokens = _pool.Allocate();
 
                 while (this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CommaToken)
-                    skippedTokens.Add(this.EatTokenWithPrejudice(SyntaxKind.CloseParenToken));
+                    skippedTokens.Add(this.EatTokenEvenWithIncorrectKind(SyntaxKind.CloseParenToken));
 
                 var result = this.EatToken(SyntaxKind.CloseParenToken);
                 return AddLeadingSkippedSyntax(result, _pool.ToTokenListAndFree(skippedTokens).Node);
@@ -11831,7 +11831,7 @@ done:
                             else
                             {
                                 // just some random trailing :: ?
-                                expr = AddTrailingSkippedSyntax(expr, this.EatTokenWithPrejudice(SyntaxKind.DotToken));
+                                expr = AddTrailingSkippedSyntax(expr, this.EatTokenEvenWithIncorrectKind(SyntaxKind.DotToken));
                             }
 
                             continue;
@@ -14148,9 +14148,14 @@ tryAgain:
 
                         if (shouldParseSeparatorOrElement())
                         {
-                            // If we got a semicolon instead of comma, consume it with error and act as if it were a comma.
+                            // If we got a semicolon instead of comma, consume it with error and act as if it were a
+                            // comma. Note: we do not change the kind of the token, so we can end up with a separated
+                            // syntax list whose separators are a mix of commas and semicolons.  That is ok and is part
+                            // of the expected contract of separated lists.  There will still be a diagnostic on the 
+                            // token letting the user know there is an error.  This allows us to recover gracefully,
+                            // especially for higher levels like the IDE.
                             nodes.AddSeparator(this.CurrentToken.Kind == SyntaxKind.SemicolonToken
-                                ? this.EatTokenWithPrejudice(separatorTokenKind)
+                                ? this.EatTokenEvenWithIncorrectKind(separatorTokenKind)
                                 : this.EatToken(separatorTokenKind));
 
                             if (allowTrailingSeparator)
