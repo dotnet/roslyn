@@ -12,42 +12,13 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 internal static class Completion
 {
-    [Obsolete("Use GetCompletionListAsync with CompletionListCacheWrapper instead.")]
-    private static CompletionListCache? s_completionListCache;
-
-    [Obsolete("Use GetCompletionListAsync with CompletionListCacheWrapper instead.")]
-    private static CompletionListCache GetCache()
-        => s_completionListCache ??= InterlockedOperations.Initialize(ref s_completionListCache, () => new());
-
-    [Obsolete("Use GetCompletionListAsync with CompletionListCacheWrapper instead.")]
-    public static Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
-        Document document,
-        LinePosition linePosition,
-        LSP.CompletionContext? completionContext,
-        bool supportsVSExtensions,
-        LSP.CompletionSetting completionCapabilities,
-        CancellationToken cancellationToken)
-    {
-        var cache = GetCache();
-
-        return GetCompletionListAsync(
-            document,
-            linePosition,
-            completionContext,
-            supportsVSExtensions,
-            completionCapabilities,
-            GetCache(),
-            cancellationToken);
-    }
-
-    public static Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
+    public static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
         Document document,
         LinePosition linePosition,
         LSP.CompletionContext? completionContext,
@@ -56,25 +27,7 @@ internal static class Completion
         CompletionListCacheWrapper cacheWrapper,
         CancellationToken cancellationToken)
     {
-        return GetCompletionListAsync(
-            document,
-            linePosition,
-            completionContext,
-            supportsVSExtensions,
-            completionCapabilities,
-            cacheWrapper.GetCache(),
-            cancellationToken);
-    }
-
-    private static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
-        Document document,
-        LinePosition linePosition,
-        LSP.CompletionContext? completionContext,
-        bool supportsVSExtensions,
-        LSP.CompletionSetting completionCapabilities,
-        CompletionListCache cache,
-        CancellationToken cancellationToken)
-    {
+        var cache = cacheWrapper.GetCache();
         var position = await document
             .GetPositionFromLinePositionAsync(linePosition, cancellationToken)
             .ConfigureAwait(false);
@@ -92,18 +45,6 @@ internal static class Completion
             cancellationToken).ConfigureAwait(false);
     }
 
-    [Obsolete("Use GetCompletionListAsync with CompletionListCacheWrapper instead.")]
-    public static Task<LSP.CompletionItem> ResolveCompletionItemAsync(
-        LSP.CompletionItem completionItem,
-        Document document,
-        bool supportsVSExtensions,
-        LSP.CompletionSetting completionCapabilities,
-        CancellationToken cancellationToken)
-    {
-        return ResolveCompletionItemAsync(
-            completionItem, document, supportsVSExtensions, completionCapabilities, GetCache(), cancellationToken);
-    }
-
     public static Task<LSP.CompletionItem> ResolveCompletionItemAsync(
         LSP.CompletionItem completionItem,
         Document document,
@@ -112,18 +53,8 @@ internal static class Completion
         CompletionListCacheWrapper cacheWrapper,
         CancellationToken cancellationToken)
     {
-        return ResolveCompletionItemAsync(
-            completionItem, document, supportsVSExtensions, completionCapabilities, cacheWrapper.GetCache(), cancellationToken);
-    }
+        var cache = cacheWrapper.GetCache();
 
-    private static Task<LSP.CompletionItem> ResolveCompletionItemAsync(
-        LSP.CompletionItem completionItem,
-        Document document,
-        bool supportsVSExtensions,
-        LSP.CompletionSetting completionCapabilities,
-        CompletionListCache cache,
-        CancellationToken cancellationToken)
-    {
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var capabilityHelper = new CompletionCapabilityHelper(supportsVSExtensions, completionCapabilities);
 

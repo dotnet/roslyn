@@ -285,7 +285,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
                         if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
                             return false;
 
-                        if (!TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, out var newLeft, out issueSpan))
+                        if (!TrySimplifyMemberAccessOrQualifiedName(isMemberAccessExpression: true, memberAccess.Expression, memberAccess.Name, semanticModel, out var newLeft, out issueSpan))
                             return false;
 
                         // replacement node might not be in it's simplest form, so add simplify annotation to it.
@@ -296,7 +296,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
 
                 case QualifiedNameSyntax qualifiedName:
                     {
-                        if (!TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, out var newLeft, out issueSpan))
+                        if (!TrySimplifyMemberAccessOrQualifiedName(isMemberAccessExpression: false, qualifiedName.Left, qualifiedName.Right, semanticModel, out var newLeft, out issueSpan))
                             return false;
 
                         // replacement node might not be in it's simplest form, so add simplify annotation to it.
@@ -402,6 +402,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
 
     // Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
     private static bool TrySimplifyMemberAccessOrQualifiedName(
+        bool isMemberAccessExpression,
         ExpressionSyntax left,
         ExpressionSyntax right,
         SemanticModel semanticModel,
@@ -432,7 +433,10 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
                         // We have a static member access or a nested type member access using a more derived type.
                         // Simplify syntax so as to use accessed member's most immediate containing type instead of the
                         // derived type.
-                        replacementNode = containingType.GenerateTypeSyntax().WithTriviaFrom(left);
+                        replacementNode = isMemberAccessExpression
+                            ? containingType.GenerateExpressionSyntax()
+                            : containingType.GenerateTypeSyntax();
+                        replacementNode = replacementNode.WithTriviaFrom(left);
                         issueSpan = left.Span;
                         return true;
                     }

@@ -83,7 +83,33 @@ namespace X
 			return Driver.Result;
 		}
 	}
-}";
+}
+
+static class Ext
+{
+    public static void M1(this int i) { }    
+
+    extension(int i)
+    {
+        public void M2() { }
+    }
+
+    extension(int i)
+    {
+        public void M3() { }
+    }
+
+    extension(long l)
+    {
+        public void M4() { }
+    }
+
+    extension(long l)
+    {
+        public long P5 {  get => l; set {}}
+    }
+}
+";
             string expected = @"
 <token-map>
     <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""7"" start-column=""8"" end-line=""7"" end-column=""22""/>
@@ -103,6 +129,13 @@ namespace X
     <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""37"" start-column=""21"" end-line=""37"" end-column=""27""/>
     <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""38"" start-column=""32"" end-line=""38"" end-column=""47""/>
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""39"" start-column=""14"" end-line=""39"" end-column=""18""/>
+    <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""50"" start-column=""14"" end-line=""50"" end-column=""17""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""52"" start-column=""24"" end-line=""52"" end-column=""26""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""56"" start-column=""21"" end-line=""56"" end-column=""23""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""61"" start-column=""21"" end-line=""61"" end-column=""23""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""66"" start-column=""21"" end-line=""66"" end-column=""23""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""71"" start-column=""27"" end-line=""71"" end-column=""30""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""71"" start-column=""37"" end-line=""71"" end-column=""40""/>
 </token-map>";
 
             var compilation = CreateCompilationWithMscorlib461(

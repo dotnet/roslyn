@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -234,12 +234,12 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         return item;
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetPreambleParts(
+    private static IList<SymbolDisplayPart> GetPreambleParts(
         IPropertySymbol indexer,
         int position,
         SemanticModel semanticModel)
     {
-        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
+        var result = new List<SymbolDisplayPart>();
 
         if (indexer.ReturnsByRef)
         {
@@ -266,10 +266,10 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
 
         result.Add(Punctuation(SyntaxKind.OpenBracketToken));
 
-        return result.ToImmutableAndClear();
+        return result;
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetPostambleParts()
+    private static IList<SymbolDisplayPart> GetPostambleParts()
         => [Punctuation(SyntaxKind.CloseBracketToken)];
 
     private static class CompleteElementAccessExpression

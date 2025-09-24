@@ -185,6 +185,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);
 
             var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var gi = this.Service.SyntaxGeneratorInternal;
             var syntaxFacts = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // // Do not change...
@@ -203,7 +204,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 statements.Add(g.ExpressionStatement(
                     g.InvocationExpression(
                         g.MemberAccessExpression(
-                            g.TypeExpression(gcType),
+                            gi.Type(gcType, typeContext: false),
                             nameof(GC.SuppressFinalize)),
                         g.ThisExpression())));
             }

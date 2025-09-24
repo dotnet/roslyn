@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -34,13 +33,13 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider : AbstractSi
     protected static SymbolDisplayPart NewLine()
         => new(SymbolDisplayPartKind.LineBreak, null, "\r\n");
 
-    private static readonly ImmutableArray<SymbolDisplayPart> _separatorParts =
+    private static readonly IList<SymbolDisplayPart> _separatorParts =
         [
             Punctuation(SyntaxKind.CommaToken),
             Space()
         ];
 
-    protected static ImmutableArray<SymbolDisplayPart> GetSeparatorParts() => _separatorParts;
+    protected static IList<SymbolDisplayPart> GetSeparatorParts() => _separatorParts;
 
     protected static SignatureHelpSymbolParameter Convert(
         IParameterSymbol parameter,

@@ -2,12 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -39,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return SpecializedCollections.SingletonEnumerable(item)
         End Function
 
-        Private Shared Function GetDelegateInvokePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim displayParts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+        Private Shared Function GetDelegateInvokePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+            Dim displayParts = New List(Of SymbolDisplayPart)()
 
             If invokeMethod.ContainingType.IsAnonymousType Then
                 displayParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.MethodName, invokeMethod, invokeMethod.Name))
@@ -49,11 +47,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             displayParts.Add(Punctuation(SyntaxKind.OpenParenToken))
-            Return displayParts.ToImmutableAndFree()
+            Return displayParts
         End Function
 
-        Private Shared Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As ImmutableArray(Of SignatureHelpSymbolParameter)
-            Dim parameters = ArrayBuilder(Of SignatureHelpSymbolParameter).GetInstance()
+        Private Shared Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IList(Of SignatureHelpSymbolParameter)
+            Dim parameters = New List(Of SignatureHelpSymbolParameter)
             For Each parameter In invokeMethod.Parameters
                 cancellationToken.ThrowIfCancellationRequested()
                 parameters.Add(New SignatureHelpSymbolParameter(
@@ -63,14 +61,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                     displayParts:=parameter.ToMinimalDisplayParts(semanticModel, position)))
             Next
 
-            Return parameters.ToImmutableAndFree()
+            Return parameters
         End Function
 
-        Private Shared Function GetDelegateInvokePostambleParts(
-                invokeMethod As IMethodSymbol,
-                semanticModel As SemanticModel,
-                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+        Private Shared Function GetDelegateInvokePostambleParts(invokeMethod As IMethodSymbol,
+                                                         semanticModel As SemanticModel,
+                                                         position As Integer) As IList(Of SymbolDisplayPart)
+            Dim parts = New List(Of SymbolDisplayPart)
 
             parts.Add(Punctuation(SyntaxKind.CloseParenToken))
 
@@ -81,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 parts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position))
             End If
 
-            Return parts.ToImmutableAndFree()
+            Return parts
         End Function
     End Class
 End Namespace

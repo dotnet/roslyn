@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -38,7 +39,8 @@ public sealed class SyntaxGeneratorTests
     private SyntaxGenerator Generator
         => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
-    public static Compilation Compile(string code)
+    public static Compilation Compile(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code)
     {
         return CSharpCompilation.Create("test")
             .AddReferences(NetFramework.mscorlib, NetFramework.System, NetFramework.SystemCore, NetFramework.SystemRuntime, NetFramework.SystemValueTuple)
@@ -5688,4 +5690,37 @@ public sealed class SyntaxGeneratorTests
     }
 
     #endregion
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80427")]
+    public void TestAttributeArgument()
+    {
+        var compilation = Compile("""
+            class TestAttribute : System.Attribute { public TestAttribute(object p) { } }
+
+            class ContainingClass { public enum NestedType { A = 1 } }
+
+            class Base
+            {
+                [Test(ContainingClass.NestedType.A)]
+                public int P { get; set; }
+            }
+
+            class Derived : Base
+            {
+                public new int P { get; set; }
+            }
+            """);
+
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        var syntaxRoot = compilation.SyntaxTrees.Single().GetRoot();
+        var basePropertySymbol = semanticModel.GetDeclaredSymbol(syntaxRoot.DescendantNodes().OfType<PropertyDeclarationSyntax>().First())!;
+        var basePropertyAttributeData = basePropertySymbol.GetAttributes().Single();
+
+        var generator = this.Generator;
+        var generatedAttribute = generator.Attribute(basePropertyAttributeData);
+        var attributeArgument = generatedAttribute.DescendantNodes().OfType<AttributeArgumentSyntax>().Single();
+        var enumValueReference = (MemberAccessExpressionSyntax)attributeArgument.Expression;
+        var typeReference = enumValueReference.Expression;
+        Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, typeReference.Kind());
+    }
 }

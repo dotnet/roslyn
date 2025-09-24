@@ -38,9 +38,9 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
     protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken);
 
     protected static SignatureHelpItems? CreateSignatureHelpItems(
-        ImmutableArray<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItemIndex, int parameterIndexOverride)
+        IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItemIndex, int parameterIndexOverride)
     {
-        if (items.IsDefaultOrEmpty || state == null)
+        if (items is null || items.Count == 0 || state == null)
             return null;
 
         if (selectedItemIndex < 0)
@@ -70,7 +70,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
     }
 
     protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(
-        ImmutableArray<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state)
+        IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state)
     {
         // We will have added all the accessible '.Add' methods that take at least one
         // arguments. However, in general the one-arg Add method is the least likely for the
@@ -94,15 +94,15 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2), parameterIndexOverride: -1);
     }
 
-    private static (ImmutableArray<SignatureHelpItem> items, int? selectedItem) Filter(ImmutableArray<SignatureHelpItem> items, ImmutableArray<string> parameterNames, int? selectedItem)
+    private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, ImmutableArray<string> parameterNames, int? selectedItem)
     {
         if (parameterNames.IsDefault)
-            return (items, selectedItem);
+            return (items.ToList(), selectedItem);
 
-        var filteredList = items.WhereAsArray(i => Include(i, parameterNames));
-        var isEmpty = filteredList.IsEmpty;
+        var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
+        var isEmpty = filteredList.Count == 0;
         if (!selectedItem.HasValue || isEmpty)
-            return (isEmpty ? items : filteredList, selectedItem);
+            return (isEmpty ? [.. items] : filteredList, selectedItem);
 
         // adjust the selected item
         var selection = items[selectedItem.Value];
@@ -138,11 +138,11 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         IStructuralTypeDisplayService structuralTypeDisplayService,
         bool isVariadic,
         Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
-        ImmutableArray<SymbolDisplayPart> prefixParts,
-        ImmutableArray<SymbolDisplayPart> separatorParts,
-        ImmutableArray<SymbolDisplayPart> suffixParts,
-        ImmutableArray<SignatureHelpSymbolParameter> parameters,
-        ImmutableArray<SymbolDisplayPart>? descriptionParts = null)
+        IList<SymbolDisplayPart> prefixParts,
+        IList<SymbolDisplayPart> separatorParts,
+        IList<SymbolDisplayPart> suffixParts,
+        IList<SignatureHelpSymbolParameter> parameters,
+        IList<SymbolDisplayPart>? descriptionParts = null)
     {
         return CreateItem(orderSymbol, semanticModel, position, structuralTypeDisplayService,
             isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
@@ -155,11 +155,11 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         IStructuralTypeDisplayService structuralTypeDisplayService,
         bool isVariadic,
         Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
-        ImmutableArray<SymbolDisplayPart> prefixParts,
-        ImmutableArray<SymbolDisplayPart> separatorParts,
-        ImmutableArray<SymbolDisplayPart> suffixParts,
-        ImmutableArray<SignatureHelpSymbolParameter> parameters,
-        ImmutableArray<SymbolDisplayPart>? descriptionParts = null)
+        IList<SymbolDisplayPart> prefixParts,
+        IList<SymbolDisplayPart> separatorParts,
+        IList<SymbolDisplayPart> suffixParts,
+        IList<SignatureHelpSymbolParameter> parameters,
+        IList<SymbolDisplayPart>? descriptionParts = null)
     {
         return CreateItemImpl(orderSymbol, semanticModel, position, structuralTypeDisplayService,
             isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
@@ -172,13 +172,15 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         IStructuralTypeDisplayService structuralTypeDisplayService,
         bool isVariadic,
         Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
-        ImmutableArray<SymbolDisplayPart> prefixParts,
-        ImmutableArray<SymbolDisplayPart> separatorParts,
-        ImmutableArray<SymbolDisplayPart> suffixParts,
-        ImmutableArray<SignatureHelpSymbolParameter> parameters,
-        ImmutableArray<SymbolDisplayPart>? descriptionParts)
+        IList<SymbolDisplayPart> prefixParts,
+        IList<SymbolDisplayPart> separatorParts,
+        IList<SymbolDisplayPart> suffixParts,
+        IList<SignatureHelpSymbolParameter> parameters,
+        IList<SymbolDisplayPart>? descriptionParts)
     {
-        descriptionParts ??= [];
+        descriptionParts = descriptionParts == null
+            ? SpecializedCollections.EmptyList<SymbolDisplayPart>()
+            : descriptionParts;
 
         var allParts = prefixParts.Concat(separatorParts)
                                   .Concat(suffixParts)
@@ -193,7 +195,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         var info = structuralTypeDisplayService.GetTypeDisplayInfo(
             orderSymbol, [.. structuralTypes], semanticModel, position);
 
-        if (info.TypesParts.Length > 0)
+        if (info.TypesParts.Count > 0)
         {
             var structuralTypeParts = new List<SymbolDisplayPart>
             {
@@ -258,7 +260,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
         var compilation = semanticModel.Compilation;
 
-        using var _1 = ArrayBuilder<SignatureHelpItem>.GetInstance(out var finalItems);
+        var finalItems = new List<SignatureHelpItem>();
         foreach (var item in itemsForCurrentDocument.Items)
         {
             if (item is not SymbolKeySignatureHelpItem symbolKeyItem ||
@@ -276,7 +278,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
                 symbolKey = SymbolKey.Create(methodSymbol.OriginalDefinition, cancellationToken);
             }
 
-            using var _2 = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjectsForCurrentSymbol);
+            using var _ = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjectsForCurrentSymbol);
             foreach (var relatedDocument in relatedDocuments)
             {
                 // Try to resolve symbolKey in each related compilation,
@@ -293,7 +295,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         }
 
         return new SignatureHelpItems(
-            finalItems.ToImmutableAndClear(),
+            finalItems,
             itemsForCurrentDocument.ApplicableSpan,
             itemsForCurrentDocument.SemanticParameterIndex,
             itemsForCurrentDocument.SyntacticArgumentCount,

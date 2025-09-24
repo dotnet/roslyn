@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 internal partial class AbstractGenericNameSignatureHelpProvider
 {
-    private static ImmutableArray<SymbolDisplayPart> GetPreambleParts(
+    private static IList<SymbolDisplayPart> GetPreambleParts(
         IMethodSymbol method,
         SemanticModel semanticModel,
         int position)
     {
-        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
+        var result = new List<SymbolDisplayPart>();
 
         var awaitable = method.GetOriginalUnreducedDefinition().IsAwaitableNonDynamic(semanticModel, position);
         var extension = method.GetOriginalUnreducedDefinition().IsExtensionMethod();
@@ -56,7 +55,7 @@ internal partial class AbstractGenericNameSignatureHelpProvider
         result.Add(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, method, method.Name));
         result.Add(Punctuation(SyntaxKind.LessThanToken));
 
-        return result.ToImmutableAndClear();
+        return result;
     }
 
     private static ITypeSymbol? GetContainingType(IMethodSymbol method)
@@ -72,11 +71,13 @@ internal partial class AbstractGenericNameSignatureHelpProvider
         }
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
+    private static IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
     {
-        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var result);
-        result.Add(Punctuation(SyntaxKind.GreaterThanToken));
-        result.Add(Punctuation(SyntaxKind.OpenParenToken));
+        var result = new List<SymbolDisplayPart>
+        {
+            Punctuation(SyntaxKind.GreaterThanToken),
+            Punctuation(SyntaxKind.OpenParenToken)
+        };
 
         var first = true;
         foreach (var parameter in method.Parameters)
@@ -92,6 +93,6 @@ internal partial class AbstractGenericNameSignatureHelpProvider
         }
 
         result.Add(Punctuation(SyntaxKind.CloseParenToken));
-        return result.ToImmutableAndClear();
+        return result;
     }
 }

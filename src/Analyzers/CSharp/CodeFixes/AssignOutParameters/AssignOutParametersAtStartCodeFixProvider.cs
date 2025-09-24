@@ -64,11 +64,10 @@ internal sealed class AssignOutParametersAtStartCodeFixProvider() : AbstractAssi
                   .OrderBy(p => p.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SpanStart)
                   .ToImmutableArray();
 
-        var statements = GenerateAssignmentStatements(generator, unassignedParameters);
-        var originalStatements = generator.GetStatements(container).ToImmutableArray();
-
-        var finalStatements = statements.AddRange(originalStatements);
-        var updatedContainer = generator.WithStatements(container, finalStatements);
+        var updatedContainer = generator.WithStatements(
+            container,
+            [.. GenerateAssignmentStatements(generator, unassignedParameters),
+             .. generator.GetStatements(container)]);
 
         editor.ReplaceNode(container, updatedContainer);
     }

@@ -66,12 +66,16 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
         int position)
     {
         if (directStructuralTypeReferences.Length == 0)
-            return StructuralTypeDisplayInfo.Empty;
+        {
+            return new StructuralTypeDisplayInfo(
+                SpecializedCollections.EmptyDictionary<INamedTypeSymbol, string>(),
+                SpecializedCollections.EmptyList<SymbolDisplayPart>());
+        }
 
         var transitiveStructuralTypeReferences = GetTransitiveStructuralTypeReferences(directStructuralTypeReferences);
         transitiveStructuralTypeReferences = OrderStructuralTypes(transitiveStructuralTypeReferences, orderSymbol);
 
-        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var typeParts);
+        IList<SymbolDisplayPart> typeParts = [];
 
         if (transitiveStructuralTypeReferences.Length > 0)
         {
@@ -108,10 +112,10 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
 
         // Finally, assign a name to all the anonymous types.
         var structuralTypeToName = GenerateStructuralTypeNames(transitiveStructuralTypeReferences);
-        var typePartsArray = StructuralTypeDisplayInfo.ReplaceStructuralTypes(
-            typeParts.ToImmutableAndClear(), structuralTypeToName, semanticModel, position);
+        typeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(
+            typeParts, structuralTypeToName, semanticModel, position);
 
-        return new StructuralTypeDisplayInfo(structuralTypeToName, typePartsArray);
+        return new StructuralTypeDisplayInfo(structuralTypeToName, typeParts);
     }
 
     private static Dictionary<INamedTypeSymbol, string> GenerateStructuralTypeNames(

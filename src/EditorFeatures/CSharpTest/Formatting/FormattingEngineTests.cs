@@ -210,7 +210,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 """);
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1007071")]
-    public void FormatPragmaWarningInbetweenDelegateDeclarationStatement()
+    public void FormatPragmaWarningInBetweenDelegateDeclarationStatement()
         => AssertFormatAfterTypeChar("""
                 using System;
 
@@ -2519,6 +2519,14 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 foo:
                 }
             }
+            """);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67011")]
+    public void FormatClassAfterSemicolon()
+        => AssertFormatAfterTypeChar("""
+            class C3 ( int a3,int  a4 );$$
+            """, """
+            class C3(int a3, int a4);
             """);
 
     private static void AssertFormatAfterTypeChar(

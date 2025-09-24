@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 /// </summary>
 internal static class FormattingRangeHelper
 {
-    public static ValueTuple<SyntaxToken, SyntaxToken>? FindAppropriateRange(SyntaxToken endToken, bool useDefaultRange = true)
+    public static (SyntaxToken startToken, SyntaxToken endToken)? FindAppropriateRange(SyntaxToken endToken, bool useDefaultRange = true)
     {
         Contract.ThrowIfTrue(endToken.Kind() == SyntaxKind.None);
 
@@ -52,83 +52,67 @@ internal static class FormattingRangeHelper
         return ValueTuple.Create(currentToken, tokenRange.Value.Item2);
     }
 
-    private static ValueTuple<SyntaxToken, SyntaxToken>? FindAppropriateRangeWorker(SyntaxToken endToken, bool useDefaultRange)
+    private static (SyntaxToken startToken, SyntaxToken endToken)? FindAppropriateRangeWorker(SyntaxToken endToken, bool useDefaultRange)
     {
         // special token that we know how to find proper starting token
         switch (endToken.Kind())
         {
             case SyntaxKind.CloseBraceToken:
-                {
-                    return FindAppropriateRangeForCloseBrace(endToken);
-                }
+                return FindAppropriateRangeForCloseBrace(endToken);
 
             case SyntaxKind.SemicolonToken:
-                {
-                    return FindAppropriateRangeForSemicolon(endToken);
-                }
+                return FindAppropriateRangeForSemicolon(endToken);
 
             case SyntaxKind.ColonToken:
-                {
-                    return FindAppropriateRangeForColon(endToken);
-                }
+                return FindAppropriateRangeForColon(endToken);
 
             default:
+                // default case
+                if (!useDefaultRange)
+                    return null;
+
+                // if given token is skipped token, don't bother to find appropriate
+                // starting point
+                if (endToken.Kind() == SyntaxKind.SkippedTokensTrivia)
+                    return null;
+
+                var parent = endToken.Parent;
+                if (parent == null)
                 {
-                    // default case
-                    if (!useDefaultRange)
-                    {
-                        return null;
-                    }
-
-                    // if given token is skipped token, don't bother to find appropriate
-                    // starting point
-                    if (endToken.Kind() == SyntaxKind.SkippedTokensTrivia)
-                    {
-                        return null;
-                    }
-
-                    var parent = endToken.Parent;
-                    if (parent == null)
-                    {
-                        // if there is no parent setup yet, nothing we can do here.
-                        return null;
-                    }
-
-                    // if we are called due to things in trivia or literals, don't bother
-                    // finding a starting token
-                    if (parent.Kind() is SyntaxKind.StringLiteralExpression or
-                        SyntaxKind.CharacterLiteralExpression)
-                    {
-                        return null;
-                    }
-
-                    // format whole node that containing the end token + its previous one
-                    // to do indentation
-                    return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
+                    // if there is no parent setup yet, nothing we can do here.
+                    return null;
                 }
+
+                // if we are called due to things in trivia or literals, don't bother
+                // finding a starting token
+                if (parent.Kind() is SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression)
+                    return null;
+
+                // format whole node that containing the end token + its previous one
+                // to do indentation
+                return (GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
         }
     }
 
-    private static ValueTuple<SyntaxToken, SyntaxToken>? FindAppropriateRangeForSemicolon(SyntaxToken endToken)
+    private static (SyntaxToken startToken, SyntaxToken endToken)? FindAppropriateRangeForSemicolon(SyntaxToken endToken)
     {
         var parent = endToken.Parent;
         if (parent == null || parent.Kind() == SyntaxKind.SkippedTokensTrivia)
-        {
             return null;
-        }
 
-        if (parent is UsingDirectiveSyntax or
-            DelegateDeclarationSyntax or
-            FieldDeclarationSyntax or
-            EventFieldDeclarationSyntax or
-            MethodDeclarationSyntax or
-            PropertyDeclarationSyntax or
-            ConstructorDeclarationSyntax or
-            DestructorDeclarationSyntax or
-            OperatorDeclarationSyntax or
-            ConversionOperatorDeclarationSyntax)
+        if (parent is UsingDirectiveSyntax
+                   or DelegateDeclarationSyntax
+                   or FieldDeclarationSyntax
+                   or EventFieldDeclarationSyntax
+                   or MethodDeclarationSyntax
+                   or PropertyDeclarationSyntax
+                   or ConstructorDeclarationSyntax
+                   or DestructorDeclarationSyntax
+                   or OperatorDeclarationSyntax
+                   or ConversionOperatorDeclarationSyntax
+                   or TypeDeclarationSyntax)
         {
-            return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
+            return (GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
         }
 
         if (parent is AccessorDeclarationSyntax)
@@ -138,27 +122,23 @@ internal static class FormattingRangeHelper
             if (GetEnclosingMember(endToken) is PropertyDeclarationSyntax propertyDeclaration &&
                 AreTwoTokensOnSameLine(propertyDeclaration.AccessorList!.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken))
             {
-                return ValueTuple.Create(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
+                return (propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
             }
 
             // otherwise, just format the accessor
-            return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
+            return (GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
         }
 
         if (parent is StatementSyntax && !endToken.IsSemicolonInForStatement())
         {
             var container = GetTopContainingNode(parent);
             if (container == null)
-            {
-                return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
-            }
+                return (GetAppropriatePreviousToken(parent.GetFirstToken()), parent.GetLastToken());
 
             if (IsSpecialContainingNode(container))
-            {
-                return ValueTuple.Create(GetAppropriatePreviousToken(container.GetFirstToken()), container.GetLastToken());
-            }
+                return (GetAppropriatePreviousToken(container.GetFirstToken()), container.GetLastToken());
 
-            return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
+            return (GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
         }
 
         // don't do anything

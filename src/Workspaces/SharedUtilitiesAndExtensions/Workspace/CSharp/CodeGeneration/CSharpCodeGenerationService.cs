@@ -606,7 +606,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
             }
         }
 
-        return block.WithStatements(block.Statements.AddRange(statementsArray));
+        return block.WithStatements([.. block.Statements, .. statementsArray]);
     }
 
     private static TDeclarationNode AddStatementsToLocalFunctionStatement<TDeclarationNode>(

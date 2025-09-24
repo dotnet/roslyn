@@ -2,22 +2,21 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
+
     Partial Friend Class ObjectCreationExpressionSignatureHelpProvider
-        Private Shared Function GetDelegateTypeConstructors(
-                objectCreationExpression As ObjectCreationExpressionSyntax,
-                semanticModel As SemanticModel,
-                structuralTypeDisplayService As IStructuralTypeDisplayService,
-                documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                delegateType As INamedTypeSymbol) As (items As ImmutableArray(Of SignatureHelpItem), selectedItem As Integer?)
+
+        Private Shared Function GetDelegateTypeConstructors(objectCreationExpression As ObjectCreationExpressionSyntax,
+                                                     semanticModel As SemanticModel,
+                                                     structuralTypeDisplayService As IStructuralTypeDisplayService,
+                                                     documentationCommentFormattingService As IDocumentationCommentFormattingService,
+                                                     delegateType As INamedTypeSymbol) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
             Dim invokeMethod = delegateType.DelegateInvokeMethod
             If invokeMethod Is Nothing Then
                 Return (Nothing, Nothing)
@@ -34,20 +33,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 suffixParts:=GetDelegateTypePostambleParts(),
                 parameters:=GetDelegateTypeParameters(invokeMethod, semanticModel, position))
 
-            Return (ImmutableArray.Create(item), 0)
+            Return (SpecializedCollections.SingletonList(item), 0)
         End Function
 
-        Private Shared Function GetDelegateTypePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+        Private Shared Function GetDelegateTypePreambleParts(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+            Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(invokeMethod.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
-            Return result.ToImmutableAndFree()
+            Return result
         End Function
 
-        Private Shared Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SignatureHelpSymbolParameter)
+        Private Shared Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SignatureHelpSymbolParameter)
             Const TargetName As String = "target"
 
-            Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+            Dim parts = New List(Of SymbolDisplayPart)()
 
             If invokeMethod.ReturnsVoid Then
                 parts.Add(Keyword(SyntaxKind.SubKeyword))
@@ -78,15 +77,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 parts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position))
             End If
 
-            Return ImmutableArray.Create(New SignatureHelpSymbolParameter(
+            Return {New SignatureHelpSymbolParameter(
                 TargetName,
                 isOptional:=False,
                 documentationFactory:=Nothing,
-                displayParts:=parts.ToImmutableAndFree()))
+                displayParts:=parts)}
         End Function
 
-        Private Shared Function GetDelegateTypePostambleParts() As ImmutableArray(Of SymbolDisplayPart)
-            Return ImmutableArray.Create(Punctuation(SyntaxKind.CloseParenToken))
+        Private Shared Function GetDelegateTypePostambleParts() As IList(Of SymbolDisplayPart)
+            Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class
 End Namespace

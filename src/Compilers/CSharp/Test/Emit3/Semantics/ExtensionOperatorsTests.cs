@@ -3667,7 +3667,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x2076
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -3685,10 +3685,10 @@ public class C2
                 32 31 43 45 33 42 30 00 00
             )
             // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -3755,7 +3755,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x2076
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -3773,10 +3773,10 @@ public class C2
                 32 31 43 45 33 42 30 00 00
             )
             // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -3835,7 +3835,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x2076
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -3853,10 +3853,10 @@ public class C2
                 32 31 43 45 33 42 30 00 00
             )
             // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_UnaryNegation
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -9929,7 +9929,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x209e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -9950,10 +9950,10 @@ public class C2
                 42 31 34 35 39 36 39 00 00
             )
             // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -10022,7 +10022,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x209e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -10043,10 +10043,10 @@ public class C2
                 42 31 34 35 39 36 39 00 00
             )
             // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -10107,7 +10107,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x209e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -10128,10 +10128,10 @@ public class C2
                 42 31 34 35 39 36 39 00 00
             )
             // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_DecrementAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -18487,7 +18487,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x2076
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -18506,10 +18506,10 @@ public class C2
                 32 31 43 45 33 42 30 00 00
             )
             // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -18577,7 +18577,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x2076
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -18596,10 +18596,10 @@ public class C2
                 32 31 43 45 33 42 30 00 00
             )
             // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -18659,7 +18659,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x2076
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -18678,10 +18678,10 @@ public class C2
                 32 31 43 45 33 42 30 00 00
             )
             // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_Subtraction
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -26613,7 +26613,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x209e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -26636,10 +26636,10 @@ public class C2
                 42 31 34 35 39 36 39 00 00
             )
             // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -26709,7 +26709,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x209e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -26732,10 +26732,10 @@ public class C2
                 42 31 34 35 39 36 39 00 00
             )
             // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods
@@ -26797,7 +26797,7 @@ public class C2
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x209a
+                // Method begins at RVA 0x209e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -26820,10 +26820,10 @@ public class C2
                 42 31 34 35 39 36 39 00 00
             )
             // Method begins at RVA 0x2097
-            // Code size 2 (0x2)
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$3D0C2090833F9460B6F186EEC21CE3B0'::op_SubtractionAssignment
     } // end of class <G>$3D0C2090833F9460B6F186EEC21CE3B0
     // Methods

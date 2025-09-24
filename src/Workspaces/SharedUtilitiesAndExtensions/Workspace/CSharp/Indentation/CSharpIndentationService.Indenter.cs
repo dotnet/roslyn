@@ -26,8 +26,8 @@ internal partial class CSharpIndentationService
         CompilationUnitSyntax root, SourceText text, TextLine lineToBeIndented,
         IndentationOptions options, AbstractFormattingRule baseIndentationRule)
     {
-        var rules = ImmutableArray.Create(baseIndentationRule).AddRange(CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules());
-        return new CSharpSmartTokenFormatter(options, rules, root, text);
+        return new CSharpSmartTokenFormatter(
+            options, [baseIndentationRule, .. CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules()], root, text);
     }
 
     protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)

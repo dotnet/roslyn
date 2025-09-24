@@ -11,8 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class SyntaxDiagnosticInfo : DiagnosticInfo
     {
         /// <summary>
-        /// The offset of this diagnostic relative to the <em>Start</em> of the <see cref="GreenNode"/> (not the
-        /// FullStart). it is attached to.
+        /// The offset of this diagnostic, relative to the <em>Start</em> of the <see cref="GreenNode"/> (not the
+        /// FullStart) it is attached to.  (Note: 'Start'/'FullStart' are properties of red Syntax elements, not
+        /// GreenNodes. However, the above holds for the red elements created for the green node in its particular
+        /// context.
         /// <para/>
         /// It is legal for the offset to be negative.  Or for the final calculated position to extend beyond the
         /// FullSpan or Span of the entity that it is on.  For example, a diagnostic may be placed on a node

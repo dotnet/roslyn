@@ -10,26 +10,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed partial class DiagnosticAnalyzerService
 {
-    private sealed class ChecksumAndAnalyzersEqualityComparer
-        : IEqualityComparer<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers)>
+    private sealed class AnalyzersEqualityComparer
+        : IEqualityComparer<ImmutableArray<DiagnosticAnalyzer>>
     {
-        public static readonly ChecksumAndAnalyzersEqualityComparer Instance = new();
+        public static readonly AnalyzersEqualityComparer Instance = new();
 
-        public bool Equals((Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) x, (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) y)
+        public bool Equals(ImmutableArray<DiagnosticAnalyzer> x, ImmutableArray<DiagnosticAnalyzer> y)
         {
-            if (x.checksum != y.checksum)
-                return false;
-
             // Fast path for when the analyzers are the same reference.
-            return x.analyzers == y.analyzers || x.analyzers.SetEquals(y.analyzers);
+            return x == y || x.SetEquals(y);
         }
 
-        public int GetHashCode((Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers) obj)
+        public int GetHashCode(ImmutableArray<DiagnosticAnalyzer> obj)
         {
-            var hashCode = obj.checksum.GetHashCode();
+            var hashCode = 0;
 
             // Use addition so that we're resilient to any order for the analyzers.
-            foreach (var analyzer in obj.analyzers)
+            foreach (var analyzer in obj)
                 hashCode += analyzer.GetHashCode();
 
             return hashCode;

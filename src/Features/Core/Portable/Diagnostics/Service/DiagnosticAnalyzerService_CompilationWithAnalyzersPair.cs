@@ -17,9 +17,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
-    /// Cached data from a <see cref="ProjectState"/> to the <see cref="CompilationWithAnalyzers"/>s
-    /// we've created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
-    /// cref="DiagnosticAnalyzer"/>s passed along with the project.
+    /// Cached data from a <see cref="Project"/> to the <see cref="CompilationWithAnalyzers"/>s we've created for it.
+    /// Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see cref="DiagnosticAnalyzer"/>s
+    /// passed along with the project.  It is important to be associated with the project as the <see
+    /// cref="CompilationWithAnalyzers"/> will use the <see cref="Compilation"/> it produces, and must see agree on that
+    /// for correctness.  By sharing the same compilations, we ensure also that all syntax trees in that shared
+    /// compilation are consistent with the trees retrieved from this project's documents.
     /// <para/>
     /// The value of the table is a SmallDictionary that maps from the 
     /// <see cref="Project"/> checksum the set of <see cref="DiagnosticAnalyzer"/>s being requested.
@@ -29,9 +32,9 @@ internal sealed partial class DiagnosticAnalyzerService
     /// a single analyzer is performed.
     /// </summary>
     private static readonly ConditionalWeakTable<
-        ProjectState,
+        Project,
         SmallDictionary<
-            (Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers),
+            ImmutableArray<DiagnosticAnalyzer>,
             AsyncLazy<CompilationWithAnalyzers?>>> s_projectToCompilationWithAnalyzers = new();
 
     /// <summary> 
@@ -49,23 +52,20 @@ internal sealed partial class DiagnosticAnalyzerService
         if (!project.SupportsCompilation)
             return null;
 
-        var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
-
         // Make sure the cached pair was computed with the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
         var map = s_projectToCompilationWithAnalyzers.GetValue(
-            project.State, static _ => new(ChecksumAndAnalyzersEqualityComparer.Instance));
+            project, static _ => new(AnalyzersEqualityComparer.Instance));
 
         AsyncLazy<CompilationWithAnalyzers?>? lazy;
         using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            var checksumAndAnalyzers = (checksum, analyzers);
-            if (!map.TryGetValue(checksumAndAnalyzers, out lazy))
+            if (!map.TryGetValue(analyzers, out lazy))
             {
                 lazy = AsyncLazy.Create(
                     asynchronousComputeFunction: CreateCompilationWithAnalyzersAsync,
                     arg: (project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException));
-                map.Add(checksumAndAnalyzers, lazy);
+                map.Add(analyzers, lazy);
             }
         }
 

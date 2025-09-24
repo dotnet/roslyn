@@ -234,8 +234,9 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
         var (deduplicatedUsings, orphanedTrivia) = RemoveDuplicateUsings(compilationUnit.Usings, [.. usingsToAdd]);
 
         // Update the compilation unit with the usings from the namespace declaration.
-        var newUsings = compilationUnitWithReplacedNamespaces.Usings.AddRange(deduplicatedUsings);
-        var compilationUnitWithUsings = compilationUnitWithReplacedNamespaces.WithUsings(newUsings);
+        var compilationUnitWithUsings = compilationUnitWithReplacedNamespaces.WithUsings([
+            .. compilationUnitWithReplacedNamespaces.Usings,
+            .. deduplicatedUsings]);
 
         // Fix the leading trivia for the compilation unit. 
         var compilationUnitWithSeparatorLine = EnsureLeadingBlankLineBeforeFirstMember(compilationUnitWithUsings);

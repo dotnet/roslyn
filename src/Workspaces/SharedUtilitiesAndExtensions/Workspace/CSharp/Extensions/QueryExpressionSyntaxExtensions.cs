@@ -11,23 +11,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 internal static class QueryExpressionSyntaxExtensions
 {
     public static IList<SyntaxNode> GetAllClauses(this QueryExpressionSyntax query)
-    {
-        var result = new List<SyntaxNode>
-        {
-            query.FromClause
-        };
-        result.AddRange(query.Body.Clauses);
-        result.Add(query.Body.SelectOrGroup);
-        return result;
-    }
+        => [query.FromClause,
+            .. query.Body.Clauses,
+            query.Body.SelectOrGroup];
 
     public static IList<SyntaxNode> GetAllClauses(this QueryBodySyntax body)
-    {
-        var result = new List<SyntaxNode>();
-        result.AddRange(body.Clauses);
-        result.Add(body.SelectOrGroup);
-        return result;
-    }
+        => [.. body.Clauses, body.SelectOrGroup];
 
     public static QueryExpressionSyntax WithAllClauses(
         this QueryExpressionSyntax query,

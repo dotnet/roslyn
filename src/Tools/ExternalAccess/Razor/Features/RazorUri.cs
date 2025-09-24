@@ -18,12 +18,6 @@ internal static class RazorUri
     public static bool IsGeneratedDocumentUri(Uri generatedDocumentUri)
         => generatedDocumentUri.Scheme == SourceGeneratedDocumentUri.Scheme;
 
-    [Obsolete("Switch to GetIdentityFromGeneratedDocumentUri. This method will be removed in future.")]
-    public static string GetHintNameFromGeneratedDocumentUri(Solution solution, Uri generatedDocumentUri)
-    {
-        return GetIdentityOfGeneratedDocument(solution, generatedDocumentUri).HintName;
-    }
-
     public static RazorGeneratedDocumentIdentity GetIdentityOfGeneratedDocument(Solution solution, Uri generatedDocumentUri)
     {
         Contract.ThrowIfFalse(IsGeneratedDocumentUri(generatedDocumentUri));

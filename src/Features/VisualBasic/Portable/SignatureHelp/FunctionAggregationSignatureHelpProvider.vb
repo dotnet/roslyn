@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -87,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleMethods.SelectAsArray(Function(m) Convert(m, functionAggregation, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)),
+                accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItemIndex:=Nothing, parameterIndexOverride:=-1)
         End Function
 
@@ -109,19 +108,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return item
         End Function
 
-        Private Shared Function GetPreambleParts(method As IMethodSymbol) As ImmutableArray(Of SymbolDisplayPart)
-            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+        Private Shared Function GetPreambleParts(method As IMethodSymbol) As IList(Of SymbolDisplayPart)
+            Dim result = New List(Of SymbolDisplayPart)()
             AddExtensionPreamble(method, result)
             result.AddMethodName(method.Name)
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
-            Return result.ToImmutableAndFree()
+            Return result
         End Function
 
-        Private Shared Function GetPostambleParts(
-                method As IMethodSymbol,
-                semanticModel As SemanticModel,
-                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+        Private Shared Function GetPostambleParts(method As IMethodSymbol,
+                                           semanticModel As SemanticModel,
+                                           position As Integer) As IList(Of SymbolDisplayPart)
+            Dim parts = New List(Of SymbolDisplayPart)
             parts.Add(Punctuation(SyntaxKind.CloseParenToken))
 
             If Not method.ReturnsVoid Then
@@ -131,17 +129,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 parts.AddRange(method.ReturnType.ToMinimalDisplayParts(semanticModel, position))
             End If
 
-            Return parts.ToImmutableAndFree()
+            Return parts
         End Function
 
-        Private Shared Function GetParameterParts(
-                method As IMethodSymbol,
-                semanticModel As SemanticModel,
-                position As Integer,
-                documentationCommentFormattingService As IDocumentationCommentFormattingService) As ImmutableArray(Of SignatureHelpSymbolParameter)
+        Private Shared Function GetParameterParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer,
+                                           documentationCommentFormattingService As IDocumentationCommentFormattingService) As IList(Of SignatureHelpSymbolParameter)
             ' Function <name>() As <type>
             If method.Parameters.Length <> 1 Then
-                Return ImmutableArray(Of SignatureHelpSymbolParameter).Empty
+                Return SpecializedCollections.EmptyList(Of SignatureHelpSymbolParameter)()
             End If
 
             ' Function <name>(selector as Func(Of T, R)) As R
@@ -153,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                    delegateInvokeMethod.Parameters.Length = 1 AndAlso
                    Not delegateInvokeMethod.ReturnsVoid Then
 
-                    Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+                    Dim parts = New List(Of SymbolDisplayPart)
                     parts.Add(Text(VBWorkspaceResources.expression))
                     parts.Add(Space())
                     parts.Add(Keyword(SyntaxKind.AsKeyword))
@@ -164,13 +159,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                         VBWorkspaceResources.expression,
                         parameter.IsOptional,
                         parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                        parts.ToImmutableAndFree())
+                        parts)
 
-                    Return ImmutableArray.Create(sigHelpParameter)
+                    Return {sigHelpParameter}
                 End If
             End If
 
-            Return ImmutableArray(Of SignatureHelpSymbolParameter).Empty
+            Return SpecializedCollections.EmptyList(Of SignatureHelpSymbolParameter)()
         End Function
     End Class
 End Namespace
