@@ -187,9 +187,9 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider() : SyntaxEditorBasedC
 
     private static ExpressionSyntax CreateUtf8String(SyntaxTriviaList leadingTrivia, string stringValue, SyntaxTriviaList trailingTrivia, bool isConvertedToReadOnlySpan)
     {
-        var text = QuoteCharacter + stringValue + QuoteCharacter + Suffix;
-        var stringLiteral = ParseExpression(text)
-            .WithLeadingTrivia(leadingTrivia);
+        // Use the actual parser to get the final string literal expression.  That way we ensure the exact same syntax
+        // tree shape it would produce.
+        var stringLiteral = ParseExpression(QuoteCharacter + stringValue + QuoteCharacter + Suffix).WithLeadingTrivia(leadingTrivia);
 
         if (isConvertedToReadOnlySpan)
         {
