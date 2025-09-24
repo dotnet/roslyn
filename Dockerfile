@@ -86,9 +86,11 @@ RUN c:\ReadEnvironmentVariables.ps1 c:\env.g.json
 # Configure NuGet
 ENV NUGET_PACKAGES=c:\packages
 
+# Configure .NET SDK
+ENV DOTNET_NOLOGO=1
+
 # Configure git
 ARG SRC_DIR
-RUN echo $env:PATH
 RUN git config --global --add safe.directory $env:SRC_DIR/; `
     git config --global user.name $env:GIT_USER_NAME; `
     git config --global user.email $env:GIT_USER_EMAIL;
