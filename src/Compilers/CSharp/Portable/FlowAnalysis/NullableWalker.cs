@@ -8353,7 +8353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var type = parameter.TypeWithAnnotations;
-            if (expanded && parameter.Ordinal == parametersOpt.Length - 1)
+            if (expanded && (object)parameter == parametersOpt[^1])
             {
                 if (!paramsIterationType.HasType)
                 {
