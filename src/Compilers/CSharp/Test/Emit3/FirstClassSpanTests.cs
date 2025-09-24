@@ -602,9 +602,9 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(T[], T[])' and 'C.M<T>(ReadOnlySpan<T>, Span<T>)'
+            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<long>(long[], long[])' and 'C.M<long>(System.ReadOnlySpan<long>, System.Span<long>)'
             // C.M([2], x);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(T[], T[])", "C.M<T>(System.ReadOnlySpan<T>, System.Span<T>)").WithLocation(5, 3)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<long>(long[], long[])", "C.M<long>(System.ReadOnlySpan<long>, System.Span<long>)").WithLocation(5, 3)
         };
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
@@ -685,9 +685,9 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (6,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(T, T)' and 'C.M<T>(Span<T>, Span<T>)'
+            // (6,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<System.ArraySegment<int>>(System.ArraySegment<int>, System.ArraySegment<int>)' and 'C.M<int>(System.Span<int>, System.Span<int>)'
             // C.M(x, s);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(T, T)", "C.M<T>(System.Span<T>, System.Span<T>)").WithLocation(6, 3)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<System.ArraySegment<int>>(System.ArraySegment<int>, System.ArraySegment<int>)", "C.M<int>(System.Span<int>, System.Span<int>)").WithLocation(6, 3)
         };
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);

@@ -1264,16 +1264,16 @@ partial class B : A
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>",
                 new[]
                 {
-                    // (5,29): error CS0121: The call is ambiguous between the following methods or properties: 'A.F<T>(T)' and 'B.F<T>(T)'
+                    // (5,29): error CS0121: The call is ambiguous between the following methods or properties: 'A.F<object>(object)' and 'B.F<object>(object)'
                     //         System.Delegate d = this.F<object>;
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<T>(T)", "B.F<T>(T)").WithLocation(5, 29)
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<object>(object)", "B.F<object>(object)").WithLocation(5, 29)
                 }); // different type parameter constraints
             yield return getData("internal static void F<T>(this T t) { }", "internal static void F<T>(this T t) where T : class { }", "this.F<object>", "F<object>",
                 new[]
                 {
-                    // (5,29): error CS0121: The call is ambiguous between the following methods or properties: 'A.F<T>(T)' and 'B.F<T>(T)'
+                    // (5,29): error CS0121: The call is ambiguous between the following methods or properties: 'A.F<object>(object)' and 'B.F<object>(object)'
                     //         System.Delegate d = this.F<object>;
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<T>(T)", "B.F<T>(T)").WithLocation(5, 29)
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<object>(object)", "B.F<object>(object)").WithLocation(5, 29)
                 }); // different type parameter constraints
 
             static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedMethod = null, string? expectedType = null)
@@ -5388,9 +5388,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<T>(Action<T>)' and 'Program.F(StringAction)'
+                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<string>(System.Action<string>)' and 'Program.F(StringAction)'
                 //         F((string s) => { });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(System.Action<T>)", "Program.F(StringAction)").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<string>(System.Action<string>)", "Program.F(StringAction)").WithLocation(8, 9)
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(expectedDiagnostics);
@@ -5451,9 +5451,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<T>(Action<T>)' and 'Program.F<T>(MyAction<T>)'
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<string>(System.Action<string>)' and 'Program.F<string>(MyAction<string>)'
                 //         F((string s) => { });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(System.Action<T>)", "Program.F<T>(MyAction<T>)").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<string>(System.Action<string>)", "Program.F<string>(MyAction<string>)").WithLocation(9, 9),
                 // (10,9): error CS0411: The type arguments for method 'Program.F<T>(Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(M);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Action<T>)").WithLocation(10, 9)
@@ -5773,12 +5773,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, Func<object>)' and 'Program.M<T>(Func<object>, T)'
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<System.Func<object>>(System.Func<object>, System.Func<object>)' and 'Program.M<System.Func<object>>(System.Func<object>, System.Func<object>)'
                 //         M(F, F);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, System.Func<object>)", "Program.M<T>(System.Func<object>, T)").WithLocation(9, 9),
-                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, Func<object>)' and 'Program.M<T>(Func<object>, T)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<System.Func<object>>(System.Func<object>, System.Func<object>)", "Program.M<System.Func<object>>(System.Func<object>, System.Func<object>)").WithLocation(9, 9),
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<System.Func<int>>(System.Func<int>, System.Func<object>)' and 'Program.M<System.Func<int>>(System.Func<object>, System.Func<int>)'
                 //         M(() => 1, () => 2);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, System.Func<object>)", "Program.M<T>(System.Func<object>, T)").WithLocation(10, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<System.Func<int>>(System.Func<int>, System.Func<object>)", "Program.M<System.Func<int>>(System.Func<object>, System.Func<int>)").WithLocation(10, 9)
             };
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);

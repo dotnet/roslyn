@@ -515,9 +515,9 @@ public class MyTaskBuilder<T>
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib461(source1).VerifyDiagnostics(
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<int>(System.Func<System.Threading.Tasks.Task<int>>)' and 'C.h<int>(System.Func<MyTask<int>>)'
                 //         h(async () => { await (Task)null; return 1; });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h<T>(System.Func<System.Threading.Tasks.Task<T>>)", "C.h<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h<int>(System.Func<System.Threading.Tasks.Task<int>>)", "C.h<int>(System.Func<MyTask<int>>)").WithLocation(9, 9)
                 );
 
             string source2 = @"
@@ -564,9 +564,9 @@ public class YourTaskBuilder<T>
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             CreateCompilationWithMscorlib461(source2).VerifyDiagnostics(
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<int>(System.Func<YourTask<int>>)' and 'C.k<int>(System.Func<MyTask<int>>)'
                 //         k(async () => { await (Task)null; return 1; });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "k").WithArguments("C.k<T>(System.Func<YourTask<T>>)", "C.k<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "k").WithArguments("C.k<int>(System.Func<YourTask<int>>)", "C.k<int>(System.Func<MyTask<int>>)").WithLocation(9, 9)
                 );
         }
 
@@ -1375,9 +1375,9 @@ class C
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics(
-    // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.X(params string[])' and 'C.X<T>(T)'
+    // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.X(params string[])' and 'C.X<string>(string)'
     //         X((string)null); //-C.X(string, object)
-    Diagnostic(ErrorCode.ERR_AmbigCall, "X").WithArguments("C.X(params string[])", "C.X<T>(T)").WithLocation(9, 9)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "X").WithArguments("C.X(params string[])", "C.X<string>(string)").WithLocation(9, 9)
                 );
         }
 
@@ -7079,9 +7079,9 @@ public class Test
 }";
             // Doesn't assert.
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (20,16): error CS0121: The call is ambiguous between the following methods or properties: 'Test.Goo(Test.nongenerics, dynamic)' and 'Test.Goo<T>(Test.generics<T>, dynamic)'
+                // (20,16): error CS0121: The call is ambiguous between the following methods or properties: 'Test.Goo(Test.nongenerics, dynamic)' and 'Test.Goo<dynamic>(Test.generics<dynamic>, dynamic)'
                 //         return Goo(method, "abc");
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Test.Goo(Test.nongenerics, dynamic)", "Test.Goo<T>(Test.generics<T>, dynamic)")
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Test.Goo(Test.nongenerics, dynamic)", "Test.Goo<dynamic>(Test.generics<dynamic>, dynamic)").WithLocation(20, 16)
                 );
         }
 
@@ -7614,9 +7614,9 @@ class C
                 // (8,41): info CS9236: Compiling requires binding the lambda expression at least 1000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
                 //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
                 Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1000").WithLocation(8, 41),
-                // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(Func<bool, T>)' and 'C.M<T>(Func<byte, T>)'
+                // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<uint>(System.Func<bool, uint>)' and 'C.M<uint>(System.Func<byte, uint>)'
                 //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<uint>(System.Func<bool, uint>)", "C.M<uint>(System.Func<byte, uint>)").WithLocation(8, 44),
                 // (8,48): info CS9236: Compiling requires binding the lambda expression at least 4000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
                 //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
                 Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("4000").WithLocation(8, 48));
@@ -7907,9 +7907,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>)' and 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])'
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>)' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params System.Func<ConsoleApplication2.Program.Goo, bool>[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])").WithLocation(25, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>)", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params System.Func<ConsoleApplication2.Program.Goo, bool>[])").WithLocation(25, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -7987,9 +7987,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>)'
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>)'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)").WithLocation(25, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>)").WithLocation(25, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -8029,9 +8029,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>)' and 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])'
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>)' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])").WithLocation(25, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>)", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])").WithLocation(25, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -8071,9 +8071,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])' and 'Program.Bar<T, V>.Create(Func<T, bool>)'
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params System.Func<ConsoleApplication2.Program.Goo, bool>[])' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>)'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)").WithLocation(25, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params System.Func<ConsoleApplication2.Program.Goo, bool>[])", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>)").WithLocation(25, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -8111,9 +8111,9 @@ namespace ConsoleApplication2
 ";
 
             CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
-    // (23,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>, params int[])'
+    // (23,38): error CS0121: The call is ambiguous between the following methods or properties: 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])' and 'ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params int[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params int[])").WithLocation(23, 38)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, bool>, params int[])", "ConsoleApplication2.Program.Bar<ConsoleApplication2.Program.Goo, double>.Create(System.Func<ConsoleApplication2.Program.Goo, double>, params int[])").WithLocation(23, 38)
                 );
             CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
@@ -8965,9 +8965,9 @@ namespace ClassLibraryOverloadResolution
             var compilation = CreateCompilationWithMscorlib461(source1);
 
             compilation.VerifyDiagnostics(
-    // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
+    // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<string, string>(System.Collections.Generic.IDictionary<string, string>)' and 'Extensions.TestExtensions.Should<string, string>(System.Collections.Generic.IReadOnlyDictionary<string, string>)'
     //             dict.Should();
-    Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<string, string>(System.Collections.Generic.IDictionary<string, string>)", "Extensions.TestExtensions.Should<string, string>(System.Collections.Generic.IReadOnlyDictionary<string, string>)").WithLocation(34, 18)
                 );
         }
 

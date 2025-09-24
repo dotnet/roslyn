@@ -5078,7 +5078,7 @@ class C1 : IEnumerable<char>
                 $"static Type {methodName}{getTypeParameters(parameterType)}(params {parameterType} value) => typeof({parameterType});";
 
             static string generateMethodSignature(string methodName, string parameterType) =>
-                $"Program.{methodName}{getTypeParameters(parameterType)}(params {parameterType})";
+                $"Program.{methodName}{getTypeParameters(parameterType).Replace("T", "int")}(params {parameterType.Replace("T", "int")})";
 
             static string[] getSources(string source, string[] additionalSources)
             {
@@ -6212,12 +6212,12 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (25,11): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, params string[])' and 'ExtensionsB.Add<T>(MyCollection<T>, params string[])'
+                // (25,11): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<object>(MyCollection<object>, params string[])' and 'ExtensionsB.Add<object>(MyCollection<object>, params string[])'
                 //         x.Add("");
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Add").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, params string[])", "ExtensionsB.Add<T>(MyCollection<T>, params string[])").WithLocation(25, 11),
-                // (27,44): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, params string[])' and 'ExtensionsB.Add<T>(MyCollection<T>, params string[])'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Add").WithArguments("ExtensionsA.Add<object>(MyCollection<object>, params string[])", "ExtensionsB.Add<object>(MyCollection<object>, params string[])").WithLocation(25, 11),
+                // (27,44): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<object>(MyCollection<object>, params string[])' and 'ExtensionsB.Add<object>(MyCollection<object>, params string[])'
                 //         var y = new MyCollection<object> { "" };
-                Diagnostic(ErrorCode.ERR_AmbigCall, @"""""").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, params string[])", "ExtensionsB.Add<T>(MyCollection<T>, params string[])").WithLocation(27, 44)
+                Diagnostic(ErrorCode.ERR_AmbigCall, @"""""").WithArguments("ExtensionsA.Add<object>(MyCollection<object>, params string[])", "ExtensionsB.Add<object>(MyCollection<object>, params string[])").WithLocation(27, 44)
                 );
         }
 
