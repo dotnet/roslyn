@@ -4,292 +4,292 @@
     <body>
       <trans-unit id="AddAllItemsInDocumentToTheApiTitle">
         <source>Add all items in document '{0}' to the API</source>
-        <target state="translated">将文档“{0}”中的所有项添加到 API</target>
+        <target state="new">Add all items in document '{0}' to the API</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInProjectToTheApiTitle">
         <source>Add all items in project '{0}' to the API</source>
-        <target state="translated">将项目“{0}”中的所有项添加到 API</target>
+        <target state="new">Add all items in project '{0}' to the API</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInTheSolutionToTheApiTitle">
         <source>Add all items in the solution to the API</source>
-        <target state="translated">将解决方案中的所有项添加到 API</target>
+        <target state="new">Add all items in the solution to the API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiDescription">
         <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">应在 InternalAPI.txt 中使用为 Null 性注释声明所有内部类型和成员。这将关注代码评审和源代码管理历史记录中的 API 为 Null 性更改，并有助于防止中断性变更。</target>
+        <target state="new">All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="translated">符号“{0}”在声明的 API 中缺少为 Null 性注释</target>
+        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateInternalApiTitle">
         <source>Annotate nullability of internal types and members in the declared API</source>
-        <target state="translated">在声明的 API 中对内部类型和成员的为 Null 性进行批注</target>
+        <target state="new">Annotate nullability of internal types and members in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">应在 PublicAPI.txt 中使用为 Null 性注释声明所有公共类型和成员。这将关注代码评审和源代码管理历史记录中的 API 为 Null 性更改，并有助于防止中断性变更。</target>
+        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="translated">符号“{0}”在声明的 API 中缺少为 Null 性注释</target>
+        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
         <source>Annotate nullability of public types and members in the declared API</source>
-        <target state="translated">在声明的 API 中对公共类型和成员的为 Null 性进行批注</target>
+        <target state="new">Annotate nullability of public types and members in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
-        <target state="translated">符号“{0}”违反了 backcompat 要求:“请勿添加具有可选参数的多个重载”。有关详细信息，请参阅“{1}”。</target>
+        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
         <source>Do not add multiple public overloads with optional parameters</source>
-        <target state="translated">请勿添加具有可选参数的多个公共重载</target>
+        <target state="new">Do not add multiple public overloads with optional parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiDescription">
         <source>All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">应在 InternalAPI.txt 中声明所有内部类型和成员。这将关注代码评审和源代码管理历史记录中的 API 更改，并有助于防止重大更改。</target>
+        <target state="new">All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiMessage">
         <source>Symbol '{0}' is not part of the declared API</source>
-        <target state="translated">符号“{0}”不是已声明 API 的一部分</target>
+        <target state="new">Symbol '{0}' is not part of the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareInternalApiTitle">
         <source>Add internal types and members to the declared API</source>
-        <target state="translated">向已内部 API 添加公共类型和成员</target>
+        <target state="new">Add internal types and members to the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">应在 PublicAPI.txt 中声明所有公共类型和成员。这将关注代码评审和源代码管理历史记录中的 API 更改，并有助于防止重大更改。</target>
+        <target state="new">All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared public API</source>
-        <target state="translated">符号“{0}”不是已声明公共 API 的一部分</target>
+        <target state="new">Symbol '{0}' is not part of the declared public API</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
         <source>Add public types and members to the declared API</source>
-        <target state="translated">向已声明 API 添加公共类型和成员</target>
+        <target state="new">Add public types and members to the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInInternalApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the internal API files</source>
-        <target state="translated">符号“{0}”多次出现在内部 API 文件中</target>
+        <target state="new">The symbol '{0}' appears more than once in the internal API files</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInInternalApiFilesTitle">
         <source>Do not duplicate symbols in internal API files</source>
-        <target state="translated">请勿在内部 API 文件中复制符号</target>
+        <target state="new">Do not duplicate symbols in internal API files</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files</source>
-        <target state="translated">符号“{0}”多次出现在公共 API 文件中</target>
+        <target state="new">The symbol '{0}' appears more than once in the public API files</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
-        <target state="translated">请勿在公共 API 文件中复制符号</target>
+        <target state="new">Do not duplicate symbols in public API files</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToTheApiTitle">
         <source>Enable nullability annotations in the API for project '{0}'</source>
-        <target state="translated">在项目“{0}”的 API 中启用为 Null 性注释</target>
+        <target state="new">Enable nullability annotations in the API for project '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToTheApiTitle">
         <source>Enable nullability annotations in the API for the solution</source>
-        <target state="translated">在解决方案的 API 中启用为 Null 性注释</target>
+        <target state="new">Enable nullability annotations in the API for the solution</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
-        <target state="translated">构造函数使其不可继承的基类变为可继承，从而暴露其受保护的成员</target>
+        <target state="new">Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
-        <target state="translated">构造函数使不可继承的基类可以继承</target>
+        <target state="new">Constructor make noninheritable base class inheritable</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="translated">“{0}”的隐式构造函数</target>
+        <target state="new">implicit constructor for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="translated">“{0}”的隐式 get 访问器</target>
+        <target state="new">implicit get-accessor for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="translated">“{0}”的隐式 set 访问器</target>
+        <target state="new">implicit set-accessor for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFileMissingMessage">
         <source>Internal API file '{0}' is missing or not marked as an additional analyzer file</source>
-        <target state="translated">缺少内部 API 文件“{0}”，或者未将它标记为附加分析器文件</target>
+        <target state="new">Internal API file '{0}' is missing or not marked as an additional analyzer file</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFileMissingTitle">
         <source>Missing shipped or unshipped internal API file</source>
-        <target state="translated">缺少附带/未附带的内部 API 文件</target>
+        <target state="new">Missing shipped or unshipped internal API file</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFilesInvalidMessage">
         <source>The contents of the internal API files are invalid: {0}</source>
-        <target state="translated">内部 API 文件的内容无效: {0}</target>
+        <target state="new">The contents of the internal API files are invalid: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalApiFilesInvalidTitle">
         <source>The contents of the internal API files are invalid</source>
-        <target state="translated">内部 API 文件的内容无效</target>
+        <target state="new">The contents of the internal API files are invalid</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiDescription">
         <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
-        <target state="translated">所有内部成员都应使用可以为 null 或不可为 null 的引用类型，但不能使用未知引用类型。</target>
+        <target state="new">All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="translated">符号“{0}”使用了一些未知引用类型</target>
+        <target state="new">Symbol '{0}' uses some oblivious reference types</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousInternalApiTitle">
         <source>Internal members should not use oblivious types</source>
-        <target state="translated">内部成员不得使用未知类型</target>
+        <target state="new">Internal members should not use oblivious types</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiDescription">
         <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
-        <target state="translated">所有公共成员都应使用可以为 null 或不可为 null 的引用类型，但不能使用未知引用类型。</target>
+        <target state="new">All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="translated">符号“{0}”使用了一些未知引用类型</target>
+        <target state="new">Symbol '{0}' uses some oblivious reference types</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
         <source>Public members should not use oblivious types</source>
-        <target state="translated">公共成员不得使用未知类型</target>
+        <target state="new">Public members should not use oblivious types</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="translated">“{0}”违反了 backcompat 要求:“具有可选参数的 API 应在其公共重载中具有最多参数”。有关详细信息，请参阅“{1}”。</target>
+        <target state="new">'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>API with optional parameter(s) should have the most parameters amongst its public overloads</source>
-        <target state="translated">具有可选参数的 API 应在其公共重载中具有最多参数</target>
+        <target state="new">API with optional parameter(s) should have the most parameters amongst its public overloads</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">
         <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
-        <target state="translated">缺少公共 API 文件“{0}”，或者未将它标记为附加分析器文件</target>
+        <target state="new">Public API file '{0}' is missing or not marked as an additional analyzer file</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingTitle">
         <source>Missing shipped or unshipped public API file</source>
-        <target state="translated">缺少附带/未附带的公共 API 文件</target>
+        <target state="new">Missing shipped or unshipped public API file</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
-        <target state="translated">公共 API 文件的内容无效: {0}</target>
+        <target state="new">The contents of the public API files are invalid: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
-        <target state="translated">公共 API 文件的内容无效</target>
+        <target state="new">The contents of the public API files are invalid</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiDescription">
         <source>When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">删除内部类型或成员时，将其项输入 InternalAPI.Unshipped.txt 中，并附上前缀 "*REMOVED*"。这样能够在代码评审和源代码管理历史记录中引起对 API 更改的注意，有助于防止中断性更改。</target>
+        <target state="new">When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiMessage">
         <source>Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</source>
-        <target state="translated">符号“{0}”是已声明内部 API 的一部分，但此符号不是内部符号或无法找到</target>
+        <target state="new">Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedInternalApiTitle">
         <source>Remove deleted types and members from the declared internal API</source>
-        <target state="translated">从已声明内部 API 中删除已删除的类型和成员</target>
+        <target state="new">Remove deleted types and members from the declared internal API</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiDescription">
         <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">删除公共类型或成员时，将其项输入 PublicAPI.Unshipped.txt 中，并附上前缀 "*REMOVED*"。这样能够在代码评审和源代码管理历史记录中引起对 API 更改的注意，有助于防止中断性更改。</target>
+        <target state="new">When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
         <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="translated">符号“{0}”是已声明 API 的一部分，但此符号不是公共符号或无法找到</target>
+        <target state="new">Symbol '{0}' is part of the declared API, but is either not public or could not be found</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedPublicApiTitle">
         <source>Remove deleted types and members from the declared API</source>
-        <target state="translated">从已声明 API 中删除已删除的类型和成员</target>
+        <target state="new">Remove deleted types and members from the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
         <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
-        <target state="translated">符号“{0}”标记为已删除，但未在源代码中删除</target>
+        <target state="new">Symbol '{0}' is marked as removed but it isn't deleted in source code</target>
         <note />
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
         <source>API is marked as removed but it exists in source code</source>
-        <target state="translated">API 标记为已删除，但它存在于源代码中</target>
+        <target state="new">API is marked as removed but it exists in source code</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">InternalAPI.txt 文件应具有 "#nullable enable" 以跟踪为 Null 性信息，或者应取消显示此诊断。如果启用了为 Null 性，则 InternalAPI.txt 会记录哪些类型可为 Null (类型上带后缀 "?")而哪些不可为 Null (带后缀 "!")。它还会跟踪所有仍在使用不带此信息的引用类型(行上带前缀 "~007E;")的 API。</target>
+        <target state="new">InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
         <source>InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="translated">InternalAPI.txt 缺少 "#nullable enable"，因此不会记录 API 的为 Null 性注释。建议启用此跟踪。</target>
+        <target state="new">InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="translated">在已声明 API 中启用对引用类型的为 Null 性的跟踪</target>
+        <target state="new">Enable tracking of nullability of reference types in the declared API</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">PublicAPI.txt 文件应具有 "#nullable enable" 以跟踪为 Null 性信息，或者应取消显示此诊断。如果启用了为 Null 性，则 PublicAPI.txt 会记录哪些类型可为 Null (类型上带后缀 "?")而哪些不可为 Null (带后缀 "!")。它还会跟踪所有仍在使用不带此信息的引用类型(行上带前缀 "~")的 API。</target>
+        <target state="new">PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="translated">PublicAPI.txt 缺少 "#nullable enable"，因此不会记录 API 的为 Null 性注释。建议启用此跟踪。</target>
+        <target state="new">PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="translated">在已声明 API 中启用对引用类型的为 Null 性的跟踪</target>
+        <target state="new">Enable tracking of nullability of reference types in the declared API</target>
         <note />
       </trans-unit>
     </body>
