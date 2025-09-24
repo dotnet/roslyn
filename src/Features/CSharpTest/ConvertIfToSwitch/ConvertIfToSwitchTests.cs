@@ -48,7 +48,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -81,7 +80,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -153,7 +151,6 @@ public sealed class ConvertIfToSwitchTests
                     DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("C.M(int)"),
                 },
             },
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -198,7 +195,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -240,7 +236,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -346,7 +341,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -380,7 +374,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -491,7 +484,6 @@ public sealed class ConvertIfToSwitchTests
             """,
             FixedCode = fixedSource,
             LanguageVersion = languageVersion,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -751,7 +743,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -840,7 +831,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -875,7 +865,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -977,7 +966,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -1042,7 +1030,6 @@ public sealed class ConvertIfToSwitchTests
                     DiagnosticResult.CompilerError("CS0161").WithLocation(0).WithArguments("C.M(int?)"),
                 },
             },
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -1079,7 +1066,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -1115,7 +1101,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -1163,7 +1148,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -1229,7 +1213,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21109")]
@@ -1311,7 +1294,6 @@ public sealed class ConvertIfToSwitchTests
                     DiagnosticResult.CompilerError("CS0103").WithLocation(3).WithArguments("Console"),
                 },
             },
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -1346,7 +1328,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1381,7 +1362,6 @@ public sealed class ConvertIfToSwitchTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp8,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1428,7 +1408,6 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -1464,7 +1443,6 @@ public sealed class ConvertIfToSwitchTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp8,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1511,7 +1489,6 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -1547,7 +1524,6 @@ public sealed class ConvertIfToSwitchTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp8,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1594,7 +1570,6 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -1630,7 +1605,6 @@ public sealed class ConvertIfToSwitchTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp8,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1677,7 +1651,6 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -1712,7 +1685,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1746,7 +1718,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1780,7 +1751,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1814,7 +1784,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1848,7 +1817,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1882,7 +1850,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1916,7 +1883,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1950,7 +1916,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -1984,7 +1949,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -2018,7 +1982,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -2052,7 +2015,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21360")]
@@ -2086,7 +2048,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37035")]
@@ -2354,7 +2315,6 @@ public sealed class ConvertIfToSwitchTests
                 },
             },
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
 
@@ -2389,7 +2349,6 @@ public sealed class ConvertIfToSwitchTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -2397,33 +2356,32 @@ public sealed class ConvertIfToSwitchTests
         => new VerifyCS.Test
         {
             TestCode = """
-            class C
-            {
-                void M(int i)
+                class C
                 {
-                    [||]if ((i > 123 && i < 456) && i != 0 || i == 10)
+                    void M(int i)
                     {
-                        return;
+                        [||]if ((i > 123 && i < 456) && i != 0 || i == 10)
+                        {
+                            return;
+                        }
                     }
                 }
-            }
-            """,
+                """,
             FixedCode = """
- class C
- {
-     void M(int i)
-     {
-         switch (i)
-         {
-             case > 123 and < 456 when i != 0:
-             case 10:
-                 return;
-         }
-     }
- }
- """,
+                class C
+                {
+                    void M(int i)
+                    {
+                        switch (i)
+                        {
+                            case > 123 and < 456 when i != 0:
+                            case 10:
+                                return;
+                        }
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44278")]
@@ -2467,7 +2425,6 @@ public sealed class ConvertIfToSwitchTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         };
 
         test.ExpectedDiagnostics.Add(
@@ -2524,7 +2481,6 @@ public sealed class ConvertIfToSwitchTests
                 void DoB() { }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -2627,7 +2583,6 @@ public sealed class ConvertIfToSwitchTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp9,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41131")]
@@ -2682,7 +2637,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41131")]
@@ -2739,7 +2693,6 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71295")]
@@ -2787,6 +2740,5 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 }
