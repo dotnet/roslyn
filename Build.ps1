@@ -19,9 +19,9 @@ if ( $VsDebug  )
 {
     $vsmonport = 4024
     Write-Host "Starting Visual Studio Remote Debugger, listening at port $vsmonport." -ForegroundColor Cyan
-    Start-Process -FilePath "C:\msvsmon\msvsmon.exe" `
+    $vsmonProcess = Start-Process -FilePath "C:\msvsmon\msvsmon.exe" `
         -ArgumentList "/noauth","/anyuser","/silent","/port:$vsmonport","/timeout:2147483647" `
-        -NoNewWindow
+        -NoNewWindow -PassThru
 }
 
 # Change the prompt and window title in Docker.
@@ -37,4 +37,11 @@ if ( $env:RUNNING_IN_DOCKER  )
 if ( -not $Interactive -or $BuildArgs )
 {
     & dotnet run --project "$PSScriptRoot\$EngPath\src\Build$ProductName.csproj" -- $BuildArgs
+    
+    if ( $VsDebug )
+    {
+        Write-Host ""
+        Write-Host "Killing vsmon.exe."
+        $vsmonProcess.Kill()
+    }
 }
