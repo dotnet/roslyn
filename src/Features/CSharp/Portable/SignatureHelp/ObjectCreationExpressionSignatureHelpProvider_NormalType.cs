@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,13 +36,19 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
         return item;
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetNormalTypePreambleParts(
-        IMethodSymbol method, SemanticModel semanticModel, int position)
-        => [
-            .. method.ContainingType.ToMinimalDisplayParts(semanticModel, position),
-            Punctuation(SyntaxKind.OpenParenToken),
-        ];
+    private static IList<SymbolDisplayPart> GetNormalTypePreambleParts(
+        IMethodSymbol method,
+        SemanticModel semanticModel,
+        int position)
+    {
+        var result = new List<SymbolDisplayPart>();
 
-    private static ImmutableArray<SymbolDisplayPart> GetNormalTypePostambleParts()
+        result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position));
+        result.Add(Punctuation(SyntaxKind.OpenParenToken));
+
+        return result;
+    }
+
+    private static IList<SymbolDisplayPart> GetNormalTypePostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }
