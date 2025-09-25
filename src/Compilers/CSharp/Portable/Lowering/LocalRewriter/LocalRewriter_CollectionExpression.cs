@@ -267,10 +267,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T))
                 {
-                    if (!CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _) &&
-                        _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArrayMember)
+                    asImmutableArray = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) as MethodSymbol;
+
+                    if (asImmutableArray is not null && !CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
                     {
-                        asImmutableArray = asImmutableArrayMember;
                         arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
                     }
                     else
