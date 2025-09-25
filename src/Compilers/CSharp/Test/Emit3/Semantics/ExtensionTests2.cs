@@ -26657,7 +26657,7 @@ public static class E
         72 69 74 65 64 00
     )
     // Fields
-    .field private string '<Name>k__BackingField'
+    .field private initonly string '<Name>k__BackingField'
     // Methods
     .method assembly hidebysig specialname 
         instance string get_Name () cil managed 
@@ -26981,7 +26981,7 @@ public static class E
         72 69 74 65 64 00
     )
     // Fields
-    .field private string '<Name>k__BackingField'
+    .field private initonly string '<Name>k__BackingField'
     // Methods
     .method assembly hidebysig specialname 
         instance string get_Name () cil managed 

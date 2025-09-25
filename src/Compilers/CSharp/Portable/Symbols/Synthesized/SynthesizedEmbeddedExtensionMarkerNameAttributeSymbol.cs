@@ -31,12 +31,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(FieldName == GeneratedNames.MakeBackingFieldName(PropertyName));
 
-            _nameField = new SynthesizedFieldSymbol(this, systemStringType, FieldName);
+            _nameField = new SynthesizedFieldSymbol(this, systemStringType, FieldName, isReadOnly: true);
             _nameProperty = new NamePropertySymbol(_nameField);
-            _constructors = [new ConstructorSymbol(this, systemStringType, _nameField)];
+            _constructors = [new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(this, getConstructorParameters, getConstructorBody)];
 
             // Ensure we never get out of sync with the description
             Debug.Assert(_constructors.Length == AttributeDescription.ExtensionMarkerAttribute.Signatures.Length);
+
+            ImmutableArray<ParameterSymbol> getConstructorParameters(MethodSymbol ctor)
+            {
+                return [SynthesizedParameterSymbol.Create(ctor, TypeWithAnnotations.Create(systemStringType), ordinal: 0, RefKind.None, name: "name")];
+            }
+
+            void getConstructorBody(SyntheticBoundNodeFactory f, ArrayBuilder<BoundStatement> statements, ImmutableArray<ParameterSymbol> parameters)
+            {
+                // this._namedField = name;
+                statements.Add(f.Assignment(
+                    f.Field(f.This(), this._nameField),
+                    f.Parameter(parameters[0])));
+            }
         }
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
@@ -71,35 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override IEnumerable<string> MemberNames
             => [FieldName, PropertyName, WellKnownMemberNames.InstanceConstructorName];
 
-        private sealed class ConstructorSymbol : SynthesizedInstanceConstructor
-        {
-            private readonly ImmutableArray<ParameterSymbol> _parameters;
-            private readonly SynthesizedFieldSymbol _nameField;
-
-            internal ConstructorSymbol(
-                NamedTypeSymbol containingType,
-                TypeSymbol systemStringType,
-                SynthesizedFieldSymbol nameField) :
-                base(containingType)
-            {
-                _parameters = [SynthesizedParameterSymbol.Create(containingType, TypeWithAnnotations.Create(systemStringType), ordinal: 0, RefKind.None, name: "name")];
-                _nameField = nameField;
-            }
-
-            public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
-
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
-            {
-                GenerateMethodBodyCore(compilationState, diagnostics);
-            }
-
-            internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory f, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics)
-            {
-                // this._namedField = name;
-                statements.Add(f.Assignment(f.Field(f.This(), _nameField), f.Parameter(_parameters[0])));
-            }
-        }
-
         private sealed class NamePropertySymbol : PropertySymbol
         {
             private readonly SynthesizedFieldSymbol _backingField;
@@ -107,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public NamePropertySymbol(SynthesizedFieldSymbol backingField)
             {
                 _backingField = backingField;
-                GetMethod = new NameGetAccessorMethodSymbol(this, backingField);
+                GetMethod = new NameGetAccessorMethodSymbol(this);
             }
 
             public override string Name => PropertyName;
@@ -117,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override MethodSymbol GetMethod { get; }
             public override MethodSymbol? SetMethod => null;
             public override Symbol ContainingSymbol => _backingField.ContainingSymbol;
-            public override Accessibility DeclaredAccessibility => Accessibility.Internal;
+            public override Accessibility DeclaredAccessibility => Accessibility.Public;
 
             public override ImmutableArray<Location> Locations => [];
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => [];
@@ -142,12 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed partial class NameGetAccessorMethodSymbol : SynthesizedMethodSymbol
         {
             private readonly NamePropertySymbol _nameProperty;
-            private readonly SynthesizedFieldSymbol _backingField;
 
-            public NameGetAccessorMethodSymbol(NamePropertySymbol nameProperty, SynthesizedFieldSymbol backingField)
+            public NameGetAccessorMethodSymbol(NamePropertySymbol nameProperty)
             {
                 _nameProperty = nameProperty;
-                _backingField = backingField;
             }
 
             public override string Name => "get_Name";
@@ -160,16 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
-                SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+                SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, CSharpSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics);
                 F.CurrentFunction = this.OriginalDefinition;
 
                 try
                 {
                     // return this._backingField;
-                    F.CloseMethod(F.Return(F.Field(F.This(), _backingField)));
+                    F.CloseMethod(F.Return(F.Field(F.This(), ((SynthesizedEmbeddedExtensionMarkerAttributeSymbol)_nameProperty.ContainingSymbol)._nameField)));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {
+                    F.CloseMethod(F.ThrowNull());
                     diagnostics.Add(ex.Diagnostic);
                 }
             }
@@ -191,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<ParameterSymbol> Parameters => [];
             public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => [];
             public override ImmutableArray<Location> Locations => [];
-            public override Accessibility DeclaredAccessibility => Accessibility.Internal;
+            public override Accessibility DeclaredAccessibility => ContainingSymbol.DeclaredAccessibility;
             public override bool IsVirtual => false;
             public override bool IsOverride => false;
             public override bool IsAbstract => false;
