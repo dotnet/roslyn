@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 FieldName => [_nameField],
                 PropertyName => [_nameProperty],
-                WellKnownMemberNames.InstanceConstructorName => [_constructors[0]],
+                WellKnownMemberNames.InstanceConstructorName => ImmutableArray<Symbol>.CastUp(_constructors),
                 _ => []
             };
         }
