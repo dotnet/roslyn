@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override IEnumerable<string> MemberNames
-            => [_nameField.Name, PropertyName, WellKnownMemberNames.InstanceConstructorName];
+            => [FieldName, PropertyName, WellKnownMemberNames.InstanceConstructorName];
 
         private sealed class ConstructorSymbol : SynthesizedInstanceConstructor
         {
