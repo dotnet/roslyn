@@ -937,11 +937,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel? semanticModel, LocalDeclarationStatementSyntax awaitExpression)
+        public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel? semanticModel, LocalDeclarationStatementSyntax awaitUsingDeclaration)
         {
             if (semanticModel is CSharpSemanticModel csmodel)
             {
-                return csmodel.GetAwaitExpressionInfo(awaitExpression);
+                return csmodel.GetAwaitExpressionInfo(awaitUsingDeclaration);
             }
             else
             {
@@ -949,11 +949,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel? semanticModel, UsingStatementSyntax awaitExpression)
+        public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel? semanticModel, UsingStatementSyntax awaitUsingStatement)
         {
             if (semanticModel is CSharpSemanticModel csmodel)
             {
-                return csmodel.GetAwaitExpressionInfo(awaitExpression);
+                return csmodel.GetAwaitExpressionInfo(awaitUsingStatement);
             }
             else
             {

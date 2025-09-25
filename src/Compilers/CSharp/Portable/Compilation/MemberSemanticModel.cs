@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.UsingKeyword.IsKind(SyntaxKind.None) || node.AwaitKeyword.IsKind(SyntaxKind.None))
             {
-                throw new ArgumentException("node is not an await using declaration", nameof(node));
+                throw new ArgumentException(CSharpResources.NodeIsNotAwaitUsingDeclaration, nameof(node));
             }
 
             var bound = GetLowerBoundNode(node);
@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.AwaitKeyword.IsKind(SyntaxKind.None))
             {
-                throw new ArgumentException("node is not an await using statement", nameof(node));
+                throw new ArgumentException(CSharpResources.NodeIsNotAwaitUsingStatement, nameof(node));
             }
 
             var bound = GetLowerBoundNode(node);

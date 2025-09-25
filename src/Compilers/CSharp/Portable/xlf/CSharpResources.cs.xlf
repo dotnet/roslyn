@@ -2997,6 +2997,16 @@
         <target state="translated">{0} není platná operace šíření v jazyce C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
         <target state="translated">Přístupový objekt '{0}' vlastnosti '{1}' by měl používat vlastnost field, protože ho používá jiný přístupový objekt.</target>
@@ -11125,7 +11135,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <target state="translated">Operátor await jde použít jenom ve výrazu dotazu v rámci první kolekce výrazu počáteční klauzule from nebo v rámci výrazu kolekce klauzule join.</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Protože se toto volání neočekává, vykonávání aktuální metody pokračuje před dokončením volání. Zvažte použití operátoru await na výsledek volání.</target>
         <note />
