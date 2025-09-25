@@ -61,18 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return VisitArrayOrSpanCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         // A few special cases when a collection type is an ImmutableArray<T>
-                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out _))
+                        if ((object)node.Type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T))
                         {
-                            // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
-                            if (node.Elements.IsEmpty &&
-                                _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty) is FieldSymbol immutableArrayOfTEmpty)
-                            {
-                                var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember((NamedTypeSymbol)node.Type);
-                                return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
-                            }
-
                             return VisitArrayOrSpanCollectionExpression(node, node.Type);
                         }
+
                         return VisitCollectionBuilderCollectionExpression(node);
                     case CollectionExpressionTypeKind.ArrayInterface:
                         return VisitListInterfaceCollectionExpression(node);
@@ -224,13 +217,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Rewrites the following collection types:
-        /// <list type="bullet">
-        /// <item>Normal arrays</item>
-        /// <item>Immutable arrays</item>
-        /// <item>Spans</item>
-        /// <item>Read-only spans</item>
-        /// </list>
+        /// Create a collection value which may involve creating an array.
+        /// Handles types 'T[]', 'Span{T}', 'ReadOnlySpan{T}', 'ImmutableArray{T}'.
+        /// Note that Span/ROS/ImmutableArray cases, may or may not involve us actually creating an array.
+        /// Depending on the collection elements, available APIs, or other context, we may use some other strategy.
         /// </summary>
         private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, TypeSymbol collectionType)
         {
@@ -239,59 +229,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.CollectionCreation is null); // shouldn't have generated a constructor call
             Debug.Assert(node.Placeholder is null);
 
-            var syntax = node.Syntax;
-            var elements = node.Elements;
-            MethodSymbol? spanConstructor = null;
-
-            ArrayTypeSymbol? arrayType = null;
-            TypeWithAnnotations elementType;
-            var isReadOnlySpan = false;
-
-            // We will also use this variable as a state flag - if it is not null
-            // then we are rewriting an immutable array collection and need to apply
-            // this method for the created normal array at the end
-            MethodSymbol? asImmutableArray = null;
-
-            if (collectionType is ArrayTypeSymbol collectionArrayType)
+            return collectionType switch
             {
-                arrayType = collectionArrayType;
-                elementType = collectionArrayType.ElementTypeWithAnnotations;
-            }
-            else
+                ArrayTypeSymbol arrayType
+                    => createArray(arrayType, targetsReadOnlyCollection: false),
+                TypeSymbol spanType when spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T))
+                    => createSpan(isReadOnlySpan: false),
+                TypeSymbol readOnlySpanType when readOnlySpanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
+                    => createSpan(isReadOnlySpan: true),
+                TypeSymbol immutableArrayType when immutableArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T))
+                    => createImmutableArray(),
+                _ => throw ExceptionUtilities.UnexpectedValue(collectionType),
+            };
+
+            ArrayTypeSymbol getBackingArrayType()
             {
                 Debug.Assert(collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T) ||
-                             collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Span_T) ||
-                             collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T));
+                    collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Span_T) ||
+                    collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T));
 
-                elementType = ((NamedTypeSymbol)collectionType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-
-                if (collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T))
-                {
-                    if (!CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _) &&
-                        _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArrayMember)
-                    {
-                        asImmutableArray = asImmutableArrayMember;
-                        arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
-                    }
-                    else
-                    {
-                        return VisitCollectionBuilderCollectionExpression(node);
-                    }
-                }
-                else if (collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
-                {
-                    isReadOnlySpan = true;
-                }
+                var elementType = ((NamedTypeSymbol)collectionType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                return ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
             }
 
-            if (arrayType is null)
+            BoundExpression createImmutableArray()
             {
-                // We're constructing a Span<T> or ReadOnlySpan<T> rather than T[].
+                if (node.Elements.IsEmpty &&
+                    _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty) is FieldSymbol immutableArrayOfTEmpty)
+                {
+                    // ImmutableArray<T> value = [];
+                    var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember((NamedTypeSymbol)node.Type);
+                    return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
+                }
+
+                if (CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
+                {
+                    // ReadOnlySpan<T> span = [elems];
+                    // ImmutableArray<T> array = ImmutableArray.Create(span)
+                    return VisitCollectionBuilderCollectionExpression(node);
+                }
+
+                const WellKnownMember wellKnownMember = WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T;
+                if (_compilation.GetWellKnownTypeMember(wellKnownMember) is not MethodSymbol asImmutableArray)
+                {
+                    // ReadOnlySpan<T> span = [elems];
+                    // ImmutableArray<T> array = ImmutableArray.Create(span)
+                    return VisitCollectionBuilderCollectionExpression(node);
+                }
+
+                // T[] array = [elems];
+                // ImmutableArray<T> value = ImmutableCollectionsMarshal.AsImmutableArray(array);
+                var arrayType = getBackingArrayType();
+                var arrayValue = createArray(arrayType, targetsReadOnlyCollection: true);
+                return _factory.StaticCall(asImmutableArray.Construct([arrayType.ElementTypeWithAnnotations]), [arrayValue]);
+            }
+
+            BoundExpression? tryCreateNonArrayBackedSpan(bool isReadOnlySpan)
+            {
+                Debug.Assert(isReadOnlySpan
+                    ? collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)
+                    : collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Span_T));
+
                 var spanType = (NamedTypeSymbol)collectionType;
-
-                Debug.Assert(elementType.Equals(spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0], TypeCompareKind.AllIgnoreOptions));
-
-                if (elements.Length == 0)
+                var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                if (node.Elements.Length == 0)
                 {
                     // `default(Span<T>)` is the best way to make empty Spans
                     return _factory.Default(collectionType);
@@ -301,9 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
                 {
                     // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
-                    Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, isReadOnlySpan ? CollectionExpressionTypeKind.ReadOnlySpan : CollectionExpressionTypeKind.Span, elementType.Type, _compilation));
+                    Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, elementType.Type, _compilation));
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
+                    var rewrittenElements = node.Elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
                     return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
                 }
 
@@ -312,53 +313,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, isReadOnlySpan ? CollectionExpressionTypeKind.ReadOnlySpan : CollectionExpressionTypeKind.Span, elementType.Type, _compilation));
                     return CreateAndPopulateSpanFromInlineArray(
-                        syntax,
+                        node.Syntax,
                         elementType,
-                        elements,
+                        node.Elements,
                         asReadOnlySpan: isReadOnlySpan);
                 }
 
-                Debug.Assert(IsAllocatingRefStructCollectionExpression(node, isReadOnlySpan ? CollectionExpressionTypeKind.ReadOnlySpan : CollectionExpressionTypeKind.Span, elementType.Type, _compilation));
-                arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
-                spanConstructor = ((MethodSymbol)_factory.WellKnownMember(
-                    isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__ctor_Array : WellKnownMember.System_Span_T__ctor_Array)!).AsMember(spanType);
+                return null;
             }
 
-            BoundExpression array;
-            if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection: asImmutableArray is not null || isReadOnlySpan, arrayType) is { } optimizedArray)
+            BoundExpression createSpan(bool isReadOnlySpan)
             {
-                array = optimizedArray;
-            }
-            else if (ShouldUseKnownLength(node, out _))
-            {
-                array = CreateAndPopulateArray(node, arrayType);
-            }
-            else
-            {
-                // The array initializer has an unknown length, so we'll create an intermediate List<T> instance.
-                // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
-                var list = CreateAndPopulateList(node, elementType, elements);
+                Debug.Assert(isReadOnlySpan
+                    ? collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T)
+                    : collectionType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_Span_T));
 
-                Debug.Assert(list.Type is { });
-                Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
+                if (tryCreateNonArrayBackedSpan(isReadOnlySpan) is { } spanValue)
+                    return spanValue;
 
-                var listToArray = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)).AsMember((NamedTypeSymbol)list.Type);
-                array = _factory.Call(list, listToArray);
+                var arrayType = getBackingArrayType();
+                var arrayValue = createArray(arrayType, targetsReadOnlyCollection: isReadOnlySpan);
+
+                var wellKnownMember = isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__ctor_Array : WellKnownMember.System_Span_T__ctor_Array;
+                var spanConstructor = ((MethodSymbol)_factory.WellKnownMember(wellKnownMember)!).AsMember((NamedTypeSymbol)collectionType);
+                verifyTypesAreCompatible(_compilation, arrayType, spanConstructor.Parameters[0].Type);
+                return new BoundObjectCreationExpression(node.Syntax, spanConstructor, arrayValue);
             }
 
-            if (asImmutableArray is not null)
+            BoundExpression createArray(ArrayTypeSymbol arrayType, bool targetsReadOnlyCollection)
             {
-                // ImmutableCollectionsMarshal.AsImmutableArray(array)
-                return _factory.StaticCall(asImmutableArray.Construct(ImmutableArray.Create(elementType)), [array]);
-            }
+                BoundExpression array;
+                if (TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection, arrayType) is { } optimizedArray)
+                {
+                    array = optimizedArray;
+                }
+                else if (ShouldUseKnownLength(node, out _))
+                {
+                    array = CreateAndPopulateArray(node, arrayType);
+                }
+                else
+                {
+                    // The array initializer has an unknown length, so we'll create an intermediate List<T> instance.
+                    // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
+                    var list = CreateAndPopulateList(node, arrayType.ElementTypeWithAnnotations, node.Elements);
 
-            if (spanConstructor is null)
-            {
+                    Debug.Assert(list.Type is { });
+                    Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
+
+                    var listToArray = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ToArray)).AsMember((NamedTypeSymbol)list.Type);
+                    array = _factory.Call(list, listToArray);
+                }
+
                 return array;
             }
-
-            verifyTypesAreCompatible(_compilation, array.Type, spanConstructor.Parameters[0].Type);
-            return new BoundObjectCreationExpression(syntax, spanConstructor, array);
 
             [Conditional("DEBUG")]
             static void verifyTypesAreCompatible(CSharpCompilation compilation, TypeSymbol? arrayType, TypeSymbol constructorParameterType)
