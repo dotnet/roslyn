@@ -4855,7 +4855,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ldloc.1
                           IL_0008:  ldc.i4.1
-                          IL_0009:  stfld      0x04000005
+                          IL_0009:  stfld      0x04000006
                           IL_000e:  nop
                           IL_000f:  ldsfld     0x04000003
                           IL_0014:  brtrue.s   IL_002b
@@ -4885,8 +4885,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A00000B
@@ -4894,14 +4894,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000004
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000005
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000C
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000C
+                          IL_0001:  call       0x0A00000D
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -4910,7 +4918,7 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  call       0x0A00000A
                           IL_000b:  nop
                           IL_000c:  ret
@@ -5000,7 +5008,7 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_1
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000002
+                          IL_0004:  stfld      0x04000003
                           IL_0009:  nop
                           IL_000a:  nop
                           IL_000b:  ret
@@ -5028,15 +5036,15 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000002
+                          IL_0001:  ldfld      0x04000003
                           IL_0006:  call       0x0A000008
                           IL_000b:  nop
                           IL_000c:  ret
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -5044,7 +5052,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000001
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000002
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -5110,7 +5126,7 @@ class C
                           IL_0005:  stloc.0
                           IL_0006:  ldloc.0
                           IL_0007:  ldarg.1
-                          IL_0008:  stfld      0x04000005
+                          IL_0008:  stfld      0x04000006
                           IL_000d:  nop
                           IL_000e:  nop
                           IL_000f:  ldsfld     0x04000003
@@ -5141,8 +5157,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A00000B
@@ -5150,14 +5166,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000004
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000005
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000C
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000C
+                          IL_0001:  call       0x0A00000D
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5166,7 +5190,7 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  call       0x0A00000A
                           IL_000b:  nop
                           IL_000c:  ret
@@ -5252,7 +5276,7 @@ class C
                           .maxstack  2
                           IL_0000:  ldloca.s   V_0
                           IL_0002:  ldarg.1
-                          IL_0003:  stfld      0x04000002
+                          IL_0003:  stfld      0x04000003
                           IL_0008:  nop
                           IL_0009:  nop
                           IL_000a:  nop
@@ -5281,15 +5305,15 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000002
+                          IL_0001:  ldfld      0x04000003
                           IL_0006:  call       0x0A000008
                           IL_000b:  nop
                           IL_000c:  ret
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -5297,7 +5321,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000001
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000002
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -5381,7 +5413,7 @@ class C
                           IL_0005:  stloc.0
                           IL_0006:  ldloc.0
                           IL_0007:  ldarg.1
-                          IL_0008:  stfld      0x04000005
+                          IL_0008:  stfld      0x04000006
                           IL_000d:  ldloc.0
                           IL_000e:  ldftn      0x0600000A
                           IL_0014:  newobj     0x0A00000A
@@ -5399,8 +5431,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A00000B
@@ -5408,14 +5440,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000004
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000005
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000C
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000C
+                          IL_0001:  call       0x0A00000D
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5424,7 +5464,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  ret
                         }
                         """);
@@ -5492,10 +5532,10 @@ class C
                           IL_0005:  stloc.0
                           IL_0006:  ldloc.0
                           IL_0007:  ldarg.1
-                          IL_0008:  stfld      0x04000005
+                          IL_0008:  stfld      0x04000006
                           IL_000d:  ldloc.0
                           IL_000e:  ldarg.2
-                          IL_000f:  stfld      0x04000006
+                          IL_000f:  stfld      0x04000007
                           IL_0014:  ldarg.0
                           IL_0015:  ldloc.0
                           IL_0016:  ldftn      0x06000009
@@ -5526,8 +5566,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A00000B
@@ -5535,14 +5575,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000004
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000005
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000C
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000C
+                          IL_0001:  call       0x0A00000D
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5551,7 +5599,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  ret
                         }
                         <.ctor>b__1#1
@@ -5559,8 +5607,8 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000006
-                          IL_0006:  call       0x0A00000D
+                          IL_0001:  ldfld      0x04000007
+                          IL_0006:  call       0x0A00000E
                           IL_000b:  nop
                           IL_000c:  ret
                         }
@@ -5616,7 +5664,7 @@ class C
                           IL_0005:  stloc.0
                           IL_0006:  ldloc.0
                           IL_0007:  ldarg.1
-                          IL_0008:  stfld      0x04000004
+                          IL_0008:  stfld      0x04000005
                           IL_000d:  ldarg.0
                           IL_000e:  ldloc.0
                           IL_000f:  ldftn      0x06000008
@@ -5636,8 +5684,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -5645,14 +5693,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000A
+                          IL_0001:  call       0x0A00000B
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5661,7 +5717,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
+                          IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
                         """);
@@ -5716,7 +5772,7 @@ class C
                           IL_0005:  stloc.1
                           IL_0006:  ldloc.1
                           IL_0007:  ldarg.0
-                          IL_0008:  stfld      0x04000004
+                          IL_0008:  stfld      0x04000005
                           IL_000d:  ldloc.1
                           IL_000e:  ldftn      0x06000008
                           IL_0014:  newobj     0x0A000008
@@ -5734,8 +5790,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -5743,14 +5799,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000A
+                          IL_0001:  call       0x0A00000B
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5759,7 +5823,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
+                          IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
                         """);
@@ -5888,8 +5952,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A00000B
@@ -5897,7 +5961,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000005
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000006
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000C
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -6018,8 +6090,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -6027,7 +6099,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -6128,8 +6208,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A00000C
@@ -6137,7 +6217,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000005
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000006
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000D
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -6230,8 +6318,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A00000A
@@ -6239,7 +6327,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000B
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -6512,12 +6608,12 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldc.i4.1
                           IL_0002:  stloc.1
-                          IL_0003:  ldsfld     0x04000004
+                          IL_0003:  ldsfld     0x04000005
                           IL_0008:  brtrue.s   IL_001f
-                          IL_000a:  ldsfld     0x04000003
+                          IL_000a:  ldsfld     0x04000004
                           IL_000f:  ldftn      0x06000008
                           IL_0015:  newobj     0x0A000008
-                          IL_001a:  stsfld     0x04000004
+                          IL_001a:  stsfld     0x04000005
                           IL_001f:  ret
                         }
                         <F>b__0
@@ -6531,8 +6627,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -6540,14 +6636,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .cctor
                         {
                           // Code size       11 (0xb)
                           .maxstack  8
                           IL_0000:  newobj     0x06000007
-                          IL_0005:  stsfld     0x04000003
+                          IL_0005:  stsfld     0x04000004
                           IL_000a:  ret
                         }
                         .ctor
@@ -6555,7 +6659,7 @@ class C
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000A
+                          IL_0001:  call       0x0A00000B
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -6564,7 +6668,7 @@ class C
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.2
-                          IL_0001:  call       0x0A00000B
+                          IL_0001:  call       0x0A00000C
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -6611,7 +6715,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ldloc.2
                           IL_0008:  ldc.i4.1
-                          IL_0009:  stfld      0x04000005
+                          IL_0009:  stfld      0x04000006
                           IL_000e:  nop
                           IL_000f:  ret
                         }
@@ -6629,7 +6733,7 @@ class C
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000D
+                          IL_0001:  call       0x0A00000E
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -6638,10 +6742,10 @@ class C
                           // Code size       15 (0xf)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  ldc.i4.3
                           IL_0007:  add
-                          IL_0008:  call       0x0A00000E
+                          IL_0008:  call       0x0A00000F
                           IL_000d:  nop
                           IL_000e:  ret
                         }
@@ -6789,8 +6893,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -6798,7 +6902,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -6907,12 +7019,12 @@ class C
                           // Code size       58 (0x3a)
                           .maxstack  8
                           IL_0000:  nop
-                          IL_0001:  ldsfld     0x04000005
+                          IL_0001:  ldsfld     0x04000006
                           IL_0006:  brtrue.s   IL_001d
                           IL_0008:  ldsfld     0x04000002
                           IL_000d:  ldftn      0x06000008
                           IL_0013:  newobj     0x0A000009
-                          IL_0018:  stsfld     0x04000005
+                          IL_0018:  stsfld     0x04000006
                           IL_001d:  ldsfld     0x04000003
                           IL_0022:  brtrue.s   IL_0039
                           IL_0024:  ldsfld     0x04000002
@@ -6941,8 +7053,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A00000B
@@ -6950,7 +7062,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000004
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000005
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000C
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         <F>b__1_0#1
                         {
@@ -7098,8 +7218,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -7107,7 +7227,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -7220,7 +7348,7 @@ class C
                             "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
 
                         // <HotReloadException> is emitted as a definition in this generation
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1");
 
                         g.VerifyMethodDefNames("F", "<F>b__0#1", ".ctor");
 
@@ -7245,8 +7373,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -7254,7 +7382,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -7376,8 +7512,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000008
@@ -7385,7 +7521,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000009
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -7493,14 +7637,14 @@ class C
                           IL_0014:  stloc.2
                           IL_0015:  ldloc.2
                           IL_0016:  ldloc.0
-                          IL_0017:  stfld      0x04000005
+                          IL_0017:  stfld      0x04000006
                           IL_001c:  nop
                           IL_001d:  ldloc.2
                           IL_001e:  ldc.i4.0
-                          IL_001f:  stfld      0x04000004
+                          IL_001f:  stfld      0x04000005
                           IL_0024:  ldarg.0
                           IL_0025:  ldloc.2
-                          IL_0026:  ldfld      0x04000005
+                          IL_0026:  ldfld      0x04000006
                           IL_002b:  ldftn      0x06000005
                           IL_0031:  newobj     0x0A000008
                           IL_0036:  call       0x06000001
@@ -7534,8 +7678,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -7543,14 +7687,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000A
+                          IL_0001:  call       0x0A00000B
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -7559,10 +7711,10 @@ class C
                           // Code size       19 (0x13)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  ldfld      0x04000001
                           IL_000b:  ldarg.0
-                          IL_000c:  ldfld      0x04000004
+                          IL_000c:  ldfld      0x04000005
                           IL_0011:  add
                           IL_0012:  ret
                         }
@@ -7726,8 +7878,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000007
@@ -7735,7 +7887,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000008
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -7845,7 +8005,7 @@ class C
                           IL_0015:  nop
                           IL_0016:  ldloc.2
                           IL_0017:  ldc.i4.0
-                          IL_0018:  stfld      0x04000005
+                          IL_0018:  stfld      0x04000006
                           IL_001d:  ldloc.0
                           IL_001e:  ldftn      0x06000005
                           IL_0024:  newobj     0x0A000008
@@ -7879,8 +8039,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -7888,14 +8048,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000004
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000005
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000A
+                          IL_0001:  call       0x0A00000B
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -7904,7 +8072,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  ret
                         }
                         """);
@@ -8067,8 +8235,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000007
@@ -8076,7 +8244,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000008
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -8178,23 +8354,23 @@ class C
                           IL_0014:  stloc.3
                           IL_0015:  ldloc.3
                           IL_0016:  ldloc.0
-                          IL_0017:  stfld      0x04000006
+                          IL_0017:  stfld      0x04000007
                           IL_001c:  nop
                           IL_001d:  ldloc.3
                           IL_001e:  ldc.i4.2
-                          IL_001f:  stfld      0x04000005
+                          IL_001f:  stfld      0x04000006
                           IL_0024:  newobj     0x0600000A
                           IL_0029:  stloc.s    V_4
                           IL_002b:  ldloc.s    V_4
                           IL_002d:  ldloc.3
-                          IL_002e:  stfld      0x04000008
+                          IL_002e:  stfld      0x04000009
                           IL_0033:  nop
                           IL_0034:  ldloc.s    V_4
                           IL_0036:  ldc.i4.3
-                          IL_0037:  stfld      0x04000007
+                          IL_0037:  stfld      0x04000008
                           IL_003c:  ldloc.s    V_4
-                          IL_003e:  ldfld      0x04000008
-                          IL_0043:  ldfld      0x04000006
+                          IL_003e:  ldfld      0x04000009
+                          IL_0043:  ldfld      0x04000007
                           IL_0048:  ldftn      0x06000005
                           IL_004e:  newobj     0x0A000008
                           IL_0053:  call       0x06000001
@@ -8233,8 +8409,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -8242,14 +8418,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000004
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000005
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor, .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000A
+                          IL_0001:  call       0x0A00000B
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -8258,10 +8442,10 @@ class C
                           // Code size       24 (0x18)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000007
+                          IL_0001:  ldfld      0x04000008
                           IL_0006:  ldarg.0
-                          IL_0007:  ldfld      0x04000008
-                          IL_000c:  ldfld      0x04000006
+                          IL_0007:  ldfld      0x04000009
+                          IL_000c:  ldfld      0x04000007
                           IL_0011:  ldfld      0x04000001
                           IL_0016:  add
                           IL_0017:  ret
@@ -8271,15 +8455,15 @@ class C
                           // Code size       36 (0x24)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000007
+                          IL_0001:  ldfld      0x04000008
                           IL_0006:  ldarg.0
-                          IL_0007:  ldfld      0x04000008
-                          IL_000c:  ldfld      0x04000006
+                          IL_0007:  ldfld      0x04000009
+                          IL_000c:  ldfld      0x04000007
                           IL_0011:  ldfld      0x04000001
                           IL_0016:  add
                           IL_0017:  ldarg.0
-                          IL_0018:  ldfld      0x04000008
-                          IL_001d:  ldfld      0x04000005
+                          IL_0018:  ldfld      0x04000009
+                          IL_001d:  ldfld      0x04000006
                           IL_0022:  add
                           IL_0023:  ret
                         }
@@ -8644,8 +8828,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -8653,7 +8837,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         <F>b__2#1
                         {
@@ -8843,8 +9035,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000007
@@ -8852,7 +9044,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000008
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -8966,7 +9166,7 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_2
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000004
+                          IL_0004:  stfld      0x04000005
                           IL_0009:  newobj     0x06000007
                           IL_000e:  stloc.1
                           IL_000f:  nop
@@ -9018,13 +9218,13 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
+                          IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -9032,7 +9232,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         <F>b__2#1
                         {
@@ -9219,8 +9427,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -9228,7 +9436,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         <F>g__L3|2#1
                         {
@@ -9418,10 +9634,10 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_2
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000003
+                          IL_0004:  stfld      0x04000004
                           IL_0009:  ldloca.s   V_2
                           IL_000b:  ldc.i4.2
-                          IL_000c:  stfld      0x04000004
+                          IL_000c:  stfld      0x04000005
                           IL_0011:  nop
                           IL_0012:  ret
                         }
@@ -9439,16 +9655,16 @@ class C
                           // Code size       14 (0xe)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000003
+                          IL_0001:  ldfld      0x04000004
                           IL_0006:  ldarg.0
-                          IL_0007:  ldfld      0x04000004
+                          IL_0007:  ldfld      0x04000005
                           IL_000c:  add
                           IL_000d:  ret
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000007
@@ -9456,7 +9672,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000008
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -9643,7 +9867,7 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_1
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000003
+                          IL_0004:  stfld      0x04000004
                           IL_0009:  nop
                           IL_000a:  ret
                         }
@@ -9670,13 +9894,13 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000003
+                          IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000008
@@ -9684,19 +9908,30 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000009
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
 
                         g.VerifyEncLogDefinitions(
                         [
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -9780,7 +10015,7 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_1
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000003
+                          IL_0004:  stfld      0x04000004
                           IL_0009:  nop
                           IL_000a:  ret
                         }
@@ -9798,13 +10033,13 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000003
+                          IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000008
@@ -9812,7 +10047,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000009
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         """);
                     })
@@ -9875,7 +10118,7 @@ class C
                             "class C.<>c__DisplayClass1_0#1: {x, <F>g__L|0#1, <F>b__1#1}"
                         ]);
 
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Func`1");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1", "Func`1");
 
                         g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1", "<F>b__1#1");
 
@@ -9889,7 +10132,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ldloc.1
                           IL_0008:  ldc.i4.1
-                          IL_0009:  stfld      0x04000003
+                          IL_0009:  stfld      0x04000004
                           IL_000e:  nop
                           IL_000f:  ldloc.1
                           IL_0010:  ldftn      0x06000008
@@ -9909,8 +10152,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000008
@@ -9918,14 +10161,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000009
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A00000A
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -9934,7 +10185,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000003
+                          IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
                         """);
@@ -10000,7 +10251,7 @@ class C
 
                         g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1");
 
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Func`1");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1", "Func`1");
 
                         g.VerifyIL(
                         """
@@ -10013,7 +10264,7 @@ class C
                           IL_0006:  nop
                           IL_0007:  ldloc.1
                           IL_0008:  ldc.i4.1
-                          IL_0009:  stfld      0x04000003
+                          IL_0009:  stfld      0x04000004
                           IL_000e:  nop
                           IL_000f:  ldloc.1
                           IL_0010:  ldftn      0x06000007
@@ -10033,8 +10284,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000008
@@ -10042,14 +10293,22 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000002
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000003
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A000009
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         .ctor
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A00000A
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -10058,7 +10317,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000003
+                          IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
                         """);
@@ -10127,12 +10386,12 @@ class C
                           // Code size       30 (0x1e)
                           .maxstack  8
                           IL_0000:  nop
-                          IL_0001:  ldsfld     0x04000004
+                          IL_0001:  ldsfld     0x04000005
                           IL_0006:  brtrue.s   IL_001d
                           IL_0008:  ldsfld     0x04000001
                           IL_000d:  ldftn      0x06000007
                           IL_0013:  newobj     0x0A000008
-                          IL_0018:  stsfld     0x04000004
+                          IL_0018:  stsfld     0x04000005
                           IL_001d:  ret
                         }
                         <F>b__0_0
@@ -10146,8 +10405,8 @@ class C
                         }
                         .ctor
                         {
-                          // Code size       16 (0x10)
-                          .maxstack  8
+                          // Code size       33 (0x21)
+                          .maxstack  2
                           IL_0000:  ldarg.0
                           IL_0001:  ldarg.1
                           IL_0002:  call       0x0A000009
@@ -10155,7 +10414,15 @@ class C
                           IL_0008:  ldarg.0
                           IL_0009:  ldarg.2
                           IL_000a:  stfld      0x04000003
-                          IL_000f:  ret
+                          IL_000f:  ldsfld     0x04000004
+                          IL_0014:  dup
+                          IL_0015:  stloc.0
+                          IL_0016:  brfalse.s  IL_0020
+                          IL_0018:  ldloc.0
+                          IL_0019:  ldarg.0
+                          IL_001a:  callvirt   0x0A00000A
+                          IL_001f:  nop
+                          IL_0020:  ret
                         }
                         <F>b__0_0#1
                         {
@@ -10199,12 +10466,12 @@ class C
                           // Code size       30 (0x1e)
                           .maxstack  8
                           IL_0000:  nop
-                          IL_0001:  ldsfld     0x04000005
+                          IL_0001:  ldsfld     0x04000006
                           IL_0006:  brtrue.s   IL_001d
                           IL_0008:  ldsfld     0x04000001
                           IL_000d:  ldftn      0x06000008
-                          IL_0013:  newobj     0x0A00000B
-                          IL_0018:  stsfld     0x04000005
+                          IL_0013:  newobj     0x0A00000C
+                          IL_0018:  stsfld     0x04000006
                           IL_001d:  ret
                         }
                         <F>b__0_0#1
