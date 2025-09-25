@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -124,7 +125,7 @@ namespace CSharpSyntaxGenerator
                 }
                 first = false;
 
-                if (IsOptional(field))
+                if (IsOptionalForTest(field))
                 {
                     if (isGreen)
                     {
@@ -244,7 +245,7 @@ namespace CSharpSyntaxGenerator
                 string withStat = null;
                 foreach (var field in nodeFields)
                 {
-                    if (IsOptional(field))
+                    if (IsOptionalForTest(field))
                     {
                         if (!isGreen && field.Type == "SyntaxToken")
                         {

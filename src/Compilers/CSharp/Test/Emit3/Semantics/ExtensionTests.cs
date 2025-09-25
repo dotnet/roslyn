@@ -44441,9 +44441,6 @@ static class E
             Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69").WithLocation(1, 1));
 
         AssertEx.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionGroupingName);
-
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : we should find the unspeakable nested type
-        Assert.Null(comp.GetTypeByMetadataName("E+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
     }
 
     [Fact]
