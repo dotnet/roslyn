@@ -63,11 +63,6 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
     public Task ValidateCSharpTemplateProjects(string templateName)
     {
-        if (templateName is "blazor" or "blazorwasm")
-        {
-            // https://github.com/dotnet/roslyn/issues/80263
-            return Task.CompletedTask;
-        }
         return AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
     }
 
