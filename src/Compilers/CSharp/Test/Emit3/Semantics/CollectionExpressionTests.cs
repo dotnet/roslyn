@@ -1417,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 $"static Type {methodName}{getTypeParameters(parameterType)}({parameterType} value) => typeof({parameterType});";
 
             static string generateMethodSignature(string methodName, string parameterType) =>
-                $"Program.{methodName}{getTypeParameters(parameterType).Replace("T", "int")}({parameterType.Replace("T", "int")})";
+                $"Program.{methodName}{getTypeParameters(parameterType)}({parameterType})";
 
             static string[] getSources(string source, string[] additionalSources)
             {
@@ -3556,9 +3556,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<int>(int[])' and 'Program.F<int>(System.Collections.Generic.List<int>)'
+                // (8,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<T>(T[])' and 'Program.F<T>(List<T>)'
                 //         _ = F([1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<int>(int[])", "Program.F<int>(System.Collections.Generic.List<int>)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(T[])", "Program.F<T>(System.Collections.Generic.List<T>)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -27429,12 +27429,12 @@ partial class Program
                 """;
             var comp = CreateCompilation([sourceB, sourceA]);
             comp.VerifyEmitDiagnostics(
-                // (6,27): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<object>(MyCollection<object>, string)' and 'ExtensionsB.Add<object>(MyCollection<object>, string)'
+                // (6,27): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, string)' and 'ExtensionsB.Add<T>(MyCollection<T>, string)'
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "x").WithArguments("ExtensionsA.Add<object>(MyCollection<object>, string)", "ExtensionsB.Add<object>(MyCollection<object>, string)").WithLocation(6, 27),
-                // (6,32): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<object>(MyCollection<object>, string)' and 'ExtensionsB.Add<object>(MyCollection<object>, string)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "x").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, string)", "ExtensionsB.Add<T>(MyCollection<T>, string)").WithLocation(6, 27),
+                // (6,32): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, string)' and 'ExtensionsB.Add<T>(MyCollection<T>, string)'
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "y").WithArguments("ExtensionsA.Add<object>(MyCollection<object>, string)", "ExtensionsB.Add<object>(MyCollection<object>, string)").WithLocation(6, 32));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "y").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, string)", "ExtensionsB.Add<T>(MyCollection<T>, string)").WithLocation(6, 32));
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """

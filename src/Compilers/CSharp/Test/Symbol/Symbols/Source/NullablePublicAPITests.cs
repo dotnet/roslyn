@@ -3081,18 +3081,18 @@ static class CExt2
 ";
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (10,23): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<object>(C, object)' and 'CExt2.Add<object>(C, object)'
+                // (10,23): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
                 //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o1").WithArguments("CExt1.Add<object>(C, object)", "CExt2.Add<object>(C, object)").WithLocation(10, 23),
-                // (10,27): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<object>(C, object)' and 'CExt2.Add<object>(C, object)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o1").WithArguments("CExt1.Add<T>(C, T)", "CExt2.Add<T>(C, T)").WithLocation(10, 23),
+                // (10,27): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
                 //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Identity(o1 ??= new object())").WithArguments("CExt1.Add<object>(C, object)", "CExt2.Add<object>(C, object)").WithLocation(10, 27),
-                // (10,58): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<object>(C, object)' and 'CExt2.Add<object>(C, object)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Identity(o1 ??= new object())").WithArguments("CExt1.Add<T>(C, T)", "CExt2.Add<T>(C, T)").WithLocation(10, 27),
+                // (10,58): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
                 //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o1").WithArguments("CExt1.Add<object>(C, object)", "CExt2.Add<object>(C, object)").WithLocation(10, 58),
-                // (10,62): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<string>(C, string)' and 'CExt2.Add<string>(C, string)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o1").WithArguments("CExt1.Add<T>(C, T)", "CExt2.Add<T>(C, T)").WithLocation(10, 58),
+                // (10,62): error CS0121: The call is ambiguous between the following methods or properties: 'CExt1.Add<T>(C, T)' and 'CExt2.Add<T>(C, T)'
                 //         _ = new C() { o1, Identity(o1 ??= new object()), o1, o2 };
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o2").WithArguments("CExt1.Add<string>(C, string)", "CExt2.Add<string>(C, string)").WithLocation(10, 62));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o2").WithArguments("CExt1.Add<T>(C, T)", "CExt2.Add<T>(C, T)").WithLocation(10, 62));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();

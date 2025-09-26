@@ -716,12 +716,12 @@ public class B {}
 public class X {}
 ";
             CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<A>(A, B)' and 'Program.M<A>(A, X)'
+                // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, B)' and 'Program.M<T>(T, X)'
                 //         M(new A(), null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<A>(A, B)", "Program.M<A>(A, X)").WithLocation(5, 9),
-                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<B>(B, B)' and 'Program.M<B>(B, X)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, B)", "Program.M<T>(T, X)").WithLocation(5, 9),
+                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, B)' and 'Program.M<T>(T, X)'
                 //         M(new B(), null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<B>(B, B)", "Program.M<B>(B, X)").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, B)", "Program.M<T>(T, X)").WithLocation(6, 9)
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
@@ -1151,14 +1151,14 @@ class D {}
 class Constraint {}
 ";
             CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<int>(int, A)' and 'Program.M<int>(int, B)'
+                // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, A)' and 'Program.M<T>(T, B)'
                 //         M(1, null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<int>(int, A)", "Program.M<int>(int, B)").WithLocation(5, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, A)", "Program.M<T>(T, B)").WithLocation(5, 9)
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<int>(int, B)' and 'Program.M<int>(int, D)'
+                // (5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, B)' and 'Program.M<T>(T, D)'
                 //         M(1, null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<int>(int, B)", "Program.M<int>(int, D)").WithLocation(5, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, B)", "Program.M<T>(T, D)").WithLocation(5, 9)
                 );
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             var invocations = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
@@ -1199,14 +1199,14 @@ public static class Extensions
 }
 ";
             CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (5,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions.M<int>(int, A)' and 'Extensions.M<int>(int, B)'
+                // (5,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions.M<T>(T, A)' and 'Extensions.M<T>(T, B)'
                 //         1.M(null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Extensions.M<int>(int, A)", "Extensions.M<int>(int, B)").WithLocation(5, 11)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Extensions.M<T>(T, A)", "Extensions.M<T>(T, B)").WithLocation(5, 11)
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (5,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions.M<int>(int, B)' and 'Extensions.M<int>(int, D)'
+                // (5,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions.M<T>(T, B)' and 'Extensions.M<T>(T, D)'
                 //         1.M(null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Extensions.M<int>(int, B)", "Extensions.M<int>(int, D)").WithLocation(5, 11)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Extensions.M<T>(T, B)", "Extensions.M<T>(T, D)").WithLocation(5, 11)
                 );
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             var invocations = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();

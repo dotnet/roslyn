@@ -26193,9 +26193,9 @@ public class C
         { Console.Write(4); }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1<(int, int), int>(((int, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (int, int)))' and 'C.M1<int, (int, int)>(((int, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (int, int)))'
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)))' and 'C.M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U))'
                 //         M1(b); // error: ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1<(int, int), int>(((int, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (int, int)))", "C.M1<int, (int, int)>(((int, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (int, int)))").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)))", "C.M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U))").WithLocation(7, 9)
                 );
         }
 
