@@ -291,16 +291,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+
         /// <returns>
         /// True if this <see cref="MethodSymbol"/> type supports retrieving the this parameter
         /// and false otherwise.  Note that a return value of true does not guarantee a non-null
         /// <paramref name="thisParameter"/> (e.g. fails for static methods).
         /// </returns>
-        internal virtual bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal virtual bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = null;
             return false;
         }
+
+#nullable disable
 
         /// <summary>
         /// Optimization: in many cases, the parameter count (fast) is sufficient and we
