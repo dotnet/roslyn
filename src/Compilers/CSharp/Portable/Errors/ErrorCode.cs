@@ -2427,6 +2427,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MethodImplAttributeAsyncCannotBeUsed = 9330,
         ERR_AttributeCannotBeAppliedManually = 9331,
         ERR_BadSpreadInCatchFilter = 9332,
+        ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
+        ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
