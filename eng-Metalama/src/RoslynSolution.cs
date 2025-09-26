@@ -128,7 +128,7 @@ internal class RoslynSolution : Solution
         var configuration = context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
 
         // We run Metalama's unit tests.
-        var testsBinDirectory = Path.Combine("artifacts", "bin", "Metalama.Compiler.UnitTests", configuration);
+        var testsBinDirectory = Path.Combine(context.RepoDirectory, "artifacts", "bin", "Metalama.Compiler.UnitTests", configuration);
         var testFileName = "Metalama.Compiler.UnitTests.dll";
         var testFiles = Directory.GetFiles(testsBinDirectory, testFileName, SearchOption.AllDirectories);
         var actualTestFilesCount = testFiles.Length;
