@@ -27,9 +27,7 @@ internal sealed class CSharpUpdateExpressionSyntaxHelper : IUpdateExpressionSynt
         expression = foreachStatement.Expression;
         statements = ExtractEmbeddedStatements(foreachStatement.Statement);
 
-        var declaredElementType = semanticModel.GetTypeInfo(foreachStatement.Type);
         var foreachInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
-
         needsCast = !foreachStatement.Type.IsVar && foreachInfo.ElementConversion.IsExplicit;
     }
 
