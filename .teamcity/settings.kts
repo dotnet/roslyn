@@ -27,12 +27,17 @@ object DebugBuild : BuildType({
 
     name = "Build [Debug]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Debug/Shipping/**/*=>artifacts/packages/Debug/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n"
+    artifactRules = """+:artifacts/publish/public/**/*=>artifacts/publish/public
++:artifacts/packages/Debug/Shipping/**/*=>artifacts/packages/Debug/Shipping
++:artifacts/testResults/**/*=>artifacts/testResults
++:artifacts/logs/**/*=>logs
++:artifacts/dumps/**/*=>dumps
+"""
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("Build.Arguments", "", label = "DockerBuild.ps1 Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        param("Build.Timeout", "30")
         text("DefaultBranch", "develop/2025.2", label = "Default Branch", description = "The default branch of this build configuration.")
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
 
     vcs {
@@ -41,49 +46,27 @@ object DebugBuild : BuildType({
 
     steps {
         powerShell {
-            name = "Kill background processes before cleanup"
-            id = "PreKill"
+            name = "Prepare Docker image metalamacompiler-2025.2"
+            id = "PrepareImage"
             scriptMode = file {
-                path = "Build.ps1"
+                path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "tools kill"
+            scriptArgs = "-BuildImage -ImageName metalamacompiler-2025.2"
         }
         powerShell {
             name = "Build"
             id = "Build"
             scriptMode = file {
-                path = "Build.ps1"
+                path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "test --configuration Debug --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
-        }
-        powerShell {
-            name = "Kill background processes before next build"
-            id = "PostKill"
-            scriptMode = file {
-                path = "Build.ps1"
-            }
-            noProfile = false
-            scriptArgs = "tools kill"
-        }
-    }
-
-    failureConditions {
-        failOnMetricChange {
-            metric = BuildFailureOnMetric.MetricType.BUILD_DURATION
-            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
-            comparison = BuildFailureOnMetric.MetricComparison.MORE
-            compareTo = build {
-                buildRule = lastSuccessful()
-            }
-            stopBuildOnFailure = true
-            param("metricThreshold", "%TimeOut%")
+            scriptArgs = "-ImageName metalamacompiler-2025.2 -NoBuildImage test --configuration Debug --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %Build.Arguments% --timeout %Build.Timeout%"
         }
     }
 
     requirements {
-        equals("env.BuildAgentType", "caravela04cloud")
+        equals("env.BuildAgentType", "docker-win-x64-md")
     }
 
     features {
@@ -108,12 +91,17 @@ object ReleaseBuild : BuildType({
 
     name = "Build [Release]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n"
+    artifactRules = """+:artifacts/publish/public/**/*=>artifacts/publish/public
++:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping
++:artifacts/testResults/**/*=>artifacts/testResults
++:artifacts/logs/**/*=>logs
++:artifacts/dumps/**/*=>dumps
+"""
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("Build.Arguments", "", label = "DockerBuild.ps1 Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        param("Build.Timeout", "30")
         text("DefaultBranch", "develop/2025.2", label = "Default Branch", description = "The default branch of this build configuration.")
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
 
     vcs {
@@ -122,49 +110,27 @@ object ReleaseBuild : BuildType({
 
     steps {
         powerShell {
-            name = "Kill background processes before cleanup"
-            id = "PreKill"
+            name = "Prepare Docker image metalamacompiler-2025.2"
+            id = "PrepareImage"
             scriptMode = file {
-                path = "Build.ps1"
+                path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "tools kill"
+            scriptArgs = "-BuildImage -ImageName metalamacompiler-2025.2"
         }
         powerShell {
             name = "Build"
             id = "Build"
             scriptMode = file {
-                path = "Build.ps1"
+                path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "test --configuration Release --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
-        }
-        powerShell {
-            name = "Kill background processes before next build"
-            id = "PostKill"
-            scriptMode = file {
-                path = "Build.ps1"
-            }
-            noProfile = false
-            scriptArgs = "tools kill"
-        }
-    }
-
-    failureConditions {
-        failOnMetricChange {
-            metric = BuildFailureOnMetric.MetricType.BUILD_DURATION
-            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
-            comparison = BuildFailureOnMetric.MetricComparison.MORE
-            compareTo = build {
-                buildRule = lastSuccessful()
-            }
-            stopBuildOnFailure = true
-            param("metricThreshold", "%TimeOut%")
+            scriptArgs = "-ImageName metalamacompiler-2025.2 -NoBuildImage test --configuration Release --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %Build.Arguments% --timeout %Build.Timeout%"
         }
     }
 
     requirements {
-        equals("env.BuildAgentType", "caravela04cloud")
+        equals("env.BuildAgentType", "docker-win-x64-md")
     }
 
     features {
@@ -180,12 +146,17 @@ object PublicBuild : BuildType({
 
     name = "Build [Public]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n"
+    artifactRules = """+:artifacts/publish/public/**/*=>artifacts/publish/public
++:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping
++:artifacts/testResults/**/*=>artifacts/testResults
++:artifacts/logs/**/*=>logs
++:artifacts/dumps/**/*=>dumps
+"""
 
     params {
-        text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("Build.Arguments", "", label = "DockerBuild.ps1 Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        param("Build.Timeout", "30")
         text("DefaultBranch", "develop/2025.2", label = "Default Branch", description = "The default branch of this build configuration.")
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
 
     vcs {
@@ -194,49 +165,27 @@ object PublicBuild : BuildType({
 
     steps {
         powerShell {
-            name = "Kill background processes before cleanup"
-            id = "PreKill"
+            name = "Prepare Docker image metalamacompiler-2025.2"
+            id = "PrepareImage"
             scriptMode = file {
-                path = "Build.ps1"
+                path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "tools kill"
+            scriptArgs = "-BuildImage -ImageName metalamacompiler-2025.2"
         }
         powerShell {
             name = "Build"
             id = "Build"
             scriptMode = file {
-                path = "Build.ps1"
+                path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "test --configuration Public --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
-        }
-        powerShell {
-            name = "Kill background processes before next build"
-            id = "PostKill"
-            scriptMode = file {
-                path = "Build.ps1"
-            }
-            noProfile = false
-            scriptArgs = "tools kill"
-        }
-    }
-
-    failureConditions {
-        failOnMetricChange {
-            metric = BuildFailureOnMetric.MetricType.BUILD_DURATION
-            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
-            comparison = BuildFailureOnMetric.MetricComparison.MORE
-            compareTo = build {
-                buildRule = lastSuccessful()
-            }
-            stopBuildOnFailure = true
-            param("metricThreshold", "%TimeOut%")
+            scriptArgs = "-ImageName metalamacompiler-2025.2 -NoBuildImage test --configuration Public --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %Build.Arguments% --timeout %Build.Timeout%"
         }
     }
 
     requirements {
-        equals("env.BuildAgentType", "caravela04cloud")
+        equals("env.BuildAgentType", "docker-win-x64-md")
     }
 
     features {
@@ -255,9 +204,9 @@ object PublicDeployment : BuildType({
     type = Type.DEPLOYMENT
 
     params {
-        text("PublishArguments", "", label = "Publish Arguments", description = "Arguments to append to the 'Publish' build step.", allowEmpty = true)
-        text("DefaultBranch", "release/2025.2", label = "Default Branch", description = "The default branch of this build configuration.")
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
+        text("Publish.Arguments", "", label = "DockerBuild.ps1 Arguments", description = "Arguments to append to the 'Publish' build step.", allowEmpty = true)
+        param("Publish.Timeout", "30")
+        text("DefaultBranch", "develop/2025.2", label = "Default Branch", description = "The default branch of this build configuration.")
     }
 
     vcs {
@@ -266,41 +215,33 @@ object PublicDeployment : BuildType({
 
     steps {
         powerShell {
+            name = "Prepare Docker image metalamacompiler-2025.2"
+            id = "PrepareImage"
+            scriptMode = file {
+                path = "DockerBuild.ps1"
+            }
+            noProfile = false
+            scriptArgs = "-BuildImage -ImageName metalamacompiler-2025.2"
+        }
+        powerShell {
             name = "Publish"
             id = "Publish"
             scriptMode = file {
-                path = "Build.ps1"
+                path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "publish --configuration Public %PublishArguments%"
-        }
-    }
-
-    failureConditions {
-        failOnMetricChange {
-            metric = BuildFailureOnMetric.MetricType.BUILD_DURATION
-            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
-            comparison = BuildFailureOnMetric.MetricComparison.MORE
-            compareTo = build {
-                buildRule = lastSuccessful()
-            }
-            stopBuildOnFailure = true
-            param("metricThreshold", "%TimeOut%")
+            scriptArgs = "-ImageName metalamacompiler-2025.2 -NoBuildImage publish --configuration Public %Publish.Arguments% --timeout %Publish.Timeout%"
         }
     }
 
     requirements {
-        equals("env.BuildAgentType", "caravela04cloud")
+        equals("env.BuildAgentType", "docker-win-x64-md")
     }
 
     features {
         swabra {
             lockingProcesses = Swabra.LockingProcessPolicy.KILL
             verbose = true
-        }
-        sshAgent {
-            // By convention, the SSH key name is always PostSharp.Engineering for all repositories using SSH to connect.
-            teamcitySshKey = "PostSharp.Engineering"
         }
     }
 
@@ -324,9 +265,9 @@ object DownstreamMerge : BuildType({
     name = "Downstream Merge"
 
     params {
-        text("DownstreamMergeArguments", "", label = "Merge downstream Arguments", description = "Arguments to append to the 'Merge downstream' build step.", allowEmpty = true)
+        text("DownstreamMerge.Arguments", "", label = "DockerBuild.ps1 Arguments", description = "Arguments to append to the 'Merge downstream' build step.", allowEmpty = true)
+        param("DownstreamMerge.Timeout", "15")
         text("DefaultBranch", "develop/2025.2", label = "Default Branch", description = "The default branch of this build configuration.")
-        text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
 
     vcs {
@@ -335,41 +276,33 @@ object DownstreamMerge : BuildType({
 
     steps {
         powerShell {
+            name = "Prepare Docker image metalamacompiler-2025.2"
+            id = "PrepareImage"
+            scriptMode = file {
+                path = "DockerBuild.ps1"
+            }
+            noProfile = false
+            scriptArgs = "-BuildImage -ImageName metalamacompiler-2025.2"
+        }
+        powerShell {
             name = "Merge downstream"
             id = "DownstreamMerge"
             scriptMode = file {
-                path = "Build.ps1"
+                path = "DockerBuild.ps1"
             }
             noProfile = false
-            scriptArgs = "tools git merge-downstream %DownstreamMergeArguments%"
-        }
-    }
-
-    failureConditions {
-        failOnMetricChange {
-            metric = BuildFailureOnMetric.MetricType.BUILD_DURATION
-            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
-            comparison = BuildFailureOnMetric.MetricComparison.MORE
-            compareTo = build {
-                buildRule = lastSuccessful()
-            }
-            stopBuildOnFailure = true
-            param("metricThreshold", "%TimeOut%")
+            scriptArgs = "-ImageName metalamacompiler-2025.2 -NoBuildImage tools git merge-downstream %DownstreamMerge.Arguments% --timeout %DownstreamMerge.Timeout%"
         }
     }
 
     requirements {
-        equals("env.BuildAgentType", "caravela04cloud")
+        equals("env.BuildAgentType", "docker-win-x64-md")
     }
 
     features {
         swabra {
             lockingProcesses = Swabra.LockingProcessPolicy.KILL
             verbose = true
-        }
-        sshAgent {
-            // By convention, the SSH key name is always PostSharp.Engineering for all repositories using SSH to connect.
-            teamcitySshKey = "PostSharp.Engineering"
         }
     }
 
