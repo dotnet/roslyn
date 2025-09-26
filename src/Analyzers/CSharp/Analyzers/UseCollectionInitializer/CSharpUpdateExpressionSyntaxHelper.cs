@@ -13,17 +13,24 @@ internal sealed class CSharpUpdateExpressionSyntaxHelper : IUpdateExpressionSynt
     public static readonly CSharpUpdateExpressionSyntaxHelper Instance = new();
 
     public void GetPartsOfForeachStatement(
+        SemanticModel semanticModel,
         StatementSyntax statement,
         out SyntaxToken awaitKeyword,
         out SyntaxToken identifier,
         out ExpressionSyntax expression,
-        out IEnumerable<StatementSyntax> statements)
+        out IEnumerable<StatementSyntax> statements,
+        out bool needsCast)
     {
         var foreachStatement = (ForEachStatementSyntax)statement;
         awaitKeyword = foreachStatement.AwaitKeyword;
         identifier = foreachStatement.Identifier;
         expression = foreachStatement.Expression;
         statements = ExtractEmbeddedStatements(foreachStatement.Statement);
+
+        var declaredElementType = semanticModel.GetTypeInfo(foreachStatement.Type);
+        var foreachInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
+
+        needsCast = !foreachStatement.Type.IsVar && foreachInfo.ElementConversion.IsExplicit;
     }
 
     public void GetPartsOfIfStatement(
