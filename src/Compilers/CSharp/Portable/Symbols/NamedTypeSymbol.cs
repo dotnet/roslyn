@@ -359,12 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
                         var thisParam = method.Parameters.First();
-
-                        // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, we should use similar logic when looking up new extension members
-                        if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                            (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
+                        if (IsInvalidExtensionReceiverParameter(thisParam))
                         {
-                            // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
                         }
 
@@ -375,18 +371,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable enable
-
-        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+        internal static bool IsInvalidExtensionReceiverParameter(ParameterSymbol thisParam)
         {
+            Debug.Assert(thisParam is not null);
+
+            // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
+            return (thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
+                (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct);
+        }
+
+#nullable enable
+        // TODO2 maybe we should return extension members instead of extension blocks
+        // TODO2 should we discard members here based on whether or not we need invocable ones?
+        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options)
+        {
+            Debug.Assert(name is not null || alternativeName is null);
+
             if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
 
             foreach (var nestedType in GetTypeMembersUnordered())
             {
-                if (nestedType.IsExtension)
+                if (nestedType.IsExtension
+                    && containsMatchingMember(nestedType, name, alternativeName, arity, options))
                 {
                     extensions.Add(nestedType);
                 }
+            }
+
+            return;
+
+            static bool containsMatchingMember(NamedTypeSymbol extension, string? name, string? alternativeName, int arity, LookupOptions options)
+            {
+                if (extension.ExtensionParameter is not { } extensionParameter
+                    || IsInvalidExtensionReceiverParameter(extensionParameter)) // TODO2 this should be during lookup as well
+                {
+                    return false;
+                }
+
+                var members = name is null || alternativeName is not null
+                    ? extension.GetMembersUnordered()
+                    : extension.GetMembers(name);
+
+                foreach (Symbol member in members)
+                {
+                    if ((options & LookupOptions.AllMethodsOnArityZero) == 0
+                        && arity != member.GetMemberArityIncludingExtension())
+                    {
+                        continue;
+                    }
+
+                    string memberName = member.Name;
+                    bool namesMatch = name is null
+                        || memberName == name
+                        || (alternativeName is not null && memberName == alternativeName);
+
+                    if (!namesMatch)
+                    {
+                        continue;
+                    }
+
+                    if ((options & LookupOptions.MustBeInvocableIfMember) != 0
+                        && !isInvocableMember(member))
+                    {
+                        continue;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+
+            static bool isInvocableMember(Symbol symbol)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Method:
+                        return true;
+
+                    case SymbolKind.Property:
+                        return Binder.IsInvocableType(((PropertySymbol)symbol).Type);
+                }
+
+                return false;
             }
         }
 

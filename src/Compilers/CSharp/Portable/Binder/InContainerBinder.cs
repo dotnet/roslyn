@@ -85,13 +85,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+#nullable enable
+        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
             if (_container is NamespaceSymbol ns)
             {
-                ns.GetExtensionContainers(extensions);
+                ns.GetExtensionContainers(extensions, name, alternativeName, arity, options);
             }
         }
+#nullable disable
 
         internal override TypeWithAnnotations GetIteratorElementType()
         {

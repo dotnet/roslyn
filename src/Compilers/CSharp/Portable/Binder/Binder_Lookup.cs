@@ -203,11 +203,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // 1. Collect new extension members
             var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
+            this.GetExtensionDeclarations(extensionDeclarations, name, alternativeName: null, arity, options, originalBinder);
 
             foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
             {
-                if (extensionDeclaration.ExtensionParameter is null)
+                if (extensionDeclaration.ExtensionParameter is not { } extensionParameter
+                    || NamedTypeSymbol.IsInvalidExtensionReceiverParameter(extensionParameter))
                 {
                     continue;
                 }
@@ -820,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
-        internal virtual void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        internal virtual void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
         }
 #nullable disable
@@ -1812,6 +1813,11 @@ symIsHidden:;
                     break;
             }
 
+            return IsInvocableType(type);
+        }
+
+        internal static bool IsInvocableType(TypeSymbol type)
+        {
             return (object)type != null && (type.IsDelegateType() || type.IsDynamic() || type.IsFunctionPointer());
         }
 

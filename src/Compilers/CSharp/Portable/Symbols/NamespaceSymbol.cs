@@ -355,13 +355,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal virtual void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
+#nullable enable
+        internal virtual void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options)
         {
             foreach (var type in this.GetTypeMembersUnordered())
             {
-                type.GetExtensionContainers(extensions);
+                type.GetExtensionContainers(extensions, name, alternativeName, arity, options);
             }
         }
+#nullable disable
 
         internal string QualifiedName
         {

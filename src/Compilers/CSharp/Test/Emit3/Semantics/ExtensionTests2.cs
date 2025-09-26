@@ -31992,9 +31992,318 @@ namespace N2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining used imports logic
         comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_13()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_14()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension<T>(T t)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_15()
+    {
+        // tracking unnecessary imports, invocable
+        var src = """
+using N1;
+using N2;
+
+new object().P1();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public System.Action P1 => null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_16()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_17()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+            public int M<T>() => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(object).M<T>()' and 'N2.E2.extension(object).M<T>()'
+            // _ = new object().M<int>();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("N1.E1.extension(object).M<T>()", "N2.E2.extension(object).M<T>()").WithLocation(4, 18));
+    }
+
+    [Fact]
+    public void Using_18()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M(int i) => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Using_19()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M<T>(int i) => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Using_20()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M<U>(int i) => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
     }
 
     [Theory, CombinatorialData]

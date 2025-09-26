@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
             Debug.Assert(extensions.Count == 0);
 
@@ -146,9 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
                 {
                     var count = extensions.Count;
-                    ns.GetExtensionContainers(extensions);
+                    ns.GetExtensionContainers(extensions, name, alternativeName, arity, options); // TODO2 cover this path
                     // If we found any extension declarations, then consider this using as used.
-                    // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining this logic
                     if (extensions.Count != count)
                     {
                         MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
@@ -158,9 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (nsOrType.NamespaceOrType is NamedTypeSymbol namedType)
                 {
                     var count = extensions.Count;
-                    namedType.GetExtensionContainers(extensions);
+                    namedType.GetExtensionContainers(extensions, name, alternativeName, arity, options); // TODO2 cover this path
                     // If we found any extension declarations, then consider this using as used.
-                    // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining this logic
                     if (extensions.Count != count)
                     {
                         MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
