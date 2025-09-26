@@ -9,7 +9,7 @@ using System.Linq;
 using System.Xml.Linq;
 using PostSharp.Engineering.BuildTools.Build;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal class NuspecDependenciesSource : NuGetDependenciesSourceBase
 {
@@ -31,7 +31,7 @@ internal class NuspecDependenciesSource : NuGetDependenciesSourceBase
         while (nextPackagesToListDependencies.Count > 0)
         {
             var currentPackagesToListDependencies = nextPackagesToListDependencies;
-            nextPackagesToListDependencies = new();
+            nextPackagesToListDependencies = new HashSet<string>();
 
             foreach (var packagePath in currentPackagesToListDependencies)
             {
