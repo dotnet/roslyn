@@ -3002,6 +3002,16 @@
         <target state="translated">{0}은(는) 유효한 C# 확산 작업이 아닙니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
         <target state="translated">다른 접근자가 사용하고 있으므로 속성 '{1}' '{0}' 접근자는 'field'를 사용해야 합니다.</target>
@@ -11130,7 +11140,7 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <target state="translated">await' 연산자는 초기 'from' 절의 첫 번째 Collection 식이나 'join' 절의 Collection 식 내의 쿼리 식에서만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">이 호출이 대기되지 않으므로 호출이 완료되기 전에 현재 메서드가 계속 실행됩니다. 호출 결과에 'await' 연산자를 적용해 보세요.</target>
         <note />

@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // These occur when special types are missing or malformed, or the patterns are incompletely implemented.
             hasErrors |= builder.IsIncomplete;
 
-            BoundAwaitableInfo awaitInfo = null;
+            BoundAwaitableInfo moveNextAwaitableInfo = null;
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorInfo?.Method;
             if (getEnumeratorMethod != null)
             {
@@ -261,9 +261,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expr = _syntax.Expression;
                 ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
                 var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
-                awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
+                moveNextAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
-                if (!hasErrors && (awaitInfo.GetResult ?? awaitInfo.RuntimeAsyncAwaitCall?.Method)?.ReturnType.SpecialType != SpecialType.System_Boolean)
+                if (!hasErrors && (moveNextAwaitableInfo.GetResult ?? moveNextAwaitableInfo.RuntimeAsyncAwaitCall?.Method)?.ReturnType.SpecialType != SpecialType.System_Boolean)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, expr.Location, getEnumeratorMethod.ReturnTypeWithAnnotations, getEnumeratorMethod);
                     hasErrors = true;
@@ -453,7 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iterationErrorExpression,
                     collectionExpr,
                     deconstructStep,
-                    awaitInfo,
                     body,
                     this.BreakLabel,
                     this.ContinueLabel,
@@ -571,9 +570,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, builder.ElementType, diagnostics);
             }
 
-            if (builder.NeedsDisposal && IsAsync)
+            if (IsAsync)
             {
-                hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
+                builder.MoveNextAwaitableInfo = moveNextAwaitableInfo;
+
+                if (builder.NeedsDisposal)
+                {
+                    hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
+                }
             }
 
             Debug.Assert(
@@ -598,7 +602,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iterationErrorExpression,
                 convertedCollectionExpression,
                 deconstructStep,
-                awaitInfo,
                 body,
                 this.BreakLabel,
                 this.ContinueLabel,

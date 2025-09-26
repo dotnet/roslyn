@@ -1271,16 +1271,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholders.Add((targetPlaceholder, SafeContextAndLocation.Create(collectionEscape)));
             }
 
-            if (node.AwaitOpt is { } awaitableInfo)
+            if (node.EnumeratorInfoOpt is { MoveNextAwaitableInfo: { } awaitableInfo })
             {
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, collectionEscape);
+            }
+            else
+            {
+                awaitableInfo = null;
             }
 
             using var region = new PlaceholderRegion(this, placeholders);
             this.Visit(node.IterationVariableType);
             this.Visit(node.IterationErrorExpressionOpt);
             this.Visit(node.DeconstructionOpt);
-            this.Visit(node.AwaitOpt);
+            this.Visit(awaitableInfo);
             this.Visit(node.Body);
 
             foreach (var local in node.IterationVariables)
