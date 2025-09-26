@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // however, be more than one.  We'll check for that first, since applicable candidates are
             // always better than inapplicable candidates.
 
-            if (HadAmbiguousBestMethods(diagnostics, symbols, location))
+            if (HadAmbiguousBestMethods(binder.Compilation, diagnostics, symbols, location))
             {
                 return;
             }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (Obviously, there can't be a LessDerived cycle, since we break type hierarchy cycles during
             // symbol table construction.)
 
-            if (HadAmbiguousWorseMethods(diagnostics, symbols, location, queryClause != null, receiver, name))
+            if (HadAmbiguousWorseMethods(binder.Compilation, diagnostics, symbols, location, queryClause != null, receiver, name))
             {
                 return;
             }
@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool HadAmbiguousWorseMethods(BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name)
+        private bool HadAmbiguousWorseMethods(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name)
         {
             MemberResolutionResult<TMember> worseResult1;
             MemberResolutionResult<TMember> worseResult2;
@@ -1414,6 +1414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
                 diagnostics.Add(
                     CreateAmbiguousCallDiagnosticInfo(
+                        compilation,
                         worseResult1.LeastOverriddenMember.ConstructedFrom(),
                         worseResult2.LeastOverriddenMember.ConstructedFrom(),
                         symbols),
@@ -1452,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return count;
         }
 
-        private bool HadAmbiguousBestMethods(BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location)
+        private bool HadAmbiguousBestMethods(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location)
         {
             MemberResolutionResult<TMember> validResult1;
             MemberResolutionResult<TMember> validResult2;
@@ -1467,6 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 'P.Ambiguous(object, string)' and 'P.Ambiguous(string, object)'
             diagnostics.Add(
                 CreateAmbiguousCallDiagnosticInfo(
+                    compilation,
                     validResult1.LeastOverriddenMember.ConstructedFrom(),
                     validResult2.LeastOverriddenMember.ConstructedFrom(),
                     symbols),
@@ -1504,9 +1506,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return count;
         }
 
-        private static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(Symbol first, Symbol second, ImmutableArray<Symbol> symbols)
+        private static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(CSharpCompilation compilation, Symbol first, Symbol second, ImmutableArray<Symbol> symbols)
         {
-            var distinguisher = new SymbolDistinguisher(compilation: null, first, second);
+            var distinguisher = new SymbolDistinguisher(compilation, first, second);
             return new DiagnosticInfoWithSymbols(ErrorCode.ERR_AmbigCall, [distinguisher.First, distinguisher.Second], symbols);
         }
 
