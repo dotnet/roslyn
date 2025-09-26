@@ -12,7 +12,7 @@ param(
     [string]$ImageName, # Image name (defaults to a name based on the directory).
     [string]$BuildAgentPath = 'C:\BuildAgent',
     [switch]$LoadEnvFromKeyVault, # Forces loading environment variables form the key vault.
-    [switch]$VsDebug, # Enable the remote debugger.
+    [switch]$StartVsmon, # Enable the remote debugger.
     [Parameter(ValueFromRemainingArguments)]
     [string[]]$BuildArgs   # Arguments passed to `Build.ps1` within the container.
 )
@@ -53,7 +53,8 @@ function New-EnvJson
     {
         $moduleName = "Az.KeyVault"
 
-        if (-not (Get-Module -ListAvailable -Name $moduleName)) {
+        if (-not (Get-Module -ListAvailable -Name $moduleName))
+        {
             Write-Error "The required module '$moduleName' is not installed. Please install it with: Install-Module -Name $moduleName"
             exit 1
         }
@@ -111,11 +112,13 @@ if (-not $env:IS_TEAMCITY_AGENT -and -not $NoClean)
     Write-Host "Cleaning up." -ForegroundColor Green
     if (Test-Path "artifacts")
     {
-        Remove-Item artifacts -Force -Recurse -ProgressAction SilentlyContinue
+        Remove-Item artifacts -Force -Recurse  -ErrorAction SilentlyContinue
     }
-    Get-ChildItem @("bin", "obj") -Recurse | Remove-Item -Force -Recurse -ProgressAction SilentlyContinue
+    Get-ChildItem "bin" -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+    Get-ChildItem "obj" -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
 }
 
+Write-Host "Preparing context and mounts." -ForegroundColor Green
 # Create secrets JSON file.
 if (-not $KeepEnv)
 {
@@ -158,18 +161,16 @@ if (-not (Test-Path $dockerContextDirectory))
 
 
 # Prepare volume mappings
-$volumeMappings = @("-v", "${SourceDirName}:${SourceDirName}")
-$MountPoints = @($SourceDirName)
+$VolumeMappings = @("-v", "${SourceDirName}:${SourceDirName}")
+$MountPoints = @($SourceDirName, "c:\packages")
+$GitDirectories = @($SourceDirName)
 
-# We must add a MountPoint anyway so the directory is created in the container.
-$MountPoints += "c:\packages"
-
-# Define static Git system directory for mapping
+# Define static Git system directory for mapping. This used by Teamcity as an LFS parent repo.
 $gitSystemDir = "$BuildAgentPath\system\git"
 
 if (Test-Path $gitSystemDir)
 {
-    $volumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
+    $VolumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
     $MountPoints += $gitSystemDir
 }
 
@@ -184,27 +185,27 @@ if (-not $NoNuGetCache)
         New-Item -ItemType Directory -Force -Path $nugetCacheDir | Out-Null
     }
 
-    $volumeMappings += @("-v", "${nugetCacheDir}:c:\packages")
+    $VolumeMappings += @("-v", "${nugetCacheDir}:c:\packages")
 }
 
 # Mount VS Remote Debugger
-if ( $VsDebug)
+if ($StartVsmon)
 {
-    if ( -not $env:DevEnvDir)
+    if (-not $env:DevEnvDir)
     {
         Write-Host "Environment variable 'DevEnvDir' is not defined." -ForegroundColor Red
         exit 1
     }
 
-    $remoteDebuggerHostDir = "$($env:DevEnvDir)Remote Debugger\x64"
-    if ( -not (Test-Path $remoteDebuggerHostDir))
+    $remoteDebuggerHostDir = "$( $env:DevEnvDir )Remote Debugger\x64"
+    if (-not (Test-Path $remoteDebuggerHostDir))
     {
         Write-Host "Directory '$remoteDebuggerHostDir' does not exist." -ForegroundColor Red
         exit 1
     }
 
     $remoteDebuggerContainerDir = "C:\msvsmon"
-    $volumeMappings += @("-v", "${remoteDebuggerHostDir}:${remoteDebuggerContainerDir}:ro")
+    $VolumeMappings += @("-v", "${remoteDebuggerHostDir}:${remoteDebuggerContainerDir}:ro")
     $MountPoints += $remoteDebuggerContainerDir
 
 }
@@ -221,13 +222,20 @@ if (Test-Path $sourceDependenciesDir)
         if (-not [string]::IsNullOrEmpty($targetPath) -and (Test-Path $targetPath))
         {
             Write-Host "Found symbolic link '$( $link.Name )' -> '$targetPath'" -ForegroundColor Cyan
-            $volumeMappings += @("-v", "${targetPath}:${targetPath}:ro")
+            $VolumeMappings += @("-v", "${targetPath}:${targetPath}:ro")
             $MountPoints += $targetPath
+            $GitDirectories += $targetPath
         }
         else
         {
             Write-Host "Warning: Symbolic link '$( $link.Name )' target '$targetPath' does not exist or is invalid" -ForegroundColor Yellow
         }
+    }
+
+    $sourceDirectories = Get-ChildItem -Path $sourceDependenciesDir -Force | Where-Object { $_.LinkType -eq $null }
+    foreach ($sourceDirectory in $sourceDirectories)
+    {
+        $GitDirectories += $sourceDirectory
     }
 }
 
@@ -239,16 +247,18 @@ if (Test-Path $dockerMountsScript)
     . $dockerMountsScript
 }
 
-$mountPointsArg = $MountPoints -Join ";"
+$mountPointsAsString = $MountPoints -Join ";"
+$gitDirectoriesAsString = $GitDirectories -Join ";"
 
-Write-Host "Volume mappings: " @volumeMappings -ForegroundColor Gray
-Write-Host "Mount points: " $mountPointsArg -ForegroundColor Gray
+Write-Host "Volume mappings: " @VolumeMappings -ForegroundColor Gray
+Write-Host "Mount points: " $mountPointsAsString -ForegroundColor Gray
+Write-Host "Git directories: " $gitDirectoriesAsString -ForegroundColor Gray
 
 # Building the image.
 if (-not $NoBuildImage)
 {
     Write-Host "Building the image." -ForegroundColor Green
-    Get-Content -Raw Dockerfile | docker build -t $ImageName  --build-arg SRC_DIR="$SourceDirName"  --build-arg MOUNTPOINTS="$mountPointsArg"  -f - $dockerContextDirectory
+    Get-Content -Raw Dockerfile | docker build -t $ImageName  --build-arg GITDIRS="$gitDirectoriesAsString"  --build-arg MOUNTPOINTS="$mountPointsAsString"  -f - $dockerContextDirectory
     if ($LASTEXITCODE -ne 0)
     {
         Write-Host "Docker build failed with exit code $LASTEXITCODE" -ForegroundColor Red
@@ -269,12 +279,12 @@ if (-not $BuildImage)
     Write-Host "Building the product in the container." -ForegroundColor Green
 
     # Prepare Build.ps1 arguments
-    if ( $VsDebug )
+    if ($StartVsmon)
     {
-        $BuildArgs = @("-VsDebug") + $BuildArgs
+        $BuildArgs = @("-StartVsmon") + $BuildArgs
     }
 
-    if ( $Interactive )
+    if ($Interactive)
     {
         $pwshArgs = "-NoExit"
         $BuildArgs = @("-Interactive") + $BuildArgs
@@ -287,13 +297,13 @@ if (-not $BuildImage)
     }
 
     $buildArgsString = $BuildArgs -join " "
-    $volumeMappingsAsString = $volumeMappings -join " "
+    $VolumeMappingsAsString = $VolumeMappings -join " "
     $dockerArgsAsString = $dockerArgs -join " "
 
 
-    Write-Host "Executing: ``docker run --rm --memory=12g $volumeMappingsAsString -w $SourceDirName $dockerArgsAsString $ImageName pwsh $pwshArgs -Command `"& .\Build.ps1 $buildArgsString`"``." -ForegroundColor Cyan
+    Write-Host "Executing: ``docker run --rm --memory=12g $VolumeMappingsAsString -w $SourceDirName $dockerArgsAsString $ImageName pwsh $pwshArgs -Command `"& .\Build.ps1 $buildArgsString`; exit `$LASTEXITCODE`"``." -ForegroundColor Cyan
 
-    docker run --rm --memory=12g @volumeMappings -w $SourceDirName @dockerArgs $ImageName pwsh $pwshArgs -Command "& .\Build.ps1 $buildArgsString"
+    docker run --rm --memory=12g @VolumeMappings -w $SourceDirName @dockerArgs $ImageName pwsh $pwshArgs -Command "& .\Build.ps1 $buildArgsString`; exit `$LASTEXITCODE;"
     if ($LASTEXITCODE -ne 0)
     {
         Write-Host "Docker run (build) failed with exit code $LASTEXITCODE" -ForegroundColor Red

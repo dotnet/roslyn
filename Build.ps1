@@ -4,7 +4,7 @@
 [CmdletBinding(PositionalBinding = $false)]
 param(
     [switch]$Interactive, # Opens an interactive PowerShell session
-    [switch]$VsDebug, # Enable the remote debugger.
+    [switch]$StartVsmon, # Enable the remote debugger.
     [Parameter(ValueFromRemainingArguments)]
     [string[]]$BuildArgs   # Arguments passed to `Build.ps1` within the container.
 )
@@ -15,7 +15,7 @@ $EngPath = 'eng-Metalama'
 $ProductName = 'MetalamaCompiler'
 ####
 
-if ( $VsDebug  )
+if ($StartVsmon)
 {
     $vsmonport = 4024
     Write-Host "Starting Visual Studio Remote Debugger, listening at port $vsmonport." -ForegroundColor Cyan
@@ -25,23 +25,38 @@ if ( $VsDebug  )
 }
 
 # Change the prompt and window title in Docker.
-if ( $env:RUNNING_IN_DOCKER  )
+if ($env:RUNNING_IN_DOCKER)
 {
-    function global:prompt {
+    function global:prompt
+    {
         $host.UI.RawUI.WindowTitle = "[docker] " + (Get-Location).Path
-        "[docker] $(Get-Location)> "
+        "[docker] $( Get-Location )> "
     }
 }
 
 
-if ( -not $Interactive -or $BuildArgs )
+if (-not $Interactive -or $BuildArgs)
 {
-    & dotnet run --project "$PSScriptRoot\$EngPath\src\Build$ProductName.csproj" -- $BuildArgs
-    
-    if ( $VsDebug )
+    # Change the working directory so we can use a global.json that is specific to eng.
+    $previousLocation = Get-Location
+
+    Set-Location $PSScriptRoot\$EngPath\src
+
+    try
     {
-        Write-Host ""
-        Write-Host "Killing vsmon.exe."
-        $vsmonProcess.Kill()
+
+        # Run the project.
+        & dotnet run --project "$PSScriptRoot\$EngPath\src\Build$ProductName.csproj" -- $BuildArgs
+
+        if ($StartVsmon)
+        {
+            Write-Host ""
+            Write-Host "Killing vsmon.exe."
+            $vsmonProcess.Kill()
+        }
+    }
+    finally
+    {
+        Set-Location $previousLocation
     }
 }
