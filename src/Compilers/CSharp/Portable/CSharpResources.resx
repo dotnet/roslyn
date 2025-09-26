@@ -8196,4 +8196,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AttributeCannotBeAppliedManually" xml:space="preserve">
     <value>'{0}' cannot be applied manually.</value>
   </data>
+  <data name="ERR_ExplicitInterfaceMemberTypeMismatch" xml:space="preserve">
+    <value>'{0}': type must be '{1}' to match implemented member '{2}'</value>
+  </data>
+  <data name="ERR_ExplicitInterfaceMemberReturnTypeMismatch" xml:space="preserve">
+    <value>'{0}': return type must be '{1}' to match implemented member '{2}'</value>
+  </data>
 </root>

@@ -712,6 +712,16 @@
         <target state="translated">使用者定義的運算子 '{0}' 的明確實作必須宣告為靜態</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">不允許明確應用 'System.Runtime.CompilerServices.NullableAttribute'。</target>

@@ -26659,19 +26659,39 @@ public static class E
         4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
         72 69 74 65 64 00
     )
+    // Fields
+    .field private initonly string '<Name>k__BackingField'
     // Methods
+    .method public hidebysig specialname 
+        instance string get_Name () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_0006: ret
+    } // end of method ExtensionMarkerAttribute::get_Name
     .method public hidebysig specialname rtspecialname 
         instance void .ctor (
             string name
         ) cil managed 
     {
-        // Method begins at RVA 0x2050
-        // Code size 7 (0x7)
+        // Method begins at RVA 0x206f
+        // Code size 14 (0xe)
         .maxstack 8
         IL_0000: ldarg.0
         IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
-        IL_0006: ret
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: stfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_000d: ret
     } // end of method ExtensionMarkerAttribute::.ctor
+    // Properties
+    .property instance string Name()
+    {
+        .get instance string System.Runtime.CompilerServices.ExtensionMarkerAttribute::get_Name()
+    }
 } // end of class System.Runtime.CompilerServices.ExtensionMarkerAttribute
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -26920,6 +26940,84 @@ class C3<[ExtensionMarker("type parameter")] T> { }
             // (44,11): error CS0592: Attribute 'ExtensionMarker' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
             // class C3<[ExtensionMarker("type parameter")] T> { }namespace System.Runtime.CompilerServices
             Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarker").WithArguments("ExtensionMarker", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(44, 11));
+    }
+
+    [Fact]
+    public void ExtensionMarkerAttribute_08()
+    {
+        // implementation of Name property
+        var src = """
+var type = System.Type.GetType("E+<G>$C43E2675C7BBF9284AF22FB8A9BF0280"); 
+var method = type.GetMethod("M", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+var attrType = System.Type.GetType("System.Runtime.CompilerServices.ExtensionMarkerAttribute");
+var nameProp = attrType.GetProperty("Name", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+var attr = System.Attribute.GetCustomAttribute(method, attrType);
+var value = nameProp.GetValue(attr);
+System.Console.Write(value);
+
+public static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "<M>$119AA281C143547563250CAF89B48A76").VerifyDiagnostics();
+
+        verifier.VerifyTypeIL("ExtensionMarkerAttribute", """
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 dc 17 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+    // Fields
+    .field private initonly string '<Name>k__BackingField'
+    // Methods
+    .method public hidebysig specialname 
+        instance string get_Name () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_0006: ret
+    } // end of method ExtensionMarkerAttribute::get_Name
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string name
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 14 (0xe)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: stfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_000d: ret
+    } // end of method ExtensionMarkerAttribute::.ctor
+    // Properties
+    .property instance string Name()
+    {
+        .get instance string System.Runtime.CompilerServices.ExtensionMarkerAttribute::get_Name()
+    }
+} // end of class System.Runtime.CompilerServices.ExtensionMarkerAttribute
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -30587,7 +30685,7 @@ class C<T> { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2133
+                // Method begins at RVA 0x214b
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -30605,7 +30703,7 @@ class C<T> { }
                 32 38 31 43 39 31 35 37 44 46 46 45 37 35 45 39
                 42 46 39 33 44 46 33 00 00
             )
-            // Method begins at RVA 0x212c
+            // Method begins at RVA 0x2144
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -30619,7 +30717,7 @@ class C<T> { }
                 32 38 31 43 39 31 35 37 44 46 46 45 37 35 45 39
                 42 46 39 33 44 46 33 00 00
             )
-            // Method begins at RVA 0x212c
+            // Method begins at RVA 0x2144
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -30637,7 +30735,7 @@ class C<T> { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20cb
+        // Method begins at RVA 0x20e3
         // Code size 16 (0x10)
         .maxstack 8
         IL_0000: ldstr "SelectMany"
@@ -30653,7 +30751,7 @@ class C<T> { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20dc
+        // Method begins at RVA 0x20f4
         // Code size 16 (0x10)
         .maxstack 8
         IL_0000: ldstr "Cast "
@@ -32051,7 +32149,7 @@ public class AAttribute : System.Attribute { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32066,7 +32164,7 @@ public class AAttribute : System.Attribute { }
                 35 35 41 30 41 30 42 32 33 39 30 35 31 35 33 44
                 42 35 31 31 46 34 45 00 00
             )
-            // Method begins at RVA 0x2069
+            // Method begins at RVA 0x2080
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -32086,7 +32184,7 @@ public class AAttribute : System.Attribute { }
             .custom instance void AAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -32555,7 +32653,7 @@ public static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32570,7 +32668,7 @@ public static class E
                 46 42 34 41 42 31 38 37 32 43 43 42 38 45 37 44
                 35 34 37 32 43 43 38 00 00
             )
-            // Method begins at RVA 0x2069
+            // Method begins at RVA 0x2080
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -32590,7 +32688,7 @@ public static class E
             .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -32814,7 +32912,7 @@ public class AAttribute : System.Attribute { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2071
+                // Method begins at RVA 0x2088
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32833,7 +32931,7 @@ public class AAttribute : System.Attribute { }
                 .custom instance void AAttribute::.ctor() = (
                     01 00 00 00
                 )
-            // Method begins at RVA 0x206a
+            // Method begins at RVA 0x2081
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -32860,7 +32958,7 @@ public class AAttribute : System.Attribute { }
             .custom instance void AAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 2 (0x2)
         .maxstack 8
         IL_0000: ldc.i4.0
@@ -32978,7 +33076,7 @@ public class CAttribute : System.Attribute { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206f
+                // Method begins at RVA 0x2086
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32993,7 +33091,7 @@ public class CAttribute : System.Attribute { }
                 44 34 34 33 41 45 32 32 34 33 45 37 46 46 41 42
                 39 34 35 35 44 36 30 00 00
             )
-            // Method begins at RVA 0x2071
+            // Method begins at RVA 0x2088
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -33009,7 +33107,7 @@ public class CAttribute : System.Attribute { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 7 (0x7)
         .maxstack 8
         IL_0000: ldc.i4.0
@@ -33035,7 +33133,7 @@ public class CAttribute : System.Attribute { }
             .custom instance void CAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x206f
+        // Method begins at RVA 0x2086
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
