@@ -26659,7 +26659,7 @@ public static class E
     // Fields
     .field private initonly string '<Name>k__BackingField'
     // Methods
-    .method assembly hidebysig specialname 
+    .method public hidebysig specialname 
         instance string get_Name () cil managed 
     {
         // Method begins at RVA 0x2067
@@ -26948,7 +26948,7 @@ var type = System.Type.GetType("E+<G>$C43E2675C7BBF9284AF22FB8A9BF0280");
 var method = type.GetMethod("M", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
 var attrType = System.Type.GetType("System.Runtime.CompilerServices.ExtensionMarkerAttribute");
-var nameProp = attrType.GetProperty("Name", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+var nameProp = attrType.GetProperty("Name", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
 var attr = System.Attribute.GetCustomAttribute(method, attrType);
 var value = nameProp.GetValue(attr);
@@ -26983,7 +26983,7 @@ public static class E
     // Fields
     .field private initonly string '<Name>k__BackingField'
     // Methods
-    .method assembly hidebysig specialname 
+    .method public hidebysig specialname 
         instance string get_Name () cil managed 
     {
         // Method begins at RVA 0x2067

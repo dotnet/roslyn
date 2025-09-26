@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class NamePropertySymbol : PropertySymbol
         {
-            private readonly SynthesizedFieldSymbol _backingField;
+            internal readonly SynthesizedFieldSymbol _backingField;
 
             public NamePropertySymbol(SynthesizedFieldSymbol backingField)
             {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 try
                 {
                     // return this._backingField;
-                    F.CloseMethod(F.Return(F.Field(F.This(), ((SynthesizedEmbeddedExtensionMarkerAttributeSymbol)_nameProperty.ContainingSymbol)._nameField)));
+                    F.CloseMethod(F.Return(F.Field(F.This(), _nameProperty._backingField)));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<ParameterSymbol> Parameters => [];
             public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => [];
             public override ImmutableArray<Location> Locations => [];
-            public override Accessibility DeclaredAccessibility => ContainingSymbol.DeclaredAccessibility;
+            public override Accessibility DeclaredAccessibility => _nameProperty.DeclaredAccessibility;
             public override bool IsVirtual => false;
             public override bool IsOverride => false;
             public override bool IsAbstract => false;
