@@ -3180,14 +3180,18 @@ namespace System.Runtime.CompilerServices
 
         internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
 
-        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, bool includeSuppression = true)
         {
             parseOptions ??= WithRuntimeAsync(TestOptions.RegularPreview);
             var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName: "");
             if (options == null)
             {
                 options = CheckForTopLevelStatements(syntaxTrees);
-                options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
+            }
+
+            if (includeSuppression)
+            {
+                options = options.WithRuntimeAsyncWarningSuppression();
             }
 
             return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
