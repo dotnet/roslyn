@@ -14,14 +14,18 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal partial class SolutionFileReader
 {
-    public static Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
+    public static Task<(string AbsoluteSolutionFilePath, ImmutableArray<(string ProjectFilePath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(
+        string solutionFilePath, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
     {
-        return ReadSolutionFileAsync(solutionFilePath, new PathResolver(diagnosticReporter: null), diagnosticReportingMode, cancellationToken);
+        return ReadSolutionFileAsync(solutionFilePath, pathResolver: default, diagnosticReportingMode, cancellationToken);
     }
 
-    public static async Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
+    public static async Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectFilePath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(
+        string solutionFilePath, PathResolver pathResolver, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath));
+        pathResolver = pathResolver.WithBaseDirectory(Directory.GetCurrentDirectory());
+
+        Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteSolutionFilePath(solutionFilePath, DiagnosticReportingMode.Throw, out var absoluteSolutionPath));
 
         // When passed a solution filter, we need to read the filter file to get the solution path and included project paths.
         var projectFilter = ImmutableHashSet<string>.Empty;
@@ -40,7 +44,8 @@ internal partial class SolutionFileReader
         return (absoluteSolutionPath, projects.Value);
     }
 
-    private static async Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>?> TryReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, ImmutableHashSet<string> projectFilter, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>?> TryReadSolutionFileAsync(
+        string solutionFilePath, PathResolver pathResolver, ImmutableHashSet<string> projectFilter, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
     {
         var serializer = SolutionSerializers.GetSerializerByMoniker(solutionFilePath);
         if (serializer == null)
@@ -52,6 +57,8 @@ internal partial class SolutionFileReader
         var baseDirectory = Path.GetDirectoryName(solutionFilePath);
         RoslynDebug.AssertNotNull(baseDirectory);
 
+        pathResolver = pathResolver.WithBaseDirectory(baseDirectory);
+
         var solutionModel = await serializer.OpenAsync(solutionFilePath, cancellationToken).ConfigureAwait(false);
 
         var builder = ImmutableArray.CreateBuilder<(string ProjectPath, string ProjectGuid)>();
@@ -59,7 +66,7 @@ internal partial class SolutionFileReader
         {
             // If we didn't get an absolute path skip the file.  The solution may have an invalid project in it,
             // but we don't want to throw on that here.  The path resolver will throw / report a diagnostic if it couldn't resolve the path.
-            if (pathResolver.TryGetAbsoluteProjectPath(projectModel.FilePath, baseDirectory, diagnosticReportingMode, out var absoluteProjectPath))
+            if (pathResolver.TryGetAbsoluteProjectFilePath(projectModel.FilePath, diagnosticReportingMode, out var absoluteProjectPath))
             {
                 // If we are filtering based on a solution filter, then we need to verify the project is included.
                 if (!projectFilter.IsEmpty)
