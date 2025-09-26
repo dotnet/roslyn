@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -64,6 +65,6 @@ internal sealed class UseExpressionBodyForAccessorsHelper :
             : result;
     }
 
-    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, AccessorDeclarationSyntax declaration)
+    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, AccessorDeclarationSyntax declaration, CancellationToken cancellationToken)
         => declaration.IsKind(SyntaxKind.GetAccessorDeclaration);
 }

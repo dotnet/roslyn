@@ -699,7 +699,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     if (!isGlobal || seen > NamespaceParts.GlobalAttributes)
                                     {
                                         RoslynDebug.Assert(attribute.Target != null, "Must have a target as IsPossibleGlobalAttributeDeclaration checks for that");
-                                        attribute = this.AddError(attribute, attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst);
+
+                                        attribute = attribute.Update(
+                                            attribute.OpenBracketToken,
+                                            attribute.Target.Update(
+                                                this.AddError(attribute.Target.Identifier, ErrorCode.ERR_GlobalAttributesNotFirst),
+                                                attribute.Target.ColonToken),
+                                            attribute.Attributes,
+                                            attribute.CloseBracketToken);
+
                                         this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, attribute);
                                     }
                                     else
@@ -2963,7 +2971,10 @@ parse_member_name:;
                 var misplacedModifier = this.CurrentToken;
                 type = this.AddError(
                     type,
-                    type.FullWidth + misplacedModifier.GetLeadingTriviaWidth(),
+                    // We're attaching a diagnostic for the misplaced modifier on the 'type' node.  So the offset will
+                    // be *relative* to the *start* (not *full start*) of 'type'. That offset will then be the width of
+                    // type itself, plus any trailing trivia it has, plus the leading trivia of the modifier itself.
+                    offset: type.Width + type.GetTrailingTriviaWidth() + misplacedModifier.GetLeadingTriviaWidth(),
                     misplacedModifier.Width,
                     ErrorCode.ERR_BadModifierLocation,
                     misplacedModifier.Text);
@@ -3004,7 +3015,11 @@ parse_member_name:;
                     //the error position should indicate CurrentToken
                     result = this.AddError(
                         incompleteMember,
-                        incompleteMember.FullWidth + this.CurrentToken.GetLeadingTriviaWidth(),
+                        // We're attaching a diagnostic for the current token on the 'incompleteMember' node.  So the
+                        // offset will be *relative* to the *start* (not *full start*) of 'incompleteMember'. That
+                        // offset will then be the width of incompleteMember itself, plus any trailing trivia it has,
+                        // plus the leading trivia of the modifier itself.
+                        offset: incompleteMember.Width + incompleteMember.GetTrailingTriviaWidth() + this.CurrentToken.GetLeadingTriviaWidth(),
                         this.CurrentToken.Width,
                         ErrorCode.ERR_InvalidMemberDecl,
                         this.CurrentToken.Text);
@@ -3892,7 +3907,7 @@ parse_member_name:;
                 if (this.CurrentToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
                 {
                     // Grab the offset and width before we consume the invalid keyword and change our position.
-                    GetDiagnosticSpanForMissingToken(out opTokenErrorOffset, out opTokenErrorWidth);
+                    (opTokenErrorOffset, opTokenErrorWidth) = this.GetDiagnosticSpanForMissingToken();
                     opToken = this.ConvertToMissingWithTrailingTrivia(this.EatToken(), SyntaxKind.PlusToken);
                     Debug.Assert(opToken.IsMissing); //Which is why we used GetDiagnosticSpanForMissingToken above.
 
@@ -5359,8 +5374,7 @@ parse_member_name:;
                     var isAfterNewLine = parentType.GetLastToken().TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia);
                     if (isAfterNewLine)
                     {
-                        int offset, width;
-                        this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                        var (offset, width) = this.GetDiagnosticSpanForMissingToken();
 
                         this.EatToken();
                         currentTokenKind = this.CurrentToken.Kind;
@@ -7688,11 +7702,7 @@ done:
                 for (int i = 0; i < list.Count; i++)
                 {
                     if (list[i].RawKind == (int)SyntaxKind.OmittedArraySizeExpression)
-                    {
-                        int width = list[i].Width;
-                        int offset = list[i].GetLeadingTriviaWidth();
-                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset, width, ErrorCode.ERR_ValueExpected);
-                    }
+                        list[i] = this.AddError(this.CreateMissingIdentifierName(), offset: 0, list[i].Width, ErrorCode.ERR_ValueExpected);
                 }
             }
 

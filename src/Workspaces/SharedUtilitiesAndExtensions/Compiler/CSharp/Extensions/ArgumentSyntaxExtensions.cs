@@ -60,7 +60,7 @@ internal static class ArgumentSyntaxExtensions
             var parameters = symbol.GetParameters();
 
             // Handle named argument
-            if (argument.NameColon != null && !argument.NameColon.IsMissing)
+            if (argument.NameColon is { IsMissing: false })
             {
                 var name = argument.NameColon.Name.Identifier.ValueText;
                 var parameter = parameters.FirstOrDefault(p => p.Name == name);

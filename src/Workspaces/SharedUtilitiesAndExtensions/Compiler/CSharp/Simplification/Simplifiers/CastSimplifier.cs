@@ -918,7 +918,7 @@ internal static class CastSimplifier
         bool IsConditionalCastSafeToRemoveDueToConversionOfEntireConditionalExpression()
         {
             var originalConversion = conversionOperation.GetConversion();
-            if (!originalConversion.IsNullable && !originalConversion.IsNumeric)
+            if (originalConversion is { IsNullable: false, IsNumeric: false })
                 return false;
 
             if (originalConversion.IsNullable)
@@ -1108,7 +1108,7 @@ internal static class CastSimplifier
     }
 
     private static bool IsConstantNull(IOperation operation)
-        => operation.ConstantValue.HasValue && operation.ConstantValue.Value is null;
+        => operation.ConstantValue is { HasValue: true, Value: null };
 
     private static bool IsExplicitCast(SyntaxNode node)
         => node is ExpressionSyntax expression && expression.WalkDownParentheses().Kind() is SyntaxKind.CastExpression or SyntaxKind.AsExpression;
@@ -1204,7 +1204,7 @@ internal static class CastSimplifier
         // 64bit location.  As such, the explicit cast to truncate to 32/64 isn't necessary.  See
         // https://github.com/dotnet/roslyn/pull/56932#discussion_r725241921 for more details.
         var parentConversion = semanticModel.GetConversion(castNode, cancellationToken);
-        if (parentConversion.Exists && parentConversion.IsBoxing)
+        if (parentConversion is { Exists: true, IsBoxing: true })
             return false;
 
         // It wasn't a read from a fp/field/array.  But it might be a write into one.
@@ -1335,8 +1335,7 @@ internal static class CastSimplifier
 
             // ignore local functions.  First, we can't test them for equality in speculative situations, but also we 
             // can't end up with an overload resolution issue for them as they don't have overloads.
-            if (oldSymbolInfo is IMethodSymbol method &&
-                method.MethodKind is not (MethodKind.LocalFunction or MethodKind.LambdaMethod) &&
+            if (oldSymbolInfo is IMethodSymbol { MethodKind: not (MethodKind.LocalFunction or MethodKind.LambdaMethod) } &&
                 !Equals(oldSymbolInfo, newSymbolInfo))
             {
                 return true;

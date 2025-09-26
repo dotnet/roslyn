@@ -371,11 +371,7 @@ internal static class FormattingHelpers
     }
 
     public static bool IsNestedQueryExpression(this SyntaxToken token)
-    {
-        return token.Kind() == SyntaxKind.InKeyword &&
-               token.Parent is FromClauseSyntax fromClause &&
-               fromClause.Expression is QueryExpressionSyntax;
-    }
+        => token.Kind() == SyntaxKind.InKeyword && token.Parent is FromClauseSyntax { Expression: QueryExpressionSyntax };
 
     public static bool IsFirstFromKeywordInExpression(this SyntaxToken token)
     {
@@ -525,9 +521,7 @@ internal static class FormattingHelpers
     /// </summary>
     public static bool IsOpenParenInVarDeconstructionDeclaration(this SyntaxToken currentToken)
     {
-        return currentToken.Kind() == SyntaxKind.OpenParenToken &&
-            currentToken.Parent is ParenthesizedVariableDesignationSyntax &&
-            currentToken.Parent.Parent is DeclarationExpressionSyntax;
+        return currentToken.Kind() == SyntaxKind.OpenParenToken && currentToken is { Parent: ParenthesizedVariableDesignationSyntax, Parent.Parent: DeclarationExpressionSyntax };
     }
 
     /// <summary>

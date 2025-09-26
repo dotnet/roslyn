@@ -403,55 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pendingReturns;
         }
 
-        protected override ImmutableArray<PendingBranch> RemoveReturns()
-        {
-            var result = base.RemoveReturns();
-
-            if (CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
-            {
-                var foundAwait = result.Any(static pending => HasAwait(pending));
-                if (!foundAwait)
-                {
-                    // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
-                    // much better than using its 'Location' (which is the entire span of the lambda).
-                    var diagnosticLocation = CurrentSymbol is LambdaSymbol lambda
-                        ? lambda.DiagnosticLocation
-                        : CurrentSymbol.GetFirstLocationOrNone();
-
-                    Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
-                }
-            }
-
-            return result;
-        }
-
-        private static bool HasAwait(PendingBranch pending)
-        {
-            var pendingBranch = pending.Branch;
-            if (pendingBranch is null)
-            {
-                return false;
-            }
-
-            BoundKind kind = pendingBranch.Kind;
-            switch (kind)
-            {
-                case BoundKind.AwaitExpression:
-                    return true;
-                case BoundKind.UsingStatement:
-                    var usingStatement = (BoundUsingStatement)pendingBranch;
-                    return usingStatement.AwaitOpt != null;
-                case BoundKind.ForEachStatement:
-                    var foreachStatement = (BoundForEachStatement)pendingBranch;
-                    return foreachStatement.AwaitOpt != null;
-                case BoundKind.UsingLocalDeclarations:
-                    var localDeclaration = (BoundUsingLocalDeclarations)pendingBranch;
-                    return localDeclaration.AwaitOpt != null;
-                default:
-                    return false;
-            }
-        }
-
         // For purpose of definite assignment analysis, awaits create pending branches, so async usings and foreachs do too
         public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
 
@@ -594,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatDiagnostics.Free();
             foreach (var diagnostic in strictDiagnostics.AsEnumerable())
             {
-                // If it is a warning (e.g. WRN_AsyncLacksAwaits), or an error that would be reported by the compatible analysis, just report it.
+                // If it is a warning, or an error that would be reported by the compatible analysis, just report it.
                 if (diagnostic.Severity != DiagnosticSeverity.Error || compatDiagnosticSet.Contains(diagnostic))
                 {
                     diagnostics.Add(diagnostic);
