@@ -275,14 +275,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(TypeParameters);
         }
 
+#nullable enable
+
         /// <summary>
         /// Call <see cref="TryGetThisParameter"/> and throw if it returns false.
         /// </summary>
-        internal ParameterSymbol ThisParameter
+        internal ParameterSymbol? ThisParameter
         {
             get
             {
-                ParameterSymbol thisParameter;
+                ParameterSymbol? thisParameter;
                 if (!TryGetThisParameter(out thisParameter))
                 {
                     throw ExceptionUtilities.Unreachable();
@@ -290,8 +292,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return thisParameter;
             }
         }
-
-#nullable enable
 
         /// <returns>
         /// True if this <see cref="MethodSymbol"/> type supports retrieving the this parameter
