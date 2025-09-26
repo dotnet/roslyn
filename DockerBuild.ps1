@@ -254,6 +254,12 @@ Write-Host "Volume mappings: " @VolumeMappings -ForegroundColor Gray
 Write-Host "Mount points: " $mountPointsAsString -ForegroundColor Gray
 Write-Host "Git directories: " $gitDirectoriesAsString -ForegroundColor Gray
 
+# Kill all containers
+docker ps -q --filter "ancestor=$ImageName" | ForEach-Object {
+    Write-Host "Killing container $_"
+    docker kill $_ 
+}
+
 # Building the image.
 if (-not $NoBuildImage)
 {
@@ -287,23 +293,23 @@ if (-not $BuildImage)
     if ($Interactive)
     {
         $pwshArgs = "-NoExit"
-        $BuildArgs = @("-Interactive") + $BuildArgs
-        $dockerArgs = @("-it")
+$BuildArgs = @("-Interactive") + $BuildArgs
+$dockerArgs = @("-it")
     }
     else
     {
         $pwshArgs = "-NonInteractive"
-        $dockerArgs = @()
+$dockerArgs = @()
     }
 
     $buildArgsString = $BuildArgs -join " "
-    $VolumeMappingsAsString = $VolumeMappings -join " "
-    $dockerArgsAsString = $dockerArgs -join " "
+$VolumeMappingsAsString = $VolumeMappings -join " "
+$dockerArgsAsString = $dockerArgs -join " "
 
 
-    Write-Host "Executing: ``docker run --rm --memory=12g $VolumeMappingsAsString -w $SourceDirName $dockerArgsAsString $ImageName pwsh $pwshArgs -Command `"& .\Build.ps1 $buildArgsString`; exit `$LASTEXITCODE`"``." -ForegroundColor Cyan
+    Write-Host "Executing: ``docker run --rm --memory= 12g $VolumeMappingsAsString -w $SourceDirName $dockerArgsAsString $ImageName pwsh $pwshArgs -Command `"& .\Build.ps1 $buildArgsString`; exit `$LASTEXITCODE`"``." -ForegroundColor Cyan
 
-    docker run --rm --memory=12g @VolumeMappings -w $SourceDirName @dockerArgs $ImageName pwsh $pwshArgs -Command "& .\Build.ps1 $buildArgsString`; exit `$LASTEXITCODE;"
+    docker run --rm --memory=12g @VolumeMappings -w $SourceDirName @dockerArgs $ImageName pwsh $pwshArgs -Command "& .\Build.ps1 $buildArgsString`; exit `$LASTEXITCODE; "
     if ($LASTEXITCODE -ne 0)
     {
         Write-Host "Docker run (build) failed with exit code $LASTEXITCODE" -ForegroundColor Red

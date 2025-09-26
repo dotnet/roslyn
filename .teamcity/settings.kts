@@ -206,7 +206,7 @@ object PublicDeployment : BuildType({
     params {
         text("Publish.Arguments", "", label = "DockerBuild.ps1 Arguments", description = "Arguments to append to the 'Publish' build step.", allowEmpty = true)
         param("Publish.Timeout", "30")
-        text("DefaultBranch", "release/2025.1", label = "Default Branch", description = "The default branch of this build configuration.")
+        text("DefaultBranch", "develop/2025.1", label = "Default Branch", description = "The default branch of this build configuration.")
     }
 
     vcs {
