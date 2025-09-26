@@ -790,7 +790,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Shouldn't call this method if the single spread optimization would work.
             // Passing `targetsReadOnlyCollection` as false since it is more restrictive case.
-            // Having a separate parameter just to make an assert doesn't make much sense to me
             Debug.Assert(TryOptimizeSingleSpreadToArray_NoConversionApplied(node, targetsReadOnlyCollection: false, arrayType) is null);
 
             if (numberIncludingLastSpread == 0)
