@@ -143,8 +143,7 @@ internal class RoslynSolution : Solution
             return false;
         }
 
-        var resultsRelativeDirectory =
-            context.Product.TestResultsDirectory.ToString(BuildArguments.Read(context, settings.BuildConfiguration));
+        var resultsRelativeDirectory = context.Product.TestResultsDirectory;
 
         var resultsDirectory = Path.Combine(context.RepoDirectory, resultsRelativeDirectory);
 
