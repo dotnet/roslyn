@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -463,9 +464,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            string? previousDotNetRoot = Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName);
+            // Set DOTNET_ROOT so that the apphost executable launches properly.
+            System.Collections.DictionaryEntry[] dotnetRootEnvVars = [];
             if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
             {
+                // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
+                dotnetRootEnvVars = Environment.GetEnvironmentVariables()
+                    .Cast<System.Collections.DictionaryEntry>()
+                    .Where(static e => ((string)e.Key).StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+                foreach (var envVar in dotnetRootEnvVars)
+                {
+                    Environment.SetEnvironmentVariable((string)envVar.Key, string.Empty);
+                }
+
                 logger.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 Environment.SetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
             }
@@ -550,7 +562,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             finally
             {
-                Environment.SetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName, previousDotNetRoot);
+                foreach (var envVar in dotnetRootEnvVars)
+                {
+                    Environment.SetEnvironmentVariable((string)envVar.Key, (string?)envVar.Value);
+                }
             }
         }
 
