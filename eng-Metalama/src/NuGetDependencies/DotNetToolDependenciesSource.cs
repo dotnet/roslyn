@@ -8,30 +8,24 @@ using System.IO;
 using System.Text.Json;
 using PostSharp.Engineering.BuildTools.Build;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal class DotNetToolDependenciesSource : NuGetDependenciesSourceBase
 {
-    // This record represents data from dotnet-tools.json files.
-    private record DotNetTool(string Version);
-
-    // This record represents data from dotnet-tools.json files.
-    private record DotNetTools(Dictionary<string, DotNetTool> Tools);
-    
     public override bool GetDependencies(BuildContext context, out IEnumerable<string> dependencies)
     {
         List<string> dependenciesList = new();
-        
+
         var toolsPath = Path.Combine(context.RepoDirectory, "dotnet-tools.json");
         var toolsJson = File.ReadAllText(toolsPath);
         var tools = JsonSerializer.Deserialize<DotNetTools>(toolsJson, NuGetJsonSerializerOptions.Instance)!;
-            
+
         foreach (var tool in tools.Tools)
         {
             var packageName = tool.Key.ToLowerInvariant();
             var packageVersion = tool.Value.Version;
             var toolPackagePath = GetPackagePath(packageName, packageVersion);
-            
+
             dependenciesList.Add(toolPackagePath);
         }
 
@@ -39,4 +33,10 @@ internal class DotNetToolDependenciesSource : NuGetDependenciesSourceBase
 
         return true;
     }
+
+    // This record represents data from dotnet-tools.json files.
+    private record DotNetTool(string Version);
+
+    // This record represents data from dotnet-tools.json files.
+    private record DotNetTools(Dictionary<string, DotNetTool> Tools);
 }

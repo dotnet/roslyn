@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using PostSharp.Engineering.BuildTools.Build;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal abstract class NuGetDependenciesSourceBase
 {
@@ -17,6 +17,6 @@ internal abstract class NuGetDependenciesSourceBase
         return Environment.ExpandEnvironmentVariables(Path.Combine("%UserProfile%", ".nuget",
             "packages", lowerName, version, $"{lowerName}.{version}.nupkg"));
     }
-    
+
     public abstract bool GetDependencies(BuildContext context, out IEnumerable<string> dependencies);
 }
