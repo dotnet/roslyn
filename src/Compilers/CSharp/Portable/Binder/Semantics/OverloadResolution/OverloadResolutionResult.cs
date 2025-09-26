@@ -1414,8 +1414,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
                 diagnostics.Add(
                     CreateAmbiguousCallDiagnosticInfo(
-                        worseResult1.LeastOverriddenMember.OriginalDefinition,
-                        worseResult2.LeastOverriddenMember.OriginalDefinition,
+                        worseResult1.LeastOverriddenMember.ConstructedFrom(),
+                        worseResult2.LeastOverriddenMember.ConstructedFrom(),
                         symbols),
                     location);
             }
@@ -1467,8 +1467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 'P.Ambiguous(object, string)' and 'P.Ambiguous(string, object)'
             diagnostics.Add(
                 CreateAmbiguousCallDiagnosticInfo(
-                    validResult1.LeastOverriddenMember.OriginalDefinition,
-                    validResult2.LeastOverriddenMember.OriginalDefinition,
+                    validResult1.LeastOverriddenMember.ConstructedFrom(),
+                    validResult2.LeastOverriddenMember.ConstructedFrom(),
                     symbols),
                 location);
 
