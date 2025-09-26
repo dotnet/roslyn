@@ -60,19 +60,20 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
     }
 
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+    // Only run these on 64-bit machines; some templates have source generators that are 64-bit Ready-to-Run images,
+    // and those will fail to load if we're in a 32-bit process. Ideally if the machines had a 32-bit SDK we'd be able to run
+    // the tests in that case, but that's not worth the engineering work to set up.
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), typeof(Bitness64))]
     [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
     public Task ValidateCSharpTemplateProjects(string templateName)
     {
-        if (templateName is "blazor" or "blazorwasm")
-        {
-            // https://github.com/dotnet/roslyn/issues/80263
-            return Task.CompletedTask;
-        }
         return AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
     }
 
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+    // Only run these on 64-bit machines; some templates have source generators that are 64-bit Ready-to-Run images,
+    // and those will fail to load if we're in a 32-bit process. Ideally if the machines had a 32-bit SDK we'd be able to run
+    // the tests in that case, but that's not worth the engineering work to set up.
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), typeof(Bitness64))]
     [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]
     public async Task ValidateVisualBasicTemplateProjects(string templateName)
     {
