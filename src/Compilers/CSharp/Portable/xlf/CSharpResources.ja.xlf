@@ -357,6 +357,11 @@
         <target state="translated">'{0}' 型は 'using static' では無効です。使用できるのは、クラス、構造体、インターフェイス、列挙型、デリゲート、名前空間のみです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">'unsafe' ブロックでは 'yield return' を使用できません</target>
@@ -11130,7 +11135,7 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <target state="translated">await' 演算子は、最初の 'from' 句の最初のコレクション式、または 'join' 句のコレクション式に含まれるクエリ式でのみ使用できます</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">この呼び出しを待たないため、現在のメソッドの実行は、呼び出しが完了するまで続行します。呼び出しの結果に 'await' 演算子を適用することを検討してください。</target>
         <note />

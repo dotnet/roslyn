@@ -386,10 +386,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
                 }
 
-                if (!this.IsNoMoreVisibleThan(baseType, ref useSiteInfo))
+                var lessVisibleTypes = this.FindAllLessVisible(baseType, ref useSiteInfo);
+                foreach (var lessVisibleType in lessVisibleTypes)
                 {
-                    // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
+                    if (Equals(baseType, lessVisibleType, TypeCompareKind.ConsiderEverything))
+                    {
+                        // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, lessVisibleType);
+                    }
+                    else
+                    {
+                        // Inconsistent accessibility: type '{1}' is less accessible than class '{0}'
+                        var lessVisibleTypeLocation = lessVisibleType.GetFirstLocation();
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseType, baseTypeLocation, this, lessVisibleType);
+                    }
                 }
 
                 if (baseType.HasFileLocalTypes() && !this.HasFileLocalTypes())

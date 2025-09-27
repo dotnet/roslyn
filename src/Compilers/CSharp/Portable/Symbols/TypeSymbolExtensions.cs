@@ -695,6 +695,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public static List<TypeSymbol> FindAllLessVisible(this TypeSymbol type, TypeSymbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var visitTypeData = s_visitTypeDataPool.Allocate();
+
+            try
+            {
+                visitTypeData.UseSiteInfo = useSiteInfo;
+                visitTypeData.Symbol = type;
+
+                var result = type.VisitType(static (type1, arg, unused) => IsTypeLessVisibleThan(type1, arg.Symbol!, ref arg.UseSiteInfo),
+                                            arg: visitTypeData,
+                                            returnOnMatch: false,
+                                            canDigThroughNullable: true); // System.Nullable is public
+
+                useSiteInfo = visitTypeData.UseSiteInfo;
+                return result;
+            }
+            finally
+            {
+                visitTypeData.UseSiteInfo = default;
+                visitTypeData.Symbol = null;
+                s_visitTypeDataPool.Free(visitTypeData);
+            }
+        }
+
         private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             switch (type.TypeKind)
@@ -732,7 +757,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeWithAnnotationsPredicate: null,
                 typePredicate: predicate,
                 arg,
-                canDigThroughNullable,
+                canDigThroughNullable: canDigThroughNullable,
+                visitCustomModifiers: visitCustomModifiers);
+        }
+
+        public static List<TypeSymbol> VisitType<T>(
+            this TypeSymbol type,
+            Func<TypeSymbol, T, bool, bool> predicate,
+            T arg,
+            bool returnOnMatch,
+            bool canDigThroughNullable = false,
+            bool visitCustomModifiers = false)
+        {
+            return VisitType(
+                typeWithAnnotationsOpt: default,
+                type: type,
+                typeWithAnnotationsPredicate: null,
+                typePredicate: predicate,
+                arg,
+                returnOnMatch: returnOnMatch,
+                canDigThroughNullable: canDigThroughNullable,
                 visitCustomModifiers: visitCustomModifiers);
         }
 
@@ -757,10 +801,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool useDefaultType = false,
             bool visitCustomModifiers = false)
         {
+            var matchigSymbols = VisitType(
+                typeWithAnnotationsOpt: typeWithAnnotationsOpt,
+                type: type,
+                typeWithAnnotationsPredicate: typeWithAnnotationsPredicate,
+                typePredicate: typePredicate,
+                arg: arg,
+                returnOnMatch: true,
+                canDigThroughNullable: canDigThroughNullable,
+                useDefaultType: useDefaultType,
+                visitCustomModifiers: visitCustomModifiers);
+            return matchigSymbols.FirstOrDefault();
+        }
+
+        public static List<TypeSymbol> VisitType<T>(
+            this TypeWithAnnotations typeWithAnnotationsOpt,
+            TypeSymbol? type,
+            Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate,
+            Func<TypeSymbol, T, bool, bool>? typePredicate,
+            T arg,
+            bool returnOnMatch,
+            bool canDigThroughNullable = false,
+            bool useDefaultType = false,
+            bool visitCustomModifiers = false)
+        {
             RoslynDebug.Assert(typeWithAnnotationsOpt.HasType == (type is null));
             RoslynDebug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
             RoslynDebug.Assert(canDigThroughNullable == false || visitCustomModifiers == false);
             RoslynDebug.Assert(visitCustomModifiers == false || typePredicate is { });
+
+            List<TypeSymbol> combinedResult = [];
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -784,10 +854,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType, visitCustomModifiers);
-                                if (result is object)
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, returnOnMatch, canDigThroughNullable, useDefaultType, visitCustomModifiers);
+                                combinedResult.AddRange(result);
+
+                                if (combinedResult.Count > 0 && returnOnMatch)
                                 {
-                                    return result;
+                                    return combinedResult;
                                 }
                             }
                         }
@@ -802,14 +874,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (typeWithAnnotationsPredicate(typeWithAnnotationsOpt, arg, isNestedNamedType))
                     {
-                        return current;
+                        combinedResult.Add(current);
+                        if (returnOnMatch)
+                        {
+                            return combinedResult;
+                        }
                     }
                 }
                 else if (typePredicate != null)
                 {
                     if (typePredicate(current, arg, isNestedNamedType))
                     {
-                        return current;
+                        combinedResult.Add(current);
+                        if (returnOnMatch)
+                        {
+                            return combinedResult;
+                        }
                     }
                 }
 
@@ -819,11 +899,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var result = VisitType(
                             typeWithAnnotationsOpt: default, type: ((CSharpCustomModifier)customModifier).ModifierSymbol,
-                            typeWithAnnotationsPredicate, typePredicate, arg,
+                            typeWithAnnotationsPredicate, typePredicate, arg, returnOnMatch,
                             canDigThroughNullable, useDefaultType, visitCustomModifiers);
-                        if (result is object)
+                        combinedResult.AddRange(result);
+
+                        if (combinedResult.Count > 0 && returnOnMatch)
                         {
-                            return result;
+                            return combinedResult;
                         }
                     }
                 }
@@ -836,12 +918,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.TypeParameter:
                     case TypeKind.Submission:
                     case TypeKind.Enum:
-                        return null;
+                        return [];
 
                     case TypeKindInternal.FunctionType:
                         if (((FunctionTypeSymbol)current).GetInternalDelegateType() is not { } delegateType)
                         {
-                            return null;
+                            return combinedResult;
                         }
 
                         current = delegateType;
@@ -861,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (fields.IsEmpty)
                             {
-                                return null;
+                                return combinedResult;
                             }
 
                             int i;
@@ -875,12 +957,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     typeWithAnnotationsPredicate,
                                     typePredicate,
                                     arg,
+                                    returnOnMatch,
                                     canDigThroughNullable,
                                     useDefaultType,
                                     visitCustomModifiers);
-                                if (result is object)
+                                combinedResult.AddRange(result);
+
+                                if (combinedResult.Count > 0 && returnOnMatch)
                                 {
-                                    return result;
+                                    return combinedResult;
                                 }
                             }
 
@@ -892,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (typeArguments.IsEmpty)
                             {
-                                return null;
+                                return combinedResult;
                             }
 
                             int i;
@@ -906,12 +991,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     typeWithAnnotationsPredicate,
                                     typePredicate,
                                     arg,
+                                    returnOnMatch,
                                     canDigThroughNullable,
                                     useDefaultType,
                                     visitCustomModifiers);
-                                if (result is object)
+                                combinedResult.AddRange(result);
+
+                                if (combinedResult.Count > 0 && returnOnMatch)
                                 {
-                                    return result;
+                                    return combinedResult;
                                 }
                             }
 
@@ -930,10 +1018,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.FunctionPointer:
                         {
-                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, visitCustomModifiers, out next);
-                            if (result is object)
+                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, returnOnMatch, useDefaultType, canDigThroughNullable, visitCustomModifiers, out next);
+                            combinedResult.AddRange(result);
+
+                            if (combinedResult.Count > 0 && returnOnMatch)
                             {
-                                return result;
+                                return combinedResult;
                             }
 
                             break;
@@ -951,13 +1041,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static (TypeWithAnnotations, TypeSymbol?) getNextIterationElements(TypeWithAnnotations type, bool canDigThroughNullable)
                 => canDigThroughNullable ? (default(TypeWithAnnotations), type.NullableUnderlyingTypeOrSelf) : (type, null);
 
-            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, bool visitCustomModifiers, out TypeWithAnnotations next)
+            static List<TypeSymbol> visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool returnOnMatch, bool useDefaultType, bool canDigThroughNullable, bool visitCustomModifiers, out TypeWithAnnotations next)
             {
+                List<TypeSymbol> combinedResult = [];
                 MethodSymbol currentPointer = type.Signature;
                 if (currentPointer.ParameterCount == 0)
                 {
                     next = currentPointer.ReturnTypeWithAnnotations;
-                    return null;
+                    return combinedResult;
                 }
 
                 var result = VisitType(
@@ -966,13 +1057,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typeWithAnnotationsPredicate,
                     typePredicate,
                     arg,
+                    returnOnMatch,
                     canDigThroughNullable,
                     useDefaultType,
                     visitCustomModifiers);
-                if (result is object)
+                combinedResult.AddRange(result);
+
+                if (combinedResult.Count > 0 && returnOnMatch)
                 {
                     next = default;
-                    return result;
+                    return combinedResult;
                 }
 
                 int i;
@@ -985,18 +1079,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         typeWithAnnotationsPredicate,
                         typePredicate,
                         arg,
+                        returnOnMatch,
                         canDigThroughNullable,
                         useDefaultType,
                         visitCustomModifiers);
-                    if (result is object)
+                    combinedResult.AddRange(result);
+
+                    if (combinedResult.Count > 0 && returnOnMatch)
                     {
                         next = default;
-                        return result;
+                        return combinedResult;
                     }
                 }
 
                 next = currentPointer.Parameters[i].TypeWithAnnotations;
-                return null;
+                return combinedResult;
             }
         }
 

@@ -357,6 +357,11 @@
         <target state="translated">Der Typ "{0}" ist für "using static" ungültig. Nur eine Klasse, Struktur, Schnittstelle, Enumeration, ein Delegat oder ein Namespace kann verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">„yield return“ kann nicht in einem „unsicheren“ Block verwendet werden.</target>
@@ -11130,7 +11135,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <target state="translated">Der await-Operator kann in einem Abfrageausdruck nur innerhalb des ersten Sammlungsausdrucks der ursprünglichen from-Klausel oder innerhalb des Sammlungsausdrucks einer join-Klausel verwendet werden.</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Da auf diesen Aufruf nicht gewartet wird, wird die Ausführung der aktuellen Methode vor Abschluss des Aufrufs fortgesetzt. Ziehen Sie ein Anwenden des "Await"-Operators auf das Ergebnis des Aufrufs in Betracht.</target>
         <note />

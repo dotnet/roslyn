@@ -357,6 +357,11 @@
         <target state="translated">Le type '{0}' n'est pas valide pour 'en utilisant statique'. Seuls une classe, une structure, une interface, une énumération, un délégué ou un espace de noms peuvent être utilisés.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">Désolé... Nous ne pouvons pas utiliser « yield return » dans un bloc « unsafe »</target>
@@ -11130,7 +11135,7 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
         <target state="translated">L'opérateur 'await' peut seulement être utilisé dans une expression de requête dans la première expression de collection de la clause 'from' initiale ou dans l'expression de collection d'une clause 'join'</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Dans la mesure où cet appel n'est pas attendu, l'exécution de la méthode actuelle continue avant la fin de l'appel. Envisagez d'appliquer l'opérateur 'await' au résultat de l'appel.</target>
         <note />
