@@ -839,10 +839,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+#nullable enable
+
+        internal sealed override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = _lazyThisParameter;
-            if ((object)thisParameter != null || IsStatic)
+            if ((object)thisParameter != null || IsStatic || this.GetIsNewExtensionMember())
             {
                 return true;
             }
@@ -851,6 +853,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             thisParameter = _lazyThisParameter;
             return true;
         }
+
+#nullable disable
 
         //overridden appropriately in SourceMemberMethodSymbol
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations

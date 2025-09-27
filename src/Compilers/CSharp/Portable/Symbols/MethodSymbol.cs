@@ -275,14 +275,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(TypeParameters);
         }
 
+#nullable enable
+
         /// <summary>
         /// Call <see cref="TryGetThisParameter"/> and throw if it returns false.
         /// </summary>
-        internal ParameterSymbol ThisParameter
+        internal ParameterSymbol? ThisParameter
         {
             get
             {
-                ParameterSymbol thisParameter;
+                ParameterSymbol? thisParameter;
                 if (!TryGetThisParameter(out thisParameter))
                 {
                     throw ExceptionUtilities.Unreachable();
@@ -296,11 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// and false otherwise.  Note that a return value of true does not guarantee a non-null
         /// <paramref name="thisParameter"/> (e.g. fails for static methods).
         /// </returns>
-        internal virtual bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal virtual bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = null;
             return false;
         }
+
+#nullable disable
 
         /// <summary>
         /// Optimization: in many cases, the parameter count (fast) is sufficient and we

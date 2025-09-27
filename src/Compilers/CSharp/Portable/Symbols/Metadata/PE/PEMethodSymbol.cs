@@ -434,12 +434,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _flags = (ushort)localflags;
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+#nullable enable
+
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
-            thisParameter = IsStatic ? null :
+            thisParameter = IsStatic || this.GetIsNewExtensionMember() ? null :
                            _uncommonFields?._lazyThisParameter ?? InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyThisParameter, new ThisParameterSymbol(this));
             return true;
         }
+
+#nullable disable
 
         public override Symbol ContainingSymbol => _containingType;
 
