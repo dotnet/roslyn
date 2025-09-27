@@ -337,7 +337,7 @@ internal class F : A
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (16,22): error CS9333: Inconsistent accessibility: type 'A.B.C' is less accessible than class 'F.D.E'
+                // (16,22): error CS9335: Inconsistent accessibility: type 'A.B.C' is less accessible than class 'F.D.E'
                 //         public class E : C.X { }
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "E").WithArguments("F.D.E", "A.B.C")
                 );
@@ -2432,7 +2432,7 @@ public class B<T> { }
 public class C : B<A> { }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,14): error CS9333: Inconsistent accessibility: type 'A' is less accessible than class 'C'
+                // (4,14): error CS9335: Inconsistent accessibility: type 'A' is less accessible than class 'C'
                 //     public class C : B<A> { }
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A").WithLocation(4, 14));
         }
@@ -2460,7 +2460,7 @@ public class C : A.B { }";
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,14): error CS9333: Inconsistent accessibility: type 'A' is less accessible than class 'C'
+                // (3,14): error CS9335: Inconsistent accessibility: type 'A' is less accessible than class 'C'
                 //     public class C : A.B { }
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A").WithLocation(3, 14));
         }

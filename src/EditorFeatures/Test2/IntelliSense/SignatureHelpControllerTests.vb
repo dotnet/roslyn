@@ -21,7 +21,6 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -152,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If provider Is Nothing Then
                 items = If(items, CreateItems(1))
-                provider = New MockSignatureHelpProvider(items.ToImmutableArray())
+                provider = New MockSignatureHelpProvider(items)
             End If
 
             Dim presenter = New Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))(MockBehavior.Strict) With {.DefaultValue = DefaultValue.Mock}
@@ -195,16 +194,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return controller
         End Function
 
-        Private Shared Function CreateItems(count As Integer) As ImmutableArray(Of SignatureHelpItem)
-            Return Enumerable.Range(0, count).SelectAsArray(Function(i) New SignatureHelpItem(isVariadic:=False, documentationFactory:=Nothing, prefixParts:=New List(Of TaggedText), separatorParts:={}, suffixParts:={}, parameters:={}, descriptionParts:={}))
+        Private Shared Function CreateItems(count As Integer) As IList(Of SignatureHelpItem)
+            Return Enumerable.Range(0, count).Select(Function(i) New SignatureHelpItem(isVariadic:=False, documentationFactory:=Nothing, prefixParts:=New List(Of TaggedText), separatorParts:={}, suffixParts:={}, parameters:={}, descriptionParts:={})).ToList()
         End Function
 
         Friend Class MockSignatureHelpProvider
             Implements ISignatureHelpProvider
 
-            Private ReadOnly _items As ImmutableArray(Of SignatureHelpItem)
+            Private ReadOnly _items As IList(Of SignatureHelpItem)
 
-            Public Sub New(items As ImmutableArray(Of SignatureHelpItem))
+            Public Sub New(items As IList(Of SignatureHelpItem))
                 Me._items = items
             End Sub
 
@@ -213,8 +212,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Public Function GetItemsAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As MemberDisplayOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
                 GetItemsCount += 1
                 Return Task.FromResult(If(_items.Any(),
-                    New SignatureHelpItems(_items, TextSpan.FromBounds(position, position), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing),
-                    Nothing))
+                                       New SignatureHelpItems(_items, TextSpan.FromBounds(position, position), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing),
+                                       Nothing))
             End Function
 
             Public ReadOnly Property TriggerCharacters As ImmutableArray(Of Char) Implements ISignatureHelpProvider.TriggerCharacters

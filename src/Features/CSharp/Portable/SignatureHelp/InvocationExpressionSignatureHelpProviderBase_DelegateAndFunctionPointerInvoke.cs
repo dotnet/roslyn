@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
@@ -37,7 +36,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         return invokeMethod;
     }
 
-    private static ImmutableArray<SignatureHelpItem> GetDelegateOrFunctionPointerInvokeItems(InvocationExpressionSyntax invocationExpression, IMethodSymbol invokeMethod, SemanticModel semanticModel, IStructuralTypeDisplayService structuralTypeDisplayService, IDocumentationCommentFormattingService documentationCommentFormattingService, out int? selectedItem, CancellationToken cancellationToken)
+    private static IList<SignatureHelpItem> GetDelegateOrFunctionPointerInvokeItems(InvocationExpressionSyntax invocationExpression, IMethodSymbol invokeMethod, SemanticModel semanticModel, IStructuralTypeDisplayService structuralTypeDisplayService, IDocumentationCommentFormattingService documentationCommentFormattingService, out int? selectedItem, CancellationToken cancellationToken)
     {
         var position = invocationExpression.SpanStart;
         var item = CreateItem(
@@ -56,9 +55,9 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         return [item];
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+    private static IList<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
     {
-        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var displayParts);
+        var displayParts = new List<SymbolDisplayPart>();
         displayParts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position));
         displayParts.Add(Space());
 
@@ -74,13 +73,13 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
 
         displayParts.Add(Punctuation(SyntaxKind.OpenParenToken));
 
-        return displayParts.ToImmutableAndClear();
+        return displayParts;
     }
 
-    private static ImmutableArray<SignatureHelpSymbolParameter> GetDelegateOrFunctionPointerInvokeParameters(
+    private static IList<SignatureHelpSymbolParameter> GetDelegateOrFunctionPointerInvokeParameters(
         IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SignatureHelpSymbolParameter>.GetInstance(out var result);
+        var result = new List<SignatureHelpSymbolParameter>();
 
         foreach (var parameter in invokeMethod.Parameters)
         {
@@ -92,9 +91,9 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
                 parameter.ToMinimalDisplayParts(semanticModel, position)));
         }
 
-        return result.ToImmutableAndClear();
+        return result;
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePostambleParts()
+    private static IList<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePostambleParts()
         => [Punctuation(SyntaxKind.CloseParenToken)];
 }

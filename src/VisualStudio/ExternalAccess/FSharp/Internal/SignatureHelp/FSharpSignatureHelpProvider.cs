@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp;
 
@@ -61,23 +61,23 @@ internal class FSharpSignatureHelpProvider : ISignatureHelpProvider
         if (mappedSignatureHelpItems != null)
         {
             return new SignatureHelpItems(
-                mappedSignatureHelpItems.Items.SelectAsArray(x =>
+                mappedSignatureHelpItems.Items.Select(x =>
                     new SignatureHelpItem(
                         x.IsVariadic,
                         x.DocumentationFactory,
                         x.PrefixDisplayParts,
                         x.SeparatorDisplayParts,
                         x.SuffixDisplayParts,
-                        x.Parameters.SelectAsArray(y =>
+                        x.Parameters.Select(y =>
                             new SignatureHelpParameter(
                                 y.Name,
                                 y.IsOptional,
                                 y.DocumentationFactory,
-                                y.DisplayParts.ToImmutableArrayOrEmpty(),
-                                y.PrefixDisplayParts.ToImmutableArrayOrEmpty(),
-                                y.SuffixDisplayParts.ToImmutableArrayOrEmpty(),
-                                y.SelectedDisplayParts.ToImmutableArrayOrEmpty())),
-                        x.DescriptionParts)),
+                                y.DisplayParts,
+                                y.PrefixDisplayParts,
+                                y.SuffixDisplayParts,
+                                y.SelectedDisplayParts)).ToList(),
+                        x.DescriptionParts)).ToList(),
                 mappedSignatureHelpItems.ApplicableSpan,
                 mappedSignatureHelpItems.ArgumentIndex,
                 mappedSignatureHelpItems.ArgumentCount,
