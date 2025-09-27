@@ -358,8 +358,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseType">
-        <source>Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </source>
-        <target state="new">Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </target>
+        <source>Inconsistant accessability: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistant accessability: type '{1}' is less accessible than class '{0}' </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
