@@ -356,11 +356,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal virtual void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options)
+        internal virtual void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options)
         {
             foreach (var type in this.GetTypeMembersUnordered())
             {
-                type.GetExtensionContainers(extensions, name, alternativeName, arity, options);
+                type.GetExtensionMembers(members, name, alternativeName, arity, options);
             }
         }
 #nullable disable

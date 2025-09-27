@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddOperators(operators, candidates);
         }
 
-        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, IEnumerable<Symbol> candidates)
         {
             foreach (var candidate in candidates)
             {
@@ -381,79 +381,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        // TODO2 maybe we should return extension members instead of extension blocks
-        // TODO2 should we discard members here based on whether or not we need invocable ones?
-        internal void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options)
+        internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options)
         {
             Debug.Assert(name is not null || alternativeName is null);
 
             if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
 
-            foreach (var nestedType in GetTypeMembersUnordered())
+            foreach (NamedTypeSymbol nestedType in GetTypeMembersUnordered())
             {
-                if (nestedType.IsExtension
-                    && containsMatchingMember(nestedType, name, alternativeName, arity, options))
+                if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
+                    || IsInvalidExtensionReceiverParameter(extensionParameter))
                 {
-                    extensions.Add(nestedType);
+                    continue;
+                }
+
+                var candidates = name is null || alternativeName is not null
+                    ? nestedType.GetMembersUnordered()
+                    : nestedType.GetMembers(name);
+
+                foreach (var candidate in candidates)
+                {
+                    if (extensionMemberMatches(candidate, name, alternativeName, arity, options))
+                    {
+                        members.Add(candidate);
+                    }
                 }
             }
 
-            return;
-
-            static bool containsMatchingMember(NamedTypeSymbol extension, string? name, string? alternativeName, int arity, LookupOptions options)
+            static bool extensionMemberMatches(Symbol member, string? name, string? alternativeName, int arity, LookupOptions options)
             {
-                if (extension.ExtensionParameter is not { } extensionParameter
-                    || IsInvalidExtensionReceiverParameter(extensionParameter)) // TODO2 this should be during lookup as well
+                if ((options & LookupOptions.AllMethodsOnArityZero) == 0
+                    && arity != member.GetMemberArityIncludingExtension())
                 {
                     return false;
                 }
 
-                var members = name is null || alternativeName is not null
-                    ? extension.GetMembersUnordered()
-                    : extension.GetMembers(name);
+                string memberName = member.Name;
+                bool namesMatch = name is null
+                    || memberName == name
+                    || (alternativeName is not null && memberName == alternativeName);
 
-                foreach (Symbol member in members)
+                if (!namesMatch)
                 {
-                    if ((options & LookupOptions.AllMethodsOnArityZero) == 0
-                        && arity != member.GetMemberArityIncludingExtension())
-                    {
-                        continue;
-                    }
-
-                    string memberName = member.Name;
-                    bool namesMatch = name is null
-                        || memberName == name
-                        || (alternativeName is not null && memberName == alternativeName);
-
-                    if (!namesMatch)
-                    {
-                        continue;
-                    }
-
-                    if ((options & LookupOptions.MustBeInvocableIfMember) != 0
-                        && !isInvocableMember(member))
-                    {
-                        continue;
-                    }
-
-                    return true;
+                    return false;
                 }
 
-                return false;
-            }
-
-            static bool isInvocableMember(Symbol symbol)
-            {
-                switch (symbol.Kind)
+                if ((options & LookupOptions.MustBeInvocableIfMember) != 0
+                    && !isInvocableMember(member))
                 {
-                    case SymbolKind.Method:
-                        return true;
-
-                    case SymbolKind.Property:
-                        return Binder.IsInvocableType(((PropertySymbol)symbol).Type);
+                    return false;
                 }
 
-                return false;
+                return true;
+
+                static bool isInvocableMember(Symbol symbol)
+                {
+                    switch (symbol.Kind)
+                    {
+                        case SymbolKind.Method:
+                            return true;
+
+                        case SymbolKind.Property:
+                            return Binder.IsInvocableType(((PropertySymbol)symbol).Type);
+                    }
+
+                    return false;
+                }
             }
         }
 

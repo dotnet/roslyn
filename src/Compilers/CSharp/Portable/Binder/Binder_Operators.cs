@@ -574,14 +574,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var result = BinaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var extensionDeclarationsInSingleScope = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                var extensionCandidatesInSingleScope = ArrayBuilder<Symbol>.GetInstance();
                 BoundCompoundAssignmentOperator? inPlaceResult = null;
                 AnalyzedArguments? analyzedArguments = null;
 
                 foreach (var scope in new ExtensionScopes(this))
                 {
-                    extensionDeclarationsInSingleScope.Clear();
-                    scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope,
+                    extensionCandidatesInSingleScope.Clear();
+                    scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
                         ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
 
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(ordinaryInstanceOperatorName is not null);
 
                         inPlaceResult = tryApplyUserDefinedInstanceExtensionOperatorInSingleScope(
-                            node, extensionDeclarationsInSingleScope, kind, checkOverflowAtRuntime,
+                            node, extensionCandidatesInSingleScope, kind, checkOverflowAtRuntime,
                             checkedInstanceOperatorName, ordinaryInstanceOperatorName,
                             left, right, ref analyzedArguments, diagnostics);
                         if (inPlaceResult is not null)
@@ -600,13 +600,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    extensionDeclarationsInSingleScope.Clear();
-                    scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope,
+                    extensionCandidatesInSingleScope.Clear();
+                    scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
                         staticOperatorName1, staticOperatorName2Opt, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
 
                     if (this.OverloadResolution.BinaryOperatorExtensionOverloadResolutionInSingleScope(
-                        extensionDeclarationsInSingleScope, kind, checkOverflowAtRuntime,
+                        extensionCandidatesInSingleScope, kind, checkOverflowAtRuntime,
                         staticOperatorName1, staticOperatorName2Opt,
                         left, right, result, ref useSiteInfo))
                     {
@@ -618,14 +618,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(node, useSiteInfo);
 
                 analyzedArguments?.Free();
-                extensionDeclarationsInSingleScope.Free();
+                extensionCandidatesInSingleScope.Free();
                 result.Free();
                 return inPlaceResult;
             }
 
             BoundCompoundAssignmentOperator? tryApplyUserDefinedInstanceExtensionOperatorInSingleScope(
                 AssignmentExpressionSyntax node,
-                ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
+                ArrayBuilder<Symbol> extensionCandidatesInSingleScope,
                 BinaryOperatorKind kind,
                 bool checkOverflowAtRuntime,
                 string? checkedName,
@@ -635,9 +635,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref AnalyzedArguments? analyzedArguments,
                 BindingDiagnosticBag diagnostics)
             {
-                // TODO2
                 ArrayBuilder<MethodSymbol>? methods = LookupUserDefinedInstanceExtensionOperatorsInSingleScope(
-                    extensionDeclarationsInSingleScope,
+                    extensionCandidatesInSingleScope,
                     checkedName: checkedName,
                     ordinaryName: ordinaryName,
                     parameterCount: 1);
@@ -1842,28 +1841,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftPlaceholder = new BoundValuePlaceholder(syntax, signature.LeftType).MakeCompilerGenerated();
                 var result = UnaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
 
                 string nameTrue = OperatorFacts.UnaryOperatorNameFromOperatorKind(UnaryOperatorKind.True, isChecked: false);
-                signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionContainers(extensions,
+                signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionMembers(extensionCandidates,
                     nameTrue, alternativeName: null, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember);
 
-                UnaryOperatorAnalysisResult? bestTrue = unaryOperatorOverloadResolution(syntax, extensions, result, nameTrue, UnaryOperatorKind.True, leftPlaceholder, ref useSiteInfo);
+                UnaryOperatorAnalysisResult? bestTrue = unaryOperatorOverloadResolution(syntax, extensionCandidates, result, nameTrue, UnaryOperatorKind.True, leftPlaceholder, ref useSiteInfo);
                 UnaryOperatorAnalysisResult? bestFalse = null;
 
                 if (bestTrue?.HasValue == true)
                 {
                     string nameFalse = OperatorFacts.UnaryOperatorNameFromOperatorKind(UnaryOperatorKind.False, isChecked: false);
-                    extensions.Clear();
-                    signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionContainers(extensions,
+                    extensionCandidates.Clear();
+                    signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionMembers(extensionCandidates,
                         nameFalse, alternativeName: null, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember);
 
-                    bestFalse = unaryOperatorOverloadResolution(syntax, extensions, result, nameFalse, UnaryOperatorKind.False, leftPlaceholder, ref useSiteInfo);
+                    bestFalse = unaryOperatorOverloadResolution(syntax, extensionCandidates, result, nameFalse, UnaryOperatorKind.False, leftPlaceholder, ref useSiteInfo);
                 }
 
-                extensions.Free();
+                extensionCandidates.Free();
                 result.Free();
                 diagnostics.Add(syntax, useSiteInfo);
 
@@ -1888,7 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 UnaryOperatorAnalysisResult? unaryOperatorOverloadResolution(
                     CSharpSyntaxNode syntax,
-                    ArrayBuilder<NamedTypeSymbol> extensions,
+                    ArrayBuilder<Symbol> extensionCandidates,
                     UnaryOperatorOverloadResolutionResult result,
                     string name,
                     UnaryOperatorKind kind,
@@ -1897,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     UnaryOperatorAnalysisResult? possiblyBest = null;
 
                     if (this.OverloadResolution.UnaryOperatorExtensionOverloadResolutionInSingleScope(
-                        extensions,
+                        extensionCandidates,
                         kind,
                         isChecked: false,
                         name,
@@ -2037,17 +2036,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = BinaryOperatorOverloadResolutionResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var extensionDeclarationsInSingleScope = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            var extensionCandidatesInSingleScope = ArrayBuilder<Symbol>.GetInstance();
             BinaryOperatorAnalysisResult? possiblyBest = null;
 
             foreach (var scope in new ExtensionScopes(this))
             {
-                extensionDeclarationsInSingleScope.Clear();
-                scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope,
+                extensionCandidatesInSingleScope.Clear();
+                scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
                     name1, name2Opt, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
 
-                if (this.OverloadResolution.BinaryOperatorExtensionOverloadResolutionInSingleScope(extensionDeclarationsInSingleScope, kind, isChecked, name1, name2Opt, left, right, result, ref useSiteInfo))
+                if (this.OverloadResolution.BinaryOperatorExtensionOverloadResolutionInSingleScope(extensionCandidatesInSingleScope, kind, isChecked, name1, name2Opt, left, right, result, ref useSiteInfo))
                 {
                     possiblyBest = BinaryOperatorAnalyzeOverloadResolutionResult(result, out resultKind, out originalUserDefinedOperators);
                     break;
@@ -2056,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(node, useSiteInfo);
 
-            extensionDeclarationsInSingleScope.Free();
+            extensionCandidatesInSingleScope.Free();
             result.Free();
             return possiblyBest;
         }
@@ -2327,17 +2326,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = UnaryOperatorOverloadResolutionResult.GetInstance();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var extensionDeclarationsInSingleScope = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            var extensionCandidatesInSingleScope = ArrayBuilder<Symbol>.GetInstance();
             UnaryOperatorAnalysisResult? possiblyBest = null;
 
             foreach (var scope in new ExtensionScopes(this))
             {
-                extensionDeclarationsInSingleScope.Clear();
-                scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope,
+                extensionCandidatesInSingleScope.Clear();
+                scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
                     name1, name2Opt, arity: 0,
                     LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
 
-                if (this.OverloadResolution.UnaryOperatorExtensionOverloadResolutionInSingleScope(extensionDeclarationsInSingleScope, kind, isChecked, name1, name2Opt, operand, result, ref useSiteInfo))
+                if (this.OverloadResolution.UnaryOperatorExtensionOverloadResolutionInSingleScope(extensionCandidatesInSingleScope, kind, isChecked, name1, name2Opt, operand, result, ref useSiteInfo))
                 {
                     possiblyBest = AnalyzeUnaryOperatorOverloadResolutionResult(result, kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
                     break;
@@ -2346,7 +2345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(node, useSiteInfo);
 
-            extensionDeclarationsInSingleScope.Free();
+            extensionCandidatesInSingleScope.Free();
             result.Free();
             return possiblyBest;
         }
@@ -3554,14 +3553,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var result = UnaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var extensionDeclarationsInSingleScope = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                var extensionCandidatesInSingleScope = ArrayBuilder<Symbol>.GetInstance();
                 BoundIncrementOperator? inPlaceResult = null;
                 AnalyzedArguments? analyzedArguments = null;
 
                 foreach (var scope in new ExtensionScopes(this))
                 {
-                    extensionDeclarationsInSingleScope.Clear();
-                    scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope,
+                    extensionCandidatesInSingleScope.Clear();
+                    scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
                         ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
 
@@ -3571,7 +3570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(ordinaryInstanceOperatorName is not null);
 
                         inPlaceResult = tryApplyUserDefinedInstanceExtensionOperatorInSingleScope(
-                            node, operatorToken, extensionDeclarationsInSingleScope, kind, mode, isChecked,
+                            node, operatorToken, extensionCandidatesInSingleScope, kind, mode, isChecked,
                             checkedInstanceOperatorName, ordinaryInstanceOperatorName,
                             operand, ref analyzedArguments, diagnostics);
                         if (inPlaceResult is not null)
@@ -3580,13 +3579,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    extensionDeclarationsInSingleScope.Clear();
-                    scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope,
+                    extensionCandidatesInSingleScope.Clear();
+                    scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
                         staticOperatorName1, staticOperatorName2Opt, arity: 0,
                         LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
 
                     if (this.OverloadResolution.UnaryOperatorExtensionOverloadResolutionInSingleScope(
-                        extensionDeclarationsInSingleScope, kind, isChecked,
+                        extensionCandidatesInSingleScope, kind, isChecked,
                         staticOperatorName1, staticOperatorName2Opt,
                         operand, result, ref useSiteInfo))
                     {
@@ -3598,7 +3597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(node, useSiteInfo);
 
                 analyzedArguments?.Free();
-                extensionDeclarationsInSingleScope.Free();
+                extensionCandidatesInSingleScope.Free();
                 result.Free();
                 return inPlaceResult;
             }
@@ -3606,7 +3605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundIncrementOperator? tryApplyUserDefinedInstanceExtensionOperatorInSingleScope(
                 ExpressionSyntax node,
                 SyntaxToken operatorToken,
-                ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
+                ArrayBuilder<Symbol> extensionCandidatesInSingleScope,
                 UnaryOperatorKind kind,
                 InstanceUserDefinedIncrementUsageMode mode,
                 bool isChecked,
@@ -3619,7 +3618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(mode != InstanceUserDefinedIncrementUsageMode.None);
 
                 ArrayBuilder<MethodSymbol>? methods = LookupUserDefinedInstanceExtensionOperatorsInSingleScope(
-                    extensionDeclarationsInSingleScope,
+                    extensionCandidatesInSingleScope,
                     checkedName: checkedName,
                     ordinaryName: ordinaryName,
                     parameterCount: 0);
@@ -3706,7 +3705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ArrayBuilder<MethodSymbol>? LookupUserDefinedInstanceExtensionOperatorsInSingleScope(
-            ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
+            ArrayBuilder<Symbol> extensionCandidatesInSingleScope,
             string? checkedName,
             string ordinaryName,
             int parameterCount)
@@ -3717,11 +3716,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (checkedName is not null)
             {
                 Debug.Assert(SyntaxFacts.IsCheckedOperator(checkedName));
-                lookupUserDefinedInstanceExtensionOperatorsInSingleScope(extensionDeclarationsInSingleScope, name: checkedName, parameterCount, ref checkedMethods);
+                lookupUserDefinedInstanceExtensionOperatorsInSingleScope(extensionCandidatesInSingleScope, name: checkedName, parameterCount, ref checkedMethods);
             }
 
             ArrayBuilder<MethodSymbol>? ordinaryMethods = null;
-            lookupUserDefinedInstanceExtensionOperatorsInSingleScope(extensionDeclarationsInSingleScope, name: ordinaryName, parameterCount, ref ordinaryMethods);
+            lookupUserDefinedInstanceExtensionOperatorsInSingleScope(extensionCandidatesInSingleScope, name: ordinaryName, parameterCount, ref ordinaryMethods);
 
             if (ordinaryMethods is not null)
             {
@@ -3747,29 +3746,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return checkedMethods;
 
             static void lookupUserDefinedInstanceExtensionOperatorsInSingleScope(
-                ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
+                ArrayBuilder<Symbol> extensionCandidatesInSingleScope,
                 string name,
                 int parameterCount,
                 ref ArrayBuilder<MethodSymbol>? methods)
             {
                 ArrayBuilder<MethodSymbol>? typeOperators = null;
-
-                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarationsInSingleScope)
+                if (!extensionCandidatesInSingleScope.IsEmpty)
                 {
-                    Debug.Assert(extensionDeclaration.IsExtension);
-
-                    if (extensionDeclaration.ExtensionParameter is not { } extensionParameter ||
-                        NamedTypeSymbol.IsInvalidExtensionReceiverParameter(extensionParameter))
-                    {
-                        continue;
-                    }
-
-                    typeOperators ??= ArrayBuilder<MethodSymbol>.GetInstance();
+                    typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
                     typeOperators.Clear();
-                    extensionDeclaration.AddOperators(name, typeOperators);
+                    NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
 
                     foreach (MethodSymbol op in typeOperators)
                     {
+                        if (op.Name != name)
+                        {
+                            continue;
+                        }
+
                         // If we're in error recovery, we might have bad operators. Just ignore them.
                         if (op.IsStatic || !IsViableInstanceOperator(op, parameterCount))
                         {
@@ -3784,7 +3779,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeOperators?.Free();
             }
         }
-
 #nullable disable
 
         private class PairedOperatorComparer : IEqualityComparer<MethodSymbol>

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -202,34 +203,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
             // 1. Collect new extension members
-            var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            this.GetExtensionDeclarations(extensionDeclarations, name, alternativeName: null, arity, options, originalBinder);
+            var extensionMembers = ArrayBuilder<Symbol>.GetInstance();
+            this.GetCandidateExtensionMembers(extensionMembers, name, alternativeName: null, arity, options, originalBinder);
 
-            foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
+            foreach (var candidate in extensionMembers)
             {
-                if (extensionDeclaration.ExtensionParameter is not { } extensionParameter
-                    || NamedTypeSymbol.IsInvalidExtensionReceiverParameter(extensionParameter))
+                SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                result.Add(resultOfThisMember);
+
+                if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                    shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
                 {
-                    continue;
-                }
-
-                var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
-
-                foreach (var candidate in candidates)
-                {
-                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                    result.Add(resultOfThisMember);
-
-                    if (candidate is MethodSymbol { IsStatic: false } shadows &&
-                        shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
-                    {
-                        implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
-                        implementationsToShadow.Add(toShadow);
-                    }
+                    implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                    implementationsToShadow.Add(toShadow);
                 }
             }
 
-            extensionDeclarations.Free();
+            extensionMembers.Free();
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -815,14 +805,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// Return the extension declarations from this specific binding scope
+        /// Return the extension members from this specific binding scope
         /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
-        /// GetExtensionDeclarations should not defer to the next binding scope. Instead, the caller is
+        /// GetCandiateExtensionMembers should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
-        internal virtual void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
+        internal virtual void GetCandidateExtensionMembers(
+            ArrayBuilder<Symbol> members,
+            string? name,
+            string? alternativeName,
+            int arity,
+            LookupOptions options,
+            Binder originalBinder)
         {
+            Debug.Assert(name is not null || alternativeName is null, "An alternativeName should only provided if a name is provided");
         }
 #nullable disable
 

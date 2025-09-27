@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
+        internal override void GetCandidateExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
-            Debug.Assert(extensions.Count == 0);
+            Debug.Assert(members.Count == 0);
 
             // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, test this flag (see TestUnusedExtensionMarksImportsAsUsed)
             bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
@@ -145,10 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
                 {
-                    var count = extensions.Count;
-                    ns.GetExtensionContainers(extensions, name, alternativeName, arity, options); // TODO2 cover this path
+                    var count = members.Count;
+                    ns.GetExtensionMembers(members, name, alternativeName, arity, options); // TODO2 cover this path
                     // If we found any extension declarations, then consider this using as used.
-                    if (extensions.Count != count)
+                    if (members.Count != count)
                     {
                         MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
                         seenNamespaceWithExtensions = true;
@@ -156,10 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (nsOrType.NamespaceOrType is NamedTypeSymbol namedType)
                 {
-                    var count = extensions.Count;
-                    namedType.GetExtensionContainers(extensions, name, alternativeName, arity, options); // TODO2 cover this path
+                    var count = members.Count;
+                    namedType.GetExtensionMembers(members, name, alternativeName, arity, options); // TODO2 cover this path
                     // If we found any extension declarations, then consider this using as used.
-                    if (extensions.Count != count)
+                    if (members.Count != count)
                     {
                         MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
                         seenStaticClassWithExtensions = true;
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (seenNamespaceWithExtensions && seenStaticClassWithExtensions)
             {
-                extensions.RemoveDuplicates();
+                members.RemoveDuplicates(); // TODO2 review this
             }
         }
 

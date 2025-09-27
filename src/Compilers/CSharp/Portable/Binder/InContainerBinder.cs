@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
+        internal override void GetCandidateExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
             if (_container is NamespaceSymbol ns)
             {
-                ns.GetExtensionContainers(extensions, name, alternativeName, arity, options);
+                ns.GetExtensionMembers(members, name, alternativeName, arity, options);
             }
         }
 #nullable disable
