@@ -8202,7 +8202,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitInterfaceMemberReturnTypeMismatch" xml:space="preserve">
     <value>'{0}': return type must be '{1}' to match implemented member '{2}'</value>
   </data>
-</root>
   <data name="ERR_BadVisBaseType" xml:space="preserve">
     <value>Inconsistant accessability:  type '{1}' is less accessible than class '{0}' </value>
   </data>
