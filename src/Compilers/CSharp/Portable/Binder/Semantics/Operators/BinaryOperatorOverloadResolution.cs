@@ -1429,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable 
 
         public bool BinaryOperatorExtensionOverloadResolutionInSingleScope(
-            ArrayBuilder<Symbol> extensionMembersInSingleScope,
+            ArrayBuilder<Symbol> extensionCandidatesInSingleScope,
             BinaryOperatorKind kind,
             bool isChecked,
             string name1,
@@ -1443,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var operators = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
 
-            getDeclaredUserDefinedBinaryOperatorsInScope(extensionMembersInSingleScope, kind, name1, name2Opt, operators);
+            getDeclaredUserDefinedBinaryOperatorsInScope(extensionCandidatesInSingleScope, kind, name1, name2Opt, operators);
 
             if (left.Type?.IsNullableType() == true || right.Type?.IsNullableType() == true) // Wouldn't be applicable to the receiver type otherwise
             {
@@ -1469,9 +1469,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return hadApplicableCandidates;
 
-            static void getDeclaredUserDefinedBinaryOperatorsInScope(ArrayBuilder<Symbol> extensionMembersInSingleScope, BinaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<BinaryOperatorSignature> operators)
+            static void getDeclaredUserDefinedBinaryOperatorsInScope(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, BinaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<BinaryOperatorSignature> operators)
             {
-                getDeclaredUserDefinedBinaryOperators(extensionMembersInSingleScope, kind, name1, operators);
+                getDeclaredUserDefinedBinaryOperators(extensionCandidatesInSingleScope, kind, name1, operators);
 
                 if (name2Opt is not null)
                 {
@@ -1481,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         existing.AddRange(operators.Select(static (op) => op.Method));
 
                         var operators2 = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
-                        getDeclaredUserDefinedBinaryOperators(extensionMembersInSingleScope, kind, name2Opt, operators2);
+                        getDeclaredUserDefinedBinaryOperators(extensionCandidatesInSingleScope, kind, name2Opt, operators2);
 
                         foreach (var op in operators2)
                         {
@@ -1495,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        getDeclaredUserDefinedBinaryOperators(extensionMembersInSingleScope, kind, name2Opt, operators);
+                        getDeclaredUserDefinedBinaryOperators(extensionCandidatesInSingleScope, kind, name2Opt, operators);
                     }
                 }
             }

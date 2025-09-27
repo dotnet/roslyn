@@ -203,10 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
             // 1. Collect new extension members
-            var extensionMembers = ArrayBuilder<Symbol>.GetInstance();
-            this.GetCandidateExtensionMembers(extensionMembers, name, alternativeName: null, arity, options, originalBinder);
+            var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
+            this.GetCandidateExtensionMembers(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
 
-            foreach (var candidate in extensionMembers)
+            foreach (var candidate in extensionCandidates)
             {
                 SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
                 result.Add(resultOfThisMember);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            extensionMembers.Free();
+            extensionCandidates.Free();
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -810,6 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// GetCandiateExtensionMembers should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
+        /// An alternativeName should only provided if a name is provided.
         /// </summary>
         internal virtual void GetCandidateExtensionMembers(
             ArrayBuilder<Symbol> members,
@@ -819,7 +820,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions options,
             Binder originalBinder)
         {
-            Debug.Assert(name is not null || alternativeName is null, "An alternativeName should only provided if a name is provided");
         }
 #nullable disable
 
@@ -1781,14 +1781,14 @@ symIsHidden:;
                 case SymbolKind.Property:
                 case SymbolKind.NamedType:
                 case SymbolKind.Event:
-                    return !IsInvocableMember(symbol);
+                    return !IsInvocableMember(symbol, this.FieldsBeingBound);
 
                 default:
                     return false;
             }
         }
 
-        private bool IsInvocableMember(Symbol symbol)
+        internal static bool IsInvocableMember(Symbol symbol, ConsList<FieldSymbol> fieldsBeingBound)
         {
             // If a member is a method or event, or if it is a constant, field or property of 
             // either a delegate type or the type dynamic, then the member is said to be invocable.
@@ -1802,7 +1802,7 @@ symIsHidden:;
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).Type;
+                    type = ((FieldSymbol)symbol).GetFieldType(fieldsBeingBound).Type;
                     break;
 
                 case SymbolKind.Property:
@@ -1810,11 +1810,6 @@ symIsHidden:;
                     break;
             }
 
-            return IsInvocableType(type);
-        }
-
-        internal static bool IsInvocableType(TypeSymbol type)
-        {
             return (object)type != null && (type.IsDelegateType() || type.IsDynamic() || type.IsFunctionPointer());
         }
 

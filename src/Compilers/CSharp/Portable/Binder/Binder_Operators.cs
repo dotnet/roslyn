@@ -3751,32 +3751,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int parameterCount,
                 ref ArrayBuilder<MethodSymbol>? methods)
             {
-                ArrayBuilder<MethodSymbol>? typeOperators = null;
-                if (!extensionCandidatesInSingleScope.IsEmpty)
+                if (extensionCandidatesInSingleScope.IsEmpty)
                 {
-                    typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
-                    typeOperators.Clear();
-                    NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
-
-                    foreach (MethodSymbol op in typeOperators)
-                    {
-                        if (op.Name != name)
-                        {
-                            continue;
-                        }
-
-                        // If we're in error recovery, we might have bad operators. Just ignore them.
-                        if (op.IsStatic || !IsViableInstanceOperator(op, parameterCount))
-                        {
-                            continue;
-                        }
-
-                        methods ??= ArrayBuilder<MethodSymbol>.GetInstance();
-                        methods.Add(op);
-                    }
+                    return;
                 }
 
-                typeOperators?.Free();
+                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+                NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
+
+                foreach (MethodSymbol op in typeOperators)
+                {
+                    if (op.Name != name)
+                    {
+                        continue;
+                    }
+
+                    // If we're in error recovery, we might have bad operators. Just ignore them.
+                    if (op.IsStatic || !IsViableInstanceOperator(op, parameterCount))
+                    {
+                        continue;
+                    }
+
+                    methods ??= ArrayBuilder<MethodSymbol>.GetInstance();
+                    methods.Add(op);
+                }
+
+                typeOperators.Free();
             }
         }
 #nullable disable

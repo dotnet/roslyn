@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
                 NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
-                GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, typeOperators: typeOperators, kind: kind, name, operators: operators);
+                GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
                 typeOperators.Free();
             }
 
@@ -794,9 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
             type.AddOperators(name, typeOperators);
-
             GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt, typeOperators, kind, name, operators);
-
             typeOperators.Free();
         }
 

@@ -27910,7 +27910,7 @@ namespace N2
             var opNode = GetSyntax<AssignmentExpressionSyntax>(tree, "c += new C()");
             var symbolInfo = model.GetSymbolInfo(opNode);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason); // TODO2 shouldn't this be Ambiguous?
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             AssertEx.SetEqual([
                 "void N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_AdditionAssignment(C c2)",
                 "void N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_AdditionAssignment(C c2)"
@@ -28000,7 +28000,7 @@ namespace N2
             var opNode = GetSyntax<AssignmentExpressionSyntax>(tree, "c += new C()");
             var symbolInfo = model.GetSymbolInfo(opNode);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason); // TODO2 shouldn't this be Ambiguous?
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             AssertEx.SetEqual([
                 "void N1.E1.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_AdditionAssignment(C c2)",
                 "void N2.E2.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_AdditionAssignment(C c2)"
@@ -28999,6 +28999,258 @@ namespace N2
 }
 """;
             CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_12()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t) where T : class
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_13()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CreateCompilation([src, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(C).operator ++()' and 'N2.E2.extension(C).operator ++()'
+                //     _ = ++c;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("N1.E1.extension(C).operator ++()", "N2.E2.extension(C).operator ++()").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void Using_Increment_14()
+        {
+            var src = """
+using N1;
+using N2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator --() => throw null;
+        }
+    }
+}
+""";
+            CreateCompilation([src, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Increment_15()
+        {
+            var src = """
+using static N1.E1;
+using static N2.E2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() { System.Console.Write("ran"); }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t) where T : class
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CompileAndVerify([src, CompilerFeatureRequiredAttribute], expectedOutput: "ran").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Using_Increment_16()
+        {
+            var src = """
+using static N1.E1;
+using static N2.E2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+""";
+            CreateCompilation([src, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(C).operator ++()' and 'N2.E2.extension(C).operator ++()'
+                //     _ = ++c;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("N1.E1.extension(C).operator ++()", "N2.E2.extension(C).operator ++()").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void Using_Increment_17()
+        {
+            var src = """
+using static N1.E1;
+using static N2.E2;
+
+C c = new C();
+checked
+{
+    _ = ++c;
+}
+
+class C { }
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(C c)
+        {
+            public void operator ++() => throw null;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void operator --() => throw null;
+        }
+    }
+}
+""";
+            CreateCompilation([src, CompilerFeatureRequiredAttribute]).VerifyEmitDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static N2.E2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static N2.E2;").WithLocation(2, 1));
         }
     }
 }

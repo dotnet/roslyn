@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
                 {
                     var count = members.Count;
-                    ns.GetExtensionMembers(members, name, alternativeName, arity, options); // TODO2 cover this path
+                    ns.GetExtensionMembers(members, name, alternativeName, arity, options);
                     // If we found any extension declarations, then consider this using as used.
                     if (members.Count != count)
                     {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (nsOrType.NamespaceOrType is NamedTypeSymbol namedType)
                 {
                     var count = members.Count;
-                    namedType.GetExtensionMembers(members, name, alternativeName, arity, options); // TODO2 cover this path
+                    namedType.GetExtensionMembers(members, name, alternativeName, arity, options);
                     // If we found any extension declarations, then consider this using as used.
                     if (members.Count != count)
                     {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (seenNamespaceWithExtensions && seenStaticClassWithExtensions)
             {
-                members.RemoveDuplicates(); // TODO2 review this
+                members.RemoveDuplicates();
             }
         }
 

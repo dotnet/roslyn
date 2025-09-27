@@ -31977,7 +31977,7 @@ namespace N1
 {
     static class E1
     {
-        public static void M1(this object o) { }
+        public static void M1(this object o) { System.Console.Write("ran"); }
     }
 }
 
@@ -31987,13 +31987,12 @@ namespace N2
     {
         extension(object o)
         {
-            public void M2() { }
+            public void M2() => throw null;
         }
     }
 }
 """;
-        comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
             // (2,1): hidden CS8019: Unnecessary using directive.
             // using N2;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
@@ -32093,7 +32092,7 @@ namespace N1
     {
         extension(object o)
         {
-            public System.Action P1 => null;
+            public System.Action P1 { get { System.Console.Write("ran"); return () => { }; } }
         }
     }
 }
@@ -32109,8 +32108,7 @@ namespace N2
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
             // (2,1): hidden CS8019: Unnecessary using directive.
             // using N2;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
@@ -32132,7 +32130,7 @@ namespace N1
     {
         extension(object o)
         {
-            public int M<T>() => 0;
+            public int M<T>() { System.Console.Write("ran"); return 0; }
         }
     }
 }
@@ -32148,8 +32146,7 @@ namespace N2
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
             // (2,1): hidden CS8019: Unnecessary using directive.
             // using N2;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
@@ -32193,6 +32190,17 @@ namespace N2
             // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(object).M<T>()' and 'N2.E2.extension(object).M<T>()'
             // _ = new object().M<int>();
             Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("N1.E1.extension(object).M<T>()", "N2.E2.extension(object).M<T>()").WithLocation(4, 18));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var opNode = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<int>");
+        var symbolInfo = model.GetSymbolInfo(opNode);
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        AssertEx.SetEqual([
+            "System.Int32 N1.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()",
+            "System.Int32 N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()"
+            ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -32211,7 +32219,7 @@ namespace N1
     {
         extension(object o)
         {
-            public int M<T>() => 0;
+            public int M<T>() { System.Console.Write("ran"); return 0; }
         }
     }
 }
@@ -32227,8 +32235,7 @@ namespace N2
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -32247,7 +32254,7 @@ namespace N1
     {
         extension(object o)
         {
-            public int M<T>() => 0;
+            public int M<T>() { System.Console.Write("ran"); return 0; }
         }
     }
 }
@@ -32263,8 +32270,7 @@ namespace N2
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -32283,7 +32289,7 @@ namespace N1
     {
         extension(object o)
         {
-            public int M<T>() => 0;
+            public int M<T>() { System.Console.Write("ran"); return 0; }
         }
     }
 }
@@ -32299,8 +32305,7 @@ namespace N2
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
             // (2,1): hidden CS8019: Unnecessary using directive.
             // using N2;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));

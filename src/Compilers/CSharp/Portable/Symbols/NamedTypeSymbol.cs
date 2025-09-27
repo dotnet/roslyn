@@ -371,16 +371,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         internal static bool IsInvalidExtensionReceiverParameter(ParameterSymbol thisParam)
         {
             Debug.Assert(thisParam is not null);
 
-            // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
+            // For ref and ref-readonly extension members and classic extension methods, receivers need to be of the correct types to be considered in lookup
             return (thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
                 (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct);
         }
 
-#nullable enable
         internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options)
         {
             Debug.Assert(name is not null || alternativeName is null);
@@ -408,6 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            return;
+
             static bool extensionMemberMatches(Symbol member, string? name, string? alternativeName, int arity, LookupOptions options)
             {
                 if ((options & LookupOptions.AllMethodsOnArityZero) == 0
@@ -427,26 +429,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 if ((options & LookupOptions.MustBeInvocableIfMember) != 0
-                    && !isInvocableMember(member))
+                    && !Binder.IsInvocableMember(member, fieldsBeingBound: ConsList<FieldSymbol>.Empty))
                 {
                     return false;
                 }
 
                 return true;
-
-                static bool isInvocableMember(Symbol symbol)
-                {
-                    switch (symbol.Kind)
-                    {
-                        case SymbolKind.Method:
-                            return true;
-
-                        case SymbolKind.Property:
-                            return Binder.IsInvocableType(((PropertySymbol)symbol).Type);
-                    }
-
-                    return false;
-                }
             }
         }
 
