@@ -107,6 +107,9 @@
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
 
+    <!-- Not directly referenced but needed for editor features -->
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.FileBasedPrograms.Features\Microsoft.CodeAnalysis.FileBasedPrograms.Features.csproj" />
+
     <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
 
