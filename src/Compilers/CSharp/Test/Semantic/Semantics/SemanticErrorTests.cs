@@ -3200,6 +3200,51 @@ public class C
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80300")]
+        public void CS0121ERR_AmbigCall_AcrossAssemblies()
+        {
+            var libSource = """
+                public static class E
+                {
+                    public static void M(this object o) { }
+                }
+                """;
+            var a1 = CreateCompilation(libSource, assemblyName: "A1").VerifyDiagnostics().EmitToImageReference();
+            var a2 = CreateCompilation(libSource, assemblyName: "A2").VerifyDiagnostics().EmitToImageReference();
+            var exeSource = """
+                new object().M();
+                """;
+            CreateCompilation(exeSource, [a1, a2]).VerifyDiagnostics(
+                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E.M(object) [A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]' and 'E.M(object) [A2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'
+                // new object().M();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.M(object) [A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "E.M(object) [A2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]").WithLocation(1, 14));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80300")]
+        public void CS0121ERR_AmbigCall_WithPath()
+        {
+            var prefix = PlatformInformation.IsWindows ? @"C:\a\" : "/a/";
+
+            var source = ("""
+                new object().M();
+                public static class E
+                {
+                    public static void M(this object o) { }
+                    public static void M(this object o) { }
+                }
+                """, prefix + "file.cs");
+
+            var resolver = new SourceFileResolver([], null, [new KeyValuePair<string, string>(prefix, "/_/")]);
+
+            CreateCompilation(source, options: TestOptions.DebugExe.WithSourceReferenceResolver(resolver)).VerifyDiagnostics(
+                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E.M(object) [/_/file.cs(4)]' and 'E.M(object) [/_/file.cs(5)]'
+                // new object().M();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.M(object) [/_/file.cs(4)]", "E.M(object) [/_/file.cs(5)]").WithLocation(1, 14),
+                // (5,24): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
+                //     public static void M(this object o) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "E").WithLocation(5, 24));
+        }
+
         [WorkItem(539817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539817")]
         [Fact]
         public void CS0122ERR_BadAccess()

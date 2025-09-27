@@ -870,11 +870,11 @@ public class B
         var x = new A();
     }
 }";
-            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(sourceA, options: TestOptions.DebugDll);
+            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(sourceA, options: TestOptions.DebugDll, assemblyName: "A");
             var identityA = compilationA.Assembly.Identity;
             var moduleA = compilationA.ToModuleInstance();
 
-            var compilationB = CreateCompilationWithMscorlib40AndSystemCore(sourceB, options: TestOptions.DebugDll, references: new[] { moduleA.GetReference() });
+            var compilationB = CreateCompilationWithMscorlib40AndSystemCore(sourceB, options: TestOptions.DebugDll, assemblyName: "B", references: new[] { moduleA.GetReference() });
             var moduleB = compilationB.ToModuleInstance();
 
             var runtime = CreateRuntimeInstance(new[] { MscorlibRef.ToModuleInstance(), SystemCoreRef.ToModuleInstance(), moduleA, moduleB });
@@ -912,7 +912,7 @@ public class B
 
             // Duplicate extension method, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.Equal($"error CS0121: {string.Format(CSharpResources.ERR_AmbigCall, "N.E.F(A)", "N.E.F(A)")}", errorMessage);
+            AssertEx.Equal($"error CS0121: {string.Format(CSharpResources.ERR_AmbigCall, "N.E.F(A) [A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "N.E.F(A) [B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]")}", errorMessage);
 
             // Same tests as above but in library that does not directly reference duplicates.
             GetContextState(runtime, "A", out blocks, out moduleId, out symReader, out typeToken, out localSignatureToken);
