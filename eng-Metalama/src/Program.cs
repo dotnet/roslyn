@@ -36,7 +36,6 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
     PublicArtifacts =
         Pattern.Create("Metalama.Compiler.$(PackageVersion).nupkg",
             "Metalama.Compiler.Sdk.$(PackageVersion).nupkg"),
-    Dependencies = [DevelopmentDependencies.PostSharpEngineering],
     SupportedProperties =
         new Dictionary<string, string>
         {
