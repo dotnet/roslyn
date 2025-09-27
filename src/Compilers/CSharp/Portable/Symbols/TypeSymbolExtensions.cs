@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 visitTypeData.UseSiteInfo = useSiteInfo;
                 visitTypeData.Symbol = type;
 
-                var result = type.VisitType(static (type1, arg, unused) => IsTypeLessVisibleThan(type1, arg.Symbol!, ref arg.UseSiteInfo),
+                var result = sym.VisitType(static (type1, arg, unused) => IsTypeLessVisibleThan(type1, arg.Symbol!, ref arg.UseSiteInfo),
                                             arg: visitTypeData,
                                             returnOnMatch: false,
                                             canDigThroughNullable: true); // System.Nullable is public
