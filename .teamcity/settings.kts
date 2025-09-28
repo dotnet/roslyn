@@ -5,8 +5,9 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.*
 import jetbrains.buildServer.configs.kotlin.buildSteps.powerShell
 import jetbrains.buildServer.configs.kotlin.failureConditions.*
 import jetbrains.buildServer.configs.kotlin.triggers.*
+import jetbrains.buildServer.configs.kotlin.projectFeatures.*
 
-version = "2024.03"
+version = "2025.07"
 
 project {
 
@@ -15,6 +16,15 @@ project {
     buildType(PublicBuild)
     buildType(PublicDeployment)
     buildType(DownstreamMerge)
+
+    features {
+         untrustedBuildsSettings {
+             id = "UNTRUSTED_BUILD_SETTINGS_EXT"
+             defaultAction = UntrustedBuildsSettings.DefaultAction.APPROVE
+             enableLog = true
+             approvalRules = "group:UNTRUSTED_BUILD_APPROVERS:1"
+         }
+     }
 
     buildTypesOrder = arrayListOf(DebugBuild,ReleaseBuild,PublicBuild,PublicDeployment,DownstreamMerge)
 
