@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="../../eng/Versions.props"/>
     <Import Project="../../Directory.Packages.props" />
 
     <PropertyGroup>
