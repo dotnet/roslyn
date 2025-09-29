@@ -672,10 +672,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(_useConstructorExitWarnings);
                         var thisSlot = 0;
-                        if (method.RequiresInstanceReceiver)
+                        if (method.TryGetThisParameter(out var thisParameter) && thisParameter is object)
                         {
-                            method.TryGetThisParameter(out var thisParameter);
-                            Debug.Assert(thisParameter is object);
                             thisSlot = GetOrCreateSlot(thisParameter);
                         }
                         var exitLocation = method is SynthesizedPrimaryConstructor || method.DeclaringSyntaxReferences.IsEmpty ? null : method.TryGetFirstLocation();
@@ -2258,7 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enclosingMemberMethod = enclosingMemberMethod.ContainingSymbol as MethodSymbol;
                 }
 
-                if (enclosingMemberMethod?.TryGetThisParameter(out ParameterSymbol methodThisParameter) == true &&
+                if (enclosingMemberMethod?.TryGetThisParameter(out ParameterSymbol? methodThisParameter) == true &&
                     methodThisParameter?.ContainingSymbol.ContainingSymbol == (object)primaryConstructor.ContainingSymbol &&
                     GetOrCreateSlot(methodThisParameter) is >= 0 and var thisSlot)
                 {
