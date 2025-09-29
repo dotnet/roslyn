@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Attributes;
 
-public class AttributeTests
+public sealed class AttributeTests
 {
 #if false
     [WpfFact]
@@ -36,10 +36,8 @@ public class AttributeTests
 
     [Fact]
     public void CreateExportBraceMatcherAttributeWithNullArg()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
+        => Assert.Throws<ArgumentNullException>(() =>
             new ExportBraceMatcherAttribute(null));
-    }
 
     [Fact]
     public void CreateExportCompletionProviderAttributeWithNullArg()

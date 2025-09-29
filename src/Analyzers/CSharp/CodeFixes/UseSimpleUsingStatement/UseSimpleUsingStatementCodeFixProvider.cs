@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,14 +44,15 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
-        var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
+        var topmostUsingStatements = diagnostics.Select(
+            d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken)).ToSet();
+        var blockLikes = topmostUsingStatements.Select(u => u.Parent is GlobalStatementSyntax ? u.Parent.GetRequiredParent() : u.GetRequiredParent()).ToSet();
 
         // Process blocks in reverse order so we rewrite from inside-to-outside with nested
         // usings.
         var root = editor.OriginalRoot;
         var updatedRoot = root.ReplaceNodes(
-            blocks.OrderByDescending(b => b.SpanStart),
+            blockLikes.OrderByDescending(b => b.SpanStart),
             (original, current) => RewriteBlock(original, current, topmostUsingStatements));
 
         editor.ReplaceNode(root, updatedRoot);
@@ -61,26 +60,57 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
         return Task.CompletedTask;
     }
 
-    private static BlockSyntax RewriteBlock(
-        BlockSyntax originalBlock, BlockSyntax currentBlock,
+    private static SyntaxNode RewriteBlock(
+        SyntaxNode originalBlockLike,
+        SyntaxNode currentBlockLike,
         ISet<UsingStatementSyntax> topmostUsingStatements)
     {
-        if (originalBlock.Statements.Count == currentBlock.Statements.Count)
+        var originalBlockStatements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(originalBlockLike);
+        var currentBlockStatements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(currentBlockLike);
+
+        if (originalBlockStatements.Count == currentBlockStatements.Count)
         {
-            var statementToUpdateIndex = originalBlock.Statements.IndexOf(s => topmostUsingStatements.Contains(s));
-            var statementToUpdate = currentBlock.Statements[statementToUpdateIndex];
+            var statementToUpdateIndex = IndexOf(originalBlockStatements, s => topmostUsingStatements.Contains(s));
+            var statementToUpdate = currentBlockStatements[statementToUpdateIndex];
 
             if (statementToUpdate is UsingStatementSyntax usingStatement &&
                 usingStatement.Declaration != null)
             {
-                var updatedStatements = currentBlock.Statements.ReplaceRange(
-                    statementToUpdate,
-                    Expand(usingStatement));
-                return currentBlock.WithStatements(updatedStatements);
+                var expandedUsing = Expand(usingStatement);
+
+                return WithStatements(currentBlockLike, usingStatement, expandedUsing);
             }
         }
 
-        return currentBlock;
+        return currentBlockLike;
+    }
+
+    public static int IndexOf<T>(IReadOnlyList<T> list, Func<T, bool> predicate)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (predicate(list[i]))
+                return i;
+        }
+
+        return -1;
+    }
+
+    private static SyntaxNode WithStatements(
+        SyntaxNode currentBlockLike,
+        UsingStatementSyntax usingStatement,
+        ImmutableArray<StatementSyntax> expandedUsingStatements)
+    {
+        return currentBlockLike switch
+        {
+            BlockSyntax currentBlock => currentBlock.WithStatements(
+                currentBlock.Statements.ReplaceRange(usingStatement, expandedUsingStatements)),
+
+            CompilationUnitSyntax compilationUnit => compilationUnit.WithMembers(
+                compilationUnit.Members.ReplaceRange((GlobalStatementSyntax)usingStatement.GetRequiredParent(), expandedUsingStatements.Select(GlobalStatement))),
+
+            _ => throw ExceptionUtilities.UnexpectedValue(currentBlockLike),
+        };
     }
 
     private static ImmutableArray<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
@@ -163,15 +193,13 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
         }
 
         return default;
-    }
 
-    private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
-    {
-        return LocalDeclarationStatement(
-            usingStatement.AwaitKeyword,
-            usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
-            modifiers: default,
-            usingStatement.Declaration,
-            SemicolonToken).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
+        static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
+            => LocalDeclarationStatement(
+                usingStatement.AwaitKeyword,
+                usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
+                modifiers: default,
+                usingStatement.Declaration!,
+                SemicolonToken).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
     }
 }

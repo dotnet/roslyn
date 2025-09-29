@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -3117,7 +3118,7 @@ public " + keyword + @" Test1(
     [field: A]
     int P1)
 {
-    int M1() => P1;
+    [A] int M1() => P1;
 }
 
 [System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
@@ -3132,7 +3133,12 @@ public " + keyword + @" Test2(
     int M1() => P1;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            var test1 = comp.GetTypeByMetadataName("Test1");
+            var ctor = test1.InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            ctor.GetAttributes();
+
             comp.VerifyDiagnostics(
                 // (8,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
                 //     [field: A]
@@ -3142,7 +3148,12 @@ public " + keyword + @" Test2(
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "C").WithArguments("C", "field").WithLocation(20, 6)
                 );
 
-            Assert.Empty(comp.GetTypeByMetadataName("Test1").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single().Parameters[0].GetAttributes());
+            Assert.Empty(ctor.Parameters[0].GetAttributes());
+
+            var field = test1.GetMembers().OfType<FieldSymbol>().Single();
+            Assert.Equal(ObsoleteAttributeKind.None, field.ObsoleteKind);
+            Assert.Empty(field.GetAttributes());
+
             Assert.Equal(1, comp.GetTypeByMetadataName("Test2").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single().Parameters[0].GetAttributes().Count());
         }
 
@@ -7117,10 +7128,7 @@ struct Example()
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
-                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
         public static IEnumerable<object[]> ParameterScope_MemberData()
@@ -9543,7 +9551,10 @@ class C1 (int p1)
             comp1.VerifyEmitDiagnostics(
                 // (4,38): error CS1041: Identifier expected; 'delegate' is a keyword
                 //     public System.Func<int> M21() => delegate => p1;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38),
+                // (4,47): error CS1593: Delegate 'Func<int>' does not take 1 arguments
+                //     public System.Func<int> M21() => delegate => p1;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<int>", "1").WithLocation(4, 47)
                 );
 
             var source = @"
@@ -16822,253 +16833,256 @@ class C(int y)
             verifier1.VerifyTypeIL("C",
 (@"
 .class private auto ansi beforefieldinit C
-    extends [netstandard]System.Object
+	extends [netstandard]System.Object
 {
-    // Nested Types
-    .class nested private auto ansi sealed beforefieldinit '<M>d__2'
-    	extends [netstandard]System.Object
-    	implements class [netstandard]System.Collections.Generic.IEnumerable`1<int32>,
-    		        [netstandard]System.Collections.IEnumerable,
-    		        class [netstandard]System.Collections.Generic.IEnumerator`1<int32>,
+	// Nested Types
+	.class nested private auto ansi sealed beforefieldinit '<M>d__2'
+		extends [netstandard]System.Object
+		implements class [netstandard]System.Collections.Generic.IEnumerable`1<int32>,
+		           [netstandard]System.Collections.IEnumerable,
+		           class [netstandard]System.Collections.Generic.IEnumerator`1<int32>,
 " +
 (RuntimeUtilities.IsCoreClrRuntime ?
 @"			           [netstandard]System.Collections.IEnumerator,
 			           [netstandard]System.IDisposable" :
 @"			           [netstandard]System.IDisposable,
 			           [netstandard]System.Collections.IEnumerator") + @"
-    {
-    	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-    		01 00 00 00
-    	)
-    	// Fields
-    	.field private int32 '<>1__state'
-    	.field private int32 '<>2__current'
-    	.field private int32 '<>l__initialThreadId'
-    	.field public class C '<>4__this'
-    	// Methods
-    	.method public hidebysig specialname rtspecialname 
-    		instance void .ctor (
-    			int32 '<>1__state'
-    		) cil managed 
-    	{
-    		.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-    			01 00 00 00
-    		)
-    		// Method begins at RVA 0x20df
-    		// Code size 25 (0x19)
-    		.maxstack 8
-    		IL_0000: ldarg.0
-    		IL_0001: call instance void [netstandard]System.Object::.ctor()
-    		IL_0006: ldarg.0
-    		IL_0007: ldarg.1
-    		IL_0008: stfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_000d: ldarg.0
-    		IL_000e: call int32 [netstandard]System.Environment::get_CurrentManagedThreadId()
-    		IL_0013: stfld int32 C/'<M>d__2'::'<>l__initialThreadId'
-    		IL_0018: ret
-    	} // end of method '<M>d__2'::.ctor
-    	.method private final hidebysig newslot virtual 
-    		instance void System.IDisposable.Dispose () cil managed 
-    	{
-    		.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-    			01 00 00 00
-    		)
-    		.override method instance void [netstandard]System.IDisposable::Dispose()
-    		// Method begins at RVA 0x20f9
-    		// Code size 1 (0x1)
-    		.maxstack 8
-    		IL_0000: ret
-    	} // end of method '<M>d__2'::System.IDisposable.Dispose
-    	.method private final hidebysig newslot virtual 
-    		instance bool MoveNext () cil managed 
-    	{
-    		.override method instance bool [netstandard]System.Collections.IEnumerator::MoveNext()
-    		// Method begins at RVA 0x20fc
-    		// Code size 95 (0x5f)
-    		.maxstack 2
-    		.locals init (
-    			[0] int32,
-    			[1] class C
-    		)
-    		IL_0000: ldarg.0
-    		IL_0001: ldfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_0006: stloc.0
-    		IL_0007: ldarg.0
-    		IL_0008: ldfld class C C/'<M>d__2'::'<>4__this'
-    		IL_000d: stloc.1
-    		IL_000e: ldloc.0
-    		IL_000f: switch (IL_0022, IL_003a, IL_0056)
-    		IL_0020: ldc.i4.0
-    		IL_0021: ret
-    		IL_0022: ldarg.0
-    		IL_0023: ldc.i4.m1
-    		IL_0024: stfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_0029: ldarg.0
-    		IL_002a: ldc.i4.s 9
-    		IL_002c: stfld int32 C/'<M>d__2'::'<>2__current'
-    		IL_0031: ldarg.0
-    		IL_0032: ldc.i4.1
-    		IL_0033: stfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_0038: ldc.i4.1
-    		IL_0039: ret
-    		IL_003a: ldarg.0
-    		IL_003b: ldc.i4.m1
-    		IL_003c: stfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_0041: ldarg.0
-    		IL_0042: ldloc.1
-    		IL_0043: ldfld int32 C::'<y>P'
-    		IL_0048: stfld int32 C/'<M>d__2'::'<>2__current'
-    		IL_004d: ldarg.0
-    		IL_004e: ldc.i4.2
-    		IL_004f: stfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_0054: ldc.i4.1
-    		IL_0055: ret
-    		IL_0056: ldarg.0
-    		IL_0057: ldc.i4.m1
-    		IL_0058: stfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_005d: ldc.i4.0
-    		IL_005e: ret
-    	} // end of method '<M>d__2'::MoveNext
-    	.method private final hidebysig specialname newslot virtual 
-    		instance int32 'System.Collections.Generic.IEnumerator<System.Int32>.get_Current' () cil managed 
-    	{
-    		.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-    			01 00 00 00
-    		)
-    		.override method instance !0 class [netstandard]System.Collections.Generic.IEnumerator`1<int32>::get_Current()
-    		// Method begins at RVA 0x2167
-    		// Code size 7 (0x7)
-    		.maxstack 8
-    		IL_0000: ldarg.0
-    		IL_0001: ldfld int32 C/'<M>d__2'::'<>2__current'
-    		IL_0006: ret
-    	} // end of method '<M>d__2'::'System.Collections.Generic.IEnumerator<System.Int32>.get_Current'
-    	.method private final hidebysig newslot virtual 
-    		instance void System.Collections.IEnumerator.Reset () cil managed 
-    	{
-    		.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-    			01 00 00 00
-    		)
-    		.override method instance void [netstandard]System.Collections.IEnumerator::Reset()
-    		// Method begins at RVA 0x216f
-    		// Code size 6 (0x6)
-    		.maxstack 8
-    		IL_0000: newobj instance void [netstandard]System.NotSupportedException::.ctor()
-    		IL_0005: throw
-    	} // end of method '<M>d__2'::System.Collections.IEnumerator.Reset
-    	.method private final hidebysig specialname newslot virtual 
-    		instance object System.Collections.IEnumerator.get_Current () cil managed 
-    	{
-    		.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-    			01 00 00 00
-    		)
-    		.override method instance object [netstandard]System.Collections.IEnumerator::get_Current()
-    		// Method begins at RVA 0x2176
-    		// Code size 12 (0xc)
-    		.maxstack 8
-    		IL_0000: ldarg.0
-    		IL_0001: ldfld int32 C/'<M>d__2'::'<>2__current'
-    		IL_0006: box [netstandard]System.Int32
-    		IL_000b: ret
-    	} // end of method '<M>d__2'::System.Collections.IEnumerator.get_Current
-    	.method private final hidebysig newslot virtual 
-    		instance class [netstandard]System.Collections.Generic.IEnumerator`1<int32> 'System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator' () cil managed 
-    	{
-    		.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-    			01 00 00 00
-    		)
-    		.override method instance class [netstandard]System.Collections.Generic.IEnumerator`1<!0> class [netstandard]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
-    		// Method begins at RVA 0x2184
-    		// Code size 55 (0x37)
-    		.maxstack 2
-    		.locals init (
-    			[0] class C/'<M>d__2'
-    		)
-    		IL_0000: ldarg.0
-    		IL_0001: ldfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_0006: ldc.i4.s -2
-    		IL_0008: bne.un.s IL_0022
-    		IL_000a: ldarg.0
-    		IL_000b: ldfld int32 C/'<M>d__2'::'<>l__initialThreadId'
-    		IL_0010: call int32 [netstandard]System.Environment::get_CurrentManagedThreadId()
-    		IL_0015: bne.un.s IL_0022
-    		IL_0017: ldarg.0
-    		IL_0018: ldc.i4.0
-    		IL_0019: stfld int32 C/'<M>d__2'::'<>1__state'
-    		IL_001e: ldarg.0
-    		IL_001f: stloc.0
-    		IL_0020: br.s IL_0035
-    		IL_0022: ldc.i4.0
-    		IL_0023: newobj instance void C/'<M>d__2'::.ctor(int32)
-    		IL_0028: stloc.0
-    		IL_0029: ldloc.0
-    		IL_002a: ldarg.0
-    		IL_002b: ldfld class C C/'<M>d__2'::'<>4__this'
-    		IL_0030: stfld class C C/'<M>d__2'::'<>4__this'
-    		IL_0035: ldloc.0
-    		IL_0036: ret
-    	} // end of method '<M>d__2'::'System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator'
-    	.method private final hidebysig newslot virtual 
-    		instance class [netstandard]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
-    	{
-    		.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
-    			01 00 00 00
-    		)
-    		.override method instance class [netstandard]System.Collections.IEnumerator [netstandard]System.Collections.IEnumerable::GetEnumerator()
-    		// Method begins at RVA 0x21c7
-    		// Code size 7 (0x7)
-    		.maxstack 8
-    		IL_0000: ldarg.0
-    		IL_0001: call instance class [netstandard]System.Collections.Generic.IEnumerator`1<int32> C/'<M>d__2'::'System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator'()
-    		IL_0006: ret
-    	} // end of method '<M>d__2'::System.Collections.IEnumerable.GetEnumerator
-    	// Properties
-    	.property instance int32 'System.Collections.Generic.IEnumerator<System.Int32>.Current'()
-    	{
-    		.get instance int32 C/'<M>d__2'::'System.Collections.Generic.IEnumerator<System.Int32>.get_Current'()
-    	}
-    	.property instance object System.Collections.IEnumerator.Current()
-    	{
-    		.get instance object C/'<M>d__2'::System.Collections.IEnumerator.get_Current()
-    	}
-    } // end of class <M>d__2
-    // Fields
-    .field private int32 '<y>P'
-    .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-    	01 00 00 00
-    )
-    // Methods
-    .method public hidebysig specialname rtspecialname 
-    	instance void .ctor (
-    		int32 y
-    	) cil managed 
-    {
-    	// Method begins at RVA 0x20c0
-    	// Code size 14 (0xe)
-    	.maxstack 8
-    	IL_0000: ldarg.0
-    	IL_0001: ldarg.1
-    	IL_0002: stfld int32 C::'<y>P'
-    	IL_0007: ldarg.0
-    	IL_0008: call instance void [netstandard]System.Object::.ctor()
-    	IL_000d: ret
-    } // end of method C::.ctor
-    .method public hidebysig 
-    	instance class [netstandard]System.Collections.Generic.IEnumerable`1<int32> M () cil managed 
-    {
-    	.custom instance void [netstandard]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [netstandard]System.Type) = (
-    		01 00 09 43 2b 3c 4d 3e 64 5f 5f 32 00 00
-    	)
-    	// Method begins at RVA 0x20cf
-    	// Code size 15 (0xf)
-    	.maxstack 8
-    	IL_0000: ldc.i4.s -2
-    	IL_0002: newobj instance void C/'<M>d__2'::.ctor(int32)
-    	IL_0007: dup
-    	IL_0008: ldarg.0
-    	IL_0009: stfld class C C/'<M>d__2'::'<>4__this'
-    	IL_000e: ret
-    } // end of method C::M
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field private int32 '<>1__state'
+		.field private int32 '<>2__current'
+		.field private int32 '<>l__initialThreadId'
+		.field public class C '<>4__this'
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor (
+				int32 '<>1__state'
+			) cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+				01 00 00 00
+			)
+			// Method begins at RVA 0x20df
+			// Code size 25 (0x19)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [netstandard]System.Object::.ctor()
+			IL_0006: ldarg.0
+			IL_0007: ldarg.1
+			IL_0008: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_000d: ldarg.0
+			IL_000e: call int32 [netstandard]System.Environment::get_CurrentManagedThreadId()
+			IL_0013: stfld int32 C/'<M>d__2'::'<>l__initialThreadId'
+			IL_0018: ret
+		} // end of method '<M>d__2'::.ctor
+		.method private final hidebysig newslot virtual 
+			instance void System.IDisposable.Dispose () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+				01 00 00 00
+			)
+			.override method instance void [netstandard]System.IDisposable::Dispose()
+			// Method begins at RVA 0x20f9
+			// Code size 9 (0x9)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: ldc.i4.s -2
+			IL_0003: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_0008: ret
+		} // end of method '<M>d__2'::System.IDisposable.Dispose
+		.method private final hidebysig newslot virtual 
+			instance bool MoveNext () cil managed 
+		{
+			.override method instance bool [netstandard]System.Collections.IEnumerator::MoveNext()
+			// Method begins at RVA 0x2104
+			// Code size 95 (0x5f)
+			.maxstack 2
+			.locals init (
+				[0] int32,
+				[1] class C
+			)
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 C/'<M>d__2'::'<>1__state'
+			IL_0006: stloc.0
+			IL_0007: ldarg.0
+			IL_0008: ldfld class C C/'<M>d__2'::'<>4__this'
+			IL_000d: stloc.1
+			IL_000e: ldloc.0
+			IL_000f: switch (IL_0022, IL_003a, IL_0056)
+			IL_0020: ldc.i4.0
+			IL_0021: ret
+			IL_0022: ldarg.0
+			IL_0023: ldc.i4.m1
+			IL_0024: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_0029: ldarg.0
+			IL_002a: ldc.i4.s 9
+			IL_002c: stfld int32 C/'<M>d__2'::'<>2__current'
+			IL_0031: ldarg.0
+			IL_0032: ldc.i4.1
+			IL_0033: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_0038: ldc.i4.1
+			IL_0039: ret
+			IL_003a: ldarg.0
+			IL_003b: ldc.i4.m1
+			IL_003c: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_0041: ldarg.0
+			IL_0042: ldloc.1
+			IL_0043: ldfld int32 C::'<y>P'
+			IL_0048: stfld int32 C/'<M>d__2'::'<>2__current'
+			IL_004d: ldarg.0
+			IL_004e: ldc.i4.2
+			IL_004f: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_0054: ldc.i4.1
+			IL_0055: ret
+			IL_0056: ldarg.0
+			IL_0057: ldc.i4.m1
+			IL_0058: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_005d: ldc.i4.0
+			IL_005e: ret
+		} // end of method '<M>d__2'::MoveNext
+		.method private final hidebysig specialname newslot virtual 
+			instance int32 'System.Collections.Generic.IEnumerator<System.Int32>.get_Current' () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+				01 00 00 00
+			)
+			.override method instance !0 class [netstandard]System.Collections.Generic.IEnumerator`1<int32>::get_Current()
+			// Method begins at RVA 0x216f
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 C/'<M>d__2'::'<>2__current'
+			IL_0006: ret
+		} // end of method '<M>d__2'::'System.Collections.Generic.IEnumerator<System.Int32>.get_Current'
+		.method private final hidebysig newslot virtual 
+			instance void System.Collections.IEnumerator.Reset () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+				01 00 00 00
+			)
+			.override method instance void [netstandard]System.Collections.IEnumerator::Reset()
+			// Method begins at RVA 0x2177
+			// Code size 6 (0x6)
+			.maxstack 8
+			IL_0000: newobj instance void [netstandard]System.NotSupportedException::.ctor()
+			IL_0005: throw
+		} // end of method '<M>d__2'::System.Collections.IEnumerator.Reset
+		.method private final hidebysig specialname newslot virtual 
+			instance object System.Collections.IEnumerator.get_Current () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+				01 00 00 00
+			)
+			.override method instance object [netstandard]System.Collections.IEnumerator::get_Current()
+			// Method begins at RVA 0x217e
+			// Code size 12 (0xc)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 C/'<M>d__2'::'<>2__current'
+			IL_0006: box [netstandard]System.Int32
+			IL_000b: ret
+		} // end of method '<M>d__2'::System.Collections.IEnumerator.get_Current
+		.method private final hidebysig newslot virtual 
+			instance class [netstandard]System.Collections.Generic.IEnumerator`1<int32> 'System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator' () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+				01 00 00 00
+			)
+			.override method instance class [netstandard]System.Collections.Generic.IEnumerator`1<!0> class [netstandard]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
+			// Method begins at RVA 0x218c
+			// Code size 55 (0x37)
+			.maxstack 2
+			.locals init (
+				[0] class C/'<M>d__2'
+			)
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 C/'<M>d__2'::'<>1__state'
+			IL_0006: ldc.i4.s -2
+			IL_0008: bne.un.s IL_0022
+			IL_000a: ldarg.0
+			IL_000b: ldfld int32 C/'<M>d__2'::'<>l__initialThreadId'
+			IL_0010: call int32 [netstandard]System.Environment::get_CurrentManagedThreadId()
+			IL_0015: bne.un.s IL_0022
+			IL_0017: ldarg.0
+			IL_0018: ldc.i4.0
+			IL_0019: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_001e: ldarg.0
+			IL_001f: stloc.0
+			IL_0020: br.s IL_0035
+			IL_0022: ldc.i4.0
+			IL_0023: newobj instance void C/'<M>d__2'::.ctor(int32)
+			IL_0028: stloc.0
+			IL_0029: ldloc.0
+			IL_002a: ldarg.0
+			IL_002b: ldfld class C C/'<M>d__2'::'<>4__this'
+			IL_0030: stfld class C C/'<M>d__2'::'<>4__this'
+			IL_0035: ldloc.0
+			IL_0036: ret
+		} // end of method '<M>d__2'::'System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator'
+		.method private final hidebysig newslot virtual 
+			instance class [netstandard]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+				01 00 00 00
+			)
+			.override method instance class [netstandard]System.Collections.IEnumerator [netstandard]System.Collections.IEnumerable::GetEnumerator()
+			// Method begins at RVA 0x21cf
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance class [netstandard]System.Collections.Generic.IEnumerator`1<int32> C/'<M>d__2'::'System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator'()
+			IL_0006: ret
+		} // end of method '<M>d__2'::System.Collections.IEnumerable.GetEnumerator
+		// Properties
+		.property instance int32 'System.Collections.Generic.IEnumerator<System.Int32>.Current'()
+		{
+			.get instance int32 C/'<M>d__2'::'System.Collections.Generic.IEnumerator<System.Int32>.get_Current'()
+		}
+		.property instance object System.Collections.IEnumerator.Current()
+		{
+			.get instance object C/'<M>d__2'::System.Collections.IEnumerator.get_Current()
+		}
+	} // end of class <M>d__2
+	// Fields
+	.field private int32 '<y>P'
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			int32 y
+		) cil managed 
+	{
+		// Method begins at RVA 0x20c0
+		// Code size 14 (0xe)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: stfld int32 C::'<y>P'
+		IL_0007: ldarg.0
+		IL_0008: call instance void [netstandard]System.Object::.ctor()
+		IL_000d: ret
+	} // end of method C::.ctor
+	.method public hidebysig 
+		instance class [netstandard]System.Collections.Generic.IEnumerable`1<int32> M () cil managed 
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [netstandard]System.Type) = (
+			01 00 09 43 2b 3c 4d 3e 64 5f 5f 32 00 00
+		)
+		// Method begins at RVA 0x20cf
+		// Code size 15 (0xf)
+		.maxstack 8
+		IL_0000: ldc.i4.s -2
+		IL_0002: newobj instance void C/'<M>d__2'::.ctor(int32)
+		IL_0007: dup
+		IL_0008: ldarg.0
+		IL_0009: stfld class C C/'<M>d__2'::'<>4__this'
+		IL_000e: ret
+	} // end of method C::M
 } // end of class C
 ").Replace("[netstandard]", RuntimeUtilities.IsCoreClrRuntime ? "[netstandard]" : "[mscorlib]"));
 
@@ -17093,7 +17107,7 @@ class C(int y)
 			           [netstandard]System.IDisposable" :
 @"			           [netstandard]System.IDisposable,
 			           [netstandard]System.Collections.IEnumerator") + @"
-    {
+	{
 		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
@@ -17133,15 +17147,18 @@ class C(int y)
 			)
 			.override method instance void [netstandard]System.IDisposable::Dispose()
 			// Method begins at RVA 0x2108
-			// Code size 1 (0x1)
+			// Code size 9 (0x9)
 			.maxstack 8
-			IL_0000: ret
+			IL_0000: ldarg.0
+			IL_0001: ldc.i4.s -2
+			IL_0003: stfld int32 C/'<M>d__2'::'<>1__state'
+			IL_0008: ret
 		} // end of method '<M>d__2'::System.IDisposable.Dispose
 		.method private final hidebysig newslot virtual 
 			instance bool MoveNext () cil managed 
 		{
 			.override method instance bool [netstandard]System.Collections.IEnumerator::MoveNext()
-			// Method begins at RVA 0x210c
+			// Method begins at RVA 0x2114
 			// Code size 102 (0x66)
 			.maxstack 2
 			.locals init (
@@ -17196,7 +17213,7 @@ class C(int y)
 				01 00 00 00
 			)
 			.override method instance !0 class [netstandard]System.Collections.Generic.IEnumerator`1<int32>::get_Current()
-			// Method begins at RVA 0x217e
+			// Method begins at RVA 0x2186
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -17210,7 +17227,7 @@ class C(int y)
 				01 00 00 00
 			)
 			.override method instance void [netstandard]System.Collections.IEnumerator::Reset()
-			// Method begins at RVA 0x2186
+			// Method begins at RVA 0x218e
 			// Code size 6 (0x6)
 			.maxstack 8
 			IL_0000: newobj instance void [netstandard]System.NotSupportedException::.ctor()
@@ -17223,7 +17240,7 @@ class C(int y)
 				01 00 00 00
 			)
 			.override method instance object [netstandard]System.Collections.IEnumerator::get_Current()
-			// Method begins at RVA 0x218d
+			// Method begins at RVA 0x2195
 			// Code size 12 (0xc)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -17238,7 +17255,7 @@ class C(int y)
 				01 00 00 00
 			)
 			.override method instance class [netstandard]System.Collections.Generic.IEnumerator`1<!0> class [netstandard]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
-			// Method begins at RVA 0x219c
+			// Method begins at RVA 0x21a4
 			// Code size 55 (0x37)
 			.maxstack 2
 			.locals init (
@@ -17275,7 +17292,7 @@ class C(int y)
 				01 00 00 00
 			)
 			.override method instance class [netstandard]System.Collections.IEnumerator [netstandard]System.Collections.IEnumerable::GetEnumerator()
-			// Method begins at RVA 0x21df
+			// Method begins at RVA 0x21e7
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -18269,15 +18286,18 @@ class C(int y)
 				)
 				.override method instance void [netstandard]System.IDisposable::Dispose()
 				// Method begins at RVA 0x212c
-				// Code size 1 (0x1)
+				// Code size 9 (0x9)
 				.maxstack 8
-				IL_0000: ret
+				IL_0000: ldarg.0
+				IL_0001: ldc.i4.s -2
+				IL_0003: stfld int32 C/'<>c__DisplayClass0_0'/'<<-ctor>g__local|1>d'::'<>1__state'
+				IL_0008: ret
 			} // end of method '<<-ctor>g__local|1>d'::System.IDisposable.Dispose
 			.method private final hidebysig newslot virtual 
 				instance bool MoveNext () cil managed 
 			{
 				.override method instance bool [netstandard]System.Collections.IEnumerator::MoveNext()
-				// Method begins at RVA 0x2130
+				// Method begins at RVA 0x2138
 				// Code size 95 (0x5f)
 				.maxstack 2
 				.locals init (
@@ -18330,7 +18350,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance !0 class [netstandard]System.Collections.Generic.IEnumerator`1<int32>::get_Current()
-				// Method begins at RVA 0x219b
+				// Method begins at RVA 0x21a3
 				// Code size 7 (0x7)
 				.maxstack 8
 				IL_0000: ldarg.0
@@ -18344,7 +18364,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance void [netstandard]System.Collections.IEnumerator::Reset()
-				// Method begins at RVA 0x21a3
+				// Method begins at RVA 0x21ab
 				// Code size 6 (0x6)
 				.maxstack 8
 				IL_0000: newobj instance void [netstandard]System.NotSupportedException::.ctor()
@@ -18357,7 +18377,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance object [netstandard]System.Collections.IEnumerator::get_Current()
-				// Method begins at RVA 0x21aa
+				// Method begins at RVA 0x21b2
 				// Code size 12 (0xc)
 				.maxstack 8
 				IL_0000: ldarg.0
@@ -18372,7 +18392,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance class [netstandard]System.Collections.Generic.IEnumerator`1<!0> class [netstandard]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
-				// Method begins at RVA 0x21b8
+				// Method begins at RVA 0x21c0
 				// Code size 55 (0x37)
 				.maxstack 2
 				.locals init (
@@ -18409,7 +18429,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance class [netstandard]System.Collections.IEnumerator [netstandard]System.Collections.IEnumerable::GetEnumerator()
-				// Method begins at RVA 0x21fb
+				// Method begins at RVA 0x2203
 				// Code size 7 (0x7)
 				.maxstack 8
 				IL_0000: ldarg.0
@@ -18564,15 +18584,18 @@ class C(int y)
 				)
 				.override method instance void [netstandard]System.IDisposable::Dispose()
 				// Method begins at RVA 0x2162
-				// Code size 1 (0x1)
+				// Code size 9 (0x9)
 				.maxstack 8
-				IL_0000: ret
+				IL_0000: ldarg.0
+				IL_0001: ldc.i4.s -2
+				IL_0003: stfld int32 C/'<>c__DisplayClass0_0'/'<<-ctor>g__local|1>d'::'<>1__state'
+				IL_0008: ret
 			} // end of method '<<-ctor>g__local|1>d'::System.IDisposable.Dispose
 			.method private final hidebysig newslot virtual 
 				instance bool MoveNext () cil managed 
 			{
 				.override method instance bool [netstandard]System.Collections.IEnumerator::MoveNext()
-				// Method begins at RVA 0x2164
+				// Method begins at RVA 0x216c
 				// Code size 102 (0x66)
 				.maxstack 2
 				.locals init (
@@ -18627,7 +18650,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance !0 class [netstandard]System.Collections.Generic.IEnumerator`1<int32>::get_Current()
-				// Method begins at RVA 0x21d6
+				// Method begins at RVA 0x21de
 				// Code size 7 (0x7)
 				.maxstack 8
 				IL_0000: ldarg.0
@@ -18641,7 +18664,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance void [netstandard]System.Collections.IEnumerator::Reset()
-				// Method begins at RVA 0x21de
+				// Method begins at RVA 0x21e6
 				// Code size 6 (0x6)
 				.maxstack 8
 				IL_0000: newobj instance void [netstandard]System.NotSupportedException::.ctor()
@@ -18654,7 +18677,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance object [netstandard]System.Collections.IEnumerator::get_Current()
-				// Method begins at RVA 0x21e5
+				// Method begins at RVA 0x21ed
 				// Code size 12 (0xc)
 				.maxstack 8
 				IL_0000: ldarg.0
@@ -18669,7 +18692,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance class [netstandard]System.Collections.Generic.IEnumerator`1<!0> class [netstandard]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
-				// Method begins at RVA 0x21f4
+				// Method begins at RVA 0x21fc
 				// Code size 55 (0x37)
 				.maxstack 2
 				.locals init (
@@ -18706,7 +18729,7 @@ class C(int y)
 					01 00 00 00
 				)
 				.override method instance class [netstandard]System.Collections.IEnumerator [netstandard]System.Collections.IEnumerable::GetEnumerator()
-				// Method begins at RVA 0x2237
+				// Method begins at RVA 0x223f
 				// Code size 7 (0x7)
 				.maxstack 8
 				IL_0000: ldarg.0
@@ -19778,6 +19801,7 @@ class C1 (int p1)
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76651")]
         [Fact]
         public void PartialMembers_01()
         {
@@ -19799,14 +19823,49 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2]);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
+            model.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76651")]
+        public void PartialMembers_02()
+        {
+            var source1 = """
+[System.Diagnostics.CodeAnalysis.Experimental(C.P)]
+class Repro
+{
+}
+""";
+
+            var source2 = """
+partial class C
+{
+    public static partial string P {get=>"";set{}}
+    public static partial string P {get;set;}
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+
+        public string Message { get; set; }
+    }
+}
+""";
+            var comp = CreateCompilation([source1, source2]);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
             model.GetDiagnostics().Verify(
-                // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
-                // c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(2, 3),
-                // (3,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
-                // _ = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(3, 7));
+                // (1,47): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [System.Diagnostics.CodeAnalysis.Experimental(C.P)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.P").WithLocation(1, 47)
+                );
         }
 
         [Fact]
@@ -19867,14 +19926,14 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
-                // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // (4,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(4, 7),
-                // (5,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M()").WithLocation(4, 5),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(5, 7));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P").WithLocation(5, 5)
+                );
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
@@ -19903,14 +19962,14 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
-                // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // (4,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(4, 7),
-                // (5,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M()").WithLocation(4, 5),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(5, 7));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P").WithLocation(5, 5)
+                );
         }
 
         [Fact]
@@ -20114,7 +20173,7 @@ p1
         [Fact]
         public void IllegalCapturingDueToRefness_02()
         {
-            var source = @"#pragma warning disable CS0649 // Field 'R1.F1' is never assigned to, and will always have its default value 0
+            var source = @"#pragma warning disable CS0649, CS9265 // Field 'R1.F1' is never assigned to, and will always have its default value 0
 ref struct R1
 {
     public int F1;
@@ -22347,6 +22406,259 @@ internal partial class EditorDocumentManagerListener
                 //     public C2() { } // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text").WithLocation(12, 12)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_01([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    [Preserve3]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            var comp3 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp3, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_02([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+public record " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition, IsExternalInitTypeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var comp2 = CreateCompilation([source2, IsExternalInitTypeDefinition], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp2, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var comp3 = CreateCompilation([source2, IsExternalInitTypeDefinition], references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp3, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_03([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public record " + keyword + @" Test1(
+    [field: Preserve1]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, IsExternalInitTypeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)",
+                        "Preserve1Attribute"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_04_Retargeting([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source0 = @"
+public class Test0 {}
+";
+
+            var comp0 = CreateCompilation(source0);
+
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    [Preserve3]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, CompilerLoweringPreserveAttributeDefinition],
+                references: [comp0.ToMetadataReference()],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            Assert.IsType<RetargetingNamedTypeSymbol>(comp2.GetTypeByMetadataName("Preserve1Attribute"));
+
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_05_Generic([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source0 = @"
+public class Test0 {}
+";
+
+            var comp0 = CreateCompilation(source0);
+
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute<T> : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute<T> : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute<T> : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1<int>]
+    [Preserve2<int>]
+    [Preserve3<int>]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, CompilerLoweringPreserveAttributeDefinition],
+                references: [comp0.ToMetadataReference()],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute<System.Int32>",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

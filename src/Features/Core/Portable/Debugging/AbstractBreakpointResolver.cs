@@ -231,6 +231,7 @@ internal abstract partial class AbstractBreakpointResolver
     {
         SymbolKind.Method => ((IMethodSymbol)symbol).PartialImplementationPart,
         SymbolKind.Property => ((IPropertySymbol)symbol).PartialImplementationPart,
+        SymbolKind.Event => ((IEventSymbol)symbol).PartialImplementationPart,
         _ => null
     };
 

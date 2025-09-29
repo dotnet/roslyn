@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -191,7 +192,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                         Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
 
-                        retType.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
+                        retType.CheckAllConstraints(
+                            DeclaringCompilation.LanguageVersion,
+                            diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
 
                         If useSiteDiagnosticsBuilder IsNot Nothing Then
                             diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -260,7 +263,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If param.Locations.Length > 0 Then
                             ' Note: Errors are reported on the parameter name. Ideally, we should
                             ' match Dev10 and report errors on the parameter type syntax instead.
-                            param.Type.CheckAllConstraints(param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
+                            param.Type.CheckAllConstraints(
+                                DeclaringCompilation.LanguageVersion,
+                                param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
                         End If
                     Next
 
@@ -493,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If m_property.IsAutoProperty Then

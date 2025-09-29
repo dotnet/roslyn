@@ -32,7 +32,6 @@ public readonly struct CharacterSetModificationRule
     /// </summary>
     /// <param name="kind">The kind of rule.</param>
     /// <param name="characters">One or more characters. These are typically punctuation characters.</param>
-    /// <returns></returns>
     public static CharacterSetModificationRule Create(CharacterSetModificationKind kind, ImmutableArray<char> characters)
         => new(kind, characters);
 
@@ -41,7 +40,6 @@ public readonly struct CharacterSetModificationRule
     /// </summary>
     /// <param name="kind">The kind of rule.</param>
     /// <param name="characters">One or more characters. These are typically punctuation characters.</param>
-    /// <returns></returns>
     public static CharacterSetModificationRule Create(CharacterSetModificationKind kind, params char[] characters)
         => new(kind, [.. characters]);
 }

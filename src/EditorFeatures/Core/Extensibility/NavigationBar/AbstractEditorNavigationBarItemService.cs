@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
@@ -58,7 +57,8 @@ internal abstract class AbstractEditorNavigationBarItemService : INavigationBarI
         var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
         if (!await navigationService.TryNavigateToPositionAsync(
-                ThreadingContext, workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false))
+                ThreadingContext, workspace, documentId, position, virtualSpace,
+                allowInvalidPosition: false, NavigationOptions.Default, cancellationToken).ConfigureAwait(false))
         {
             // Ensure we're back on the UI thread before showing a failure message.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

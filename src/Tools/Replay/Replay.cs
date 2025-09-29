@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,16 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Basic.CompilerLog.Util;
 using Microsoft.CodeAnalysis.CommandLine;
-using Microsoft.CodeAnalysis.Options;
-using Mono.Options;
 
 var options = ParseOptions(args);
-if (Directory.Exists(options.OutputDirectory))
-{
-    Directory.Delete(options.OutputDirectory, recursive: true);
-}
-Directory.CreateDirectory(options.OutputDirectory);
-Directory.CreateDirectory(options.TempDirectory);
 
 return await RunAsync(options).ConfigureAwait(false);
 
@@ -30,13 +23,15 @@ static ReplayOptions ParseOptions(string[] args)
     string? binlogPath = null;
     int maxParallel = 6;
     bool wait = false;
+    int iterations = 1;
 
     var options = new Mono.Options.OptionSet()
     {
-        { "b|binlogPath=", "The binary log to relpay", v => binlogPath = v },
+        { "b|binlogPath=", "The binary log to replay", v => binlogPath = v },
         { "o|outputDirectory=", "The directory to output the build results", v => outputDirectory = v },
         { "m|maxParallel=", "The maximum number of parallel builds", (int v) => maxParallel = v },
         { "w|wait", "Wait for a key press after starting the server", o => wait = o is object },
+        { "i|iterations=", "Perform the compilation multiple times", (int v) => iterations = v },
     };
 
     var rest = options.Parse(args);
@@ -65,7 +60,8 @@ static ReplayOptions ParseOptions(string[] args)
         outputDirectory: outputDirectory,
         binlogPath: binlogPath,
         maxParallel: maxParallel,
-        wait: wait);
+        wait: wait,
+        iterations: iterations);
 }
 
 static async Task<int> RunAsync(ReplayOptions options)
@@ -75,17 +71,71 @@ static async Task<int> RunAsync(ReplayOptions options)
     Console.WriteLine($"Output Directory: {options.OutputDirectory}");
     Console.WriteLine($"Pipe Name: {options.PipeName}");
     Console.WriteLine($"Parallel: {options.MaxParallel}");
+    Console.WriteLine($"Iterations: {options.Iterations}");
+
+    var sumBuildTime = TimeSpan.Zero;
+    var sumTotalTime = TimeSpan.Zero;
+    try
+    {
+        var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
+        Console.WriteLine($"Compilation Events: {compilerCalls.Count}");
+
+        for (var i = 0; i < options.Iterations; i++)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Iteration: {i + 1}");
+            var (buildTime, totalTime) = await RunOneAsync(compilerCalls, options).ConfigureAwait(false);
+            Console.WriteLine($"Build Time: {buildTime:mm\\:ss}");
+            Console.WriteLine($"Total Time: {totalTime:mm\\:ss}");
+
+            sumBuildTime += buildTime;
+            sumTotalTime += totalTime;
+        }
+
+        if (options.Iterations > 1)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Compilation Events: {compilerCalls.Count}");
+            Console.WriteLine($"Average Build Time: {TimeSpan.FromTicks(sumBuildTime.Ticks / options.Iterations):mm\\:ss}");
+            Console.WriteLine($"Average Total Time: {TimeSpan.FromTicks(sumTotalTime.Ticks / options.Iterations):mm\\:ss}");
+        }
+
+        foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
+        {
+            if (entry.Key is string key && key.StartsWith("DOTNET_", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"{key}={entry.Value}");
+            }
+        }
+
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error: {ex.Message}");
+        return 1;
+    }
+}
+
+static async Task<(TimeSpan BuildTime, TimeSpan TotalTime)> RunOneAsync(List<CompilerCall> compilerCalls, ReplayOptions options)
+{
     Console.WriteLine();
     Console.WriteLine("Starting server");
+
+    if (Directory.Exists(options.OutputDirectory))
+    {
+        Directory.Delete(options.OutputDirectory, recursive: true);
+    }
+    Directory.CreateDirectory(options.OutputDirectory);
+    Directory.CreateDirectory(options.TempDirectory);
 
     using var compilerServerLogger = new CompilerServerLogger("replay", Path.Combine(options.OutputDirectory, "server.log"));
     if (!BuildServerConnection.TryCreateServer(options.ClientDirectory, options.PipeName, compilerServerLogger, out int serverProcessId))
     {
-        Console.WriteLine("Failed to start server");
-        return 1;
+        throw new Exception("Failed to create server");
     }
 
-    Console.WriteLine($"Process Id: {serverProcessId}");
+    Console.WriteLine($"VBCSCompiler Process Id: {serverProcessId}");
     if (options.Wait)
     {
         Console.WriteLine("Press any key to continue");
@@ -93,23 +143,17 @@ static async Task<int> RunAsync(ReplayOptions options)
         Console.WriteLine("Continuing");
     }
 
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+    TimeSpan buildTime;
     try
     {
-        var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
-
-        await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
+        await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None).ConfigureAwait(false))
         {
             Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
         }
 
-        stopwatch.Stop();
-        Console.WriteLine($"Pipe Name: {options.PipeName}");
-        Console.WriteLine($"Compilation Events: {compilerCalls.Count}");
-        Console.WriteLine($"Time: {stopwatch.Elapsed:mm\\:ss}");
-
-        return 0;
+        buildTime = stopwatch.Elapsed;
     }
     finally
     {
@@ -122,6 +166,8 @@ static async Task<int> RunAsync(ReplayOptions options)
             compilerServerLogger,
             cancellationToken: CancellationToken.None).ConfigureAwait(false);
     }
+
+    return (buildTime, stopwatch.Elapsed);
 }
 
 static List<CompilerCall> ReadAllCompilerCalls(string binlogPath)
@@ -140,6 +186,7 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
     var maxParallel = options.MaxParallel;
     var tasks = new List<Task<BuildData>>(capacity: maxParallel);
     var outputSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var completed = 0;
 
     do
     {
@@ -158,7 +205,8 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
 
         var buildData = await completedTask.ConfigureAwait(false);
         yield return buildData;
-    } while (index < compilerCalls.Count);
+        completed++;
+    } while (completed < compilerCalls.Count);
 
     string GetOutputName(CompilerCall compilerCall)
     {
@@ -269,7 +317,8 @@ internal sealed class ReplayOptions(
     string outputDirectory,
     string binlogPath,
     int maxParallel,
-    bool wait)
+    bool wait,
+    int iterations)
 {
     internal string PipeName { get; } = pipeName;
     internal string ClientDirectory { get; } = clientDirectory;
@@ -278,6 +327,7 @@ internal sealed class ReplayOptions(
     internal int MaxParallel { get; } = maxParallel;
     internal string TempDirectory { get; } = Path.Combine(outputDirectory, "temp");
     internal bool Wait { get; } = wait;
+    internal int Iterations { get; } = iterations;
 }
 
 internal readonly struct BuildData(CompilerCall compilerCall, BuildResponse response)

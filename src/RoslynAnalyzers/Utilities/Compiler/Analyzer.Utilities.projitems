@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionGreaterThanOrEquals($(MicrosoftCodeAnalysisVersionForAnalyzers),'3.3'))">
+    <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_OR_BETTER</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionGreaterThanOrEquals($(MicrosoftCodeAnalysisVersionForAnalyzers),'3.7'))">
+    <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_7_OR_BETTER</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionNotEquals('$(MicrosoftCodeAnalysisVersionForAnalyzers)','1.2.1'))">
+    <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
+    <HasIOperation>true</HasIOperation>
+    <!-- Explicitly enable nullable for all projects that link Analyzer.Utilities.
+	     This is needed as this project is linked into test projects which don't yet have nullable enabled,
+		 and building the test projects without the explicit enable nullable below leads to following warnings:
+			"warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context" -->
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(HasIOperation)' == 'true'">
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableHashSetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\PooledHashSetExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(IsTestProject)' != 'true' and '$(NonShipping)' != 'true'">
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.AssemblyMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.EventMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.FieldMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.MethodMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.NamedTypeMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.NamespaceMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.PropertyMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\ComputationalComplexityMetrics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\MetricsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeMetricsAnalysisContext.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\NuGet\PerformanceSensitiveAnalyzers\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
+    <Compile Include="$(MSBuildThisFileDirectory)AdditionalFileProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BoundedCacheWithFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticDescriptorHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\AdditionalTextExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationKinds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ReportDiagnosticExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\KeyValuePairExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringCompatExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildItemOptionNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildPropertyOptionNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SyntaxTreeCategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ICategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AggregateCategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AbstractCategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\EnumValuesPrefixTrigger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerConfigOptionsProviderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolNamesWithValueOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolModifiers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\Unit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ValueUsageInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PathHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IDictionaryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamedTypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IOperationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigOptionNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledSortedSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RoslynHashCode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RuleLevel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RulesetToEditorconfigConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SmallDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayStringCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolByDisplayStringComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BoundedCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WordParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WordParserOptions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
+  </ItemGroup>
+</Project>

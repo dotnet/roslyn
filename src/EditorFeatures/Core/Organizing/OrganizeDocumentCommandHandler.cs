@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 [Name(PredefinedCommandHandlerNames.OrganizeDocument)]
 [method: ImportingConstructor]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class OrganizeDocumentCommandHandler(
+internal sealed class OrganizeDocumentCommandHandler(
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<OrganizeDocumentCommandArgs>,
@@ -125,7 +124,7 @@ internal class OrganizeDocumentCommandHandler(
         if (!subjectBuffer.TryGetWorkspace(out var workspace))
             return;
 
-        var snapshotSpan = textView.GetTextElementSpan(caretPoint.Value);
+        var snapshotSpan = textView.GetTextElementSpan(textView.Caret.Position.BufferPosition);
 
         var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
         using var backgroundWorkContext = indicatorFactory.Create(
@@ -139,7 +138,7 @@ internal class OrganizeDocumentCommandHandler(
 
         await TaskScheduler.Default;
 
-        var currentDocument = await getCurrentDocumentAsync(snapshotSpan.Snapshot, backgroundWorkContext).ConfigureAwait(false);
+        var currentDocument = await getCurrentDocumentAsync(caretPoint.Value.Snapshot, backgroundWorkContext).ConfigureAwait(false);
         if (currentDocument is null)
             return;
 
@@ -153,7 +152,8 @@ internal class OrganizeDocumentCommandHandler(
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-        backgroundWorkContext.CancelOnEdit = false;
+        var disposable = await backgroundWorkContext.SuppressAutoCancelAsync().ConfigureAwait(true);
+        await using var _ = disposable.ConfigureAwait(true);
 
         commandArgs.SubjectBuffer.ApplyChanges(changes);
     }

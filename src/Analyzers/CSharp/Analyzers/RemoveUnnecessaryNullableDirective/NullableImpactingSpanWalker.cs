@@ -97,6 +97,10 @@ internal sealed class NullableImpactingSpanWalker(
             return true;
         }
 
+        // An attribute name cannot itself be nullable.  `[CLSCompliant?]` is not a thing.
+        if (node.IsParentKind(SyntaxKind.Attribute))
+            return true;
+
         return false;
 
         // If this is Y in X.Y, walk up to X.Y

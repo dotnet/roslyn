@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
-internal partial class EventHookupCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
+internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
 {
     public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {

@@ -29,12 +29,12 @@ internal abstract class AbstractAddFileBannerNewDocumentFormattingProvider : INe
         {
             var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(options.FormattingOptions.NewLine);
             var rootWithFileHeader = await AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
-                    SyntaxGenerator.SyntaxFacts,
-                    FileHeaderHelper,
-                    newLineTrivia,
-                    document,
-                    fileHeaderTemplate,
-                    cancellationToken).ConfigureAwait(false);
+                SyntaxGenerator.SyntaxFacts,
+                FileHeaderHelper,
+                newLineTrivia,
+                document,
+                fileHeaderTemplate,
+                cancellationToken).ConfigureAwait(false);
 
             return document.WithSyntaxRoot(rootWithFileHeader);
         }

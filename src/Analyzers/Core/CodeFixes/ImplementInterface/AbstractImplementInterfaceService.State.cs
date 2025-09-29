@@ -9,33 +9,38 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
-internal abstract partial class AbstractImplementInterfaceService
+internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarationSyntax>
 {
     internal sealed class State(
         Document document,
-        SyntaxNode interfaceNode,
-        SyntaxNode classOrStructDecl,
+        SyntaxNode contextNode,
         INamedTypeSymbol classOrStructType,
         ImmutableArray<INamedTypeSymbol> interfaceTypes,
-        SemanticModel model) : IImplementInterfaceInfo
+        SemanticModel model)
     {
-        public SyntaxNode InterfaceNode { get; } = interfaceNode;
-        public SyntaxNode ClassOrStructDecl { get; } = classOrStructDecl;
-        public INamedTypeSymbol ClassOrStructType { get; } = classOrStructType;
-        public ImmutableArray<INamedTypeSymbol> InterfaceTypes { get; } = interfaceTypes;
+        public ImplementInterfaceInfo Info { get; private set; } = new()
+        {
+            ClassOrStructType = classOrStructType,
+            ContextNode = contextNode,
+            InterfaceTypes = interfaceTypes,
+        };
+
+        public SyntaxNode ContextNode => Info.ContextNode;
+        public INamedTypeSymbol ClassOrStructType => Info.ClassOrStructType;
+        public ImmutableArray<INamedTypeSymbol> InterfaceTypes => Info.InterfaceTypes;
         public SemanticModel Model { get; } = model;
 
         public readonly Document Document = document;
 
         // The members that are not implemented at all.
-        public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented { get; private set; } = [];
-        public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementation { get; private set; } = [];
+        public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented => Info.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
+        public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementation => Info.MembersWithoutExplicitOrImplicitImplementation;
 
         // The members that have no explicit implementation.
-        public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; private set; } = [];
+        public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation => Info.MembersWithoutExplicitImplementation;
 
         public static State? Generate(
-            AbstractImplementInterfaceService service,
+            AbstractImplementInterfaceService<TTypeDeclarationSyntax> service,
             Document document,
             SemanticModel model,
             SyntaxNode interfaceNode,
@@ -52,18 +57,27 @@ internal abstract partial class AbstractImplementInterfaceService
                 return null;
             }
 
-            var state = new State(document, interfaceNode, classOrStructDecl, classOrStructType, interfaceTypes, model);
+            var state = new State(document, classOrStructDecl, classOrStructType, interfaceTypes, model);
 
             if (service.CanImplementImplicitly)
             {
-                state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented = state.ClassOrStructType.GetAllUnimplementedMembers(
-                    interfaceTypes, includeMembersRequiringExplicitImplementation: false, cancellationToken);
+                state.Info = state.Info with
+                {
+                    MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented = state.ClassOrStructType.GetAllUnimplementedMembers(
+                        interfaceTypes, includeMembersRequiringExplicitImplementation: false, cancellationToken)
+                };
 
-                state.MembersWithoutExplicitOrImplicitImplementation = state.ClassOrStructType.GetAllUnimplementedMembers(
-                    interfaceTypes, includeMembersRequiringExplicitImplementation: true, cancellationToken);
+                state.Info = state.Info with
+                {
+                    MembersWithoutExplicitOrImplicitImplementation = state.ClassOrStructType.GetAllUnimplementedMembers(
+                        interfaceTypes, includeMembersRequiringExplicitImplementation: true, cancellationToken)
+                };
 
-                state.MembersWithoutExplicitImplementation = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
-                    interfaceTypes, cancellationToken);
+                state.Info = state.Info with
+                {
+                    MembersWithoutExplicitImplementation = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
+                        interfaceTypes, cancellationToken)
+                };
 
                 var allMembersImplemented = state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length == 0;
                 var allMembersImplementedExplicitly = state.MembersWithoutExplicitImplementation.Length == 0;
@@ -73,8 +87,11 @@ internal abstract partial class AbstractImplementInterfaceService
             else
             {
                 // We put the members in this bucket so that the code fix title is "Implement Interface"
-                state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
-                    interfaceTypes, cancellationToken);
+                state.Info = state.Info with
+                {
+                    MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
+                        interfaceTypes, cancellationToken)
+                };
 
                 var allMembersImplemented = state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length == 0;
                 return !allMembersImplemented ? state : null;

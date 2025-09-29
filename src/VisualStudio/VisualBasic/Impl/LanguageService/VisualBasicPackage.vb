@@ -2,12 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.ComponentModel.Design
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
@@ -32,13 +32,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '     Code Style (category)
     '       General
     '       Naming
-    '     IntelliSense
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
-    <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
     <ProvideSettingsManifest(PackageRelativeManifestFile:="UnifiedSettings\visualBasicSettings.registration.json")>
+    <ProvideService(GetType(IVbTempPECompilerFactory), IsAsyncQueryable:=False, IsCacheable:=True, IsFreeThreaded:=True, ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     <Guid(Guids.VisualBasicPackageIdString)>
     Friend NotInheritable Class VisualBasicPackage
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
@@ -59,36 +58,43 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Sub New()
             MyBase.New()
 
-            ' This is a UI-affinitized operation. Currently this opeartion prevents setting AllowsBackgroundLoad for
+            ' This is a UI-affinitized operation. Currently this operation prevents setting AllowsBackgroundLoad for
             ' VisualBasicPackage. The call should be removed from the constructor, and the package set back to allowing
             ' background loads.
             _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
-        Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
-            Try
-                Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(True)
-                Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+        Protected Overrides Sub RegisterInitializeAsyncWork(packageInitializationTasks As PackageLoadTasks)
 
-                RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
+            MyBase.RegisterInitializeAsyncWork(packageInitializationTasks)
 
-                RegisterService(Of IVbTempPECompilerFactory)(
-                    Async Function(ct)
-                        Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                        Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
-                        Return New TempPECompilerFactory(workspace)
-                    End Function)
-            Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
-                Throw ExceptionUtilities.Unreachable
-            End Try
-        End Function
+            packageInitializationTasks.AddTask(
+                isMainThreadTask:=False,
+                task:=Function() As Task
+                          Try
+                              AddService(GetType(IVbCompilerService), Function(_1, cancellationToken, _2)
+                                                                          PreloadProjectSystemComponents()
+                                                                          Return Task.FromResult(_comAggregate)
+                                                                      End Function, promote:=True)
 
-        Protected Overrides Async Function RegisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
+                              DirectCast(Me, IServiceContainer).AddService(
+                                  GetType(IVbTempPECompilerFactory),
+                                  Function(_1, _2) New TempPECompilerFactory(Me.ComponentModel.GetService(Of VisualStudioWorkspace)()),
+                                  promote:=True)
+                          Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
+                              Throw ExceptionUtilities.Unreachable
+                          End Try
+
+                          Return Task.CompletedTask
+                      End Function)
+        End Sub
+
+        Protected Overrides Sub RegisterObjectBrowserLibraryManager()
             Dim workspace As VisualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
 
-            Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+            Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread)
 
-            Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
+            Dim objectManager = TryCast(GetService(GetType(SVsObjectManager)), IVsObjectManager2)
             If objectManager IsNot Nothing Then
                 Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, workspace)
 
@@ -96,13 +102,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                     Me._libraryManagerCookie = 0
                 End If
             End If
-        End Function
+        End Sub
 
-        Protected Overrides Async Function UnregisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
-            Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+        Protected Overrides Sub UnregisterObjectBrowserLibraryManager()
+            Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread)
 
             If _libraryManagerCookie <> 0 Then
-                Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
+                Dim objectManager = TryCast(GetService(GetType(SVsObjectManager)), IVsObjectManager2)
                 If objectManager IsNot Nothing Then
                     objectManager.UnregisterLibrary(Me._libraryManagerCookie)
                     Me._libraryManagerCookie = 0
@@ -111,7 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Me._libraryManager.Dispose()
                 Me._libraryManager = Nothing
             End If
-        End Function
+        End Sub
 
         Public Function NeedExport(pageID As String, <Out> ByRef needExportParam As Integer) As Integer Implements IVsUserSettingsQuery.NeedExport
             ' We need to override MPF's definition of NeedExport since it doesn't know about our automation object

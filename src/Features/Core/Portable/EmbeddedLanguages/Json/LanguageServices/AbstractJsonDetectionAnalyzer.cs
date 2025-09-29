@@ -7,9 +7,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 
@@ -17,7 +16,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 /// Analyzer that helps find strings that are likely to be JSON and which we should offer the
 /// enable language service features for.
 /// </summary>
-internal abstract class AbstractJsonDetectionAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal abstract class AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(DiagnosticId,
+        EnforceOnBuildValues.DetectProbableJsonStrings,
+        option: null,
+        new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+        new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
 {
     public const string DiagnosticId = "JSON002";
     public const string StrictKey = nameof(StrictKey);
@@ -25,17 +29,7 @@ internal abstract class AbstractJsonDetectionAnalyzer : AbstractBuiltInCodeStyle
     private static readonly ImmutableDictionary<string, string?> s_strictProperties =
         ImmutableDictionary<string, string?>.Empty.Add(StrictKey, "");
 
-    private readonly EmbeddedLanguageInfo _info;
-
-    protected AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
-        : base(DiagnosticId,
-               EnforceOnBuildValues.DetectProbableJsonStrings,
-               option: null,
-               new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-               new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
-    {
-        _info = info;
-    }
+    private readonly EmbeddedLanguageInfo _info = info;
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -63,14 +57,20 @@ internal abstract class AbstractJsonDetectionAnalyzer : AbstractBuiltInCodeStyle
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        foreach (var child in node.ChildNodesAndTokens())
+        using var _1 = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
+        stack.Push(node);
+
+        while (stack.TryPop(out var child))
         {
-            if (!context.ShouldAnalyzeSpan(child.FullSpan))
-                continue;
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (child.AsNode(out var childNode))
             {
-                Analyze(context, detector, childNode, cancellationToken);
+                foreach (var nodeOrToken in childNode.ChildNodesAndTokens())
+                {
+                    if (context.ShouldAnalyzeSpan(nodeOrToken.FullSpan))
+                        stack.Push(nodeOrToken);
+                }
             }
             else
             {

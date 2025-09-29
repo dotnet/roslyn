@@ -6458,8 +6458,7 @@ unsafe class Derived : Base
     protected override delegate*<nint, void> M8() => throw null;
 }");
 
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
 
             assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods);
@@ -6511,8 +6510,7 @@ unsafe class Derived : Base
     protected override delegate*<dynamic, void> M8() => throw null;
 }");
 
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
 
             assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
@@ -9398,7 +9396,7 @@ public static class CExt
             );
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73934")]
         public void UnmanagedCallersOnlyDeclaredOnPatternDispose()
         {
             var comp = CreateCompilation(new[] { @"
@@ -9424,10 +9422,44 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
+                // 0.cs(7,9): error CS8901: 'SEnumerator.Dispose()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         foreach (var i in s) {}
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "foreach (var i in s) {}").WithArguments("SEnumerator.Dispose()").WithLocation(7, 9),
                 // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
-            );
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73934")]
+        public void UnmanagedCallersOnlyDeclaredOnPatternDispose_CollectionExpression()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S
+{
+    public static void M2(S s)
+    {
+        int[] a = [42, ..s];
+    }
+    public SEnumerator GetEnumerator() => throw null;
+}
+public ref struct SEnumerator
+{
+    public bool MoveNext() => throw null;
+    public int Current => throw null;
+    [UnmanagedCallersOnly]
+    public void Dispose() => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // 0.cs(7,24): error CS8901: 'SEnumerator.Dispose()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         int[] a = [42, ..s];
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "..s").WithArguments("SEnumerator.Dispose()").WithLocation(7, 24),
+                // 0.cs(15,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(15, 6));
         }
 
         [Fact]
@@ -9765,18 +9797,12 @@ class D
                 // (6,30): error CS0017: Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_MultipleEntryPoints, "Main").WithLocation(6, 30),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(6, 30),
                 // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
                 // (11,30): error CS8899: Application entry points cannot be attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
-                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30),
-                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+                Diagnostic(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, "Main").WithLocation(11, 30)
             );
         }
 
@@ -9803,10 +9829,7 @@ class D
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
                 // (11,30): warning CS8892: Method 'D.Main()' will not be used as an entry point because a synchronous entry point 'C.Main()' was found.
                 //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main()").WithLocation(11, 30),
-                // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async Task Main() {}
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main()").WithLocation(11, 30)
             );
         }
 
@@ -12291,20 +12314,24 @@ class C<T> {}
             verifier.VerifyDiagnostics();
         }
 
-        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594"), WorkItem("https://github.com/dotnet/runtime/issues/118568")]
         public void Attribute_TypedParamsConstant_EnumArray_ConstructorArgument(
             [CombinatorialValues("class", "struct")] string kind,
             [CombinatorialValues("[]{}", "()")] string initializer)
         {
+            var evalString = ExecutionConditionUtil.IsMonoCore
+                ? "Console.WriteLine(((((IEnumerable)arg.Value).Cast<object>().SingleOrDefault())) ?? \"null\");"
+                : "Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? \"null\");";
+            var includeString = ExecutionConditionUtil.IsMonoCore ? "" : "using System.Reflection;";
             var source = $$"""
                 using System;
                 using System.Collections;
                 using System.Linq;
-                using System.Reflection;
+                {{includeString}}
 
                 var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
                 var arg = attr.ConstructorArguments.Single();
-                Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? "null");
+                {{evalString}}
 
                 class A : Attribute
                 {

@@ -101,9 +101,23 @@ internal sealed class CSharpUsePatternCombinatorsCodeFixProvider() : SyntaxEdito
             Source p => p.PatternSyntax,
             Type p => TypePattern(p.TypeSyntax),
             Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), AsExpressionSyntax(p.Value, p)),
-            Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
+            Not p => ProcessNotPattern(p),
             var p => throw ExceptionUtilities.UnexpectedValue(p)
         };
+    }
+
+    private static PatternSyntax ProcessNotPattern(Not notPattern)
+    {
+        // If we're going to generate `not not X` we can just change that to 'X'.
+        var underlyingPattern = AsPatternSyntax(notPattern.Pattern);
+        var unwrapped = underlyingPattern;
+        while (unwrapped is ParenthesizedPatternSyntax parenthesized)
+            unwrapped = parenthesized.Pattern;
+
+        if (unwrapped is UnaryPatternSyntax(SyntaxKind.NotPattern) unaryPattern)
+            return unaryPattern.Pattern;
+
+        return UnaryPattern(underlyingPattern.Parenthesize());
     }
 
     private static ExpressionSyntax AsExpressionSyntax(ExpressionSyntax expr, AnalyzedPattern p)

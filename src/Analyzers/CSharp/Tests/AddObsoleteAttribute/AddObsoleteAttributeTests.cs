@@ -2,24 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute.CSharpAddObsoleteAttributeCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddObsoleteAttribute;
 
+using VerifyCS = CSharpCodeFixVerifier<
+    EmptyDiagnosticAnalyzer,
+    CSharpAddObsoleteAttributeCodeFixProvider>;
+
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
-public class AddObsoleteAttributeTests
+public sealed class AddObsoleteAttributeTests
 {
     [Fact]
-    public async Task TestObsoleteClassNoMessage()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassNoMessage()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base {}
@@ -35,12 +36,10 @@ public class AddObsoleteAttributeTests
             class Derived : Base {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassWithMessage()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassWithMessage()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete("message")]
             class Base {}
@@ -56,12 +55,10 @@ public class AddObsoleteAttributeTests
             class Derived : Base {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassWithMessageAndErrorFalse()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassWithMessageAndErrorFalse()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete("message", error: false)]
             class Base {}
@@ -77,7 +74,6 @@ public class AddObsoleteAttributeTests
             class Derived : Base {
             }
             """);
-    }
 
     [Fact]
     public async Task TestObsoleteClassWithMessageAndErrorTrue()
@@ -93,9 +89,8 @@ public class AddObsoleteAttributeTests
     }
 
     [Fact]
-    public async Task TestObsoleteClassUsedInField()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassUsedInField()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -113,12 +108,10 @@ public class AddObsoleteAttributeTests
                 int i = Base.i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassUsedInMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassUsedInMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -140,12 +133,10 @@ public class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteOverride()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteOverride()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Base { 
                 [System.Obsolete]
@@ -167,12 +158,10 @@ public class AddObsoleteAttributeTests
                 protected override void ObMethod() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassFixAll1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassFixAll1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -196,12 +185,10 @@ public class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassFixAll2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassFixAll2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -225,12 +212,10 @@ public class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteClassFixAll3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteClassFixAll3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             [System.Obsolete]
             class Base { public static int i; }
@@ -261,12 +246,10 @@ public class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteCollectionAddMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteCollectionAddMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Collection : System.Collections.Generic.IEnumerable<int> {
                 [System.Obsolete]
@@ -302,12 +285,10 @@ public class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteCollectionAddMethodWithMessage()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteCollectionAddMethodWithMessage()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Collection : System.Collections.Generic.IEnumerable<int> {
                 [System.Obsolete("message")]
@@ -343,12 +324,10 @@ public class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorFalse()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestObsoleteCollectionAddMethodWithMessageAndErrorFalse()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Collection : System.Collections.Generic.IEnumerable<int> {
                 [System.Obsolete("message", error: false)]
@@ -384,7 +363,6 @@ public class AddObsoleteAttributeTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorTrue()

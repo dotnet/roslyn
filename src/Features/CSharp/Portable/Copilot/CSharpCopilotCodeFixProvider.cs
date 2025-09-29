@@ -40,13 +40,11 @@ internal sealed partial class CSharpCopilotCodeFixProvider() : CodeFixProvider
     /// <summary>
     /// Ensure that fixes for Copilot diagnostics are always towards the bottom of the lightbulb.
     /// </summary>
-    /// <returns></returns>
     protected sealed override CodeActionRequestPriority ComputeRequestPriority() => CodeActionRequestPriority.Low;
 
     /// <summary>
     /// We do not support a FixAll operation for Copilot suggestions.
     /// </summary>
-    /// <returns></returns>
     public sealed override FixAllProvider? GetFixAllProvider() => null;
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [CopilotDiagnosticId];

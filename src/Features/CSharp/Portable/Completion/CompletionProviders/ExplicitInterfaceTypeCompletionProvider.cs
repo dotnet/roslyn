@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -22,17 +23,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(ExplicitInterfaceTypeCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(ExplicitInterfaceTypeCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(ExplicitInterfaceMemberCompletionProvider))]
-[Shared]
-internal sealed partial class ExplicitInterfaceTypeCompletionProvider : AbstractSymbolCompletionProvider<CSharpSyntaxContext>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ExplicitInterfaceTypeCompletionProvider() : AbstractSymbolCompletionProvider<CSharpSyntaxContext>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ExplicitInterfaceTypeCompletionProvider()
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
 
     public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
@@ -124,19 +120,14 @@ internal sealed partial class ExplicitInterfaceTypeCompletionProvider : Abstract
 
     private static bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)
     {
-        if (tokenBeforeType.Kind() == SyntaxKind.AsyncKeyword)
-        {
+        while (tokenBeforeType.Kind() is SyntaxKind.AsyncKeyword or SyntaxKind.StaticKeyword)
             tokenBeforeType = tokenBeforeType.GetPreviousToken();
-        }
 
+        // Show us after the open brace for a class/struct/interface
         if (tokenBeforeType.Kind() == SyntaxKind.OpenBraceToken)
-        {
-            // Show us after the open brace for a class/struct/interface
             return IsClassOrStructOrInterfaceOrRecord(tokenBeforeType.GetRequiredParent());
-        }
 
-        if (tokenBeforeType.Kind() is SyntaxKind.CloseBraceToken or
-            SyntaxKind.SemicolonToken)
+        if (tokenBeforeType.Kind() is SyntaxKind.CloseBraceToken or SyntaxKind.SemicolonToken)
         {
             // Check that we're after a class/struct/interface member.
             var memberDeclaration = tokenBeforeType.GetAncestor<MemberDeclarationSyntax>();

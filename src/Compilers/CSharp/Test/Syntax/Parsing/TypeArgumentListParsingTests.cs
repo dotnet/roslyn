@@ -2,19 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class TypeArgumentListParsingTests : ParsingTests
+    public sealed class TypeArgumentListParsingTests : ParsingTests
     {
         public TypeArgumentListParsingTests(ITestOutputHelper output) : base(output) { }
 
-        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
+        protected override SyntaxTree ParseTree(string text, CSharpParseOptions? options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
         }
@@ -2810,6 +2808,878 @@ class C
                                                 N(SyntaxKind.IdentifierName);
                                                 {
                                                     N(SyntaxKind.IdentifierToken, "projectChange");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGenericWithExtraCommasAndMissingTypes1()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<string,,>.Instance;
+                    }
+                }
+                """,
+                // (5,32): error CS1031: Type expected
+                //         var added = Goo<string,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 32),
+                // (5,33): error CS1031: Type expected
+                //         var added = Goo<string,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 33));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.PredefinedType);
+                                                        {
+                                                            N(SyntaxKind.StringKeyword);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Instance");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGenericWithExtraCommasAndMissingTypes2()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<Id,,>.Instance;
+                    }
+                }
+                """,
+                // (5,28): error CS1031: Type expected
+                //         var added = Goo<Id,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 28),
+                // (5,29): error CS1031: Type expected
+                //         var added = Goo<Id,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 29));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Id");
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Instance");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGenericWithExtraCommasAndMissingTypes3()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<,Id,>.Instance;
+                    }
+                }
+                """,
+                // (5,25): error CS1031: Type expected
+                //         var added = Goo<,Id,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 25),
+                // (5,29): error CS1031: Type expected
+                //         var added = Goo<,Id,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 29));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Id");
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Instance");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGenericWithExtraCommasAndMissingTypes4()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<,,Id>.Instance;
+                    }
+                }
+                """,
+                // (5,25): error CS1031: Type expected
+                //         var added = Goo<,,Id>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 25),
+                // (5,26): error CS1031: Type expected
+                //         var added = Goo<,,Id>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 26));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Id");
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Instance");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGenericWithExtraCommasAndMissingTypes5()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<Id[],,>.Instance;
+                    }
+                }
+                """,
+                // (5,30): error CS1031: Type expected
+                //         var added = Goo<Id[],,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 30),
+                // (5,31): error CS1031: Type expected
+                //         var added = Goo<Id[],,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 31));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.ArrayType);
+                                                        {
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "Id");
+                                                            }
+                                                            N(SyntaxKind.ArrayRankSpecifier);
+                                                            {
+                                                                N(SyntaxKind.OpenBracketToken);
+                                                                N(SyntaxKind.OmittedArraySizeExpression);
+                                                                {
+                                                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                                                }
+                                                                N(SyntaxKind.CloseBracketToken);
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Instance");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGenericWithExtraCommasAndMissingTypes6()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<(int i, int j),,>.Instance;
+                    }
+                }
+                """,
+                // (5,40): error CS1031: Type expected
+                //         var added = Goo<(int i, int j),,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 40),
+                // (5,41): error CS1031: Type expected
+                //         var added = Goo<(int i, int j),,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 41));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.TupleType);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.TupleElement);
+                                                            {
+                                                                N(SyntaxKind.PredefinedType);
+                                                                {
+                                                                    N(SyntaxKind.IntKeyword);
+                                                                }
+                                                                N(SyntaxKind.IdentifierToken, "i");
+                                                            }
+                                                            N(SyntaxKind.CommaToken);
+                                                            N(SyntaxKind.TupleElement);
+                                                            {
+                                                                N(SyntaxKind.PredefinedType);
+                                                                {
+                                                                    N(SyntaxKind.IntKeyword);
+                                                                }
+                                                                N(SyntaxKind.IdentifierToken, "j");
+                                                            }
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Instance");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGenericWithExtraCommasAndMissingTypes7()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<K<int>,,>.Instance;
+                    }
+                }
+                """,
+                // (5,32): error CS1031: Type expected
+                //         var added = Goo<K<int>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 32),
+                // (5,33): error CS1031: Type expected
+                //         var added = Goo<K<int>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 33));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.GenericName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "K");
+                                                            N(SyntaxKind.TypeArgumentList);
+                                                            {
+                                                                N(SyntaxKind.LessThanToken);
+                                                                N(SyntaxKind.PredefinedType);
+                                                                {
+                                                                    N(SyntaxKind.IntKeyword);
+                                                                }
+                                                                N(SyntaxKind.GreaterThanToken);
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Instance");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestGenericWithExtraCommasAndMissingTypes8()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<K<int,,>,,>.Instance;
+                    }
+                }
+                """,
+                // (5,31): error CS1031: Type expected
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 31),
+                // (5,32): error CS1031: Type expected
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 32),
+                // (5,34): error CS1031: Type expected
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 34),
+                // (5,35): error CS1031: Type expected
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 35));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "added");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleMemberAccessExpression);
+                                            {
+                                                N(SyntaxKind.GenericName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                                    N(SyntaxKind.TypeArgumentList);
+                                                    {
+                                                        N(SyntaxKind.LessThanToken);
+                                                        N(SyntaxKind.GenericName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "K");
+                                                            N(SyntaxKind.TypeArgumentList);
+                                                            {
+                                                                N(SyntaxKind.LessThanToken);
+                                                                N(SyntaxKind.PredefinedType);
+                                                                {
+                                                                    N(SyntaxKind.IntKeyword);
+                                                                }
+                                                                N(SyntaxKind.CommaToken);
+                                                                M(SyntaxKind.IdentifierName);
+                                                                {
+                                                                    M(SyntaxKind.IdentifierToken);
+                                                                }
+                                                                N(SyntaxKind.CommaToken);
+                                                                M(SyntaxKind.IdentifierName);
+                                                                {
+                                                                    M(SyntaxKind.IdentifierToken);
+                                                                }
+                                                                N(SyntaxKind.GreaterThanToken);
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.CommaToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                        N(SyntaxKind.GreaterThanToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Instance");
                                                 }
                                             }
                                         }

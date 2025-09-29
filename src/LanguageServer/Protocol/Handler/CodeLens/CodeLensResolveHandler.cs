@@ -2,28 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using LSP = Roslyn.LanguageServer.Protocol;
-using System.Text.Json;
 using StreamJsonRpc;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
+[ExportCSharpVisualBasicStatelessLspService(typeof(CodeLensResolveHandler)), Shared]
 [Method(LSP.Methods.CodeLensResolveName)]
-internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler<LSP.CodeLens, LSP.CodeLens>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandler<LSP.CodeLens, LSP.CodeLens>
 {
     /// <summary>
     /// Command name implemented by the client and invoked when the references code lens is selected.
     /// </summary>
     private const string ClientReferencesCommand = "roslyn.client.peekReferences";
-
-    public CodeLensResolveHandler()
-    {
-    }
 
     public bool MutatesSolutionState => false;
 
@@ -32,9 +33,14 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLens request)
         => GetCodeLensResolveData(request).TextDocument;
 
-    public async Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
+    public Task<LSP.CodeLens> HandleRequestAsync(LSP.CodeLens request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.GetRequiredDocument();
+        return ResolveCodeLensAsync(request, document, cancellationToken);
+    }
+
+    internal static async Task<LSP.CodeLens> ResolveCodeLensAsync(LSP.CodeLens request, Document document, CancellationToken cancellationToken)
+    {
         var currentDocumentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
         var resolveData = GetCodeLensResolveData(request);
 
@@ -44,7 +50,7 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
             CommandIdentifier = ClientReferencesCommand,
             Arguments =
             [
-                resolveData.TextDocument.Uri,
+                resolveData.TextDocument.DocumentUri,
                 request.Range.Start
             ]
         };
@@ -72,7 +78,7 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
                 CommandIdentifier = ClientReferencesCommand,
                 Arguments =
                 [
-                    resolveData.TextDocument.Uri,
+                    resolveData.TextDocument.DocumentUri,
                     request.Range.Start,
                 ],
             };

@@ -14,15 +14,11 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertIfToSwitch), Shared]
-internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider()
     : AbstractConvertIfToSwitchCodeRefactoringProvider<IfStatementSyntax, ExpressionSyntax, BinaryExpressionSyntax, PatternSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpConvertIfToSwitchCodeRefactoringProvider()
-    {
-    }
-
     public override string GetTitle(bool forSwitchExpression)
         => forSwitchExpression
             ? CSharpFeaturesResources.Convert_to_switch_expression

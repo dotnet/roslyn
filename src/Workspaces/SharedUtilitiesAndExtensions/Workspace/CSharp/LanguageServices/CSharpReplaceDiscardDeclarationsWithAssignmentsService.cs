@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -49,6 +47,12 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
                 case LocalDeclarationStatementSyntax localDeclarationStatement:
                     if (localDeclarationStatement.Declaration.Variables.Any(IsDiscardDeclaration))
                     {
+                        // Skip replacing discard declarations in "using var"
+                        if (localDeclarationStatement.UsingKeyword != default)
+                        {
+                            continue;
+                        }
+
                         RemoveDiscardHelper.ProcessDeclarationStatement(localDeclarationStatement, editor);
                     }
 

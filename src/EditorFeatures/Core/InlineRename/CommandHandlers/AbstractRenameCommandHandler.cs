@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -23,15 +22,9 @@ internal abstract partial class AbstractRenameCommandHandler(
 {
     public string DisplayName => EditorFeaturesResources.Rename;
 
-    protected abstract bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView);
-
     protected abstract void SetFocusToTextView(ITextView textView);
 
     protected abstract void SetFocusToAdornment(ITextView textView);
-
-    protected abstract void SetAdornmentFocusToPreviousElement(ITextView textView);
-
-    protected abstract void SetAdornmentFocusToNextElement(ITextView textView);
 
     private CommandState GetCommandState(Func<CommandState> nextHandler)
     {
@@ -55,6 +48,12 @@ internal abstract partial class AbstractRenameCommandHandler(
             return;
         }
 
+        if (renameService.ActiveSession.IsCommitInProgress)
+        {
+            // When rename commit is in progress, swallow the command so it won't change the workspace
+            return;
+        }
+
         var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
 
         if (selectedSpans.Count > 1)
@@ -73,9 +72,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
         else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
-            // It's in a read-only area that is open, so let's commit the rename 
-            // and then let the character go through
-            CommitIfActive(args, operationContext);
+            CancelRenameSession();
             nextHandler();
         }
         else
@@ -85,23 +82,11 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
     }
 
-    private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+    private void CancelRenameSession()
     {
-        if (renameService.ActiveSession != null)
-        {
-            var selection = args.TextView.Selection.VirtualSelectedSpans.First();
-
-            Commit(operationContext);
-
-            var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
-            args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
-            args.TextView.Caret.MoveTo(translatedSelection.End);
-        }
+        renameService.ActiveSession?.Cancel();
     }
 
-    private void Commit(IUIThreadOperationContext operationContext)
-    {
-        RoslynDebug.AssertNotNull(renameService.ActiveSession);
-        renameService.ActiveSession.Commit(previewChanges: false, operationContext);
-    }
+    private bool IsRenameCommitInProgress()
+        => renameService.ActiveSession?.IsCommitInProgress is true;
 }

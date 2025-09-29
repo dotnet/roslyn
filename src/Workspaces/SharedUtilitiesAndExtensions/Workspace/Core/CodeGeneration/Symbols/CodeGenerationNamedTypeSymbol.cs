@@ -8,13 +8,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -145,7 +140,7 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
     {
         get
         {
-            return ImmutableArray.CreateRange(_typeParameters);
+            return [.. _typeParameters];
         }
     }
 
@@ -155,23 +150,22 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
     {
         get
         {
-            return ImmutableArray.CreateRange(_interfaces);
+            return [.. _interfaces];
         }
     }
 
     public override ImmutableArray<ISymbol> GetMembers()
-        => ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
+        => [.. _members.Concat(this.TypeMembers)];
 
     public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-        => ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
+        => [.. this.TypeMembers.Cast<INamedTypeSymbol>()];
 
     public override ImmutableArray<IMethodSymbol> InstanceConstructors
     {
         get
         {
             // NOTE(cyrusn): remember to Construct the result if we implement this.
-            return ImmutableArray.CreateRange(
-                this.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Constructor && !m.IsStatic));
+            return [.. this.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Constructor && !m.IsStatic)];
         }
     }
 
@@ -180,8 +174,7 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
         get
         {
             // NOTE(cyrusn): remember to Construct the result if we implement this.
-            return ImmutableArray.CreateRange(
-                this.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.StaticConstructor && m.IsStatic));
+            return [.. this.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.StaticConstructor && m.IsStatic)];
         }
     }
 

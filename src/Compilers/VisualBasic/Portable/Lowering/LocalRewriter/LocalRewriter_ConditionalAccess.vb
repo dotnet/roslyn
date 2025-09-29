@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewrittenReceiver As BoundExpression = VisitExpressionNode(node.Receiver)
             Dim receiverType As TypeSymbol = rewrittenReceiver.Type
 
-            Dim receiverOrCondition As BoundExpression
+            Dim receiver As BoundExpression
             Dim placeholderReplacement As BoundExpression
             Dim newPlaceholderId As Integer = 0
             Dim newPlaceHolder As BoundConditionalAccessReceiverPlaceholder
@@ -51,38 +51,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' if( receiver.HasValue, receiver.GetValueOrDefault(). ... -> to Nullable, Nothing) 
                 If HasNoValue(rewrittenReceiver) Then
                     ' Nothing
-                    receiverOrCondition = Nothing
+                    receiver = Nothing
                     needWhenNotNullPart = False
                     placeholderReplacement = Nothing
+                    captureReceiver = False
+                    newPlaceHolder = Nothing
                 ElseIf HasValue(rewrittenReceiver) Then
                     ' receiver. ... -> to Nullable
-                    receiverOrCondition = Nothing
+                    receiver = Nothing
                     needWhenNullPart = False
                     placeholderReplacement = NullableValueOrDefault(rewrittenReceiver)
+                    captureReceiver = False
+                    newPlaceHolder = Nothing
                 Else
-                    Dim first As BoundExpression
+                    captureReceiver = ShouldCaptureConditionalAccessReceiver(rewrittenReceiver)
 
-                    If ShouldCaptureConditionalAccessReceiver(rewrittenReceiver) Then
-                        temp = New SynthesizedLocal(Me._currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
-
-                        assignment = factory.AssignmentExpression(factory.Local(temp, isLValue:=True), rewrittenReceiver.MakeRValue())
-                        first = factory.Local(temp, isLValue:=True)
-                        placeholderReplacement = factory.Local(temp, isLValue:=True)
-                    Else
-                        first = rewrittenReceiver
-                        placeholderReplacement = rewrittenReceiver
-                    End If
-
-                    receiverOrCondition = NullableHasValue(first)
-                    placeholderReplacement = NullableValueOrDefault(placeholderReplacement)
+                    Me._conditionalAccessReceiverPlaceholderId += 1
+                    newPlaceholderId = Me._conditionalAccessReceiverPlaceholderId
+                    Debug.Assert(newPlaceholderId <> 0)
+                    newPlaceHolder = New BoundConditionalAccessReceiverPlaceholder(node.Placeholder.Syntax, newPlaceholderId, captureReceiver, receiverType)
+                    receiver = rewrittenReceiver
+                    TryGetSpecialMember(Of MethodSymbol)(Nothing, SpecialMember.System_Nullable_T_get_HasValue, receiver.Syntax)
+                    placeholderReplacement = NullableValueOrDefault(newPlaceHolder)
                 End If
-
-                captureReceiver = False
-                newPlaceHolder = Nothing
             Else
 
                 If rewrittenReceiver.IsConstant Then
-                    receiverOrCondition = Nothing
+                    receiver = Nothing
                     captureReceiver = False
                     newPlaceHolder = Nothing
 
@@ -97,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Else
                     ' if( receiver IsNot Nothing, receiver. ... -> to Nullable, Nothing) 
-                    receiverOrCondition = rewrittenReceiver
+                    receiver = rewrittenReceiver
 
                     ' we need a copy if we deal with nonlocal value (to capture the value)
                     ' Or if we have a ref-constrained T (to do box just once)
@@ -148,17 +143,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If needWhenNotNullPart Then
                 If needWhenNullPart Then
-                    result = New BoundLoweredConditionalAccess(node.Syntax, receiverOrCondition, captureReceiver, newPlaceholderId, whenNotNull, whenNull, node.Type)
+                    result = New BoundLoweredConditionalAccess(node.Syntax, receiver, captureReceiver, newPlaceholderId, whenNotNull, whenNull, node.Type)
                 Else
-                    Debug.Assert(receiverOrCondition Is Nothing)
+                    Debug.Assert(receiver Is Nothing)
                     Debug.Assert(newPlaceHolder Is Nothing)
                     result = whenNotNull
                 End If
             ElseIf whenNull IsNot Nothing Then
-                Debug.Assert(receiverOrCondition Is Nothing)
+                Debug.Assert(receiver Is Nothing)
                 result = whenNull
             Else
-                Debug.Assert(receiverOrCondition Is Nothing)
+                Debug.Assert(receiver Is Nothing)
                 Debug.Assert(node.Type.IsVoidType())
                 result = New BoundSequence(node.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray(Of BoundExpression).Empty, Nothing, node.Type)
             End If
@@ -211,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim conditional = DirectCast(operand, BoundLoweredConditionalAccess)
 
-            operand = conditional.Update(conditional.ReceiverOrCondition,
+            operand = conditional.Update(conditional.Receiver,
                                          conditional.CaptureReceiver,
                                          conditional.PlaceholderId,
                                          whenNotNull,

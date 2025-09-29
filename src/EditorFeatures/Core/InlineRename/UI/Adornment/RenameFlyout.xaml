@@ -1,0 +1,132 @@
+﻿<rename:InlineRenameAdornment x:Class="Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.RenameFlyout"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:utils="clr-namespace:Microsoft.CodeAnalysis.Utilities"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800"
+             KeyDown="Adornment_KeyDown"
+             MouseDown="Adornment_ConsumeMouseEvent"
+             MouseUp="Adornment_ConsumeMouseEvent"
+             GotKeyboardFocus="Adornment_GotKeyboardFocus"
+             Focusable="False"
+             UseLayoutRounding="True"
+             Cursor="Arrow"
+             Visibility="{Binding Path=Visibility}"
+             x:Name="control">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <utils:BrushToColorConverter x:Key="BrushToColorConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border
+        Background="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+        BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowBorderBrushKey}}"
+        BorderThickness="1"
+        x:Name="Outline"
+        platformimaging:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
+        <StackPanel x:Name="MainPanel" Orientation="Vertical" Margin="5" >
+            <Grid x:Name="IdentifierAndExpandButtonGrid" Margin="0 0 0 5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="22" />
+                </Grid.ColumnDefinitions>
+
+                <rename:RenameUserInputPresenter
+                    Grid.Column="0"
+                    x:Name="RenameUserInputPresenter"
+                    HorizontalAlignment="Stretch"/>
+
+                <!-- Expand/Collapse button and glyph -->
+                <Button
+                    x:Name="ToggleExpandButton"
+                    Grid.Column="1"
+                    Click="ToggleExpand"
+                    VerticalAlignment="Top"
+                    Margin="0 2 0 0"
+                    Background="Transparent"
+                    platformimaging:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, ElementName=Outline, Converter={StaticResource BrushToColorConverter}}" >
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Name="border"
+                                        BorderThickness="1"
+                                        Background="{TemplateBinding Background}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                    <imaging:CrispImage Grid.Column="0">
+                        <imaging:CrispImage.Style>
+                            <Style TargetType="imaging:CrispImage">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                                        <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.ExpandDown}" />
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding IsCollapsed}" Value="False">
+                                        <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.CollapseUp}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </imaging:CrispImage.Style>
+                    </imaging:CrispImage>
+                </Button>
+            </Grid>
+
+            <Grid Visibility="{Binding ShowStatusText, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="22" />
+                    <ColumnDefinition Width="*"  />
+                </Grid.ColumnDefinitions>
+
+                <imaging:CrispImage Grid.Column="0" Moniker="{Binding StatusImageMoniker}" />
+                <TextBlock Grid.Column="1" Text="{Binding StatusText}" TextWrapping="Wrap" />
+            </Grid>
+
+            <TextBlock
+                Text="{Binding SearchText}"
+                Visibility="{Binding ShowSearchText, Converter={StaticResource BooleanToVisibilityConverter}}"
+                FontWeight="Light"
+                TextWrapping="Wrap"
+                VerticalAlignment="Center"
+                Margin="0,0,0,5" />
+
+            <StackPanel Orientation="Vertical" Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <CheckBox Content="{Binding ElementName=control, Path=RenameOverloads}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameOverloadFlag, Mode=TwoWay}"
+                      Name="OverloadsCheckbox" Visibility="{Binding IsRenameOverloadsVisible, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" IsEnabled="{Binding IsRenameOverloadsEditable}" />
+                <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=control, Path=SearchInComments}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}" />
+                <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=control, Path=SearchInStrings}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" />
+                <CheckBox Name="FileRenameCheckbox"
+                    Content="{Binding Path=FileRenameString}"
+                    Margin="0,5,0,0"
+                    IsChecked="{Binding Path=RenameFileFlag, Mode=TwoWay}"
+                    IsEnabled="{Binding Path=AllowFileRename, Mode=OneWay}"
+                    Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
+            </StackPanel>
+
+            <TextBlock
+                x:Name="SubmitTextBlock"
+                Text="{Binding ElementName=control, Path=SubmitText}"
+                Margin="5, 5, 0, 0"
+                FontStyle="Italic"
+                TextWrapping="Wrap"
+                />
+        </StackPanel>
+    </Border>
+</rename:InlineRenameAdornment>

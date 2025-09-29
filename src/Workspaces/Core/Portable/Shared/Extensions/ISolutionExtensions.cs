@@ -39,20 +39,6 @@ internal static partial class ISolutionExtensions
     public static TextDocumentKind? GetDocumentKind(this Solution solution, DocumentId documentId)
         => solution.GetTextDocument(documentId)?.Kind;
 
-    internal static TextDocument? GetTextDocumentForLocation(this Solution solution, Location location)
-    {
-        switch (location.Kind)
-        {
-            case LocationKind.SourceFile:
-                return solution.GetDocument(location.SourceTree);
-            case LocationKind.ExternalFile:
-                var documentId = solution.GetDocumentIdsWithFilePath(location.GetLineSpan().Path).FirstOrDefault();
-                return solution.GetTextDocument(documentId);
-            default:
-                return null;
-        }
-    }
-
     public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
     {
         var documentKind = solution.GetDocumentKind(documentId);

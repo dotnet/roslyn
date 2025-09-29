@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -22,7 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
-    [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService,
     [Import] IGlobalOptionService globalOptions)
     : IDiagnosticSourceProvider
 {
@@ -56,32 +54,28 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
 
         var solution = context.Solution;
-        var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
         var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
         foreach (var project in WorkspaceDiagnosticSourceHelpers.GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
-            await AddDocumentsAndProjectAsync(project, diagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
+            await AddDocumentsAndProjectAsync(project, cancellationToken).ConfigureAwait(false);
 
         return result.ToImmutableAndClear();
 
-        async Task AddDocumentsAndProjectAsync(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, CancellationToken cancellationToken)
+        async Task AddDocumentsAndProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
             if (!fullSolutionAnalysisEnabled && !codeAnalysisService.HasProjectBeenAnalyzed(project.Id))
                 return;
 
-            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
-                ? ShouldIncludeAnalyzer : null;
+            var filter =
+                (compilerFullSolutionAnalysisEnabled ? AnalyzerFilter.CompilerAnalyzer : 0) |
+                (analyzersFullSolutionAnalysisEnabled ? AnalyzerFilter.NonCompilerAnalyzer : 0);
 
             AddDocumentSources(project.Documents);
             AddDocumentSources(project.AdditionalDocuments);
 
-            // If all features are enabled for source generated documents, then compute todo-comments/diagnostics for them.
-            if (enableDiagnosticsInSourceGeneratedFiles)
-            {
-                var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-                AddDocumentSources(sourceGeneratedDocuments);
-            }
+            var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+            AddDocumentSources(sourceGeneratedDocuments);
 
             // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
             AddProjectSource();
@@ -96,7 +90,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
                     {
                         // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
                         var documentDiagnosticSource = fullSolutionAnalysisEnabled
-                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, diagnosticAnalyzerService, shouldIncludeAnalyzer)
+                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, filter)
                             : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
                         result.Add(documentDiagnosticSource);
                     }
@@ -106,13 +100,10 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
             void AddProjectSource()
             {
                 var projectDiagnosticSource = fullSolutionAnalysisEnabled
-                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, diagnosticAnalyzerService, shouldIncludeAnalyzer)
+                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, filter)
                     : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
                 result.Add(projectDiagnosticSource);
             }
-
-            bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
-                => analyzer.IsCompilerAnalyzer() ? compilerFullSolutionAnalysisEnabled : analyzersFullSolutionAnalysisEnabled;
         }
     }
 }

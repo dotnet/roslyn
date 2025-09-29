@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// Cached mapping of localizable strings in this descriptor to any exceptions thrown while obtaining them.
             /// </summary>
-            private static ImmutableDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableDictionary<LocalizableString, Exception?>.Empty.WithComparers(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+            private static ImmutableDictionary<LocalizableString, Exception?> s_localizableStringToException = ImmutableDictionary<LocalizableString, Exception?>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
 
             private readonly DiagnosticAnalyzer _analyzer;
             private readonly object _gate;

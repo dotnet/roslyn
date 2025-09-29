@@ -17,11 +17,6 @@
         <target state="translated">Varsayılan durum ekle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Açık tür dönüştürme ekle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">Dosya üst bilgisi ekle</target>

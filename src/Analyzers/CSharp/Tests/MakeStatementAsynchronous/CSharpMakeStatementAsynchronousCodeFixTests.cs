@@ -16,12 +16,11 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeStatementAsynchronousCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStatementAsynchronous)]
-public class CSharpMakeStatementAsynchronousCodeFixTests
+public sealed class CSharpMakeStatementAsynchronousCodeFixTests
 {
     [Fact]
-    public async Task FixAllForeach()
-    {
-        await new VerifyCS.Test()
+    public Task FixAllForeach()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class Program
@@ -45,12 +44,10 @@ public class CSharpMakeStatementAsynchronousCodeFixTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAllForeachDeconstruction()
-    {
-        await new VerifyCS.Test()
+    public Task FixAllForeachDeconstruction()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class Program
@@ -74,12 +71,10 @@ public class CSharpMakeStatementAsynchronousCodeFixTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAllUsingStatement()
-    {
-        await new VerifyCS.Test()
+    public Task FixAllUsingStatement()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class Program
@@ -103,12 +98,10 @@ public class CSharpMakeStatementAsynchronousCodeFixTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAllUsingDeclaration()
-    {
-        await new VerifyCS.Test()
+    public Task FixAllUsingDeclaration()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class Program
@@ -132,12 +125,10 @@ public class CSharpMakeStatementAsynchronousCodeFixTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixForeach()
-    {
-        await new VerifyCS.Test()
+    public Task FixForeach()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class Program
@@ -163,12 +154,10 @@ public class CSharpMakeStatementAsynchronousCodeFixTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixForeachDeconstruction()
-    {
-        await new VerifyCS.Test()
+    public Task FixForeachDeconstruction()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class Program
@@ -194,12 +183,10 @@ public class CSharpMakeStatementAsynchronousCodeFixTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixUsingStatement()
-    {
-        await new VerifyCS.Test()
+    public Task FixUsingStatement()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class Program
@@ -225,12 +212,10 @@ public class CSharpMakeStatementAsynchronousCodeFixTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixUsingDeclaration()
-    {
-        await new VerifyCS.Test()
+    public Task FixUsingDeclaration()
+        => new VerifyCS.Test()
         {
             TestCode = """
                 class Program
@@ -252,5 +237,4 @@ public class CSharpMakeStatementAsynchronousCodeFixTests
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
-    }
 }

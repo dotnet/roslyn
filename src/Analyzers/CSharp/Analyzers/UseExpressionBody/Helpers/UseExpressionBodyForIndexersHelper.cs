@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -15,7 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
-internal class UseExpressionBodyForIndexersHelper :
+internal sealed class UseExpressionBodyForIndexersHelper :
     UseExpressionBodyHelper<IndexerDeclarationSyntax>
 {
     public static readonly UseExpressionBodyForIndexersHelper Instance = new();
@@ -61,10 +60,11 @@ internal class UseExpressionBodyForIndexersHelper :
         throw new InvalidOperationException();
     }
 
-    protected override IndexerDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, IndexerDeclarationSyntax declaration)
-        => WithAccessorList(semanticModel, declaration);
+    protected override IndexerDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, IndexerDeclarationSyntax declaration, CancellationToken cancellationToken)
+        => WithAccessorList(semanticModel, declaration, cancellationToken);
 
-    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration) => true;
+    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration, CancellationToken cancellationToken)
+        => true;
 
     protected override bool TryConvertToExpressionBody(
         IndexerDeclarationSyntax declaration,

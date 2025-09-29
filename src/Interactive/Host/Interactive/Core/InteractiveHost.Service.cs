@@ -106,11 +106,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
+            private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories =
+            [
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
                 FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
-                FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
+                FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()),
+            ];
 
             #region Setup
 
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var workingDirectory = Directory.GetCurrentDirectory();
 
                 var referenceResolver = new RuntimeMetadataReferenceResolver(
-                    searchPaths: ImmutableArray<string>.Empty,
+                    searchPaths: [],
                     baseDirectory: workingDirectory,
                     packageResolver: null,
                     gacFileResolver: s_currentPlatformInfo.HasGlobalAssemblyCache ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var initialState = new EvaluationState(
                     scriptState: null,
                     scriptOptions: ScriptOptions.Default.WithMetadataResolver(new ScriptMetadataResolver(referenceResolver)),
-                    ImmutableArray<string>.Empty,
+                    [],
                     workingDirectory);
 
                 _lastTask = Task.FromResult(initialState);

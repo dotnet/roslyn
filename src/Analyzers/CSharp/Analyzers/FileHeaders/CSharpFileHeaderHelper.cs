@@ -5,21 +5,15 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.FileHeaders;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.FileHeaders;
 
 /// <summary>
 /// Helper class used for working with file headers.
 /// </summary>
-internal sealed class CSharpFileHeaderHelper : AbstractFileHeaderHelper
+internal sealed class CSharpFileHeaderHelper() : AbstractFileHeaderHelper(CSharpSyntaxKinds.Instance)
 {
     public static readonly CSharpFileHeaderHelper Instance = new();
-
-    private CSharpFileHeaderHelper()
-        : base(CSharpSyntaxKinds.Instance)
-    {
-    }
 
     public override string CommentPrefix => "//";
 

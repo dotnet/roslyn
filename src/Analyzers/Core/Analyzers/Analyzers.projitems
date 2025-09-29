@@ -10,7 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" GenerateSource="true" Link="AnalyzersResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)AnalyzersResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer.cs" />
@@ -102,6 +104,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer_IfStatement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AnalysisResults.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseNamedMemberInitializerAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeDiagnosticAnalyzer.cs" />

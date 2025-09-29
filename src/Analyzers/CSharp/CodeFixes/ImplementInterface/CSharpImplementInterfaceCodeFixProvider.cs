@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementAbstractClass)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class CSharpImplementInterfaceCodeFixProvider() : AbstractImplementInterfaceCodeFixProvider<TypeSyntax>
+internal sealed class CSharpImplementInterfaceCodeFixProvider()
+    : AbstractImplementInterfaceCodeFixProvider<TypeSyntax>
 {
     private const string CS0535 = nameof(CS0535); // 'Program' does not implement interface member 'System.Collections.IEnumerable.GetEnumerator()'
     private const string CS0737 = nameof(CS0737); // 'Class' does not implement interface member 'IInterface.M()'. 'Class.M()' cannot implement an interface member because it is not public.
@@ -23,7 +24,4 @@ internal sealed class CSharpImplementInterfaceCodeFixProvider() : AbstractImplem
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [CS0535, CS0737, CS0738];
-
-    protected override bool IsTypeInInterfaceBaseList(TypeSyntax type)
-        => type.Parent is BaseTypeSyntax { Parent: BaseListSyntax } baseTypeParent && baseTypeParent.Type == type;
 }

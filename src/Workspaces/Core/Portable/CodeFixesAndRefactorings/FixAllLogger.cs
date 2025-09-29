@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
@@ -39,7 +38,7 @@ internal static class FixAllLogger
     private const string TotalDiagnosticsToFix = nameof(TotalDiagnosticsToFix);
     private const string TotalFixesToMerge = nameof(TotalFixesToMerge);
 
-    public static void LogState(IFixAllState fixAllState, bool isInternalProvider)
+    public static void LogState(IRefactorOrFixAllState fixAllState, bool isInternalProvider)
     {
         FunctionId functionId;
         string providerKey;
@@ -183,5 +182,5 @@ internal static class FixAllLogger
     }
 
     public static LogMessage CreateCorrelationLogMessage(int correlationId)
-        => KeyValueLogMessage.Create(LogType.UserAction, m => m[CorrelationId] = correlationId);
+        => KeyValueLogMessage.Create(LogType.UserAction, static (m, correlationId) => m[CorrelationId] = correlationId, correlationId);
 }

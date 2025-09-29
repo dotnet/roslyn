@@ -9,29 +9,28 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Telemetry;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+[ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Test), Shared]
+internal sealed class TestErrorReportingService : IErrorReportingService
 {
-    [ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Test), Shared]
-    internal sealed class TestErrorReportingService : IErrorReportingService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TestErrorReportingService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestErrorReportingService()
-        {
-        }
-
-        public Action<string> OnError { get; set; } = message => Assert.False(true, message);
-
-        public string HostDisplayName
-            => "Test Host";
-
-        public void ShowDetailedErrorInfo(Exception exception)
-            => OnError(exception.Message);
-
-        public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
-            => OnError(message);
-
-        public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
-            => OnError($"{message} {exception}");
     }
+
+    public Action<string> OnError { get; set; } = message => Assert.False(true, message);
+
+    public string HostDisplayName
+        => "Test Host";
+
+    public void ShowDetailedErrorInfo(Exception exception)
+        => OnError(exception.Message);
+
+    public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
+        => OnError(message);
+
+    public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
+        => OnError($"{message} {exception}");
 }

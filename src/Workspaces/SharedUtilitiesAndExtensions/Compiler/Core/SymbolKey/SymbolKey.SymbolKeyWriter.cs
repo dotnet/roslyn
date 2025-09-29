@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -20,28 +19,29 @@ internal partial struct SymbolKey
     private enum SymbolKeyType
     {
         Alias = 'A',
-        BodyLevel = 'B',
-        ConstructedMethod = 'C',
-        NamedType = 'D',
-        ErrorType = 'E',
-        Field = 'F',
-        FunctionPointer = 'G',
-        DynamicType = 'I',
-        BuiltinOperator = 'L',
-        Method = 'M',
-        Namespace = 'N',
-        PointerType = 'O',
-        Parameter = 'P',
-        Property = 'Q',
+        AnonymousFunctionOrDelegate = 'Z',
+        AnonymousType = 'W',
         ArrayType = 'R',
         Assembly = 'S',
-        TupleType = 'T',
-        Module = 'U',
+        BodyLevel = 'B',
+        BuiltinOperator = 'L',
+        ConstructedMethod = 'C',
+        DynamicType = 'I',
+        ErrorType = 'E',
         Event = 'V',
-        AnonymousType = 'W',
+        Field = 'F',
+        FunctionPointer = 'G',
+        Method = 'M',
+        Module = 'U',
+        NamedType = 'D',
+        Namespace = 'N',
+        Parameter = 'P',
+        PointerType = 'O',
+        Preprocessing = 'J',
+        Property = 'Q',
         ReducedExtensionMethod = 'X',
+        TupleType = 'T',
         TypeParameter = 'Y',
-        AnonymousFunctionOrDelegate = 'Z',
 
         // Not to be confused with ArrayType.  This indicates an array of elements in the stream.
         Array = '%',
@@ -190,6 +190,11 @@ internal partial struct SymbolKey
                     // ID.
                     id = existingId;
                 }
+                else if (symbol is IPreprocessingSymbol preprocessingSymbol)
+                {
+                    WriteType(SymbolKeyType.Preprocessing);
+                    PreprocessingSymbolKey.Instance.Create(preprocessingSymbol, this);
+                }
                 else
                 {
                     // Haven't hit this symbol before, write out its fresh ID.
@@ -284,12 +289,10 @@ internal partial struct SymbolKey
         // annotating WriteStringArray and WriteLocationArray as allowing null elements
         // then causes issues where we can't pass ImmutableArrays of non-null elements
 
-#nullable disable
-
-        internal void WriteStringArray(ImmutableArray<string> strings)
+        internal void WriteStringArray(ImmutableArray<string?> strings)
             => WriteArray(strings, _writeString);
 
-        internal void WriteLocationArray(ImmutableArray<Location> array)
+        internal void WriteLocationArray(ImmutableArray<Location?> array)
             => WriteArray(array, _writeLocation);
 
 #nullable enable
@@ -473,7 +476,7 @@ internal partial struct SymbolKey
         public override void VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
         {
             // If it's a reference to a method type parameter, and we're currently writing
-            // out a signture, then only write out the ordinal of type parameter.  This 
+            // out a signature, then only write out the ordinal of type parameter.  This 
             // helps prevent recursion problems in cases like "Goo<T>(T t).
             if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
             {
@@ -489,19 +492,15 @@ internal partial struct SymbolKey
 
         public bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
         {
-            if (symbol.Kind == SymbolKind.TypeParameter)
+            if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter)
             {
-                var typeParameter = (ITypeParameterSymbol)symbol;
-                if (typeParameter.TypeParameterKind == TypeParameterKind.Method)
+                for (int i = 0, n = _methodSymbolStack.Count; i < n; i++)
                 {
-                    for (int i = 0, n = _methodSymbolStack.Count; i < n; i++)
+                    var method = _methodSymbolStack[i];
+                    if (typeParameter.DeclaringMethod!.Equals(method))
                     {
-                        var method = _methodSymbolStack[i];
-                        if (typeParameter.DeclaringMethod!.Equals(method))
-                        {
-                            methodIndex = i;
-                            return true;
-                        }
+                        methodIndex = i;
+                        return true;
                     }
                 }
             }

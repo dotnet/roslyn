@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
+    <NonShipping>true</NonShipping>
+    <UseAppHost>false</UseAppHost>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GenerateDocumentationAndConfigFiles\GenerateDocumentationAndConfigFiles.csproj" />
+  </ItemGroup>
+
+  <Choose>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+        <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+        <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+        <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+        <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+        <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(OfficialBuild)' == 'false'">
+    <!--
+      Don't use the CPM version of these packages. Always use the version that is the transitive dependency of Microsoft.CodeAnalysis.
+      This is because the CPM version can lead to package downgrades, specifically in non-official source-only builds where the
+      dev/ci suffix in the version of these packages coming from the live build is treated as a lower version than the version
+      from the previously source-built artifacts.
+    -->
+    <PackageVersion Remove="System.Collections.Immutable" />
+    <PackageVersion Remove="System.Composition" />
+    <PackageVersion Remove="System.IO.Pipelines" />
+    <PackageVersion Remove="System.Reflection.Metadata" />
+  </ItemGroup>
+</Project>

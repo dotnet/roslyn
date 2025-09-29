@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' <summary>
@@ -85,6 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
                 Return ImmutableArray(Of TypeSymbol).Empty
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return False
             End Get
         End Property
 

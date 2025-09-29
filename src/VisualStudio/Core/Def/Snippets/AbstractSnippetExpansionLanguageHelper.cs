@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
@@ -20,13 +22,15 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Snippets;
 
-internal abstract class AbstractSnippetExpansionLanguageHelper
+internal abstract class AbstractSnippetExpansionLanguageHelper(IThreadingContext threadingContext)
     : ISnippetExpansionLanguageHelper
 {
+    protected readonly IThreadingContext ThreadingContext = threadingContext;
+
     public abstract Guid LanguageServiceGuid { get; }
     public abstract string FallbackDefaultLiteral { get; }
 
-    public abstract Document AddImports(Document document, AddImportPlacementOptions addImportOptions, SyntaxFormattingOptions formattingOptions, int position, XElement snippetNode, CancellationToken cancellationToken);
+    public abstract Task<Document> AddImportsAsync(Document document, AddImportPlacementOptions addImportOptions, SyntaxFormattingOptions formattingOptions, int position, XElement snippetNode, CancellationToken cancellationToken);
     public abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan(IVsExpansionSession expansionSession, ITextView textView, ITextBuffer subjectBuffer);
 
     public bool TryGetSubjectBufferSpan(ITextView textView, ITextBuffer subjectBuffer, VsTextSpan surfaceBufferTextSpan, out SnapshotSpan subjectBufferSpan)

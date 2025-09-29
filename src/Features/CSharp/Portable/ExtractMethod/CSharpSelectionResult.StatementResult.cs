@@ -2,101 +2,105 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal abstract partial class CSharpSelectionResult
+internal sealed partial class CSharpExtractMethodService
 {
-    private sealed class StatementResult(
-        TextSpan originalSpan,
-        TextSpan finalSpan,
-        bool selectionInExpression,
-        SemanticDocument document,
-        SyntaxAnnotation firstTokenAnnotation,
-        SyntaxAnnotation lastTokenAnnotation,
-        bool selectionChanged) : CSharpSelectionResult(
-            originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+    internal abstract partial class CSharpSelectionResult
     {
-        public override bool ContainingScopeHasAsyncKeyword()
+        /// <summary>
+        /// Used when extracting either a single statement, or multiple statements to extract.
+        /// </summary>
+        private sealed class StatementResult(
+            SemanticDocument document,
+            SelectionType selectionType,
+            TextSpan finalSpan)
+            : CSharpSelectionResult(document, selectionType, finalSpan)
         {
-            var node = GetContainingScope();
+            public override bool ContainingScopeHasAsyncKeyword()
+                => GetContainingScope() switch
+                {
+                    MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                    LocalFunctionStatementSyntax localFunction => localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword),
+                    AnonymousFunctionExpressionSyntax anonymousFunction => anonymousFunction.AsyncKeyword != default,
+                    _ => false,
+                };
 
-            return node switch
+            public override SyntaxNode GetContainingScope()
             {
-                AccessorDeclarationSyntax _ => false,
-                MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
-                ParenthesizedLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
-                SimpleLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
-                AnonymousMethodExpressionSyntax anonymous => anonymous.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
-                _ => false,
-            };
-        }
+                Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
-        public override SyntaxNode GetContainingScope()
-        {
-            Contract.ThrowIfNull(SemanticDocument);
-            Contract.ThrowIfTrue(SelectionInExpression);
+                return GetFirstTokenInSelection().GetRequiredParent().AncestorsAndSelf().First(n =>
+                    n is AccessorDeclarationSyntax or
+                         LocalFunctionStatementSyntax or
+                         BaseMethodDeclarationSyntax or
+                         AnonymousFunctionExpressionSyntax or
+                         CompilationUnitSyntax);
+            }
 
-            // it contains statements
-            var firstToken = GetFirstTokenInSelection();
-            return firstToken.GetAncestors<SyntaxNode>().FirstOrDefault(n =>
+            protected override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfoWorker(CancellationToken cancellationToken)
             {
-                return n is AccessorDeclarationSyntax or
-                       LocalFunctionStatementSyntax or
-                       BaseMethodDeclarationSyntax or
-                       AccessorDeclarationSyntax or
-                       ParenthesizedLambdaExpressionSyntax or
-                       SimpleLambdaExpressionSyntax or
-                       AnonymousMethodExpressionSyntax or
-                       CompilationUnitSyntax;
-            });
-        }
+                var node = GetContainingScope();
+                var semanticModel = SemanticDocument.SemanticModel;
 
-        public override (ITypeSymbol returnType, bool returnsByRef) GetReturnType()
-        {
-            Contract.ThrowIfTrue(SelectionInExpression);
+                switch (node)
+                {
+                    case AccessorDeclarationSyntax access:
+                        return semanticModel.GetDeclaredSymbol(access.GetRequiredParent().GetRequiredParent(), cancellationToken) switch
+                        {
+                            IPropertySymbol propertySymbol => (propertySymbol.Type, propertySymbol.ReturnsByRef),
+                            IEventSymbol eventSymbol => (eventSymbol.Type, false),
+                            _ => throw ExceptionUtilities.UnexpectedValue(node),
+                        };
 
-            var node = GetContainingScope();
-            var semanticModel = SemanticDocument.SemanticModel;
+                    case LocalFunctionStatementSyntax localFunction:
+                        {
+                            var method = semanticModel.GetRequiredDeclaredSymbol(localFunction, cancellationToken);
+                            return (method.ReturnType, method.ReturnsByRef);
+                        }
 
-            switch (node)
-            {
-                case AccessorDeclarationSyntax access:
-                    // property or event case
-                    if (access.Parent == null || access.Parent.Parent == null)
+                    case BaseMethodDeclarationSyntax methodDeclaration:
+                        {
+                            var method = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
+                            return (method.ReturnType, method.ReturnsByRef);
+                        }
+
+                    case AnonymousFunctionExpressionSyntax function:
+                        {
+                            return semanticModel.GetSymbolInfo(function, cancellationToken).Symbol is not IMethodSymbol method
+                                ? default
+                                : (method.ReturnType, method.ReturnsByRef);
+                        }
+
+                    default:
                         return default;
+                }
+            }
 
-                    return semanticModel.GetDeclaredSymbol(access.Parent.Parent) switch
-                    {
-                        IPropertySymbol propertySymbol => (propertySymbol.Type, propertySymbol.ReturnsByRef),
-                        IEventSymbol eventSymbol => (eventSymbol.Type, false),
-                        _ => default,
-                    };
+            public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+            {
+                if (this.IsExtractMethodOnSingleStatement)
+                {
+                    var firstStatement = this.GetFirstStatement();
+                    return firstStatement.GetRequiredParent();
+                }
 
-                case MethodDeclarationSyntax methodDeclaration:
-                    {
-                        return semanticModel.GetDeclaredSymbol(methodDeclaration) is not IMethodSymbol method
-                            ? default
-                            : (method.ReturnType, method.ReturnsByRef);
-                    }
+                if (this.IsExtractMethodOnMultipleStatements)
+                {
+                    var firstStatement = this.GetFirstStatementUnderContainer();
+                    var container = firstStatement.GetRequiredParent();
+                    return container is GlobalStatementSyntax ? container.GetRequiredParent() : container;
+                }
 
-                case AnonymousFunctionExpressionSyntax function:
-                    {
-                        return semanticModel.GetSymbolInfo(function).Symbol is not IMethodSymbol method
-                            ? default
-                            : (method.ReturnType, method.ReturnsByRef);
-                    }
-
-                default:
-                    return default;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

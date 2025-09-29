@@ -2,43 +2,40 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
+namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest;
+
+public sealed class WordSimilarityCheckerTests
 {
-    public class WordSimilarityCheckerTests
+    [Fact]
+    public void TestCloseMatch()
     {
-        [Fact]
-        public void TestCloseMatch()
-        {
-            Assert.False(WordSimilarityChecker.AreSimilar("variabledeclaratorsyntax", "variabledeclaratorsyntaxextensions"));
-            Assert.True(WordSimilarityChecker.AreSimilar("variabledeclaratorsyntax", "variabledeclaratorsyntaxextensions", substringsAreSimilar: true));
+        Assert.False(WordSimilarityChecker.AreSimilar("variabledeclaratorsyntax", "variabledeclaratorsyntaxextensions"));
+        Assert.True(WordSimilarityChecker.AreSimilar("variabledeclaratorsyntax", "variabledeclaratorsyntaxextensions", substringsAreSimilar: true));
 
-            Assert.False(WordSimilarityChecker.AreSimilar("expressionsyntax", "expressionsyntaxextensions"));
-            Assert.True(WordSimilarityChecker.AreSimilar("expressionsyntax", "expressionsyntaxextensions", substringsAreSimilar: true));
+        Assert.False(WordSimilarityChecker.AreSimilar("expressionsyntax", "expressionsyntaxextensions"));
+        Assert.True(WordSimilarityChecker.AreSimilar("expressionsyntax", "expressionsyntaxextensions", substringsAreSimilar: true));
 
-            Assert.False(WordSimilarityChecker.AreSimilar("expressionsyntax", "expressionsyntaxgeneratorvisitor"));
-            Assert.True(WordSimilarityChecker.AreSimilar("expressionsyntax", "expressionsyntaxgeneratorvisitor", substringsAreSimilar: true));
-        }
+        Assert.False(WordSimilarityChecker.AreSimilar("expressionsyntax", "expressionsyntaxgeneratorvisitor"));
+        Assert.True(WordSimilarityChecker.AreSimilar("expressionsyntax", "expressionsyntaxgeneratorvisitor", substringsAreSimilar: true));
+    }
 
-        [Fact]
-        public void TestNotCloseMatch()
-        {
-            Assert.False(WordSimilarityChecker.AreSimilar("propertyblocksyntax", "ipropertysymbol"));
-            Assert.False(WordSimilarityChecker.AreSimilar("propertyblocksyntax", "ipropertysymbolextensions"));
-            Assert.False(WordSimilarityChecker.AreSimilar("propertyblocksyntax", "typeblocksyntaxextensions"));
+    [Fact]
+    public void TestNotCloseMatch()
+    {
+        Assert.False(WordSimilarityChecker.AreSimilar("propertyblocksyntax", "ipropertysymbol"));
+        Assert.False(WordSimilarityChecker.AreSimilar("propertyblocksyntax", "ipropertysymbolextensions"));
+        Assert.False(WordSimilarityChecker.AreSimilar("propertyblocksyntax", "typeblocksyntaxextensions"));
 
-            Assert.False(WordSimilarityChecker.AreSimilar("fielddeclarationsyntax", "declarationinfo"));
-            Assert.False(WordSimilarityChecker.AreSimilar("fielddeclarationsyntax", "declarationcomputer"));
-            Assert.False(WordSimilarityChecker.AreSimilar("fielddeclarationsyntax", "filelinepositionspan"));
+        Assert.False(WordSimilarityChecker.AreSimilar("fielddeclarationsyntax", "declarationinfo"));
+        Assert.False(WordSimilarityChecker.AreSimilar("fielddeclarationsyntax", "declarationcomputer"));
+        Assert.False(WordSimilarityChecker.AreSimilar("fielddeclarationsyntax", "filelinepositionspan"));
 
-            Assert.False(WordSimilarityChecker.AreSimilar("variabledeclaratorsyntax", "visualbasicdeclarationcomputer"));
-            Assert.False(WordSimilarityChecker.AreSimilar("variabledeclaratorsyntax", "ilineseparatorservice"));
+        Assert.False(WordSimilarityChecker.AreSimilar("variabledeclaratorsyntax", "visualbasicdeclarationcomputer"));
+        Assert.False(WordSimilarityChecker.AreSimilar("variabledeclaratorsyntax", "ilineseparatorservice"));
 
-            Assert.False(WordSimilarityChecker.AreSimilar("expressionsyntax", "awaitexpressioninfo"));
-        }
+        Assert.False(WordSimilarityChecker.AreSimilar("expressionsyntax", "awaitexpressioninfo"));
     }
 }

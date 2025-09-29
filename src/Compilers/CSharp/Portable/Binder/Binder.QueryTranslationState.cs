@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool error = false;
 
                 Debug.Assert(identifier.Parent is { });
+                binder.ReportFieldContextualKeywordConflictIfAny(result, identifier.Parent, identifier, diagnostics);
 
                 foreach (var existingRangeVariable in allRangeVariables.Keys)
                 {

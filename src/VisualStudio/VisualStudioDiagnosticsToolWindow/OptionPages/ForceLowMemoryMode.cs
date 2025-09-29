@@ -8,97 +8,125 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
+namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
+
+internal sealed class ForceLowMemoryMode
 {
-    internal sealed class ForceLowMemoryMode
+    public static readonly Option2<bool> Enabled = new("ForceLowMemoryMode_Enabled", defaultValue: false);
+    public static readonly Option2<int> SizeInMegabytes = new("ForceLowMemoryMode_Enabled", defaultValue: 500);
+
+    private readonly IGlobalOptionService _globalOptions;
+    private MemoryHogger? _hogger;
+
+    public ForceLowMemoryMode(IGlobalOptionService globalOptions)
     {
-        public static readonly Option2<bool> Enabled = new("ForceLowMemoryMode_Enabled", defaultValue: false);
-        public static readonly Option2<int> SizeInMegabytes = new("ForceLowMemoryMode_Enabled", defaultValue: 500);
+        _globalOptions = globalOptions;
 
-        private readonly IGlobalOptionService _globalOptions;
-        private MemoryHogger? _hogger;
+        globalOptions.AddOptionChangedHandler(this, Options_OptionChanged);
 
-        public ForceLowMemoryMode(IGlobalOptionService globalOptions)
+        RefreshFromSettings();
+    }
+
+    private void Options_OptionChanged(object sender, object target, OptionChangedEventArgs e)
+    {
+        if (e.HasOption(static option => option.Equals(Enabled) || option.Equals(SizeInMegabytes)))
         {
-            _globalOptions = globalOptions;
-
-            globalOptions.AddOptionChangedHandler(this, Options_OptionChanged);
-
             RefreshFromSettings();
         }
+    }
 
-        private void Options_OptionChanged(object sender, object target, OptionChangedEventArgs e)
+    private void RefreshFromSettings()
+    {
+        var enabled = _globalOptions.GetOption(Enabled);
+
+        if (_hogger != null)
         {
-            if (e.HasOption(static option => option.Equals(Enabled) || option.Equals(SizeInMegabytes)))
-            {
-                RefreshFromSettings();
-            }
+            _hogger.Cancel();
+            _hogger = null;
         }
 
-        private void RefreshFromSettings()
+        if (enabled)
         {
-            var enabled = _globalOptions.GetOption(Enabled);
+            _hogger = new MemoryHogger();
+            _ = _hogger.PopulateAndMonitorAsync(_globalOptions.GetOption(SizeInMegabytes));
+        }
+    }
 
-            if (_hogger != null)
-            {
-                _hogger.Cancel();
-                _hogger = null;
-            }
+    private sealed class MemoryHogger
+    {
+        private const int BlockSize = 1024 * 1024; // megabyte blocks
+        private const int MonitorDelay = 10000; // 10 seconds
 
-            if (enabled)
-            {
-                _hogger = new MemoryHogger();
-                _ = _hogger.PopulateAndMonitorAsync(_globalOptions.GetOption(SizeInMegabytes));
-            }
+        private readonly List<byte[]> _blocks = [];
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+        public MemoryHogger()
+        {
         }
 
-        private class MemoryHogger
+        public int Count
         {
-            private const int BlockSize = 1024 * 1024; // megabyte blocks
-            private const int MonitorDelay = 10000; // 10 seconds
+            get { return _blocks.Count; }
+        }
 
-            private readonly List<byte[]> _blocks = [];
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        public void Cancel()
+        {
+            _cancellationTokenSource.Cancel();
+        }
 
-            public MemoryHogger()
-            {
-            }
+        public Task PopulateAndMonitorAsync(int size)
+        {
+            // run on background thread
+            return Task.Factory.StartNew(() => this.PopulateAndMonitorWorkerAsync(size), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+        }
 
-            public int Count
-            {
-                get { return _blocks.Count; }
-            }
-
-            public void Cancel()
-            {
-                _cancellationTokenSource.Cancel();
-            }
-
-            public Task PopulateAndMonitorAsync(int size)
-            {
-                // run on background thread
-                return Task.Factory.StartNew(() => this.PopulateAndMonitorWorkerAsync(size), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
-            }
-
-            private async Task PopulateAndMonitorWorkerAsync(int size)
+        private async Task PopulateAndMonitorWorkerAsync(int size)
+        {
+            try
             {
                 try
                 {
+                    for (var n = 0; n < size; n++)
+                    {
+                        _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                        var block = new byte[BlockSize];
+
+                        // initialize block bits (so the memory actually gets allocated.. silly runtime!)
+                        for (var i = 0; i < BlockSize; i++)
+                        {
+                            block[i] = 0xFF;
+                        }
+
+                        _blocks.Add(block);
+
+                        // don't hog the thread
+                        await Task.Yield();
+                    }
+                }
+                catch (OutOfMemoryException)
+                {
+                }
+
+                // monitor memory to keep it paged in
+                while (true)
+                {
+                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
                     try
                     {
-                        for (var n = 0; n < size; n++)
+                        // access all block bytes
+                        for (var b = 0; b < _blocks.Count; b++)
                         {
                             _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-                            var block = new byte[BlockSize];
+                            var block = _blocks[b];
 
-                            // initialize block bits (so the memory actually gets allocated.. silly runtime!)
-                            for (var i = 0; i < BlockSize; i++)
+                            byte tmp;
+                            for (var i = 0; i < block.Length; i++)
                             {
-                                block[i] = 0xFF;
+                                tmp = block[i];
                             }
-
-                            _blocks.Add(block);
 
                             // don't hog the thread
                             await Task.Yield();
@@ -108,47 +136,18 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                     {
                     }
 
-                    // monitor memory to keep it paged in
-                    while (true)
-                    {
-                        _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-
-                        try
-                        {
-                            // access all block bytes
-                            for (var b = 0; b < _blocks.Count; b++)
-                            {
-                                _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-
-                                var block = _blocks[b];
-
-                                byte tmp;
-                                for (var i = 0; i < block.Length; i++)
-                                {
-                                    tmp = block[i];
-                                }
-
-                                // don't hog the thread
-                                await Task.Yield();
-                            }
-                        }
-                        catch (OutOfMemoryException)
-                        {
-                        }
-
-                        await Task.Delay(MonitorDelay, _cancellationTokenSource.Token).ConfigureAwait(false);
-                    }
+                    await Task.Delay(MonitorDelay, _cancellationTokenSource.Token).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException)
-                {
-                    _blocks.Clear();
+            }
+            catch (OperationCanceledException)
+            {
+                _blocks.Clear();
 
-                    // force garbage collection
-                    for (var i = 0; i < 5; i++)
-                    {
-                        GC.Collect(GC.MaxGeneration);
-                        GC.WaitForPendingFinalizers();
-                    }
+                // force garbage collection
+                for (var i = 0; i < 5; i++)
+                {
+                    GC.Collect(GC.MaxGeneration);
+                    GC.WaitForPendingFinalizers();
                 }
             }
         }

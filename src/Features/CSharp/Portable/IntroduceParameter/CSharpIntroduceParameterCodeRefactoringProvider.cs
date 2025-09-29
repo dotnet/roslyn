@@ -12,22 +12,19 @@ using Microsoft.CodeAnalysis.IntroduceParameter;
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceParameter;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceParameter), Shared]
-internal sealed partial class CSharpIntroduceParameterCodeRefactoringProvider : AbstractIntroduceParameterCodeRefactoringProvider<
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpIntroduceParameterCodeRefactoringProvider()
+    : AbstractIntroduceParameterCodeRefactoringProvider<
     ExpressionSyntax,
     InvocationExpressionSyntax,
     ObjectCreationExpressionSyntax,
     IdentifierNameSyntax,
     ArgumentSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpIntroduceParameterCodeRefactoringProvider()
-    {
-    }
-
     protected override SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol)
     {
-        return ExpressionGenerator.GenerateExpression(CSharpSyntaxGenerator.Instance, parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
+        return ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
     }
 
     protected override SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl)

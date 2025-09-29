@@ -17,8 +17,6 @@ internal sealed partial class TypeRef : IEquatable<TypeRef>
 {
     private static readonly ConcurrentDictionary<(string TypeName, string AssemblyName, string? CodeBase), TypeRef> s_cache = [];
 
-    private string? _assemblyQualifiedName;
-
     private TypeRef(string typeName, string assemblyName, string? codeBase = null)
     {
         TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
@@ -44,8 +42,7 @@ internal sealed partial class TypeRef : IEquatable<TypeRef>
     /// <summary>
     /// Returns the assembly-qualified name of this type.
     /// </summary>
-    public string AssemblyQualifiedName
-        => _assemblyQualifiedName ??= $"{TypeName}, {AssemblyName}";
+    public string AssemblyQualifiedName { get => field ??= $"{TypeName}, {AssemblyName}"; private set; }
 
     public override bool Equals(object? obj)
         => Equals(obj as TypeRef);
@@ -61,14 +58,16 @@ internal sealed partial class TypeRef : IEquatable<TypeRef>
         var comparer = StringComparer.Ordinal;
 
         var hashCode = 2037759866;
-        hashCode = hashCode * -1521134295 + comparer.GetHashCode(TypeName);
-        hashCode = hashCode * -1521134295 + comparer.GetHashCode(AssemblyName);
-
-        if (CodeBase is string codeBase)
+        unchecked
         {
-            hashCode = hashCode * -1521134295 + comparer.GetHashCode(codeBase);
-        }
+            hashCode = hashCode * -1521134295 + comparer.GetHashCode(TypeName);
+            hashCode = hashCode * -1521134295 + comparer.GetHashCode(AssemblyName);
 
+            if (CodeBase is string codeBase)
+            {
+                hashCode = hashCode * -1521134295 + comparer.GetHashCode(codeBase);
+            }
+        }
         return hashCode;
     }
 

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class NewKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.NewKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -30,7 +30,7 @@ internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
             SyntaxKind.VolatileKeyword,
         };
 
-    protected static readonly ISet<SyntaxKind> ValidTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    private static readonly ISet<SyntaxKind> ValidTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.AbstractKeyword,
             SyntaxKind.InternalKeyword,
@@ -41,11 +41,6 @@ internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
             SyntaxKind.StaticKeyword,
             SyntaxKind.UnsafeKeyword
         };
-
-    public NewKeywordRecommender()
-        : base(SyntaxKind.NewKeyword)
-    {
-    }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {

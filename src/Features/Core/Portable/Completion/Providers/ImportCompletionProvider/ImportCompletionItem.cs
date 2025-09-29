@@ -47,19 +47,19 @@ internal static class ImportCompletionItem
 
             if (extensionMethodData.HasValue)
             {
-                builder.Add(KeyValuePairUtil.Create(MethodKey, extensionMethodData.Value.methodSymbolKey));
-                builder.Add(KeyValuePairUtil.Create(ReceiverKey, extensionMethodData.Value.receiverTypeSymbolKey));
+                builder.Add(KeyValuePair.Create(MethodKey, extensionMethodData.Value.methodSymbolKey));
+                builder.Add(KeyValuePair.Create(ReceiverKey, extensionMethodData.Value.receiverTypeSymbolKey));
 
                 if (extensionMethodData.Value.overloadCount > 0)
                 {
-                    builder.Add(KeyValuePairUtil.Create(OverloadCountKey, extensionMethodData.Value.overloadCount.ToString()));
+                    builder.Add(KeyValuePair.Create(OverloadCountKey, extensionMethodData.Value.overloadCount.ToString()));
                 }
             }
             else
             {
                 // We don't need arity to recover symbol if we already have SymbolKeyData or it's 0.
                 // (but it still needed below to decide whether to show generic suffix)
-                builder.Add(KeyValuePairUtil.Create(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity)));
+                builder.Add(KeyValuePair.Create(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity)));
             }
 
             properties = builder.ToImmutable();
@@ -100,7 +100,7 @@ internal static class ImportCompletionItem
         // Remember the full type name so we can get the symbol when description is displayed.
         var builder = new FixedSizeArrayBuilder<KeyValuePair<string, string>>(attributeItems.Length + 1);
         builder.AddRange(attributeItems);
-        builder.Add(KeyValuePairUtil.Create(AttributeFullName, attributeItem.DisplayText));
+        builder.Add(KeyValuePair.Create(AttributeFullName, attributeItem.DisplayText));
 
         var sortTextBuilder = PooledStringBuilder.GetInstance();
         sortTextBuilder.Builder.AppendFormat(GetSortTextFormatString(attributeItem.InlineDescription), attributeNameWithoutSuffix, attributeItem.InlineDescription);
@@ -179,9 +179,7 @@ internal static class ImportCompletionItem
         // If we have SymbolKey data (i.e. this is an extension method item), use it to recover symbol
         if (item.TryGetProperty(MethodKey, out var methodSymbolKey))
         {
-            var methodSymbol = SymbolKey.ResolveString(methodSymbolKey, compilation).GetAnySymbol() as IMethodSymbol;
-
-            if (methodSymbol != null)
+            if (SymbolKey.ResolveString(methodSymbolKey, compilation).GetAnySymbol() is IMethodSymbol methodSymbol)
             {
                 var overloadCount = item.TryGetProperty(OverloadCountKey, out var overloadCountString) && int.TryParse(overloadCountString, out var count) ? count : 0;
 
@@ -220,7 +218,7 @@ internal static class ImportCompletionItem
     public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item)
     {
         var itemProperties = item.GetProperties();
-        ImmutableArray<KeyValuePair<string, string>> properties = [.. itemProperties, KeyValuePairUtil.Create(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey)];
+        ImmutableArray<KeyValuePair<string, string>> properties = [.. itemProperties, KeyValuePair.Create(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey)];
         return item.WithProperties(properties);
     }
 

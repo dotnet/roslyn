@@ -12394,48 +12394,82 @@ public class X
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
-                                        (int)ErrorCode.ERR_SyntaxError,
-                                        (int)ErrorCode.ERR_UnexpectedToken,
-                                        (int)ErrorCode.WRN_UnreferencedVar,
-                                        (int)ErrorCode.ERR_UseDefViolation
-                                      };
+            int[] exclude = [
+                (int)ErrorCode.ERR_BadVarDecl,
+                (int)ErrorCode.ERR_SyntaxError,
+                (int)ErrorCode.ERR_UnexpectedToken,
+                (int)ErrorCode.WRN_UnreferencedVar,
+                (int)ErrorCode.ERR_UseDefViolation,
+                (int)ErrorCode.ERR_AbstractAndExtern,
+                (int)ErrorCode.ERR_SemicolonExpected,
+                (int)ErrorCode.ERR_CloseParenExpected,
+                (int)ErrorCode.ERR_InvalidExprTerm,
+            ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             var y12 = 12;
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(109, 13),
+                // (12,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(12, 22),
+                // (22,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(22, 22),
+                // (33,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(33, 22),
                 // (34,32): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(true is var x4 && x4)
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(34, 32),
+                // (41,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(41, 22),
                 // (42,20): error CS0841: Cannot use local variable 'x6' before it is declared
                 //              Dummy(x6 && true is var x6)
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(42, 20),
+                // (49,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(49, 22),
                 // (53,17): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             var x7 = 12;
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(53, 17),
+                // (60,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(60, 22),
                 // (65,34): error CS0103: The name 'x8' does not exist in the current context
                 //         System.Console.WriteLine(x8);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(65, 34),
-                // (65,9): warning CS0162: Unreachable code detected
-                //         System.Console.WriteLine(x8);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(65, 9),
+                // (70,23): error CS0103: The name 'b1' does not exist in the current context
+                //         for (bool a1, b1(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(70, 23),
+                // (75,27): error CS0103: The name 'b2' does not exist in the current context
+                //             for (bool a2, b2(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(75, 27),
                 // (76,36): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                  Dummy(true is var x9 && x9) // 2
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(76, 36),
+                // (84,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(84, 22),
                 // (85,20): error CS0103: The name 'y10' does not exist in the current context
                 //              Dummy(y10 is var x10)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(85, 20),
+                // (106,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(106, 22),
                 // (107,20): error CS0103: The name 'y12' does not exist in the current context
                 //              Dummy(y12 is var x12)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "y12").WithArguments("y12").WithLocation(107, 20),
+                // (109,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             var y12 = 12;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(109, 13),
                 // (109,17): warning CS0219: The variable 'y12' is assigned but its value is never used
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(109, 17),
+                // (122,22): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool a, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(122, 22),
                 // (124,29): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                    2 is var x14, 
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 29)
-                );
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(124, 29));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -12443,39 +12477,39 @@ public class X
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(2, x1Ref.Length);
-            AssertContainedInDeclaratorArguments(x1Decl);
+            AssertNotContainedInDeclaratorArguments(x1Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x1Decl, x1Ref);
 
             var x2Decl = GetPatternDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").ToArray();
             Assert.Equal(2, x2Ref.Length);
-            AssertContainedInDeclaratorArguments(x2Decl);
+            AssertNotContainedInDeclaratorArguments(x2Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x2Decl, x2Ref);
 
             var x4Decl = GetPatternDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
-            AssertContainedInDeclaratorArguments(x4Decl);
+            AssertNotContainedInDeclaratorArguments(x4Decl);
             VerifyNotAPatternLocal(model, x4Ref[0]);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x4Decl, x4Ref[1], x4Ref[2]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Ref.Length);
-            AssertContainedInDeclaratorArguments(x6Decl);
+            AssertNotContainedInDeclaratorArguments(x6Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x6Decl, x6Ref);
 
             var x7Decl = GetPatternDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(2, x7Ref.Length);
-            AssertContainedInDeclaratorArguments(x7Decl);
+            AssertNotContainedInDeclaratorArguments(x7Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x7Decl, x7Ref[0]);
             VerifyNotAPatternLocal(model, x7Ref[1]);
 
             var x8Decl = GetPatternDeclarations(tree, "x8").Single();
             var x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            AssertContainedInDeclaratorArguments(x8Decl);
+            AssertNotContainedInDeclaratorArguments(x8Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x8Decl, x8Ref[0], x8Ref[1]);
             VerifyNotInScope(model, x8Ref[2]);
 
@@ -12483,7 +12517,7 @@ public class X
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            AssertContainedInDeclaratorArguments(x9Decl);
+            AssertNotContainedInDeclaratorArguments(x9Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x9Decl[0], x9Ref[0], x9Ref[1]);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
@@ -12499,7 +12533,7 @@ public class X
             var x14Ref = GetReferences(tree, "x14").ToArray();
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(2, x14Ref.Length);
-            AssertContainedInDeclaratorArguments(x14Decl);
+            AssertNotContainedInDeclaratorArguments(x14Decl);
             VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x14Decl[0], x14Ref);
             VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x14Decl[1]);
         }
@@ -12553,77 +12587,92 @@ public class X
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
-                                        (int)ErrorCode.ERR_SyntaxError,
-                                        (int)ErrorCode.ERR_UnexpectedToken,
-                                        (int)ErrorCode.WRN_UnreferencedVar,
-                                        (int)ErrorCode.ERR_CloseParenExpected
-                                      };
+            int[] exclude = [
+                (int)ErrorCode.ERR_BadVarDecl,
+                (int)ErrorCode.ERR_SyntaxError,
+                (int)ErrorCode.ERR_UnexpectedToken,
+                (int)ErrorCode.WRN_UnreferencedVar,
+                (int)ErrorCode.ERR_CloseParenExpected,
+                (int)ErrorCode.ERR_SemicolonExpected,
+                (int)ErrorCode.ERR_InvalidExprTerm,
+            ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (13,32): error CS0128: A local variable or function named 'x4' is already defined in this scope
-                //              Dummy(true is var x4 && x4)
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 32),
-                // (21,32): error CS0128: A local variable or function named 'x7' is already defined in this scope
+                // (12,22): error CS0841: Cannot use local variable 'x4' before it is declared
+                //         for (bool d, x4(
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(12, 22),
+                // (20,30): error CS0103: The name 'b' does not exist in the current context
+                //         for (bool x7 = true, b(
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(20, 30),
+                // (21,32): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(true is var x7 && x7)
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x7").WithArguments("x7").WithLocation(21, 32),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(21, 32),
                 // (20,19): warning CS0219: The variable 'x7' is assigned but its value is never used
                 //         for (bool x7 = true, b(
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x7").WithArguments("x7").WithLocation(20, 19),
-                // (29,37): error CS0128: A local variable or function named 'x8' is already defined in this scope
+                // (28,21): error CS0103: The name 'b1' does not exist in the current context
+                //         for (bool d,b1(Dummy(true is var x8 && x8)], 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(28, 21),
+                // (29,16): error CS0103: The name 'b2' does not exist in the current context
                 //                b2(Dummy(true is var x8 && x8));
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(29, 37),
-                // (30,32): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(29, 16),
+                // (29,37): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                b2(Dummy(true is var x8 && x8));
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(29, 37),
+                // (30,32): error CS0128: A local variable or function named 'x8' is already defined in this scope
                 //              Dummy(true is var x8 && x8);
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(30, 32),
-                // (31,32): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(30, 32),
+                // (31,32): error CS0128: A local variable or function named 'x8' is already defined in this scope
                 //              Dummy(true is var x8 && x8))
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(31, 32),
-                // (37,23): error CS0841: Cannot use local variable 'x9' before it is declared
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(31, 32),
+                // (37,23): error CS0103: The name 'x9' does not exist in the current context
                 //         for (bool b = x9, 
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(37, 23),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x9").WithArguments("x9").WithLocation(37, 23),
+                // (38,16): error CS0103: The name 'b2' does not exist in the current context
+                //                b2(Dummy(true is var x9 && x9));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(38, 16),
                 // (39,32): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(true is var x9 && x9);
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(39, 32),
-                // (40,32): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (40,32): error CS0128: A local variable or function named 'x9' is already defined in this scope
                 //              Dummy(true is var x9 && x9))
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(40, 32)
-                );
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x9").WithArguments("x9").WithLocation(40, 32));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x4Decl = GetPatternDeclarations(tree, "x4").Single();
-            var x4Ref = GetReferences(tree, "x4").Single();
-            AssertContainedInDeclaratorArguments(x4Decl);
-            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x4Decl);
-            VerifyNotAPatternLocal(model, x4Ref);
+            var x4Ref = GetReferences(tree, "x4").ToArray();
+            Assert.Equal(2, x4Ref.Length);
+            AssertNotContainedInDeclaratorArguments(x4Decl);
+            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x4Decl, x4Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x4Decl, x4Ref[1]);
 
             var x7Decl = GetPatternDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").Single();
-            AssertContainedInDeclaratorArguments(x7Decl);
-            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x7Decl);
-            VerifyNotAPatternLocal(model, x7Ref);
+            AssertNotContainedInDeclaratorArguments(x7Decl);
+            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x7Decl);
+            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x7Decl, x7Ref);
 
             var x8Decl = GetPatternDeclarations(tree, "x8").ToArray();
             var x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(4, x8Decl.Length);
             Assert.Equal(4, x8Ref.Length);
-            AssertContainedInDeclaratorArguments(x8Decl[0]);
-            AssertContainedInDeclaratorArguments(x8Decl[1]);
-            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x8Decl[0], x8Ref[0], x8Ref[1]);
-            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x8Decl[1]);
-            VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[2], x8Ref[2]);
-            VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[3], x8Ref[3]);
+            AssertNotContainedInDeclaratorArguments(x8Decl[0]);
+            AssertNotContainedInDeclaratorArguments(x8Decl[1]);
+            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x8Decl[0], x8Ref[0]);
+            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x8Decl[1], x8Ref[1]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[2], isShadowed: true);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x8Decl[3], isShadowed: true);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(3, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            AssertContainedInDeclaratorArguments(x9Decl[0]);
-            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+            AssertNotContainedInDeclaratorArguments(x9Decl[0]);
+            VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(model, x9Decl[0], x9Ref[1]);
             VerifyModelForDeclarationOrVarSimplePattern(model, x9Decl[1], x9Ref[2]);
-            VerifyModelForDeclarationOrVarSimplePattern(model, x9Decl[2], x9Ref[3]);
+            VerifyModelForDeclarationOrVarSimplePattern(model, x9Decl[2], isShadowed: true);
         }
 
         [Fact]

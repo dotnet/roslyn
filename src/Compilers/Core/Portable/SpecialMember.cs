@@ -194,6 +194,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Type__GetTypeFromHandle,
 
+        System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter,
+        System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter,
+
         Count
     }
 }

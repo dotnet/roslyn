@@ -17,23 +17,21 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
+
+using static GenerateFromMembersHelpers;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                 Before = PredefinedCodeRefactoringProviderNames.GenerateOverrides)]
 [IntentProvider(WellKnownIntents.AddConstructorParameter, LanguageNames.CSharp)]
-internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider, IIntentProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider()
+        : CodeRefactoringProvider, IIntentProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AddConstructorParametersFromMembersCodeRefactoringProvider()
-    {
-    }
-
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
@@ -184,7 +182,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         {
             // Intents currently have no way to report progress.
             var changedSolution = await action.GetChangedSolutionInternalAsync(
-                priorDocument.Project.Solution, CodeAnalysisProgress.None, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
+                priorDocument.Project.Solution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(changedSolution);
             var intent = new IntentProcessorResult(changedSolution, [priorDocument.Id], action.Title, action.ActionName);
             results.Add(intent);

@@ -4,8 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertySet: true,
                 isExpressionBodied: false,
                 accessorsHaveImplementation: true,
-                usesFieldKeyword: false,
+                getterUsesFieldKeyword: false,
+                setterUsesFieldKeyword: false,
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),

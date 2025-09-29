@@ -6,12 +6,11 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export, Shared]
-internal class ServerConfigurationFactory
+internal sealed class ServerConfigurationFactory
 {
     private readonly IGlobalOptionService _globalOptionService;
 
@@ -41,14 +40,36 @@ internal class ServerConfigurationFactory
     }
 }
 
-internal record class ServerConfiguration(
+internal sealed record class ServerConfiguration(
     bool LaunchDebugger,
-    LogLevel MinimumLogLevel,
+    LogConfiguration LogConfiguration,
     string? StarredCompletionsPath,
     string? TelemetryLevel,
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
-    string? RazorSourceGenerator,
     string? RazorDesignTimePath,
+    string? CSharpDesignTimePath,
+    string? ServerPipeName,
+    bool UseStdIo,
     string ExtensionLogDirectory);
+
+internal sealed class LogConfiguration
+{
+    private int _currentLogLevel;
+
+    public LogConfiguration(LogLevel initialLogLevel)
+    {
+        _currentLogLevel = (int)initialLogLevel;
+    }
+
+    public void UpdateLogLevel(LogLevel level)
+    {
+        Interlocked.Exchange(ref _currentLogLevel, (int)level);
+    }
+
+    public LogLevel GetLogLevel()
+    {
+        return (LogLevel)_currentLogLevel;
+    }
+}

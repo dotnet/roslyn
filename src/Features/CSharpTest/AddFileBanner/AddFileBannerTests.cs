@@ -13,15 +13,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddFileBanner;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)]
-public partial class AddFileBannerTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed partial class AddFileBannerTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpAddFileBannerCodeRefactoringProvider();
 
     [Fact]
-    public async Task TestBanner1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestBanner1()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -66,12 +65,10 @@ public partial class AddFileBannerTests : AbstractCSharpCodeActionTest_NoEditor
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestMultiLineBanner1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineBanner1()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -119,12 +116,10 @@ public partial class AddFileBannerTests : AbstractCSharpCodeActionTest_NoEditor
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
-    public async Task TestSingleLineDocCommentBanner()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSingleLineDocCommentBanner()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -172,12 +167,10 @@ public partial class AddFileBannerTests : AbstractCSharpCodeActionTest_NoEditor
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
-    public async Task TestMultiLineDocCommentBanner()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineDocCommentBanner()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -228,12 +221,10 @@ public partial class AddFileBannerTests : AbstractCSharpCodeActionTest_NoEditor
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWhenAlreadyThere()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWhenAlreadyThere()
+        => TestMissingAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -257,50 +248,45 @@ public partial class AddFileBannerTests : AbstractCSharpCodeActionTest_NoEditor
                 </Project>
             </Workspace>
             """);
-    }
 
     [Theory]
     [InlineData("", 1)]
     [InlineData("file_header_template =", 1)]
     [InlineData("file_header_template = unset", 1)]
     [InlineData("file_header_template = defined file header", 0)]
-    public async Task TestMissingWhenHandledByAnalyzer(string fileHeaderTemplate, int expectedActionCount)
-    {
-        var initialMarkup = $@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""/0/Test0.cs"">[||]using System;
+    public Task TestMissingWhenHandledByAnalyzer(string fileHeaderTemplate, int expectedActionCount)
+        => TestActionCountAsync($$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">[||]using System;
 
-class Program1
-{{
-    static void Main()
-    {{
-    }}
-}}
-        </Document>
-        <Document FilePath=""/0/Test1.cs"">/// This is the banner
-/// It goes over multiple lines
+            class Program1
+            {
+                static void Main()
+                {
+                }
+            }
+                    </Document>
+                    <Document FilePath="/0/Test1.cs">/// This is the banner
+            /// It goes over multiple lines
 
-class Program2
-{{
-}}
-        </Document>
-        <AnalyzerConfigDocument FilePath=""/.editorconfig"">
-root = true
+            class Program2
+            {
+            }
+                    </Document>
+                    <AnalyzerConfigDocument FilePath="/.editorconfig">
+            root = true
 
-[*]
-{fileHeaderTemplate}
-        </AnalyzerConfigDocument>
-    </Project>
-</Workspace>";
-
-        await TestActionCountAsync(initialMarkup, expectedActionCount);
-    }
+            [*]
+            {{fileHeaderTemplate}}
+                    </AnalyzerConfigDocument>
+                </Project>
+            </Workspace>
+            """, expectedActionCount);
 
     [Fact]
-    public async Task TestMissingIfOtherFileDoesNotHaveBanner()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfOtherFileDoesNotHaveBanner()
+        => TestMissingAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -324,12 +310,10 @@ root = true
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestMissingIfOtherFileIsAutoGenerated()
-    {
-        await TestMissingAsync(
+    public Task TestMissingIfOtherFileIsAutoGenerated()
+        => TestMissingAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -353,12 +337,10 @@ root = true
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32792")]
-    public async Task TestUpdateFileNameInComment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateFileNameInComment()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -409,12 +391,10 @@ root = true
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32792")]
-    public async Task TestUpdateFileNameInComment2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateFileNameInComment2()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -465,12 +445,10 @@ root = true
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
-    public async Task TestUpdateFileNameInComment3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateFileNameInComment3()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -521,12 +499,10 @@ root = true
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
-    public async Task TestUpdateFileNameInComment4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpdateFileNameInComment4()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -577,5 +553,4 @@ root = true
                 </Project>
             </Workspace>
             """);
-    }
 }

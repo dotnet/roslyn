@@ -33,12 +33,14 @@ public class CSharpCodeDefinitionWindow : AbstractEditorTest
         // our regular file.
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"
-public class Test
-{
-    $$int field;
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            public class Test
+            {
+                $$int field;
+            }
+
+            """, HangMitigatingCancellationToken);
 
         // The structure line should be the same, and we'll check for the presence/absence of the decompilation marker
         Assert.Contains("public struct Int32", await TestServices.CodeDefinitionWindow.GetCurrentLineTextAsync(HangMitigatingCancellationToken));

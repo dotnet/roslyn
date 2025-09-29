@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -89,7 +89,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
             // Determine the set of documents to actually fix.  We can also use this to update the progress bar with
             // the amount of remaining work to perform.  We'll update the progress bar as we compute each fix in
             // AddDocumentFixesAsync.
-            var source = documentsAndDiagnosticsToFixMap.WhereAsArray(static (kvp, _) => !kvp.Value.IsDefaultOrEmpty, state: false);
+            var source = documentsAndDiagnosticsToFixMap.WhereAsArray(static (kvp, _) => !kvp.Value.IsDefaultOrEmpty, arg: false);
             progressTracker.AddItems(source.Length);
 
             return await ProducerConsumer<(Diagnostic diagnostic, CodeAction action)>.RunParallelAsync(
@@ -117,7 +117,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         cancellationToken.ThrowIfCancellationRequested();
 
         var registerCodeFix = GetRegisterCodeFixAction(fixAllState, onItemFound);
-        await RoslynParallel.ForEachAsync(
+        await Parallel.ForEachAsync(
             source: diagnostics,
             cancellationToken,
             async (diagnostic, cancellationToken) =>

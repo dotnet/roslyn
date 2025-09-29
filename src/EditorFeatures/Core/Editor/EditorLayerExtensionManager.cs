@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor;
 internal sealed class EditorLayerExtensionManager(
     [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers) : IWorkspaceServiceFactory
 {
-    private readonly ImmutableArray<IExtensionErrorHandler> _errorHandlers = errorHandlers.ToImmutableArray();
+    private readonly ImmutableArray<IExtensionErrorHandler> _errorHandlers = [.. errorHandlers];
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
@@ -51,8 +51,8 @@ internal sealed class EditorLayerExtensionManager(
 
             if (provider is CodeFixProvider
                 or CodeRefactoringProvider
-                or CodeRefactorings.FixAllProvider
-                or CodeFixes.FixAllProvider
+                or RefactorAllProvider
+                or FixAllProvider
                 or CompletionProvider)
             {
                 if (!IsIgnored(provider))

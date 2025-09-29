@@ -52,7 +52,7 @@ internal sealed class RemoteCodeLensReferencesService : BrokeredServiceBase, IRe
                         return null;
                     }
 
-                    return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(
+                    return await solution.Services.GetRequiredService<ICodeLensReferencesService>().GetReferenceCountAsync(
                         solution,
                         documentId,
                         syntaxNode,
@@ -63,7 +63,7 @@ internal sealed class RemoteCodeLensReferencesService : BrokeredServiceBase, IRe
         }
     }
 
-    public async ValueTask<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<ReferenceLocationDescriptorAndDocument>?> FindReferenceLocationsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, cancellationToken))
         {
@@ -75,7 +75,7 @@ internal sealed class RemoteCodeLensReferencesService : BrokeredServiceBase, IRe
                     return null;
                 }
 
-                return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(
+                return await solution.Services.GetRequiredService<ICodeLensReferencesService>().FindReferenceLocationsAsync(
                     solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }, cancellationToken).ConfigureAwait(false);
         }
@@ -93,7 +93,7 @@ internal sealed class RemoteCodeLensReferencesService : BrokeredServiceBase, IRe
                     return null;
                 }
 
-                return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(
+                return await solution.Services.GetRequiredService<ICodeLensReferencesService>().FindReferenceMethodsAsync(
                     solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }, cancellationToken).ConfigureAwait(false);
         }
@@ -113,7 +113,7 @@ internal sealed class RemoteCodeLensReferencesService : BrokeredServiceBase, IRe
                         return null;
                     }
 
-                    return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(
+                    return await solution.Services.GetRequiredService<ICodeLensReferencesService>().GetFullyQualifiedNameAsync(
                         solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken).ConfigureAwait(false);
             }

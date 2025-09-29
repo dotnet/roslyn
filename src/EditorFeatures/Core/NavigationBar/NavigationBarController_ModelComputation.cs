@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 
-internal partial class NavigationBarController
+internal sealed partial class NavigationBarController
 {
     /// <summary>
     /// Starts a new task to compute the model based on the current text.

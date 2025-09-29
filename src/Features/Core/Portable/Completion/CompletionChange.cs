@@ -31,7 +31,13 @@ public sealed class CompletionChange
     /// The new caret position after the change has been applied.
     /// If null then the new caret position will be determined by the completion host.
     /// </summary>
-    public int? NewPosition { get; }
+    public int? NewPosition { get => NewSelection?.End; }
+
+    /// <summary>
+    /// The new selection after the change has been applied.
+    /// If null then the new caret position will be determined by the completion host.
+    /// </summary>
+    internal TextSpan? NewSelection { get; }
 
     /// <summary>
     /// True if the changes include the typed character that caused the <see cref="CompletionItem"/>
@@ -50,9 +56,15 @@ public sealed class CompletionChange
 
     private CompletionChange(
         TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter, ImmutableDictionary<string, string> properties)
+        : this(textChange, textChanges, newPosition != null ? new TextSpan(newPosition.Value, 0) : null, includesCommitCharacter, properties)
+    {
+    }
+
+    private CompletionChange(
+        TextChange textChange, ImmutableArray<TextChange> textChanges, TextSpan? newSelection, bool includesCommitCharacter, ImmutableDictionary<string, string> properties)
     {
         TextChange = textChange;
-        NewPosition = newPosition;
+        NewSelection = newSelection;
         IncludesCommitCharacter = includesCommitCharacter;
         TextChanges = textChanges.NullToEmpty();
         if (TextChanges.IsEmpty)
@@ -104,6 +116,16 @@ public sealed class CompletionChange
         bool includesCommitCharacter = false)
     {
         return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter);
+    }
+
+    internal static CompletionChange Create(
+        TextChange textChange,
+        ImmutableArray<TextChange> textChanges,
+        ImmutableDictionary<string, string> properties,
+        TextSpan? newSpan = null,
+        bool includesCommitCharacter = false)
+    {
+        return new CompletionChange(textChange, textChanges, newSpan, includesCommitCharacter, properties);
     }
 
     internal static CompletionChange Create(

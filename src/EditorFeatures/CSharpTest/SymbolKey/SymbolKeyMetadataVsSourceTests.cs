@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,11 +13,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId;
 
-public partial class SymbolKeyTest : SymbolKeyTestBase
+public sealed partial class SymbolKeyTest : SymbolKeyTestBase
 {
     #region "Metadata vs. Source"
 
@@ -150,7 +150,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         // ---------------------------
         // Source symbols
         var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.NonTypeMember | SymbolCategory.Parameter).ToList();
-        originalSymbols = originalSymbols.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).Select(s => s).ToList();
+        originalSymbols = [.. originalSymbols.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).Select(s => s)];
         Assert.Equal(8, originalSymbols.Count);
 
         // ---------------------------

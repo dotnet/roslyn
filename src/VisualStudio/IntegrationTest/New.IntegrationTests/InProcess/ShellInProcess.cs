@@ -17,12 +17,13 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Test.Utilities;
 using Xunit;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class ShellInProcess
+internal sealed partial class ShellInProcess
 {
     /// <returns>True if the AllInOneSearch is being used for Navigation</returns>
     public async Task<bool> ShowNavigateToDialogAsync(CancellationToken cancellationToken)
@@ -100,7 +101,7 @@ internal partial class ShellInProcess
         ErrorHandler.ThrowOnFailure(commandService.GetControlDataSourceAsync(
             (uint)__VSCOMMANDTYPES.cCommandTypeButton,
             commandName,
-            timeout: 0,
+            timeout: ((int)TestHelpers.HangMitigatingTimeout.TotalMilliseconds),
             out var dataSourceTask));
 
         Assumes.NotNull(dataSourceTask);
@@ -203,8 +204,6 @@ internal partial class ShellInProcess
         }
 
         public async ValueTask DisposeAsync()
-        {
-            await _fileChangeService.Resume();
-        }
+            => await _fileChangeService.Resume();
     }
 }

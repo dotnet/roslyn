@@ -4,16 +4,17 @@
 
 #nullable disable
 
-using Microsoft.Cci;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -110,7 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
 
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
+
         internal override bool IsInterpolatedStringHandlerType => false;
+
+#nullable enable
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
+#nullable disable
 
         internal override bool HasSpecialName => false;
 
@@ -172,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

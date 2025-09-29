@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class BaseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class BaseKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.BaseKeyword)
 {
-    public BaseKeywordRecommender()
-        : base(SyntaxKind.BaseKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         // We need to at least be in a type declaration context.  This prevents us from showing

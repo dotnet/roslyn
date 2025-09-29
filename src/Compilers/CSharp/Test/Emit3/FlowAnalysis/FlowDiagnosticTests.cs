@@ -858,10 +858,17 @@ class Program
         return 1;
     }
 }";
-            var comp = CreateCompilation(program);
-            var parseErrors = comp.SyntaxTrees[0].GetDiagnostics();
-            var errors = comp.GetDiagnostics();
-            Assert.Equal(parseErrors.Count(), errors.Count());
+            var comp = CreateCompilation(program).VerifyDiagnostics(
+                // (6,17): error CS0305: Using the generic method 'Program.goo<T>(int)' requires 1 type arguments
+                //         var s = goo<,int>(123);
+                Diagnostic(ErrorCode.ERR_BadArity, "goo<,int>").WithArguments("Program.goo<T>(int)", "method", "1").WithLocation(6, 17),
+                // (6,21): error CS1031: Type expected
+                //         var s = goo<,int>(123);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(6, 21));
+            comp.SyntaxTrees[0].GetDiagnostics().Verify(
+                // (6,21): error CS1031: Type expected
+                //         var s = goo<,int>(123);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(6, 21));
         }
 
         [Fact]
@@ -964,6 +971,11 @@ struct D<T>
 {
     static C<D<T>> x;
 }
+#pragma warning disable CS0067 // The event 'E<T>.x' is never used
+struct E<T>
+{
+    static event E<E<T>> x;
+}
 ";
             CreateCompilation(program)
                 .VerifyDiagnostics(
@@ -987,7 +999,13 @@ struct D<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("D<T>.x").WithLocation(18, 20),
                 // (14,17): warning CS0169: The field 'C<T>.x' is never used
                 //     static D<T> x;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C<T>.x").WithLocation(14, 17)
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C<T>.x").WithLocation(14, 17),
+                // (23,26): error CS0523: Struct member 'E<T>.x' of type 'E<E<T>>' causes a cycle in the struct layout
+                //     static event E<E<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("E<T>.x", "E<E<T>>").WithLocation(23, 26),
+                // (23,26): error CS0066: 'E<T>.x': event must be of a delegate type
+                //     static event E<E<T>> x;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "x").WithArguments("E<T>.x").WithLocation(23, 26)
                 );
         }
 

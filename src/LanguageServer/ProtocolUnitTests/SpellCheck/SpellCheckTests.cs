@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -28,9 +29,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         public async Task TestNoDocumentResultsForClosedFiles(bool mutatingLspWorkspace)
         {
             var markup =
-@"class A
-{
-}";
+                """
+                class A
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -43,14 +46,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         public async Task TestDocumentResultsForOpenFiles(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
-            // Calling GetTextBuffer will effectively open the file.
             var testDocument = testLspServer.TestWorkspace.Documents.Single();
-            testDocument.GetTextBuffer();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             Assert.Single(results);
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
-                ResultId = "DocumentSpellCheckHandler:0",
+                ResultId = "DocumentSpellCheckHandler:1",
                 Ranges = GetRanges(testDocument.AnnotatedSpans),
             });
         }
@@ -81,7 +84,6 @@ class {|Identifier:A{{v}}|}
 """));
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
-            // Calling GetTextBuffer will effectively open the file.
             var testDocument = testLspServer.TestWorkspace.Documents.Single();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -98,8 +100,8 @@ class {|Identifier:A{{v}}|}
             {
                 AssertJsonEquals(results[i], new VSInternalSpellCheckableRangeReport
                 {
-                    ResultId = "DocumentSpellCheckHandler:0",
-                    Ranges = allRanges.Skip(3 * i * 1000).Take(3 * 1000).ToArray(),
+                    ResultId = "DocumentSpellCheckHandler:1",
+                    Ranges = [.. allRanges.Skip(3 * i * 1000).Take(3 * 1000)],
                 });
             }
         }
@@ -108,14 +110,13 @@ class {|Identifier:A{{v}}|}
         public async Task TestDocumentResultsForRemovedDocument(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var workspace = testLspServer.TestWorkspace;
-
-            // Calling GetTextBuffer will effectively open the file.
-            workspace.Documents.Single().GetTextBuffer();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -130,7 +131,7 @@ class {|Identifier:A{{v}}|}
             Assert.Single(results);
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
-                ResultId = "DocumentSpellCheckHandler:0",
+                ResultId = "DocumentSpellCheckHandler:1",
                 Ranges = GetRanges(workspace.Documents.Single().AnnotatedSpans),
             });
 
@@ -148,13 +149,12 @@ class {|Identifier:A{{v}}|}
         public async Task TestNoChangeIfDocumentResultsCalledTwice(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-
-            // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -166,7 +166,7 @@ class {|Identifier:A{{v}}|}
             Assert.Single(results);
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
-                ResultId = "DocumentSpellCheckHandler:0",
+                ResultId = "DocumentSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
 
@@ -182,15 +182,14 @@ class {|Identifier:A{{v}}|}
         public async Task TestDocumentResultChangedAfterEntityAdded(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}
+                """
+                class {|Identifier:A|}
+                {
+                }
 
-";
+
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-
-            // Calling GetTextBuffer will effectively open the file.
-            var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -202,43 +201,44 @@ class {|Identifier:A{{v}}|}
             Assert.Single(results);
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
-                ResultId = "DocumentSpellCheckHandler:0",
+                ResultId = "DocumentSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
 
-            await InsertTextAsync(testLspServer, document, buffer.CurrentSnapshot.Length, "// comment");
+            await InsertTextAsync(testLspServer, document, sourceText.Length, "// comment");
 
             var (_, lspSolution) = await testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None).ConfigureAwait(false);
             document = lspSolution!.Projects.Single().Documents.Single();
             results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI(), results.Single().ResultId);
 
             MarkupTestFile.GetSpans(
-@"class {|Identifier:A|}
-{
-}
+                """
+                class {|Identifier:A|}
+                {
+                }
 
-{|Comment:// comment|}", out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
+                {|Comment:// comment|}
+                """, out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
 
             sourceText = await document.GetTextAsync();
             Assert.Single(results);
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
-                ResultId = "DocumentSpellCheckHandler:1",
+                ResultId = "DocumentSpellCheckHandler:2",
                 Ranges = GetRanges(annotatedSpans),
             });
         }
 
         [Theory, CombinatorialData]
-        public async Task TestDocumentResultIdChangesAfterEdit(bool mutatingLspWorkspace)
+        public async Task TestDocumentResultIdSameAfterIrrelevantEdit(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-
-            // Calling GetTextBuffer will effectively open the file.
-            var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -249,7 +249,7 @@ class {|Identifier:A{{v}}|}
             Assert.Single(results);
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
-                ResultId = "DocumentSpellCheckHandler:0",
+                ResultId = "DocumentSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
 
@@ -264,7 +264,6 @@ class {|Identifier:A{{v}}|}
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
                 ResultId = "DocumentSpellCheckHandler:1",
-                Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
         }
 
@@ -272,14 +271,13 @@ class {|Identifier:A{{v}}|}
         public async Task TestDocumentResultsAreNotMapped(bool mutatingLspWorkspace)
         {
             var markup =
-@"#line 4 ""test.txt""
-class {|Identifier:A|}
-{
-}";
+                """
+                #line 4 "test.txt"
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-
-            // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -291,7 +289,7 @@ class {|Identifier:A|}
             Assert.Single(results);
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
-                ResultId = "DocumentSpellCheckHandler:0",
+                ResultId = "DocumentSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
         }
@@ -300,13 +298,12 @@ class {|Identifier:A|}
         public async Task TestStreamingDocumentDiagnostics(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-
-            // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -318,22 +315,24 @@ class {|Identifier:A|}
             Assert.Single(results);
             AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
             {
-                ResultId = "DocumentSpellCheckHandler:0",
+                ResultId = "DocumentSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
             });
         }
 
         #endregion
 
-        #region Workspace Diagnostics
+        #region Workspace
 
         [Theory, CombinatorialData]
         public async Task TestWorkspaceResultsForClosedFiles(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -346,7 +345,7 @@ class {|Identifier:A|}
             AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
-                ResultId = "WorkspaceSpellCheckHandler:0",
+                ResultId = "WorkspaceSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             AssertEx.Empty(results[1].Ranges);
@@ -360,20 +359,22 @@ class {|Identifier:A|}
             var typeScriptMarkup = "???";
 
             var workspaceXml =
-@$"<Workspace>
-            <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-                <Document FilePath=""C:\C.cs"">{csharpMarkup}</Document>
-            </Project>
-            <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-                <Document FilePath=""C:\T.ts"">{typeScriptMarkup}</Document>
-            </Project>
-        </Workspace>";
+                $"""
+                <Workspace>
+                            <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                                <Document FilePath="C:\C.cs">{csharpMarkup}</Document>
+                            </Project>
+                            <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                                <Document FilePath="C:\T.ts">{typeScriptMarkup}</Document>
+                            </Project>
+                        </Workspace>
+                """;
 
             await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-            Assert.True(results.All(r => r.TextDocument!.Uri.LocalPath == "C:\\C.cs"));
+            Assert.True(results.All(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath == "C:\\C.cs"));
         }
 
         //        [Fact]
@@ -404,9 +405,11 @@ class {|Identifier:A|}
         public async Task TestWorkspaceResultsForRemovedDocument(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -419,7 +422,7 @@ class {|Identifier:A|}
             AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
-                ResultId = "WorkspaceSpellCheckHandler:0",
+                ResultId = "WorkspaceSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             AssertEx.Empty(results[1].Ranges);
@@ -442,9 +445,11 @@ class {|Identifier:A|}
         public async Task TestNoChangeIfWorkspaceResultsCalledTwice(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -457,7 +462,7 @@ class {|Identifier:A|}
             AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
-                ResultId = "WorkspaceSpellCheckHandler:0",
+                ResultId = "WorkspaceSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             AssertEx.Empty(results[1].Ranges);
@@ -476,11 +481,13 @@ class {|Identifier:A|}
         public async Task TestWorkspaceResultUpdatedAfterEdit(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}
+                """
+                class {|Identifier:A|}
+                {
+                }
 
-";
+
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -493,13 +500,12 @@ class {|Identifier:A|}
             AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
-                ResultId = "WorkspaceSpellCheckHandler:0",
+                ResultId = "WorkspaceSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             AssertEx.Empty(results[1].Ranges);
 
-            var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
-            buffer.Insert(buffer.CurrentSnapshot.Length, "// comment");
+            await PullDiagnosticTests.InsertInClosedDocumentAsync(testLspServer, document.Id, "// comment");
 
             var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateParamsFromPreviousReports(results));
 
@@ -509,16 +515,18 @@ class {|Identifier:A|}
             sourceText = await document.GetTextAsync();
 
             MarkupTestFile.GetSpans(
-@"class {|Identifier:A|}
-{
-}
+                """
+                class {|Identifier:A|}
+                {
+                }
 
-{|Comment:// comment|}", out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
+                {|Comment:// comment|}
+                """, out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
 
             AssertJsonEquals(results2[0], new VSInternalWorkspaceSpellCheckableReport
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
-                ResultId = "WorkspaceSpellCheckHandler:2",
+                ResultId = "WorkspaceSpellCheckHandler:3",
                 Ranges = GetRanges(annotatedSpans),
             });
             Assert.Null(results2[1].Ranges);
@@ -531,9 +539,11 @@ class {|Identifier:A|}
         public async Task TestStreamingWorkspaceResults(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -546,7 +556,7 @@ class {|Identifier:A|}
             AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
             {
                 TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
-                ResultId = "WorkspaceSpellCheckHandler:0",
+                ResultId = "WorkspaceSpellCheckHandler:1",
                 Ranges = GetRanges(testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             AssertEx.Empty(results[1].Ranges);
@@ -600,7 +610,7 @@ class {|Identifier:A|}
 
         private static async Task<VSInternalSpellCheckableRangeReport[]> RunGetDocumentSpellCheckSpansAsync(
             TestLspServer testLspServer,
-            Uri uri,
+            DocumentUri uri,
             string? previousResultId = null,
             bool useProgress = false)
         {
@@ -623,7 +633,7 @@ class {|Identifier:A|}
 
         private static async Task<VSInternalWorkspaceSpellCheckableReport[]> RunGetWorkspaceSpellCheckSpansAsync(
             TestLspServer testLspServer,
-            ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
+            ImmutableArray<(string resultId, DocumentUri uri)>? previousResults = null,
             bool useProgress = false)
         {
             BufferedProgress<VSInternalWorkspaceSpellCheckableReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceSpellCheckableReport[]>(null) : null;
@@ -655,32 +665,32 @@ class {|Identifier:A|}
         }
 
         private static VSInternalDocumentSpellCheckableParams CreateDocumentParams(
-            Uri uri,
+            DocumentUri uri,
             string? previousResultId = null,
             IProgress<VSInternalSpellCheckableRangeReport[]>? progress = null)
         {
             return new VSInternalDocumentSpellCheckableParams
             {
-                TextDocument = new TextDocumentIdentifier { Uri = uri },
+                TextDocument = new TextDocumentIdentifier { DocumentUri = uri },
                 PreviousResultId = previousResultId,
                 PartialResultToken = progress,
             };
         }
 
         private static VSInternalWorkspaceSpellCheckableParams CreateWorkspaceParams(
-            ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
+            ImmutableArray<(string resultId, DocumentUri uri)>? previousResults = null,
             IProgress<VSInternalWorkspaceSpellCheckableReport[]>? progress = null)
         {
             return new VSInternalWorkspaceSpellCheckableParams
             {
-                PreviousResults = previousResults?.Select(r => new VSInternalStreamingParams { PreviousResultId = r.resultId, TextDocument = new TextDocumentIdentifier { Uri = r.uri } }).ToArray(),
+                PreviousResults = previousResults?.Select(r => new VSInternalStreamingParams { PreviousResultId = r.resultId, TextDocument = new TextDocumentIdentifier { DocumentUri = r.uri } }).ToArray(),
                 PartialResultToken = progress,
             };
         }
 
-        private static ImmutableArray<(string resultId, Uri uri)> CreateParamsFromPreviousReports(VSInternalWorkspaceSpellCheckableReport[] results)
+        private static ImmutableArray<(string resultId, DocumentUri uri)> CreateParamsFromPreviousReports(VSInternalWorkspaceSpellCheckableReport[] results)
         {
-            return results.Select(r => (r.ResultId!, r.TextDocument.Uri)).ToImmutableArray();
+            return [.. results.Select(r => (r.ResultId!, Uri: r.TextDocument.DocumentUri))];
         }
     }
 }

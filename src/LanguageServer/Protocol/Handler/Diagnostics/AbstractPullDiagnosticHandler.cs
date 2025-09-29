@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
 /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
 internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IDiagnosticsRefresher diagnosticRefresher,
     IGlobalOptionService globalOptions)
     : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
@@ -42,16 +42,13 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
 
     protected readonly IGlobalOptionService GlobalOptions = globalOptions;
-    protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService = diagnosticAnalyzerService;
 
     /// <summary>
-    /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
-    /// changed. The <see cref="VersionStamp"/> is produced by <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the 
-    /// <see cref="Checksum"/> is produced by <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.  The former is faster
-    /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
-    /// update the version stamp but not the content (for example, forking LSP text).
+    /// Map of diagnostic category to the diagnostics cache for that category.
+    /// Each category has a separate cache as they have disjoint resultIds and diagnostics.  For example, we may have
+    /// one cache for DocumentSyntax, another for DocumentSemantic, another for WorkspaceSemantic, etc etc.
     /// </summary>
-    private readonly ConcurrentDictionary<string, VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum)>> _categoryToVersionedCache = [];
+    private readonly ConcurrentDictionary<string, DiagnosticsPullCache> _categoryToVersionedCache = [];
 
     protected virtual bool PotentialDuplicate => false;
 
@@ -110,7 +107,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         // noise.  It is not exposed to the user.
         if (!this.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
         {
-            context.TraceInformation($"{this.GetType()}. Skipping due to {nameof(SolutionCrawlerRegistrationService.EnableSolutionCrawler)}={false}");
+            context.TraceDebug($"{this.GetType()}. Skipping due to {nameof(SolutionCrawlerRegistrationService.EnableSolutionCrawler)}={false}");
         }
         else
         {
@@ -119,14 +116,15 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var category = GetRequestDiagnosticCategory(diagnosticsParams);
             var handlerName = $"{this.GetType().Name}(category: {category})";
-            context.TraceInformation($"{handlerName} started getting diagnostics");
+            context.TraceDebug($"{handlerName} started getting diagnostics");
 
-            var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
+            var versionedCache = _categoryToVersionedCache.GetOrAdd(
+                handlerName, static (handlerName, globalOptions) => new(globalOptions, handlerName), GlobalOptions);
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
             var previousResults = GetPreviousResults(diagnosticsParams) ?? [];
-            context.TraceInformation($"previousResults.Length={previousResults.Length}");
+            context.TraceDebug($"previousResults.Length={previousResults.Length}");
 
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
@@ -144,7 +142,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             var orderedSources = await GetOrderedDiagnosticSourcesAsync(
                 diagnosticsParams, category, context, cancellationToken).ConfigureAwait(false);
 
-            context.TraceInformation($"Processing {orderedSources.Length} documents");
+            context.TraceDebug($"Processing {orderedSources.Length} documents");
 
             // Keep track of what diagnostic sources we see this time around.  For any we do not see this time
             // around, we'll notify the client that the diagnostics for it have been removed.
@@ -156,22 +154,22 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
                 var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
 
                 var project = diagnosticSource.GetProject();
+                var cacheState = new DiagnosticsRequestState(project, globalStateVersion, context, diagnosticSource);
 
-                var newResultId = await versionedCache.GetNewResultIdAsync(
+                var newResult = await versionedCache.GetOrComputeNewDataAsync(
                     documentIdToPreviousDiagnosticParams,
                     diagnosticSource.GetId(),
                     project,
-                    computeCheapVersionAsync: async () => (globalStateVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
-                    computeExpensiveVersionAsync: async () => (globalStateVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
+                    cacheState,
                     cancellationToken).ConfigureAwait(false);
-                if (newResultId != null)
+                if (newResult != null)
                 {
-                    await ComputeAndReportCurrentDiagnosticsAsync(
-                        context, diagnosticSource, progress, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false);
+                    ReportCurrentDiagnostics(
+                        diagnosticSource, newResult.Value.Data, progress, newResult.Value.ResultId, clientCapabilities);
                 }
                 else
                 {
-                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.ToDisplayString()}");
+                    context.TraceDebug($"Diagnostics were unchanged for {diagnosticSource.ToDisplayString()}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
@@ -214,7 +212,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
-            context.TraceInformation($"{this.GetType()} finished getting diagnostics");
+            context.TraceDebug($"{this.GetType()} finished getting diagnostics");
         }
 
         return CreateReturn(progress);
@@ -269,16 +267,14 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         }
     }
 
-    private async Task ComputeAndReportCurrentDiagnosticsAsync(
-        RequestContext context,
+    private void ReportCurrentDiagnostics(
         IDiagnosticSource diagnosticSource,
+        ImmutableArray<DiagnosticData> diagnostics,
         BufferedProgress<TReport> progress,
-        string resultId,
-        ClientCapabilities clientCapabilities,
-        CancellationToken cancellationToken)
+        string newResultId,
+        ClientCapabilities clientCapabilities)
     {
         using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
-        var diagnostics = await diagnosticSource.GetDiagnosticsAsync(context, cancellationToken).ConfigureAwait(false);
 
         // If we can't get a text document identifier we can't report diagnostics for this source.
         // This can happen for 'fake' projects (e.g. used for TS script blocks).
@@ -290,12 +286,10 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             return;
         }
 
-        context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.ToDisplayString()}");
-
         foreach (var diagnostic in diagnostics)
             result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-        var report = CreateReport(documentIdentifier, result.ToArray(), resultId);
+        var report = CreateReport(documentIdentifier, result.ToArray(), newResultId);
         progress.Report(report);
     }
 
@@ -303,7 +297,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     {
         foreach (var removedResult in removedPreviousResults)
         {
-            context.TraceInformation($"Clearing diagnostics for removed document: {removedResult.TextDocument.Uri}");
+            context.TraceDebug($"Clearing diagnostics for removed document: {removedResult.TextDocument.DocumentUri}");
 
             // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
             // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
@@ -319,7 +313,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             diagnosticData,
             capabilities.HasVisualStudioLspCapability(),
             diagnosticSource.GetProject(),
-            diagnosticSource.IsLiveSource(),
             PotentialDuplicate,
             GlobalOptions);
     }

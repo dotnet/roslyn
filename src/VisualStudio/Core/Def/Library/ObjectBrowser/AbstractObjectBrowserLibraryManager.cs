@@ -41,6 +41,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
     private ObjectListItem _activeListItem;
     private AbstractListItemFactory _listItemFactory;
     private readonly object _classMemberGate = new();
+    private WorkspaceEventRegistration _workspaceChangedDisposer;
 
     protected AbstractObjectBrowserLibraryManager(
         string languageName,
@@ -53,7 +54,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         _languageName = languageName;
 
         Workspace = workspace;
-        Workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
 
         _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
     }
@@ -73,9 +74,12 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
     }
 
     public void Dispose()
-        => this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+    {
+        _workspaceChangedDisposer?.Dispose();
+        _workspaceChangedDisposer = null;
+    }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {
@@ -195,17 +199,14 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return this.GetProject(projectId);
     }
 
-    internal Compilation GetCompilation(ProjectId projectId)
+    internal async Task<Compilation> GetCompilationAsync(
+        ProjectId projectId, CancellationToken cancellationToken)
     {
         var project = GetProject(projectId);
         if (project == null)
-        {
             return null;
-        }
 
-        return project
-            .GetCompilationAsync(CancellationToken.None)
-            .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
+        return await project.GetCompilationAsync(cancellationToken).ConfigureAwait(true);
     }
 
     public override uint GetLibraryFlags()
@@ -301,14 +302,16 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return 0;
     }
 
-    protected override IVsSimpleObjectList2 GetList(uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch)
+    protected override async Task<IVsSimpleObjectList2> GetListAsync(
+        uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, CancellationToken cancellationToken)
     {
         var listKind = Helpers.ListTypeToObjectListKind(listType);
 
         if (Helpers.IsFindSymbol(flags))
         {
-            var projectAndAssemblySet = this.GetAssemblySet(this.Workspace.CurrentSolution, _languageName, CancellationToken.None);
-            return GetSearchList(listKind, flags, pobSrch, projectAndAssemblySet);
+            var projectAndAssemblySet = await this.GetAssemblySetAsync(
+                this.Workspace.CurrentSolution, _languageName, CancellationToken.None).ConfigureAwait(true);
+            return await GetSearchListAsync(listKind, flags, pobSrch, projectAndAssemblySet, cancellationToken).ConfigureAwait(true);
         }
 
         if (listKind == ObjectListKind.Hierarchy)
@@ -408,7 +411,8 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return VSConstants.S_OK;
     }
 
-    internal IVsNavInfo GetNavInfo(SymbolListItem symbolListItem, bool useExpandedHierarchy)
+    internal async Task<IVsNavInfo> GetNavInfoAsync(
+        SymbolListItem symbolListItem, bool useExpandedHierarchy, CancellationToken cancellationToken)
     {
         var project = GetProject(symbolListItem);
         if (project == null)
@@ -416,7 +420,8 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
             return null;
         }
 
-        var compilation = symbolListItem.GetCompilation(this.Workspace);
+        var compilation = await symbolListItem.GetCompilationAsync(
+            this.Workspace, cancellationToken).ConfigureAwait(true);
         if (compilation == null)
         {
             return null;

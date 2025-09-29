@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
@@ -27,9 +26,7 @@ internal sealed partial class SuppressMessageAttributeState(Compilation compilat
     {
         var builder = ImmutableDictionary.CreateBuilder<string, TargetScope>(StringComparer.OrdinalIgnoreCase);
 
-#pragma warning disable CS8605 // Unboxing a possibly null value.
-        foreach (TargetScope targetScope in Enum.GetValues(typeof(TargetScope)))
-#pragma warning restore CS8605 // Unboxing a possibly null value.
+        foreach (var targetScope in Enum.GetValues<TargetScope>())
         {
             if (targetScope == TargetScope.None)
             {

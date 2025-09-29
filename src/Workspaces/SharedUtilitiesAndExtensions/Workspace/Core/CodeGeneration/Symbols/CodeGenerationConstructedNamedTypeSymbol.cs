@@ -87,7 +87,7 @@ internal sealed class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationA
     public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
     {
         // TODO(cyrusn): construct these.
-        return ImmutableArray.CreateRange(_constructedFrom.TypeMembers.Cast<INamedTypeSymbol>());
+        return [.. _constructedFrom.TypeMembers.Cast<INamedTypeSymbol>()];
     }
 
     public override TypeKind TypeKind => _constructedFrom.TypeKind;

@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 

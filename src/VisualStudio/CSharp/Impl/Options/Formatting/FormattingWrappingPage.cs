@@ -8,12 +8,11 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
+
+[Guid(Guids.CSharpOptionPageFormattingWrappingIdString)]
+internal sealed class FormattingWrappingPage : AbstractOptionPage
 {
-    [Guid(Guids.CSharpOptionPageFormattingWrappingIdString)]
-    internal class FormattingWrappingPage : AbstractOptionPage
-    {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-            => new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new WrappingViewModel(o, s));
-    }
+    protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
+        => new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new WrappingViewModel(o, s));
 }

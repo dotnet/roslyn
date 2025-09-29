@@ -12,11 +12,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
+
+using static GenerateFromMembersHelpers;
 
 internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
 {

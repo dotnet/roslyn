@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -132,6 +133,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me
                 End If
                 Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property INestedTypeReferenceInheritsEnclosingTypeTypeParameters As Boolean Implements INestedTypeReference.InheritsEnclosingTypeTypeParameters
+            Get
+                Return True
             End Get
         End Property
 

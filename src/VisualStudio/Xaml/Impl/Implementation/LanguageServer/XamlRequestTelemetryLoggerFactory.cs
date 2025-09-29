@@ -9,15 +9,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
+
+[ExportLspServiceFactory(typeof(RequestTelemetryLogger), StringConstants.XamlLspLanguagesContract), Shared]
+internal sealed class XamlRequestTelemetryLoggerFactory : RequestTelemetryLoggerFactory
 {
-    [ExportLspServiceFactory(typeof(RequestTelemetryLogger), StringConstants.XamlLspLanguagesContract), Shared]
-    internal class XamlRequestTelemetryLoggerFactory : RequestTelemetryLoggerFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public XamlRequestTelemetryLoggerFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlRequestTelemetryLoggerFactory()
-        {
-        }
     }
 }

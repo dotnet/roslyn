@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -464,6 +463,133 @@ End Class"
             Assert.Equal("System.Action(Of System.Func(Of Object))", GetReturnTypeName(source, "C.M1", typeArguments:={GetType(Object)}))
         End Sub
 
+        <Fact>
+        Public Sub GetCompactName_Members()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Class C
+    Shared Sub New()
+    End Sub
+    Sub New(x As Integer)
+    End Sub
+    Function F() As Object
+        Return Nothing
+    End Function
+    Property P As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Default Property Item(i As Integer) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Event E As EventHandler
+    Shared Operator +(c As C) As C
+        Return Nothing
+    End Operator
+    Shared Widening Operator CType(c As C) As String
+        Return Nothing
+    End Operator
+End Class
+Module E
+    <Extension>
+    Sub M(x As String)
+    End Sub
+End Module"
+            Dim compilation = CreateCompilation(source)
+            Dim containingType = compilation.GlobalNamespace.GetTypeMember("C")
+            VerifyMethodName(compilation, containingType.GetMethod("F"), "C.F()", "F")
+            VerifyMethodName(compilation, containingType.GetMethod("get_P"), "C.get_P()", "P")
+            VerifyMethodName(compilation, containingType.GetMethod("set_P"), "C.set_P(Value)", "P")
+            VerifyMethodName(compilation, containingType.GetMethod("get_Item"), "C.get_Item(i)", "Item")
+            VerifyMethodName(compilation, containingType.GetMethod("set_Item"), "C.set_Item(i, Value)", "Item")
+            VerifyMethodName(compilation, containingType.GetMethod("add_E"), "C.E(obj)", "E")
+            VerifyMethodName(compilation, containingType.GetMethod("remove_E"), "C.E(obj)", "E")
+            VerifyMethodName(compilation, containingType.GetMethod(".cctor"), "C.New()", "New")
+            VerifyMethodName(compilation, containingType.GetMethod(".ctor"), "C.New(x)", "New")
+            VerifyMethodName(compilation, containingType.GetMethod("op_UnaryPlus"), "C.+(c)", "+")
+            VerifyMethodName(compilation, containingType.GetMethod("op_Implicit"), "C.CType(c)", "CType")
+            VerifyMethodName(compilation, compilation.GlobalNamespace.GetTypeMember("E").GetMethod("M"), "E.M(x)", "M")
+        End Sub
+
+        <Fact>
+        Public Sub GetCompactName_GenericMethod()
+            Dim source = "
+Imports System
+Class A(Of T)
+    Public Structure B(Of U)
+        Sub M(Of V)(x As T, y As U, z As V)
+        End Sub
+    End Structure
+End Class"
+            Dim compilation = CreateCompilation(source)
+            Dim instructionDecoder = VisualBasicInstructionDecoder.Instance
+            Dim method = GetConstructedMethod(
+                compilation,
+                DirectCast(compilation.GlobalNamespace.GetTypeMember("A").GetTypeMember("B").GetMethod("M"), PEMethodSymbol),
+                {"Object", "Integer", "String"},
+                instructionDecoder)
+            Dim actualName = instructionDecoder.GetName(method, includeParameterTypes:=False, includeParameterNames:=True)
+            Dim actualCompactName = instructionDecoder.GetCompactName(method)
+            Assert.Equal("A(Of Object).B(Of Integer).M(Of String)(x, y, z)", actualName)
+            Assert.Equal("M", actualCompactName)
+        End Sub
+
+        <Fact>
+        Public Sub GetCompactName_ExplicitImplementation()
+            Dim source = "
+Imports System
+Interface I
+    Function F() As Object
+    Property P As Object
+    Default ReadOnly Property Item(i As Integer) As Object
+End Interface
+Class C
+    Implements I
+    Function I_F0() As Object Implements I.F
+        Return Nothing
+    End Function
+    Property I_P0 As Object Implements I.P
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Default ReadOnly Property I_Item0(i As Integer) As Object Implements I.Item
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class"
+            Dim compilation = CreateCompilation(source)
+            Dim containingType = compilation.GlobalNamespace.GetTypeMember("C")
+            VerifyMethodName(compilation, containingType.GetMethod("I_F0"), "C.I_F0()", "I_F0")
+            VerifyMethodName(compilation, containingType.GetMethod("get_I_P0"), "C.get_I_P0()", "I_P0")
+            VerifyMethodName(compilation, containingType.GetMethod("set_I_P0"), "C.set_I_P0(Value)", "I_P0")
+            VerifyMethodName(compilation, containingType.GetMethod("get_I_Item0"), "C.get_I_Item0(i)", "I_Item0")
+        End Sub
+
+        Private Sub VerifyMethodName(compilation As VisualBasicCompilation, method As MethodSymbol, expectedName As String, expectedCompactName As String)
+            Dim instructionDecoder = VisualBasicInstructionDecoder.Instance
+            method = GetConstructedMethod(
+                compilation,
+                DirectCast(method, PEMethodSymbol),
+                Nothing,
+                instructionDecoder)
+            Dim actualName = instructionDecoder.GetName(method, includeParameterTypes:=False, includeParameterNames:=True)
+            Dim actualCompactName = instructionDecoder.GetCompactName(method)
+            Assert.Equal(expectedName, actualName)
+            Assert.Equal(expectedCompactName, actualCompactName)
+        End Sub
+
         Private Function GetName(source As String, methodName As String, argumentFlags As DkmVariableInfoFlags, Optional typeArguments() As Type = Nothing, Optional argumentValues() As String = Nothing) As String
             Dim serializedTypeArgumentNames = typeArguments?.Select(Function(t) t?.AssemblyQualifiedName).ToArray()
             Return GetName(source, methodName, argumentFlags, serializedTypeArgumentNames, argumentValues)
@@ -474,7 +600,12 @@ End Class"
                 "Unexpected argumentFlags", "argumentFlags = {0}", argumentFlags)
 
             Dim instructionDecoder = VisualBasicInstructionDecoder.Instance
-            Dim method = GetConstructedMethod(source, methodName, typeArguments, instructionDecoder)
+            Dim compilation = CreateCompilation(source)
+            Dim method = GetConstructedMethod(
+                compilation,
+                DirectCast(GetMethodOrTypeBySignature(compilation, methodName), PEMethodSymbol),
+                typeArguments,
+                instructionDecoder)
 
             Dim includeParameterTypes = argumentFlags.Includes(DkmVariableInfoFlags.Types)
             Dim includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names)
@@ -492,15 +623,7 @@ End Class"
             Return name
         End Function
 
-        Private Function GetReturnTypeName(source As String, methodName As String, Optional typeArguments() As Type = Nothing) As String
-            Dim instructionDecoder = VisualBasicInstructionDecoder.Instance
-            Dim serializedTypeArgumentNames = typeArguments?.Select(Function(t) t?.AssemblyQualifiedName).ToArray()
-            Dim method = GetConstructedMethod(source, methodName, serializedTypeArgumentNames, instructionDecoder)
-
-            Return instructionDecoder.GetReturnTypeName(method)
-        End Function
-
-        Private Function GetConstructedMethod(source As String, methodName As String, serializedTypeArgumentNames() As String, instructionDecoder As VisualBasicInstructionDecoder) As MethodSymbol
+        Private Function CreateCompilation(source As String) As VisualBasicCompilation
             Dim compilation = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 references:={MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
@@ -509,14 +632,28 @@ End Class"
             Dim runtime = CreateRuntimeInstance(compilation)
             Dim moduleInstances = runtime.Modules
             Dim blocks = moduleInstances.SelectAsArray(Function(m) m.MetadataBlock)
-            compilation = blocks.ToCompilation()
-            Dim frame = DirectCast(GetMethodOrTypeBySignature(compilation, methodName), PEMethodSymbol)
+            Return blocks.ToCompilation()
+        End Function
 
+        Private Function GetReturnTypeName(source As String, methodName As String, Optional typeArguments() As Type = Nothing) As String
+            Dim instructionDecoder = VisualBasicInstructionDecoder.Instance
+            Dim serializedTypeArgumentNames = typeArguments?.Select(Function(t) t?.AssemblyQualifiedName).ToArray()
+            Dim compilation = CreateCompilation(source)
+            Dim method = GetConstructedMethod(
+                compilation,
+                DirectCast(GetMethodOrTypeBySignature(compilation, methodName), PEMethodSymbol),
+                serializedTypeArgumentNames,
+                instructionDecoder)
+
+            Return instructionDecoder.GetReturnTypeName(method)
+        End Function
+
+        Private Function GetConstructedMethod(compilation As VisualBasicCompilation, frame As PEMethodSymbol, serializedTypeArgumentNames() As String, instructionDecoder As VisualBasicInstructionDecoder) As MethodSymbol
             ' Once we have the method token, we want to look up the method (again)
             ' using the same helper as the product code.  This helper will also map
             ' async/ iterator "MoveNext" methods to the original source method.
             Dim method As MethodSymbol = compilation.GetSourceMethod(
-                DirectCast(frame.ContainingModule, PEModuleSymbol).Module.GetModuleVersionIdOrThrow(),
+                New ModuleId(DirectCast(frame.ContainingModule, PEModuleSymbol).Module.GetModuleVersionIdOrThrow(), frame.ContainingModule.Name),
                 frame.Handle)
             If serializedTypeArgumentNames IsNot Nothing Then
                 Assert.NotEmpty(serializedTypeArgumentNames)

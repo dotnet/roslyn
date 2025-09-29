@@ -179,8 +179,9 @@ internal abstract partial class AbstractFindUsagesService
         // bother with true/false/null as those are likely to have way too many results
         // to be useful.
         var token = await syntaxTree.GetTouchingTokenAsync(
+            semanticModel: null,
             position,
-            t => syntaxFacts.IsNumericLiteral(t) ||
+            (_, t) => syntaxFacts.IsNumericLiteral(t) ||
                  syntaxFacts.IsCharacterLiteral(t) ||
                  syntaxFacts.IsStringLiteral(t),
             cancellationToken).ConfigureAwait(false);

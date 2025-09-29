@@ -8,7 +8,9 @@ Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
 Imports System.Threading
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -18,7 +20,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestHelpers
-Imports Basic.Reference.Assemblies
 Imports CS = Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -2324,10 +2325,10 @@ End Class
         <Fact>
         Public Sub ReferenceManagerReuse_WithSyntaxTrees()
             Dim ta = Parse("Imports System")
-            Dim tb = Parse("Imports System", options:=TestOptions.Script)
+            Dim tb = Parse("Imports System", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
             Dim tc = Parse("#r ""bar""  ' error: #r in regular code")
-            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script)
-            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script)
+            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
+            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
 
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
 

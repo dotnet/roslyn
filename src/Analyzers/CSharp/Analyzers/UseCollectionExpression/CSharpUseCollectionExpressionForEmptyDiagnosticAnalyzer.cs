@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
@@ -57,7 +56,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
+            additionalLocations: [nodeToReplace.GetLocation()],
             properties: changesSemantics ? ChangesSemantics : null));
     }
 }

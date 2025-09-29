@@ -17,11 +17,6 @@
         <target state="translated">Default Case 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">명시적 캐스트 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">파일 헤더 추가</target>

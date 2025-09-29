@@ -14,16 +14,15 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
-public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
+public sealed partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpPopulateSwitchStatementDiagnosticAnalyzer(), new CSharpPopulateSwitchStatementCodeFixProvider());
 
     [Fact]
-    public async Task OnlyOnFirstToken()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task OnlyOnFirstToken()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -50,12 +49,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AllMembersAndDefaultExist()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AllMembersAndDefaultExist()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -83,12 +80,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AllMembersExist_NotDefault()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AllMembersExist_NotDefault()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -143,12 +138,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_NotDefault()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -203,12 +196,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_WithDefault()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_WithDefault()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -265,12 +256,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_NotDefault_EnumHasExplicitType()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -325,12 +314,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_WithMembersAndDefaultInSection_NewValuesAboveDefaultSection()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -385,12 +372,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_WithMembersAndDefaultInSection_AssumesDefaultIsInLastSection()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -447,12 +432,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoMembersExist0()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NoMembersExist0()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -503,12 +486,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task NoMembersExist1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NoMembersExist1()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -555,12 +536,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task NoMembersExist2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NoMembersExist2()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -613,12 +592,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task UsingStaticEnum_AllMembersExist()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsingStaticEnum_AllMembersExist()
+        => TestMissingInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -650,12 +627,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsingStaticEnum_AllMembersExist_OutOfDefaultOrder()
+        => TestMissingInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -687,12 +662,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsingStaticEnum_MembersExist()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UsingStaticEnum_MembersExist()
+        => TestInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -751,12 +724,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UsingStaticEnum_NoMembersExist()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UsingStaticEnum_NoMembersExist()
+        => TestInRegularAndScriptAsync(
             """
             using static System.IO.FileMode;
 
@@ -805,12 +776,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_NotDefault_EnumHasNonFlagsAttribute()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -867,12 +836,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_EnumIsNested()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_NotDefault_EnumIsNested()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -927,12 +894,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_SwitchIsNotEnum()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotAllMembersExist_SwitchIsNotEnum()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -954,12 +919,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotAllMembersExist_NotDefault_UsingConstants()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_NotDefault_UsingConstants()
+        => TestInRegularAndScriptAsync(
             """
             enum MyEnum
             {
@@ -1008,12 +971,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13455")]
-    public async Task AllMissingTokens()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AllMissingTokens()
+        => TestInRegularAndScriptAsync(
         """
         enum MyEnum
         {
@@ -1046,12 +1007,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40240")]
-    public async Task TestAddMissingCasesForNullableEnum()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddMissingCasesForNullableEnum()
+        => TestInRegularAndScriptAsync(
             """
             public class Program
             {
@@ -1104,12 +1063,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 Option3,
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
-    public async Task TestForNullableEnum_NullableEnabled()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForNullableEnum_NullableEnabled()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1152,12 +1109,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 Value1, Value2
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
-    public async Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForNullableEnum_NullableEnabled_NotGenerateNullArmIfItAlreadyExists()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1202,12 +1157,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 Value1, Value2
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
-    public async Task TestForNullableEnum_NullableDisabled()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForNullableEnum_NullableDisabled()
+        => TestInRegularAndScriptAsync(
             """
             #nullable disable
 
@@ -1250,12 +1203,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 Value1, Value2
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61594")]
-    public async Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestForNullableEnum_NullableDisabled_NotGenerateNullArmIfItAlreadyExists()
+        => TestInRegularAndScriptAsync(
             """
             #nullable disable
 
@@ -1300,12 +1251,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 Value1, Value2
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/61809")]
-    public async Task TestNotInSwitchWithUnknownType1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInSwitchWithUnknownType1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1315,18 +1264,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/61809")]
-    public async Task TestNotInSwitchWithUnknownType2()
-    {
-        // Parser currently treats "var v = null switch" as:
-        //
-        // var v = null <- ';' is "missing"
-        // switch
-        //
-        // So switch is a statement here.
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInSwitchWithUnknownType2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1336,12 +1277,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
-    public async Task NotOnCompleteBoolean1()
-    {
-        await TestMissingAsync(
+    public Task NotOnCompleteBoolean1()
+        => TestMissingAsync(
             """
             public class Sample
             {
@@ -1355,12 +1294,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
-    public async Task NotOnCompleteBoolean2()
-    {
-        await TestMissingAsync(
+    public Task NotOnCompleteBoolean2()
+        => TestMissingAsync(
             """
             public class Sample
             {
@@ -1375,12 +1312,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
-    public async Task OnIncompleteBoolean1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task OnIncompleteBoolean1()
+        => TestInRegularAndScriptAsync(
             """
             public class Sample
             {
@@ -1407,12 +1342,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48876")]
-    public async Task OnIncompleteBoolean2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task OnIncompleteBoolean2()
+        => TestInRegularAndScriptAsync(
             """
             public class Sample
             {
@@ -1441,12 +1374,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71281")]
-    public async Task NotWithPatternDefault1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotWithPatternDefault1()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -1475,12 +1406,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71281")]
-    public async Task TestWithPatternDefault_NonConstantGuard1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithPatternDefault_NonConstantGuard1()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -1539,12 +1468,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71281")]
-    public async Task TestNotWithPatternDefault_ConstantGuard1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithPatternDefault_ConstantGuard1()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -1573,12 +1500,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71281")]
-    public async Task TestWithPatternDefault_NonConstantTrueGuard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithPatternDefault_NonConstantTrueGuard()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -1637,12 +1562,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73245")]
-    public async Task NotAllMembersExist_NotDefault_OrPattern()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_NotDefault_OrPattern()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -1697,12 +1620,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """, index: 2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73245")]
-    public async Task NotAllMembersExist_WithDefault_OrPattern()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotAllMembersExist_WithDefault_OrPattern()
+        => TestInRegularAndScriptAsync(
             """
             namespace ConsoleApplication1
             {
@@ -1757,14 +1678,12 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("int")]
     [InlineData("int i")]
-    public async Task NullableValueTypeWithNullAndUnderlyingValueCases1(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableValueTypeWithNullAndUnderlyingValueCases1(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 void M(int? x)
@@ -1779,14 +1698,12 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("int")]
     [InlineData("int i")]
-    public async Task NullableValueTypeWithNullAndUnderlyingValueCases2(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableValueTypeWithNullAndUnderlyingValueCases2(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 int M(int? x)
@@ -1801,14 +1718,12 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("int")]
     [InlineData("int i")]
-    public async Task NullableValueTypeWithNullAndUnderlyingValueCases3(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableValueTypeWithNullAndUnderlyingValueCases3(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 void M(int? x)
@@ -1825,12 +1740,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
-    public async Task NullableValueTypeWithNullAndUnderlyingValueCases4()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NullableValueTypeWithNullAndUnderlyingValueCases4()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 int M(int? x)
@@ -1844,12 +1757,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
-    public async Task NullableValueTypeWithNullAndUnderlyingValueCases5()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NullableValueTypeWithNullAndUnderlyingValueCases5()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 int M(int? x)
@@ -1863,14 +1774,12 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("string")]
     [InlineData("string s")]
-    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases1(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableReferenceTypeWithNullAndUnderlyingValueCases1(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 void M(string? x)
@@ -1885,14 +1794,12 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("string")]
     [InlineData("string s")]
-    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases2(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableReferenceTypeWithNullAndUnderlyingValueCases2(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 int M(string? x)
@@ -1907,14 +1814,12 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
     [InlineData("string")]
     [InlineData("string s")]
-    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases3(string underlyingTypePattern)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task NullableReferenceTypeWithNullAndUnderlyingValueCases3(string underlyingTypePattern)
+        => TestMissingInRegularAndScriptAsync($$"""
             class C
             {
                 void M(string? x)
@@ -1931,12 +1836,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
-    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases4()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NullableReferenceTypeWithNullAndUnderlyingValueCases4()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 int M(string? x)
@@ -1950,12 +1853,10 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
-    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases5()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NullableReferenceTypeWithNullAndUnderlyingValueCases5()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 int M(string? x)
@@ -1969,5 +1870,4 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 }

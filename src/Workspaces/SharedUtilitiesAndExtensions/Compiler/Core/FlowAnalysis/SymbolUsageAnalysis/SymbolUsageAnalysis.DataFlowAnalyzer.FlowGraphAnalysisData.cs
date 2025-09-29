@@ -183,7 +183,6 @@ internal static partial class SymbolUsageAnalysis
             /// <summary>
             /// 
             /// </summary>
-            /// <returns></returns>
             private static ImmutableHashSet<ILocalSymbol> GetCapturedLocals(ControlFlowGraph cfg)
             {
                 using var _ = PooledHashSet<ILocalSymbol>.GetInstance(out var builder);
@@ -223,7 +222,7 @@ internal static partial class SymbolUsageAnalysis
 
                     // Filter down the operations to writes within this block range.
                     writesInBlockRange = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                    foreach (var (symbol, write) in SymbolsWriteBuilder.Where(kvp => !kvp.Value).Select(kvp => kvp.Key).ToArray())
+                    foreach (var (symbol, write) in SymbolsWriteBuilder.SelectAsArray(kvp => !kvp.Value, kvp => kvp.Key))
                     {
                         if (write != null && operations.Contains(write))
                         {

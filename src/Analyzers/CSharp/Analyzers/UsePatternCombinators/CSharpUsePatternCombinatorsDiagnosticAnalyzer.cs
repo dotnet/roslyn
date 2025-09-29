@@ -9,16 +9,19 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 
 using static AnalyzedPattern;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
-    AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer() :
+    AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+        EnforceOnBuildValues.UsePatternCombinators,
+        CSharpCodeStyleOptions.PreferPatternMatching,
+        s_safePatternTitle,
+        s_safePatternTitle)
 {
     private const string SafeKey = "safe";
 
@@ -31,15 +34,6 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
         EnforceOnBuildValues.UsePatternCombinators,
         hasAnyCodeStyleOption: true,
         s_unsafePatternTitle);
-
-    public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
-            EnforceOnBuildValues.UsePatternCombinators,
-            CSharpCodeStyleOptions.PreferPatternMatching,
-            s_safePatternTitle,
-            s_safePatternTitle)
-    {
-    }
 
     public static bool IsSafe(Diagnostic diagnostic)
         => diagnostic.Properties.ContainsKey(SafeKey);

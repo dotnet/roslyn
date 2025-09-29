@@ -7,7 +7,9 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Represents a synthesized state machine field.
     /// </summary>
-    internal sealed class StateMachineFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
+    internal class StateMachineFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly TypeWithAnnotations _type;
         private readonly bool _isThis;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic)
-            : base(stateMachineType, name, isPublic: isPublic, isReadOnly: false, isStatic: false)
+            : base(stateMachineType, name, isPublic ? DeclarationModifiers.Public : DeclarationModifiers.Private, isReadOnly: false, isStatic: false)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));
@@ -81,6 +83,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool IsCapturedFrame
         {
             get { return _isThis; }
+        }
+    }
+
+    internal sealed class StateMachineFieldSymbolForRegularParameter : StateMachineFieldSymbol
+    {
+        private readonly ParameterSymbol _parameter;
+
+        public StateMachineFieldSymbolForRegularParameter(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, ParameterSymbol parameter, bool isPublic)
+            : base(stateMachineType, type, name, isPublic, isThis: false)
+        {
+            Debug.Assert(parameter is { IsThis: false });
+            _parameter = parameter;
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            var definition = _parameter.OriginalDefinition;
+
+            if (ContainingModule == definition.ContainingModule)
+            {
+                foreach (CSharpAttributeData attr in definition.GetAttributes())
+                {
+                    if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true } attributeType &&
+                        (attributeType.GetAttributeUsageInfo().ValidTargets & System.AttributeTargets.Field) != 0)
+                    {
+                        AddSynthesizedAttribute(ref attributes, attr);
+                    }
+                }
+            }
+
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
         }
     }
 }

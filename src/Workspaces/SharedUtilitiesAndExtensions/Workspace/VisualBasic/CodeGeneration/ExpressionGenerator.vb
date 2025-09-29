@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             SyntaxFactory.SeparatedList(typedConstant.Values.Select(Function(v) GenerateExpression(generator, v))))
                     End If
                 Case TypedConstantKind.Type
-                    If Not TypeOf typedConstant.Value Is ITypeSymbol Then
+                    If TypeOf typedConstant.Value IsNot ITypeSymbol Then
                         Return GenerateNothingLiteral()
                     End If
 
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return GenerateExpression(generator, DirectCast(type, INamedTypeSymbol).TypeArguments(0), value, canUseFieldReference)
                 ElseIf type?.TypeKind = TypeKind.Enum Then
                     Return DirectCast(VisualBasicFlagsEnumGenerator.Instance.CreateEnumConstantValue(
-                        generator, DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
+                        DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
                 End If
             End If
 

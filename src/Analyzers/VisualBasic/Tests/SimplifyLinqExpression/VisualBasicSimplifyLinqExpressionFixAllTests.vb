@@ -3,12 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.SimplifyLinqExpression
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)>
     Partial Public Class VisualBasicSimplifyLinqExpressionTests
         <Fact>
-        Public Shared Async Function FixAllInDocument() As Task
+        Public Async Function FixAllInDocument() As Task
             Dim testCode = $"
 Imports System
 Imports System.Linq
@@ -41,11 +42,11 @@ Module T
         Dim test5 = test.FirstOrDefault(Function(x) x.Equals(""!""))
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, VisualBasicSimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Fact>
-        Public Shared Async Function FixAllInDocumentExplicitCall() As Task
+        Public Async Function FixAllInDocumentExplicitCall() As Task
             Dim testCode = $"
 Imports System
 Imports System.Linq
@@ -78,11 +79,11 @@ Module T
         Dim test5 = Enumerable.FirstOrDefault(test, Function(x) x.Equals(""!""))
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, VisualBasicSimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Fact>
-        Public Shared Async Function NestedInDocument() As Task
+        Public Async Function NestedInDocument() As Task
             Dim testCode = $"
 Imports System
 Imports System.Linq
@@ -115,7 +116,7 @@ Module T
         Dim test5 = test.FirstOrDefault(Function(x) x.FirstOrDefault(Function(s) s.Equals(""!"")).Equals(""!""))
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, VisualBasicSimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
         End Function
     End Class
 End Namespace

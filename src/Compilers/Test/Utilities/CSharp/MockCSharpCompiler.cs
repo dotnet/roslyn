@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, ImmutableArray<MetadataReference> additionalReferences = default)
-            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader(), driverCache)
+            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new AnalyzerAssemblyLoader(), driverCache)
         {
             _analyzers = analyzers.NullToEmpty();
             _generators = generators.NullToEmpty();

@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
@@ -33,7 +32,7 @@ End class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         <WorkItem("https://github.com/dotnet/roslyn/issues/17368")>
         Public Async Function TestMissingParameterList() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     function [||]GetGoo as integer
     End function
@@ -878,7 +877,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestBeforeStartOfMethod_NotBeforeAttributes() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "class C
     [||]<A>
     Function GetGoo() As Integer

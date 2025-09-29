@@ -12,13 +12,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
     /// <summary>
-    /// Represents a type referenced from a deleted member (as distinct from a type that has been deleted). This is also
-    /// why it doesn't inherit from <see cref="DeletedSourceDefinition{T}"/>
+    /// Represents a type referenced from a deleted member (as distinct from a type that has been deleted).
     /// </summary>
     internal sealed class DeletedSourceTypeDefinition : DeletedSourceDefinition<ITypeDefinition>, ITypeDefinition
     {
         public DeletedSourceTypeDefinition(ITypeDefinition oldDefinition, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
-            : base(oldDefinition, typesUsedByDeletedMembers)
+            : base(oldDefinition, typesUsedByDeletedMembers, deletedAttribute: null)
         {
         }
 

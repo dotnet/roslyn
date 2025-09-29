@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -34,10 +35,13 @@ internal abstract partial class AbstractMoveDeclarationNearReferenceService<
     protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
     protected abstract Task<bool> TypesAreCompatibleAsync(Document document, ILocalSymbol localSymbol, TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode right, CancellationToken cancellationToken);
 
-    public async Task<bool> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    public async Task<(bool canMove, bool mayChangeSemantics)> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         var state = await ComputeStateAsync(document, node, cancellationToken).ConfigureAwait(false);
-        return state != null;
+        if (state is null)
+            return default;
+
+        return (canMove: true, CrossesMeaningfulBlock(state));
     }
 
     private async Task<State> ComputeStateAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
@@ -75,9 +79,7 @@ internal abstract partial class AbstractMoveDeclarationNearReferenceService<
     {
         var state = await ComputeStateAsync(document, localDeclarationStatement, cancellationToken).ConfigureAwait(false);
         if (state == null)
-        {
             return document;
-        }
 
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
@@ -175,9 +177,9 @@ internal abstract partial class AbstractMoveDeclarationNearReferenceService<
     private static ImmutableArray<SyntaxTrivia> GetMergedTrivia(
         IFileBannerFactsService bannerService, TStatementSyntax statement1, TStatementSyntax statement2)
     {
-        return bannerService.GetLeadingBlankLines(statement2).Concat(
-               bannerService.GetTriviaAfterLeadingBlankLines(statement1)).Concat(
-               bannerService.GetTriviaAfterLeadingBlankLines(statement2));
+        return [.. bannerService.GetLeadingBlankLines(statement2),
+                .. bannerService.GetTriviaAfterLeadingBlankLines(statement1),
+                .. bannerService.GetTriviaAfterLeadingBlankLines(statement2)];
     }
 
     private bool CrossesMeaningfulBlock(State state)

@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
-using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,51 +12,32 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
 
 [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
     internal override Type GetSignatureHelpProviderType()
         => typeof(TupleConstructionSignatureHelpProvider);
 
     [Fact]
-    public async Task InvocationAfterOpenParen()
-    {
-        var markup = """
+    public Task InvocationAfterOpenParen()
+        => TestAsync("""
             class C
             {
                 (int, int) y = [|($$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0, parameterDocumentation: "")
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(int, int)", currentParameterIndex: 0, parameterDocumentation: "")], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task InvocationWithNullableReferenceTypes()
-    {
-        var markup = """
+    public Task InvocationWithNullableReferenceTypes()
+        => TestAsync("""
             class C
             {
                 (string?, string) y = [|($$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(string?, string)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(string?, string)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
-    public async Task TestMissingTupleElement()
-    {
-        var markup = """
+    public Task TestMissingTupleElement()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -68,185 +45,96 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
                     (a, ) = [|($$
             |]  }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(object a, object)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(object a, object)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task InvocationAfterOpenParen2()
-    {
-        var markup = """
+    public Task InvocationAfterOpenParen2()
+        => TestAsync("""
             class C
             {
                 (int, int) y = [|($$)|]
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(int, int)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task InvocationAfterComma1()
-    {
-        var markup = """
+    public Task InvocationAfterComma1()
+        => TestAsync("""
             class C
             {
                 (int, int) y = [|(1,$$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1, parameterDocumentation: "")
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(int, int)", currentParameterIndex: 1, parameterDocumentation: "")], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task InvocationAfterComma2()
-    {
-        var markup = """
+    public Task InvocationAfterComma2()
+        => TestAsync("""
             class C
             {
                 (int, int) y = [|(1,$$)|]
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(int, int)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task ParameterIndexWithNameTyped()
-    {
-        var markup = """
+    public Task ParameterIndexWithNameTyped()
+        => TestAsync("""
             class C
             {
                 (int a, int b) y = [|(b: $$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
+            """, [
             // currentParameterIndex only considers the position in the argument list 
             // and not names, hence passing 0 even though the controller will highlight
             // "int b" in the actual display
-            new SignatureHelpTestItem("(int a, int b)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
-    }
+            new("(int a, int b)", currentParameterIndex: 0)]);
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14277")]
-    public async Task NestedTuple()
-    {
-        var markup = """
+    public Task NestedTuple()
+        => TestAsync("""
             class C
             {
                 (int a, (int b, int c)) y = [|(1, ($$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int b, int c)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(int b, int c)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task NestedTupleWhenNotInferred()
-    {
-        var markup = """
+    public Task NestedTupleWhenNotInferred()
+        => TestAsync("""
             class C
             {
                 (int, object) y = [|(1, ($$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, object)", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task NestedTupleWhenNotInferred2()
-    {
-        var markup = """
+    public Task NestedTupleWhenNotInferred2()
+        => TestAsync("""
             class C
             {
                 (int, object) y = [|(1, (2,$$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, object)", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task NestedTupleWhenNotInferred3()
-    {
-        var markup = """
+    public Task NestedTupleWhenNotInferred3()
+        => TestAsync("""
             class C
             {
                 (int, object) y = [|(1, ($$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, object)", currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task NestedTupleWhenNotInferred4()
-    {
-        var markup = """
+    public Task NestedTupleWhenNotInferred4()
+        => TestAsync("""
             class C
             {
                 (object, object) y = [|(($$
             |]}
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(object, object)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [new("(object, object)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
 
     [Fact]
-    public async Task MultipleOverloads()
-    {
-        var markup = """
+    public Task MultipleOverloads()
+        => TestAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -257,21 +145,14 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
                 static void Do1((int, int) i) { }
                 static void Do1((string, string) s) { }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0),
-            new SignatureHelpTestItem("(string, string)", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
-    }
+            """, [
+            new("(int, int)", currentParameterIndex: 0),
+            new("(string, string)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14793")]
-    public async Task DoNotCrashInLinkedFile()
-    {
-        var markup = """
+    public Task DoNotCrashInLinkedFile()
+        => VerifyItemWithReferenceWorkerAsync(
+            """
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -294,8 +175,5 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = new SignatureHelpTestItem($"(int, string)", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
-    }
+            """, [new($"(int, string)", currentParameterIndex: 0)], hideAdvancedMembers: false);
 }

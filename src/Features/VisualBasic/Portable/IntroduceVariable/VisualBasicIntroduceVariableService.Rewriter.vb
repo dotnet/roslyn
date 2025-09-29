@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Private ReadOnly _replacementAnnotation As New SyntaxAnnotation
+            Private Shared ReadOnly s_replacementAnnotation As New SyntaxAnnotation
+
             Private ReadOnly _replacementNode As SyntaxNode
             Private ReadOnly _matches As ISet(Of ExpressionSyntax)
 
@@ -23,10 +24,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
                 Dim expression = TryCast(node, ExpressionSyntax)
                 If expression IsNot Nothing AndAlso _matches.Contains(expression) Then
-                    Return _replacementNode _
-                        .WithLeadingTrivia(expression.GetLeadingTrivia()) _
-                        .WithTrailingTrivia(expression.GetTrailingTrivia()) _
-                        .WithAdditionalAnnotations(_replacementAnnotation)
+                    Return _replacementNode.
+                        WithLeadingTrivia(expression.GetLeadingTrivia()).
+                        WithTrailingTrivia(expression.GetTrailingTrivia()).
+                        WithAdditionalAnnotations(s_replacementAnnotation)
                 End If
 
                 Return MyBase.Visit(node)
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 If node IsNot newNode AndAlso newNode.IsKind(SyntaxKind.ParenthesizedExpression) Then
                     Dim parenthesizedExpression = DirectCast(newNode, ParenthesizedExpressionSyntax)
                     Dim innerExpression = parenthesizedExpression.OpenParenToken.GetNextToken().Parent
-                    If innerExpression.HasAnnotation(_replacementAnnotation) AndAlso innerExpression.Equals(parenthesizedExpression.Expression) Then
+                    If innerExpression.HasAnnotation(s_replacementAnnotation) AndAlso innerExpression.Equals(parenthesizedExpression.Expression) Then
                         Return newNode.WithAdditionalAnnotations(Simplifier.Annotation)
                     End If
                 End If
@@ -49,6 +50,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Return New Rewriter(replacementNode, matches).Visit(node)
             End Function
 
+            Public Overrides Function VisitInferredFieldInitializer(node As InferredFieldInitializerSyntax) As SyntaxNode
+                Dim newNode = DirectCast(MyBase.VisitInferredFieldInitializer(node), InferredFieldInitializerSyntax)
+                If newNode IsNot node AndAlso
+                   newNode.Expression.HasAnnotation(s_replacementAnnotation) Then
+
+                    Dim inferredName = node.Expression.TryGetInferredMemberName()
+                    If inferredName IsNot Nothing Then
+                        Return SyntaxFactory.NamedFieldInitializer(
+                            SyntaxFactory.IdentifierName(inferredName.EscapeIdentifier(afterDot:=True)),
+                            newNode.Expression.WithoutLeadingTrivia()).WithTriviaFrom(newNode)
+                    End If
+                End If
+
+                Return newNode
+            End Function
+
+            Public Overrides Function VisitSimpleArgument(node As SimpleArgumentSyntax) As SyntaxNode
+                Dim newNode = DirectCast(MyBase.VisitSimpleArgument(node), SimpleArgumentSyntax)
+                If newNode IsNot node AndAlso
+                   node.NameColonEquals Is Nothing AndAlso
+                   newNode.Expression.HasAnnotation(s_replacementAnnotation) AndAlso
+                   TypeOf node.Parent Is TupleExpressionSyntax Then
+
+                    Dim inferredName = node.Expression.TryGetInferredMemberName()
+                    If inferredName IsNot Nothing Then
+                        Return SyntaxFactory.SimpleArgument(
+                            SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(inferredName.EscapeIdentifier())),
+                            newNode.Expression.WithoutLeadingTrivia()).WithTriviaFrom(newNode)
+                    End If
+                End If
+
+                Return newNode
+            End Function
         End Class
     End Class
 End Namespace

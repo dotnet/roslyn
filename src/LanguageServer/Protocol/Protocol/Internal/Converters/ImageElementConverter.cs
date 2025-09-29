@@ -9,7 +9,8 @@ using Roslyn.Core.Imaging;
 using Roslyn.Text.Adornments;
 
 namespace Roslyn.LanguageServer.Protocol;
-internal class ImageElementConverter : JsonConverter<ImageElement>
+
+internal sealed class ImageElementConverter : JsonConverter<ImageElement>
 {
     public static readonly ImageElementConverter Instance = new();
 
@@ -19,6 +20,8 @@ internal class ImageElementConverter : JsonConverter<ImageElement>
         {
             ImageId? imageId = null;
             string? automationName = null;
+
+            Span<char> scratchChars = stackalloc char[64];
 
             while (reader.Read())
             {
@@ -30,7 +33,8 @@ internal class ImageElementConverter : JsonConverter<ImageElement>
 
                 if (reader.TokenType == JsonTokenType.PropertyName)
                 {
-                    var propertyName = reader.GetString();
+                    var propertyName = reader.GetStringSpan(scratchChars);
+
                     reader.Read();
                     switch (propertyName)
                     {
@@ -41,7 +45,9 @@ internal class ImageElementConverter : JsonConverter<ImageElement>
                             automationName = reader.GetString();
                             break;
                         case ObjectContentConverter.TypeProperty:
-                            if (reader.GetString() != nameof(ImageElement))
+                            var typePropertyValue = reader.GetStringSpan(scratchChars);
+
+                            if (!typePropertyValue.SequenceEqual(nameof(ImageElement).AsSpan()))
                                 throw new JsonException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ImageElement)}");
                             break;
                         default:
@@ -60,7 +66,10 @@ internal class ImageElementConverter : JsonConverter<ImageElement>
         writer.WriteStartObject();
         writer.WritePropertyName(nameof(ImageElement.ImageId));
         ImageIdConverter.Instance.Write(writer, value.ImageId, options);
-        writer.WriteString(nameof(ImageElement.AutomationName), value.AutomationName);
+
+        if (value.AutomationName != null)
+            writer.WriteString(nameof(ImageElement.AutomationName), value.AutomationName);
+
         writer.WriteString(ObjectContentConverter.TypeProperty, nameof(ImageElement));
         writer.WriteEndObject();
     }

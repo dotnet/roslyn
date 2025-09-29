@@ -30,9 +30,9 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
     private ImmutableArray<ISignatureHelpProvider> GetProviders(string language)
     {
         return _providersByLanguage.GetOrAdd(language, language =>
-            _allProviders
-                .Where(p => p.Metadata.Language == language)
-                .SelectAsArray(p => p.Value));
+            _allProviders.SelectAsArray(
+                predicate: p => p.Metadata.Language == language,
+                selector: p => p.Value));
     }
 
     /// <summary>

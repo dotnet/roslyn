@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration;
@@ -46,9 +47,9 @@ internal interface IRemoteSourceGenerationService
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Whether or not the specified analyzer references have source generators or not.
+    /// Whether or not the specified analyzer references have source generators, and which kind of generators they have if they do.
     /// </summary>
-    ValueTask<bool> HasGeneratorsAsync(
+    ValueTask<SourceGeneratorPresence> GetSourceGeneratorPresenceAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<Checksum> analyzerReferenceChecksums, string language, CancellationToken cancellationToken);
 
     /// <summary>
@@ -64,6 +65,12 @@ internal interface IRemoteSourceGenerationService
     /// </summary>
     ValueTask<bool> HasAnalyzersOrSourceGeneratorsAsync(
         Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns telemetry information for source generators that were run in the remote process. This is equivalent to calling
+    /// <see cref="ISourceGeneratorTelemetryCollectorWorkspaceService.FetchKeysAndAndClear"/>
+    /// </summary>
+    ValueTask<ImmutableArray<ImmutableDictionary<string, object?>>> FetchAndClearTelemetryKeyValuePairsAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>

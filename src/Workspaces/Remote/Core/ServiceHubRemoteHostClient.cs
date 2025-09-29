@@ -14,123 +14,140 @@ using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 {
-    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
+    private readonly SolutionServices _services;
+    private readonly SolutionAssetStorage _assetStorage;
+    private readonly HubClient _hubClient;
+    private readonly ServiceBrokerClient _serviceBrokerClient;
+    private readonly IErrorReportingService? _errorReportingService;
+    private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
+    private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
+
+    public readonly RemoteProcessConfiguration Configuration;
+
+    private Process? _remoteProcess;
+
+    private ServiceHubRemoteHostClient(
+        SolutionServices services,
+        RemoteProcessConfiguration configuration,
+        ServiceBrokerClient serviceBrokerClient,
+        HubClient hubClient,
+        IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
     {
-        private readonly SolutionServices _services;
-        private readonly SolutionAssetStorage _assetStorage;
-        private readonly HubClient _hubClient;
-        private readonly ServiceBrokerClient _serviceBrokerClient;
-        private readonly IErrorReportingService? _errorReportingService;
-        private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
-        private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
+        // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
+        services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Logger);
 
-        public readonly RemoteProcessConfiguration Configuration;
+        _services = services;
+        _serviceBrokerClient = serviceBrokerClient;
+        _hubClient = hubClient;
+        _callbackDispatcherProvider = callbackDispatcherProvider;
 
-        private Process? _remoteProcess;
+        _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+        _errorReportingService = services.GetService<IErrorReportingService>();
+        _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
+        Configuration = configuration;
+    }
 
-        private ServiceHubRemoteHostClient(
-            SolutionServices services,
-            RemoteProcessConfiguration configuration,
-            ServiceBrokerClient serviceBrokerClient,
-            HubClient hubClient,
-            IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
+    public static async Task<RemoteHostClient> CreateAsync(
+        SolutionServices services,
+        RemoteProcessConfiguration configuration,
+        string localSettingsDirectory,
+        AsynchronousOperationListenerProvider listenerProvider,
+        IServiceBroker serviceBroker,
+        RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
+        CancellationToken cancellationToken)
+    {
+        using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
         {
-            // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
-            services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Logger);
-
-            _services = services;
-            _serviceBrokerClient = serviceBrokerClient;
-            _hubClient = hubClient;
-            _callbackDispatcherProvider = callbackDispatcherProvider;
-
-            _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            _errorReportingService = services.GetService<IErrorReportingService>();
-            _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
-            Configuration = configuration;
-        }
-
-        public static async Task<RemoteHostClient> CreateAsync(
-            SolutionServices services,
-            RemoteProcessConfiguration configuration,
-            AsynchronousOperationListenerProvider listenerProvider,
-            IServiceBroker serviceBroker,
-            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
-            CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
-            {
 #pragma warning disable ISB001    // Dispose of proxies
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
-                var serviceBrokerClient = new ServiceBrokerClient(serviceBroker);
+            var serviceBrokerClient = new ServiceBrokerClient(serviceBroker);
 #pragma warning restore
 
-                var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
+            var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-                var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
+            var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
 
-                var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
+            var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
-                var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
-                    (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+            var remoteProcessIdAndErrorMessage = await client.TryInvokeAsync<IRemoteInitializationService, (int processId, string? errorMessage)>(
+                (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, localSettingsDirectory, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
 
-                if (remoteProcessId.HasValue)
+            string? errorMessage = null;
+
+            if (remoteProcessIdAndErrorMessage.HasValue)
+            {
+                if (remoteProcessIdAndErrorMessage.Value.errorMessage != null)
+                    errorMessage = $"ServiceHub initialization error: {remoteProcessIdAndErrorMessage.Value.errorMessage}";
+
+                try
                 {
-                    try
-                    {
-                        client._remoteProcess = Process.GetProcessById(remoteProcessId.Value);
-                    }
-                    catch (Exception e)
-                    {
-                        hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"Unable to find Roslyn ServiceHub process: {e.Message}");
-                    }
+                    client._remoteProcess = Process.GetProcessById(remoteProcessIdAndErrorMessage.Value.processId);
                 }
-                else
+                catch (Exception e)
                 {
-                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, "Roslyn ServiceHub process initialization failed.");
+                    errorMessage = $"Unable to find Roslyn ServiceHub process: {e.Message}";
                 }
-
-                await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
-                    (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                return client;
             }
+            else
+            {
+                errorMessage = "Roslyn ServiceHub process initialization failed.";
+            }
+
+            if (errorMessage != null)
+            {
+                hubClient.Logger.TraceEvent(TraceEventType.Error, 1, errorMessage);
+
+                var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(IRemoteInitializationService), client.Configuration);
+
+                services.GetRequiredService<IErrorReportingService>().ShowGlobalErrorInfo(
+                    errorMessage,
+                    TelemetryFeatureName.GetRemoteFeatureName(descriptor.ComponentName, descriptor.SimpleName),
+                    exception: null);
+            }
+
+            await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            return client;
         }
+    }
 
-        /// <summary>
-        /// Creates connection to built-in remote service.
-        /// </summary>
-        public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
-            => CreateConnection<T>(ServiceDescriptors.Instance, _callbackDispatcherProvider, callbackTarget);
+    /// <summary>
+    /// Creates connection to built-in remote service.
+    /// </summary>
+    public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
+        => CreateConnection<T>(ServiceDescriptors.Instance, _callbackDispatcherProvider, callbackTarget);
 
-        /// <summary>
-        /// This overload is meant to be used by partner teams from their External Access layer.
-        /// </summary>
-        internal RemoteServiceConnection<T> CreateConnection<T>(ServiceDescriptors descriptors, IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider, object? callbackTarget) where T : class
-        {
-            var descriptor = descriptors.GetServiceDescriptor(typeof(T), Configuration);
-            var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
+    /// <summary>
+    /// This overload is meant to be used by partner teams from their External Access layer.
+    /// </summary>
+    internal RemoteServiceConnection<T> CreateConnection<T>(ServiceDescriptors descriptors, IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider, object? callbackTarget) where T : class
+    {
+        var descriptor = descriptors.GetServiceDescriptor(typeof(T), Configuration);
+        var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
 
-            return new BrokeredServiceConnection<T>(
-                descriptor,
-                callbackTarget,
-                callbackDispatcher,
-                _serviceBrokerClient,
-                _assetStorage,
-                _errorReportingService,
-                _shutdownCancellationService,
-                _remoteProcess);
-        }
+        return new BrokeredServiceConnection<T>(
+            descriptor,
+            callbackTarget,
+            callbackDispatcher,
+            _serviceBrokerClient,
+            _assetStorage,
+            _errorReportingService,
+            _shutdownCancellationService,
+            _remoteProcess);
+    }
 
-        public override void Dispose()
-        {
-            _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
-            _hubClient.Dispose();
+    public override void Dispose()
+    {
+        _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
+        _hubClient.Dispose();
 
-            _serviceBrokerClient.Dispose();
-        }
+        _serviceBrokerClient.Dispose();
     }
 }

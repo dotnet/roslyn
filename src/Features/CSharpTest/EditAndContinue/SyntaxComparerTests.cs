@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 using static CSharpSyntaxTokens;
 
 [UseExportProvider]
-public class SyntaxComparerTests
+public sealed class SyntaxComparerTests
 {
     private static SyntaxNode MakeLiteral(int n)
         => SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(n));
@@ -42,8 +41,8 @@ public class SyntaxComparerTests
     public void GetSequenceEdits2()
     {
         var edits = SyntaxComparer.GetSequenceEdits(
-            ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
-            ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)));
+            [MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)],
+            [MakeLiteral(1), MakeLiteral(3)]);
 
         AssertEx.Equal(
         [
@@ -74,8 +73,8 @@ public class SyntaxComparerTests
     public void GetSequenceEdits4()
     {
         var edits = SyntaxComparer.GetSequenceEdits(
-            ImmutableArray.Create(PublicKeyword, StaticKeyword, AsyncKeyword),
-            ImmutableArray.Create(StaticKeyword, PublicKeyword, AsyncKeyword));
+            [PublicKeyword, StaticKeyword, AsyncKeyword],
+            [StaticKeyword, PublicKeyword, AsyncKeyword]);
 
         AssertEx.Equal(
         [

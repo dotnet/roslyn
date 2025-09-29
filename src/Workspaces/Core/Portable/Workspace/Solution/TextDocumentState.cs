@@ -123,7 +123,7 @@ internal abstract partial class TextDocumentState
         return textAndVersion.Version;
     }
 
-    public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
+    public async ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
     {
         // try fast path first
         if (TryGetTextVersion(out var version))
@@ -195,8 +195,14 @@ internal abstract partial class TextDocumentState
         }
     }
 
-    internal virtual async Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)
-        => (await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false)).LoadDiagnostic;
+    internal async Task<string?> GetFailedToLoadExceptionMessageAsync(CancellationToken cancellationToken)
+    {
+        if (TextAndVersionSource is TreeTextSource)
+            return null;
+
+        var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
+        return textAndVersion.ExceptionMessage;
+    }
 
     private VersionStamp GetNewerVersion()
     {

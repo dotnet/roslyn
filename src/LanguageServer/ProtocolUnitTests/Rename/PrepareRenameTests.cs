@@ -18,12 +18,14 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
     public async Task TestPrepareRenameValidLocationAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void {|caret:|}{|range:M|}()
-    {
-    }
-}";
+            """
+            class A
+            {
+                void {|caret:|}{|range:M|}()
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var renameLocation = testLspServer.GetLocations("caret").First();
 
@@ -35,12 +37,14 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
     public async Task TestPrepareRenameAfterMethodNameAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void {|range:M|}{|caret:|}()
-    {
-    }
-}";
+            """
+            class A
+            {
+                void {|range:M|}{|caret:|}()
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var renameLocation = testLspServer.GetLocations("caret").First();
 
@@ -52,13 +56,15 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
     public async Task TestPrepareRenameWithAtSymbolAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        var {|caret:|}{|range:@foo|} = 1;
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    var {|caret:|}{|range:@foo|} = 1;
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var renameLocation = testLspServer.GetLocations("caret").First();
 
@@ -70,13 +76,15 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
     public async Task TestPrepareRenameInvalidLocationAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    // Cannot rename {|caret:|}inside a comment.
-    void M()
-    {
-    }
-}";
+            """
+            class A
+            {
+                // Cannot rename {|caret:|}inside a comment.
+                void M()
+                {
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var renameLocation = testLspServer.GetLocations("caret").First();
 
@@ -85,10 +93,10 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
     }
 
     private static LSP.PrepareRenameParams CreatePrepareRenameParams(LSP.Location location)
-        => new LSP.PrepareRenameParams()
+        => new()
         {
             Position = location.Range.Start,
-            TextDocument = CreateTextDocumentIdentifier(location.Uri)
+            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri)
         };
 
     private static async Task<LSP.Range?> RunPrepareRenameAsync(TestLspServer testLspServer, LSP.PrepareRenameParams prepareRenameParams)

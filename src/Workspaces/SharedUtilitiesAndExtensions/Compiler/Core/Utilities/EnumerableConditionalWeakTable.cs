@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities;
 
@@ -121,7 +122,7 @@ internal sealed class EnumerableConditionalWeakTable<TKey, TValue> : IEnumerable
         {
             if (item.TryGetTarget(out var box))
             {
-                yield return KeyValuePairUtil.Create(box.Key, box.Value);
+                yield return KeyValuePair.Create(box.Key, box.Value);
             }
         }
     }

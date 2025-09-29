@@ -746,5 +746,85 @@ End Class
 
             Await test.RunAsync()
         End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")>
+        Public Async Function TestIndentationOfMultiLineExpressions1() As Task
+            Dim testCode = "
+Class C
+    Dim S As String
+    Dim T as String
+
+    Sub M(i as integer)
+        Dim c = [|New|] C()
+        c.S = i _
+            .ToString() _
+            .ToString()
+        c.T = i.
+            ToString().
+            ToString()
+    End Sub
+End Class"
+            Dim fixedCode = "
+Class C
+    Dim S As String
+    Dim T as String
+
+    Sub M(i as integer)
+        Dim c = New C With {
+            .S = i _
+                .ToString() _
+                .ToString(),
+            .T = i.
+                ToString().
+                ToString()
+        }
+    End Sub
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")>
+        Public Async Function TestIndentationOfMultiLineExpressions2() As Task
+            Dim testCode = "
+Class C
+    Dim S As String
+    Dim T as String
+
+    Sub M(i as integer)
+        Dim c = [|New|] C()
+        c.S = 
+            i _
+              .ToString() _
+              .ToString()
+        c.T = 
+            i.ToString().
+              ToString()
+    End Sub
+End Class"
+            Dim fixedCode = "
+Class C
+    Dim S As String
+    Dim T as String
+
+    Sub M(i as integer)
+        Dim c = New C With {
+            .S =
+                i _
+                  .ToString() _
+                  .ToString(),
+            .T =
+                i.ToString().
+                  ToString()
+        }
+    End Sub
+End Class"
+            Await New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }.RunAsync()
+        End Function
     End Class
 End Namespace

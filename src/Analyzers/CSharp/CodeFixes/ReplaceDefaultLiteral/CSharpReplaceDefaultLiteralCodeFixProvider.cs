@@ -123,7 +123,7 @@ internal sealed class CSharpReplaceDefaultLiteralCodeFixProvider() : CodeFixProv
         var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName!);
         return type.TypeKind == TypeKind.Enum &&
                flagsAttribute != null &&
-               type.GetAttributes().Any(static (attribute, flagsAttribute) => flagsAttribute.Equals(attribute.AttributeClass), flagsAttribute);
+               type.HasAttribute(flagsAttribute);
     }
 
     private static bool IsZero(object? o)

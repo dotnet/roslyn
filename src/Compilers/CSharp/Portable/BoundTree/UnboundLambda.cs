@@ -106,16 +106,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeWithAnnotations GetInferredReturnType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
         {
             // Nullability (and conversions) are ignored.
-            return GetInferredReturnType(conversions: null, nullableState: null, ref useSiteInfo, out inferredFromFunctionType);
+            return GetInferredReturnType(conversions: null, nullableState: null, getterNullResilienceData: null, ref useSiteInfo, out inferredFromFunctionType);
         }
 
         /// <summary>
         /// Infer return type. If `nullableState` is non-null, nullability is also inferred and `NullableWalker.Analyze`
         /// uses that state to set the inferred nullability of variables in the enclosing scope. `conversions` is
         /// only needed when nullability is inferred.
+        ///
+        /// If 'getterNullResilienceData' is non-null, it is propagated down to the child analysis pass,
+        /// so that it does not attempt to infer the field's nullable annotation, while a parent pass is also attempting to infer that.
         /// </summary>
-        public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
+        public TypeWithAnnotations GetInferredReturnType(ConversionsBase? conversions, NullableWalker.VariableState? nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
         {
+            // Cannot pass 'getterNullResilienceData' without also passing 'nullableState'.
+            Debug.Assert(getterNullResilienceData is null || nullableState is not null);
+
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
                 useSiteInfo.AddDiagnostics(InferredReturnType.UseSiteDiagnostics);
@@ -151,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        diagnostics,
                                        delegateInvokeMethodOpt: delegateType?.DelegateInvokeMethod,
                                        initialState: nullableState,
-                                       returnTypes);
+                                       returnTypes,
+                                       getterNullResilienceData);
                 diagnostics.Free();
                 inferredReturnType = InferReturnType(returnTypes, node: this, Binder, delegateType, Symbol.IsAsync, conversions);
                 returnTypes.Free();
@@ -386,6 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class UnboundLambda
     {
         private readonly NullableWalker.VariableState? _nullableState;
+        private readonly NullableWalker.GetterNullResilienceData? _getterNullResilienceData;
 
         public static UnboundLambda Create(
             CSharpSyntaxNode syntax,
@@ -417,16 +425,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambda;
         }
 
-        private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, FunctionTypeSymbol? functionType, bool withDependencies, NullableWalker.VariableState? nullableState, bool hasErrors) :
+        private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, FunctionTypeSymbol? functionType, bool withDependencies, NullableWalker.VariableState? nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData, bool hasErrors) :
             this(syntax, state, functionType, withDependencies, hasErrors)
         {
             this._nullableState = nullableState;
+            this._getterNullResilienceData = getterNullResilienceData;
         }
 
-        internal UnboundLambda WithNullableState(NullableWalker.VariableState nullableState)
+        internal UnboundLambda WithNullabilityInfo(NullableWalker.VariableState nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData)
         {
             var data = Data.WithCaching(true);
-            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, nullableState, HasErrors);
+            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, nullableState, getterNullResilienceData, HasErrors);
             data.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -439,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, _nullableState, HasErrors);
+            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, _nullableState, _getterNullResilienceData, HasErrors);
             data.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -463,10 +472,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             => Data.HasExplicitReturnType(out refKind, out returnType);
         public Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
             => Data.GetWithParametersBinder(lambdaSymbol, binder);
-        public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
+
+        /// <summary>
+        /// Whether or not the original syntax had explicit parameter list specified where all parameters had an
+        /// explicit type syntax included.  Examples of where this is true are: `() => ...` `(int a) => ...` `(int a,
+        /// ref int b) => ...` and so on.
+        /// 
+        /// Examples of where this is false is `a => ...` `(a) => ...` `(a, b) => ...` `(ref a) => ...` `(int a, ref b) => ...`.
+        /// 
+        /// Note 1: in the case where some parameters have types and some do not, this will return false.  That case is
+        /// an error case and an error will have already been reported to the user.  In this case, we treat the
+        /// parameter list as if no parameter types were provided.
+        /// 
+        /// Note 2: `(ref a) => ...` is legal.  So this property should not be used to determine if a parameter should
+        /// have its ref/scoped/attributes checked.
+        /// </summary>
+        public bool HasExplicitlyTypedParameterList => Data.HasExplicitlyTypedParameterList;
+
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
-            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, out inferredFromFunctionType);
+            => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, _getterNullResilienceData, ref useSiteInfo, out inferredFromFunctionType);
 
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public ScopedKind DeclaredScope(int index) { return Data.DeclaredScope(index); }
@@ -477,6 +502,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxList<AttributeListSyntax> ParameterAttributes(int index) { return Data.ParameterAttributes(index); }
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
+
+        /// <summary>
+        /// Returns the corresponding <see cref="ParameterSyntax"/> at the given index if the lambda was declared with
+        /// explicit parameter syntax.
+        /// </summary>
         public ParameterSyntax? ParameterSyntax(int index) => Data.ParameterSyntax(index);
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
@@ -766,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaSymbol,
                 hasParams: OverloadResolution.IsValidParams(Binder, lambdaSymbol, disallowExpandedNonArrayParams: false, out _),
                 parameterScopesBuilder.ToImmutableAndFree(),
-                lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute),
+                lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute && p.UseUpdatedEscapeRules),
                 returnRefKind,
                 returnType);
         }
@@ -798,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind == CodeAnalysis.RefKind.None &&
                 _returnInferenceCache!.TryGetValue(cacheKey, out BoundLambda? returnInferenceLambda) &&
                 GetLambdaExpressionBody(returnInferenceLambda.Body) is BoundExpression expression &&
-                (lambdaSymbol = returnInferenceLambda.Symbol).RefKind == refKind &&
+                (lambdaSymbol = (LambdaSymbol)returnInferenceLambda.Symbol).RefKind == refKind &&
                 (object)LambdaSymbol.InferenceFailureReturnType != lambdaSymbol.ReturnType &&
                 lambdaSymbol.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.ConsiderEverything))
             {
@@ -822,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lambdaParameters = lambdaSymbol.Parameters;
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
-            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for lambdas
+            ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, lambdaParameters, diagnostics, modifyCompilation: false);
 
             if (returnType.HasType)
             {
@@ -919,7 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var numParametersToCheck = Math.Min(targetParameterTypes.Length, ParameterCount);
                 for (int i = 0; i < numParametersToCheck; i++)
                 {
-                    if (targetParameterTypes[i].Type.ContainsPointer())
+                    if (targetParameterTypes[i].Type.ContainsPointerOrFunctionPointer())
                     {
                         this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics);
                     }
@@ -1252,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If multiple candidates have the same number of diagnostics, order them by delegate type name.
                     // It's not great, but it should be stable.
                     return minDiagnosticsGroup
-                        .OrderBy(lambda => GetLambdaSortString(lambda.Value.Symbol))
+                        .OrderBy(lambda => GetLambdaSortString((LambdaSymbol)lambda.Value.Symbol))
                         .FirstOrDefault()
                         .Value;
             }
@@ -1527,26 +1557,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool ParameterIsDiscard(int index)
         {
+            Debug.Assert(0 <= index && index < this.ParameterCount);
             return _parameterIsDiscardOpt.IsDefault ? false : _parameterIsDiscardOpt[index];
         }
 
         public override RefKind RefKind(int index)
         {
-            Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
+            Debug.Assert(0 <= index && index < this.ParameterCount);
             return _parameterRefKinds.IsDefault ? Microsoft.CodeAnalysis.RefKind.None : _parameterRefKinds[index];
         }
 
         public override ScopedKind DeclaredScope(int index)
         {
-            Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
+            Debug.Assert(0 <= index && index < this.ParameterCount);
             return _parameterDeclaredScopes.IsDefault ? ScopedKind.None : _parameterDeclaredScopes[index];
         }
 
-        public override ParameterSyntax ParameterSyntax(int index)
+        public override ParameterSyntax? ParameterSyntax(int index)
         {
-
-            Debug.Assert(_parameterSyntaxList is not null && 0 <= index && index < _parameterSyntaxList.Value.Count);
-            return _parameterSyntaxList.Value[index];
+            Debug.Assert(0 <= index && index < this.ParameterCount);
+            return _parameterSyntaxList?[index];
         }
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)

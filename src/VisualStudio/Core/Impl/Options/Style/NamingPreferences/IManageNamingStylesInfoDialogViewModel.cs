@@ -6,14 +6,13 @@
 
 using System.Collections.ObjectModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
+
+internal interface IManageNamingStylesInfoDialogViewModel
 {
-    internal interface IManageNamingStylesInfoDialogViewModel
-    {
-        ObservableCollection<INamingStylesInfoDialogViewModel> Items { get; }
-        string DialogTitle { get; }
-        void AddItem();
-        void RemoveItem(INamingStylesInfoDialogViewModel item);
-        void EditItem(INamingStylesInfoDialogViewModel item);
-    }
+    ObservableCollection<INamingStylesInfoDialogViewModel> Items { get; }
+    string DialogTitle { get; }
+    void AddItem();
+    void RemoveItem(INamingStylesInfoDialogViewModel item);
+    void EditItem(INamingStylesInfoDialogViewModel item);
 }

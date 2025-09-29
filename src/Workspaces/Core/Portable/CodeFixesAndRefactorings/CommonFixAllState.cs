@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Internal.Log;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
-internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TFixAllState> : IFixAllState
-    where TFixAllProvider : IFixAllProvider
+internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TFixAllState>
+    : IRefactorOrFixAllState
+    where TProvider : IRefactorOrFixProvider
+    where TFixAllProvider : IRefactorOrFixAllProvider
     where TFixAllState : CommonFixAllState<TProvider, TFixAllProvider, TFixAllState>
 {
     public int CorrelationId { get; } = CorrelationIdFactory.GetNextId();
@@ -64,11 +65,11 @@ internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TF
     }
 
     #region IFixAllState implementation
-    IFixAllProvider IFixAllState.FixAllProvider => this.FixAllProvider!;
+    IRefactorOrFixAllProvider IRefactorOrFixAllState.FixAllProvider => this.FixAllProvider;
 
-    object IFixAllState.Provider => this.Provider!;
+    IRefactorOrFixProvider IRefactorOrFixAllState.Provider => this.Provider;
 
-    IFixAllState IFixAllState.With(
+    IRefactorOrFixAllState IRefactorOrFixAllState.With(
         Optional<(Document? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
         Optional<string?> codeActionEquivalenceKey)

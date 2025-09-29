@@ -18,38 +18,33 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeStructReadOnlyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
-public class MakeStructReadOnlyTests
+public sealed class MakeStructReadOnlyTests
 {
     private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersion.CSharp12)
         => TestAsync(testCode, testCode, version);
 
-    private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.CSharp12)
-    {
-        await new VerifyCS.Test
+    private static Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.CSharp12)
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = fixedCode,
             LanguageVersion = version,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ShouldNotTriggerForCSharp7_1()
-    {
-        await TestMissingAsync(
+    public Task ShouldNotTriggerForCSharp7_1()
+        => TestMissingAsync(
             """
             struct S
             {
                 readonly int i;
             }
             """, LanguageVersion.CSharp7_1);
-    }
 
     [Fact]
-    public async Task ShouldTriggerFor7_2()
-    {
-        await TestAsync(
+    public Task ShouldTriggerFor7_2()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -62,61 +57,51 @@ public class MakeStructReadOnlyTests
                 readonly int i;
             }
             """,
-LanguageVersion.CSharp7_2);
-    }
+            LanguageVersion.CSharp7_2);
 
     [Fact]
-    public async Task TestMissingWithAlreadyReadOnlyStruct()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithAlreadyReadOnlyStruct()
+        => TestMissingAsync(
             """
             readonly struct S
             {
                 readonly int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithAlreadyReadOnlyRecordStruct()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithAlreadyReadOnlyRecordStruct()
+        => TestMissingAsync(
             """
             readonly record struct S
             {
                 readonly int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutableField()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutableField()
+        => TestMissingAsync(
             """
             struct S
             {
                 int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutableFieldRecordStruct()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutableFieldRecordStruct()
+        => TestMissingAsync(
             """
             record struct S
             {
                 int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutableAndReadOnlyField()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutableAndReadOnlyField()
+        => TestMissingAsync(
             """
             struct S
             {
@@ -124,12 +109,10 @@ LanguageVersion.CSharp7_2);
                 readonly int j;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutableAndReadOnlyFieldRecordStruct1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutableAndReadOnlyFieldRecordStruct1()
+        => TestMissingAsync(
             """
             record struct S
             {
@@ -137,128 +120,106 @@ LanguageVersion.CSharp7_2);
                 readonly int j;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutableAndReadOnlyFieldRecordStruct2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutableAndReadOnlyFieldRecordStruct2()
+        => TestMissingAsync(
             """
             record struct S(int j)
             {
                 int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutableAndReadOnlyFieldStruct2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutableAndReadOnlyFieldStruct2()
+        => TestMissingAsync(
             """
             struct S(int j)
             {
                 int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutableProperty()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutableProperty()
+        => TestMissingAsync(
             """
             struct S
             {
                 int P { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutablePropertyRecordStruct1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutablePropertyRecordStruct1()
+        => TestMissingAsync(
             """
             record struct S
             {
                 int P { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutablePropertyRecordStruct2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutablePropertyRecordStruct2()
+        => TestMissingAsync(
             """
             record struct S(int q)
             {
                 int P { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithMutablePropertyStruct2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithMutablePropertyStruct2()
+        => TestMissingAsync(
             """
             struct S(int q)
             {
                 int P { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithEmptyStruct()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithEmptyStruct()
+        => TestMissingAsync(
             """
             struct S
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithEmptyRecordStruct()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithEmptyRecordStruct()
+        => TestMissingAsync(
             """
             record struct S
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithEmptyRecordStructPrimaryConstructor()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithEmptyRecordStructPrimaryConstructor()
+        => TestMissingAsync(
             """
             record struct S()
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithEmptyStructPrimaryConstructor()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithEmptyStructPrimaryConstructor()
+        => TestMissingAsync(
             """
             struct S()
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithOtherReadonlyPartialPart()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithOtherReadonlyPartialPart()
+        => TestMissingAsync(
             """
             partial struct S
             {
@@ -269,12 +230,10 @@ LanguageVersion.CSharp7_2);
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructWithReadOnlyField()
-    {
-        await TestAsync(
+    public Task TestOnStructWithReadOnlyField()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -287,12 +246,10 @@ LanguageVersion.CSharp7_2);
                 readonly int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnRecordStructWithReadOnlyField()
-    {
-        await TestAsync(
+    public Task TestOnRecordStructWithReadOnlyField()
+        => TestAsync(
             """
             record struct [|S|]
             {
@@ -305,12 +262,10 @@ LanguageVersion.CSharp7_2);
                 readonly int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructWithGetOnlyProperty()
-    {
-        await TestAsync(
+    public Task TestOnStructWithGetOnlyProperty()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -323,12 +278,10 @@ LanguageVersion.CSharp7_2);
                 int P { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnRecordStructWithGetOnlyProperty()
-    {
-        await TestAsync(
+    public Task TestOnRecordStructWithGetOnlyProperty()
+        => TestAsync(
             """
             record struct [|S|]
             {
@@ -341,12 +294,10 @@ LanguageVersion.CSharp7_2);
                 int P { get; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructWithInitOnlyProperty()
-    {
-        await TestAsync(
+    public Task TestOnStructWithInitOnlyProperty()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -359,12 +310,10 @@ LanguageVersion.CSharp7_2);
                 int P { get; init; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnRecordStructWithInitOnlyProperty()
-    {
-        await TestAsync(
+    public Task TestOnRecordStructWithInitOnlyProperty()
+        => TestAsync(
             """
             record struct [|S|]
             {
@@ -377,12 +326,10 @@ LanguageVersion.CSharp7_2);
                 int P { get; init; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnRecordStructWithReadOnlyField2()
-    {
-        await TestAsync(
+    public Task TestOnRecordStructWithReadOnlyField2()
+        => TestAsync(
             """
             record struct [|S|]
             {
@@ -395,46 +342,38 @@ LanguageVersion.CSharp7_2);
                 readonly int i;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingRecordStructWithPrimaryConstructorField()
-    {
-        await TestMissingAsync(
+    public Task TestMissingRecordStructWithPrimaryConstructorField()
+        => TestMissingAsync(
             """
             record struct S(int i)
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingStructWithPrimaryConstructor()
-    {
-        await TestMissingAsync(
+    public Task TestMissingStructWithPrimaryConstructor()
+        => TestMissingAsync(
             """
             struct S(int i)
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnRecordStructWithPrimaryConstructorFieldAndNormalField()
-    {
-        await TestMissingAsync(
+    public Task TestMissingOnRecordStructWithPrimaryConstructorFieldAndNormalField()
+        => TestMissingAsync(
             """
             record struct S(int i)
             {
                 readonly int j;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructWithPrimaryConstructorAndReadonlyField()
-    {
-        await TestAsync(
+    public Task TestOnStructWithPrimaryConstructorAndReadonlyField()
+        => TestAsync(
             """
             struct [|S|](int i)
             {
@@ -447,13 +386,11 @@ LanguageVersion.CSharp7_2);
                 readonly int i;
             }
             """,
-LanguageVersion.CSharp12);
-    }
+            LanguageVersion.CSharp12);
 
     [Fact]
-    public async Task TestNestedStructs1()
-    {
-        await TestAsync(
+    public Task TestNestedStructs1()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -476,12 +413,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedStructs2()
-    {
-        await TestAsync(
+    public Task TestNestedStructs2()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -504,12 +439,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedStructs3()
-    {
-        await TestAsync(
+    public Task TestNestedStructs3()
+        => TestAsync(
             """
             struct S
             {
@@ -532,12 +465,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedStructs4()
-    {
-        await TestAsync(
+    public Task TestNestedStructs4()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -570,12 +501,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDocComments1()
-    {
-        await TestAsync(
+    public Task TestDocComments1()
+        => TestAsync(
             """
             /// <summary>docs</summary>
             record struct [|S|]
@@ -590,12 +519,10 @@ LanguageVersion.CSharp12);
                 readonly int j;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDocComments2()
-    {
-        await TestAsync(
+    public Task TestDocComments2()
+        => TestAsync(
             """
             namespace N
             {
@@ -616,12 +543,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExistingModifier1()
-    {
-        await TestAsync(
+    public Task TestExistingModifier1()
+        => TestAsync(
             """
             public record struct [|S|]
             {
@@ -634,12 +559,10 @@ LanguageVersion.CSharp12);
                 readonly int j;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExistingModifier2()
-    {
-        await TestAsync(
+    public Task TestExistingModifier2()
+        => TestAsync(
             """
             namespace N
             {
@@ -658,12 +581,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructWithReadOnlyFieldAndMutableNormalProp()
-    {
-        await TestAsync(
+    public Task TestOnStructWithReadOnlyFieldAndMutableNormalProp()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -680,12 +601,10 @@ LanguageVersion.CSharp12);
                 int P { set { } }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructWithReadOnlyFieldAndMutableAutoProp()
-    {
-        await TestMissingAsync(
+    public Task TestOnStructWithReadOnlyFieldAndMutableAutoProp()
+        => TestMissingAsync(
             """
             struct S
             {
@@ -694,12 +613,10 @@ LanguageVersion.CSharp12);
                 int P { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnStructThatWritesToThis1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingOnStructThatWritesToThis1()
+        => TestMissingAsync(
             """
             struct S
             {
@@ -711,12 +628,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnStructThatWritesToThis2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingOnStructThatWritesToThis2()
+        => TestMissingAsync(
             """
             struct S
             {
@@ -733,12 +648,10 @@ LanguageVersion.CSharp12);
                 public static void ByRef(ref this S s) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnStructThatWritesToThis3()
-    {
-        await TestMissingAsync(
+    public Task TestMissingOnStructThatWritesToThis3()
+        => TestMissingAsync(
             """
             struct S
             {
@@ -752,12 +665,10 @@ LanguageVersion.CSharp12);
                 void Goo(ref S s) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnStructThatWritesToThis4()
-    {
-        await TestMissingAsync(
+    public Task TestMissingOnStructThatWritesToThis4()
+        => TestMissingAsync(
             """
             struct S
             {
@@ -771,12 +682,10 @@ LanguageVersion.CSharp12);
                 void Goo(out S s) { s = default; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnStructThatWritesToThis5()
-    {
-        await TestMissingAsync(
+    public Task TestMissingOnStructThatWritesToThis5()
+        => TestMissingAsync(
             """
             struct S
             {
@@ -788,12 +697,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnStructThatWritesToThis6()
-    {
-        await TestMissingAsync(
+    public Task TestMissingOnStructThatWritesToThis6()
+        => TestMissingAsync(
             """
             struct S
             {
@@ -807,12 +714,10 @@ LanguageVersion.CSharp12);
                 public static S operator++(S s) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructThatReadsFromThis1()
-    {
-        await TestAsync(
+    public Task TestOnStructThatReadsFromThis1()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -839,12 +744,10 @@ LanguageVersion.CSharp12);
                 void Goo(in S s) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructThatReadsFromThis2()
-    {
-        await TestAsync(
+    public Task TestOnStructThatReadsFromThis2()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -871,12 +774,10 @@ LanguageVersion.CSharp12);
                 void Goo() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructThatReadsFromThis3()
-    {
-        await TestAsync(
+    public Task TestOnStructThatReadsFromThis3()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -909,12 +810,10 @@ LanguageVersion.CSharp12);
                 public static void Goo(this S s) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnStructThatReadsFromThis4()
-    {
-        await TestAsync(
+    public Task TestOnStructThatReadsFromThis4()
+        => TestAsync(
             """
             struct [|S|]
             {
@@ -937,12 +836,10 @@ LanguageVersion.CSharp12);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
-    public async Task NotWithFieldLikeEvent()
-    {
-        await TestMissingAsync(
+    public Task NotWithFieldLikeEvent()
+        => TestMissingAsync(
             """
             using System;
 
@@ -953,12 +850,10 @@ LanguageVersion.CSharp12);
                 public readonly int MyInt;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
-    public async Task WithPropertyLikeEvent1()
-    {
-        await TestAsync(
+    public Task WithPropertyLikeEvent1()
+        => TestAsync(
             """
             using System;
 
@@ -979,12 +874,10 @@ LanguageVersion.CSharp12);
                 public readonly int MyInt;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
-    public async Task WithPropertyLikeEvent2()
-    {
-        await TestAsync(
+    public Task WithPropertyLikeEvent2()
+        => TestAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1011,12 +904,10 @@ LanguageVersion.CSharp12);
                 public MyStruct() { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
-    public async Task NotWithPropertyLikeEvent1()
-    {
-        await TestMissingAsync(
+    public Task NotWithPropertyLikeEvent1()
+        => TestMissingAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1030,5 +921,4 @@ LanguageVersion.CSharp12);
                 public MyStruct() { }
             }
             """);
-    }
 }

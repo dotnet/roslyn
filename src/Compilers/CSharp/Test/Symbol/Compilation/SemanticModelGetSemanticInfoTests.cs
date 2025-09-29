@@ -282,7 +282,6 @@ class K
             Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 

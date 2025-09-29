@@ -16,6 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
+        Protected Overrides ReadOnly Property ConflictsWithMemberByNameOnly As Boolean = True
+
         Protected Overrides Function TryGetNextInvocationInChain(invocation As IInvocationOperation) As IInvocationOperation
             ' Unlike C# in VB exension methods are related in a simple child-parent relationship
             ' so in the case of A().ExensionB() to get from A to ExensionB we just need to get the parent of A

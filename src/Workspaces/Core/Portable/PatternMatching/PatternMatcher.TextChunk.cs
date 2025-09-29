@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -38,6 +37,7 @@ internal abstract partial class PatternMatcher
         public WordSimilarityChecker SimilarityChecker;
 
         public readonly bool IsLowercase;
+        public readonly bool IsUppercase;
 
         public TextChunk(string text, bool allowFuzzingMatching)
         {
@@ -50,6 +50,7 @@ internal abstract partial class PatternMatcher
                 : default;
 
             IsLowercase = !ContainsUpperCaseLetter(text);
+            IsUppercase = !ContainsLowerCaseLetter(text);
         }
 
         public void Dispose()

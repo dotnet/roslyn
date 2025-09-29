@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractInterface;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,13 +29,15 @@ internal sealed class ExtractClassWithDialogCodeAction(
     IExtractClassOptionsService service,
     INamedTypeSymbol selectedType,
     SyntaxNode selectedTypeDeclarationNode,
-    ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
+    ImmutableArray<ISymbol> selectedMembers,
+    SyntaxFormattingOptions formattingOptions) : CodeActionWithOptions
 {
     private readonly Document _document = document;
     private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
     private readonly INamedTypeSymbol _selectedType = selectedType;
     private readonly SyntaxNode _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
     private readonly IExtractClassOptionsService _service = service;
+    private readonly SyntaxFormattingOptions _formattingOptions = formattingOptions;
 
     // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
     // class.  on a member however, we deprioritize this as there are likely more member-specific operations
@@ -52,8 +55,8 @@ internal sealed class ExtractClassWithDialogCodeAction(
     public override object? GetOptions(CancellationToken cancellationToken)
     {
         var extractClassService = _service ?? _document.Project.Solution.Services.GetRequiredService<IExtractClassOptionsService>();
-        return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMembers, cancellationToken)
-            .WaitAndGetResult_CanCallOnBackground(cancellationToken);
+        return extractClassService.GetExtractClassOptions(
+            _document, _selectedType, _selectedMembers, _formattingOptions, cancellationToken);
     }
 
     protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
@@ -82,11 +85,12 @@ internal sealed class ExtractClassWithDialogCodeAction(
             _selectedType.IsRecord,
             TypeKind.Class,
             extractClassOptions.TypeName,
-            typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, extractClassOptions.MemberAnalysisResults.Select(m => m.Member)));
+            typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(
+                _selectedType, extractClassOptions.MemberAnalysisResults.SelectAsArray(m => m.Member)));
 
         var containingNamespaceDisplay = namespaceService.GetContainingNamespaceDisplay(
             _selectedType,
-            _document.Project.CompilationOptions);
+            _document.Project.CompilationOptions!);
 
         // Add the new type to the solution. It can go in a new file or
         // be added to an existing. The returned document is always the document

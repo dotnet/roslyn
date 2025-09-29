@@ -8,11 +8,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_ERROR_REPORTING;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
+    <!--
+      Workaround: https://github.com/dotnet/roslyn/issues/78392
+      We use NO_VALUE_TUPLE symbol to conditionally compile the code that
+      uses ValueTuple because remote debugger does not ship it.
+    -->
+    <DefineConstants>$(DefineConstants);NO_VALUE_TUPLE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>Compiler\ExceptionUtilities.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\MetadataReader\MetadataTypeCodeExtensions.cs">
       <Link>Compiler\MetadataTypeCodeExtensions.cs</Link>
     </Compile>
@@ -24,9 +28,6 @@
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
       <Link>Compiler\CommonGeneratedNames.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
-      <Link>Compiler\NullableAttributes.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs">
       <Link>Compiler\RoslynString.cs</Link>
@@ -64,5 +65,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" ExcludeAssets="compile" />
   </ItemGroup>
+  <Import Project="..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

@@ -2,27 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal sealed class SupportedPlatformData(Solution solution, List<ProjectId> invalidProjects, IEnumerable<ProjectId> candidateProjects)
+internal sealed class SupportedPlatformData(Solution solution, ImmutableArray<ProjectId> invalidProjects, ImmutableArray<ProjectId> candidateProjects)
 {
     // Because completion finds lots of symbols that exist in 
     // all projects, we'll instead maintain a list of projects 
     // missing the symbol.
-    public readonly List<ProjectId> InvalidProjects = invalidProjects;
-    public readonly IEnumerable<ProjectId> CandidateProjects = candidateProjects;
+    public readonly ImmutableArray<ProjectId> InvalidProjects = invalidProjects;
+    public readonly ImmutableArray<ProjectId> CandidateProjects = candidateProjects;
     public readonly Solution Solution = solution;
 
     public IList<SymbolDisplayPart> ToDisplayParts()
     {
-        if (InvalidProjects == null || InvalidProjects.Count == 0)
+        if (InvalidProjects.Length == 0)
             return [];
 
         var builder = new List<SymbolDisplayPart>();
@@ -32,6 +31,7 @@ internal sealed class SupportedPlatformData(Solution solution, List<ProjectId> i
         foreach (var project in projects)
         {
             var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!InvalidProjects.Contains(project.Id)));
+            builder.AddSpace("    ");
             builder.AddText(text);
             builder.AddLineBreak();
         }
@@ -46,5 +46,5 @@ internal sealed class SupportedPlatformData(Solution solution, List<ProjectId> i
         => supported ? FeaturesResources.Available : FeaturesResources.Not_Available;
 
     public bool HasValidAndInvalidProjects()
-        => InvalidProjects.Any() && InvalidProjects.Count != CandidateProjects.Count();
+        => InvalidProjects.Length > 0 && InvalidProjects.Length != CandidateProjects.Length;
 }

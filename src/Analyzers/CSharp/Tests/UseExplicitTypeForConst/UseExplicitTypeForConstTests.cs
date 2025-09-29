@@ -25,9 +25,8 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
         => (null, new UseExplicitTypeForConstCodeFixProvider());
 
     [Fact]
-    public async Task TestWithIntLiteral()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithIntLiteral()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -46,12 +45,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithStringConstant()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithStringConstant()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -72,12 +69,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithQualifiedType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithQualifiedType()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -96,12 +91,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNonConstantInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithNonConstantInitializer()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -120,12 +113,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithNonConstantTupleType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithNonConstantTupleType()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -144,12 +135,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithNullLiteral()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithNullLiteral()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -159,12 +148,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithDefaultLiteral()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithDefaultLiteral()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -174,12 +161,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithLambda()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithLambda()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -198,12 +183,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithAnonymousType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithAnonymousType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -213,12 +196,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithArrayInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithArrayInitializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -228,12 +209,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithMissingInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithMissingInitializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -243,12 +222,10 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithClassVar()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithClassVar()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -259,24 +236,20 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnField()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnField()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 const [|var|] v = 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithMultipleDeclarators()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithMultipleDeclarators()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -286,5 +259,4 @@ public sealed class UseExplicitTypeForConstTests : AbstractCSharpDiagnosticProvi
                 }
             }
             """);
-    }
 }

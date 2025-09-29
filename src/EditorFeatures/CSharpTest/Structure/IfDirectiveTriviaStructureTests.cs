@@ -18,9 +18,8 @@ public sealed class IfDirectiveTriviaStructureTests : AbstractCSharpSyntaxNodeSt
     internal override AbstractSyntaxStructureProvider CreateProvider() => new IfDirectiveTriviaStructureProvider();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
-    public async Task TestEnabledIfDisabledElifDisabledElse()
-    {
-        var code = """
+    public Task TestEnabledIfDisabledElifDisabledElse()
+        => VerifyBlockSpansAsync("""
                 #$$if true
                 {|span:class C
                 {
@@ -34,16 +33,12 @@ public sealed class IfDirectiveTriviaStructureTests : AbstractCSharpSyntaxNodeSt
                 {
                 }
                 #endif
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
-    public async Task TestDisabledIfEnabledElifDisabledElse()
-    {
-        var code = """
+    public Task TestDisabledIfEnabledElifDisabledElse()
+        => VerifyBlockSpansAsync("""
                 #$$if false
                 class C
                 {
@@ -57,16 +52,12 @@ public sealed class IfDirectiveTriviaStructureTests : AbstractCSharpSyntaxNodeSt
                 {
                 }
                 #endif
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
-    public async Task TestDisabledIfDisabledElifEnabledElse()
-    {
-        var code = """
+    public Task TestDisabledIfDisabledElifEnabledElse()
+        => VerifyBlockSpansAsync("""
                 #$$if false
                 class C
                 {
@@ -80,16 +71,12 @@ public sealed class IfDirectiveTriviaStructureTests : AbstractCSharpSyntaxNodeSt
                 {
                 }|}
                 #endif
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
-    public async Task TestEmptyEnabledRegion()
-    {
-        var code = """
+    public Task TestEmptyEnabledRegion()
+        => VerifyBlockSpansAsync("""
                 #$$if true
                 #elif false
                 class D
@@ -100,28 +87,20 @@ public sealed class IfDirectiveTriviaStructureTests : AbstractCSharpSyntaxNodeSt
                 {
                 }
                 #endif
-                """;
-
-        await VerifyBlockSpansAsync(code);
-    }
+                """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
-    public async Task TestMissingEndif1()
-    {
-        var code = """
+    public Task TestMissingEndif1()
+        => VerifyBlockSpansAsync("""
                 #$$if true
                 class C
                 {
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code);
-    }
+                """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
-    public async Task TestMissingEndif2()
-    {
-        var code = """
+    public Task TestMissingEndif2()
+        => VerifyBlockSpansAsync("""
                 #$$if true
                 {|span:class C
                 {
@@ -134,16 +113,12 @@ public sealed class IfDirectiveTriviaStructureTests : AbstractCSharpSyntaxNodeSt
                 class E
                 {
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10426")]
-    public async Task TestMissingEndif3()
-    {
-        var code = """
+    public Task TestMissingEndif3()
+        => VerifyBlockSpansAsync("""
                 #$$if false
                 class C
                 {
@@ -156,8 +131,5 @@ public sealed class IfDirectiveTriviaStructureTests : AbstractCSharpSyntaxNodeSt
                 class E
                 {
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code);
-    }
+                """);
 }

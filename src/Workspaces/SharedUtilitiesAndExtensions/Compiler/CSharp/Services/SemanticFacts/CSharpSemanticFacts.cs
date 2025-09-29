@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -166,22 +167,18 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         }
     }
 
-    public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
+    public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode node)
     {
-        if (forEachStatement is CommonForEachStatementSyntax csforEachStatement)
-        {
-            var info = semanticModel.GetForEachStatementInfo(csforEachStatement);
-            return new ForEachSymbols(
-                info.GetEnumeratorMethod,
-                info.MoveNextMethod,
-                info.CurrentProperty,
-                info.DisposeMethod,
-                info.ElementType);
-        }
-        else
-        {
+        if (node is not CommonForEachStatementSyntax forEachStatement)
             return default;
-        }
+
+        var info = semanticModel.GetForEachStatementInfo(forEachStatement);
+        return new ForEachSymbols(
+            info.GetEnumeratorMethod,
+            info.MoveNextMethod,
+            info.CurrentProperty,
+            info.DisposeMethod,
+            info.ElementType);
     }
 
     public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
@@ -233,8 +230,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
 
     public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
     {
-        var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-        foreach (var syntaxRef in syntaxRefs)
+        foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
         {
             var node = syntaxRef.GetSyntax(cancellationToken);
             if (node is BaseTypeDeclarationSyntax { Modifiers: { } modifiers } &&
@@ -247,23 +243,15 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         return false;
     }
 
-    public IEnumerable<ISymbol> GetDeclaredSymbols(
-        SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
-    {
-        switch (memberDeclaration)
+    public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
+        => memberDeclaration switch
         {
-            case FieldDeclarationSyntax field:
-                return field.Declaration.Variables.Select(
-                    v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken));
-
-            case EventFieldDeclarationSyntax eventField:
-                return eventField.Declaration.Variables.Select(
-                    v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken));
-
-            default:
-                return [semanticModel.GetRequiredDeclaredSymbol(memberDeclaration, cancellationToken)];
-        }
-    }
+            FieldDeclarationSyntax field
+                => field.Declaration.Variables.Select(v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken)),
+            EventFieldDeclarationSyntax eventField
+                => eventField.Declaration.Variables.Select(v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken)),
+            _ => [semanticModel.GetRequiredDeclaredSymbol(memberDeclaration, cancellationToken)],
+        };
 
     public IParameterSymbol? FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
         => ((ArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken);
@@ -296,7 +284,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         static ImmutableArray<ISymbol> GetCallingConventionSymbols(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
         {
             var type = model.Compilation.TryGetCallingConventionSymbol(syntax.Name.ValueText);
-            return type is null ? [] : ImmutableArray.Create<ISymbol>(type);
+            return type is null ? [] : [type];
         }
     }
 
@@ -306,7 +294,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     /// heuristics to provide a better result for tokens that users conceptually think bind to things, but which the
     /// compiler does not necessarily return results for.
     /// </summary>
-    private static ImmutableArray<ISymbol> GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+    private ImmutableArray<ISymbol> GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
     {
         switch (node)
         {
@@ -332,7 +320,8 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                     return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken).GetBestOrAllSymbols();
                 }
 
-                return default;
+                return [];
+
             case QueryClauseSyntax queryClauseSyntax:
                 var queryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
                 var hasCastInfo = queryInfo.CastInfo.Symbol != null;
@@ -350,8 +339,22 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                     return queryInfo.CastInfo.GetBestOrAllSymbols();
 
                 return queryInfo.OperationInfo.GetBestOrAllSymbols();
+
             case IdentifierNameSyntax { Parent: PrimaryConstructorBaseTypeSyntax baseType }:
                 return semanticModel.GetSymbolInfo(baseType, cancellationToken).GetBestOrAllSymbols();
+
+            case ObjectCreationExpressionSyntax objectCreation:
+                var symbols = semanticModel.GetSymbolInfo(objectCreation, cancellationToken).GetBestOrAllSymbols();
+                if (symbols.Length > 0)
+                    return symbols;
+
+                // `new T()` where `T` is a type parameter ends up returning nothing.  But we still want to consider
+                // this a suitable reference for type parameter.
+                var symbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).GetAnySymbol();
+                if (symbol is ITypeParameterSymbol)
+                    return [symbol];
+
+                return [];
         }
 
         //Only in the orderby clause a comma can bind to a symbol.
@@ -368,11 +371,14 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                 type.Equals(symbol, SymbolEqualityComparer.Default) &&
                 !type.Equals(symbol, SymbolEqualityComparer.IncludeNullability))
             {
-                return ImmutableArray.Create<ISymbol>(type);
+                return [type];
             }
         }
 
-        return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
+        var preprocessingSymbol = GetPreprocessingSymbol(semanticModel, node);
+        return preprocessingSymbol != null
+            ? [preprocessingSymbol]
+            : semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
     }
 
     public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
@@ -405,7 +411,33 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
         => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
 
-#if !CODE_STYLE
+    public IPreprocessingSymbol? GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node)
+        => node switch
+        {
+            IdentifierNameSyntax nameSyntax when IsInPreprocessingSymbolContext(nameSyntax) => CreatePreprocessingSymbol(semanticModel, nameSyntax.Identifier),
+            DefineDirectiveTriviaSyntax defineSyntax => CreatePreprocessingSymbol(semanticModel, defineSyntax.Name),
+            UndefDirectiveTriviaSyntax undefSyntax => CreatePreprocessingSymbol(semanticModel, undefSyntax.Name),
+            _ => null,
+        };
+
+    private static IPreprocessingSymbol? CreatePreprocessingSymbol(SemanticModel model, SyntaxToken identifier)
+#if !ROSLYN_4_12_OR_LOWER
+        => model.Compilation.CreatePreprocessingSymbol(identifier.ValueText);
+#else
+        => null;
+#endif
+
+    private static bool IsInPreprocessingSymbolContext(SyntaxNode node)
+        => node.Ancestors().Any(n => n.Kind() is
+            SyntaxKind.IfDirectiveTrivia or
+            SyntaxKind.ElifDirectiveTrivia or
+            SyntaxKind.DefineDirectiveTrivia or
+            SyntaxKind.UndefDirectiveTrivia);
+
+    public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
+        => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
+
+#if CSHARP_WORKSPACE
 
     public async Task<ISymbol?> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
     {

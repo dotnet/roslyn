@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 [Name(PredefinedCommandHandlerNames.NavigateToHighlightedReference)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class NavigateToHighlightReferenceCommandHandler(
+internal sealed partial class NavigateToHighlightReferenceCommandHandler(
     IOutliningManagerService outliningManagerService,
     IViewTagAggregatorFactoryService tagAggregatorFactory) :
     ICommandHandler<NavigateToNextHighlightedReferenceCommandArgs>,

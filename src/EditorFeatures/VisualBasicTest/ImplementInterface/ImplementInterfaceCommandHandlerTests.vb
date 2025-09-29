@@ -2,9 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -39,7 +39,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Dim cursorPosition = document.CursorPosition.Value
 
             view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, cursorPosition))
-            Return New ImplementInterfaceCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService), workspace.GetService(Of IGlobalOptionService))
+            Return New ImplementInterfaceCommandHandler(
+                workspace.GetService(Of IThreadingContext),
+                workspace.GetService(Of IEditorOperationsFactoryService),
+                workspace.GetService(Of IGlobalOptionService))
         End Function
 
         Private Shared Function GetWorkspace(code As String) As EditorTestWorkspace
@@ -118,7 +121,7 @@ End Class</text>
     End Sub
 
     Private Sub IBar_Goo() Implements IBar.Goo
-        Throw New NotImplementedException()
+        Goo()
     End Sub</text>
 
             Test(code,
@@ -484,7 +487,7 @@ Class C
     End Sub
 
     Private Sub IB_Goo() Implements IB.Goo
-        Throw New NotImplementedException()
+        goo()
     End Sub
 End Class</text>
 

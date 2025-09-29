@@ -1781,8 +1781,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_LockTypeUnsupported = 37329
         ERR_InvalidVersionFormatDeterministic = 37330
         ERR_TypeReserved = 37331
+        ERR_UnmanagedConstraintNotSatisfied = 37332
 
-        ERR_NextAvailable = 37332
+        ERR_CannotApplyOverloadResolutionPriorityToOverride = 37333
+        ERR_CannotApplyOverloadResolutionPriorityToMember = 37334
+
+        ERR_EmbeddedAttributeMustFollowPattern = 37335
+        ERR_TooManyUserStrings_RestartRequired = 37336
+
+        ERR_MethodImplAttributeAsyncCannotBeUsed = 37337
+        ERR_AttributeCannotBeAppliedManually = 37338
+
+        ERR_NextAvailable = 37339
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -2017,6 +2027,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WRN_ConvertingLock = 42508
 
+        WRN_ExperimentalWithMessage = 42509
+
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600
 
@@ -2081,5 +2093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_CommentsAfterLineContinuation
         FEATURE_InitOnlySettersUsage
         FEATURE_CallerArgumentExpression
+        FEATURE_UnmanagedConstraint
+        FEATURE_OverloadResolutionPriority
     End Enum
 End Namespace

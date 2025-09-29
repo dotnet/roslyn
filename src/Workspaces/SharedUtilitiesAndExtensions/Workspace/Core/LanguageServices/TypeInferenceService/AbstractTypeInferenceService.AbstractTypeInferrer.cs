@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService;
 
@@ -75,9 +72,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
 
         private ImmutableArray<TypeInferenceInfo> Filter(IEnumerable<TypeInferenceInfo> types, bool filterUnusable = true)
         {
-            return types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull)
-                        .Distinct()
-                        .ToImmutableArray();
+            return [.. types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull).Distinct()];
         }
 
         protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)

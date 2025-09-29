@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-                Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
+                Dim receiver As BoundExpression = DirectCast(Me.Visit(node.Receiver), BoundExpression)
                 Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
                 Dim whenNullOpt As BoundExpression = node.WhenNullOpt
 
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     whenNullOpt = DirectCast(Me.Visit(whenNullOpt), BoundExpression)
                 End If
 
-                Return node.Update(receiverOrCondition, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNullOpt, node.Type)
+                Return node.Update(receiver, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNullOpt, node.Type)
             End Function
 
         End Class

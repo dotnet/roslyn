@@ -162,9 +162,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>>? features)
         {
-            ImmutableDictionary<string, string> dictionary =
-                features?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)
-                ?? ImmutableDictionary<string, string>.Empty;
+            if (Features == features)
+            {
+                return this;
+            }
+
+            if (features is not ImmutableDictionary<string, string> dictionary || dictionary.KeyComparer != StringComparer.OrdinalIgnoreCase)
+            {
+                dictionary = (features ?? []).ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+            }
 
             return new CSharpParseOptions(this) { _features = dictionary };
         }
@@ -229,6 +235,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        /// <summary>
+        /// Used for parsing .cs file-based programs.
+        /// </summary>
+        /// <remarks>
+        /// In this mode, ignored directives <c>#:</c> are allowed.
+        /// </remarks>
+        internal bool FileBasedProgram => Features.ContainsKey("FileBasedProgram");
 
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {

@@ -4,7 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 

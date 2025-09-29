@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class InterfaceKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class InterfaceKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.InterfaceKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -20,18 +20,13 @@ internal class InterfaceKeywordRecommender : AbstractSyntacticSingleKeywordRecom
             SyntaxKind.UnsafeKeyword
         };
 
-    public InterfaceKeywordRecommender()
-        : base(SyntaxKind.InterfaceKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
             context.IsGlobalStatementContext ||
             context.IsTypeDeclarationContext(
                 validModifiers: s_validModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: true,
                 cancellationToken: cancellationToken);
     }

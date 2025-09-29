@@ -7,7 +7,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <Guid(Guids.VisualBasicCodePageEditorFactoryIdString)>
-    Friend Class VisualBasicCodePageEditorFactory
+    Friend NotInheritable Class VisualBasicCodePageEditorFactory
         Inherits AbstractCodePageEditorFactory
 
         Public Sub New(editorFactory As AbstractEditorFactory)

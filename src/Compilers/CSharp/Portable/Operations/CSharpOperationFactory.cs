@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundCall.ConstantValueOpt;
             bool isImplicit = boundCall.WasCompilerGenerated;
 
-            if (!boundCall.OriginalMethodsOpt.IsDefault || IsMethodInvalid(boundCall.ResultKind, targetMethod))
+            if (boundCall.IsErroneousNode)
             {
                 ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -2253,8 +2253,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>? positionInfo = null)
         {
-            Debug.Assert(positionInfo == null || boundInterpolatedString.InterpolationData == null);
-            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, positionInfo ?? boundInterpolatedString.InterpolationData?.PositionInfo[0]);
+            Debug.Assert(positionInfo == null || boundInterpolatedString.InterpolationData is null or { BuilderType: null });
+
+            if (positionInfo is null && boundInterpolatedString.InterpolationData is { BuilderType: not null, PositionInfo: var info })
+            {
+                positionInfo = info[0];
+            }
+
+            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, positionInfo);
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol? type = boundInterpolatedString.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundInterpolatedString.ConstantValueOpt;
@@ -2488,7 +2494,7 @@ namespace Microsoft.CodeAnalysis.Operations
             var (placeholderKind, argumentIndex) = placeholder.ArgumentIndex switch
             {
                 >= 0 and var index => (InterpolatedStringArgumentPlaceholderKind.CallsiteArgument, index),
-                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
+                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
                 BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => (InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument, NonArgumentIndex),
                 _ => throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex)
             };

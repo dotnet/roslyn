@@ -7,303 +7,265 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class WithKeywordRecommenderTests : KeywordRecommenderTests
-    {
-        [Fact]
-        public async Task TestNotAfterWith()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotAfterWith()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = goo with $$"));
-        }
 
-        [Fact]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+    [Fact]
+    public Task TestNotAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
 
-        [Fact]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
 
-        [Fact]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
 
-        [Fact]
-        public async Task TestAfterExpr()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestAfterExpr()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var q = goo $$"));
-        }
 
-        [Fact]
-        public async Task TestAfterDottedName()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public Task TestAfterDottedName()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var q = goo.Current $$"));
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]
-        public async Task TestNotAfterVarInForLoop()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]
+    public Task TestNotAfterVarInForLoop()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"for (var $$"));
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-        public async Task TestNotBeforeFirstStringHole()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-                """
-                var x = "\{0}$$\{1}\{2}"
-                """));
-        }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
+    public Task TestNotBeforeFirstStringHole()
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            var x = "\{0}$$\{1}\{2}"
+            """));
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-        public async Task TestNotBetweenStringHoles()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-                """
-                var x = "\{0}\{1}$$\{2}"
-                """));
-        }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
+    public Task TestNotBetweenStringHoles()
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            var x = "\{0}\{1}$$\{2}"
+            """));
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-        public async Task TestNotAfterStringHoles()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-                """
-                var x = "\{0}\{1}\{2}$$"
-                """));
-        }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
+    public Task TestNotAfterStringHoles()
+        => VerifyAbsenceAsync(AddInsideMethod(
+            """
+            var x = "\{0}\{1}\{2}$$"
+            """));
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
-        public async Task TestAfterLastStringHole()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
+    public Task TestAfterLastStringHole()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"var x = ""\{0}\{1}\{2}"" $$"));
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1736")]
-        public async Task TestNotWithinNumericLiteral()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1736")]
+    public Task TestNotWithinNumericLiteral()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"var x = .$$0;"));
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
-        public async Task TestNotAfterAsync()
-        {
-            await VerifyAbsenceAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28586")]
+    public Task TestNotAfterAsync()
+        => VerifyAbsenceAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void Goo()
                 {
-                    void Goo()
-                    {
-                        Bar(async $$
-                    }
+                    Bar(async $$
+                }
 
-                    void Bar(Func<int, string> f)
+                void Bar(Func<int, string> f)
+                {
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
+    public Task TestNotAfterMethodReference()
+        => VerifyAbsenceAsync(
+            """
+            using System;
+
+            class C {
+                void M() {
+                    var v = Console.WriteLine $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
+    public Task TestNotAfterAnonymousMethod()
+        => VerifyAbsenceAsync(
+            """
+            using System;
+
+            class C {
+                void M() {
+                    Action a = delegate { } $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
+    public Task TestNotAfterLambda1()
+        => VerifyAbsenceAsync(
+            """
+            using System;
+
+            class C {
+                void M() {
+                    Action b = (() => 0) $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
+    public Task TestNotAfterLambda2()
+        => VerifyAbsenceAsync(
+            """
+            using System;
+
+            class C {
+                void M() {
+                    Action b = () => {} $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
+    public Task TestMissingAfterNumericLiteral()
+        => VerifyAbsenceAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = 1$$
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
+    public Task TestMissingAfterNumericLiteralAndDot()
+        => VerifyAbsenceAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = 1.$$
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
+    public Task TestMissingAfterNumericLiteralDotAndSpace()
+        => VerifyAbsenceAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = 1. $$
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
+    public Task TestMissingInCaseClause1()
+        => VerifyAbsenceAsync(
+            """
+            class A
+            {
+
+            }
+
+            class C
+            {
+                void M(object o)
+                {
+                    switch (o)
                     {
+                        case A $$
                     }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
-        public async Task TestNotAfterMethodReference()
-        {
-            await VerifyAbsenceAsync(
-                """
-                using System;
-
-                class C {
-                    void M() {
-                        var v = Console.WriteLine $$
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
-        public async Task TestNotAfterAnonymousMethod()
-        {
-            await VerifyAbsenceAsync(
-                """
-                using System;
-
-                class C {
-                    void M() {
-                        Action a = delegate { } $$
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
-        public async Task TestNotAfterLambda1()
-        {
-            await VerifyAbsenceAsync(
-                """
-                using System;
-
-                class C {
-                    void M() {
-                        Action b = (() => 0) $$
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8319")]
-        public async Task TestNotAfterLambda2()
-        {
-            await VerifyAbsenceAsync(
-                """
-                using System;
-
-                class C {
-                    void M() {
-                        Action b = () => {} $$
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
-        public async Task TestMissingAfterNumericLiteral()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = 1$$
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
-        public async Task TestMissingAfterNumericLiteralAndDot()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = 1.$$
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48573")]
-        public async Task TestMissingAfterNumericLiteralDotAndSpace()
-        {
-            await VerifyAbsenceAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = 1. $$
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
-        public async Task TestMissingInCaseClause1()
-        {
-            await VerifyAbsenceAsync(
-                """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
+    public Task TestMissingInCaseClause2()
+        => VerifyAbsenceAsync(
+            """
+            namespace N
+            {
                 class A
                 {
 
                 }
+            }
 
-                class C
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
+                    switch (o)
                     {
-                        switch (o)
-                        {
-                            case A $$
-                        }
+                        case N.A $$
                     }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31367")]
-        public async Task TestMissingInCaseClause2()
-        {
-            await VerifyAbsenceAsync(
-                """
-                namespace N
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78800")]
+    public Task TestAfterReturnExpression()
+        => VerifyKeywordAsync(
+            """
+            class C
+            {
+                public static string EvaluateRangeVariable()
                 {
-                    class A
-                    {
-
-                    }
+                    return RandomValue() $$
                 }
 
-                class C
-                {
-                    void M(object o)
-                    {
-                        switch (o)
-                        {
-                            case N.A $$
-                        }
-                    }
-                }
-                """);
-        }
-    }
+                public int RandomValue() => 0;
+            }
+            """);
 }

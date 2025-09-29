@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(AttributeNamedParameterCompletionProvider);
@@ -46,9 +46,8 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
     }
 
     [Fact]
-    public async Task CommitCharacterTest()
-    {
-        const string markup = """
+    public Task CommitCharacterTest()
+        => VerifyCommonCommitCharactersAsync("""
             using System;
             class class1
             {
@@ -62,15 +61,11 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
             {
                 public ConsoleColor Color { get; set; }
             }
-            """;
-
-        await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
-    }
+            """, textTypedSoFar: "");
 
     [Fact]
-    public async Task SimpleAttributeUsage()
-    {
-        var markup = """
+    public Task SimpleAttributeUsage()
+        => VerifyItemExistsAsync("""
             using System;
             class class1
             {
@@ -84,15 +79,11 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
             {
                 public ConsoleColor Color { get; set; }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Color", displayTextSuffix: " =");
-    }
+            """, "Color", displayTextSuffix: " =");
 
     [Fact]
-    public async Task AfterComma()
-    {
-        var markup = """
+    public Task AfterComma()
+        => VerifyItemExistsAsync("""
             using System;
             class class1
             {
@@ -107,10 +98,7 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
                 public ConsoleColor Color { get; set; }
                 public string Text { get; set; }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
-    }
+            """, "Text", displayTextSuffix: " =");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
     public async Task ExistingItemsAreFiltered()
@@ -137,9 +125,8 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
     }
 
     [Fact]
-    public async Task AttributeConstructor()
-    {
-        var markup = """
+    public Task AttributeConstructor()
+        => VerifyItemExistsAsync("""
             using System;
             class TestAttribute : Attribute
             {
@@ -150,15 +137,11 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
             [Test($$
             class Goo
             { }
-            """;
-
-        await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
-    }
+            """, "a", displayTextSuffix: ":");
 
     [Fact]
-    public async Task AttributeConstructorAfterComma()
-    {
-        var markup = """
+    public Task AttributeConstructorAfterComma()
+        => VerifyItemExistsAsync("""
             using System;
             class TestAttribute : Attribute
             {
@@ -169,15 +152,11 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
             [Test(s:"", $$
             class Goo
             { }
-            """;
-
-        await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
-    }
+            """, "a", displayTextSuffix: ":");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
-    public async Task TestPropertiesInScript()
-    {
-        var markup = """
+    public Task TestPropertiesInScript()
+        => VerifyItemExistsAsync("""
             using System;
 
             class TestAttribute : Attribute
@@ -192,15 +171,11 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
             class Goo
             {
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
-    }
+            """, "Text", displayTextSuffix: " =");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
-    public async Task NotInComment()
-    {
-        var markup = """
+    public Task NotInComment()
+        => VerifyNoItemsExistAsync("""
             using System;
             class class1
             {
@@ -214,8 +189,5 @@ public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpComp
             {
                 public ConsoleColor Color { get; set; }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
-    }
+            """);
 }

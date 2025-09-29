@@ -2,31 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System;
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Class which represents extensions of <see cref="ReferenceParams"/> passed as parameter of find reference requests.
+/// </summary>
+internal sealed class VSInternalReferenceParams : ReferenceParams, IPartialResultParams<SumType<VSInternalReferenceItem, Location>[]>
 {
-    using System;
-    using System.Text.Json.Serialization;
-
     /// <summary>
-    /// Class which represents extensions of <see cref="ReferenceParams"/> passed as parameter of find reference requests.
+    /// Gets or sets a value indicating the scope of returned items.
     /// </summary>
-    internal class VSInternalReferenceParams : ReferenceParams, IPartialResultParams<SumType<VSInternalReferenceItem, Location>[]>
+    [JsonPropertyName("_vs_scope")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public VSInternalItemOrigin? Scope
     {
-        /// <summary>
-        /// Gets or sets a value indicating the scope of returned items.
-        /// </summary>
-        [JsonPropertyName("_vs_scope")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public VSInternalItemOrigin? Scope
-        {
-            get;
-            set;
-        }
-
-        // overrides the IPartialResultParams<Location[]> version on ReferenceParams
-        /// <inheritdoc/>
-        [JsonPropertyName(Methods.PartialResultTokenName)]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public new IProgress<SumType<VSInternalReferenceItem, Location>[]>? PartialResultToken { get; set; }
+        get;
+        set;
     }
+
+    // overrides the IPartialResultParams<Location[]> version on ReferenceParams
+    /// <inheritdoc/>
+    [JsonPropertyName(Methods.PartialResultTokenName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public new IProgress<SumType<VSInternalReferenceItem, Location>[]>? PartialResultToken { get; set; }
 }

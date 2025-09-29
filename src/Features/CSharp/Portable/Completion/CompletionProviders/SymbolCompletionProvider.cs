@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
 [Shared]
-internal sealed class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SymbolCompletionProvider() : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
 {
     private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = [];
 
@@ -63,12 +65,6 @@ internal sealed class SymbolCompletionProvider : AbstractRecommendationServiceBa
 
             return rule;
         }
-    }
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SymbolCompletionProvider()
-    {
     }
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;

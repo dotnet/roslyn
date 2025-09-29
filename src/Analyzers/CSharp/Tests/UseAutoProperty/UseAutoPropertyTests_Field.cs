@@ -4,7 +4,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
@@ -12,13 +14,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
 public sealed partial class UseAutoPropertyTests
 {
-    private readonly ParseOptions CSharp13 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
-    private readonly ParseOptions Preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+    private static readonly ParseOptions CSharp13 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
+    private static readonly ParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
 
     [Fact]
-    public async Task TestNotInCSharp13()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotInCSharp13()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -33,12 +34,10 @@ public sealed partial class UseAutoPropertyTests
                 }
             }
             """, new(parseOptions: CSharp13));
-    }
 
     [Fact]
-    public async Task TestFieldSimplestCase()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFieldSimplestCase()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -64,13 +63,41 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestFieldAccessOffOfThis()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFieldWithInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s = ""|];
+
+                string P
+                {
+                    get
+                    {
+                        return s.Trim();
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                string P
+                {
+                    get
+                    {
+                        return field.Trim();
+                    }
+                } = "";
+            }
+            """, new(parseOptions: CSharp14));
+
+    [Fact]
+    public Task TestFieldAccessOffOfThis()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -96,13 +123,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestStaticField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestStaticField()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -128,13 +153,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestGetterWithMultipleStatements_Field()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGetterWithMultipleStatements_Field()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -162,13 +185,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -203,13 +224,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -241,13 +260,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestSimpleFieldInExpressionBody()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleFieldInExpressionBody()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -261,13 +278,11 @@ public sealed partial class UseAutoPropertyTests
             {
                 string P => field.Trim();
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestMultipleFields_NoClearChoice()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMultipleFields_NoClearChoice()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -275,13 +290,11 @@ public sealed partial class UseAutoPropertyTests
 
                 int Total => x + y;
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestMultipleFields_NoClearChoice2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMultipleFields_NoClearChoice2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -297,13 +310,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestMultipleFields_ClearChoice()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleFields_ClearChoice()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -330,13 +341,11 @@ public sealed partial class UseAutoPropertyTests
                     set;
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestMultipleFields_PickByName1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleFields_PickByName1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -352,13 +361,11 @@ public sealed partial class UseAutoPropertyTests
 
                 int X => field + y;
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestMultipleFields_PickByName2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultipleFields_PickByName2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -374,13 +381,11 @@ public sealed partial class UseAutoPropertyTests
 
                 int X => field + y;
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWhenAlreadyUsingField()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenAlreadyUsingField()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -395,13 +400,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWhenUsingNameof1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenUsingNameof1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -417,13 +420,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWhenUsingNameof2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenUsingNameof2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -439,13 +440,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWhenUsingNameof3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenUsingNameof3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -465,13 +464,11 @@ public sealed partial class UseAutoPropertyTests
                         throw new ArgumentNullException(nameof(s));
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWhenUsingNameof4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenUsingNameof4()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -491,13 +488,11 @@ public sealed partial class UseAutoPropertyTests
                         throw new ArgumentNullException(nameof(this.s));
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWhenUsingNameof5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWhenUsingNameof5()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -506,12 +501,10 @@ public sealed partial class UseAutoPropertyTests
                 string P => s;
             }
             """, new(parseOptions: CSharp13));
-    }
 
     [Fact]
-    public async Task TestWithRefArgumentUseInside()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithRefArgumentUseInside()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -533,13 +526,11 @@ public sealed partial class UseAutoPropertyTests
                 {
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWithRefArgumentUseOutside()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithRefArgumentUseOutside()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -556,13 +547,11 @@ public sealed partial class UseAutoPropertyTests
                 {
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestWithRefUseInside()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithRefUseInside()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -590,13 +579,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWithRefUseOutside()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithRefUseOutside()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -615,13 +602,11 @@ public sealed partial class UseAutoPropertyTests
                     ref string s1 = ref s;
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestWithAddressOfInside()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithAddressOfInside()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -655,13 +640,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWithAddressOfOutside()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithAddressOfOutside()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -683,13 +666,11 @@ public sealed partial class UseAutoPropertyTests
                     int* p = &s;
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotChainedPattern1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNotChainedPattern1()
+        => TestInRegularAndScriptAsync(
             """
             class Builder
             {
@@ -714,13 +695,11 @@ public sealed partial class UseAutoPropertyTests
                     set;
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestLazyInit1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestLazyInit1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -738,13 +717,11 @@ public sealed partial class UseAutoPropertyTests
             {
                 public List<int> List => field ??= new();
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestRefSetAccessor1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRefSetAccessor1()
+        => TestInRegularAndScriptAsync(
             """
             class Builder
             {
@@ -761,13 +738,11 @@ public sealed partial class UseAutoPropertyTests
             
                 void Set(ref int a, int b) { }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestRefSetAccessor2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRefSetAccessor2()
+        => TestInRegularAndScriptAsync(
             """
             class Builder
             {
@@ -803,13 +778,11 @@ public sealed partial class UseAutoPropertyTests
                 void Set(ref int a, int b) { }
                 void OnPropChanged() { }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestAttributesOnField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAttributesOnField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -824,13 +797,11 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public int Prop { get; set; }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestAttributesOnField2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAttributesOnField2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -845,13 +816,11 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestAttributesOnField3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAttributesOnField3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -869,13 +838,11 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestAttributesOnField4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAttributesOnField4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -895,13 +862,11 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestAttributesOnField5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAttributesOnField5()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -921,13 +886,11 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute][PropAttribute2]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestAttributesOnField6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAttributesOnField6()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -945,13 +908,11 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestAttributesOnField7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAttributesOnField7()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -970,13 +931,11 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestFieldUsedInObjectInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFieldUsedInObjectInitializer()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1004,13 +963,11 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1034,13 +991,11 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1064,13 +1019,11 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere3()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1100,13 +1053,11 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere4()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1144,13 +1095,11 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNonTrivialGetterWithExternalRead1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNonTrivialGetterWithExternalRead1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1163,13 +1112,11 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(i);
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNonTrivialGetterWithExternalRead2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNonTrivialGetterWithExternalRead2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1182,13 +1129,11 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(this.i);
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNonTrivialSetterWithExternalWrite1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNonTrivialSetterWithExternalWrite1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1201,13 +1146,11 @@ public sealed partial class UseAutoPropertyTests
                     i = 1;
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNonTrivialSetterWithExternalWrite2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNonTrivialSetterWithExternalWrite2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1220,13 +1163,11 @@ public sealed partial class UseAutoPropertyTests
                     this.i = 1;
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNonTrivialSetterWithNoExternalWrite1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNonTrivialSetterWithNoExternalWrite1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1240,13 +1181,11 @@ public sealed partial class UseAutoPropertyTests
             {
                 public int I { get; set => field = value / 2; }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNonTrivialGetterWithExternalReadWrite1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNonTrivialGetterWithExternalReadWrite1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1259,13 +1198,11 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(this.i++);
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNonTrivialSetterWithExternalReadWrite1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNonTrivialSetterWithExternalReadWrite1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1278,13 +1215,11 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(this.i++);
                 }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestTrivialGetterWithExternalRead1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivialGetterWithExternalRead1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1308,13 +1243,11 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(I);
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNoSetterWithExternalWrite1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNoSetterWithExternalWrite1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1338,13 +1271,11 @@ public sealed partial class UseAutoPropertyTests
                     I = 1;
                 }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestFormatString()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFormatString()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1357,13 +1288,11 @@ public sealed partial class UseAutoPropertyTests
             {
                 public string Prop => $"{field:prop}";
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNoSetterButWrittenOutside()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNoSetterButWrittenOutside()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1380,13 +1309,11 @@ public sealed partial class UseAutoPropertyTests
             
                 void M() { Prop = "..."; }
             }
-            """, parseOptions: Preview);
-    }
+            """, new(parseOptions: CSharp14));
 
     [Fact]
-    public async Task TestNotWithNameofInAttribute()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithNameofInAttribute()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1394,6 +1321,268 @@ public sealed partial class UseAutoPropertyTests
                 [ThisIsMyBackingField(nameof(prop))]
                 public string Prop { get => prop; set => prop = value; }
             }
-            """, new(parseOptions: Preview));
-    }
+            """, new(parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75516")]
+    public Task TestBackingFieldUsedAsArgument1()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                [|int _i;|]
+                int P
+                {
+                    get => _i;
+                    set
+                    {
+                        M(_i);
+                        _i = value;
+                    }
+                }
+
+                void M(int i) { }
+            }
+            """, """
+            class C
+            {
+                int P
+                {
+                    get;
+                    set
+                    {
+                        M(field);
+                        field = value;
+                    }
+                }
+
+                void M(int i) { }
+            }
+            """, new(parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75516")]
+    public Task TestBackingFieldUsedAsArgument2()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                [|int _i;|]
+                int P
+                {
+                    get => _i;
+                    set
+                    {
+                        M(ref _i);
+                        _i = value;
+                    }
+                }
+
+                void M(ref int i) { }
+            }
+            """, """
+            class C
+            {
+                int P
+                {
+                    get;
+                    set
+                    {
+                        M(ref field);
+                        field = value;
+                    }
+                }
+
+                void M(ref int i) { }
+            }
+            """, new(parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26527")]
+    public Task TestFixAllInDocument3()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            public sealed class SomeViewModel
+            {
+                private bool {|FixAllInDocument:a|} = true;
+                public bool A { get => a; set => Set(ref a, value); }
+
+                private bool b = true;
+                public bool B { get => b; set => Set(ref b, value); }
+
+                private bool c = true;
+                public bool C { get => c; set => Set(ref c, value); }
+
+                private void Set<T>(ref T field, T value) => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+            
+            public sealed class SomeViewModel
+            {
+                public bool A { get; set => Set(ref field, value); } = true;
+                public bool B { get; set => Set(ref field, value); } = true;
+                public bool C { get; set => Set(ref field, value); } = true;
+            
+                private void Set<T>(ref T field, T value) => throw new NotImplementedException();
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76790")]
+    public Task TestFixAllInDocument4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int {|FixAllInDocument:a|};
+                public int A => a;
+
+                void M()
+                {
+                    nameMustDiffer = true;
+                }
+
+                private bool nameMustDiffer;
+                public bool B => !nameMustDiffer;
+            }
+            """,
+            """
+            class C
+            {
+                public int A { get; }
+
+                void M()
+                {
+                    B = true;
+                }
+
+                public bool B { get => !field; private set; }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76790")]
+    public Task TestWrittenInConstructor()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    nameMustDiffer = true;
+                }
+
+                private bool [|nameMustDiffer|];
+                public bool B => !nameMustDiffer;
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    B = true;
+                }
+
+                public bool B { get => !field; private set; }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public Task TestReadAndWrite()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int [|_g|];
+
+                public int CustomGetter
+                {
+                    get => _g < 0 ? 0 : _g; // Synthesized return value
+                    set => _g = value;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public int CustomGetter
+                {
+                    get => field < 0 ? 0 : field; // Synthesized return value
+                    set;
+                }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public Task TestContractCall()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int [|_s|];
+
+                public int CustomSetter
+                {
+                    get => _s;
+                    set
+                    {
+                        Assumes.True(value >= 0); // Validation
+                        _s = value;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public int CustomSetter
+                {
+                    get;
+                    set
+                    {
+                        Assumes.True(value >= 0); // Validation
+                        field = value;
+                    }
+                }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public Task TestDelegateInvoke()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                private int [|_s|];
+                public event Action<string> OnChanged;
+
+                public int ObservableProp
+                {
+                    get => _s;
+                    set
+                    {
+                        _s = value;
+                        OnChanged.Invoke(nameof(ObservableProp));
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                public event Action<string> OnChanged;
+            
+                public int ObservableProp
+                {
+                    get;
+                    set
+                    {
+                        field = value;
+                        OnChanged.Invoke(nameof(ObservableProp));
+                    }
+                }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
 }

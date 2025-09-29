@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
-public class ITextLineExtensionsTests
+public sealed class ITextLineExtensionsTests
 {
     [Fact]
     public void GetFirstNonWhitespacePosition_EmptyLineReturnsNull()

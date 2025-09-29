@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -17,13 +18,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServiceRequestHandler<RestoreParams, RestorePartialResult[]>
+internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory) : ILspServiceRequestHandler<RestoreParams, RestorePartialResult[]>
 {
     internal const string MethodName = "workspace/_roslyn_restore";
 
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
+
+    private readonly ILogger<RestoreHandler> _logger = loggerFactory.CreateLogger<RestoreHandler>();
 
     public async Task<RestorePartialResult[]> HandleRequestAsync(RestoreParams request, RequestContext context, CancellationToken cancellationToken)
     {
@@ -35,18 +38,31 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
         var restorePaths = GetRestorePaths(request, context.Solution, context);
         if (restorePaths.IsEmpty)
         {
+            _logger.LogDebug($"Restore was requested but no paths were provided.");
             progress.Report(new RestorePartialResult(LanguageServerResources.Restore, LanguageServerResources.Nothing_found_to_restore));
             return progress.GetValues() ?? [];
         }
 
-        await RestoreAsync(restorePaths, progress, cancellationToken);
+        _logger.LogDebug($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
+        bool success = await RestoreAsync(restorePaths, progress, cancellationToken);
 
         progress.Report(new RestorePartialResult(LanguageServerResources.Restore, $"{LanguageServerResources.Restore_complete}{Environment.NewLine}"));
+        if (success)
+        {
+            _logger.LogDebug($"Restore completed successfully.");
+        }
+        else
+        {
+            _logger.LogError($"Restore completed with errors.");
+        }
+
         return progress.GetValues() ?? [];
     }
 
-    private async Task RestoreAsync(ImmutableArray<string> pathsToRestore, BufferedProgress<RestorePartialResult> progress, CancellationToken cancellationToken)
+    /// <returns>True if all restore invocations exited with code 0. Otherwise, false.</returns>
+    private async Task<bool> RestoreAsync(ImmutableArray<string> pathsToRestore, BufferedProgress<RestorePartialResult> progress, CancellationToken cancellationToken)
     {
+        bool success = true;
         foreach (var path in pathsToRestore)
         {
             var arguments = new string[] { "restore", path };
@@ -71,8 +87,11 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
             if (process.ExitCode != 0)
             {
                 ReportProgress(progress, stageName, string.Format(LanguageServerResources.Failed_to_run_restore_on_0, path));
+                success = false;
             }
         }
+
+        return success;
 
         static void ReportProgress(BufferedProgress<RestorePartialResult> progress, string stage, string? restoreOutput)
         {
@@ -106,7 +125,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
             .Distinct()
             .ToImmutableArray();
 
-        context.TraceInformation($"Found {projects.Length} restorable projects from {solution.Projects.Count()} projects in solution");
+        context.TraceDebug($"Found {projects.Length} restorable projects from {solution.Projects.Count()} projects in solution");
         return projects;
     }
 }

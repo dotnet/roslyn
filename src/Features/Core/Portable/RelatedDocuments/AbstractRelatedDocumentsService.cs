@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RelatedDocuments;
@@ -135,7 +135,7 @@ internal abstract class AbstractRelatedDocumentsService<
             foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
             {
                 var documentId = solution.GetDocument(syntaxReference.SyntaxTree)?.Id;
-                if (documentId != null && seenDocumentIds.Add(documentId))
+                if (documentId != null && !documentId.IsSourceGenerated && seenDocumentIds.Add(documentId))
                     callback(documentId);
             }
         }

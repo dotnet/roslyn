@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
@@ -55,6 +54,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
 
     public async ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
         Solution solution,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -63,45 +63,23 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
             var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                return (await GetLocalService().EmitSolutionUpdateAsync(sessionId, solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
+                return (await GetLocalService().EmitSolutionUpdateAsync(sessionId, solution, runningProjects, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
 
             var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, EmitSolutionUpdateResults.Data>(
                 solution,
-                (service, solutionInfo, callbackId, cancellationToken) => service.EmitSolutionUpdateAsync(solutionInfo, callbackId, sessionId, cancellationToken),
+                (service, solutionInfo, callbackId, cancellationToken) => service.EmitSolutionUpdateAsync(solutionInfo, callbackId, sessionId, runningProjects, cancellationToken),
                 callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : new EmitSolutionUpdateResults.Data()
-            {
-                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                Diagnostics = [],
-                RudeEdits = [],
-                SyntaxError = null,
-            };
+            return result.HasValue
+                ? result.Value
+                : EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, errorMessage: "Unexpected RPC failure", runningProjects); // user friendly error already reported by OOP infra
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
-            return new EmitSolutionUpdateResults.Data()
-            {
-                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                Diagnostics = GetInternalErrorDiagnosticData(solution, e),
-                RudeEdits = [],
-                SyntaxError = null,
-            };
+            return EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjects);
         }
-    }
-
-    private static ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(Solution solution, Exception e)
-    {
-        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-        var diagnostic = Diagnostic.Create(
-            descriptor,
-            Location.None,
-            string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
-
-        return [DiagnosticData.Create(solution, diagnostic, project: null)];
     }
 
     public async ValueTask CommitSolutionUpdateAsync(CancellationToken cancellationToken)

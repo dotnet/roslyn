@@ -123,7 +123,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                return base.VisitCollectionExpression(node);
+                bool hasElementType = node.CollectionTypeKind is not CollectionExpressionTypeKind.None;
+                foreach (var element in node.Elements)
+                {
+                    if (element is BoundCollectionExpressionSpreadElement spread)
+                    {
+                        Visit(spread.Expression);
+                        Visit(spread.Conversion);
+                        if (spread.EnumeratorInfoOpt != null)
+                        {
+                            VisitForEachEnumeratorInfo(spread.EnumeratorInfoOpt);
+                        }
+                        if (hasElementType)
+                        {
+                            Visit(((BoundExpressionStatement?)spread.IteratorBody)?.Expression);
+                        }
+                    }
+                    else
+                    {
+                        Visit(element);
+                    }
+                }
+                return null;
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -196,20 +217,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.AwaitOpt);
                 if (node.EnumeratorInfoOpt != null)
                 {
-                    Visit(node.EnumeratorInfoOpt.DisposeAwaitableInfo);
-                    if (node.EnumeratorInfoOpt.GetEnumeratorInfo.Method.IsExtensionMethod)
-                    {
-                        foreach (var arg in node.EnumeratorInfoOpt.GetEnumeratorInfo.Arguments)
-                        {
-                            Visit(arg);
-                        }
-                    }
+                    VisitForEachEnumeratorInfo(node.EnumeratorInfoOpt);
                 }
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
                 Visit(node.Body);
                 return null;
+            }
+
+            private void VisitForEachEnumeratorInfo(ForEachEnumeratorInfo enumeratorInfo)
+            {
+                Visit(enumeratorInfo.DisposeAwaitableInfo);
+                if (enumeratorInfo.GetEnumeratorInfo.Method.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/78828: Test this code path with new extensions
+                {
+                    foreach (var arg in enumeratorInfo.GetEnumeratorInfo.Arguments)
+                    {
+                        Visit(arg);
+                    }
+                }
             }
 
             public override BoundNode? VisitGotoStatement(BoundGotoStatement node)
@@ -248,7 +274,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
             {
-                if (node.LeftConversion is BoundConversion leftConversion)
+                if (node.LeftConversion is BoundConversion leftConversion &&
+                    !(node.Operator.Method is { IsStatic: false } method && method.GetIsNewExtensionMember()))
                 {
                     VerifyExpression(leftConversion);
                 }

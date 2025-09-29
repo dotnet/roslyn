@@ -11,14 +11,10 @@ using Microsoft.CodeAnalysis.UseConditionalExpression;
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer
-    : AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<IfStatementSyntax>
+internal sealed class CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer()
+    : AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<IfStatementSyntax>(
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.if_statement_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer()
-        : base(new LocalizableResourceString(nameof(CSharpAnalyzersResources.if_statement_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     protected override ISyntaxFacts GetSyntaxFacts()
         => CSharpSyntaxFacts.Instance;
 }

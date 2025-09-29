@@ -42,6 +42,11 @@ internal abstract class AbstractConvertAnonymousTypeToTupleCodeRefactoringProvid
             return;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+
+        if (semanticFacts.IsInExpressionTree(semanticModel, anonymousNode, semanticModel.Compilation.ExpressionOfTType(), cancellationToken))
+            return;
+
         var allAnonymousNodes = GetAllAnonymousTypesInContainer(document, semanticModel, anonymousNode, cancellationToken);
 
         // If we have multiple different anonymous types in this member, then offer two fixes, one to just fixup this

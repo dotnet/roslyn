@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -26,13 +26,13 @@ internal static class DocumentBasedFixAllProviderHelpers
         IProgress<CodeAnalysisProgress> progressTracker,
         string progressTrackerDescription,
         Func<TFixAllContext, Func<Document, Document?, ValueTask>, Task> getFixedDocumentsAsync)
-        where TFixAllContext : IFixAllContext
+        where TFixAllContext : IRefactorOrFixAllContext
     {
         var cancellationToken = originalFixAllContext.CancellationToken;
 
         progressTracker.Report(CodeAnalysisProgress.Description(progressTrackerDescription));
 
-        var originalSolution = originalFixAllContext.Solution;
+        var originalSolution = originalFixAllContext.State.Solution;
 
         // One work item for each context.
         progressTracker.AddItems(fixAllContexts.Length);
@@ -44,11 +44,8 @@ internal static class DocumentBasedFixAllProviderHelpers
         progressTracker.Report(CodeAnalysisProgress.Clear());
         progressTracker.Report(CodeAnalysisProgress.Description(WorkspacesResources.Running_code_cleanup_on_fixed_documents));
 
-        var cleanedSolution = await CodeAction.CleanSyntaxAndSemanticsAsync(
-            originalSolution,
-            dirtySolution,
-            progressTracker,
-            cancellationToken).ConfigureAwait(false);
+        var cleanedSolution = await CodeAction.PostProcessChangesAsync(
+            originalSolution, dirtySolution, progressTracker, originalFixAllContext.State.FixAllProvider.Cleanup, cancellationToken).ConfigureAwait(false);
 
         // Once we clean the document, we get the text of it and insert that back into the final solution.  This way we
         // can release both the original fixed tree, and the cleaned tree (both of which can be much more expensive than
@@ -77,7 +74,7 @@ internal static class DocumentBasedFixAllProviderHelpers
                     using var _ = progressTracker.ItemCompletedScope();
 
                     Contract.ThrowIfFalse(
-                        fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+                        fixAllContext.State.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
                     // Defer to the FixAllProvider to actually compute each fixed document.
                     await getFixedDocumentsAsync(

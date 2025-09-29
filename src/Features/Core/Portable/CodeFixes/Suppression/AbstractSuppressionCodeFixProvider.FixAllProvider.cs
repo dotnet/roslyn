@@ -5,10 +5,8 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
@@ -23,8 +21,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         }
 
         public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
-                FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
+            => [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
         public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
         {

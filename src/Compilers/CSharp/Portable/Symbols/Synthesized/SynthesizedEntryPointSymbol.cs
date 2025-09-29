@@ -205,6 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override Cci.CallingConvention CallingConvention
         {
             get { return 0; }
@@ -320,9 +322,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
 
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
@@ -371,14 +373,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
                 // The diagnostics that would be produced here will already have been captured and returned.
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall!, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
 
                 Debug.Assert(
                     ReturnType.IsVoidType() ||
                     ReturnType.SpecialType == SpecialType.System_Int32);
+                Debug.Assert(!compilation.IsRuntimeAsyncEnabledIn(this));
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -489,7 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!initializer.ReturnType.IsDynamic());
                 var initializeCall = CreateParameterlessCall(syntax, scriptLocal, receiverIsSubjectToCloning: ThreeState.False, initializer);
                 BoundExpression getAwaiterGetResultCall;
-                if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, syntax, diagnostics))
+                Debug.Assert(!compilation.IsRuntimeAsyncEnabledIn(this));
+                if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, runtimeAsyncAwaitCall: out _, syntax, diagnostics))
                 {
                     return new BoundBlock(
                         syntax: syntax,

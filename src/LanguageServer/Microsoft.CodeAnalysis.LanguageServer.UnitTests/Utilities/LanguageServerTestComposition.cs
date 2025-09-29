@@ -10,35 +10,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 internal sealed class LanguageServerTestComposition
 {
-    /// <summary>
-    /// Build places DevKit files to this subdirectory.
-    /// </summary>
-    private const string DevKitExtensionSubdirectory = "DevKit";
-
-    private const string DevKitAssemblyFileName = "Microsoft.VisualStudio.LanguageServices.DevKit.dll";
-
-    private static string GetDevKitExtensionPath()
-        => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory, DevKitAssemblyFileName);
-
-    public static Task<ExportProvider> CreateExportProviderAsync(
+    public static async Task<(ExportProvider exportProvider, IAssemblyLoader assemblyLoader)> CreateExportProviderAsync(
         ILoggerFactory loggerFactory,
         bool includeDevKitComponents,
-        out ServerConfiguration serverConfiguration,
-        out IAssemblyLoader assemblyLoader)
+        string cacheDirectory,
+        string[]? extensionPaths)
     {
-        var devKitDependencyPath = includeDevKitComponents ? GetDevKitExtensionPath() : null;
-        serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
-            MinimumLogLevel: LogLevel.Trace,
+        var devKitDependencyPath = includeDevKitComponents ? TestPaths.GetDevKitExtensionPath() : null;
+        var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
+            LogConfiguration: new LogConfiguration(LogLevel.Trace),
             StarredCompletionsPath: null,
             TelemetryLevel: null,
             SessionId: null,
-            ExtensionAssemblyPaths: [],
+            ExtensionAssemblyPaths: extensionPaths ?? [],
             DevKitDependencyPath: devKitDependencyPath,
-            RazorSourceGenerator: null,
             RazorDesignTimePath: null,
-            ExtensionLogDirectory: string.Empty);
+            CSharpDesignTimePath: null,
+            ExtensionLogDirectory: string.Empty,
+            ServerPipeName: null,
+            UseStdIo: false);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
-        assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
-        return ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, loggerFactory);
+        var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
+
+        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(TestPaths.GetLanguageServerDirectory(), extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
+        exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
+        return (exportProvider, assemblyLoader);
     }
 }

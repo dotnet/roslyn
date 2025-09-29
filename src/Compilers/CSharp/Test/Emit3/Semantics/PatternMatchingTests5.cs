@@ -1981,10 +1981,10 @@ _ = x is { Length.Error: > 0 };
 
             var comp = CreateCompilation(new[] { source, INumberBaseDefinition });
             comp.VerifyDiagnostics(
-                // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specific numeric type.
                 //         1 => 1, // 1
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(8, 9),
-                // (9,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (9,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specific numeric type.
                 //         > 1 => 2, // 2
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(9, 9),
                 // (11,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
@@ -2025,10 +2025,10 @@ _ = x is { Length.Error: > 0 };
 
             var comp = CreateCompilation(new[] { source, INumberBaseDefinition });
             comp.VerifyDiagnostics(
-                // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specific numeric type.
                 //         1 => 1, // 1
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(8, 9),
-                // (9,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (9,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specific numeric type.
                 //         > 1 => 2, // 2
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(9, 9),
                 // (11,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
@@ -2122,10 +2122,10 @@ _ = x is { Length.Error: > 0 };
 
             var comp = CreateCompilation(new[] { source }, references: new[] { ref1, ref2 });
             comp.VerifyDiagnostics(
-                // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (8,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specific numeric type.
                 //         1 => 1, // 1
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("T").WithLocation(8, 9),
-                // (9,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (9,9): error CS9060: Cannot use a numeric constant or relational pattern on 'T' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specific numeric type.
                 //         > 1 => 2, // 2
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("T").WithLocation(9, 9),
                 // (11,9): error CS8985: List patterns may not be used for a value of type 'T'. No suitable 'Length' or 'Count' property was found.
@@ -2431,10 +2431,10 @@ _ = x is { Length.Error: > 0 };
 
             var comp = CreateEmptyCompilation(new[] { source, INumberBaseBCL, INumberBaseDefinition });
             comp.VerifyDiagnostics(
-                // (5,5): error CS9060: Cannot use a numeric constant or relational pattern on 'INumberBase<int>' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (5,5): error CS9060: Cannot use a numeric constant or relational pattern on 'INumberBase<int>' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specific numeric type.
                 //     1 => 1,
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "1").WithArguments("System.Numerics.INumberBase<int>").WithLocation(5, 5),
-                // (6,5): error CS9060: Cannot use a numeric constant or relational pattern on 'INumberBase<int>' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specifc numeric type.
+                // (6,5): error CS9060: Cannot use a numeric constant or relational pattern on 'INumberBase<int>' because it inherits from or extends 'INumberBase<T>'. Consider using a type pattern to narrow to a specific numeric type.
                 //     > 1 => 2,
                 Diagnostic(ErrorCode.ERR_CannotMatchOnINumberBase, "> 1").WithArguments("System.Numerics.INumberBase<int>").WithLocation(6, 5)
             );

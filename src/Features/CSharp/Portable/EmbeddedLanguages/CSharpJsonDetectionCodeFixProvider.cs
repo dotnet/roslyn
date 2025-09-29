@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.JsonDetection), Shared]
-internal class CSharpJsonDetectionCodeFixProvider : AbstractJsonDetectionCodeFixProvider
+internal sealed class CSharpJsonDetectionCodeFixProvider : AbstractJsonDetectionCodeFixProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

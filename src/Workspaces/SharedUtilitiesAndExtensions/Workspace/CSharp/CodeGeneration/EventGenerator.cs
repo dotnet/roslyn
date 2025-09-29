@@ -107,7 +107,8 @@ internal static class EventGenerator
             ? GenerateEventFieldDeclaration(@event, destination, info)
             : GenerateEventDeclarationWorker(@event, destination, info);
 
-        return ConditionallyAddDocumentationCommentTo(declaration, @event, info, cancellationToken);
+        return AddAnnotationsTo(@event,
+            ConditionallyAddDocumentationCommentTo(declaration, @event, info, cancellationToken));
     }
 
     private static MemberDeclarationSyntax GenerateEventFieldDeclaration(
@@ -128,13 +129,31 @@ internal static class EventGenerator
     {
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(@event.ExplicitInterfaceImplementations);
 
+        var isExplicit = explicitInterfaceSpecifier is not null;
         return AddFormatterAndCodeGeneratorAnnotationsTo(EventDeclaration(
-            attributeLists: AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), info),
+            attributeLists: GenerateAttributes(@event, isExplicit, info),
             modifiers: GenerateModifiers(@event, destination, info),
             type: @event.Type.GenerateTypeSyntax(),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: @event.Name.ToIdentifierToken(),
             accessorList: GenerateAccessorList(@event, destination, info)));
+    }
+
+    private static SyntaxList<AttributeListSyntax> GenerateAttributes(
+        IEventSymbol @event, bool isExplicit, CSharpCodeGenerationContextInfo info)
+    {
+        if (isExplicit)
+        {
+            return default;
+        }
+
+        var attributes = @event.GetAttributes();
+        if (attributes.Length == 0)
+        {
+            return default;
+        }
+
+        return AttributeGenerator.GenerateAttributeLists(attributes, info);
     }
 
     private static AccessorListSyntax GenerateAccessorList(

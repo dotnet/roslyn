@@ -15,13 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 /// Implements View/Other Windows/C# Interactive command.
 /// </summary>
 [VisualStudioContribution]
-internal class OpenInteractiveWindowCommand(
+internal sealed class OpenInteractiveWindowCommand(
     MefInjection<IThreadingContext> mefThreadingContext,
     MefInjection<CSharpVsInteractiveWindowProvider> mefInteractiveWindowProvider) : Command
 {
     public override CommandConfiguration CommandConfiguration => new("%CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName%")
     {
-        Placements = new[] { CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8000) },
+        Placements = [CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8000)],
         // TODO: Shortcuts https://github.com/dotnet/roslyn/issues/3941
     };
 

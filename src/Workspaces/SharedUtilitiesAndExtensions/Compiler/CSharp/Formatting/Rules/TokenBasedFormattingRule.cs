@@ -190,10 +190,17 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }
 
-        // ; * or ; * for using directive
+        // ; * or ; * for using directive and file scoped namespace
         if (previousToken.Kind() == SyntaxKind.SemicolonToken)
         {
             return AdjustNewLinesAfterSemicolonToken(previousToken, currentToken);
+        }
+
+        if (currentToken.Kind() == SyntaxKind.SemicolonToken &&
+            currentToken.Parent is EmptyStatementSyntax &&
+            currentToken.GetPreviousToken().IsLastTokenOfNode<StatementSyntax>())
+        {
+            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
         }
 
         // attribute case ] *
@@ -218,31 +225,37 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
     private AdjustNewLinesOperation AdjustNewLinesAfterSemicolonToken(
         SyntaxToken previousToken, SyntaxToken currentToken)
     {
-        // between anything that isn't a using directive, we don't touch newlines after a semicolon
-        if (previousToken.Parent is not UsingDirectiveSyntax previousUsing)
-            return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
-
-        // if the user is separating using-groups, and we're between two usings, and these
-        // usings *should* be separated, then do so (if the usings were already properly
-        // sorted).
-        if (_options.SeparateImportDirectiveGroups &&
-            currentToken.Parent is UsingDirectiveSyntax currentUsing &&
-            UsingsAndExternAliasesOrganizer.NeedsGrouping(previousUsing, currentUsing))
+        if (previousToken.Parent is UsingDirectiveSyntax previousUsing)
         {
-            RoslynDebug.AssertNotNull(currentUsing.Parent);
-
-            var usings = GetUsings(currentUsing.Parent);
-            if (usings.IsSorted(UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance) ||
-                usings.IsSorted(UsingsAndExternAliasesDirectiveComparer.NormalInstance))
+            // if the user is separating using-groups, and we're between two usings, and these
+            // usings *should* be separated, then do so (if the usings were already properly
+            // sorted).
+            if (_options.SeparateImportDirectiveGroups &&
+                currentToken.Parent is UsingDirectiveSyntax currentUsing &&
+                UsingsAndExternAliasesOrganizer.NeedsGrouping(previousUsing, currentUsing))
             {
-                // Force at least one blank line here.
-                return CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.PreserveLines);
+                RoslynDebug.AssertNotNull(currentUsing.Parent);
+
+                var usings = GetUsings(currentUsing.Parent);
+                if (usings.IsSorted(UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance) ||
+                    usings.IsSorted(UsingsAndExternAliasesDirectiveComparer.NormalInstance))
+                {
+                    // Force at least one blank line here.
+                    return CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.PreserveLines);
+                }
             }
+
+            // For all other cases where we have a using-directive, just make sure it's followed by
+            // a new-line.
+            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }
 
-        // For all other cases where we have a using-directive, just make sure it's followed by
-        // a new-line.
-        return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+        // ensure that there is a newline after a file scoped namespace declaration
+        if (previousToken.Parent is FileScopedNamespaceDeclarationSyntax)
+            return CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.PreserveLines);
+
+        // between anything that isn't a using directive or file scoped namespace declaration, we don't touch newlines after a semicolon
+        return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
     }
 
     private static SyntaxList<UsingDirectiveSyntax> GetUsings(SyntaxNode node)
@@ -261,15 +274,11 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         {
             // ; ;
             if (previousToken.Kind() == SyntaxKind.SemicolonToken)
-            {
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
 
             // ) ; with embedded statement case
             if (previousToken.Kind() == SyntaxKind.CloseParenToken && previousToken.Parent.IsEmbeddedStatementOwnerWithCloseParen())
-            {
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
 
             // * ;
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -324,12 +333,16 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         // some * "(" cases
         if (currentToken.Kind() == SyntaxKind.OpenParenToken)
         {
-            if (previousToken.Kind() == SyntaxKind.IdentifierToken ||
-                previousToken.Kind() == SyntaxKind.DefaultKeyword ||
-                previousToken.Kind() == SyntaxKind.BaseKeyword ||
-                previousToken.Kind() == SyntaxKind.ThisKeyword ||
-                previousToken.IsGenericGreaterThanToken() ||
-                currentToken.IsParenInArgumentList())
+            if (previousToken.Kind()
+                    is SyntaxKind.IdentifierToken
+                    or SyntaxKind.DefaultKeyword
+                    or SyntaxKind.BaseKeyword
+                    or SyntaxKind.ThisKeyword
+#if !ROSLYN_4_12_OR_LOWER
+                    or SyntaxKind.ExtensionKeyword
+#endif
+                || previousToken.IsGenericGreaterThanToken()
+                || currentToken.IsParenInArgumentList())
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -524,7 +537,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         // ~ * case
-        if (previousToken.Kind() == SyntaxKind.TildeToken && (previousToken.Parent is PrefixUnaryExpressionSyntax || previousToken.Parent is DestructorDeclarationSyntax))
+        if (previousToken.Kind() == SyntaxKind.TildeToken && (previousToken.Parent is PrefixUnaryExpressionSyntax or DestructorDeclarationSyntax))
         {
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
         }

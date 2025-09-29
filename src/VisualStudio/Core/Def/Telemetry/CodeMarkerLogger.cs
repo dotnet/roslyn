@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,10 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 internal sealed class CodeMarkerLogger : ILogger
 {
-    public static readonly CodeMarkerLogger Instance = new CodeMarkerLogger();
+    public static readonly CodeMarkerLogger Instance = new();
 
     private static readonly Dictionary<FunctionId, List<Tuple<CodeMarkerId, CodeMarkerId>>> s_blockMap
-        = new Dictionary<FunctionId, List<Tuple<CodeMarkerId, CodeMarkerId>>>()
+        = new()
         {
             { FunctionId.NavigateTo_Search, new List<Tuple<CodeMarkerId, CodeMarkerId>>()
                 {
@@ -113,7 +111,7 @@ internal sealed class CodeMarkerLogger : ILogger
         };
 
     private static readonly Dictionary<FunctionId, List<CodeMarkerId>> s_map
-        = new Dictionary<FunctionId, List<CodeMarkerId>>()
+        = new()
         {
             { FunctionId.Rename_InlineSession, new List<CodeMarkerId>() { CodeMarkerEvent.perfVBRenameSymbolEnd } },
             { FunctionId.BackgroundCompiler_BuildCompilationsAsync, new List<CodeMarkerId>() { CodeMarkerEvent.perfVBCompilerReachedBoundState, CodeMarkerEvent.perfVBCompilerReachedCompiledState } },

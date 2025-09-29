@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal interface ISolutionAssetStorageProvider : IWorkspaceService
 {
-    internal interface ISolutionAssetStorageProvider : IWorkspaceService
-    {
-        SolutionAssetStorage AssetStorage { get; }
-    }
+    SolutionAssetStorage AssetStorage { get; }
 }

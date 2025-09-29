@@ -126,7 +126,7 @@ public static class Program
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
             comp.VerifyEmitDiagnostics(
-                // (9,34): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (9,34): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static void Extension(this string x) {}
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(9, 34)
                 );
@@ -567,7 +567,10 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                     || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
-                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference)
+                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter
+                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
+                    )
                 {
                     Assert.Null(symbol); // Not available
                 }
@@ -646,6 +649,7 @@ namespace System
                     case WellKnownType.System_Runtime_InteropServices_MemoryMarshal:
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -656,6 +660,7 @@ namespace System
                     case WellKnownType.System_Runtime_InteropServices_CollectionsMarshal:
                     case WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal:
                     case WellKnownType.System_Runtime_CompilerServices_HotReloadException:
+                    case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -916,7 +921,7 @@ namespace System
             }
 
             // There were 200 well-known types prior to CSharp7
-            Assert.Equal(200, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
+            Assert.Equal(200, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First - 1 /* WellKnownTypes.ExtSentinel is before CSharp7Sentinel */));
         }
 
         [Fact]
@@ -1022,6 +1027,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
                     case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -1076,6 +1082,7 @@ namespace System
                     case WellKnownMember.System_Span_T__ctor_ref_T:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T:
                     case WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32:
+                    case WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor:
                         // Not always available.
                         continue;
                 }
@@ -1668,7 +1675,7 @@ struct S
     private string str;
     public S(char chr) { this.str = chr.ToString(); }
     public S(string str) { this.str = str; }
-    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str); }
 }
 
 class C

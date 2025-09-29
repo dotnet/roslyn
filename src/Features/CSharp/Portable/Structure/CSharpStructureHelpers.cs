@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
@@ -187,14 +186,14 @@ internal static class CSharpStructureHelpers
                 else if (trivia is not SyntaxTrivia(
                     SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia or SyntaxKind.EndOfFileToken))
                 {
-                    completeSingleLineCommentGroup(spans);
+                    CompleteSingleLineCommentGroup(spans);
                 }
             }
 
-            completeSingleLineCommentGroup(spans);
+            CompleteSingleLineCommentGroup(spans);
             return;
 
-            void completeSingleLineCommentGroup(ArrayBuilder<BlockSpan> spans)
+            void CompleteSingleLineCommentGroup(ArrayBuilder<BlockSpan> spans)
             {
                 if (startComment != null)
                 {
@@ -287,8 +286,12 @@ internal static class CSharpStructureHelpers
         static SyntaxToken GetHintTextEndToken(SyntaxNode node)
             => node switch
             {
-                EnumDeclarationSyntax enumDeclaration => enumDeclaration.OpenBraceToken.GetPreviousToken(),
-                TypeDeclarationSyntax typeDeclaration => typeDeclaration.OpenBraceToken.GetPreviousToken(),
+                EnumDeclarationSyntax enumDeclaration
+                    => enumDeclaration.OpenBraceToken.GetPreviousToken(),
+                TypeDeclarationSyntax typeDeclaration
+                    => typeDeclaration.OpenBraceToken != default
+                        ? typeDeclaration.OpenBraceToken.GetPreviousToken()
+                        : typeDeclaration.SemicolonToken.GetPreviousToken(),
                 _ => node.GetLastToken()
             };
     }

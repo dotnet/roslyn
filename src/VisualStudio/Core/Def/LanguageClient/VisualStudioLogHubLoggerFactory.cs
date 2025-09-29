@@ -19,7 +19,7 @@ using StreamJsonRpc;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 
 [Export(typeof(ILspServiceLoggerFactory))]
-internal class VisualStudioLogHubLoggerFactory : ILspServiceLoggerFactory
+internal sealed class VisualStudioLogHubLoggerFactory : ILspServiceLoggerFactory
 {
     /// <summary>
     /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
@@ -50,7 +50,7 @@ internal class VisualStudioLogHubLoggerFactory : ILspServiceLoggerFactory
         // Register the default log level as information.
         // Loghub will take care of cleaning up older logs from past sessions / current session
         // if it decides the log file sizes are too large.
-        var loggingLevel = SourceLevels.ActivityTracing | SourceLevels.Information;
+        var loggingLevel = SourceLevels.ActivityTracing | SourceLevels.Verbose;
 
         var logOptions = new RpcContracts.Logging.LoggerOptions(new LoggingLevelSettings(loggingLevel));
         var traceSource = await configuration.RegisterLogSourceAsync(logId, logOptions, cancellationToken).ConfigureAwait(false);

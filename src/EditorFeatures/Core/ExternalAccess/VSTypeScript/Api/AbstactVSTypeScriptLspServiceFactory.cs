@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
 internal abstract class AbstractVSTypeScriptRequestHandlerFactory : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)

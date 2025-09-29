@@ -2,15 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -59,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOrLinuxOnly), Reason:="https://github.com/dotnet/roslyn/issues/77861")>
         Public Sub Test1_Date()
             ' test binary operator between Date value and another type data
             ' call ToString() on it defeat the purpose of these scenarios
@@ -381,7 +377,7 @@ False
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOrLinuxOnly), Reason:="https://github.com/dotnet/roslyn/issues/77861")>
         Public Sub Test5_DateConst()
             ' test binary operator between Date const and another type data
             ' call ToString() on it defeat the purpose of these scenarios

@@ -59,4 +59,7 @@ internal sealed class CSharpUseConditionalExpressionForAssignmentCodeFixProvider
 
     protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
+
+    protected override (ConditionalExpressionSyntax conditional, bool makeMultiLine) UpdateConditionalExpression(IConditionalOperation originalIfStatement, ConditionalExpressionSyntax conditional)
+        => CSharpUseConditionalExpressionHelpers.UpdateConditionalExpression(originalIfStatement, conditional);
 }

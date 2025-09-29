@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateComparisonOperators
 
@@ -24,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateComparison
 
         <Fact>
         Public Async Function TestClass() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -65,7 +64,7 @@ end class")
 
         <Fact>
         Public Async Function TestExplicitImpl() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -106,7 +105,7 @@ end class")
 
         <Fact>
         Public Async Function TestOnInterface() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -147,7 +146,7 @@ end class")
 
         <Fact>
         Public Async Function TestAtEndOfInterface() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -188,7 +187,7 @@ end class")
 
         <Fact>
         Public Async Function TestInBody() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -290,7 +289,7 @@ end class")
 
         <Fact>
         Public Async Function TestWithExistingOperator() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 
@@ -337,7 +336,7 @@ end class")
 
         <Fact>
         Public Async Function TestMultipleInterfaces() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 imports System
 

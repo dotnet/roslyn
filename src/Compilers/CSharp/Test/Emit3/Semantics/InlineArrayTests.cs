@@ -4676,7 +4676,10 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics(
+                // (6,45): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<Buffer10<int>> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(6, 45));
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -4832,6 +4835,9 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
+                // (8,45): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<Buffer10<int>> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(8, 45),
                 // (20,12): error CS4007: Instance of type 'System.ReadOnlySpan<Buffer10<int>>' cannot be preserved across 'await' or 'yield' boundary.
                 //         => MemoryMarshal.CreateReadOnlySpan(
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"MemoryMarshal.CreateReadOnlySpan(
@@ -4887,6 +4893,9 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
+                // (8,45): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<Buffer10<int>> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(8, 45),
                 // (20,12): error CS4007: Instance of type 'System.ReadOnlySpan<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         => MemoryMarshal.CreateReadOnlySpan(
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"MemoryMarshal.CreateReadOnlySpan(
@@ -4940,6 +4949,9 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
+                // (8,45): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<Buffer10<int>> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(8, 45),
                 // (20,12): error CS8178: A reference returned by a call to 'Program.GetItem(ReadOnlySpan<Buffer10<int>>, int)' cannot be preserved across 'await' or 'yield' boundary.
                 //         => GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())[await FromResult(Get02(x))];
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())").WithArguments("Program.GetItem(System.ReadOnlySpan<Buffer10<int>>, int)").WithLocation(20, 12)
@@ -7327,13 +7339,14 @@ class Program
             verifier.VerifyIL("Program.<M2>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
-  // Code size      208 (0xd0)
+  // Code size      209 (0xd1)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
                 System.Span<int> V_3,
-                System.Exception V_4)
+                System.Span<int> V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<M2>d__2.<>1__state""
   IL_0006:  stloc.0
@@ -7365,7 +7378,7 @@ class Program
     IL_0041:  ldloca.s   V_2
     IL_0043:  ldarg.0
     IL_0044:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<M2>d__2>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<M2>d__2)""
-    IL_0049:  leave      IL_00cf
+    IL_0049:  leave      IL_00d0
     IL_004e:  ldarg.0
     IL_004f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<M2>d__2.<>u__1""
     IL_0054:  stloc.2
@@ -7390,36 +7403,36 @@ class Program
     IL_0087:  ldc.i4.0
     IL_0088:  ldloc.1
     IL_0089:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
-    IL_008e:  stloc.3
-    IL_008f:  ldloca.s   V_3
-    IL_0091:  ldc.i4.0
-    IL_0092:  call       ""ref int System.Span<int>.this[int].get""
-    IL_0097:  ldc.i4.s   111
-    IL_0099:  stind.i4
-    IL_009a:  ldarg.0
-    IL_009b:  ldnull
-    IL_009c:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
-    IL_00a1:  leave.s    IL_00bc
+    IL_008e:  stloc.s    V_4
+    IL_0090:  ldloca.s   V_4
+    IL_0092:  ldc.i4.0
+    IL_0093:  call       ""ref int System.Span<int>.this[int].get""
+    IL_0098:  ldc.i4.s   111
+    IL_009a:  stind.i4
+    IL_009b:  ldarg.0
+    IL_009c:  ldnull
+    IL_009d:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
+    IL_00a2:  leave.s    IL_00bd
   }
   catch System.Exception
   {
-    IL_00a3:  stloc.s    V_4
-    IL_00a5:  ldarg.0
-    IL_00a6:  ldc.i4.s   -2
-    IL_00a8:  stfld      ""int Program.<M2>d__2.<>1__state""
-    IL_00ad:  ldarg.0
-    IL_00ae:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
-    IL_00b3:  ldloc.s    V_4
-    IL_00b5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00ba:  leave.s    IL_00cf
+    IL_00a4:  stloc.s    V_5
+    IL_00a6:  ldarg.0
+    IL_00a7:  ldc.i4.s   -2
+    IL_00a9:  stfld      ""int Program.<M2>d__2.<>1__state""
+    IL_00ae:  ldarg.0
+    IL_00af:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
+    IL_00b4:  ldloc.s    V_5
+    IL_00b6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00bb:  leave.s    IL_00d0
   }
-  IL_00bc:  ldarg.0
-  IL_00bd:  ldc.i4.s   -2
-  IL_00bf:  stfld      ""int Program.<M2>d__2.<>1__state""
-  IL_00c4:  ldarg.0
-  IL_00c5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
-  IL_00ca:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_00cf:  ret
+  IL_00bd:  ldarg.0
+  IL_00be:  ldc.i4.s   -2
+  IL_00c0:  stfld      ""int Program.<M2>d__2.<>1__state""
+  IL_00c5:  ldarg.0
+  IL_00c6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
+  IL_00cb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00d0:  ret
 }
 ");
         }
@@ -7470,7 +7483,8 @@ class Program
                 int V_2,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
                 System.Span<int> V_4,
-                System.Exception V_5)
+                System.Span<int> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<M2>d__2.<>1__state""
   IL_0006:  stloc.0
@@ -7535,8 +7549,8 @@ class Program
     IL_0098:  ldloc.2
     IL_0099:  sub
     IL_009a:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
-    IL_009f:  stloc.s    V_4
-    IL_00a1:  ldloca.s   V_4
+    IL_009f:  stloc.s    V_5
+    IL_00a1:  ldloca.s   V_5
     IL_00a3:  ldc.i4.0
     IL_00a4:  call       ""ref int System.Span<int>.this[int].get""
     IL_00a9:  ldc.i4.s   111
@@ -7548,13 +7562,13 @@ class Program
   }
   catch System.Exception
   {
-    IL_00b5:  stloc.s    V_5
+    IL_00b5:  stloc.s    V_6
     IL_00b7:  ldarg.0
     IL_00b8:  ldc.i4.s   -2
     IL_00ba:  stfld      ""int Program.<M2>d__2.<>1__state""
     IL_00bf:  ldarg.0
     IL_00c0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
-    IL_00c5:  ldloc.s    V_5
+    IL_00c5:  ldloc.s    V_6
     IL_00c7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_00cc:  leave.s    IL_00e1
   }
@@ -7618,7 +7632,8 @@ class Program
                 System.Runtime.CompilerServices.TaskAwaiter<System.Range> V_5,
                 System.Index V_6,
                 System.Span<int> V_7,
-                System.Exception V_8)
+                System.Span<int> V_8,
+                System.Exception V_9)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<M2>d__2.<>1__state""
   IL_0006:  stloc.0
@@ -7699,8 +7714,8 @@ class Program
     IL_00cc:  ldloc.3
     IL_00cd:  ldloc.s    V_4
     IL_00cf:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
-    IL_00d4:  stloc.s    V_7
-    IL_00d6:  ldloca.s   V_7
+    IL_00d4:  stloc.s    V_8
+    IL_00d6:  ldloca.s   V_8
     IL_00d8:  ldc.i4.0
     IL_00d9:  call       ""ref int System.Span<int>.this[int].get""
     IL_00de:  ldc.i4.s   111
@@ -7712,13 +7727,13 @@ class Program
   }
   catch System.Exception
   {
-    IL_00ea:  stloc.s    V_8
+    IL_00ea:  stloc.s    V_9
     IL_00ec:  ldarg.0
     IL_00ed:  ldc.i4.s   -2
     IL_00ef:  stfld      ""int Program.<M2>d__2.<>1__state""
     IL_00f4:  ldarg.0
     IL_00f5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
-    IL_00fa:  ldloc.s    V_8
+    IL_00fa:  ldloc.s    V_9
     IL_00fc:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_0101:  leave.s    IL_0116
   }
@@ -7783,7 +7798,8 @@ class Program
                 int V_2,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
                 System.Span<int> V_4,
-                System.Exception V_5)
+                System.Span<int> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<M2>d__2.<>1__state""
   IL_0006:  stloc.0
@@ -7860,8 +7876,8 @@ class Program
     IL_00c5:  ldarg.0
     IL_00c6:  ldfld      ""int Program.<M2>d__2.<>7__wrap2""
     IL_00cb:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
-    IL_00d0:  stloc.s    V_4
-    IL_00d2:  ldloca.s   V_4
+    IL_00d0:  stloc.s    V_5
+    IL_00d2:  ldloca.s   V_5
     IL_00d4:  ldarg.0
     IL_00d5:  ldfld      ""int Program.<M2>d__2.<>7__wrap3""
     IL_00da:  call       ""ref int System.Span<int>.this[int].get""
@@ -7874,13 +7890,13 @@ class Program
   }
   catch System.Exception
   {
-    IL_00ea:  stloc.s    V_5
+    IL_00ea:  stloc.s    V_6
     IL_00ec:  ldarg.0
     IL_00ed:  ldc.i4.s   -2
     IL_00ef:  stfld      ""int Program.<M2>d__2.<>1__state""
     IL_00f4:  ldarg.0
     IL_00f5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M2>d__2.<>t__builder""
-    IL_00fa:  ldloc.s    V_5
+    IL_00fa:  ldloc.s    V_6
     IL_00fc:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
     IL_0101:  leave.s    IL_0116
   }
@@ -7949,7 +7965,8 @@ class Program
                 System.Index V_6,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_7,
                 System.ReadOnlySpan<int> V_8,
-                System.Exception V_9)
+                System.ReadOnlySpan<int> V_9,
+                System.Exception V_10)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<M1>d__1.<>1__state""
   IL_0006:  stloc.0
@@ -8039,8 +8056,8 @@ class Program
     IL_00ee:  ldarg.0
     IL_00ef:  ldfld      ""int Program.<M1>d__1.<>7__wrap2""
     IL_00f4:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.Slice(int, int)""
-    IL_00f9:  stloc.s    V_8
-    IL_00fb:  ldloca.s   V_8
+    IL_00f9:  stloc.s    V_9
+    IL_00fb:  ldloca.s   V_9
     IL_00fd:  ldloc.s    V_5
     IL_00ff:  call       ""ref readonly int System.ReadOnlySpan<int>.this[int].get""
     IL_0104:  ldind.i4
@@ -8049,13 +8066,13 @@ class Program
   }
   catch System.Exception
   {
-    IL_0108:  stloc.s    V_9
+    IL_0108:  stloc.s    V_10
     IL_010a:  ldarg.0
     IL_010b:  ldc.i4.s   -2
     IL_010d:  stfld      ""int Program.<M1>d__1.<>1__state""
     IL_0112:  ldarg.0
     IL_0113:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M1>d__1.<>t__builder""
-    IL_0118:  ldloc.s    V_9
+    IL_0118:  ldloc.s    V_10
     IL_011a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
     IL_011f:  leave.s    IL_0135
   }
@@ -8801,7 +8818,8 @@ class Program
   // Code size       32 (0x20)
   .maxstack  2
   .locals init (Buffer10<int> V_0,
-                int V_1)
+                int V_1,
+                Buffer10<int> V_2)
   IL_0000:  call       ""Buffer10<int> Program.M3()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
@@ -8809,9 +8827,9 @@ class Program
   IL_000d:  ldind.i4
   IL_000e:  stloc.1
   IL_000f:  ldloca.s   V_1
-  IL_0011:  ldloca.s   V_0
+  IL_0011:  ldloca.s   V_2
   IL_0013:  initobj    ""Buffer10<int>""
-  IL_0019:  ldloc.0
+  IL_0019:  ldloc.2
   IL_001a:  call       ""int Program.M4(in int, Buffer10<int>)""
   IL_001f:  ret
 }
@@ -17019,12 +17037,22 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (16,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
                 //         System.Console.Write(((C)b).F);
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(C)b").WithArguments("C.implicit operator C(System.ReadOnlySpan<int>)", "C.implicit operator C(System.Span<int>)", "Buffer10<int>", "C").WithLocation(16, 31)
                 );
+
+            // NOTE: No longer ambiguous because there is a standard implicit span conversion from Span to ReadOnlySpan which makes the Span operator better.
+
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "110" : null;
+
+            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+
+            comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -17054,12 +17082,27 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (21,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
                 //         System.Console.Write(((C)b).F);
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(C)b").WithArguments("C.implicit operator C(System.ReadOnlySpan<int>)", "C.implicit operator C(System.Span<int>)", "Buffer10<int>", "C").WithLocation(21, 31)
                 );
+
+            // NOTE: No longer ambiguous because there is a standard implicit span conversion from Span to ReadOnlySpan which makes the Span operator better.
+
+            var expectedDiagnostics = new[]
+            {
+                // (21,34): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //         System.Console.Write(((C)b).F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "b").WithArguments("System.Span<int>").WithLocation(21, 34)
+            };
+
+            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -19448,8 +19491,73 @@ public struct Buffer4<T>
     }
 }
 ";
+            var expectedOutput = " 111 112 113 114";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src);
+            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.FailsILVerify with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x7f }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size      128 (0x80)
+                  .maxstack  2
+                  .locals init (C V_0, //x
+                                Buffer4<int>.AsyncEnumerator V_1,
+                                System.Threading.CancellationToken V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "C"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldflda     "Buffer4<int> C.F"
+                  IL_000f:  call       "ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer4<int>, int>(ref Buffer4<int>)"
+                  IL_0014:  ldc.i4.s   111
+                  IL_0016:  stind.i4
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldflda     "Buffer4<int> C.F"
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)"
+                  IL_0024:  ldc.i4.s   112
+                  IL_0026:  stind.i4
+                  IL_0027:  ldloca.s   V_0
+                  IL_0029:  ldflda     "Buffer4<int> C.F"
+                  IL_002e:  ldc.i4.2
+                  IL_002f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)"
+                  IL_0034:  ldc.i4.s   113
+                  IL_0036:  stind.i4
+                  IL_0037:  ldloca.s   V_0
+                  IL_0039:  ldflda     "Buffer4<int> C.F"
+                  IL_003e:  ldc.i4.3
+                  IL_003f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)"
+                  IL_0044:  ldc.i4.s   114
+                  IL_0046:  stind.i4
+                  IL_0047:  ldloca.s   V_0
+                  IL_0049:  ldflda     "Buffer4<int> C.F"
+                  IL_004e:  ldloca.s   V_2
+                  IL_0050:  initobj    "System.Threading.CancellationToken"
+                  IL_0056:  ldloc.2
+                  IL_0057:  call       "Buffer4<int>.AsyncEnumerator Buffer4<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_005c:  stloc.1
+                  IL_005d:  br.s       IL_0071
+                  IL_005f:  ldloc.1
+                  IL_0060:  callvirt   "int Buffer4<int>.AsyncEnumerator.Current.get"
+                  IL_0065:  ldc.i4.s   32
+                  IL_0067:  call       "void System.Console.Write(char)"
+                  IL_006c:  call       "void System.Console.Write(int)"
+                  IL_0071:  ldloc.1
+                  IL_0072:  ldc.i4.1
+                  IL_0073:  callvirt   "System.Threading.Tasks.Task<bool> Buffer4<int>.AsyncEnumerator.MoveNextAsync(int)"
+                  IL_0078:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_007d:  brtrue.s   IL_005f
+                  IL_007f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -20128,8 +20236,9 @@ class Program
     }
 }
 ";
+            var expectedOutput = " 0 1 2 3";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<Test>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -20280,7 +20389,67 @@ class Program
 }
 ");
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src + Buffer4Definition);
+            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+            verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Test]: Return value missing on the stack. { Offset = 0x62 }
+                    [InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }
+                    """
+            });
+            verifier.VerifyIL("Program.Test(C)", """
+                {
+                  // Code size       99 (0x63)
+                  .maxstack  2
+                  .locals init (C V_0,
+                                int V_1,
+                                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                                System.Runtime.CompilerServices.YieldAwaitable V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  ldfld      "Buffer4<int> C.F"
+                  IL_0008:  pop
+                  IL_0009:  ldc.i4.0
+                  IL_000a:  stloc.1
+                  IL_000b:  br.s       IL_005e
+                  IL_000d:  ldloc.0
+                  IL_000e:  ldflda     "Buffer4<int> C.F"
+                  IL_0013:  ldloc.1
+                  IL_0014:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)"
+                  IL_0019:  ldind.i4
+                  IL_001a:  call       "void Program.Increment()"
+                  IL_001f:  ldc.i4.s   32
+                  IL_0021:  call       "void System.Console.Write(char)"
+                  IL_0026:  call       "void System.Console.Write(int)"
+                  IL_002b:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                  IL_0030:  stloc.3
+                  IL_0031:  ldloca.s   V_3
+                  IL_0033:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                  IL_0038:  stloc.2
+                  IL_0039:  ldloca.s   V_2
+                  IL_003b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                  IL_0040:  brtrue.s   IL_0048
+                  IL_0042:  ldloc.2
+                  IL_0043:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0048:  ldloca.s   V_2
+                  IL_004a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                  IL_004f:  ldc.i4.2
+                  IL_0050:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_0055:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_005a:  ldloc.1
+                  IL_005b:  ldc.i4.1
+                  IL_005c:  add
+                  IL_005d:  stloc.1
+                  IL_005e:  ldloc.1
+                  IL_005f:  ldc.i4.4
+                  IL_0060:  blt.s      IL_000d
+                  IL_0062:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -20341,17 +20510,20 @@ class Program
     static ref Buffer4<int> GetBuffer() => throw null;
 }
 ";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            comp.VerifyEmitDiagnostics(
-                // (6,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
+            // (6,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
+            //         foreach (int y in GetBuffer())
+            DiagnosticDescription expected = Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
         @"foreach (int y in GetBuffer())
         {
             await System.Threading.Tasks.Task.Yield();
-        }").WithArguments("Program.GetBuffer()").WithLocation(6, 9)
-                );
+        }").WithArguments("Program.GetBuffer()").WithLocation(6, 9);
+
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateRuntimeAsyncCompilation(src + Buffer4Definition);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -23441,6 +23613,27 @@ struct ThreeStringBuffer {
                     }
                     """);
             }
+        }
+
+        [Fact]
+        public void NullConditionalAssignment_01()
+        {
+            var src = @"
+class Program
+{
+    static void Test(Buffer4<int> x)
+    {
+        x[0] = 1;
+        Buffer4<int>? nx = x;
+        nx?[2] = 3; // 1
+    }
+}
+";
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,12): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         nx?[2] = 3; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[2]").WithLocation(8, 12));
         }
     }
 }

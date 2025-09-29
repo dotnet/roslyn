@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 [UseExportProvider]
-public class CodeChangeProviderMetadataTests
+public sealed class CodeChangeProviderMetadataTests
 {
     [Theory]
     [InlineData(typeof(CodeFixProvider))]
@@ -151,10 +151,9 @@ public class CodeChangeProviderMetadataTests
 
     private static ImmutableHashSet<string> GetPredefinedNamesFromType(Type namesType)
     {
-        return namesType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
+        return [.. namesType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
             .Where(field => field.FieldType == typeof(string))
-            .Select(field => (string)field.GetValue(null))
-            .ToImmutableHashSet();
+            .Select(field => (string)field.GetValue(null))];
     }
 
     private static IEnumerable<(ComposedPart Part, ExportDefinition Export)> FindComposedPartsWithExport(

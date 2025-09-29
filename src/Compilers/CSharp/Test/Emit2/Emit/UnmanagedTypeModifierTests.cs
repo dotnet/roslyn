@@ -283,6 +283,70 @@ public class Test
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75681")]
+        public void LoadingUnmanagedTypeModifier_ModreqGeneric()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M1<valuetype .ctor (class [mscorlib]System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType`1)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M1
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+}
+
+.class public auto ansi beforefieldinit System.Runtime.InteropServices.UnmanagedType`1<T>
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+
+        obj.M1<int>();
+    }
+}";
+
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // An error is expected here, see https://github.com/dotnet/roslyn/issues/75681
+                );
+        }
+
+        [Fact]
         public void LoadingUnmanagedTypeModifier_AttributeWithoutModreq()
         {
             var ilSource = IsUnmanagedAttributeIL + @"
@@ -1076,7 +1140,7 @@ namespace System
 }
 ";
 
-            var corlibWithoutUnmanagedTypeRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+            var corlibWithoutUnmanagedTypeRef = CreateEmptyCompilation(corlib_cs, assemblyName: "corlibWithoutUnmanagedTypeRef").EmitToImageReference();
 
             var refCode = @"
 namespace System.Runtime.InteropServices
@@ -1084,8 +1148,8 @@ namespace System.Runtime.InteropServices
     public class UnmanagedType {}
 }";
 
-            var ref1 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }).EmitToImageReference();
-            var ref2 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }).EmitToImageReference();
+            var ref1 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }, assemblyName: "ref1").EmitToImageReference();
+            var ref2 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }, assemblyName: "ref2").EmitToImageReference();
 
             var user = @"
 public class Test<T> where T : unmanaged
@@ -1094,9 +1158,9 @@ public class Test<T> where T : unmanaged
 
             CreateEmptyCompilation(user, references: new[] { ref1, ref2, corlibWithoutUnmanagedTypeRef })
                 .VerifyDiagnostics(
-                    // (2,32): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
+                    // (2,32): error CS8356: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is declared in multiple referenced assemblies: 'ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                     // public class Test<T> where T : unmanaged
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(2, 32));
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType", "ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 32));
         }
 
         [Fact]

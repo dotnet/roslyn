@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -28,6 +27,8 @@ internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
         IfStatementSyntax,
         ExpressionStatementSyntax>
 {
+    public static readonly CSharpUseNullPropagationDiagnosticAnalyzer Instance = new();
+
     protected override SyntaxKind IfStatementSyntaxKind
         => SyntaxKind.IfStatement;
 
@@ -67,7 +68,7 @@ internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
     protected override bool TryGetPartsOfIfStatement(
         IfStatementSyntax ifStatement,
         [NotNullWhen(true)] out ExpressionSyntax? condition,
-        [NotNullWhen(true)] out StatementSyntax? trueStatement)
+        out ImmutableArray<StatementSyntax> trueStatements)
     {
         // has to be of the form:
         //
@@ -80,23 +81,25 @@ internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
         //   {
         //       statement
         //   }
+        //
+        // or
+        //
+        //   if (...)
+        //   {
+        //       statement
+        //       val = null;
+        //   }
 
         condition = ifStatement.Condition;
 
-        trueStatement = null;
+        trueStatements = [];
         if (ifStatement.Else == null)
         {
-            if (ifStatement.Statement is BlockSyntax block)
-            {
-                if (block.Statements.Count == 1)
-                    trueStatement = block.Statements[0];
-            }
-            else
-            {
-                trueStatement = ifStatement.Statement;
-            }
+            trueStatements = ifStatement.Statement is BlockSyntax block
+                ? [.. block.Statements]
+                : [ifStatement.Statement];
         }
 
-        return trueStatement != null;
+        return true;
     }
 }

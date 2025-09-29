@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class TupleTypeSymbol
@@ -104,6 +103,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return False
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+            Get
+                Return Me._underlyingType.HasCompilerLoweringPreserveAttribute
             End Get
         End Property
 

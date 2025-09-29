@@ -48,16 +48,15 @@ internal static class UseCompoundAssignmentUtilities
         bool isTopLevel, CancellationToken cancellationToken)
     {
         if (expr == null)
-        {
             return false;
-        }
 
         // it basically has to be of the form "a.b.c", where all components are locals,
         // parameters or fields.  Basically, nothing that can cause arbitrary user code
         // execution when being evaluated by the compiler.
 
         if (syntaxFacts.IsThisExpression(expr) ||
-            syntaxFacts.IsBaseExpression(expr))
+            syntaxFacts.IsBaseExpression(expr) ||
+            syntaxFacts.IsFieldExpression(expr))
         {
             // Referencing this/base like  this.a.b.c causes no side effects itself.
             return true;
@@ -118,7 +117,7 @@ internal static class UseCompoundAssignmentUtilities
                 return true;
         }
 
-        if (symbol.Kind == SymbolKind.Property && isTopLevel)
+        if (isTopLevel && symbol is IPropertySymbol { RefKind: RefKind.None })
         {
             // If we have `this.Prop = this.Prop * 2`, then that's just a single read/write of
             // the prop and we can safely make that `this.Prop *= 2` (since it will still be a
@@ -129,11 +128,7 @@ internal static class UseCompoundAssignmentUtilities
             // Note, this doesn't apply if the property is a ref-property.  In that case, we'd
             // go from a read and a write to to just a read (and a write to it's returned ref
             // value).
-            var property = (IPropertySymbol)symbol;
-            if (property.RefKind == RefKind.None)
-            {
-                return true;
-            }
+            return true;
         }
 
         return false;

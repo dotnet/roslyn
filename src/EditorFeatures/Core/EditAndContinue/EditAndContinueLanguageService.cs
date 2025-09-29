@@ -3,37 +3,37 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Shared]
-[Export(typeof(IManagedHotReloadLanguageService))]
+[Export(typeof(IManagedHotReloadLanguageService3))]
 [Export(typeof(IEditAndContinueSolutionProvider))]
 [Export(typeof(EditAndContinueLanguageService))]
 [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class EditAndContinueLanguageService(
-    IServiceBrokerProvider serviceBrokerProvider,
     EditAndContinueSessionState sessionState,
     Lazy<IHostWorkspaceProvider> workspaceProvider,
     Lazy<IManagedHotReloadService> debuggerService,
     PdbMatchingSourceTextProvider sourceTextProvider,
-    IDiagnosticsRefresher diagnosticRefresher,
-    IAsynchronousOperationListenerProvider listenerProvider) : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
+    IEditAndContinueLogReporter logReporter,
+    IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService3, IEditAndContinueSolutionProvider
 {
     private sealed class NoSessionException : InvalidOperationException
     {
@@ -44,9 +44,6 @@ internal sealed class EditAndContinueLanguageService(
             HResult = unchecked((int)0x801315087);
         }
     }
-
-    private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.EditAndContinue);
-    private readonly HotReloadLoggerProxy _logger = new(serviceBrokerProvider.ServiceBroker);
 
     private bool _disabled;
     private RemoteDebuggingSessionProxy? _debuggingSession;
@@ -90,11 +87,7 @@ internal sealed class EditAndContinueLanguageService(
     internal void Disable(Exception e)
     {
         _disabled = true;
-
-        var token = _asyncListener.BeginAsyncOperation(nameof(EditAndContinueLanguageService) + ".LogToOutput");
-
-        _ = _logger.LogAsync(new HotReloadLogMessage(HotReloadVerbosity.Diagnostic, e.ToString(), errorLevel: HotReloadDiagnosticErrorLevel.Error), CancellationToken.None).AsTask()
-            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+        logReporter.Report(e.ToString(), LogMessageSeverity.Error);
     }
 
     private void UpdateApplyChangesDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
@@ -180,7 +173,7 @@ internal sealed class EditAndContinueLanguageService(
                 // We start the operation but do not wait for it to complete.
                 // The tracking session is cancelled when we exit the break state.
 
-                Debug.Assert(solution != null);
+                Contract.ThrowIfNull(solution);
                 GetActiveStatementTrackingService().StartTracking(solution, session);
             }
         }
@@ -241,6 +234,10 @@ internal sealed class EditAndContinueLanguageService(
         {
         }
     }
+
+    [Obsolete]
+    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+        => throw new NotImplementedException();
 
     public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
     {
@@ -309,7 +306,22 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+    {
+        // StreamJsonRpc may use this overload when the method is invoked with empty parameters. Call the new implementation instead.
+
+        if (!runningProjects.IsEmpty)
+            throw new NotImplementedException();
+
+        return GetUpdatesAsync(ImmutableArray<RunningProjectInfo>.Empty, cancellationToken);
+    }
+
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
@@ -319,16 +331,56 @@ internal sealed class EditAndContinueLanguageService(
         var designTimeSolution = GetCurrentDesignTimeSolution();
         var solution = GetCurrentCompileTimeSolution(designTimeSolution);
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        var runningProjectOptions = runningProjects.ToRunningProjectOptions(solution, static info => (info.ProjectInstanceId.ProjectFilePath, info.ProjectInstanceId.TargetFramework, info.RestartAutomatically));
 
-        // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
-        if (result.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectOptions, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+        switch (result.ModuleUpdates.Status)
         {
-            _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            case ModuleUpdateStatus.Ready:
+                // The debugger will call Commit/Discard on the solution
+                // based on whether the updates will be applied successfully or not.
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+                break;
+
+            case ModuleUpdateStatus.None:
+                // No significant changes have been made.
+                // Commit the solution to apply any changes in comments that do not generate updates.
+                _committedDesignTimeSolution = designTimeSolution;
+                break;
         }
 
-        UpdateApplyChangesDiagnostics(result.Diagnostics);
+        ArrayBuilder<DiagnosticData>? applyChangesDiagnostics = null;
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            // Report warnings and errors that are not reported when analyzing documents or are reported for deleted documents.
 
-        return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), result.GetAllDiagnostics().FromContract());
+            if (diagnostic.Severity is not (DiagnosticSeverity.Error or DiagnosticSeverity.Warning))
+            {
+                continue;
+            }
+
+            if ((!EditAndContinueDiagnosticDescriptors.IsRudeEdit(diagnostic.Id)) ||
+                await solution.GetDocumentAsync(diagnostic.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) == null)
+            {
+                applyChangesDiagnostics ??= ArrayBuilder<DiagnosticData>.GetInstance();
+                applyChangesDiagnostics.Add(diagnostic);
+            }
+        }
+
+        UpdateApplyChangesDiagnostics(applyChangesDiagnostics.ToImmutableOrEmptyAndFree());
+
+        return new ManagedHotReloadUpdates(
+            result.ModuleUpdates.Updates.FromContract(),
+            result.GetAllDiagnostics().FromContract(),
+            ToProjectIntanceIds(result.ProjectsToRebuild),
+            ToProjectIntanceIds(result.ProjectsToRestart.Keys));
+
+        ImmutableArray<ProjectInstanceId> ToProjectIntanceIds(IEnumerable<ProjectId> ids)
+            => ids.SelectAsArray(id =>
+            {
+                var project = solution.GetRequiredProject(id);
+                return new ProjectInstanceId(project.FilePath!, project.State.NameAndFlavor.flavor ?? "");
+            });
     }
 }

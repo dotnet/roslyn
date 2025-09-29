@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -19,50 +18,21 @@ internal static partial class EditorConfigNamingStyleParser
     {
         var trimmedDictionary = TrimDictionary(allRawConventions);
 
-        var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
-        var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
-        var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
-        var ruleNames = new Dictionary<(Guid symbolSpecificationID, Guid namingStyleID, ReportDiagnostic enforcementLevel), string>();
+        var _ = ArrayBuilder<(NamingRule rule, int priority, string title)>.GetInstance(out var namingRules);
 
         foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
         {
-            if (TryGetSymbolSpec(namingRuleTitle, trimmedDictionary, out var symbolSpec) &&
-                TryGetNamingStyleData(namingRuleTitle, trimmedDictionary, out var namingStyle) &&
-                TryGetSerializableNamingRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule))
+            if (TryGetSymbolSpecification(namingRuleTitle, trimmedDictionary, out var symbolSpec) &&
+                TryGetNamingStyle(namingRuleTitle, trimmedDictionary, out var namingStyle) &&
+                TryGetRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var rule, out var priority))
             {
-                symbolSpecifications.Add(symbolSpec);
-                namingStyles.Add(namingStyle);
-                namingRules.Add(serializableNamingRule);
-
-                var ruleKey = (serializableNamingRule.SymbolSpecificationID, serializableNamingRule.NamingStyleID, serializableNamingRule.EnforcementLevel);
-                if (ruleNames.TryGetValue(ruleKey, out var existingName))
-                {
-                    // For duplicated rules, only preserve the one with a name that would sort first
-                    var ordinalIgnoreCaseOrdering = StringComparer.OrdinalIgnoreCase.Compare(namingRuleTitle, existingName);
-                    if (ordinalIgnoreCaseOrdering > 0)
-                    {
-                        continue;
-                    }
-                    else if (ordinalIgnoreCaseOrdering == 0)
-                    {
-                        var ordinalOrdering = StringComparer.Ordinal.Compare(namingRuleTitle, existingName);
-                        if (ordinalOrdering > 0)
-                        {
-                            continue;
-                        }
-                    }
-                }
-
-                ruleNames[ruleKey] = namingRuleTitle;
+                namingRules.Add((rule.Value, priority, namingRuleTitle));
             }
         }
 
-        var preferences = new NamingStylePreferences(
-            symbolSpecifications.ToImmutableAndFree(),
-            namingStyles.ToImmutableAndFree(),
-            namingRules.ToImmutableAndFree());
-
-        // Deterministically order the naming style rules according to the symbols matched by the rule. The rules
+        // Deterministically order the naming style rules.
+        // 
+        // Rules of the same priority are ordered according to the symbols matched by the rule. The rules
         // are applied in order; later rules are only relevant if earlier rules fail to specify an order.
         //
         // 1. If the modifiers required by rule 'x' are a strict superset of the modifiers required by rule 'y',
@@ -81,23 +51,34 @@ internal static partial class EditorConfigNamingStyleParser
         // the closest deterministic match for the files without having any reliance on order. For any pair of rules
         // which a user has trouble ordering, the intersection of the two rules can be broken out into a new rule
         // will always match earlier than the broader rules it was derived from.
-        var orderedRules = preferences.Rules.NamingRules
-            .OrderBy(rule => rule, NamingRuleModifierListComparer.Instance)
-            .ThenBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
-            .ThenBy(rule => rule, NamingRuleSymbolListComparer.Instance)
-            .ThenBy(rule => ruleNames[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)], StringComparer.OrdinalIgnoreCase)
-            .ThenBy(rule => ruleNames[(rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)], StringComparer.Ordinal);
+        var orderedRules = namingRules
+            .OrderBy(item => item.priority)
+            .ThenBy(item => item.rule, NamingRuleModifierListComparer.Instance)
+            .ThenBy(item => item.rule, NamingRuleAccessibilityListComparer.Instance)
+            .ThenBy(item => item.rule, NamingRuleSymbolListComparer.Instance)
+            .ThenBy(item => item.title, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.title, StringComparer.Ordinal);
+
+        using var _1 = ArrayBuilder<SymbolSpecification>.GetInstance(out var symbolSpecifications);
+        using var _2 = ArrayBuilder<NamingStyle>.GetInstance(out var namingStyles);
+        using var _3 = ArrayBuilder<SerializableNamingRule>.GetInstance(out var serializableRules);
+
+        foreach (var (rule, _, _) in orderedRules)
+        {
+            symbolSpecifications.Add(rule.SymbolSpecification);
+            namingStyles.Add(rule.NamingStyle);
+            serializableRules.Add(new SerializableNamingRule
+            {
+                SymbolSpecificationID = rule.SymbolSpecification.ID,
+                NamingStyleID = rule.NamingStyle.ID,
+                EnforcementLevel = rule.EnforcementLevel,
+            });
+        }
 
         return new NamingStylePreferences(
-            preferences.SymbolSpecifications,
-            preferences.NamingStyles,
-            orderedRules.SelectAsArray(
-                rule => new SerializableNamingRule
-                {
-                    SymbolSpecificationID = rule.SymbolSpecification.ID,
-                    NamingStyleID = rule.NamingStyle.ID,
-                    EnforcementLevel = rule.EnforcementLevel,
-                }));
+            symbolSpecifications.ToImmutable(),
+            namingStyles.ToImmutable(),
+            serializableRules.ToImmutable());
     }
 
     internal static Dictionary<string, string> TrimDictionary(AnalyzerConfigOptions allRawConventions)
@@ -111,13 +92,35 @@ internal static partial class EditorConfigNamingStyleParser
         return trimmedDictionary;
     }
 
-    public static IEnumerable<string> GetRuleTitles<T>(IReadOnlyDictionary<string, T> allRawConventions)
+    public static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, string> allRawConventions)
         => (from kvp in allRawConventions
             where kvp.Key.Trim().StartsWith("dotnet_naming_rule.", StringComparison.Ordinal)
             let nameSplit = kvp.Key.Split('.')
             where nameSplit.Length == 3
             select nameSplit[1])
             .Distinct();
+
+    private static Property<TValue> GetProperty<TValue>(
+        IReadOnlyDictionary<string, string> entries,
+        string group,
+        string ruleName,
+        string componentIdentifier,
+        Func<string, TValue> parser,
+        TValue defaultValue)
+    {
+        var key = $"{group}.{ruleName}.{componentIdentifier}";
+        var value = entries.TryGetValue(key, out var str) ? parser(str) : defaultValue;
+        return new(key, value);
+    }
+
+    private readonly struct Property<TValue>(string key, TValue value)
+    {
+        public string Key { get; } = key;
+        public TValue Value { get; } = value;
+
+        public TextSpan? GetSpan(IReadOnlyDictionary<string, TextLine> lines)
+            => lines.TryGetValue(Key, out var line) ? line.Span : null;
+    }
 
     private abstract class NamingRuleSubsetComparer : IComparer<NamingRule>
     {

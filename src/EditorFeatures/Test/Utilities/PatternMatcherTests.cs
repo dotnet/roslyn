@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -20,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
-public class PatternMatcherTests
+public sealed class PatternMatcherTests
 {
     [Fact]
     public void BreakIntoCharacterParts_EmptyIdentifier()
@@ -191,7 +192,12 @@ public class PatternMatcherTests
     [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseInsensitive)]
     [InlineData("Com[|bin|]e", "bin", PatternMatchKind.LowercaseSubstring, CaseSensitive)]
     [InlineData("Combine[|Bin|]ary", "bin", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+
+    [InlineData("_ABC_[|Abc|]_", "Abc", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+    [InlineData("[|C|]reate[|R|]ange", "CR", PatternMatchKind.CamelCaseExact, CaseSensitive)]
+
     [WorkItem("https://github.com/dotnet/roslyn/issues/51029")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/17275")]
     internal void TestNonFuzzyMatch(
         string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
     {

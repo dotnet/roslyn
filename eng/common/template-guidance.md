@@ -50,14 +50,14 @@ extends:
           - task: CopyFiles@2
               displayName: Gather build output
               inputs:
-                SourceFolder: '$(Build.SourcesDirectory)/artifacts/marvel'
+                SourceFolder: '$(System.DefaultWorkingDirectory)/artifacts/marvel'
                 Contents: '**'
                 TargetFolder: '$(Build.ArtifactStagingDirectory)/artifacts/marvel'
 ```
 
 Note: Multiple outputs are ONLY applicable to 1ES PT publishing (only usable when referencing `templates-official`).
 
-# Development notes
+## Development notes
 
 **Folder / file structure**
 

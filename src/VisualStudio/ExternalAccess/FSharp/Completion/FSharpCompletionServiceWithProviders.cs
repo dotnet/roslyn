@@ -5,20 +5,19 @@
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+
+internal abstract class FSharpCompletionServiceWithProviders : CompletionService
 {
-    internal abstract class FSharpCompletionServiceWithProviders : CompletionService
+    // Pass in NullProvider since it's only used for testing project reference based CompletionProvider,
+    // which F# does not need.
+    internal FSharpCompletionServiceWithProviders(Workspace workspace)
+        : base(workspace.Services.SolutionServices, AsynchronousOperationListenerProvider.NullProvider)
     {
-        // Pass in NullProvider since it's only used for testing project reference based CompletionProvider,
-        // which F# does not need.
-        internal FSharpCompletionServiceWithProviders(Workspace workspace)
-            : base(workspace.Services.SolutionServices, AsynchronousOperationListenerProvider.NullProvider)
-        {
-        }
-
-        internal sealed override CompletionRules GetRules(CompletionOptions options)
-            => GetRulesImpl();
-
-        internal abstract CompletionRules GetRulesImpl();
     }
+
+    internal sealed override CompletionRules GetRules(CompletionOptions options)
+        => GetRulesImpl();
+
+    internal abstract CompletionRules GetRulesImpl();
 }

@@ -7,13 +7,12 @@ using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 
@@ -55,7 +54,7 @@ internal sealed class CodeActionFixAllResolveHandler(
         Contract.ThrowIfNull(data.CodeActionPath);
         var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.CodeActionPath, codeActions, isFixAllAction: true);
 
-        var fixAllCodeAction = (FixAllCodeAction)codeActionToResolve;
+        var fixAllCodeAction = (RefactorOrFixAllCodeAction)codeActionToResolve;
         Contract.ThrowIfNull(fixAllCodeAction);
 
         var operations = await fixAllCodeAction.GetOperationsAsync(document.Project.Solution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);

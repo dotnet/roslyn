@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 [Export(typeof(AlwaysActivateInProcLanguageClient))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-internal class AlwaysActivateInProcLanguageClient(
+internal sealed class AlwaysActivateInProcLanguageClient(
     CSharpVisualBasicLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
@@ -67,6 +67,7 @@ internal class AlwaysActivateInProcLanguageClient(
 
         serverCapabilities.ProjectContextProvider = true;
         serverCapabilities.BreakableRangeProvider = true;
+        serverCapabilities.DataTipRangeProvider = true;
 
         serverCapabilities.SupportsDiagnosticRequests = true;
 
@@ -82,11 +83,10 @@ internal class AlwaysActivateInProcLanguageClient(
         serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
         {
             SupportsMultipleContextsDiagnostics = true,
-            DiagnosticKinds = diagnosticSourceNames.Select(n => new VSInternalDiagnosticKind(n)).ToArray(),
-            BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
+            DiagnosticKinds = [.. diagnosticSourceNames.Select(n => new VSInternalDiagnosticKind(n))],
+            BuildOnlyDiagnosticIds = [.. _buildOnlyDiagnostics
                 .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
-                .Distinct()
-                .ToArray(),
+                .Distinct()],
         };
 
         // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.

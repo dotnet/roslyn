@@ -19,151 +19,150 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
+
+/// <summary>
+/// Remote language service workspace host
+/// </summary>
+[Export(typeof(RemoteLanguageServiceWorkspaceHost))]
+[ExportCollaborationService(typeof(RemoteLanguageServiceSession),
+                            Scope = SessionScope.Guest,
+                            Role = ServiceRole.LocalService,
+                            Features = "LspServices",
+                            CreationPriority = (int)ServiceRole.LocalService + 2100)]
+
+internal sealed class RemoteLanguageServiceWorkspaceHost : ICollaborationServiceFactory
 {
+    // A collection of loaded Roslyn Project IDs, indexed by project path.
+    private ImmutableDictionary<string, ProjectId> _loadedProjects = ImmutableDictionary.Create<string, ProjectId>(StringComparer.OrdinalIgnoreCase);
+    private ImmutableDictionary<string, ProjectInfo> _loadedProjectInfo = ImmutableDictionary.Create<string, ProjectInfo>(StringComparer.OrdinalIgnoreCase);
+    private TaskCompletionSource<bool> _projectsLoadedTaskCompletionSource = new();
+    private readonly RemoteProjectInfoProvider _remoteProjectInfoProvider;
+
+    private readonly SVsServiceProvider _serviceProvider;
+    private readonly IThreadingContext _threadingContext;
+
+    public RemoteLanguageServiceWorkspace Workspace { get; }
+
     /// <summary>
-    /// Remote language service workspace host
+    /// Initializes a new instance of the <see cref="RemoteLanguageServiceWorkspaceHost"/> class.
     /// </summary>
-    [Export(typeof(RemoteLanguageServiceWorkspaceHost))]
-    [ExportCollaborationService(typeof(RemoteLanguageServiceSession),
-                                Scope = SessionScope.Guest,
-                                Role = ServiceRole.LocalService,
-                                Features = "LspServices",
-                                CreationPriority = (int)ServiceRole.LocalService + 2100)]
-
-    internal sealed class RemoteLanguageServiceWorkspaceHost : ICollaborationServiceFactory
+    /// <param name="remoteLanguageServiceWorkspace">The workspace</param>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoteLanguageServiceWorkspaceHost(RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
+                                              RemoteProjectInfoProvider remoteProjectInfoProvider,
+                                              SVsServiceProvider serviceProvider,
+                                              IThreadingContext threadingContext)
     {
-        // A collection of loaded Roslyn Project IDs, indexed by project path.
-        private ImmutableDictionary<string, ProjectId> _loadedProjects = ImmutableDictionary.Create<string, ProjectId>(StringComparer.OrdinalIgnoreCase);
-        private ImmutableDictionary<string, ProjectInfo> _loadedProjectInfo = ImmutableDictionary.Create<string, ProjectInfo>(StringComparer.OrdinalIgnoreCase);
-        private TaskCompletionSource<bool> _projectsLoadedTaskCompletionSource = new TaskCompletionSource<bool>();
-        private readonly RemoteProjectInfoProvider _remoteProjectInfoProvider;
+        Workspace = Requires.NotNull(remoteLanguageServiceWorkspace, nameof(remoteLanguageServiceWorkspace));
+        _remoteProjectInfoProvider = Requires.NotNull(remoteProjectInfoProvider, nameof(remoteProjectInfoProvider));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _threadingContext = Requires.NotNull(threadingContext, nameof(threadingContext));
+    }
 
-        private readonly SVsServiceProvider _serviceProvider;
-        private readonly IThreadingContext _threadingContext;
+    public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
+    {
+        await LoadRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
 
-        public RemoteLanguageServiceWorkspace Workspace { get; }
+        await Workspace.SetSessionAsync(collaborationSession).ConfigureAwait(false);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RemoteLanguageServiceWorkspaceHost"/> class.
-        /// </summary>
-        /// <param name="remoteLanguageServiceWorkspace">The workspace</param>
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteLanguageServiceWorkspaceHost(RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace,
-                                                  RemoteProjectInfoProvider remoteProjectInfoProvider,
-                                                  SVsServiceProvider serviceProvider,
-                                                  IThreadingContext threadingContext)
+        // Kick off loading the projects in the background.
+        // Clients can call EnsureProjectsLoadedAsync to await completion.
+        LoadProjectsAsync(CancellationToken.None).Forget();
+
+        var lifeTimeService = new RemoteLanguageServiceSession();
+        lifeTimeService.Disposed += (s, e) =>
         {
-            Workspace = Requires.NotNull(remoteLanguageServiceWorkspace, nameof(remoteLanguageServiceWorkspace));
-            _remoteProjectInfoProvider = Requires.NotNull(remoteProjectInfoProvider, nameof(remoteProjectInfoProvider));
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _threadingContext = Requires.NotNull(threadingContext, nameof(threadingContext));
-        }
+            Workspace.EndSession();
+            CloseAllProjects();
+            Workspace.Dispose();
+            _projectsLoadedTaskCompletionSource = new TaskCompletionSource<bool>();
+        };
 
-        public async Task<ICollaborationService> CreateServiceAsync(CollaborationSession collaborationSession, CancellationToken cancellationToken)
+        return lifeTimeService;
+    }
+
+    /// <summary>
+    /// Ensures LoadProjectsAsync has completed
+    /// </summary>
+    public async Task EnsureProjectsLoadedAsync(CancellationToken cancellationToken)
+    {
+        using var token = cancellationToken.Register(() =>
         {
-            await LoadRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
+            _projectsLoadedTaskCompletionSource.SetCanceled();
+        });
+        await _projectsLoadedTaskCompletionSource.Task.ConfigureAwait(false);
+    }
 
-            await Workspace.SetSessionAsync(collaborationSession).ConfigureAwait(false);
+    private async Task LoadRoslynPackageAsync(CancellationToken cancellationToken)
+    {
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Kick off loading the projects in the background.
-            // Clients can call EnsureProjectsLoadedAsync to await completion.
-            LoadProjectsAsync(CancellationToken.None).Forget();
+        // Explicitly trigger the load of the Roslyn package. This ensures that UI-bound services are appropriately prefetched,
+        // that FatalError is correctly wired up, etc. Ideally once the things happening in the package initialize are cleaned up with
+        // better patterns, this would go away.
+        var shellService = (IVsShell7)_serviceProvider.GetService(typeof(SVsShell));
+        await shellService.LoadPackageAsync(Guids.RoslynPackageId);
+    }
 
-            var lifeTimeService = new RemoteLanguageServiceSession();
-            lifeTimeService.Disposed += (s, e) =>
+    /// <summary>
+    /// Loads (or reloads) the corresponding Roslyn project and the direct referenced projects in the host environment.
+    /// </summary>
+    private async Task LoadProjectsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var projectInfos = await _remoteProjectInfoProvider.GetRemoteProjectInfosAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var projectInfo in projectInfos)
             {
-                Workspace.EndSession();
-                CloseAllProjects();
-                Workspace.Dispose();
-                _projectsLoadedTaskCompletionSource = new TaskCompletionSource<bool>();
-            };
-
-            return lifeTimeService;
-        }
-
-        /// <summary>
-        /// Ensures LoadProjectsAsync has completed
-        /// </summary>
-        public async Task EnsureProjectsLoadedAsync(CancellationToken cancellationToken)
-        {
-            using var token = cancellationToken.Register(() =>
-            {
-                _projectsLoadedTaskCompletionSource.SetCanceled();
-            });
-            await _projectsLoadedTaskCompletionSource.Task.ConfigureAwait(false);
-        }
-
-        private async Task LoadRoslynPackageAsync(CancellationToken cancellationToken)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            // Explicitly trigger the load of the Roslyn package. This ensures that UI-bound services are appropriately prefetched,
-            // that FatalError is correctly wired up, etc. Ideally once the things happening in the package initialize are cleaned up with
-            // better patterns, this would go away.
-            var shellService = (IVsShell7)_serviceProvider.GetService(typeof(SVsShell));
-            await shellService.LoadPackageAsync(Guids.RoslynPackageId);
-        }
-
-        /// <summary>
-        /// Loads (or reloads) the corresponding Roslyn project and the direct referenced projects in the host environment.
-        /// </summary>
-        private async Task LoadProjectsAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                var projectInfos = await _remoteProjectInfoProvider.GetRemoteProjectInfosAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var projectInfo in projectInfos)
+                var projectName = projectInfo.Name;
+                if (!_loadedProjects.TryGetValue(projectName, out var projectId))
                 {
-                    var projectName = projectInfo.Name;
-                    if (!_loadedProjects.TryGetValue(projectName, out var projectId))
+                    projectId = projectInfo.Id;
+
+                    // Adds the Roslyn project into the current solution;
+                    // and raise WorkspaceChanged event (WorkspaceChangeKind.ProjectAdded)
+                    Workspace.OnProjectAdded(projectInfo);
+
+                    _loadedProjects = _loadedProjects.Add(projectName, projectId);
+                    _loadedProjectInfo = _loadedProjectInfo.Add(projectName, projectInfo);
+
+                    // TODO : figure out what changes we need to listen to.
+                }
+                else
+                {
+                    if (_loadedProjectInfo.TryGetValue(projectName, out var projInfo))
                     {
-                        projectId = projectInfo.Id;
-
-                        // Adds the Roslyn project into the current solution;
-                        // and raise WorkspaceChanged event (WorkspaceChangeKind.ProjectAdded)
-                        Workspace.OnProjectAdded(projectInfo);
-
-                        _loadedProjects = _loadedProjects.Add(projectName, projectId);
-                        _loadedProjectInfo = _loadedProjectInfo.Add(projectName, projectInfo);
-
-                        // TODO : figure out what changes we need to listen to.
-                    }
-                    else
-                    {
-                        if (_loadedProjectInfo.TryGetValue(projectName, out var projInfo))
-                        {
-                            Workspace.OnProjectReloaded(projectInfo);
-                        }
+                        Workspace.OnProjectReloaded(projectInfo);
                     }
                 }
+            }
 
-                _projectsLoadedTaskCompletionSource.SetResult(true);
-            }
-            catch (Exception ex)
-            {
-                _projectsLoadedTaskCompletionSource.SetException(ex);
-            }
+            _projectsLoadedTaskCompletionSource.SetResult(true);
         }
-
-        private void CloseAllProjects()
+        catch (Exception ex)
         {
-            foreach (var projectId in _loadedProjects.Values)
-            {
-                Workspace.OnProjectRemoved(projectId);
-            }
-
-            _loadedProjects = _loadedProjects.Clear();
-            _loadedProjectInfo = _loadedProjectInfo.Clear();
+            _projectsLoadedTaskCompletionSource.SetException(ex);
         }
+    }
 
-        private class RemoteLanguageServiceSession : ICollaborationService, IDisposable
+    private void CloseAllProjects()
+    {
+        foreach (var projectId in _loadedProjects.Values)
         {
-            public event EventHandler Disposed;
-
-            public void Dispose()
-                => Disposed?.Invoke(this, null);
+            Workspace.OnProjectRemoved(projectId);
         }
+
+        _loadedProjects = _loadedProjects.Clear();
+        _loadedProjectInfo = _loadedProjectInfo.Clear();
+    }
+
+    private sealed class RemoteLanguageServiceSession : ICollaborationService, IDisposable
+    {
+        public event EventHandler Disposed;
+
+        public void Dispose()
+            => Disposed?.Invoke(this, null);
     }
 }

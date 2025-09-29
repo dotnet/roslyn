@@ -716,6 +716,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)GetDeclaredBaseType(basesBeingResolved: null) == null, "Computation skipped for enums");
                 declaredBase = compilation.GetSpecialType(SpecialType.System_Enum);
             }
+            else if (typeKind == TypeKind.Extension)
+            {
+                Binder.GetSpecialType(compilation, SpecialType.System_Object, this.GetFirstLocationOrNone(), diagnostics);
+                return null;
+            }
             else
             {
                 declaredBase = GetDeclaredBaseType(basesBeingResolved: null);
@@ -726,7 +731,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (typeKind)
                 {
                     case TypeKind.Class:
-
                         if (this.SpecialType == SpecialType.System_Object)
                         {
                             return null;

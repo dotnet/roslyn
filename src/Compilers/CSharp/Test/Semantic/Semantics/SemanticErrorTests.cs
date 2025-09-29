@@ -13082,8 +13082,9 @@ public class Program
                 Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{}").WithArguments("3").WithLocation(7, 31));
         }
 
-        [Fact]
-        public void CS0853ERR_ExpressionTreeContainsNamedArgument01()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0853ERR_ExpressionTreeContainsNamedArgument01(LanguageVersion languageVersion)
         {
             var text = @"
 using System.Linq.Expressions;
@@ -13095,6 +13096,7 @@ namespace ConsoleApplication3
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index(minSessions:5);
+            System.Console.WriteLine(myET);
         }
         public static string Index(int minSessions = 0)
         {
@@ -13103,16 +13105,26 @@ namespace ConsoleApplication3
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (10,40): error CS0853: An expression tree may not contain a named argument specification
-                //             Expression<dg> myET = x => Index(minSessions:5);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "Index(minSessions:5)").WithLocation(10, 40)
-                );
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,40): error CS0853: An expression tree may not contain a named argument specification
+                    //             Expression<dg> myET = x => Index(minSessions:5);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "Index(minSessions:5)").WithLocation(10, 40)
+                    );
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "x => Index(5)");
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [WorkItem(545063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545063")]
-        [Fact]
-        public void CS0853ERR_ExpressionTreeContainsNamedArgument02()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0853ERR_ExpressionTreeContainsNamedArgument02(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -13124,18 +13136,29 @@ class A
     static void Main()
     {
         Expression<Func<int>> f = () => new List<int> { 1 } [index: 0];
+        Console.WriteLine(f);
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (10,41): error CS0853: An expression tree may not contain a named argument specification
-                //         Expression<Func<int>> f = () => new List<int> { 1 } [index: 0];
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "new List<int> { 1 } [index: 0]").WithLocation(10, 41)
-                );
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,41): error CS0853: An expression tree may not contain a named argument specification
+                    //         Expression<Func<int>> f = () => new List<int> { 1 } [index: 0];
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "new List<int> { 1 } [index: 0]").WithLocation(10, 41)
+                    );
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "() => new List`1() {Void Add(Int32)(1)}.get_Item(0)");
+                verifier.VerifyDiagnostics();
+            }
         }
 
-        [Fact]
-        public void CS0854ERR_ExpressionTreeContainsOptionalArgument01()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument01(LanguageVersion languageVersion)
         {
             var text = @"
 using System.Linq.Expressions;
@@ -13147,6 +13170,7 @@ namespace ConsoleApplication3
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index();
+            System.Console.WriteLine(myET);
         }
         public static string Index(int minSessions = 0)
         {
@@ -13155,15 +13179,25 @@ namespace ConsoleApplication3
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (10,40): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                //             Expression<dg> myET = x => Index();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "Index()").WithLocation(10, 40)
-                );
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,40): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //             Expression<dg> myET = x => Index();
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "Index()").WithLocation(10, 40)
+                    );
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "x => Index(0)");
+                verifier.VerifyDiagnostics();
+            }
         }
 
-        [Fact]
-        public void CS0854ERR_ExpressionTreeContainsOptionalArgument02()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument02(LanguageVersion languageVersion)
         {
             var text =
 @"using System;
@@ -13194,19 +13228,38 @@ class C
         e2 = () => b[4, 5] = null;
     }
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (22,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "a[0]").WithLocation(22, 20),
-                // (25,20): error CS0832: An expression tree may not contain an assignment operator
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[3] = null").WithLocation(25, 20),
-                // (25,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "b[3]").WithLocation(25, 20),
-                // (26,20): error CS0832: An expression tree may not contain an assignment operator
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[4, 5] = null").WithLocation(26, 20));
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (22,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         e1 = () => a[0];
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "a[0]").WithLocation(22, 20),
+                    // (25,20): error CS0832: An expression tree may not contain an assignment operator
+                    //         e2 = () => b[3] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[3] = null").WithLocation(25, 20),
+                    // (25,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         e2 = () => b[3] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "b[3]").WithLocation(25, 20),
+                    // (26,20): error CS0832: An expression tree may not contain an assignment operator
+                    //         e2 = () => b[4, 5] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[4, 5] = null").WithLocation(26, 20));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (25,20): error CS0832: An expression tree may not contain an assignment operator
+                    //         e2 = () => b[3] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[3] = null").WithLocation(25, 20),
+                    // (26,20): error CS0832: An expression tree may not contain an assignment operator
+                    //         e2 = () => b[4, 5] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[4, 5] = null").WithLocation(26, 20));
+            }
         }
 
-        [Fact]
-        public void CS0854ERR_ExpressionTreeContainsOptionalArgument03()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument03(LanguageVersion languageVersion)
         {
             var text =
 @"using System;
@@ -13224,15 +13277,25 @@ public class Collection : IEnumerable
 }
 
 public class C {
-    public void M() {
+    static void Main() {
         Expression<Func<Collection>> expr =
             () => new Collection { 1 }; // 1
+        Console.WriteLine(expr);
     }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (18,36): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                //             () => new Collection { 1 }; // 1
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "1").WithLocation(18, 36));
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (18,36): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //             () => new Collection { 1 }; // 1
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "1").WithLocation(18, 36));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "() => new Collection() {Void Add(Int32, Int32)(1, 0)}");
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [Fact]
@@ -16311,9 +16374,6 @@ class Errors
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (7,13): error CS1661: Cannot convert anonymous method to type 'E' because the parameter types do not match the delegate parameter types
-                //       E e = delegate(out int i) { };   // CS1676
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "E").WithLocation(7, 13),
                 // (7,30): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //       E e = delegate(out int i) { };   // CS1676
                 Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(7, 30),
@@ -16338,18 +16398,12 @@ class Errors
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (7,15): error CS1661: Cannot convert anonymous method to type 'D' because the parameter types do not match the delegate parameter types
-                //         D d = delegate(out int i) { };   // CS1677
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "D").WithLocation(7, 15),
                 // (7,32): error CS1677: Parameter 1 should not be declared with the 'out' keyword
                 //         D d = delegate(out int i) { };   // CS1677
                 Diagnostic(ErrorCode.ERR_BadParamExtraRef, "i").WithArguments("1", "out").WithLocation(7, 32),
                 // (8,11): error CS0128: A local variable or function named 'd' is already defined in this scope
                 //         D d = delegate(ref int j) { }; // CS1677
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d").WithLocation(8, 11),
-                // (8,15): error CS1661: Cannot convert anonymous method to type 'D' because the parameter types do not match the delegate parameter types
-                //         D d = delegate(ref int j) { }; // CS1677
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "D").WithLocation(8, 15),
                 // (8,32): error CS1677: Parameter 1 should not be declared with the 'ref' keyword
                 //         D d = delegate(ref int j) { }; // CS1677
                 Diagnostic(ErrorCode.ERR_BadParamExtraRef, "j").WithArguments("1", "ref").WithLocation(8, 32),
@@ -16515,10 +16569,7 @@ class ErrorCS1676
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(11, 34),
                 // (11,34): error CS1002: ; expected
                 //             Console.WriteLine(");
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 34),
-                // (9,13): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'OutParam' because it has one or more out parameters
-                //         o = delegate  // CS1688
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("OutParam").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 34));
         }
 
         [Fact]
@@ -21677,13 +21728,13 @@ namespace ns
             CreateCompilationWithMscorlib40AndDocumentationComments(text).VerifyDiagnostics(
                 // (5,35): warning CS1570: XML comment has badly formed XML -- 'An identifier was expected.'
                 //    /// <summary> returns true if < 5 </summary>
-                Diagnostic(ErrorCode.WRN_XMLParseError, ""),
-                // (5,35): warning CS1570: XML comment has badly formed XML -- '5'
+                Diagnostic(ErrorCode.WRN_XMLParseError, "").WithLocation(5, 35),
+                // (5,36): warning CS1570: XML comment has badly formed XML -- 'The character(s) '5' cannot be used at this location.'
                 //    /// <summary> returns true if < 5 </summary>
-                Diagnostic(ErrorCode.WRN_XMLParseError, " ").WithArguments("5"),
-                // (11,26): warning CS1591: Missing XML comment for publicly visible type or member 'ns.MyClass.Main()'
+                Diagnostic(ErrorCode.WRN_XMLParseError, "5").WithArguments("5").WithLocation(5, 36),
+                // (11,26): warning CS1591: Missing XML comment for publicly visible type or member 'MyClass.Main()'
                 //       public static void Main ()
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("ns.MyClass.Main()"));
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("ns.MyClass.Main()").WithLocation(11, 26));
         }
 
         [Fact]

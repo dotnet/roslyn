@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Roslyn.Test.Utilities
 
@@ -319,7 +318,7 @@ class D : C
                 Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
                 Dim document = testState.Workspace.CurrentSolution.GetRequiredDocument(mockNavigationService.ProvidedDocumentId)
                 Assert.Equal("OtherDoc.cs", document.Name)
-                Assert.Equal(TextSpan.FromBounds(43, 46), mockNavigationService.ProvidedTextSpan)
+                Assert.Equal(43, mockNavigationService.ProvidedPosition)
             End Using
         End Function
 

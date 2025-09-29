@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -55,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(group.PendingExtensionMethodsOpt Is Me)
             Debug.Assert(Not useSiteInfo.AccumulatesDependencies OrElse _withDependencies)
 
-            If _lazyMethods.IsDefault Then
+            If RoslynImmutableInterlocked.VolatileRead(_lazyMethods).IsDefault Then
                 Dim receiverOpt As BoundExpression = group.ReceiverOpt
                 Dim methods As ImmutableArray(Of MethodSymbol) = ImmutableArray(Of MethodSymbol).Empty
                 Dim localUseSiteInfo = If(_withDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(_lookupBinder.Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)

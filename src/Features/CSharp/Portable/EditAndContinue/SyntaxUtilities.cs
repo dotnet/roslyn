@@ -56,7 +56,7 @@ internal static partial class SyntaxUtilities
                 when !fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword)
                 => new FieldWithInitializerDeclarationBody(variableDeclarator),
 
-            ParameterListSyntax { Parent: TypeDeclarationSyntax typeDeclaration }
+            ParameterListSyntax { Parent: TypeDeclarationSyntax typeDeclaration and not ExtensionBlockDeclarationSyntax }
                 => typeDeclaration is { BaseList.Types: [PrimaryConstructorBaseTypeSyntax { }, ..] }
                     ? new PrimaryConstructorWithExplicitInitializerDeclarationBody(typeDeclaration)
                     : new PrimaryConstructorWithImplicitInitializerDeclarationBody(typeDeclaration),

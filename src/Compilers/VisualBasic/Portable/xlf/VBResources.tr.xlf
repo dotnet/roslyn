@@ -7,6 +7,11 @@
         <target state="translated">'{0}' init-only özelliği yalnızca nesne üyesi başlatıcısı tarafından veya örnek oluşturucudaki 'Me', 'MyClass' veya 'MyBase' üzerinde atanabilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
         <target state="translated">Paylaşılan bir soyut veya sanal arabirim üyesine erişilemiyor.</target>
@@ -15,6 +20,16 @@
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Komut satırı söz dizimi hatası: '{0}', '{1}' seçeneği için geçerli bir değer değil. Değer '{2}' biçiminde olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="translated">Bu üyede 'OverloadResolutionPriorityAttribute' kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="translated">Geçersiz kılan bir üyede 'OverloadResolutionPriorityAttribute' kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
@@ -44,7 +59,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
         <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="new">Cannot update '{0}'; attribute '{1}' is missing.</target>
+        <target state="translated">'{0}' güncelleştirilemiyor; '{1}' özniteliği eksik.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
@@ -61,6 +76,11 @@
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">SyncLock'ta 'System.Threading.Lock' türünde bir değer desteklenmiyor. Bunun yerine Try/Finally bloğunda 'Enter' ve 'Exit' yöntemlerini el ile çağırmayı düşünün.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
@@ -97,6 +117,11 @@
         <target state="translated">'{0}' için gerekli üye listesi hatalı biçimlendirilmiş ve yorumlanamıyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</source>
+        <target state="translated">'Microsoft.CodeAnalysis.EmbeddedAttribute' türü genel olmayan, Friend, NotInheritable, Public parametresiz oluşturucusu, System.Attribute'tan devralınmalıdır ve herhangi bir türe uygulanmalıdır</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">Hedef çalışma zamanı varsayılan arabirim uygulamasını desteklemiyor.</target>
@@ -117,9 +142,14 @@
         <target state="translated">'{0}', '{1}' derlemesinde tanımlı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeReserved">
         <source>The type name '{0}' is reserved to be used by the compiler.</source>
-        <target state="new">The type name '{0}' is reserved to be used by the compiler.</target>
+        <target state="translated">'{0}' tür adı, derleyici tarafından kullanılmak üzere ayrılmıştır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -130,6 +160,11 @@
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">'UnmanagedCallersOnly' özniteliği desteklenmez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</source>
+        <target state="translated">'{1}' tür parametresi olarak kullanabilmek için '{0}' tür bağımsız değişkeninin, herhangi bir iç içe yerleştirme düzeyindeki tüm alanlarla birlikte null atanamaz bir değer türü olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -157,9 +192,19 @@
         <target state="translated">init-only ayarlayıcıları ile 'ByRef' özelliklerine atama veya geçirme</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="translated">aşırı yükleme çözümlemesi önceliği</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">ikili koşullu ifadelerde kısıtlanmamış tür parametreleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_UnmanagedConstraint">
+        <source>recognizing 'unmanaged' constraint</source>
+        <target state="translated">'unmanaged' kısıtlaması tanınıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VBCHelp">
@@ -320,8 +365,7 @@
 -reportivts[+|-]                  Output information on all IVTs granted to this
                                   assembly by all dependencies, and annotate foreign assembly
                                   accessibility errors with what assembly they came from.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emit compiler output in UTF-8 character
@@ -332,7 +376,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic Derleyicisi Seçenekleri
+        <target state="needs-review-translation">                  Visual Basic Derleyicisi Seçenekleri
 
                                   - ÇIKIŞ DOSYASI -
 -out:&lt;file&gt;                       Çıkış dosyası adını belirtir.
@@ -600,13 +644,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -647,6 +691,16 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Çözümleyici referansı birden çok kez belirtildi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</source>
+        <target state="translated">'{0}' yalnızca değerlendirme amaçlıdır ve gelecekteki güncelleştirmelerde değiştirilebilir veya kaldırılabilir: '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="translated">Tür, yalnızca değerlendirme amaçlıdır ve gelecekteki güncelleştirmelerde değiştirilebilir veya kaldırılabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -9324,7 +9378,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
         <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
-        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
+        <target state="translated">'{2}' bütünleştirilmiş kodundan '{0}' metodunun (belirteç 0x{1:X8}) hata ayıklama bilgileri okunamıyor: {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotVisualBasicConversion">

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetAttributes();
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes);
         }
@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return _underlyingParameter.ExplicitDefaultConstantValue; }
+        }
+
+        internal sealed override ConstantValue? DefaultValueFromAttributes
+        {
+            get { return _underlyingParameter.DefaultValueFromAttributes; }
         }
 
         public override int Ordinal
@@ -156,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
+
+        internal sealed override ScopedKind DeclaredScope => _underlyingParameter.DeclaredScope;
 
         internal sealed override ScopedKind EffectiveScope => _underlyingParameter.EffectiveScope;
 

@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Threading;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class ErrorListInProcess
+internal sealed partial class ErrorListInProcess
 {
     public Task ShowErrorListAsync(CancellationToken cancellationToken)
         => ShowErrorListAsync(ErrorSource.Build | ErrorSource.Other, minimumSeverity: __VSERRORCATEGORY.EC_WARNING, cancellationToken);
@@ -52,10 +52,9 @@ internal partial class ErrorListInProcess
         var errorItems = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
         var list = errorItems.Select(GetMessage).ToList();
 
-        return list
+        return [.. list
             .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(x => x, StringComparer.Ordinal)
-            .ToImmutableArray();
+            .ThenBy(x => x, StringComparer.Ordinal)];
     }
 
     public async Task<string> NavigateToErrorListItemAsync(int item, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
@@ -87,7 +86,7 @@ internal partial class ErrorListInProcess
 
         var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
         var args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
-        return args.AllEntries
+        return [.. args.AllEntries
             .Where(item =>
             {
                 if (item.GetCategory() > minimumSeverity)
@@ -102,8 +101,7 @@ internal partial class ErrorListInProcess
                 }
 
                 return true;
-            })
-            .ToImmutableArray();
+            })];
     }
 
     private static string GetMessage(ITableEntryHandle item)

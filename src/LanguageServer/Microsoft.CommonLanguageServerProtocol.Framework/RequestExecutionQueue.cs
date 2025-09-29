@@ -15,7 +15,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
-using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -56,7 +55,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
 {
     private static readonly MethodInfo s_processQueueCoreAsync = typeof(RequestExecutionQueue<TRequestContext>)
-        .GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ProcessQueueCoreAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
+        .GetMethod(nameof(RequestExecutionQueue<>.ProcessQueueCoreAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
     protected readonly ILspLogger _logger;
     protected readonly AbstractHandlerProvider _handlerProvider;
@@ -239,16 +238,37 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = activityId;
 
+                    using var loggerScope = _logger.CreateContext(work.MethodName);
+
                     // Serially in the queue determine which language is appropriate for handling the request (based on the request URI).
                     //
                     // The client can send us the language associated with a URI in the didOpen notification.  It is important that all prior didOpen
                     // notifications have been completed by the time we attempt to determine the language, so we have the up to date map of URI to language.
                     // Since didOpen notifications are marked as mutating, the queue will not advance to the next request until the server has finished processing
                     // the didOpen, ensuring that this line will only run once all prior didOpens have completed.
-                    var language = _languageServer.GetLanguageForRequest(work.MethodName, work.SerializedRequest);
+                    var didGetLanguage = _languageServer.TryGetLanguageForRequest(work.MethodName, work.SerializedRequest, out var language);
+
+                    using var languageScope = _logger.CreateLanguageContext(language);
 
                     // Now that we know the actual language, we can deserialize the request and start creating the request context.
-                    var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language);
+                    var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);
+
+                    // We had an issue determining the language.  Generally this is very rare and only occurs
+                    // if there is a mis-behaving client that sends us requests for files where we haven't saved the languageId.
+                    // We should only crash if this was a mutating method, otherwise we should just fail the single request. 
+                    if (!didGetLanguage)
+                    {
+                        var message = $"Failed to get language for {work.MethodName}";
+                        if (handler.MutatesSolutionState)
+                        {
+                            throw new InvalidOperationException(message);
+                        }
+                        else
+                        {
+                            work.FailRequest(message);
+                            return;
+                        }
+                    }
 
                     // We now have the actual handler and language, so we can process the work item using the concrete types defined by the metadata.
                     await InvokeProcessCoreAsync(work, metadata, handler, methodInfo, concurrentlyExecutingTasks, currentWorkCts, cancellationToken).ConfigureAwait(false);
@@ -270,7 +290,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             var message = $"Error occurred processing queue: {ex.Message}.";
             if (lspServices is not null)
             {
-                await _languageServer.ShutdownAsync("Error processing queue, shutting down").ConfigureAwait(false);
+                await _languageServer.ShutdownAsync(message).ConfigureAwait(false);
                 await _languageServer.ExitAsync().ConfigureAwait(false);
             }
 
@@ -406,12 +426,12 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     /// Provides an extensibility point to log or otherwise inspect errors thrown from non-mutating requests,
     /// which would otherwise be lost to the fire-and-forget task in the queue.
     /// </summary>
-    /// <param name="nonMutatingRequestTask">The task to be inspected.</param>
+    /// <param name="requestTask">The task to be inspected.</param>
     /// <param name="rethrowExceptions">If exceptions should be re-thrown.</param>
-    /// <returns>The task from <paramref name="nonMutatingRequestTask"/>, to allow chained calls if needed.</returns>
-    public virtual Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
+    /// <returns>The task from <paramref name="requestTask"/>, to allow chained calls if needed.</returns>
+    public virtual Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
     {
-        return nonMutatingRequestTask;
+        return requestTask;
     }
 
     /// <summary>

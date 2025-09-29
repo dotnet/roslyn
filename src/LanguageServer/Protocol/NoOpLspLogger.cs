@@ -5,40 +5,34 @@
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal sealed class NoOpLspLogger : AbstractLspLogger, ILspService
 {
-    internal sealed class NoOpLspLogger : AbstractLspLogger, ILspService
+    public static readonly NoOpLspLogger Instance = new();
+
+    private NoOpLspLogger() { }
+
+    public override IDisposable? CreateContext(string context) => null;
+    public override IDisposable? CreateLanguageContext(string? context) => null;
+
+    public override void LogDebug(string message, params object[] @params)
     {
-        public static readonly NoOpLspLogger Instance = new NoOpLspLogger();
+    }
 
-        private NoOpLspLogger() { }
+    public override void LogException(Exception exception, string? message = null, params object[] @params)
+    {
+    }
 
-        public override void LogDebug(string message, params object[] @params)
-        {
-        }
+    public override void LogInformation(string message, params object[] @params)
+    {
+    }
 
-        public override void LogException(Exception exception, string? message = null, params object[] @params)
-        {
-        }
+    public override void LogWarning(string message, params object[] @params)
+    {
+    }
 
-        public override void LogInformation(string message, params object[] @params)
-        {
-        }
-
-        public override void LogWarning(string message, params object[] @params)
-        {
-        }
-
-        public override void LogError(string message, params object[] @params)
-        {
-        }
-
-        public override void LogStartContext(string message, params object[] @params)
-        {
-        }
-
-        public override void LogEndContext(string message, params object[] @params)
-        {
-        }
+    public override void LogError(string message, params object[] @params)
+    {
     }
 }

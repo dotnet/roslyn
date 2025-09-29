@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Markup;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 

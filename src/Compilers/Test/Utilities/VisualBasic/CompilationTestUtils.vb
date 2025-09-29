@@ -7,9 +7,8 @@ Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Text
-Imports System.Xml.Linq
 Imports Basic.Reference.Assemblies
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -651,7 +650,7 @@ Friend Module CompilationUtils
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
         Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)
-        Return (VisualBasicSyntaxTree.ParseText(text, parseOptions, If(programElement.@name, "")), spans)
+        Return (VisualBasicSyntaxTree.ParseText(text, If(parseOptions, TestOptions.RegularLatest), If(programElement.@name, "")), spans)
     End Function
 
     ' Find a node inside a tree.

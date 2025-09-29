@@ -4,14 +4,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
     Public Class VisualBasicFormattingTestBase
@@ -92,18 +91,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
         Private Protected Overloads Function AssertFormatAsync(
             code As String,
             expected As String,
-            Optional debugMode As Boolean = False,
             Optional changedOptionSet As OptionsCollection = Nothing,
             Optional testWithTransformation As Boolean = False,
             Optional experimental As Boolean = False) As Task
-            Return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, experimental:=experimental)
+            Return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), changedOptionSet, testWithTransformation, experimental:=experimental)
         End Function
 
         Private Protected Overloads Function AssertFormatAsync(
             expected As String,
             code As String,
             spans As IEnumerable(Of TextSpan),
-            Optional debugMode As Boolean = False,
             Optional changedOptionSet As OptionsCollection = Nothing,
             Optional testWithTransformation As Boolean = False,
             Optional experimental As Boolean = False) As Task
@@ -114,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 ' parseOptions = parseOptions.WithExperimentalFeatures
             End If
 
-            Return AssertFormatAsync(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation, parseOptions)
+            Return AssertFormatAsync(expected, code, spans, LanguageNames.VisualBasic, changedOptionSet, testWithTransformation, parseOptions)
         End Function
 
         Private Shared Function StringFromLines(ParamArray lines As String()) As String

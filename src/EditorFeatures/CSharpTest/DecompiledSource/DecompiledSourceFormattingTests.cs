@@ -7,8 +7,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,12 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.DecompiledSource)]
-public class DecompiledSourceFormattingTests
+public sealed class DecompiledSourceFormattingTests
 {
     [Fact]
-    public async Task TestIfFormatting1()
-    {
-        await TestAsync(
+    public Task TestIfFormatting1()
+        => TestAsync(
             """
             class C {
               void M() {
@@ -42,12 +41,10 @@ public class DecompiledSourceFormattingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfFormatting2()
-    {
-        await TestAsync(
+    public Task TestIfFormatting2()
+        => TestAsync(
             """
             class C {
               void M() {
@@ -70,12 +67,10 @@ public class DecompiledSourceFormattingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIfFormatting3()
-    {
-        await TestAsync(
+    public Task TestIfFormatting3()
+        => TestAsync(
             """
             class C {
               void M() {
@@ -101,12 +96,10 @@ public class DecompiledSourceFormattingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTryCatchFinally()
-    {
-        await TestAsync(
+    public Task TestTryCatchFinally()
+        => TestAsync(
             """
             class C {
               void M() {
@@ -134,12 +127,10 @@ public class DecompiledSourceFormattingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoWhile()
-    {
-        await TestAsync(
+    public Task TestDoWhile()
+        => TestAsync(
             """
             class C {
               void M() {
@@ -159,12 +150,10 @@ public class DecompiledSourceFormattingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedIf()
-    {
-        await TestAsync(
+    public Task TestNestedIf()
+        => TestAsync(
             """
             class C {
               void M() {
@@ -189,12 +178,10 @@ public class DecompiledSourceFormattingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestBraces()
-    {
-        await TestAsync(
+    public Task TestBraces()
+        => TestAsync(
             """
             class C {
               void M() {
@@ -248,7 +235,6 @@ public class DecompiledSourceFormattingTests
                 }
             }
             """);
-    }
 
     private static async Task TestAsync(string input, string expected)
     {

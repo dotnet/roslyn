@@ -7,6 +7,11 @@
         <target state="translated">A propriedade apenas para inicialização '{0}' só pode ser atribuída por um inicializador de membro de objeto ou em 'Me', 'MyClass` ou 'MyBase' em um construtor de instância.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract or virtual interface member cannot be accessed.</source>
         <target state="translated">Um membro de interface com abstrato compartilhado ou virtual não pode ser acessado.</target>
@@ -15,6 +20,16 @@
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Erro de sintaxe de linha de comando: '{0}' não é um valor válido para a opção '{1}'. O valor precisa estar no formato '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="translated">Não é possível usar 'OverloadResolutionPriorityAttribute' neste membro.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="translated">Não é possível usar 'OverloadResolutionPriorityAttribute' em um membro que substitui outro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
@@ -44,7 +59,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
         <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="new">Cannot update '{0}'; attribute '{1}' is missing.</target>
+        <target state="translated">Não é possível atualizar '{0}'; o atributo '{1}' está ausente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
@@ -61,6 +76,11 @@
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">Um valor do tipo "System.Threading.Lock" não tem suporte no SyncLock. Em vez disso, pense em chamar manualmente os métodos "Enter" e "Exit" em um bloco Try/Finally.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
+        <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
+        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
@@ -97,6 +117,11 @@
         <target state="translated">A lista de membros requeridos '{0}' está malformada e não pode ser interpretada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</source>
+        <target state="translated">O tipo 'Microsoft.CodeAnalysis.EmbeddedAttribute' deve ser não genérico, Friend, NotInheritable, ter um construtor Public sem parâmetros, herdar de System.Attribute e ser aplicado a qualquer tipo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">O runtime de destino não é compatível com a implementação de interface padrão.</target>
@@ -117,9 +142,14 @@
         <target state="translated">'{0}' é definido no assembly '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeReserved">
         <source>The type name '{0}' is reserved to be used by the compiler.</source>
-        <target state="new">The type name '{0}' is reserved to be used by the compiler.</target>
+        <target state="translated">O nome do tipo '{0}' está reservado para ser usado pelo compilador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -130,6 +160,11 @@
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">Não há suporte para o atributo 'UnmanagedCallersOnly'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</source>
+        <target state="translated">O argumento de tipo '{0}' deve ser um tipo de valor não anulável, juntamente com todos os campos em qualquer nível de aninhamento, para usá-lo como parâmetro de tipo '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -157,9 +192,19 @@
         <target state="translated">atribuindo ou passando as propriedades 'ByRef' com setters apenas para inicialização</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="translated">prioridade de resolução de sobrecarga</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">parâmetros de tipo irrestritos em expressões condicionais binárias</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_UnmanagedConstraint">
+        <source>recognizing 'unmanaged' constraint</source>
+        <target state="translated">reconhecendo restrição 'unmanaged'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VBCHelp">
@@ -320,8 +365,7 @@
 -reportivts[+|-]                  Output information on all IVTs granted to this
                                   assembly by all dependencies, and annotate foreign assembly
                                   accessibility errors with what assembly they came from.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emit compiler output in UTF-8 character
@@ -332,7 +376,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opções do Compilador do Visual Basic
+        <target state="needs-review-translation">                  Opções do Compilador do Visual Basic
 
                                   - ARQUIVO DE SAÍDA -
 -out:&lt;file&gt;                       Especifica o nome do arquivo de saída.
@@ -599,13 +643,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">O assembly do analisador '{0}' referencia a versão '{1}' do compilador, que é mais recente que a versão em execução no momento '{2}'.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">O assembly do analisador '{0}' referencia a versão '{1}' do compilador, que é mais recente que a versão em execução no momento '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">O assembly do analisador faz referência a uma versão mais recente do compilador do que a versão em execução no momento.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">O assembly do analisador faz referência a uma versão mais recente do compilador do que a versão em execução no momento.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -646,6 +690,16 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Referência do analisador especificada várias vezes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</source>
+        <target state="translated">'{0}'é apenas para fins de avaliação e está sujeito a alterações ou remoção em atualizações futuras.'{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="translated">O tipo destina-se somente para fins de avaliação e está sujeito a alterações ou remoções em atualizações futuras.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -9323,7 +9377,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
         <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
-        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
+        <target state="translated">Não é possível ler as informações de depuração do método '{0}' (token 0x{1:X8}) do assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotVisualBasicConversion">

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-
 using Roslyn.Utilities;
 
 namespace Roslyn.LanguageServer.Protocol;
@@ -17,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.14</remarks>
-internal class LocationLink : IEquatable<LocationLink>
+internal sealed class LocationLink : IEquatable<LocationLink>
 {
     /// <summary>
     /// Span of the origin of this link.
@@ -36,7 +35,7 @@ internal class LocationLink : IEquatable<LocationLink>
     [JsonPropertyName("targetUri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri TargetUri { get; init; }
+    public DocumentUri TargetUri { get; init; }
 
     /// <summary>
     /// The full target range of the linked location in the target document, which includes
@@ -63,7 +62,7 @@ internal class LocationLink : IEquatable<LocationLink>
     public bool Equals(LocationLink? other) =>
         other != null
             && EqualityComparer<Range>.Default.Equals(this.OriginSelectionRange, other.OriginSelectionRange)
-            && this.TargetUri != null && other.TargetUri != null && this.TargetUri.Equals(other.TargetUri)
+            && EqualityComparer<DocumentUri>.Default.Equals(this.TargetUri, other.TargetUri)
             && EqualityComparer<Range>.Default.Equals(this.TargetRange, other.TargetRange)
             && EqualityComparer<Range>.Default.Equals(this.TargetSelectionRange, other.TargetSelectionRange);
 
@@ -73,7 +72,7 @@ internal class LocationLink : IEquatable<LocationLink>
         HashCode.Combine(OriginSelectionRange, TargetUri, TargetRange, TargetSelectionRange);
 #else
         Hash.Combine(OriginSelectionRange,
-        Hash.Combine(TargetUri,
+        Hash.Combine(TargetUri.GetHashCode(),
         Hash.Combine(TargetRange, TargetSelectionRange.GetHashCode())));
 #endif
 }

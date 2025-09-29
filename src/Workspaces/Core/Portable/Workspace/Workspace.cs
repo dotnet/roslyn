@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -19,9 +20,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -36,6 +38,12 @@ public abstract partial class Workspace : IDisposable
 {
     private readonly ILegacyGlobalOptionService _legacyOptions;
 
+    private readonly IAsynchronousOperationListener _asyncOperationListener;
+
+    private readonly AsyncBatchingWorkQueue<(EventArgs, EventHandlerSet)> _eventHandlerWorkQueue;
+    private readonly CancellationTokenSource _workQueueTokenSource = new();
+    private readonly ITaskSchedulerProvider _taskSchedulerProvider;
+
     // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
     private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
 
@@ -46,11 +54,6 @@ public abstract partial class Workspace : IDisposable
     /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.
     /// </summary>
     private Solution _latestSolution;
-
-    private readonly TaskQueue _taskQueue;
-
-    // test hooks.
-    internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
 
     /// <summary>
     /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
@@ -74,16 +77,22 @@ public abstract partial class Workspace : IDisposable
         _legacyOptions.RegisterWorkspace(this);
 
         // queue used for sending events
-        var schedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
+        _taskSchedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
+
         var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-        _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
+        _asyncOperationListener = listenerProvider.GetListener();
+        _eventHandlerWorkQueue = new(
+            TimeSpan.Zero,
+            ProcessEventHandlerWorkQueueAsync,
+            _asyncOperationListener,
+            _workQueueTokenSource.Token);
 
         // initialize with empty solution
-        var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
-
-        var emptyOptions = new SolutionOptionSet(_legacyOptions);
-
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: [], fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
+        _latestSolution = CreateSolution(
+            SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()),
+            new SolutionOptionSet(_legacyOptions),
+            analyzerReferences: [],
+            fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
 
         _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             // Idle processing speed
@@ -151,7 +160,7 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
-    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
+    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a WorkspaceChange event.
     /// </summary>
     /// <remarks>
     /// This method does not guarantee that linked files will have the same contents. Callers
@@ -161,9 +170,9 @@ public abstract partial class Workspace : IDisposable
         => SetCurrentSolutionEx(solution).newSolution;
 
     /// <summary>
-    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see
-    /// cref="WorkspaceChanged"/> event.  This method should be used <em>sparingly</em>.  As much as possible,
-    /// derived types should use the SetCurrentSolution overloads that take a transformation.
+    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a
+    /// WorkspaceChange event.  This method should be used <em>sparingly</em>.
+    /// As much as possible, derived types should use the SetCurrentSolution overloads that take a transformation.
     /// </summary>
     /// <remarks>
     /// This method does not guarantee that linked files will have the same contents. Callers
@@ -183,7 +192,7 @@ public abstract partial class Workspace : IDisposable
                 return (solution, solution);
             }
 
-            _latestSolution = solution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+            _latestSolution = solution.WithNewWorkspaceFrom(oldSolution);
             return (oldSolution, _latestSolution);
         }
     }
@@ -354,18 +363,21 @@ public abstract partial class Workspace : IDisposable
             if (relatedDocumentIdsAndStates.IsEmpty)
                 return solution;
 
-            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStates.ToImmutableAndClear(), forceEvenIfTreesWouldDiffer: false);
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStates.ToImmutableAndClear());
         }
 
         static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, HashSet<DocumentId> changedDocumentIds)
         {
+            if (changedDocumentIds.Count == 0)
+                return solution;
+
             // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
             // process that chain once.
             using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var relatedDocumentIdsAndStates);
 
             foreach (var changedDocumentId in changedDocumentIds)
             {
-                Document? changedDocument = null;
+                DocumentState? changedDocumentState = null;
                 var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
 
                 foreach (var relatedDocumentId in relatedDocumentIds)
@@ -375,8 +387,8 @@ public abstract partial class Workspace : IDisposable
 
                     if (!changedDocumentIds.Contains(relatedDocumentId))
                     {
-                        changedDocument ??= solution.GetRequiredDocument(changedDocumentId);
-                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocument.DocumentState;
+                        changedDocumentState ??= solution.SolutionState.GetRequiredDocumentState(changedDocumentId);
+                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocumentState;
                     }
                 }
             }
@@ -386,7 +398,7 @@ public abstract partial class Workspace : IDisposable
 
             var relatedDocumentIdsAndStatesArray = relatedDocumentIdsAndStates.SelectAsArray(static kvp => (kvp.Key, kvp.Value));
 
-            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray, forceEvenIfTreesWouldDiffer: false);
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray);
         }
     }
 
@@ -454,13 +466,13 @@ public abstract partial class Workspace : IDisposable
     /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
     /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
     /// it will be replaced with. The latter may be different than the solution returned by <paramref
-    /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-    /// accordingly.  This will only be run once.</param>
+    /// name="transformation"/> as it may its <see cref="Solution.SolutionStateContentVersion"/> updated
+    /// (if it's <see cref="SolutionState"/> actually changed).  This will only be run once.</param>
     /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
     /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
     /// was replaced with. The latter may be different than the solution returned by <paramref
-    /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-    /// accordingly.  This will only be run once.</param>
+    /// name="transformation"/> as it may have its <see cref="Solution.SolutionStateContentVersion"/> updated
+    /// (if it's <see cref="SolutionState"/> actually changed).  This will only be run once.</param>
     private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
         TData data,
         Func<Solution, TData, Solution> transformation,
@@ -524,7 +536,7 @@ public abstract partial class Workspace : IDisposable
                         continue;
                     }
 
-                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+                    newSolution = newSolution.WithNewWorkspaceFrom(oldSolution);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
                     onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
@@ -581,15 +593,39 @@ public abstract partial class Workspace : IDisposable
     /// Executes an action as a background task, as part of a sequential queue of tasks.
     /// </summary>
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+#pragma warning disable IDE0060 // Remove unused parameter
     protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
+    {
+        // Require main thread on the callback as this is publicly exposed and the given actions may have main thread dependencies.
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => action(), WorkspaceEventOptions.RequiresMainThreadOptions);
+        var handlerSet = EventHandlerSet.Create(handlerAndOptions);
+
+        return ScheduleTask(EventArgs.Empty, handlerSet);
+    }
+
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+    internal Task ScheduleTask(EventArgs args, EventHandlerSet handlerSet)
+    {
+        _eventHandlerWorkQueue.AddWork((args, handlerSet));
+        return _eventHandlerWorkQueue.WaitUntilCurrentBatchCompletesAsync();
+    }
 
     /// <summary>
     /// Execute a function as a background task, as part of a sequential queue of tasks.
     /// </summary>
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
+    protected internal async Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
+    {
+        T? result = default;
+
+        // Require main thread on the callback as this is publicly exposed and the given actions may have main thread dependencies.
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => result = func(), WorkspaceEventOptions.RequiresMainThreadOptions);
+        var handlerSet = EventHandlerSet.Create(handlerAndOptions);
+
+        await ScheduleTask(EventArgs.Empty, handlerSet).ConfigureAwait(false);
+        return result!;
+    }
+#pragma warning restore IDE0060 // Remove unused parameter
 
     /// <summary>
     /// Override this method to act immediately when the text of a document has changed, as opposed
@@ -684,7 +720,7 @@ public abstract partial class Workspace : IDisposable
             // tearing ourselves down.
             this.ClearSolution(reportChangeEvent: false);
 
-            this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
+            _workspaceEventListenerService?.Stop();
         }
 
         _legacyOptions.UnregisterWorkspace(this);
@@ -695,6 +731,40 @@ public abstract partial class Workspace : IDisposable
 
         // We're disposing this workspace.  Stop any work to update SG docs in the background.
         _updateSourceGeneratorsQueueTokenSource.Cancel();
+        _workQueueTokenSource.Cancel();
+    }
+
+    private async ValueTask ProcessEventHandlerWorkQueueAsync(ImmutableSegmentedList<(EventArgs Args, EventHandlerSet HandlerSet)> list, CancellationToken cancellationToken)
+    {
+        // Currently, this method maintains ordering of events to their callbacks. If that were no longer necessary,
+        // further performance optimizations of this method could be considered, such as grouping together 
+        // callbacks by eventargs/registries or parallelizing callbacks.
+
+        // ABWQ callbacks occur on threadpool threads, so we can process the handlers immediately that don't require the main thread.
+        ProcessWorkQueueHelper(list, shouldRaise: static options => !options.RequiresMainThread, cancellationToken);
+
+        // Verify there are handlers which require the main thread before performing the thread switch.
+        if (list.Any(static x => x.HandlerSet.HasMatchingOptions(isMatch: static options => options.RequiresMainThread)))
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                // As the scheduler has moved us to the main thread, we can now process the handlers that require the main thread.
+                ProcessWorkQueueHelper(list, shouldRaise: static options => options.RequiresMainThread, cancellationToken);
+            }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
+        }
+
+        static void ProcessWorkQueueHelper(
+            ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list,
+            Func<WorkspaceEventOptions, bool> shouldRaise,
+            CancellationToken cancellationToken)
+        {
+            foreach (var (args, handlerSet) in list)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                handlerSet.RaiseEvent(args, shouldRaise);
+            }
+        }
     }
 
     #region Host API
@@ -1254,8 +1324,10 @@ public abstract partial class Workspace : IDisposable
                 {
                     updatedDocumentIds.Add(documentId);
 
-                    // Now go update the linked docs to have the same doc contents.
-                    var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
+                    // Now go update the linked docs to have the same doc contents. Note: We want to do this even across
+                    // languags.  If two projects are actually referring to the same file and that file changes, we need
+                    // them all to agree on the contents to leave us in a consistent state.
+                    var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId, includeDifferentLanguages: true);
                     if (linkedDocumentIds.Length > 0)
                     {
                         // Have the linked documents point *into* the same instance data that the initial document
@@ -1265,7 +1337,7 @@ public abstract partial class Workspace : IDisposable
                         foreach (var linkedDocumentId in linkedDocumentIds)
                         {
                             previousSolution = newSolution;
-                            newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
+                            newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
 
                             if (previousSolution != newSolution)
                                 updatedDocumentIds.Add(linkedDocumentId);
@@ -1495,7 +1567,7 @@ public abstract partial class Workspace : IDisposable
             var oldSolution = this.CurrentSolution;
 
             // If the workspace has already accepted an update, then fail
-            if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
+            if (newSolution.SolutionStateContentVersion != oldSolution.SolutionStateContentVersion)
             {
                 Logger.Log(
                     FunctionId.Workspace_ApplyChanges,
@@ -1503,9 +1575,7 @@ public abstract partial class Workspace : IDisposable
                     {
                         // 'oldSolution' is the current workspace solution; if we reach this point we know
                         // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
-                        var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
-                        var newWorkspaceVersion = newSolution.WorkspaceVersion;
-                        return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
+                        return $"Apply Failed: Content version has already been updated (from '{newSolution.SolutionStateContentVersion}' to '{oldSolution.SolutionStateContentVersion}')";
                     },
                     oldSolution,
                     newSolution);
@@ -1546,7 +1616,7 @@ public abstract partial class Workspace : IDisposable
                 this.ApplyProjectRemoved(proj.Id);
             }
 
-            if (this.CurrentSolution.Options != newSolution.Options)
+            if (oldSolution.Options != newSolution.Options)
             {
                 var changedOptions = newSolution.SolutionState.Options.GetChangedOptions();
                 _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
@@ -1969,7 +2039,7 @@ public abstract partial class Workspace : IDisposable
             {
                 // We have the old text, but no new text is easily available. This typically happens when the content is modified via changes to the syntax tree.
                 // Ask document to compute equivalent text changes by comparing the syntax trees, and use them to
-                var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                var textChanges = newDoc.GetTextChangesSynchronously(oldDoc, CancellationToken.None);
                 this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
             }
             else
@@ -1979,15 +2049,6 @@ public abstract partial class Workspace : IDisposable
                 this.ApplyDocumentTextChanged(documentId, newText);
             }
         }
-    }
-
-    [Conditional("DEBUG")]
-    private static void CheckNoChanges(Solution oldSolution, Solution newSolution)
-    {
-        var changes = newSolution.GetChanges(oldSolution);
-        Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
-        Contract.ThrowIfTrue(changes.GetRemovedProjects().Any());
-        Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
     }
 
     private static ProjectInfo CreateProjectInfo(Project project)

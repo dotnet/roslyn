@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -59,7 +58,7 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
 
     protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
     {
-        var testOptions = new TestParameters();
+        var testOptions = TestParameters.Default;
         using (var workspace = (EditorTestWorkspace)CreateWorkspaceFromOptions(initialMarkup, testOptions))
         {
             if (expectedFolders?.Count > 0)
@@ -121,10 +120,10 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
                     await TestOperationsAsync(workspace,
                     expectedText: expectedCode,
                     operations: operations,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    conflictSpans: [],
+                    renameSpans: [],
+                    warningSpans: [],
+                    navigationSpans: [],
                     expectedChangedDocumentId: null));
             }
 
@@ -137,7 +136,7 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
         string expectedSourceOriginal,
         string expectedSourceReference = null)
     {
-        var testOptions = new TestParameters();
+        var testOptions = TestParameters.Default;
         using (var workspace = CreateWorkspaceFromOptions(initialMarkUp, testOptions))
         {
             if (workspace.Projects.Count == 2)
@@ -170,7 +169,7 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
                 var modifiedOringinalRoot = await modifiedOriginalDocument.GetSyntaxRootAsync();
 
                 // One node/token will contain the warning we attached for change namespace action.
-                Assert.Single(modifiedOringinalRoot.DescendantNodesAndTokensAndSelf().Where(n =>
+                Assert.Single(modifiedOringinalRoot.DescendantNodesAndTokensAndSelf(), n =>
                     {
                         IEnumerable<SyntaxAnnotation> annotations;
                         if (n.IsNode)
@@ -184,7 +183,7 @@ public abstract class CSharpSyncNamespaceTestsBase : AbstractCodeActionTest
 
                         return annotations.Any(annotation =>
                             WarningAnnotation.GetDescription(annotation) == FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
-                    }));
+                    });
 
                 var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
                 AssertEx.EqualOrDiff(expectedSourceOriginal, actualText);

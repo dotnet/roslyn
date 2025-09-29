@@ -76,7 +76,7 @@ internal static class ImplementTypeOptionsProviders
 
     public static async ValueTask<ImplementTypeOptions> GetImplementTypeOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return configOptions.GetImplementTypeOptions(document.Project.Language);
     }
 }

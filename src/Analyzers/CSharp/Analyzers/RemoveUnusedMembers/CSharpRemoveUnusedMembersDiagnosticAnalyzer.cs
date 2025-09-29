@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -20,6 +21,8 @@ internal sealed class CSharpRemoveUnusedMembersDiagnosticAnalyzer
         TypeDeclarationSyntax,
         MemberDeclarationSyntax>
 {
+    protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
+
     protected override IEnumerable<TypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken)
     {
         return namedType.DeclaringSyntaxReferences

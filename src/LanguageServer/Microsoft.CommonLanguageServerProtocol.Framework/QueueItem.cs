@@ -6,11 +6,7 @@
 #nullable enable
 
 using System;
-using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -25,10 +21,17 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
+internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
+
+    /// <summary>
+    /// True if this queue item has actually started handling the request
+    /// by delegating to the handler.  False while the item is still being
+    /// processed by the queue.
+    /// </summary>
+    private bool _requestHandlingStarted = false;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
@@ -136,7 +139,6 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 
             // End the request - the caller will return immediately if it cannot deserialize.
             _requestTelemetryScope?.Dispose();
-            _logger.LogEndContext($"{MethodName}");
 
             // If the request is mutating, bubble the exception out so the queue shuts down.
             if (isMutating)
@@ -158,7 +160,9 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     /// </summary>
     public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, string language, CancellationToken cancellationToken)
     {
-        _logger.LogStartContext($"{MethodName}");
+        _requestHandlingStarted = true;
+
+        _logger.LogDebug("Starting request handler");
 
         try
         {
@@ -212,12 +216,14 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
             {
                 throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {handler.GetType()}.");
             }
+
+            _logger.LogDebug("Request handler completed successfully.");
         }
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
             _requestTelemetryScope?.RecordCancellation();
-            _logger.LogInformation($"{MethodName} - Canceled");
+            _logger.LogDebug($"Request was cancelled.");
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
@@ -233,11 +239,26 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         finally
         {
             _requestTelemetryScope?.Dispose();
-            _logger.LogEndContext($"{MethodName}");
         }
 
         // Return the result of this completion source to the caller
         // so it can decide how to handle the result / exception.
         await _completionSource.Task.ConfigureAwait(false);
+    }
+
+    public void FailRequest(string message)
+    {
+        // This is not valid to call after StartRequestAsync starts as they both access the same state.
+        // StartRequestAsync handles any failures internally once it runs.
+        if (_requestHandlingStarted)
+        {
+            throw new InvalidOperationException("Cannot manually fail queue item after it has started");
+        }
+        var exception = new Exception(message);
+        _requestTelemetryScope?.RecordException(exception);
+        _logger.LogException(exception);
+
+        _completionSource.TrySetException(exception);
+        _requestTelemetryScope?.Dispose();
     }
 }

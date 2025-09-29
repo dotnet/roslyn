@@ -8,11 +8,11 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -32,14 +32,31 @@ internal sealed partial class EventHookupSessionManager(
 
     private IToolTipPresenter _toolTipPresenter;
 
-    internal EventHookupSession CurrentSession { get; set; }
+    internal EventHookupSession CurrentSession
+    {
+        get
+        {
+            ThreadingContext.ThrowIfNotOnUIThread();
+            return field;
+        }
+
+        set
+        {
+            ThreadingContext.ThrowIfNotOnUIThread();
+            field?.CancelBackgroundTasks();
+            field = value;
+        }
+    }
 
     // For test purposes only!
     internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-    internal void EventHookupFoundInSession(EventHookupSession analyzedSession, string eventName)
+    public async Task EventHookupFoundInSessionAsync(
+        EventHookupSession analyzedSession, string eventName, CancellationToken cancellationToken)
     {
-        ThreadingContext.ThrowIfNotOnUIThread();
+        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+        if (cancellationToken.IsCancellationRequested)
+            return;
 
         var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
@@ -118,17 +135,10 @@ internal sealed partial class EventHookupSessionManager(
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 
-        if (_toolTipPresenter != null)
-        {
-            _toolTipPresenter.Dismiss();
-            _toolTipPresenter = null;
-        }
+        _toolTipPresenter?.Dismiss();
+        _toolTipPresenter = null;
 
-        if (CurrentSession != null)
-        {
-            CurrentSession.CancelBackgroundTasks();
-            CurrentSession = null;
-        }
+        CurrentSession = null;
 
         // For test purposes only!
         TEST_MostRecentToolTipContent = null;

@@ -3,11 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Public Class BasicMoveTypeTestsBase
@@ -32,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
         ) As Task
 
             Dim expectedText As String = Nothing
-            If Not expectedCode Is Nothing Then
+            If expectedCode IsNot Nothing Then
                 expectedText = expectedCode.ConvertTestSourceTag()
             End If
 

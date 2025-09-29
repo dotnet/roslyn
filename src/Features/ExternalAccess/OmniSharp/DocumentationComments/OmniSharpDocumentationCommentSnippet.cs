@@ -4,30 +4,29 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments;
+
+internal sealed class OmniSharpDocumentationCommentSnippet
 {
-    internal sealed class OmniSharpDocumentationCommentSnippet
+    /// <summary>
+    /// The span in the original text that should be replaced with the documentation comment.
+    /// </summary>
+    public TextSpan SpanToReplace { get; }
+
+    /// <summary>
+    /// The documentation comment text to replace the span with
+    /// </summary>
+    public string SnippetText { get; }
+
+    /// <summary>
+    /// The offset within <see cref="SnippetText"/> where the caret should be positioned after replacement
+    /// </summary>
+    public int CaretOffset { get; }
+
+    internal OmniSharpDocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset)
     {
-        /// <summary>
-        /// The span in the original text that should be replaced with the documentation comment.
-        /// </summary>
-        public TextSpan SpanToReplace { get; }
-
-        /// <summary>
-        /// The documentation comment text to replace the span with
-        /// </summary>
-        public string SnippetText { get; }
-
-        /// <summary>
-        /// The offset within <see cref="SnippetText"/> where the caret should be positioned after replacement
-        /// </summary>
-        public int CaretOffset { get; }
-
-        internal OmniSharpDocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset)
-        {
-            SpanToReplace = spanToReplace;
-            SnippetText = snippetText;
-            CaretOffset = caretOffset;
-        }
+        SpanToReplace = spanToReplace;
+        SnippetText = snippetText;
+        CaretOffset = caretOffset;
     }
 }

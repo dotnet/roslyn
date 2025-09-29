@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly IEqualityComparer<T> _inner;
 
+        public static WrappedUserComparer<T> Default { get; } = new WrappedUserComparer<T>(EqualityComparer<T>.Default);
+
         public WrappedUserComparer(IEqualityComparer<T> inner)
         {
             _inner = inner;

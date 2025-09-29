@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ using DocumentAndHashBuilder = ArrayBuilder<(Document newDocument, ImmutableArra
 
 internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
 {
-    internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler? mergeConflictHandler, CancellationToken cancellationToken)
+    internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(CancellationToken cancellationToken)
     {
         using var _1 = PooledDictionary<string, DocumentAndHashBuilder>.GetInstance(out var filePathToNewDocumentsAndHashes);
         try
@@ -71,7 +72,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
                 else
                 {
                     // Otherwise, merge the changes and set all the linked files to that merged content.
-                    var mergeGroupResult = await MergeLinkedDocumentGroupAsync(newDocumentsAndHashes, mergeConflictHandler, cancellationToken).ConfigureAwait(false);
+                    var mergeGroupResult = await MergeLinkedDocumentGroupAsync(newDocumentsAndHashes, cancellationToken).ConfigureAwait(false);
                     linkedFileMergeResults.Add(mergeGroupResult);
                     updatedSolution = updatedSolution.WithDocumentTexts(
                         relatedDocuments.SelectAsArray(d => (d, mergeGroupResult.MergedSourceText)));
@@ -89,7 +90,6 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
 
     private async Task<LinkedFileMergeResult> MergeLinkedDocumentGroupAsync(
         DocumentAndHashBuilder newDocumentsAndHashes,
-        IMergeConflictHandler? mergeConflictHandler,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(newDocumentsAndHashes.Count < 2);
@@ -125,8 +125,7 @@ internal sealed class LinkedFileDiffMergingSession(Solution oldSolution, Solutio
         if (unmergedChanges.Count == 0)
             return new LinkedFileMergeResult(linkedDocuments, firstOldSourceText.WithChanges(allTextChangesAcrossLinkedFiles), []);
 
-        mergeConflictHandler ??= firstOldDocument.GetRequiredLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
-        var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(firstOldSourceText, unmergedChanges);
+        var mergeConflictTextEdits = LinkedFileMergeConflictCommentAdditionService.CreateEdits(firstOldSourceText, unmergedChanges);
 
         // Add comments in source explaining diffs that could not be merged
         var (allChanges, mergeConflictResolutionSpans) = MergeChangesWithMergeFailComments(allTextChangesAcrossLinkedFiles, mergeConflictTextEdits);

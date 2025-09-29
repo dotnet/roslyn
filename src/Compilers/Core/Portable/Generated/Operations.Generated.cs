@@ -1177,8 +1177,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation? WhenFalse { get; }
         /// <summary>
-        /// Is result a managed reference
+        /// <see langword="true" /> if the result is by-reference.
         /// </summary>
+        /// <remarks>
+        /// This occurs in C# for ternaries whose branches use <see langword="ref" />.
+        /// </remarks>
         bool IsRef { get; }
     }
     /// <summary>

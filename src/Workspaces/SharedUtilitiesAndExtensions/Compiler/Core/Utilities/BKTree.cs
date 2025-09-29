@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities;
@@ -43,7 +44,7 @@ internal readonly partial struct BKTree
     /// create slices, and they need to work on top of an ArraySlice (which needs a char[]).  The edit distance code
     /// also wants to work on top of raw char[]s (both for speed, and so it can pool arrays to prevent lots of
     /// garbage).  Because of that we just keep this as a char[].
-    /// </summary> 
+    /// </summary>
     private readonly char[] _concatenatedLowerCaseWords;
     private readonly ImmutableArray<Node> _nodes;
     private readonly ImmutableArray<Edge> _edges;
@@ -70,25 +71,20 @@ internal readonly partial struct BKTree
         if (_nodes.Length == 0)
             return;
 
-        var lowerCaseCharacters = ArrayPool<char>.GetArray(value.Length);
-        try
-        {
-            for (var i = 0; i < value.Length; i++)
-                lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
+        var lowerCaseCharacters = value.Length < 512
+            ? stackalloc char[value.Length]
+            : new char[value.Length];
 
-            threshold ??= WordSimilarityChecker.GetThreshold(value);
-            Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, ref result, recursionCount: 0);
-        }
-        finally
-        {
-            ArrayPool<char>.ReleaseArray(lowerCaseCharacters);
-        }
+        for (var i = 0; i < value.Length; i++)
+            lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
+
+        threshold ??= WordSimilarityChecker.GetThreshold(value);
+        Lookup(_nodes[0], lowerCaseCharacters, threshold.Value, ref result, recursionCount: 0);
     }
 
     private void Lookup(
         Node currentNode,
-        char[] queryCharacters,
-        int queryLength,
+        Span<char> queryCharacters,
         int threshold,
         ref TemporaryArray<string> result,
         int recursionCount)
@@ -108,7 +104,7 @@ internal readonly partial struct BKTree
         }
 
         // We may need to compute the real edit distance (ignoring any thresholds) in the case
-        // where edges exist as we need that edit distance to appropriately determine which edges to walk 
+        // where edges exist as we need that edit distance to appropriately determine which edges to walk
         // in the tree.
         var characterSpan = currentNode.WordSpan;
 
@@ -122,7 +118,7 @@ internal readonly partial struct BKTree
         var edgesExist = currentNode.EdgeCount > 0;
         var editDistance = EditDistance.GetEditDistance(
             _concatenatedLowerCaseWords.AsSpan(characterSpan.Start, characterSpan.Length),
-            queryCharacters.AsSpan(0, queryLength),
+            queryCharacters,
             edgesExist ? int.MaxValue : threshold);
 
         // Case 1
@@ -146,7 +142,7 @@ internal readonly partial struct BKTree
                 if (min <= childEditDistance && childEditDistance <= max)
                 {
                     Lookup(_nodes[_edges[i].ChildNodeIndex],
-                        queryCharacters, queryLength, threshold, ref result,
+                        queryCharacters, threshold, ref result,
                         recursionCount + 1);
                 }
             }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SemanticSearch;
 [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), WorkspaceKind.SemanticSearch), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class SemanticSeatchTextBufferSupportsFeatureService() : ITextBufferSupportsFeatureService
+internal sealed class SemanticSearchTextBufferSupportsFeatureService() : ITextBufferSupportsFeatureService
 {
     public bool SupportsCodeFixes(ITextBuffer textBuffer)
         => true;

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class EncapsulateFieldCommandHandler(
+internal sealed class EncapsulateFieldCommandHandler(
     IThreadingContext threadingContext,
     ITextBufferUndoManagerProvider undoManager,
     IAsynchronousOperationListenerProvider listenerProvider) : AbstractEncapsulateFieldCommandHandler(threadingContext, undoManager, listenerProvider)

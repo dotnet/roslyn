@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -37,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Formatting;
 [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class FormatCommandHandler(
+internal sealed partial class FormatCommandHandler(
+    IThreadingContext threadingContext,
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     IGlobalOptionService globalOptions) :
@@ -47,6 +47,7 @@ internal partial class FormatCommandHandler(
     IChainedCommandHandler<TypeCharCommandArgs>,
     IChainedCommandHandler<ReturnKeyCommandArgs>
 {
+    private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
@@ -55,33 +56,40 @@ internal partial class FormatCommandHandler(
 
     private void Format(ITextView textView, ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
     {
-        var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
-
-        using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
+        using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(
+            LogType.UserAction, static (m, selectionOpt) => m["Span"] = selectionOpt?.Length ?? -1, selectionOpt), cancellationToken))
         using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
         {
-            // Note: C# always completes synchronously, TypeScript is async
-            var changes = formattingService.GetFormattingChangesAsync(document, textBuffer, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.IsEmpty)
-            {
-                return;
-            }
-
-            if (selectionOpt.HasValue)
-            {
-                var ruleFactory = document.Project.Solution.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-                changes = ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes).ToImmutableArray();
-            }
-
-            if (!changes.IsEmpty)
-            {
-                using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-                {
-                    textBuffer.ApplyChanges(changes);
-                }
-            }
+            _threadingContext.JoinableTaskFactory.Run(() => FormatAsync(
+                textBuffer, document, selectionOpt, cancellationToken));
 
             transaction.Complete();
+        }
+    }
+
+    private static async Task FormatAsync(
+        ITextBuffer textBuffer, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+    {
+        var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
+
+        // Note: C# always completes synchronously, TypeScript is async
+        var changes = await formattingService.GetFormattingChangesAsync(
+            document, textBuffer, selectionOpt, cancellationToken).ConfigureAwait(true);
+        if (changes.IsEmpty)
+            return;
+
+        if (selectionOpt.HasValue)
+        {
+            var ruleFactory = document.Project.Solution.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            changes = [.. ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes)];
+        }
+
+        if (!changes.IsEmpty)
+        {
+            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+            {
+                textBuffer.ApplyChanges(changes);
+            }
         }
     }
 
@@ -102,7 +110,7 @@ internal partial class FormatCommandHandler(
 
         try
         {
-            ExecuteReturnOrTypeCommandWorker(args, cancellationToken);
+            _threadingContext.JoinableTaskFactory.Run(() => ExecuteReturnOrTypeCommandWorkerAsync(args, cancellationToken));
         }
         catch (OperationCanceledException)
         {
@@ -112,32 +120,24 @@ internal partial class FormatCommandHandler(
         }
     }
 
-    private void ExecuteReturnOrTypeCommandWorker(EditorCommandArgs args, CancellationToken cancellationToken)
+    private async Task ExecuteReturnOrTypeCommandWorkerAsync(EditorCommandArgs args, CancellationToken cancellationToken)
     {
         var textView = args.TextView;
         var subjectBuffer = args.SubjectBuffer;
         if (!CanExecuteCommand(subjectBuffer))
-        {
             return;
-        }
 
         var caretPosition = textView.GetCaretPoint(args.SubjectBuffer);
         if (!caretPosition.HasValue)
-        {
             return;
-        }
 
         var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-        {
             return;
-        }
 
         var service = document.GetLanguageService<IFormattingInteractionService>();
         if (service == null)
-        {
             return;
-        }
 
         IList<TextChange>? textChanges;
 
@@ -145,12 +145,11 @@ internal partial class FormatCommandHandler(
         if (args is ReturnKeyCommandArgs)
         {
             if (!service.SupportsFormatOnReturn)
-            {
                 return;
-            }
 
             // Note: C# always completes synchronously, TypeScript is async
-            textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+            textChanges = await service.GetFormattingChangesOnReturnAsync(
+                document, caretPosition.Value, cancellationToken).ConfigureAwait(true);
         }
         else if (args is TypeCharCommandArgs typeCharArgs)
         {
@@ -160,8 +159,8 @@ internal partial class FormatCommandHandler(
             }
 
             // Note: C# always completes synchronously, TypeScript is async
-            textChanges = service.GetFormattingChangesAsync(
-                document, typeCharArgs.SubjectBuffer, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+            textChanges = await service.GetFormattingChangesAsync(
+                document, typeCharArgs.SubjectBuffer, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).ConfigureAwait(true);
         }
         else
         {
@@ -169,9 +168,7 @@ internal partial class FormatCommandHandler(
         }
 
         if (textChanges == null || textChanges.Count == 0)
-        {
             return;
-        }
 
         using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Automatic_Formatting))
         {
@@ -183,18 +180,14 @@ internal partial class FormatCommandHandler(
         // get new caret position after formatting
         var newCaretPositionMarker = args.TextView.GetCaretPoint(args.SubjectBuffer);
         if (!newCaretPositionMarker.HasValue)
-        {
             return;
-        }
 
         var snapshotAfterFormatting = subjectBuffer.CurrentSnapshot;
 
         var oldCaretPosition = caretPosition.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
         var newCaretPosition = newCaretPositionMarker.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
         if (oldCaretPosition.Position == newCaretPosition.Position)
-        {
             return;
-        }
 
         // caret has moved to wrong position, move it back to correct position
         args.TextView.TryMoveCaretToAndEnsureVisible(oldCaretPosition);

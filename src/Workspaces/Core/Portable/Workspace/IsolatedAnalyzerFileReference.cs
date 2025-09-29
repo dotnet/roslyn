@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Diagnostics;
 using System.Runtime.Loader;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis;
 

@@ -115,11 +115,6 @@ Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İ
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Tamamlanma listesi ayarlarını değiştir;en son kullanılan üyeyi önceden seç</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">IDE’de kullanılan Visual Basic bileşenleri. Projenizin türüne ve ayarlarına bağlı olarak, derleyicinin farklı bir sürümü kullanılabilir.</target>

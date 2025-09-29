@@ -17,19 +17,23 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Roslyn.Test.Utilities
 {
     public static class TestHelpers
     {
+        /// <summary>
+        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
+        /// </summary>
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(4);
+
         public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(
             IEqualityComparer<K> comparer,
-            params (K, V)[] entries)
-            => ImmutableDictionary.CreateRange(comparer, entries.Select(KeyValuePair.ToKeyValuePair));
+            params (K key, V value)[] entries)
+            => ImmutableDictionary.CreateRange(comparer, entries.Select(t => KeyValuePair.Create(t.key, t.value)));
 
-        public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(params (K, V)[] entries)
-            => ImmutableDictionary.CreateRange(entries.Select(KeyValuePair.ToKeyValuePair));
+        public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(params (K key, V value)[] entries)
+            => ImmutableDictionary.CreateRange(entries.Select(t => KeyValuePair.Create(t.key, t.value)));
 
         public static IEnumerable<Type> GetAllTypesWithStaticFieldsImplementingType(Assembly assembly, Type type)
         {

@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     [CompilerTrait(CompilerFeature.DefaultInterfaceImplementation)]
     public class DefaultInterfaceImplementationTests : CSharpTestBase
     {
+        private sealed class CSharp13_CSharp14_Preview()
+            : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersion.CSharp14, LanguageVersion.Preview);
+
         [Theory]
         [CombinatorialData]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
@@ -51,25 +54,13 @@ public interface I1
 
         private static Verification Verify(bool isStatic)
         {
+            // IL Verify complains about static constrained calls: "Missing callvirt following constrained prefix."
             return isStatic ? Verification.Skipped : VerifyOnMonoOrCoreClr;
         }
 
         private static bool Execute(bool isStatic, bool haveImplementationInDerivedInterface = false, bool hasImplementationOfVirtualInDerivedType = false)
         {
-            // The runtime ignores the implementation of a static virtual method in derived types
-            // Tracked by https://github.com/dotnet/roslyn/issues/64501
-            if (isStatic && hasImplementationOfVirtualInDerivedType)
-            {
-                return false;
-            }
-
-            // https://github.com/dotnet/roslyn/issues/61321 : Enable execution for isStatic and haveImplementationInDerivedInterface once runtime can handle it.
-            if (!ExecutionConditionUtil.IsMonoOrCoreClr || (isStatic && haveImplementationInDerivedInterface))
-            {
-                return false;
-            }
-
-            return true;
+            return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 
         private static Verification VerifyOnMonoOrCoreClr_FailsIlVerify
@@ -3346,7 +3337,7 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_109A(bool isStatic, bool useCSharp13)
+        public void PropertyImplementation_109A(bool isStatic, [CSharp13_CSharp14_Preview] LanguageVersion langVer)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3369,26 +3360,31 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVer),
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            bool useCSharp13 = langVer == LanguageVersion.CSharp13;
 
             switch (isStatic, useCSharp13)
             {
                 case (true, true):
                     compilation1.VerifyDiagnostics(
-                        // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,24): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                         //     static virtual int P1 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 24));
                     break;
                 case (true, false):
-                    compilation1.VerifyDiagnostics();
+                    compilation1.VerifyDiagnostics(
+                        // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        //         get
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
                     break;
                 case (false, true):
                     compilation1.VerifyDiagnostics(
-                        // (4,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,9): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                         //     int P1 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 9),
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 9),
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
@@ -3399,7 +3395,10 @@ class Test1 : I1
                     compilation1.VerifyDiagnostics(
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9),
+                        // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        //         get
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
                     break;
             }
 
@@ -3431,7 +3430,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_109B(bool useCSharp13)
+        public void PropertyImplementation_109B([CSharp13_CSharp14_Preview] LanguageVersion langVer)
         {
             var source1 =
 @"
@@ -3452,20 +3451,25 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVer),
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            bool useCSharp13 = langVer == LanguageVersion.CSharp13;
 
             if (useCSharp13)
             {
                 compilation1.VerifyDiagnostics(
-                    // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static int P1 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 16));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 16));
             }
             else
             {
-                compilation1.VerifyDiagnostics();
+                compilation1.VerifyDiagnostics(
+                    // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                    //         get
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
             }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -3496,7 +3500,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_110A(bool isStatic, bool useCSharp13)
+        public void PropertyImplementation_110A(bool isStatic, [CSharp13_CSharp14_Preview] LanguageVersion langVer)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3515,26 +3519,31 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVer),
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            bool useCSharp13 = langVer == LanguageVersion.CSharp13;
 
             switch (isStatic, useCSharp13)
             {
                 case (true, true):
                     compilation1.VerifyDiagnostics(
-                        // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,24): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                         //     static virtual int P1 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 24));
                     break;
                 case (true, false):
-                    compilation1.VerifyDiagnostics();
+                    compilation1.VerifyDiagnostics(
+                        // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        //         set => System.Console.WriteLine("set P1");
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
                     break;
                 case (false, true):
                     compilation1.VerifyDiagnostics(
-                        // (4,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,9): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                         //     int P1 
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 9),
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 9),
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
@@ -3545,7 +3554,10 @@ class Test1 : I1
                     compilation1.VerifyDiagnostics(
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9),
+                        // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        //         set => System.Console.WriteLine("set P1");
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
                     break;
             }
 
@@ -3577,7 +3589,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_110B(bool useCSharp13)
+        public void PropertyImplementation_110B([CSharp13_CSharp14_Preview] LanguageVersion langVer)
         {
             var source1 =
 @"
@@ -3594,20 +3606,25 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(langVer),
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            bool useCSharp13 = langVer == LanguageVersion.CSharp13;
 
             if (useCSharp13)
             {
                 compilation1.VerifyDiagnostics(
-                    // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,16): error CS9260: Feature 'field keyword' is not available in C# 13.0. Please use language version 14.0 or greater.
                     //     static int P1 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 16));
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "P1").WithArguments("field keyword", "14.0").WithLocation(4, 16));
             }
             else
             {
-                compilation1.VerifyDiagnostics();
+                compilation1.VerifyDiagnostics(
+                    // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                    //         set => System.Console.WriteLine("set P1");
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
             }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -23758,9 +23775,9 @@ class Test2 : I1, I2, I3
                 // (26,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 //         I1.I2 I3.I4.M4() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(26, 12),
-                // (26,21): error CS0539: 'CI4.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (26,21): error CS9334: 'CI4.M4()' return type must be 'I1.I2' to match implemented member 'I3.I4.M4()'
                 //         I1.I2 I3.I4.M4() => null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("CI4.M4()").WithLocation(26, 21),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M4").WithArguments("CI4.M4()", "I1.I2", "I3.I4.M4()").WithLocation(26, 21),
                 // (33,29): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'C3.I6.M6()'
                 //             protected I1.I2 M6();
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C3.I6.M6()", "I1.I2").WithLocation(33, 29),
@@ -23770,9 +23787,9 @@ class Test2 : I1, I2, I3
                 // (39,12): error CS0122: 'I1.I2' is inaccessible due to its protection level
                 //         I1.I2 C3.I6.M6() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1.I2").WithLocation(39, 12),
-                // (39,21): error CS0539: 'CI6.M6()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (39,21): error CS9334: 'CI6.M6()' return type must be 'I1.I2' to match implemented member 'C3.I6.M6()'
                 //         I1.I2 C3.I6.M6() => null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M6").WithArguments("CI6.M6()").WithLocation(39, 21),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M6").WithArguments("CI6.M6()", "I1.I2", "C3.I6.M6()").WithLocation(39, 21),
                 // (46,37): error CS0050: Inconsistent accessibility: return type 'C1.I2' is less accessible than method 'C33.C44.M44()'
                 //             protected virtual C1.I2 M44() => null;
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "M44").WithArguments("C33.C44.M44()", "C1.I2").WithLocation(46, 37),
@@ -23941,9 +23958,9 @@ class Test2 : I1, I2, I3
                 // (26,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
                 //         I1<string>.I2 I3.I4.M4() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(26, 20),
-                // (26,29): error CS0539: 'CI4.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (26,29): error CS9334: 'CI4.M4()' type must be 'I1<string>.I2' to match implemented member 'I3.I4.M4()'
                 //         I1<string>.I2 I3.I4.M4() => null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("CI4.M4()").WithLocation(26, 29),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M4").WithArguments("CI4.M4()", "I1<string>.I2", "I3.I4.M4()").WithLocation(26, 29),
                 // (33,37): error CS0050: Inconsistent accessibility: return type 'I1<string>.I2' is less accessible than method 'C3.I6.M6()'
                 //             protected I1<string>.I2 M6();
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C3.I6.M6()", "I1<string>.I2").WithLocation(33, 37),
@@ -23953,9 +23970,9 @@ class Test2 : I1, I2, I3
                 // (39,20): error CS0122: 'I1<string>.I2' is inaccessible due to its protection level
                 //         I1<string>.I2 C3.I6.M6() => null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "I2").WithArguments("I1<string>.I2").WithLocation(39, 20),
-                // (39,29): error CS0539: 'CI6.M6()' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (39,29): error CS9334: 'CI6.M6()' type must be 'I1<string>.I2' to match implemented member 'C3.I6.M6()'
                 //         I1<string>.I2 C3.I6.M6() => null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M6").WithArguments("CI6.M6()").WithLocation(39, 29),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M6").WithArguments("CI6.M6()", "I1<string>.I2", "C3.I6.M6()").WithLocation(39, 29),
                 // (46,45): error CS0050: Inconsistent accessibility: return type 'C1<string>.I2' is less accessible than method 'C33.C44.M44()'
                 //             protected virtual C1<string>.I2 M44() => null;
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "M44").WithArguments("C33.C44.M44()", "C1<string>.I2").WithLocation(46, 45),
@@ -44579,33 +44596,24 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (70,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial I15();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(70, 12),
-                // (70,20): error CS0501: 'I15.I15()' must declare a body because it is not marked abstract, extern, or partial
-                //     static partial I15();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I15").WithArguments("I15.I15()").WithLocation(70, 20),
-                // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
-                //     static partial I15();
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(70, 12),
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (78,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial I17() => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(78, 12),
-                // (78,20): error CS0542: 'I17': member names cannot be the same as their enclosing type
-                //     static partial I17() => throw null;
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I17").WithArguments("I17").WithLocation(78, 20),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(78, 12),
                 // (82,19): error CS0179: 'I18.I18()' cannot be extern and declare a body
                 //     extern static I18() {}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "I18").WithArguments("I18.I18()").WithLocation(82, 19),

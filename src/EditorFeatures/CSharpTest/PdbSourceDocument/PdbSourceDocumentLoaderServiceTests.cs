@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,21 +16,18 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
-public class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
+public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
-    public async Task ReturnsSourceFileFromSourceLink()
-    {
-        var source = """
+    public Task ReturnsSourceFileFromSourceLink()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
@@ -45,28 +41,24 @@ public class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTest
             using var hash = SHA256.Create();
             var fileHash = hash.ComputeHash(File.ReadAllBytes(sourceFilePath));
 
-            var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithms.Default, fileHash.ToImmutableArray(), null, "https://sourcelink");
+            var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithms.Default, [.. fileHash], null, "https://sourcelink");
             var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, CancellationToken.None);
 
             Assert.NotNull(result);
             Assert.Equal(sourceFilePath, result!.FilePath);
             Assert.True(result.FromRemoteLocation);
         });
-    }
 
     [Fact]
-    public async Task NoUrlFoundReturnsNull()
-    {
-        var source = """
+    public Task NoUrlFoundReturnsNull()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
@@ -82,5 +74,4 @@ public class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTest
 
             Assert.Null(result);
         });
-    }
 }

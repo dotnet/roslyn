@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular11 = Regular.WithLanguageVersion(LanguageVersion.CSharp11);
         public static readonly CSharpParseOptions Regular12 = Regular.WithLanguageVersion(LanguageVersion.CSharp12);
         public static readonly CSharpParseOptions Regular13 = Regular.WithLanguageVersion(LanguageVersion.CSharp13);
+        public static readonly CSharpParseOptions Regular14 = Regular.WithLanguageVersion(LanguageVersion.CSharp14);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions RegularPreviewWithDocumentationComments = RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions RegularWithLegacyStrongName = Regular.WithFeature("UseLegacyStrongNameProvider");
@@ -99,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions SigningDebugDll = DebugDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
 
         public static readonly EmitOptions NativePdbEmit = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb);
+
+        public static readonly GeneratorDriverOptions GeneratorDriverOptions = new GeneratorDriverOptions(trackIncrementalGeneratorSteps: true, baseDirectory: TempRoot.Root);
 
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {

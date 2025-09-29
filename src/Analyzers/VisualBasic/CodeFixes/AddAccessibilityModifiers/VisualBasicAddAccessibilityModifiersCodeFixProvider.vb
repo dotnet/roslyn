@@ -3,15 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
+Imports Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddAccessibilityModifiers), [Shared]>
-    Friend Class VisualBasicAddAccessibilityModifiersCodeFixProvider
-        Inherits AbstractAddAccessibilityModifiersCodeFixProvider
+Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddOrRemoveAccessibilityModifiers), [Shared]>
+    Friend NotInheritable Class VisualBasicAddOrRemoveAccessibilityModifiersCodeFixProvider
+        Inherits AbstractAddOrRemoveAccessibilityModifiersCodeFixProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Highlighting;
 internal sealed class HighlightingService(
     [ImportMany] IEnumerable<Lazy<IHighlighter, LanguageMetadata>> highlighters) : IHighlightingService
 {
-    private readonly List<Lazy<IHighlighter, LanguageMetadata>> _highlighters = highlighters.ToList();
+    private readonly List<Lazy<IHighlighter, LanguageMetadata>> _highlighters = [.. highlighters];
     private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => []);
 
     public void AddHighlights(

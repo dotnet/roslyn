@@ -319,11 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public MustOverride ReadOnly Property AllowsRefLikeType As Boolean Implements ITypeParameterSymbol.AllowsRefLikeType
 
-        Private ReadOnly Property HasUnmanagedTypeConstraint As Boolean Implements ITypeParameterSymbol.HasUnmanagedTypeConstraint
-            Get
-                Return False
-            End Get
-        End Property
+        Friend MustOverride ReadOnly Property HasUnmanagedTypeConstraint As Boolean Implements ITypeParameterSymbol.HasUnmanagedTypeConstraint
 
         Private ReadOnly Property HasNotNullConstraint As Boolean Implements ITypeParameterSymbol.HasNotNullConstraint
             Get
@@ -332,6 +328,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public MustOverride ReadOnly Property Variance As VarianceKind Implements ITypeParameterSymbol.Variance
+
+        Friend Overrides Function GetManagedKind(ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+            Return If(HasUnmanagedTypeConstraint, ManagedKind.Unmanaged, ManagedKind.Managed)
+        End Function
 
         ''' <summary>
         ''' If this is a type parameter of a reduced extension method, gets the type parameter definition that

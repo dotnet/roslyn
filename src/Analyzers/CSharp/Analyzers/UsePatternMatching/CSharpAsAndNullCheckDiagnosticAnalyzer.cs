@@ -27,17 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 /// </code>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.InlineAsTypeCheckId,
+        EnforceOnBuildValues.InlineAsType,
+        CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
+        new LocalizableResourceString(
+            nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpAsAndNullCheckDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.InlineAsTypeCheckId,
-               EnforceOnBuildValues.InlineAsType,
-               CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
-               new LocalizableResourceString(
-                    nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -104,26 +101,20 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractB
             return;
         }
 
-        var localStatement = declarator.Parent?.Parent;
-        var enclosingBlock = localStatement?.Parent;
-        if (localStatement == null ||
-            enclosingBlock == null)
-        {
-            return;
-        }
-
-        // Bail out if the potential diagnostic location is outside the analysis span.
-        if (!syntaxContext.ShouldAnalyzeSpan(localStatement.Span))
-            return;
-
-        // Don't convert if the as is part of a using statement
-        // eg using (var x = y as MyObject) { }
-        if (localStatement is UsingStatementSyntax)
+        if (declarator is not { Parent.Parent: LocalDeclarationStatementSyntax localStatement })
             return;
 
         // Don't convert if the as is part of a local declaration with a using keyword
         // eg using var x = y as MyObject;
         if (localStatement is LocalDeclarationStatementSyntax localDecl && localDecl.UsingKeyword != default)
+            return;
+
+        var enclosingBlock = localStatement.Parent;
+        if (enclosingBlock is not BlockSyntax and not SwitchSectionSyntax)
+            return;
+
+        // Bail out if the potential diagnostic location is outside the analysis span.
+        if (!syntaxContext.ShouldAnalyzeSpan(localStatement.Span))
             return;
 
         var typeNode = asExpression.Right;
@@ -202,7 +193,7 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractB
 
         if (!Analyzer.CanSafelyConvertToPatternMatching(
                 semanticModel, localSymbol, comparison, operand,
-                localStatement, enclosingBlock, cancellationToken))
+                localStatement, declarator, enclosingBlock, cancellationToken))
         {
             return;
         }

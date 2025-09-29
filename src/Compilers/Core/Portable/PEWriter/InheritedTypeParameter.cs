@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -34,7 +33,7 @@ namespace Microsoft.Cci
 
         #region IGenericParameter Members
 
-        public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
+        public virtual IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
         {
             return _parentParameter.GetConstraints(context);
         }
@@ -200,7 +199,7 @@ namespace Microsoft.Cci
 
         CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
 
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+        public virtual IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
             return _parentParameter.GetAttributes(context);
         }
@@ -254,7 +253,7 @@ namespace Microsoft.Cci
 
         #region INamedEntity Members
 
-        public string? Name
+        public virtual string? Name
         {
             get { return _parentParameter.Name; }
         }
@@ -307,13 +306,13 @@ namespace Microsoft.Cci
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

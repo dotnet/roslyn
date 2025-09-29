@@ -130,7 +130,7 @@ internal sealed class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
             currentStart++;
         }
 
-        return new SyntaxTriviaList(builder.ToImmutable());
+        return [.. builder.ToImmutable()];
     }
 
     private static bool IsEndOfLine(ISyntaxKindsService syntaxKinds, SyntaxTriviaList triviaList, int index)

@@ -5,7 +5,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -243,7 +242,8 @@ class $$MyClass
                     languageName:=languageName,
                     generatedNameTypeParameterSuffix:=generatedNameTypeParameterSuffix,
                     conflictingNames:=symbol.ContainingNamespace.GetAllTypes(CancellationToken.None).SelectAsArray(Function(t) t.Name),
-                    syntaxFactsService:=workspaceDoc.GetRequiredLanguageService(Of ISyntaxFactsService))
+                    syntaxFactsService:=workspaceDoc.GetRequiredLanguageService(Of ISyntaxFactsService),
+                    canAddDocument:=True)
             End Using
         End Function
     End Class

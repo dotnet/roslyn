@@ -22,6 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Inherits AbstractDebuggerIntelliSenseContext
 
         Private _innerMostContainingNodeIsExpression As Boolean
+        Private Const StatementTerminator As String = vbCrLf
 
         Public Sub New(wpfTextView As IWpfTextView,
                 vsTextView As IVsTextView,
@@ -58,9 +59,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 isImmediateWindow)
         End Sub
 
-        Protected Overrides Function GetAdjustedContextPoint(contextPoint As Integer, document As Document) As Integer
+        Protected Overrides Function GetAdjustedBuffer(contextPoint As Integer, document As Document, debuggerMappedSpan As ITrackingSpan) As IProjectionBuffer
             Dim tree = document.GetSyntaxTreeSynchronously(CancellationToken.None)
             Dim token = tree.FindTokenOnLeftOfPosition(contextPoint, CancellationToken.None)
+            Dim adjustedStart = token.FullSpan.End
 
             Dim containingNode = token.Parent.AncestorsAndSelf().Where(Function(s) TypeOf s Is ExpressionSyntax OrElse
                                                                             TypeOf s Is MethodBaseSyntax OrElse
@@ -68,23 +70,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             If containingNode IsNot Nothing Then
                 If TypeOf containingNode Is ExpressionSyntax AndAlso Not IsRightSideOfLocalDeclaration(containingNode) Then
                     _innerMostContainingNodeIsExpression = True
-                    Return containingNode.Span.End
+                    adjustedStart = containingNode.Span.End
                 Else
                     Dim statement = containingNode.GetExecutableBlockStatements().FirstOrDefault()
                     If statement IsNot Nothing Then
-                        Return statement.FullSpan.End
-                    ElseIf TypeOf containingNode Is MethodBlockBaseSyntax
+                        adjustedStart = statement.FullSpan.End
+                    ElseIf TypeOf containingNode Is MethodBlockBaseSyntax Then
                         ' Something like
                         ' Sub Goo(o as integer)
                         ' [| End Sub |]
-                        Return DirectCast(containingNode, MethodBlockBaseSyntax).EndBlockStatement.SpanStart
+                        adjustedStart = DirectCast(containingNode, MethodBlockBaseSyntax).EndBlockStatement.SpanStart
                     Else
-                        Return containingNode.Span.End
+                        adjustedStart = containingNode.Span.End
                     End If
                 End If
             End If
 
-            Return token.FullSpan.End
+            Dim beforeAdjustedStart = GetPreviousStatementBufferAndSpan(adjustedStart, document)
+            Dim afterAdjustedStart = ContextBuffer.CurrentSnapshot.CreateTrackingSpanFromIndexToEnd(adjustedStart, SpanTrackingMode.EdgePositive)
+
+            Return ProjectionBufferFactoryService.CreateProjectionBuffer(
+                projectionEditResolver:=Nothing,
+                sourceSpans:={beforeAdjustedStart, debuggerMappedSpan, StatementTerminator, afterAdjustedStart},
+                options:=ProjectionBufferOptions.None,
+                contentType:=ContentType)
         End Function
 
         Private Shared Function IsRightSideOfLocalDeclaration(containingNode As SyntaxNode) As Boolean
@@ -105,7 +114,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             Return False
         End Function
 
-        Protected Overrides Function GetPreviousStatementBufferAndSpan(contextPoint As Integer, document As Document) As ITrackingSpan
+        Private Function GetPreviousStatementBufferAndSpan(contextPoint As Integer, document As Document) As ITrackingSpan
             ' This text can be validly inserted at the end of an expression context to allow
             ' intellisense to trigger a new expression context
             Dim forceExpressionContext = ".__o("
@@ -131,12 +140,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Overrides ReadOnly Property CompletionStartsOnQuestionMark As Boolean
             Get
                 Return True
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property StatementTerminator As String
-            Get
-                Return vbCrLf
             End Get
         End Property
     End Class

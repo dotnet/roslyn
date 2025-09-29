@@ -92,42 +92,59 @@ internal sealed class CompleteStatementCommandHandler(
         transaction?.Complete();
     }
 
-    private SemicolonBehavior BeforeExecuteCommand(bool speculative, TypeCharCommandArgs args, CommandExecutionContext executionContext)
+    private SemicolonBehavior BeforeExecuteCommand(
+        bool speculative,
+        TypeCharCommandArgs args,
+        CommandExecutionContext executionContext)
     {
         if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
-        {
             return SemicolonBehavior.None;
-        }
 
-        var caretOpt = args.TextView.GetCaretPoint(args.SubjectBuffer);
-        if (!caretOpt.HasValue)
-        {
+        if (args.TextView.GetCaretPoint(args.SubjectBuffer) is not { } caret)
             return SemicolonBehavior.None;
-        }
 
         if (!_globalOptions.GetOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon))
-        {
             return SemicolonBehavior.None;
-        }
 
-        var caret = caretOpt.Value;
         var document = caret.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-        {
             return SemicolonBehavior.None;
-        }
 
         var cancellationToken = executionContext.OperationContext.UserCancellationToken;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
-        if (!TryGetStartingNode(root, caret, out var currentNode, cancellationToken))
-        {
+        if (!TryGetStartingNode(root, caret, out var tokenOnLeft, out var currentNode, cancellationToken))
             return SemicolonBehavior.None;
+
+        // If the user types `= new;` complete it out to `= new();`
+        if (tokenOnLeft.Kind() is SyntaxKind.NewKeyword &&
+            currentNode is BaseObjectCreationExpressionSyntax
+            {
+                Parent: EqualsValueClauseSyntax
+                {
+                    Parent: VariableDeclaratorSyntax
+                    {
+                        Parent: VariableDeclarationSyntax
+                        {
+                            Parent: FieldDeclarationSyntax or LocalDeclarationStatementSyntax
+                        }
+                    }
+                }
+            })
+        {
+            if (!speculative)
+            {
+                var edit = args.SubjectBuffer.CreateEdit();
+                edit.Insert(caret, "();");
+                edit.Apply();
+            }
+
+            return SemicolonBehavior.Overtype;
         }
 
-        return MoveCaretToSemicolonPosition(speculative, args, document, root, originalCaret: caret, caret, syntaxFacts, currentNode,
-            isInsideDelimiters: false, cancellationToken);
+        return MoveCaretToSemicolonPosition(
+            speculative, args, document, root, originalCaret: caret, caret, syntaxFacts, currentNode, isInsideDelimiters: false, cancellationToken);
     }
 
     /// <summary>
@@ -137,6 +154,7 @@ internal sealed class CompleteStatementCommandHandler(
     private static bool TryGetStartingNode(
         SyntaxNode root,
         SnapshotPoint caret,
+        out SyntaxToken tokenOnLeft,
         [NotNullWhen(true)] out SyntaxNode? startingNode,
         CancellationToken cancellationToken)
     {
@@ -144,17 +162,17 @@ internal sealed class CompleteStatementCommandHandler(
         startingNode = null;
         var caretPosition = caret.Position;
 
-        var token = root.FindTokenOnLeftOfPosition(caretPosition);
+        tokenOnLeft = root.FindTokenOnLeftOfPosition(caretPosition);
 
-        if (token.SyntaxTree == null
-            || token.SyntaxTree.IsInNonUserCode(caretPosition, cancellationToken))
+        if (tokenOnLeft.SyntaxTree == null ||
+            tokenOnLeft.SyntaxTree.IsInNonUserCode(caretPosition, cancellationToken))
         {
             return false;
         }
 
-        startingNode = token.GetRequiredParent();
+        startingNode = tokenOnLeft.GetRequiredParent();
 
-        // If the caret is before an opening delimiter or after a closing delimeter,
+        // If the caret is before an opening delimiter or after a closing delimiter,
         // start analysis with node outside of delimiters.
         //
         // Examples, 
@@ -224,7 +242,7 @@ internal sealed class CompleteStatementCommandHandler(
             isInsideDelimiters = !HasDelimitersButCaretIsOutside(currentNode, caret.Position);
 
             var newCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition);
-            if (!TryGetStartingNode(root, newCaret, out currentNode, cancellationToken))
+            if (!TryGetStartingNode(root, newCaret, out _, out currentNode, cancellationToken))
                 return SemicolonBehavior.None;
 
             return MoveCaretToSemicolonPosition(
@@ -315,11 +333,12 @@ internal sealed class CompleteStatementCommandHandler(
             // actually move it.
             if (!speculative)
             {
-                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, m =>
+                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
                 {
+                    var (isInsideDelimiters, statementNode) = args;
                     m[nameof(isInsideDelimiters)] = isInsideDelimiters;
                     m[nameof(statementNode)] = statementNode.Kind();
-                }));
+                }, (isInsideDelimiters, statementNode)));
 
                 if (!args.TextView.TryMoveCaretToAndEnsureVisible(targetPosition))
                     return SemicolonBehavior.None;

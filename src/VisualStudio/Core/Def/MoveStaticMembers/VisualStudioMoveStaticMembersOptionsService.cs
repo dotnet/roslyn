@@ -25,24 +25,18 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 
 [ExportWorkspaceService(typeof(IMoveStaticMembersOptionsService), ServiceLayer.Host), Shared]
-internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersOptionsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioMoveStaticMembersOptionsService(
+    IGlyphService glyphService,
+    IUIThreadOperationExecutor uiThreadOperationExecutor) : IMoveStaticMembersOptionsService
 {
-    private readonly IGlyphService _glyphService;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+    private readonly IGlyphService _glyphService = glyphService;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
 
     private const int HistorySize = 3;
 
     public readonly LinkedList<INamedTypeSymbol> History = new();
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioMoveStaticMembersOptionsService(
-        IGlyphService glyphService,
-        IUIThreadOperationExecutor uiThreadOperationExecutor)
-    {
-        _glyphService = glyphService;
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
-    }
 
     public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols)
     {
@@ -67,7 +61,7 @@ internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersO
         if (dialogResult)
         {
             // if the destination name contains extra namespaces, we want the last one as that is the real type name
-            var typeName = viewModel.DestinationName.TypeName.Split('.').Last();
+            var typeName = viewModel.DestinationName.FullyQualifiedTypeName.Split('.').Last();
             var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
             var selectedMembers = viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol);
 
@@ -75,7 +69,7 @@ internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersO
             {
                 return new MoveStaticMembersOptions(
                     newFileName,
-                    viewModel.DestinationName.TypeName,
+                    viewModel.DestinationName.FullyQualifiedTypeName,
                     selectedMembers);
             }
 
@@ -95,7 +89,7 @@ internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersO
         INamedTypeSymbol selectedType,
         ImmutableArray<ISymbol> selectedNodeSymbols,
         LinkedList<INamedTypeSymbol> history,
-        IGlyphService? glyphService,
+        IGlyphService glyphService,
         IUIThreadOperationExecutor uiThreadOperationExecutor)
     {
         var membersInType = selectedType.GetMembers().
@@ -170,22 +164,33 @@ internal class VisualStudioMoveStaticMembersOptionsService : IMoveStaticMembersO
         CancellationToken cancellationToken)
     {
         return currentNamespace.GetAllTypes(cancellationToken)
-            // only take symbols that are the same kind of type (class, module)
-            // and remove non-static types only when the current type is static
-            .Where(t => t.TypeKind == currentType.TypeKind && (t.IsStaticType() || !currentType.IsStaticType()))
+            // Remove non-static types only when the current type is static
+            .Where(destinationType => IsValidTypeToMoveBetween(destinationType, currentType) && (destinationType.IsStaticType() || !currentType.IsStaticType()))
             .SelectMany(t =>
             {
                 // for partially declared classes, we may want multiple entries for a single type.
                 // filter to those actually in a real file, and that is not our current location.
                 return t.Locations
-                    .Where(l => l.IsInSource &&
-                        (currentType.Name != t.Name || GetFile(l) != currentDocument.FilePath))
+                    .Where(l => l.IsInSource && (currentType.Name != t.Name || GetFile(l) != currentDocument.FilePath))
                     .Select(l => new TypeNameItem(
                         history.Contains(t),
                         GetFile(l),
                         t));
             })
-        .ToImmutableArrayOrEmpty()
-        .Sort(comparison: TypeNameItem.CompareTo);
+            .ToImmutableArrayOrEmpty()
+            .Sort(comparison: TypeNameItem.CompareTo);
+    }
+
+    private static bool IsValidTypeToMoveBetween(INamedTypeSymbol destinationType, INamedTypeSymbol sourceType)
+    {
+        // Can only moved to named typed that can actually contain members.
+        if (destinationType.TypeKind is not (TypeKind.Class or TypeKind.Interface or TypeKind.Module or TypeKind.Struct))
+            return false;
+
+        // Very unlikely to be moving from a non-interface to an interface.  Filter out for now.
+        if (sourceType.TypeKind != TypeKind.Interface && destinationType.TypeKind == TypeKind.Interface)
+            return false;
+
+        return true;
     }
 }

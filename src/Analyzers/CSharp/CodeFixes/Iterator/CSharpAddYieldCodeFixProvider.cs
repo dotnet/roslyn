@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Iterator;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,6 +29,8 @@ internal sealed class CSharpAddYieldCodeFixProvider() : AbstractIteratorCodeFixP
     /// CS0029: Cannot implicitly convert from type 'x' to 'y'
     /// </summary>
     private const string CS0029 = nameof(CS0029);
+
+    public override FixAllProvider? GetFixAllProvider() => base.GetFixAllProvider();
 
     /// <summary>
     /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)

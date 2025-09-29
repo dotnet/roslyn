@@ -8,10 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
@@ -22,7 +20,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
@@ -42,19 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 internal sealed partial class RenameTrackingTaggerProvider(
     IThreadingContext threadingContext,
     IInlineRenameService inlineRenameService,
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IGlobalOptionService globalOptions,
     IAsynchronousOperationListenerProvider listenerProvider) : ITaggerProvider
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
     private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
-    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
-        var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _diagnosticAnalyzerService, _globalOptions, _asyncListener));
+        var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _globalOptions, _asyncListener));
         return new Tagger(stateMachine) as ITagger<T>;
     }
 
@@ -103,9 +98,8 @@ internal sealed partial class RenameTrackingTaggerProvider(
 
     public static (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
         Document document, TextSpan textSpan,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            CancellationToken cancellationToken)
+        IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+        ITextUndoHistoryRegistry undoHistoryRegistry)
     {
         try
         {
@@ -113,53 +107,35 @@ internal sealed partial class RenameTrackingTaggerProvider(
             {
                 var textBuffer = text.Container.TryGetTextBuffer();
                 if (textBuffer != null &&
-                    textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                    stateMachine.CanInvokeRename(out _, cancellationToken: cancellationToken))
+                    textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                 {
                     return stateMachine.TryGetCodeAction(
-                        document, text, textSpan, refactorNotifyServices, undoHistoryRegistry, cancellationToken);
+                        document, text, textSpan, refactorNotifyServices, undoHistoryRegistry);
                 }
             }
 
             return default;
         }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
         {
             throw ExceptionUtilities.Unreachable();
         }
     }
 
-    internal static bool IsRenamableIdentifier(Task<TriggerIdentifierKind> isRenamableIdentifierTask, bool waitForResult, CancellationToken cancellationToken)
+    internal static bool IsRenamableIdentifierFastCheck(
+        Task<TriggerIdentifierKind> isRenamableIdentifierTask, out TriggerIdentifierKind identifierKind)
     {
-        if (isRenamableIdentifierTask.Status == TaskStatus.RanToCompletion && isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
+        if (isRenamableIdentifierTask.Status == TaskStatus.RanToCompletion)
         {
-            return true;
+            var kind = isRenamableIdentifierTask.Result;
+            if (kind != TriggerIdentifierKind.NotRenamable)
+            {
+                identifierKind = kind;
+                return true;
+            }
         }
-        else if (isRenamableIdentifierTask.Status == TaskStatus.Canceled)
-        {
-            return false;
-        }
-        else if (waitForResult)
-        {
-            return WaitForIsRenamableIdentifier(isRenamableIdentifierTask, cancellationToken);
-        }
-        else
-        {
-            return false;
-        }
-    }
 
-    internal static bool WaitForIsRenamableIdentifier(Task<TriggerIdentifierKind> isRenamableIdentifierTask, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return isRenamableIdentifierTask.WaitAndGetResult_CanCallOnBackground(cancellationToken) != TriggerIdentifierKind.NotRenamable;
-        }
-        catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken || cancellationToken == CancellationToken.None)
-        {
-            // We passed in a different cancellationToken, so if there's a race and 
-            // isRenamableIdentifierTask was cancelled, we'll get a OperationCanceledException
-            return false;
-        }
+        identifierKind = default;
+        return false;
     }
 }

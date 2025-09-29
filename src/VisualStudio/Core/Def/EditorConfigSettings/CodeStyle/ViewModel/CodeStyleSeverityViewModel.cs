@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
 
-internal class CodeStyleSeverityViewModel
+internal sealed class CodeStyleSeverityViewModel
 {
     // NOTE: 'ServicesVSResources.Disabled' severity is not supported for code style settings.
     //       Code styles can instead be disabled by setting the option value that turns off the style.
@@ -17,16 +17,13 @@ internal class CodeStyleSeverityViewModel
     //       analyzers to turn themselves off when 'option.Notification.Severity is ReportDiagnostic.Suppress'
     private static readonly string[] s_severities =
     [
-        ServicesVSResources.Refactoring_Only,
-        ServicesVSResources.Suggestion,
-        ServicesVSResources.Warning,
-        ServicesVSResources.Error
+        WorkspacesResources.Refactoring_Only,
+        WorkspacesResources.Suggestion,
+        WorkspacesResources.Warning,
+        WorkspacesResources.Error
     ];
 
     private readonly int _selectedSeverityIndex;
-
-    private string? _selectedSeverityValue;
-
     private readonly CodeStyleSetting _setting;
 
     public string[] Severities => s_severities;
@@ -35,11 +32,11 @@ internal class CodeStyleSeverityViewModel
     {
         get
         {
-            _selectedSeverityValue ??= Severities[_selectedSeverityIndex];
+            field ??= Severities[_selectedSeverityIndex];
 
-            return _selectedSeverityValue;
+            return field;
         }
-        set => _selectedSeverityValue = value;
+        set;
     }
 
     public string ToolTip => ServicesVSResources.Severity;

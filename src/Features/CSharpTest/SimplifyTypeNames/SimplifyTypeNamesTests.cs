@@ -21,20 +21,14 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public SimplifyTypeNamesTests(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
 
     [Fact]
-    public async Task SimplifyGenericName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyGenericName()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -67,12 +61,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias0()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task UseAlias0()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             using Goo = System;
 
@@ -103,12 +95,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias00()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias00()
+        => TestInRegularAndScriptAsync(
             """
             namespace Root
             {
@@ -131,12 +121,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseGlobalAlias00()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseGlobalAlias00()
+        => TestInRegularAndScriptAsync(
             """
             global using MyType = System.IO.File;
 
@@ -159,12 +147,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseGlobalAlias01()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseGlobalAlias01()
+        => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
@@ -192,12 +178,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias00_FileScopedNamespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias00_FileScopedNamespace()
+        => TestInRegularAndScriptAsync(
             """
             namespace Root;
 
@@ -218,7 +202,6 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 MyType c;
             }
             """);
-    }
 
     [Fact]
     public async Task UseAlias()
@@ -256,9 +239,8 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
     }
 
     [Fact]
-    public async Task UseAlias1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias1()
+        => TestInRegularAndScriptAsync(
             """
             namespace Root
             {
@@ -281,12 +263,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias2()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.Exception;
 
@@ -309,12 +289,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias3()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.Exception;
 
@@ -343,12 +321,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias4()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.Exception;
 
@@ -365,12 +341,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 MyType c;
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias5()
+        => TestInRegularAndScriptAsync(
             """
             namespace Root
             {
@@ -393,12 +367,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias6()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.Exception;
 
@@ -421,12 +393,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias7()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.Exception;
 
@@ -455,12 +425,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UseAlias8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseAlias8()
+        => TestInRegularAndScriptAsync(
             """
             using Goo = System.Int32;
 
@@ -489,12 +457,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
-    public async Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using Foo = SimplifyInsideNameof.Program;
@@ -525,13 +491,11 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
               }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
-    public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using Goo = SimplifyInsideNameof.Program;
@@ -562,12 +526,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
               }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
-    public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using Goo = N.Goo;
@@ -606,12 +568,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task TwoAliases()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TwoAliases()
+        => TestInRegularAndScriptAsync(
             """
             using MyType1 = System.Exception;
 
@@ -638,12 +598,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TwoAliases2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TwoAliases2()
+        => TestInRegularAndScriptAsync(
             """
             using MyType1 = System.Exception;
 
@@ -670,12 +628,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TwoAliasesConflict()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TwoAliasesConflict()
+        => TestMissingInRegularAndScriptAsync(
             """
             using MyType = System.Exception;
 
@@ -689,12 +645,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotChangeToAliasIfConflict1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotChangeToAliasIfConflict1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using MyType = System.ConsoleColor;
 
@@ -711,12 +665,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotChangeToAliasIfConflict2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotChangeToAliasIfConflict2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using MyType = System.ConsoleColor;
 
@@ -733,12 +685,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoChangeToAliasIfTypesMatch1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoChangeToAliasIfTypesMatch1()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.ConsoleColor;
 
@@ -771,12 +721,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoChangeToAliasIfTypesMatch2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoChangeToAliasIfTypesMatch2()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.ConsoleColor;
 
@@ -809,12 +757,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoChangeToAliasIfTypesMatch3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoChangeToAliasIfTypesMatch3()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.ConsoleColor;
 
@@ -843,12 +789,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotChangeToNamespaceAliasIfConflict()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoNotChangeToNamespaceAliasIfConflict()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = Root.Inner.Inner2;
 
@@ -907,12 +851,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoChangeToNamespaceAliasIfNoConflict()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoChangeToNamespaceAliasIfNoConflict()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = Root.Inner.Inner2;
 
@@ -967,12 +909,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoChangeToAliasIfConflictIsntType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoChangeToAliasIfConflictIsntType()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.ConsoleColor;
 
@@ -999,12 +939,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TwoMissingOnAmbiguousCref1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TwoMissingOnAmbiguousCref1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Example
             {
@@ -1019,12 +957,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 public string ToString(string format, IFormatProvider formatProvider) => throw null;
             }
             """);
-    }
 
     [Fact]
-    public async Task TwoMissingOnAmbiguousCref2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TwoMissingOnAmbiguousCref2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Example
             {
@@ -1039,12 +975,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 public string ToString(string format, IFormatProvider formatProvider) => throw null;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
-    public async Task TwoMissingInNameofMemberGroup()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TwoMissingInNameofMemberGroup()
+        => TestInRegularAndScriptAsync(
             """
             class Example
             {
@@ -1069,12 +1003,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 public static void Goo(int i) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TwoAliasesConflict2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TwoAliasesConflict2()
+        => TestInRegularAndScriptAsync(
             """
             using MyType = System.Exception;
 
@@ -1101,13 +1033,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AliasInSiblingNamespace()
-    {
-        var content =
-            """
+    public Task AliasInSiblingNamespace()
+        => TestMissingInRegularAndScriptAsync("""
             [|namespace Root 
             {
                 namespace Sibling
@@ -1120,9 +1049,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     System.Exception c;
                 }
             }|]
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact]
     public async Task KeywordInt32()
@@ -1141,7 +1068,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
             {
                 int i;
             }
-            """, options: featureOptions);
+            """, new(options: featureOptions));
         await TestActionCountAsync(
             source, count: 1, parameters: new TestParameters(options: featureOptions));
         await TestSpansAsync(
@@ -1191,10 +1118,8 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
     }
 
     [Fact]
-    public async Task SimplifyTypeName()
-    {
-        var content =
-            """
+    public Task SimplifyTypeName()
+        => TestMissingInRegularAndScriptAsync("""
             namespace Root 
             {
                 class A 
@@ -1202,9 +1127,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     [|System.Exception|] c;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact]
     public async Task SimplifyTypeName1()
@@ -1290,9 +1213,8 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
     }
 
     [Fact]
-    public async Task SimplifyTypeName2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyTypeName2()
+        => TestInRegularAndScriptAsync(
             """
             namespace System
             {
@@ -1311,12 +1233,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyTypeName3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyTypeName3()
+        => TestInRegularAndScriptAsync(
             """
             namespace N1
             {
@@ -1349,13 +1269,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyTypeName4()
-    {
-        // this is failing since we can't speculatively bind namespace yet
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyTypeName4()
+        => TestInRegularAndScriptAsync(
             """
             namespace N1
             {
@@ -1388,12 +1305,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyTypeName5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyTypeName5()
+        => TestInRegularAndScriptAsync(
             """
             namespace N1
             {
@@ -1426,13 +1341,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyTypeName6()
-    {
-        var content =
-            """
+    public Task SimplifyTypeName6()
+        => TestMissingInRegularAndScriptAsync("""
             namespace N1
             {
                 public class A1 { }
@@ -1447,9 +1359,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     }
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact]
     public async Task SimplifyTypeName7()
@@ -1490,10 +1400,8 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
     }
 
     [Fact]
-    public async Task SimplifyGenericTypeName1()
-    {
-        var content =
-            """
+    public Task SimplifyGenericTypeName1()
+        => TestMissingInRegularAndScriptAsync("""
             namespace N1
             {
                 public class A1
@@ -1501,9 +1409,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     [|System.EventHandler<System.EventArgs>|] a;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact]
     public async Task SimplifyGenericTypeName2()
@@ -1539,9 +1445,8 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task SimplifyGenericTypeName3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyGenericTypeName3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1564,13 +1469,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyGenericTypeName4()
-    {
-        var content =
-            """
+    public Task SimplifyGenericTypeName4()
+        => TestMissingInRegularAndScriptAsync("""
             using MyHandler = System.EventHandler;
 
             namespace N1
@@ -1580,9 +1482,7 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     [|System.EventHandler<System.EventHandler<System.EventArgs>>|] a;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact]
     public async Task SimplifyGenericTypeName5()
@@ -1628,9 +1528,8 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
     }
 
     [Fact]
-    public async Task SimplifyGenericTypeName6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyGenericTypeName6()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1671,13 +1570,11 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task SimplifyGenericTypeName7()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyGenericTypeName7()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1718,12 +1615,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Array1()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task Array1()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             using System.Collections.Generic;
 
@@ -1747,33 +1642,9 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
             }
             """);
 
-        // TODO: The below test is currently disabled due to restrictions of the test framework, this needs to be fixed.
-
-        ////            Test(
-        ////    @"using System.Collections.Generic;
-
-        ////namespace N1
-        ////{
-        ////    class Test
-        ////    {
-        ////        System.Collections.Generic.List<[|System.String|][]> a;
-        ////    }
-        ////}", @"
-        ////using System.Collections.Generic;
-
-        ////namespace N1
-        ////{
-        ////    class Test
-        ////    {
-        ////        System.Collections.Generic.List<string[]> a;
-        ////    }
-        ////}");
-    }
-
     [Fact]
-    public async Task Array2()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task Array2()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             using System.Collections.Generic;
 
@@ -1796,12 +1667,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-    public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1813,12 +1682,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
-    public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -1828,12 +1695,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-    public async Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SimplifyToPredefinedTypeNameShouldNotBeOfferedInsideNameOf3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1845,12 +1710,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-    public async Task SimplifyToPredefinedTypeNameShouldBeOfferedInsideFunctionCalledNameOf()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyToPredefinedTypeNameShouldBeOfferedInsideFunctionCalledNameOf()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1883,12 +1746,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyTypeNameInsideNameOf()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyTypeNameInsideNameOf()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1911,12 +1772,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
-    public async Task SimplifyCrefAliasPredefinedType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyCrefAliasPredefinedType()
+        => TestInRegularAndScriptAsync(
             """
             namespace N1
             {
@@ -1940,14 +1799,11 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     }
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
-    }
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
-    public async Task SimplifyAlias1()
-    {
-        var content =
-            """
+    public Task SimplifyAlias1()
+        => TestMissingInRegularAndScriptAsync("""
             using I64 = [|System.Int64|];
 
             namespace N1
@@ -1956,15 +1812,11 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 {
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
-    public async Task SimplifyAlias2()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task SimplifyAlias2()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             using I64 = System.Int64;
             using Goo = System.Collections.Generic.IList<[|System.Int64|]>;
@@ -1987,12 +1839,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
-    public async Task SimplifyAlias3()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task SimplifyAlias3()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             namespace Outer
             {
@@ -2021,12 +1871,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
-    public async Task SimplifyAlias4()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task SimplifyAlias4()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             using I64 = System.Int64;
 
@@ -2057,37 +1905,28 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544631")]
-    public async Task SimplifyAlias5()
-    {
-        var content =
-            """
+    public Task SimplifyAlias5()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             namespace N
             {
                 using X = [|System.Nullable<int>|];
             }
-            """;
-
-        var result =
-            """
+            """, """
             using System;
 
             namespace N
             {
                 using X = Nullable<int>;
             }
-            """;
-        await TestInRegularAndScriptAsync(content, result);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/919815")]
-    public async Task SimplifyReturnTypeOnMethodCallToAlias()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyReturnTypeOnMethodCallToAlias()
+        => TestInRegularAndScriptAsync(
             """
             using alias1 = A;
 
@@ -2110,12 +1949,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
-    public async Task SimplifyComplexGeneric1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SimplifyComplexGeneric1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class A<T>
             {
@@ -2132,12 +1969,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
             {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538949")]
-    public async Task SimplifyComplexGeneric2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SimplifyComplexGeneric2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class A<T>
             {
@@ -2154,27 +1989,19 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
             {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538991")]
-    public async Task SimplifyMissingOnGeneric()
-    {
-        var content =
-            """
+    public Task SimplifyMissingOnGeneric()
+        => TestMissingInRegularAndScriptAsync("""
             class A<T, S>
             {
                 class B : [|A<B, B>|] { }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
-    public async Task SimplifyMissingOnUnmentionableTypeParameter1()
-    {
-        var content =
-            """
+    public Task SimplifyMissingOnUnmentionableTypeParameter1()
+        => TestMissingInRegularAndScriptAsync("""
             class A<T>
             {
                 class D : A<T[]> { }
@@ -2185,15 +2012,11 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                     D.B x = new [|D.B|]();
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact]
-    public async Task SimplifyErrorTypeParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SimplifyErrorTypeParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using M = System.Collections.Generic.IList<[|System.Collections.Generic.IList<>|]>;
@@ -2202,13 +2025,11 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
             {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")]
-    public async Task SimplifyUnmentionableTypeParameter2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SimplifyUnmentionableTypeParameter2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class A<T>
             {
@@ -2226,12 +2047,10 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
-    public async Task SimplifyUnmentionableTypeParameter2_1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SimplifyUnmentionableTypeParameter2_1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class A<T>
             {
@@ -2249,12 +2068,34 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public Task SimplifyUnmentionableTypeParameter3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public class C<T>;
+
+            public class D : C<[|D.E|]>
+            {
+                public class E;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public Task SimplifyUnmentionableTypeParameter3_PrimaryCtor()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            public class C<T>;
+
+            public class D() : C<[|D.E|]>()
+            {
+                public class E;
+            }
+            """);
 
     [Fact]
-    public async Task TestGlobalAlias()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task TestGlobalAlias()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2281,21 +2122,17 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541748")]
-    public async Task TestOnErrorInScript()
-    {
-        await TestMissingAsync(
+    public Task TestOnErrorInScript()
+        => TestMissingAsync(
 @"[|Console.WrieLine();|]",
 new TestParameters(Options.Script));
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9877")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestConflicts()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestConflicts()
+        => TestInRegularAndScriptAsync(
             """
             namespace OuterNamespace
             {
@@ -2450,14 +2287,12 @@ new TestParameters(Options.Script));
                 }
             }
             """,
-index: 1);
-    }
+            index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-    public async Task TestPreventSimplificationToNameInCurrentScope()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPreventSimplificationToNameInCurrentScope()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -2499,13 +2334,11 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-    public async Task TestPreventSimplificationToNameInCurrentScope2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPreventSimplificationToNameInCurrentScope2()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -2545,13 +2378,11 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-    public async Task TestAllowSimplificationToNameInNestedScope()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAllowSimplificationToNameInNestedScope()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -2596,13 +2427,11 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-    public async Task TestAllowSimplificationToNameInNestedScope1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAllowSimplificationToNameInNestedScope1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Linq;
 
@@ -2647,12 +2476,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnOpenType1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOnOpenType1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program<T>
             {
@@ -2665,12 +2492,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnOpenType2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnOpenType2()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2695,12 +2520,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnOpenType3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOnOpenType3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program<X>
             {
@@ -2713,12 +2536,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnOpenType4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOnOpenType4()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program<X>
             {
@@ -2731,12 +2552,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnOpenType5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOnOpenType5()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program<X>
             {
@@ -2749,12 +2568,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnOpenType6()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOnOpenType6()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program<X>
             {
@@ -2767,12 +2584,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnNonOpenType1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnNonOpenType1()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2797,12 +2612,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnNonOpenType2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnNonOpenType2()
+        => TestInRegularAndScriptAsync(
             """
             class Program<T>
             {
@@ -2827,12 +2640,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnNonOpenType3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnNonOpenType3()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2857,12 +2668,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnNonOpenType4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnNonOpenType4()
+        => TestInRegularAndScriptAsync(
             """
             class Program<X>
             {
@@ -2887,12 +2696,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnNonOpenType5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnNonOpenType5()
+        => TestInRegularAndScriptAsync(
             """
             class Program<X>
             {
@@ -2917,12 +2724,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
-    public async Task TestOnNonOpenType6()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOnNonOpenType6()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program<X>
             {
@@ -2935,12 +2740,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542650")]
-    public async Task TestWithInterleavedDirective1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithInterleavedDirective1()
+        => TestMissingInRegularAndScriptAsync(
             """
             #if true
             class A
@@ -2963,12 +2766,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542719")]
-    public async Task TestGlobalMissing1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestGlobalMissing1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -2985,12 +2786,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544615")]
-    public async Task TestMissingOnAmbiguousCast()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnAmbiguousCast()
+        => TestMissingInRegularAndScriptAsync(
             """
             enum E
             {
@@ -3004,12 +2803,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544616")]
-    public async Task ParenthesizeIfParseChanges()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ParenthesizeIfParseChanges()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -3032,12 +2829,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
-    public async Task TestNullableSimplification1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableSimplification1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3056,12 +2851,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
-    public async Task TestNullableSimplification3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableSimplification3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3078,12 +2871,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
-    public async Task TestNullableSimplification4()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task TestNullableSimplification4()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             class C
             {
@@ -3100,12 +2891,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544977")]
-    public async Task TestNullableSimplification5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableSimplification5()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3128,12 +2917,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestMissingNullableSimplificationInsideCref()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingNullableSimplificationInsideCref()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             /// <summary>
@@ -3143,12 +2930,10 @@ index: 1);
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestMissingNullableSimplificationInsideCref2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingNullableSimplificationInsideCref2()
+        => TestMissingInRegularAndScriptAsync(
             """
             /// <summary>
             /// <see cref="[|System.Nullable{T}|]"/>
@@ -3157,12 +2942,10 @@ index: 1);
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestMissingNullableSimplificationInsideCref3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingNullableSimplificationInsideCref3()
+        => TestMissingInRegularAndScriptAsync(
             """
             /// <summary>
             /// <see cref="[|System.Nullable{T}|].Value"/>
@@ -3171,12 +2954,10 @@ index: 1);
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             /// <summary>
@@ -3195,12 +2976,10 @@ index: 1);
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestMissingNullableSimplificationInsideCref5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingNullableSimplificationInsideCref5()
+        => TestMissingInRegularAndScriptAsync(
             """
             /// <summary>
             /// <see cref="A.M{[|Nullable{T}|]}()"/>
@@ -3212,13 +2991,11 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40664")]
-    public async Task TestNullableInsideCref_NotAllowedAtTopLevel()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNullableInsideCref_NotAllowedAtTopLevel()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             /// <summary>
@@ -3228,13 +3005,11 @@ index: 1);
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40664")]
-    public async Task TestNullableInsideCref_TopLevel2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNullableInsideCref_TopLevel2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             /// <summary>
@@ -3253,14 +3028,10 @@ index: 1);
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
-    {
-        // Both the 'original' and 'fixed' code here are incorrect as doc comments do not allow
-        // actual type-references in a type-arg list.
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             /// <summary>
@@ -3279,12 +3050,10 @@ index: 1);
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestNullableInsideCref_AllowedIfReferencingActualType_InParameterList()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableInsideCref_AllowedIfReferencingActualType_InParameterList()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             /// <summary>
@@ -3305,12 +3074,10 @@ index: 1);
                 void Goo(int? i) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestMissingNullableSimplificationInsideCref8()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingNullableSimplificationInsideCref8()
+        => TestMissingInRegularAndScriptAsync(
             """
             /// <summary>
             /// <see cref="A.M{[|Nullable{int}|]}()"/>
@@ -3322,12 +3089,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestNullableSimplificationInsideCref_Indirect()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableSimplificationInsideCref_Indirect()
+        => TestInRegularAndScriptAsync(
             """
             /// <summary>
             /// <see cref="A.M([|System.Nullable{A}|])"/>
@@ -3350,12 +3115,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestNullableSimplificationInsideCref_Direct()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableSimplificationInsideCref_Direct()
+        => TestInRegularAndScriptAsync(
             """
             /// <summary>
             /// <see cref="M([|System.Nullable{A}|])"/>
@@ -3378,12 +3141,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestNullableSimplificationInsideCref2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableSimplificationInsideCref2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -3410,12 +3171,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestNullableSimplificationInsideCref3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableSimplificationInsideCref3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -3442,12 +3201,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29")]
-    public async Task TestNullableSimplificationInsideCref4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullableSimplificationInsideCref4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -3474,12 +3231,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestColorColorCase1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestColorColorCase1()
+        => TestInRegularAndScriptAsync(
             """
             using N;
 
@@ -3534,12 +3289,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestColorColorCase2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestColorColorCase2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using N;
 
@@ -3567,12 +3320,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40632")]
-    public async Task TestColorColorCase3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestColorColorCase3()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -3611,12 +3362,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40632")]
-    public async Task TestColorColorCase4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestColorColorCase4()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -3657,12 +3406,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40632")]
-    public async Task TestColorColorCase5()
-    {
-        await TestMissingAsync(
+    public Task TestColorColorCase5()
+        => TestMissingAsync(
             """
             using A;
 
@@ -3680,12 +3427,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestColorColorCase6()
-    {
-        await TestMissingAsync(
+    public Task TestColorColorCase6()
+        => TestMissingAsync(
             """
             using System.Reflection.Metadata;
             using Microsoft.Cci;
@@ -3721,7 +3466,6 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestAliasQualifiedType()
@@ -3745,15 +3489,14 @@ index: 1);
                     Program a = null; 
                 }
             }
-            """, parseOptions: null);
+            """, new(parseOptions: null));
 
         await TestMissingAsync(source, new TestParameters(GetScriptOptions()));
     }
 
     [Fact]
-    public async Task TestSimplifyExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimplifyExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3776,13 +3519,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
-    public async Task TestSimplifyStaticMemberAccess()
-    {
-        var source =
-            """
+    public Task TestSimplifyStaticMemberAccess()
+        => TestInRegularAndScriptAsync("""
             class Preserve
             {
             	public static int Y;
@@ -3799,8 +3539,7 @@ index: 1);
             		int k = [|Z<float>.Y|];
             	}
             }
-            """;
-        await TestInRegularAndScriptAsync(source,
+            """,
             """
             class Preserve
             {
@@ -3819,13 +3558,10 @@ index: 1);
             	}
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
-    public async Task TestSimplifyNestedType()
-    {
-        var source =
-            """
+    public Task TestSimplifyNestedType()
+        => TestInRegularAndScriptAsync("""
             class Preserve
             {
             	public class X
@@ -3845,8 +3581,7 @@ index: 1);
             		int k = [|Z<float>.X|].Y;
             	}
             }
-            """;
-        await TestInRegularAndScriptAsync(source,
+            """,
             """
             class Preserve
             {
@@ -3868,13 +3603,10 @@ index: 1);
             	}
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
-    public async Task DoNotSimplifyNamesWhenThereAreParseErrors()
-    {
-        var markup =
-            """
+    public Task DoNotSimplifyNamesWhenThereAreParseErrors()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -3887,15 +3619,11 @@ index: 1);
                     Console.[||]
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(markup);
-    }
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
-    public async Task TestMethodGroups1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMethodGroups1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3907,12 +3635,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
-    public async Task TestMethodGroups2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMethodGroups2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3924,12 +3650,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554010")]
-    public async Task TestMethodGroups3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMethodGroups3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3952,12 +3676,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
-    public async Task FixAllOccurrences1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllOccurrences1()
+        => TestInRegularAndScriptAsync(
             """
             using goo = A.B;
             using bar = C.D;
@@ -4012,12 +3734,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
-    public async Task DoNotUseAlias1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotUseAlias1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -4060,12 +3780,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
-    public async Task SuitablyReplaceNullables1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SuitablyReplaceNullables1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4077,12 +3795,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577169")]
-    public async Task SuitablyReplaceNullables2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SuitablyReplaceNullables2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4094,12 +3810,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
-    public async Task Bugfix_608190()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Bugfix_608190()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4123,12 +3837,10 @@ index: 1);
                 static bool Equals(S s, object y) => false;
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608190")]
-    public async Task Bugfix_608190_1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Bugfix_608190_1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4150,12 +3862,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608932")]
-    public async Task Bugfix_608932()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Bugfix_608932()
+        => TestMissingInRegularAndScriptAsync(
             """
             using S = X;
 
@@ -4180,12 +3890,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635933")]
-    public async Task Bugfix_635933()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Bugfix_635933()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4218,12 +3926,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547246")]
-    public async Task CodeIssueAtRightSpan()
-    {
-        await TestSpansAsync("""
+    public Task CodeIssueAtRightSpan()
+        => TestSpansAsync("""
             using goo = System.Console;
             class Program
             {
@@ -4233,12 +3939,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579172")]
-    public async Task Bugfix_579172()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Bugfix_579172()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C<T, S>
             {
@@ -4247,12 +3951,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633182")]
-    public async Task Bugfix_633182()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Bugfix_633182()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4262,12 +3964,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627102")]
-    public async Task Bugfix_627102()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Bugfix_627102()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4296,7 +3996,6 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629572")]
     public async Task DoNotIncludeAliasNameIfLastTargetNameIsTheSame_1()
@@ -4373,9 +4072,8 @@ index: 1);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
-    public async Task DoNotSimplifyTypeNameBrokenCode()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSimplifyTypeNameBrokenCode()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -4391,12 +4089,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
-    public async Task DoNotSimplifyAliases()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSimplifyAliases()
+        => TestMissingInRegularAndScriptAsync(
             """
             using Goo = System.Int32;
 
@@ -4405,12 +4101,10 @@ index: 1);
                 [|Goo|] f;
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825541")]
-    public async Task ShowOnlyRelevantSpanForReductionOfGenericName()
-    {
-        await TestSpansAsync("""
+    public Task ShowOnlyRelevantSpanForReductionOfGenericName()
+        => TestSpansAsync("""
             namespace A
             {
                 class Program
@@ -4430,24 +4124,20 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
-    public async Task DoNotSimplifyAttributeNameWithJustAttribute()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSimplifyAttributeNameWithJustAttribute()
+        => TestMissingInRegularAndScriptAsync(
             """
             [[|Attribute|]]
             class Attribute : System.Attribute
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task ThisQualificationOnFieldOption()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ThisQualificationOnFieldOption()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4459,12 +4149,10 @@ index: 1);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue1()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task TestIntrinsicTypesInLocalDeclarationDefaultValue1()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             class C
             {
@@ -4485,12 +4173,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInLocalDeclarationDefaultValue2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInLocalDeclarationDefaultValue2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4507,13 +4193,11 @@ index: 1);
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
-    }
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInsideCref_Default_1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_Default_1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -4532,13 +4216,11 @@ index: 1);
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeInMemberAccess);
-    }
+            """, new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInsideCref_Default_2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_Default_2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4555,13 +4237,11 @@ index: 1);
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
-    }
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInsideCref_Default_3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_Default_3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -4580,14 +4260,12 @@ index: 1);
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
-    }
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-    public async Task TestIntrinsicTypesInsideCref_NonDefault_1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_NonDefault_1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4599,13 +4277,11 @@ index: 1);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-    public async Task TestIntrinsicTypesInsideCref_NonDefault_2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_NonDefault_2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -4627,14 +4303,12 @@ index: 1);
                 {
                 }
             }
-            """, options: PreferIntrinsicTypeInMemberAccess);
-    }
+            """, new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-    public async Task TestIntrinsicTypesInsideCref_NonDefault_3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_NonDefault_3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4646,12 +4320,10 @@ index: 1);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-    public async Task TestIntrinsicTypesInsideCref_NonDefault_4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_NonDefault_4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -4674,13 +4346,11 @@ index: 1);
                 }
             }
             """,
-options: PreferIntrinsicTypeInMemberAccess);
-    }
+            new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-    public async Task TestIntrinsicTypesInsideCref_NonDefault_5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_NonDefault_5()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4690,12 +4360,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-    public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferMemberAccess()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferMemberAccess()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4714,13 +4382,11 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """,
-options: PreferIntrinsicTypeInMemberAccess);
-    }
+            new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-    public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
-    {
-        await TestMissingAsync(
+    public Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
+        => TestMissingAsync(
             """
             class C
             {
@@ -4730,12 +4396,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: PreferIntrinsicTypeInDeclaration));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4747,12 +4411,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4764,12 +4426,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInLocalDeclarationNonDefaultValue_3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4781,12 +4441,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInMemberAccess_Default_1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInMemberAccess_Default_1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -4804,13 +4462,11 @@ options: PreferIntrinsicTypeInMemberAccess);
                     var sss = int.MaxValue;
                 }
             }
-            """, options: PreferIntrinsicTypeInMemberAccess);
-    }
+            """, new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInMemberAccess_Default_2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInMemberAccess_Default_2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -4832,13 +4488,11 @@ options: PreferIntrinsicTypeInMemberAccess);
                     var sss = int.MaxValue;
                 }
             }
-            """, options: PreferIntrinsicTypeInMemberAccess);
-    }
+            """, new(options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")]
-    public async Task TestIntrinsicTypesInMemberAccess_Default_3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInMemberAccess_Default_3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4855,12 +4509,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 public static int Memb;
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInMemberAccess_NonDefault_1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInMemberAccess_NonDefault_1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4872,12 +4524,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
-    public async Task TestIntrinsicTypesInMemberAccess_NonDefault_2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestIntrinsicTypesInMemberAccess_NonDefault_2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4887,7 +4537,6 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
     public async Task TestSimplifyDiagnosticId()
@@ -4916,7 +4565,7 @@ options: PreferIntrinsicTypeInMemberAccess);
             }
             """);
 
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -4942,9 +4591,8 @@ options: PreferIntrinsicTypeInMemberAccess);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019276")]
-    public async Task TestSimplifyTypeNameDoesNotAddUnnecessaryParens()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task TestSimplifyTypeNameDoesNotAddUnnecessaryParens()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             using System;
 
@@ -4973,12 +4621,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
-    public async Task TestSimplifyTypeNameInPropertyLambda()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task TestSimplifyTypeNameInPropertyLambda()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             namespace ClassLibrary2
             {
@@ -4997,12 +4643,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
-    public async Task TestSimplifyTypeNameInMethodLambda()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task TestSimplifyTypeNameInMethodLambda()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             class C
             {
@@ -5015,12 +4659,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 public string Goo() => (string)";
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068445")]
-    public async Task TestSimplifyTypeNameInIndexerLambda()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task TestSimplifyTypeNameInIndexerLambda()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             class C
             {
@@ -5033,12 +4675,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 public int this[int index] => (int)0;
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
-    public async Task SimplifyTypeNameWithOutDiscard()
-    {
-        await TestAsync(
+    public Task SimplifyTypeNameWithOutDiscard()
+        => TestAsync(
             """
             class C
             {
@@ -5065,13 +4705,11 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default);
-    }
+            new(parseOptions: CSharpParseOptions.Default));
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=388744")]
-    public async Task SimplifyTypeNameWithOutDiscard_FeatureDisabled()
-    {
-        await TestAsync(
+    public Task SimplifyTypeNameWithOutDiscard_FeatureDisabled()
+        => TestAsync(
             """
             class C
             {
@@ -5098,13 +4736,11 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
-    }
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
-    public async Task TestMemberOfBuiltInType1()
-    {
-        await TestAsync(
+    public Task TestMemberOfBuiltInType1()
+        => TestAsync(
             """
             using System;
             class C
@@ -5125,14 +4761,11 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default,
-            options: PreferIntrinsicTypeInDeclaration);
-    }
+            new(parseOptions: CSharpParseOptions.Default, options: PreferIntrinsicTypeInDeclaration));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
-    public async Task TestMemberOfBuiltInType2()
-    {
-        await TestAsync(
+    public Task TestMemberOfBuiltInType2()
+        => TestAsync(
             """
             using System;
             class C
@@ -5153,14 +4786,12 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default,
-            options: PreferIntrinsicTypeInMemberAccess);
-    }
+            new(parseOptions: CSharpParseOptions.Default,
+            options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")]
-    public async Task TestMemberOfBuiltInType3()
-    {
-        await TestAsync(
+    public Task TestMemberOfBuiltInType3()
+        => TestAsync(
             """
             using System;
             class C
@@ -5181,14 +4812,12 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """,
-            parseOptions: CSharpParseOptions.Default,
-            options: PreferIntrinsicTypeInMemberAccess);
-    }
+            new(parseOptions: CSharpParseOptions.Default,
+            options: PreferIntrinsicTypeInMemberAccess));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
-    public async Task NoSuggestionOnForeachCollectionExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoSuggestionOnForeachCollectionExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -5204,12 +4833,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: PreferImplicitTypeEverywhere));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
-    public async Task NoSuggestionOnForeachType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoSuggestionOnForeachType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -5225,12 +4852,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """, new TestParameters(options: PreferImplicitTypeEverywhere));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31849")]
-    public async Task NoSuggestionOnNestedNullabilityRequired()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoSuggestionOnNestedNullabilityRequired()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
             using System.Threading.Tasks;
@@ -5243,7 +4868,6 @@ options: PreferIntrinsicTypeInMemberAccess);
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData(0)]
@@ -5253,9 +4877,8 @@ options: PreferIntrinsicTypeInMemberAccess);
     [InlineData(4)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20377")]
-    public async Task TestWarningLevel(int warningLevel)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWarningLevel(int warningLevel)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5277,16 +4900,13 @@ options: PreferIntrinsicTypeInMemberAccess);
                     Exception c;
                 }
             }
-            """, compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
-    }
+            """, new(compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel)));
 
     [Fact]
-    public async Task TestGlobalAliasSimplifiesInUsingDirective()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGlobalAliasSimplifiesInUsingDirective()
+        => TestInRegularAndScriptAsync(
             "using [|global::System.IO|];",
             "using System.IO;");
-    }
 
     [Theory]
     [InlineData("Boolean")]
@@ -5302,25 +4922,20 @@ options: PreferIntrinsicTypeInMemberAccess);
     [InlineData("UInt64")]
     [InlineData("Float32")]
     [InlineData("Float64")]
-    public async Task TestGlobalAliasSimplifiesInUsingAliasDirective(string typeName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGlobalAliasSimplifiesInUsingAliasDirective(string typeName)
+        => TestInRegularAndScriptAsync(
             $"using My{typeName} = [|global::System.{typeName}|];",
             $"using My{typeName} = System.{typeName};");
-    }
 
     [Fact]
-    public async Task TestGlobalAliasSimplifiesInUsingStaticDirective()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGlobalAliasSimplifiesInUsingStaticDirective()
+        => TestInRegularAndScriptAsync(
             "using static [|global::System.Math|];",
             "using static System.Math;");
-    }
 
     [Fact]
-    public async Task TestGlobalAliasSimplifiesInUsingDirectiveInNamespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGlobalAliasSimplifiesInUsingDirectiveInNamespace()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             namespace N
@@ -5335,12 +4950,10 @@ options: PreferIntrinsicTypeInMemberAccess);
                 using System.IO;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40639")]
-    public async Task TestCrefIdAtTopLevel()
-    {
-        await TestDiagnosticInfoAsync(
+    public Task TestCrefIdAtTopLevel()
+        => TestDiagnosticInfoAsync(
             """
             /// <summary>
             /// <see cref="[|System.String|]"/>
@@ -5349,12 +4962,10 @@ options: PreferIntrinsicTypeInMemberAccess);
             {
             }
             """, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40639")]
-    public async Task TestCrefIdAtNestedLevel()
-    {
-        await TestDiagnosticInfoAsync(
+    public Task TestCrefIdAtNestedLevel()
+        => TestDiagnosticInfoAsync(
             """
             /// <summary>
             /// <see cref="Foo([|System.String|])"/>
@@ -5364,7 +4975,6 @@ options: PreferIntrinsicTypeInMemberAccess);
                 public void Foo(string s) { }
             }
             """, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
-    }
 
     [Theory]
     [InlineData("Boolean")]
@@ -5376,45 +4986,48 @@ options: PreferIntrinsicTypeInMemberAccess);
     [InlineData("UInt32")]
     [InlineData("Int64")]
     [InlineData("UInt64")]
-    public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
-    {
-        await TestInRegularAndScriptAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|global::System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = {typeName};
-}}");
-    }
+    public Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|global::System.{{typeName}}|];
+            }
+            """,
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = {{typeName}};
+            }
+            """);
 
     [Theory]
     [InlineData("Int8")]
     [InlineData("UInt8")]
     [InlineData("Float32")]
     [InlineData("Float64")]
-    public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace_UnboundName(string typeName)
-    {
-        await TestInRegularAndScriptAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|global::System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = System.{typeName};
-}}");
-    }
+    public Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace_UnboundName(string typeName)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|global::System.{{typeName}}|];
+            }
+            """,
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = System.{{typeName}};
+            }
+            """);
 
     [Fact]
-    public async Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             namespace N
@@ -5429,12 +5042,10 @@ namespace N
                 using static System.Math;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27819")]
-    public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoNotSimplifyToVar_EvenIfVarIsPreferred()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5452,13 +5063,11 @@ namespace N
                     int i = 0;
                 }
             }
-            """, options: PreferImplicitTypeEverywhere);
-    }
+            """, new(options: PreferImplicitTypeEverywhere));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27819")]
-    public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred_2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSimplifyToVar_EvenIfVarIsPreferred_2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -5468,12 +5077,10 @@ namespace N
                 }
             }
             """, new TestParameters(options: PreferImplicitTypeEverywhere));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40647")]
-    public async Task SimplifyMemberAccessOverPredefinedType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyMemberAccessOverPredefinedType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5490,12 +5097,10 @@ namespace N
                 public void Goo(object o1, object o2) => ReferenceEquals(o1, o2);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40649")]
-    public async Task SimplifyAliasToGeneric1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyAliasToGeneric1()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using MyList = System.Collections.Generic.List<int>;
@@ -5514,12 +5119,10 @@ namespace N
                 public MyList Goo;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40649")]
-    public async Task SimplifyAliasToGeneric2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyAliasToGeneric2()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using MyList = System.Collections.Generic.List<int>;
@@ -5538,12 +5141,10 @@ namespace N
                 public MyList Goo;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40649")]
-    public async Task SimplifyAliasToGeneric3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyAliasToGeneric3()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using MyList = System.Collections.Generic.List<int>;
@@ -5562,12 +5163,10 @@ namespace N
                 public MyList Goo;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40649")]
-    public async Task DoNotSimplifyIncorrectInstantiation()
-    {
-        await TestMissingAsync(
+    public Task DoNotSimplifyIncorrectInstantiation()
+        => TestMissingAsync(
             """
             using System.Collections.Generic;
             using MyList = System.Collections.Generic.List<int>;
@@ -5577,12 +5176,10 @@ namespace N
                 public [|List<string>|] Goo;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40663")]
-    public async Task SimplifyInTypeOf()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyInTypeOf()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5605,12 +5202,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40876")]
-    public async Task SimplifyPredefinedTypeInUsingDirective1()
-    {
-        await TestWithPredefinedTypeOptionsAsync(
+    public Task SimplifyPredefinedTypeInUsingDirective1()
+        => TestWithPredefinedTypeOptionsAsync(
             """
             using System;
 
@@ -5638,12 +5233,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimplifyTopLevelOfCrefOnly1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimplifyTopLevelOfCrefOnly1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5670,12 +5263,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimplifyTopLevelOfCrefOnly2()
-    {
-        await TestSpansAsync(
+    public Task TestSimplifyTopLevelOfCrefOnly2()
+        => TestSpansAsync(
             """
             using System;
 
@@ -5689,12 +5280,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimplifyTopLevelOfCrefOnly4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimplifyTopLevelOfCrefOnly4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5723,12 +5312,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimplifyTopLevelOfCrefOnly5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimplifyTopLevelOfCrefOnly5()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5757,7 +5344,6 @@ namespace N
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("Boolean")]
@@ -5773,15 +5359,15 @@ namespace N
     [InlineData("UInt64")]
     [InlineData("Float32")]
     [InlineData("Float64")]
-    public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
-    {
-        await TestMissingAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|{typeName}|];
-}}");
-    }
+    public Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
+        => TestMissingAsync(
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|{{typeName}}|];
+            }
+            """);
 
     [Theory]
     [InlineData("Boolean")]
@@ -5793,40 +5379,41 @@ namespace N
     [InlineData("UInt32")]
     [InlineData("Int64")]
     [InlineData("UInt64")]
-    public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
-    {
-        await TestInRegularAndScript1Async(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = {typeName};
-}}");
-    }
+    public Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|System.{{typeName}}|];
+            }
+            """,
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = {{typeName}};
+            }
+            """);
 
     [Theory]
     [InlineData("Int8")]
     [InlineData("UInt8")]
     [InlineData("Float32")]
     [InlineData("Float64")]
-    public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
-    {
-        await TestMissingInRegularAndScriptAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
-}}");
-    }
+    public Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
+        => TestMissingInRegularAndScriptAsync(
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|System.{{typeName}}|];
+            }
+            """);
 
     [Fact]
-    public async Task SimplifyMemberAccessOffOfObjectKeyword()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyMemberAccessOffOfObjectKeyword()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5849,12 +5436,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyBaseCallToVirtualInNonSealedClass()
-    {
-        await TestMissingAsync(
+    public Task DoNotSimplifyBaseCallToVirtualInNonSealedClass()
+        => TestMissingAsync(
             """
             using System;
 
@@ -5866,12 +5451,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoSimplifyBaseCallToVirtualInSealedClass()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoSimplifyBaseCallToVirtualInSealedClass()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5894,12 +5477,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoSimplifyBaseCallToVirtualInStruct()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoSimplifyBaseCallToVirtualInStruct()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5922,12 +5503,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyBaseCallToVirtualWithOverride()
-    {
-        await TestMissingAsync(
+    public Task DoNotSimplifyBaseCallToVirtualWithOverride()
+        => TestMissingAsync(
             """
             using System;
 
@@ -5941,12 +5520,10 @@ namespace N
                 public override int GetHashCode() => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task DoSimplifyBaseCallToNonVirtual()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoSimplifyBaseCallToNonVirtual()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5979,12 +5556,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyBaseCallIfOverloadChanges()
-    {
-        await TestMissingAsync(
+    public Task DoNotSimplifyBaseCallIfOverloadChanges()
+        => TestMissingAsync(
             """
             using System;
 
@@ -6003,12 +5578,10 @@ namespace N
                 public int Baz(int o) => 0;
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyInsideNameof()
-    {
-        await TestMissingAsync(
+    public Task DoNotSimplifyInsideNameof()
+        => TestMissingAsync(
             """
             using System;
 
@@ -6021,12 +5594,10 @@ namespace N
                     };
             }
             """);
-    }
 
     [Fact]
-    public async Task DoSimplifyInferrableTypeArgumentList()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DoSimplifyInferrableTypeArgumentList()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6045,12 +5616,10 @@ namespace N
                 public void Bar<T>(T t) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyNonInferrableTypeArgumentList()
-    {
-        await TestMissingAsync(
+    public Task DoNotSimplifyNonInferrableTypeArgumentList()
+        => TestMissingAsync(
             """
             using System;
 
@@ -6060,12 +5629,10 @@ namespace N
                 public void Bar<T>() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyEnumMemberReferenceInsideEnum()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyEnumMemberReferenceInsideEnum()
+        => TestInRegularAndScriptAsync(
             """
             enum E
             {
@@ -6080,12 +5647,10 @@ namespace N
                 Bar = Goo,
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyEnumMemberReferenceInsideEnumDocComment()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyEnumMemberReferenceInsideEnumDocComment()
+        => TestInRegularAndScriptAsync(
             """
             /// <summary>
             /// <see cref="[|E|].Goo"/>
@@ -6104,12 +5669,10 @@ namespace N
                 Goo = 1,
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInstanceMemberReferenceInCref1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInstanceMemberReferenceInCref1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6127,12 +5690,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyAttributeReference1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyAttributeReference1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6157,12 +5718,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyAttributeReference2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyAttributeReference2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6187,12 +5746,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyGenericAttributeReference1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyGenericAttributeReference1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6217,12 +5774,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyGenericAttributeReference2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyGenericAttributeReference2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6247,12 +5802,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyGenericAttributeReference3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyGenericAttributeReference3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6279,12 +5832,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyGenericAttributeReference4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyGenericAttributeReference4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6311,12 +5862,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyNestedInsideGenericAttributeReference1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSimplifyNestedInsideGenericAttributeReference1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -6330,12 +5879,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyNestedInsideGenericAttributeReference2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSimplifyNestedInsideGenericAttributeReference2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -6349,12 +5896,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyNestedInsideGenericAttributeReference3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSimplifyNestedInsideGenericAttributeReference3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -6368,12 +5913,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotSimplifyNestedInsideGenericAttributeReference4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotSimplifyNestedInsideGenericAttributeReference4()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -6387,12 +5930,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyAttributeReference3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyAttributeReference3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6423,12 +5964,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifyAttributeReference4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifyAttributeReference4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6459,12 +5998,10 @@ namespace N
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SimplifySystemAttribute()
-    {
-        await TestInRegularAndScript1Async(
+    public Task SimplifySystemAttribute()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Runtime.Serialization;
@@ -6489,13 +6026,11 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40633")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-    public async Task TestAllowSimplificationThatWouldNotCauseConflict1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAllowSimplificationThatWouldNotCauseConflict1()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -6540,12 +6075,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-    public async Task TestAllowSimplificationThatWouldNotCauseConflict2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAllowSimplificationThatWouldNotCauseConflict2()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -6590,12 +6123,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-    public async Task TestPreventSimplificationThatWouldCauseConflict1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPreventSimplificationThatWouldCauseConflict1()
+        => TestInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -6636,12 +6167,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-    public async Task TestPreventSimplificationThatWouldCauseConflict2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPreventSimplificationThatWouldCauseConflict2()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace N
             {
@@ -6662,12 +6191,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimplifyPredefinedTypeMemberAccessThatIsInScope()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSimplifyPredefinedTypeMemberAccessThatIsInScope()
+        => TestInRegularAndScriptAsync(
             """
             using static System.Int32;
 
@@ -6690,7 +6217,6 @@ namespace N
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("Boolean")]
@@ -6702,25 +6228,26 @@ namespace N
     [InlineData("UInt32")]
     [InlineData("Int64")]
     [InlineData("UInt64")]
-    public async Task TestDoesNotSimplifyUsingAliasDirectiveToBuiltInType(string typeName)
-    {
-        await TestInRegularAndScript1Async(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = {typeName};
-}}");
-    }
+    public Task TestDoesNotSimplifyUsingAliasDirectiveToBuiltInType(string typeName)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = [|System.{{typeName}}|];
+            }
+            """,
+            $$"""
+            using System;
+            namespace N
+            {
+                using My{{typeName}} = {{typeName}};
+            }
+            """);
 
     [Fact]
-    public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity()
+        => TestMissingInRegularAndScriptAsync(
             """
             using A;
             using B;
@@ -6743,12 +6270,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using A;
 
@@ -6775,12 +6300,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAllowSimplificationWithoutAmbiguity2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAllowSimplificationWithoutAmbiguity2()
+        => TestInRegularAndScriptAsync(
             """
             using A;
 
@@ -6833,12 +6356,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
-    public async Task SimplifyCrefAliasPredefinedType_OnClass()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimplifyCrefAliasPredefinedType_OnClass()
+        => TestInRegularAndScriptAsync(
             """
             namespace N1
             {
@@ -6862,14 +6383,11 @@ namespace N
                     }
                 }
             }
-            """, options: PreferIntrinsicTypeEverywhere);
-    }
+            """, new(options: PreferIntrinsicTypeEverywhere));
 
     [Fact]
-    public async Task TestMissingOnInstanceMemberAccessOfOtherValue()
-    {
-        var content =
-            """
+    public Task TestMissingOnInstanceMemberAccessOfOtherValue()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
 
             internal struct BitVector : IEquatable<BitVector>
@@ -6888,16 +6406,11 @@ namespace N
                     return [|left|].Equals(right);
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(content);
-    }
+            """);
 
     [Fact]
-    public async Task TestSimplifyStaticMemberAccessThroughDerivedType()
-    {
-        var source =
-            """
+    public Task TestSimplifyStaticMemberAccessThroughDerivedType()
+        => TestInRegularAndScriptAsync("""
             class Base
             {
                 public static int Y;
@@ -6914,8 +6427,7 @@ namespace N
                     int k = [|Derived|].Y;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source,
+            """,
             """
             class Base
             {
@@ -6934,12 +6446,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22493")]
-    public async Task TestSimplifyCallWithDynamicArg()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimplifyCallWithDynamicArg()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -6964,12 +6474,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22493")]
-    public async Task TestDoSimplifyCallWithDynamicArgWhenCallingThroughDerivedClass()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoSimplifyCallWithDynamicArgWhenCallingThroughDerivedClass()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -6991,12 +6499,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNameofReportsSimplifyMemberAccess()
-    {
-        await TestDiagnosticInfoAsync(
+    public Task TestNameofReportsSimplifyMemberAccess()
+        => TestDiagnosticInfoAsync(
             """
             using System;
 
@@ -7008,12 +6514,10 @@ namespace N
                 }
             }
             """, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
-    public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNameofReportsSimplifyMemberAccessForMemberGroup1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7036,12 +6540,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
-    public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNameofReportsSimplifyMemberAccessForMemberGroup2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7064,12 +6566,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
-    public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNameofReportsSimplifyMemberAccessForMemberGroup3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7096,12 +6596,10 @@ namespace N
                 void Goo(int i) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
-    public async Task TestNameofReportsSimplifyMemberAccessForMemberGroup4()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestNameofReportsSimplifyMemberAccessForMemberGroup4()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7128,12 +6626,10 @@ namespace N
                 static void Goo(int i) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11380")]
-    public async Task TestNotOnIllegalInstanceCall()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnIllegalInstanceCall()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -7144,12 +6640,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57767")]
-    public async Task TestInvocationOffOfFunctionPointerInvocationResult1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInvocationOffOfFunctionPointerInvocationResult1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Runtime.CompilerServices;
 
@@ -7170,12 +6664,10 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57767")]
-    public async Task TestInvocationOffOfFunctionPointerInvocationResult2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInvocationOffOfFunctionPointerInvocationResult2()
+        => TestMissingInRegularAndScriptAsync(
             """
             public struct A
             {
@@ -7194,20 +6686,18 @@ namespace N
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNint1_NoNumericIntPtr()
+    public async Task TestNint1_NoNumericIntPtr_CSharp10_NoRuntimeSupport()
     {
-        var source =
+        var featureOptions = PreferIntrinsicTypeEverywhere;
+        await TestMissingInRegularAndScriptAsync(
             """
             class A
             {
                 [|System.IntPtr|] i;
             }
-            """;
-        var featureOptions = PreferIntrinsicTypeEverywhere;
-        await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+            """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
     }
 
     [Fact]
@@ -7230,17 +6720,17 @@ namespace N
             {
                 nint i;
             }
-            """, options: featureOptions);
+            """, new(options: featureOptions));
     }
 
     [Fact]
-    public async Task TestNint1_WithNumericIntPtr_CSharp8()
+    public async Task TestNint1_WithNumericIntPtr_CSharp10()
     {
         var featureOptions = PreferIntrinsicTypeEverywhere;
         await TestMissingInRegularAndScriptAsync(
             """
             <Workspace>
-                <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="8">
+                <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="10">
                     <Document>class A
             {
                 [|System.IntPtr|] i;
@@ -7250,18 +6740,33 @@ namespace N
             """, new TestParameters(options: featureOptions));
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
+    [InlineData(LanguageVersion.CSharp9)]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersion.CSharp11)]
+    public Task TestNint1_WithNumericIntPtr_NoRuntimeSupport(LanguageVersion version)
+        => TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{version.ToDisplayString()}}">
+                    <Document>class A
+            {
+                [|System.IntPtr|] i;
+            }</Document>
+                </Project>
+            </Workspace>
+            """, new TestParameters(options: PreferIntrinsicTypeEverywhere));
+
     [Fact]
-    public async Task TestNUint1_NoNumericIntPtr()
+    public async Task TestNUint1_NoNumericIntPtr_CSharp10_NoRuntimeSupport()
     {
-        var source =
+        var featureOptions = PreferIntrinsicTypeEverywhere;
+        await TestMissingInRegularAndScriptAsync(
             """
             class A
             {
                 [|System.UIntPtr|] i;
             }
-            """;
-        var featureOptions = PreferIntrinsicTypeEverywhere;
-        await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+            """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
     }
 
     [Fact]
@@ -7284,7 +6789,7 @@ namespace N
             {
                 nuint i;
             }
-            """, options: featureOptions);
+            """, new(options: featureOptions));
     }
 
     [Fact]
@@ -7305,9 +6810,8 @@ namespace N
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75162")]
-    public async Task TestEditorBrowsable1()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestEditorBrowsable1()
+        => TestMissingInRegularAndScriptAsync("""
             using System.ComponentModel;
 
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -7326,10 +6830,136 @@ namespace N
                 }
             }
             """);
-    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75570")]
+    public Task GenericMethodArgsWithNullabilityDifference1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Linq;
+
+            class C1 { }
+
+            class C2 { }
+
+            class D
+            {
+                public static C2[] ConvertAll(IEnumerable<C1> values)
+                {
+                    return values.[|Select<C1, C2>|](Convert).ToArray();
+                }
+
+                [return: NotNullIfNotNull(nameof(value))]
+                private static C2? Convert(C1? value) => value is null ? null : new C2();
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45484")]
+    public Task GenericMethodArgsWithNullabilityDifference2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            #nullable enable
+                        
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+
+            class C
+            {
+                bool M(IEnumerable<string> s, [NotNullWhen(true)] out string? result)
+                {
+                    return s.[|TryFirst<string>|](x => x.Length % 2 == 0, out result);
+                }
+            }
+
+            static class Extensions
+            {
+                public static bool TryFirst<T>(this IEnumerable<T> source, Func<T, bool> predicate, [MaybeNullWhen(false)] out T value)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72420")]
+    public Task TestGenericWithNullableStruct()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                public void T()
+                {
+                    static void test<T>(Func<T> func)
+                    {
+                    }
+
+                    // IDE0001 NOT expected for this call
+                    [|test<UnmanagedCustomStruct?>|](() => new UnmanagedCustomStruct());
+                }
+
+                public struct UnmanagedCustomStruct
+                {
+                    public Guid Foo;
+                    public int Bar;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72420")]
+    public Task TestGenericWithStruct()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                public void T()
+                {
+                    static void test<T>(Func<T> func)
+                    {
+                    }
+
+                    // IDE0001 expected for this call
+                    [|test<UnmanagedCustomStruct>|](() => new UnmanagedCustomStruct());
+                }
+
+                public struct UnmanagedCustomStruct
+                {
+                    public Guid Foo;
+                    public int Bar;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                public void T()
+                {
+                    static void test<T>(Func<T> func)
+                    {
+                    }
+
+                    // IDE0001 expected for this call
+                    test(() => new UnmanagedCustomStruct());
+                }
+
+                public struct UnmanagedCustomStruct
+                {
+                    public Guid Foo;
+                    public int Bar;
+                }
+            }
+            """);
 
     private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
-        => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
+        => await TestInRegularAndScriptAsync(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
     private OptionsCollection PreferIntrinsicTypeEverywhere
         => new(GetLanguage())

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface;
 
@@ -22,12 +22,13 @@ internal sealed class ExtractInterfaceCodeAction(AbstractExtractInterfaceService
             ? string.Empty
             : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-        return AbstractExtractInterfaceService.GetExtractInterfaceOptionsAsync(
+        return AbstractExtractInterfaceService.GetExtractInterfaceOptions(
             _typeAnalysisResult.DocumentToExtractFrom,
             _typeAnalysisResult.TypeToExtractFrom,
             _typeAnalysisResult.ExtractableMembers,
             containingNamespaceDisplay,
-            cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            _typeAnalysisResult.FormattingOptions,
+            cancellationToken);
     }
 
     protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
@@ -37,16 +38,14 @@ internal sealed class ExtractInterfaceCodeAction(AbstractExtractInterfaceService
 
         if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
         {
-            var extractInterfaceResult = await _extractInterfaceService
-                    .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
+            var extractInterfaceResult = await _extractInterfaceService.ExtractInterfaceFromAnalyzedTypeAsync(
+                _typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
 
             if (extractInterfaceResult.Succeeded)
             {
-                operations = new CodeActionOperation[]
-                {
+                operations = [
                     new ApplyChangesOperation(extractInterfaceResult.UpdatedSolution),
-                    new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)
-                };
+                    new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)];
             }
         }
 

@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -12,7 +13,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <CompilerTrait(CompilerFeature.Tuples)>
@@ -14448,7 +14448,7 @@ End Class
 <errors>
 BC32106: Type argument 'T' does not satisfy the 'Class' constraint for type parameter 'T2'.
     Dim field As List(Of (T, T))
-                             ~
+        ~~~~~
 BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type parameter 'T2'.
     Function M(Of U)(x As U) As (U, U)
                                 ~~~~~~
@@ -14516,7 +14516,7 @@ End Class
 <errors>
 BC32105: Type argument 'T' does not satisfy the 'Structure' constraint for type parameter 'T2'.
     Dim field As List(Of (T, T))
-                             ~
+        ~~~~~
 BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T2'.
     Function M(Of U As Class)(x As (U, U)) As (U, U)
                               ~

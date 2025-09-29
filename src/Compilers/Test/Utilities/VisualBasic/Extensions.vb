@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -344,12 +343,12 @@ Friend Module Extensions
 
     <Extension>
     Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol) As MethodSymbol
-        Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+        Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded, LanguageVersion.Latest)
     End Function
 
     <Extension>
     Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol, proximity As Integer) As MethodSymbol
-        Return this.ReduceExtensionMethod(instanceType, proximity, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+        Return this.ReduceExtensionMethod(instanceType, proximity, CompoundUseSiteInfo(Of AssemblySymbol).Discarded, LanguageVersion.Latest)
     End Function
 
     <Extension>

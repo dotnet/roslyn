@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,9 +26,10 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public partial class Solution
 {
-
-    // Values for all these are created on demand.
-    private ImmutableDictionary<ProjectId, Project> _projectIdToProjectMap;
+    // Values for all these are created on demand. Only access when holding the dictionary as a lock.
+    // Intentionally a simple dictionary rather than a ConcurrentDictionary or ImmutableDictionary
+    // for performance reasons.
+    private readonly Dictionary<ProjectId, Project> _projectIdToProjectMap = [];
 
     /// <summary>
     /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
@@ -46,7 +46,6 @@ public partial class Solution
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
     {
-        _projectIdToProjectMap = ImmutableDictionary<ProjectId, Project>.Empty;
         CompilationState = compilationState;
 
         _cachedFrozenSolution = cachedFrozenSolution ??
@@ -62,8 +61,8 @@ public partial class Solution
         IReadOnlyList<AnalyzerReference> analyzerReferences,
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
-                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
-                  workspace.PartialSemanticsEnabled))
+            new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
+            workspace.PartialSemanticsEnabled))
     {
     }
 
@@ -71,7 +70,7 @@ public partial class Solution
 
     internal SolutionCompilationState CompilationState { get; }
 
-    internal int WorkspaceVersion => this.SolutionState.WorkspaceVersion;
+    internal int SolutionStateContentVersion => this.SolutionState.ContentVersion;
 
     internal bool PartialSemanticsEnabled => CompilationState.PartialSemanticsEnabled;
 
@@ -116,11 +115,19 @@ public partial class Solution
 
     /// <summary>
     /// A list of all the ids for all the projects contained by the solution.
+    /// Ordering determined by the order the projects were added to the solution.
     /// </summary>
     public IReadOnlyList<ProjectId> ProjectIds => this.SolutionState.ProjectIds;
 
     /// <summary>
+    /// A list of all the project states contained by the solution.
+    /// Ordered by <see cref="ProjectState.Id"/>'s <see cref="ProjectId.Id"/> value.
+    /// </summary>
+    internal ImmutableArray<ProjectState> SortedProjectStates => this.SolutionState.SortedProjectStates;
+
+    /// <summary>
     /// A list of all the projects contained by the solution.
+    /// Ordering determined by the order the projects were added to the solution.
     /// </summary>
     public IEnumerable<Project> Projects => ProjectIds.Select(id => GetProject(id)!);
 
@@ -132,7 +139,8 @@ public partial class Solution
     /// <summary>
     /// True if the solution contains a project with the specified project ID.
     /// </summary>
-    public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId) => this.SolutionState.ContainsProject(projectId);
+    public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId)
+        => this.SolutionState.ContainsProject(projectId);
 
     /// <summary>
     /// Gets the project in this solution with the specified project ID. 
@@ -143,7 +151,10 @@ public partial class Solution
     {
         if (this.ContainsProject(projectId))
         {
-            return ImmutableInterlocked.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
+            lock (_projectIdToProjectMap)
+            {
+                return _projectIdToProjectMap.GetOrAdd(projectId, s_createProjectFunction, this);
+            }
         }
 
         return null;
@@ -533,6 +544,17 @@ public partial class Solution
     }
 
     /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified hasSdkCodeStyleAnalyzers.
+    /// </summary>
+    internal Solution WithHasSdkCodeStyleAnalyzers(ProjectId projectId, bool hasSdkCodeStyleAnalyzers)
+    {
+        CheckContainsProject(projectId);
+
+        return WithCompilationState(CompilationState.WithHasSdkCodeStyleAnalyzers(projectId, hasSdkCodeStyleAnalyzers));
+    }
+
+    /// <summary>
     /// Creates a new solution instance with the project documents in the order by the specified document ids.
     /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
     /// </summary>
@@ -777,9 +799,7 @@ public partial class Solution
         CheckContainsProject(projectId);
 
         if (analyzerReferences is null)
-        {
             throw new ArgumentNullException(nameof(analyzerReferences));
-        }
 
         var collection = analyzerReferences.ToImmutableArray();
 
@@ -788,12 +808,16 @@ public partial class Solution
         foreach (var analyzerReference in collection)
         {
             if (this.SolutionState.ContainsAnalyzerReference(projectId, analyzerReference))
-            {
                 throw new InvalidOperationException(WorkspacesResources.The_project_already_contains_the_specified_reference);
-            }
         }
 
-        return WithCompilationState(CompilationState.AddAnalyzerReferences(this.SolutionState.AddAnalyzerReferences(projectId, collection), collection));
+        var boxedReferences = Roslyn.Utilities.EnumerableExtensions.ToBoxedImmutableArray([
+            // Note: we guaranteed that analyzerReferences has no duplicates, and has no overlap with the existing
+            // analyzer references above, so we can just concatenate them here safely.
+            .. this.GetRequiredProjectState(projectId).AnalyzerReferences,
+            .. collection,
+        ]);
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, boxedReferences));
     }
 
     /// <summary>
@@ -815,7 +839,14 @@ public partial class Solution
         if (!oldProject.AnalyzerReferences.Contains(analyzerReference))
             throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
 
-        return WithCompilationState(CompilationState.RemoveAnalyzerReference(projectId, analyzerReference));
+        var builder = new FixedSizeArrayBuilder<AnalyzerReference>(oldProject.AnalyzerReferences.Count - 1);
+        foreach (var reference in oldProject.AnalyzerReferences)
+        {
+            if (!reference.Equals(analyzerReference))
+                builder.Add(reference);
+        }
+
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, builder.MoveToImmutable()));
     }
 
     /// <summary>
@@ -954,6 +985,8 @@ public partial class Solution
             throw new ArgumentNullException(nameof(syntaxRoot));
 
         var project = GetRequiredProjectState(documentId.ProjectId);
+
+        // The empty text is replaced in WithDocumentSyntaxRoot with the actual text that matches the syntax tree.
         var sourceText = SourceText.From(string.Empty, encoding: null, project.ChecksumAlgorithm);
 
         return AddDocumentImpl(project, documentId, name, sourceText, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated).
@@ -1362,11 +1395,15 @@ public partial class Solution
         return WithCompilationState(CompilationState.WithDocumentSyntaxRoots(syntaxRoots, mode));
     }
 
-    internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(CompilationState.WithDocumentContentsFrom([(documentId, documentState)], forceEvenIfTreesWouldDiffer));
+    internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        => WithDocumentContentsFrom([(documentId, documentState)]);
 
-    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(CompilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer));
+    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates)
+        // This code path is all about updating linked files to match the contents of the document they are linked to.
+        // We always want to try to allow the linked files to reuse the root from the linked document if possible, or
+        // reparse if it is not.  Hence why we pass `forceEvenIfTreesWouldDiffer: false` as we don't want reuse in the
+        // cases like when PP directives change and the docs contain a #if directive.
+        => WithCompilationState(CompilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer: false));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source
@@ -1529,17 +1566,16 @@ public partial class Solution
     internal async Task<Solution> WithMergedLinkedFileChangesAsync(
         Solution oldSolution,
         SolutionChanges? solutionChanges = null,
-        IMergeConflictHandler? mergeConflictHandler = null,
         CancellationToken cancellationToken = default)
     {
         // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
         var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
 
-        return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
+        return (await session.MergeDiffsAsync(cancellationToken).ConfigureAwait(false)).MergedSolution;
     }
 
-    internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
-        => this.SolutionState.GetRelatedDocumentIds(documentId);
+    internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId, bool includeDifferentLanguages = false)
+        => this.SolutionState.GetRelatedDocumentIds(documentId, includeDifferentLanguages);
 
     /// <summary>
     /// Returns one of any of the related documents of <paramref name="documentId"/>.  Importantly, this will never
@@ -1551,8 +1587,8 @@ public partial class Solution
     internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
         => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
-    internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
-        => WithCompilationState(CompilationState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
+    internal Solution WithNewWorkspaceFrom(Solution oldSolution)
+        => WithCompilationState(CompilationState.WithNewWorkspaceFrom(oldSolution));
 
     /// <summary>
     /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
@@ -1596,7 +1632,8 @@ public partial class Solution
     internal Document WithFrozenSourceGeneratedDocument(
         SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
-        var newCompilationState = CompilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
+        // SyntaxNode is null here because it will be computed on demand. Other APIs, like Document.WithSyntaxRoot, specify it.
+        var newCompilationState = CompilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text, syntaxNode: null)]);
         var newSolution = WithCompilationState(newCompilationState);
 
         var newDocumentState = newCompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
@@ -1607,7 +1644,7 @@ public partial class Solution
     }
 
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
-        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents));
+        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents.SelectAsArray(d => (d.documentIdentity, d.generationDateTime, (SourceText?)d.text, (SyntaxNode?)null))));
 
     /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
     internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap)
@@ -1720,9 +1757,26 @@ public partial class Solution
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (!ContainsDocument(documentId))
+        // For source generated documents we expect them to be already generated to use any of the APIs that call this
+        if (documentId.IsSourceGenerated && ContainsSourceGeneratedDocument(documentId))
         {
-            throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+            return;
+        }
+
+        if (ContainsDocument(documentId))
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+        bool ContainsSourceGeneratedDocument(DocumentId documentId)
+        {
+            var project = this.GetProject(documentId.ProjectId);
+            if (project is null)
+                return false;
+
+            return project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId) is not null;
         }
     }
 

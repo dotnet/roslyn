@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -38,8 +37,14 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         private readonly SyntaxNode _node;
         private readonly ISymbolSearchService _symbolSearchService;
-        private readonly AddImportOptions _options;
         private readonly ImmutableArray<PackageSource> _packageSources;
+
+        /// <summary>
+        /// If the search is being conducted inside of a `using/import` directive.
+        /// </summary>
+        private readonly bool _isWithinImport;
+
+        public readonly AddImportOptions Options;
 
         public SymbolReferenceFinder(
             AbstractAddImportFeatureService<TSimpleNameSyntax> owner,
@@ -59,11 +64,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             _node = node;
 
             _symbolSearchService = symbolSearchService;
-            _options = options;
+            Options = options;
             _packageSources = packageSources;
-            _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            _syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             _namespacesInScope = GetNamespacesInScope(cancellationToken);
+            _isWithinImport = owner.IsWithinImport(node);
         }
 
         private ISet<INamespaceSymbol> GetNamespacesInScope(CancellationToken cancellationToken)
@@ -89,7 +95,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         internal Task<ImmutableArray<SymbolReference>> FindInAllSymbolsInStartingProjectAsync(bool exact, CancellationToken cancellationToken)
             => DoAsync(new AllSymbolsProjectSearchScope(_owner, _document.Project, exact), cancellationToken);
 
-        internal Task<ImmutableArray<SymbolReference>> FindInSourceSymbolsInProjectAsync(ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly, Project project, bool exact, CancellationToken cancellationToken)
+        internal Task<ImmutableArray<SymbolReference>> FindInSourceSymbolsInProjectAsync(ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly, Project project, bool exact, CancellationToken cancellationToken)
             => DoAsync(new SourceSymbolsProjectSearchScope(_owner, projectToAssembly, project, exact), cancellationToken);
 
         internal Task<ImmutableArray<SymbolReference>> FindInMetadataSymbolsAsync(IAssemblySymbol assembly, Project assemblyProject, PortableExecutableReference metadataReference, bool exact, CancellationToken cancellationToken)
@@ -99,12 +105,18 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Within a using/import directive, we don't want to offer to add other imports.  We only want to offer to
+            // add nuget packages.  So bail out immediately on all symbolic searches.  The only searches we aactually
+            // perform are done in FindNugetOrReferenceAssemblyReferencesAsync.
+            if (_isWithinImport)
+                return [];
+
             // Spin off tasks to do all our searching in parallel
             using var _1 = ArrayBuilder<Task<ImmutableArray<SymbolReference>>>.GetInstance(out var tasks);
             tasks.Add(GetReferencesForMatchingTypesAsync(searchScope, cancellationToken));
             tasks.Add(GetReferencesForMatchingNamespacesAsync(searchScope, cancellationToken));
             tasks.Add(GetReferencesForMatchingFieldsAndPropertiesAsync(searchScope, cancellationToken));
-            tasks.Add(GetReferencesForMatchingExtensionMethodsAsync(searchScope, cancellationToken));
+            tasks.Add(GetReferencesForMatchingExtensionMembersAsync(searchScope, cancellationToken));
 
             // Searching for things like "Add" (for collection initializers) and "Select"
             // (for extension methods) should only be done when doing an 'exact' search.
@@ -152,7 +164,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
 
             inAttributeContext = syntaxFacts.IsNameOfAttribute(nameNode);
-            hasIncompleteParentMember = nameNode?.Parent?.RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
+            hasIncompleteParentMember = nameNode.GetRequiredParent().RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
             looksGeneric = syntaxFacts.LooksGeneric(nameNode);
         }
 
@@ -165,17 +177,15 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
-            {
+            if (!_owner.CanAddImportForTypeOrNamespace(_diagnosticId, _node, out var nameNode))
                 return [];
-            }
 
             CalculateContext(
                 nameNode, _syntaxFacts,
                 out var name, out var arity, out var inAttributeContext,
                 out var hasIncompleteParentMember, out var looksGeneric);
 
-            if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: cancellationToken))
+            if (ExpressionBinds(nameNode, checkForExtensionMembers: false, cancellationToken: cancellationToken))
             {
                 // If the expression bound, there's nothing to do.
                 return [];
@@ -201,7 +211,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // editor browsable rules.
             var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                 s => ArityAccessibilityAndAttributeContextAreCorrect(s.Symbol, arity, inAttributeContext, hasIncompleteParentMember, looksGeneric) &&
-                     s.Symbol.IsEditorBrowsable(_options.MemberDisplayOptions.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
+                     s.Symbol.IsEditorBrowsable(Options.MemberDisplayOptions.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
 
             // These types may be contained within namespaces, or they may be nested 
             // inside generic types.  Record these namespaces/types if it would be 
@@ -216,7 +226,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var typeReferences = typesContainedDirectlyInTypes.SelectAsArray(
                 r => searchScope.CreateReference(r.WithSymbol(r.Symbol.ContainingType)));
 
-            return namespaceReferences.Concat(typeReferences);
+            return [.. namespaceReferences, .. typeReferences];
         }
 
         private bool ArityAccessibilityAndAttributeContextAreCorrect(
@@ -257,7 +267,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
 
                 if (arity == 0 &&
-                    !ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken))
+                    !ExpressionBinds(nameNode, checkForExtensionMembers: false, cancellationToken))
                 {
                     var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
                     var namespaceSymbols = OfType<INamespaceSymbol>(symbols);
@@ -279,18 +289,18 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
+            if (_owner.CanAddImportForMember(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                 nameNode != null)
             {
                 // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
                 // 'Black' did not bind.  We want to find a type called 'Color' that will actually
                 // allow 'Black' to bind.
-                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) ||
                     syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                 {
                     var expression = syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode)
-                        ? syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true)
+                        ? syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.GetRequiredParent(), allowImplicitTarget: true)
                         : syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
                     if (expression is TSimpleNameSyntax simpleName)
                     {
@@ -326,68 +336,81 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         private bool HasAccessibleStaticFieldOrProperty(INamedTypeSymbol namedType, string fieldOrPropertyName)
         {
-            return namedType.GetMembers(fieldOrPropertyName)
-                            .Any(static (m, self) => (m is IFieldSymbol || m is IPropertySymbol) &&
-                                      m.IsStatic &&
-                                      m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
+            return namedType
+                .GetMembers(fieldOrPropertyName)
+                .Any(static (m, self) =>
+                    m is IFieldSymbol or IPropertySymbol &&
+                    m.IsStatic &&
+                    m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
         }
 
         /// <summary>
-        /// Searches for extension methods that match the name the user has written.  Returns
-        /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
-        /// the static classes that those extension methods are contained in.
+        /// Searches for extension members that match the name the user has written.  Returns <see
+        /// cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain the static classes that those
+        /// extension methods are contained in.
         /// </summary>
-        private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingExtensionMethodsAsync(
+        private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingExtensionMembersAsync(
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
+            if (_owner.CanAddImportForMember(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                 nameNode != null)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // See if the name binds.  If it does, there's nothing further we need to do.
-                if (!ExpressionBinds(nameNode, checkForExtensionMethods: true, cancellationToken))
+                if (!ExpressionBinds(nameNode, checkForExtensionMembers: true, cancellationToken))
                 {
                     _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                     if (name != null)
                     {
-                        var symbols = await searchScope.FindDeclarationsAsync(name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
+                        var (receiverType, isStatic) = GetReceiverType();
+                        if (receiverType is null)
+                            return [];
 
-                        var methodSymbols = OfType<IMethodSymbol>(symbols);
+                        var symbols = await searchScope.FindDeclarationsAsync(
+                            name, nameNode, SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
-                        var extensionMethodSymbols = GetViableExtensionMethods(
-                            methodSymbols, nameNode.Parent, cancellationToken);
+                        var classicExtensionMethods = OfType<IMethodSymbol>(symbols)
+                            .WhereAsArray(s => IsViableClassicExtensionMethod(s.Symbol, receiverType, predicate: null));
 
-                        var namespaceSymbols = extensionMethodSymbols.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
-                        return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
+                        var modernExtensionMembers = symbols
+                            .WhereAsArray(s => IsViableModernExtensionMember(s.Symbol, receiverType) && s.Symbol.IsStatic == isStatic);
+
+                        var classicExtensionNamespaces = classicExtensionMethods.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+                        var modernExtensionNamespaces = modernExtensionMembers.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+                        var allExtensionNamespaces = classicExtensionNamespaces.Concat(modernExtensionNamespaces).ToImmutableArray();
+
+                        return GetNamespaceSymbolReferences(searchScope, allExtensionNamespaces);
                     }
                 }
             }
 
             return [];
-        }
 
-        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethods(
-            ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols,
-            SyntaxNode expression, CancellationToken cancellationToken)
-        {
-            return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                s => _owner.IsViableExtensionMethod(s.Symbol, expression, _semanticModel, _syntaxFacts, cancellationToken));
-        }
+            (ITypeSymbol? receiverType, bool isStatic) GetReceiverType()
+            {
+                var expression = nameNode.GetRequiredParent();
+                if (_syntaxFacts.IsInvocationExpression(expression))
+                    return (_semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken), isStatic: false);
 
-        private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethods(
-            ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols, ITypeSymbol typeSymbol)
-        {
-            return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                s => IsViableExtensionMethod(s.Symbol, typeSymbol));
+                var leftExpression =
+                    _syntaxFacts.IsMemberAccessExpression(expression) ? _syntaxFacts.GetExpressionOfMemberAccessExpression(expression, allowImplicitTarget: true) :
+                    _syntaxFacts.IsMemberBindingExpression(expression) ? _syntaxFacts.GetTargetOfMemberBinding(expression) : null;
+                if (leftExpression == null)
+                    return default;
+
+                var symbol = _semanticModel.GetSymbolInfo(leftExpression, cancellationToken).GetAnySymbol();
+                var semanticInfo = _semanticModel.GetTypeInfo(leftExpression, cancellationToken);
+                return (semanticInfo.Type, isStatic: symbol is ITypeSymbol);
+            }
         }
 
         private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(
             ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols)
         {
             return methodSymbols.WhereAsArray(
-                s => s.Symbol.IsExtensionMethod &&
+                s => s.Symbol.IsClassicOrModernInstanceExtensionMethod() &&
                      s.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly));
         }
 
@@ -400,23 +423,13 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out _) &&
+            if (_owner.CanAddImportForMember(_diagnosticId, _syntaxFacts, _node, out _) &&
                 !_syntaxFacts.IsSimpleName(_node) &&
-                _owner.IsAddMethodContext(_node, _semanticModel))
+                _owner.IsAddMethodContext(_node, _semanticModel, out var objectCreationExpression))
             {
-                var symbols = await searchScope.FindDeclarationsAsync(
-                    nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
-
-                // Note: there is no desiredName for these search results.  We're searching for
-                // extension methods called "Add", but we have no intention of renaming any 
-                // of the existing user code to that name.
-                var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
-
-                var viableMethods = GetViableExtensionMethods(
-                    methodSymbols, _node.Parent, cancellationToken);
-
-                return GetNamespaceSymbolReferences(searchScope,
-                    viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
+                var objectCreationType = _semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type;
+                return await GetReferencesForExtensionMethodAsync(
+                    searchScope, nameof(IList.Add), objectCreationType, predicate: null, cancellationToken).ConfigureAwait(false);
             }
 
             return [];
@@ -459,13 +472,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _syntaxFacts, _node))
             {
                 var type = GetAwaitInfo(_semanticModel, _syntaxFacts, _node);
-                if (type != null)
-                {
-                    return await GetReferencesForExtensionMethodAsync(
-                        searchScope, WellKnownMemberNames.GetAwaiter, type,
-                        static m => m.IsValidGetAwaiter(),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                return await GetReferencesForExtensionMethodAsync(
+                    searchScope, WellKnownMemberNames.GetAwaiter, type,
+                    static m => m.IsValidGetAwaiter(),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return [];
@@ -484,13 +494,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (_owner.CanAddImportForGetEnumerator(_diagnosticId, _syntaxFacts, _node))
             {
                 var type = GetCollectionExpressionType(_semanticModel, _syntaxFacts, _node);
-                if (type != null)
-                {
-                    return await GetReferencesForExtensionMethodAsync(
-                        searchScope, WellKnownMemberNames.GetEnumeratorMethodName, type,
-                        static m => m.IsValidGetEnumerator(),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                return await GetReferencesForExtensionMethodAsync(
+                    searchScope, WellKnownMemberNames.GetEnumeratorMethodName, type,
+                    static m => m.IsValidGetEnumerator(),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return [];
@@ -509,13 +516,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (_owner.CanAddImportForGetAsyncEnumerator(_diagnosticId, _syntaxFacts, _node))
             {
                 var type = GetCollectionExpressionType(_semanticModel, _syntaxFacts, _node);
-                if (type != null)
-                {
-                    return await GetReferencesForExtensionMethodAsync(
-                        searchScope, WellKnownMemberNames.GetAsyncEnumeratorMethodName, type,
-                        static m => m.IsValidGetAsyncEnumerator(),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                return await GetReferencesForExtensionMethodAsync(
+                    searchScope, WellKnownMemberNames.GetAsyncEnumeratorMethodName, type,
+                    static m => m.IsValidGetAsyncEnumerator(),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return [];
@@ -549,36 +553,94 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         private async Task<ImmutableArray<SymbolReference>> GetReferencesForExtensionMethodAsync(
-            SearchScope searchScope, string name, ITypeSymbol type, Func<IMethodSymbol, bool> predicate, CancellationToken cancellationToken)
+            SearchScope searchScope, string name, ITypeSymbol? type, Func<IMethodSymbol, bool>? predicate, CancellationToken cancellationToken)
         {
+            if (type is null)
+                return [];
+
             var symbols = await searchScope.FindDeclarationsAsync(
                 name, nameNode: null, filter: SymbolFilter.Member, cancellationToken).ConfigureAwait(false);
 
-            // Note: there is no "desiredName" when doing this.  We're not going to do any
-            // renames of the user code.  We're just looking for an extension method called 
-            // "Select", but that name has no bearing on the code in question that we're
-            // trying to fix up.
-            var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
-            var viableExtensionMethods = GetViableExtensionMethods(methodSymbols, type);
-
-            if (predicate != null)
-            {
-                viableExtensionMethods = viableExtensionMethods.WhereAsArray(s => predicate(s.Symbol));
-            }
-
-            var namespaceSymbols = viableExtensionMethods.SelectAsArray(s => s.WithSymbol(s.Symbol.ContainingNamespace));
+            // Note: there is no "desiredName" when doing this.  We're not going to do any renames of the user code.
+            // We're just looking for an extension method called "Select", but that name has no bearing on the code in
+            // question that we're trying to fix up.
+            var methodSymbols = OfType<IMethodSymbol>(symbols);
+            var namespaceSymbols = methodSymbols.SelectAsArray(
+                s => IsViableClassicExtensionMethod(s.Symbol, type, predicate),
+                s => s.WithDesiredName(null).WithSymbol(s.Symbol.ContainingNamespace));
 
             return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
         }
 
+        private bool IsViableClassicExtensionMethod(
+            IMethodSymbol? method, ITypeSymbol? receiver, Func<IMethodSymbol, bool>? predicate)
+        {
+            if (receiver == null || method == null)
+                return false;
+
+            if (!method.IsExtensionMethod)
+                return false;
+
+            // It's possible that the 'method' we're looking at is from a different language than
+            // the language we're currently in.  For example, we might find the extension method
+            // in an unreferenced VB project while we're in C#.  However, in order to 'reduce'
+            // the extension method, the compiler requires both the method and receiver to be 
+            // from the same language.
+            //
+            // So, if they're not from the same language, we simply can't proceed.  Now in this 
+            // case we decide that the method is not viable.  But we could, in the future, decide
+            // to just always consider such methods viable.
+
+            if (receiver.Language != method.Language)
+                return false;
+
+            if (!method.IsAccessibleWithin(_semanticModel.Compilation.Assembly))
+                return false;
+
+            var reducedMethod = method.ReduceExtensionMethod(receiver);
+            if (reducedMethod is null)
+                return false;
+
+            return predicate?.Invoke(method) is not false;
+        }
+
+        private bool IsViableModernExtensionMember(
+            ISymbol? member, ITypeSymbol? receiver)
+        {
+            if (member is null || receiver is null)
+                return false;
+
+            if (member is INamedTypeSymbol)
+                return false;
+
+            if (!member.ContainingType.IsExtension)
+                return false;
+
+            if (member.ContainingType.ExtensionParameter is not { Type: { } extensionParameterType })
+                return false;
+
+            if (!member.IsAccessibleWithin(_semanticModel.Compilation.Assembly))
+                return false;
+
+            // TODO: https://github.com/dotnet/roslyn/issues/80273
+            // There is not api yet to know for certain if a modern extension is compatible with a receiver type.
+            // For now, put in a poor man's approach for this.
+
+            receiver = receiver.OriginalDefinition;
+            extensionParameterType = extensionParameterType.OriginalDefinition;
+
+            var conversion = _semanticModel.Compilation.ClassifyCommonConversion(receiver, extensionParameterType);
+            return conversion.Exists && conversion.IsImplicit;
+        }
+
         private bool ExpressionBinds(
-            TSimpleNameSyntax nameNode, bool checkForExtensionMethods, CancellationToken cancellationToken)
+            TSimpleNameSyntax nameNode, bool checkForExtensionMembers, CancellationToken cancellationToken)
         {
             // See if the name binds to something other then the error type. If it does, there's nothing further we need to do.
             // For extension methods, however, we will continue to search if there exists any better matched method.
             cancellationToken.ThrowIfCancellationRequested();
             var symbolInfo = _semanticModel.GetSymbolInfo(nameNode, cancellationToken);
-            if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !checkForExtensionMethods)
+            if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !checkForExtensionMembers)
             {
                 return true;
             }
@@ -604,9 +666,6 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
-        {
-            return symbols.WhereAsArray(s => s.Symbol is T)
-                          .SelectAsArray(s => s.WithSymbol((T)s.Symbol));
-        }
+            => symbols.SelectAsArray(s => s.Symbol is T, s => s.WithSymbol((T)s.Symbol));
     }
 }

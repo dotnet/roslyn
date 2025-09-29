@@ -187,7 +187,6 @@ public abstract partial class CompletionService : ILanguageService
     /// <param name="document">This will be the  original document that
     /// <paramref name="item"/> was created against.</param>
     /// <param name="item">The item to get the description for.</param>
-    /// <param name="cancellationToken"></param>
     public Task<CompletionDescription?> GetDescriptionAsync(
         Document document,
         CompletionItem item,
@@ -205,17 +204,17 @@ public abstract partial class CompletionService : ILanguageService
     /// <param name="item">The item to get the description for.</param>
     /// <param name="options">Completion options</param>
     /// <param name="displayOptions">Display options</param>
-    /// <param name="cancellationToken"></param>
     internal virtual async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
     {
         var provider = GetProvider(item, document.Project);
         if (provider is null)
             return CompletionDescription.Empty;
 
-        var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+        var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
         // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-        (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+        document = GetDocumentWithFrozenPartialSemantics(document, cancellationToken);
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var description = await extensionManager.PerformFunctionAsync(
             provider,
             cancellationToken => provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken),
@@ -233,7 +232,6 @@ public abstract partial class CompletionService : ILanguageService
     /// <param name="commitCharacter">The typed character that caused the item to be committed. 
     /// This character may be used as part of the change. 
     /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
-    /// <param name="cancellationToken"></param>
     public virtual async Task<CompletionChange> GetChangeAsync(
         Document document,
         CompletionItem item,
@@ -243,10 +241,11 @@ public abstract partial class CompletionService : ILanguageService
         var provider = GetProvider(item, document.Project);
         if (provider != null)
         {
-            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+            document = GetDocumentWithFrozenPartialSemantics(document, cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var change = await extensionManager.PerformFunctionAsync(
                 provider,
@@ -361,6 +360,19 @@ public abstract partial class CompletionService : ILanguageService
                 builder.Add(matchResult);
             }
         }
+    }
+
+    internal static bool IsAllPunctuation(string filterText)
+    {
+        foreach (var ch in filterText)
+        {
+            if (!char.IsPunctuation(ch))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

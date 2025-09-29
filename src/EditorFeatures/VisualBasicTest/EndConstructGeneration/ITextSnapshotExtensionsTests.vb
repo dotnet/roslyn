@@ -8,9 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     Public Class ITextSnapshotExtensionsTests
         <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ThrowsWithNullSnapshot()
-            Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        EndConstructExtensions.GetAligningWhitespace(Nothing, 0)
-                                                    End Sub)
+            Assert.Throws(Of ArgumentNullException)(Sub() EndConstructExtensions.GetAligningWhitespace(Nothing, 0))
         End Sub
     End Class
 End Namespace

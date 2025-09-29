@@ -6,10 +6,10 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 
@@ -113,22 +113,18 @@ internal static class TypeStyleHelper
         return false;
     }
 
-    private static bool IsPossibleCreationOrConversionMethod(IMethodSymbol methodSymbol,
+    private static bool IsPossibleCreationOrConversionMethod(
+        IMethodSymbol methodSymbol,
         ITypeSymbol? typeInDeclaration,
         SemanticModel semanticModel,
         ExpressionSyntax containingTypeName,
         CancellationToken cancellationToken)
     {
         if (methodSymbol.ReturnsVoid)
-        {
             return false;
-        }
 
-        var containingType = semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type;
-
-        // The containing type was determined from an expression of the form ContainingType.MemberName, and the
-        // caller verifies that MemberName resolves to a method symbol.
-        Contract.ThrowIfNull(containingType);
+        if (semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type is not INamedTypeSymbol containingType)
+            return false;
 
         return IsPossibleCreationMethod(methodSymbol, typeInDeclaration, containingType)
             || IsPossibleConversionMethod(methodSymbol);
@@ -138,16 +134,34 @@ internal static class TypeStyleHelper
     /// Looks for types that have static methods that return the same type as the container.
     /// e.g: int.Parse, XElement.Load, Tuple.Create etc.
     /// </summary>
-    private static bool IsPossibleCreationMethod(IMethodSymbol methodSymbol,
+    private static bool IsPossibleCreationMethod(
+        IMethodSymbol methodSymbol,
         ITypeSymbol? typeInDeclaration,
-        ITypeSymbol containingType)
+        INamedTypeSymbol containingType)
     {
         if (!methodSymbol.IsStatic)
-        {
             return false;
+
+        // Check the simple case of the type the method is in returning an instance of that type.
+        var returnType = UnwrapTupleType(methodSymbol.ReturnType);
+        if (UnwrapTupleType(containingType).Equals(returnType))
+            return true;
+
+        // Now check for cases like `Tuple.Create(0, true)`.  This is a static factory without type arguments
+        // that returns instances of a generic type.
+        //
+        // We explicitly disallow this for Task.X and ValueTask.X as the final type is generally not apparent due to
+        // complex type inference.
+        if (UnwrapTupleType(typeInDeclaration)?.GetTypeArguments().Length > 0 &&
+            containingType.TypeArguments.Length == 0 &&
+            returnType.Name is not nameof(Task) and not nameof(ValueTask) &&
+            UnwrapTupleType(containingType).Name.Equals(returnType.Name) &&
+            containingType.ContainingNamespace.Equals(returnType.ContainingNamespace))
+        {
+            return true;
         }
 
-        return IsContainerTypeEqualToReturnType(methodSymbol, typeInDeclaration, containingType);
+        return false;
     }
 
     /// <summary>
@@ -164,29 +178,6 @@ internal static class TypeStyleHelper
         return methodSymbol.Name.Equals("To" + returnTypeName, StringComparison.Ordinal);
     }
 
-    /// <remarks>
-    /// If there are type arguments on either side of assignment, we match type names instead of type equality 
-    /// to account for inferred generic type arguments.
-    /// e.g: Tuple.Create(0, true) returns Tuple&lt;X,y&gt; which isn't the same as type Tuple.
-    /// otherwise, we match for type equivalence
-    /// </remarks>
-    private static bool IsContainerTypeEqualToReturnType(IMethodSymbol methodSymbol,
-        ITypeSymbol? typeInDeclaration,
-        ITypeSymbol containingType)
-    {
-        var returnType = UnwrapTupleType(methodSymbol.ReturnType);
-
-        if (UnwrapTupleType(typeInDeclaration)?.GetTypeArguments().Length > 0 ||
-            containingType.GetTypeArguments().Length > 0)
-        {
-            return UnwrapTupleType(containingType).Name.Equals(returnType.Name);
-        }
-        else
-        {
-            return UnwrapTupleType(containingType).Equals(returnType);
-        }
-    }
-
     [return: NotNullIfNotNull(nameof(symbol))]
     private static ITypeSymbol? UnwrapTupleType(ITypeSymbol? symbol)
     {
@@ -200,29 +191,14 @@ internal static class TypeStyleHelper
     }
 
     private static ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
-    {
-        if (node is AwaitExpressionSyntax awaitExpression && awaitExpression.Expression != null)
+        => node switch
         {
-            return GetRightmostInvocationExpression(awaitExpression.Expression);
-        }
-
-        if (node is InvocationExpressionSyntax invocationExpression && invocationExpression.Expression != null)
-        {
-            return GetRightmostInvocationExpression(invocationExpression.Expression);
-        }
-
-        if (node is ConditionalAccessExpressionSyntax conditional)
-        {
-            return GetRightmostInvocationExpression(conditional.WhenNotNull);
-        }
-
-        return node;
-    }
+            AwaitExpressionSyntax { Expression: not null } awaitExpression => GetRightmostInvocationExpression(awaitExpression.Expression),
+            InvocationExpressionSyntax { Expression: not null } invocationExpression => GetRightmostInvocationExpression(invocationExpression.Expression),
+            ConditionalAccessExpressionSyntax conditional => GetRightmostInvocationExpression(conditional.WhenNotNull),
+            _ => node
+        };
 
     public static bool IsPredefinedType(TypeSyntax type)
-    {
-        return type is PredefinedTypeSyntax predefinedType
-            ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
-            : false;
-    }
+        => type is PredefinedTypeSyntax predefinedType && SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind());
 }

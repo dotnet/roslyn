@@ -10,13 +10,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
-
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -78,7 +71,7 @@ internal static partial class SyntaxGeneratorExtensions
     {
         var equalityComparerType = compilation.EqualityComparerOfTType();
         var typeExpression = equalityComparerType == null
-            ? factory.GenericName(nameof(EqualityComparer<int>), type)
+            ? factory.GenericName(nameof(EqualityComparer<>), type)
             : generatorInternal.Type(equalityComparerType.Construct(type), typeContext: false);
 
         return factory.MemberAccessExpression(typeExpression, factory.IdentifierName(DefaultName));
@@ -98,7 +91,6 @@ internal static partial class SyntaxGeneratorExtensions
     /// <summary>
     /// Generates a call to a method *through* an existing field or property symbol.
     /// </summary>
-    /// <returns></returns>
     public static SyntaxNode GenerateDelegateThroughMemberStatement(
         this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
     {
@@ -189,8 +181,12 @@ internal static partial class SyntaxGeneratorExtensions
     }
 
     public static ImmutableArray<SyntaxNode> GetGetAccessorStatements(
-        this SyntaxGenerator generator, Compilation compilation,
-        IPropertySymbol property, ISymbol? throughMember, bool preferAutoProperties)
+        this SyntaxGenerator generator,
+        Compilation compilation,
+        IPropertySymbol property,
+        IPropertySymbol? conflictingProperty,
+        ISymbol? throughMember,
+        bool preferAutoProperties)
     {
         if (throughMember != null)
         {
@@ -209,12 +205,27 @@ internal static partial class SyntaxGeneratorExtensions
             return [generator.ReturnStatement(expression)];
         }
 
-        return preferAutoProperties ? default : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        if (preferAutoProperties)
+            return default;
+
+        // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
+        if (conflictingProperty is { GetMethod: not null, Parameters.Length: 0 } &&
+            property is { GetMethod: not null, Parameters.Length: 0 })
+        {
+            if (compilation.ClassifyCommonConversion(conflictingProperty.Type, property.Type) is { Exists: true, IsImplicit: true })
+                return [generator.ReturnStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name))];
+        }
+
+        return generator.CreateThrowNotImplementedStatementBlock(compilation);
     }
 
     public static ImmutableArray<SyntaxNode> GetSetAccessorStatements(
-        this SyntaxGenerator generator, Compilation compilation,
-        IPropertySymbol property, ISymbol? throughMember, bool preferAutoProperties)
+        this SyntaxGenerator generator,
+        Compilation compilation,
+        IPropertySymbol property,
+        IPropertySymbol? conflictingProperty,
+        ISymbol? throughMember,
+        bool preferAutoProperties)
     {
         if (throughMember != null)
         {
@@ -235,9 +246,18 @@ internal static partial class SyntaxGeneratorExtensions
             return [generator.ExpressionStatement(expression)];
         }
 
-        return preferAutoProperties
-            ? default
-            : generator.CreateThrowNotImplementedStatementBlock(compilation);
+        if (preferAutoProperties)
+            return default;
+
+        // Forward from the explicit property we're creating to the existing property it conflicts with if possible.
+        if (conflictingProperty is { SetMethod.Parameters.Length: 1 } &&
+            property is { SetMethod.Parameters: [var parameter] })
+        {
+            if (compilation.ClassifyCommonConversion(property.Type, conflictingProperty.Type) is { Exists: true, IsImplicit: true })
+                return [generator.ExpressionStatement(generator.AssignmentStatement(generator.MemberAccessExpression(generator.ThisExpression(), property.Name), generator.IdentifierName(parameter.Name)))];
+        }
+
+        return generator.CreateThrowNotImplementedStatementBlock(compilation);
     }
 
     private static bool TryGetValue(IDictionary<string, string>? dictionary, string key, [NotNullWhen(true)] out string? value)
@@ -273,7 +293,7 @@ internal static partial class SyntaxGeneratorExtensions
                 result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                     attributes: default,
                     accessibility: Accessibility.Private,
-                    modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                     type: parameter.Type,
                     name: fieldName));
             }
@@ -295,7 +315,7 @@ internal static partial class SyntaxGeneratorExtensions
                 result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                     type: parameter.Type,
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: [],
@@ -322,8 +342,8 @@ internal static partial class SyntaxGeneratorExtensions
         bool addNullChecks,
         bool preferThrowExpression)
     {
-        var nullCheckStatements = ArrayBuilder<SyntaxNode>.GetInstance();
-        var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
+        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
+        using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
         foreach (var parameter in parameters)
         {
@@ -360,7 +380,7 @@ internal static partial class SyntaxGeneratorExtensions
             }
         }
 
-        return nullCheckStatements.ToImmutableAndFree().Concat(assignStatements.ToImmutableAndFree());
+        return [.. nullCheckStatements, .. assignStatements];
     }
 
     public static void AddAssignmentStatements(

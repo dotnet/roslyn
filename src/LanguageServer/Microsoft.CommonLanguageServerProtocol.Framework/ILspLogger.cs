@@ -8,10 +8,13 @@
 using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
+
 internal interface ILspLogger
 {
-    void LogStartContext(string message, params object[] @params);
-    void LogEndContext(string message, params object[] @params);
+    IDisposable? CreateContext(string context);
+    IDisposable? CreateLanguageContext(string? language);
+
+    void LogDebug(string message, params object[] @params);
     void LogInformation(string message, params object[] @params);
     void LogWarning(string message, params object[] @params);
     void LogError(string message, params object[] @params);

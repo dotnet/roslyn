@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -15,7 +16,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
@@ -91,7 +91,7 @@ internal static class ITextViewWindowInProcessExtensions
 
         var view = await textViewWindow.GetActiveTextViewAsync(cancellationToken);
         if (view is null)
-            return ImmutableArray<Completion>.Empty;
+            return [];
 
         var broker = await textViewWindow.TestServices.Shell.GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
         var sessions = broker.GetSessions(view);
@@ -101,7 +101,7 @@ internal static class ITextViewWindowInProcessExtensions
         }
 
         var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-        return selectedCompletionSet.Completions.ToImmutableArray();
+        return [.. selectedCompletionSet.Completions];
     }
 
     public static async Task InvokeCodeActionListAsync(this ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
@@ -244,8 +244,6 @@ internal static class ITextViewWindowInProcessExtensions
         return view.Caret.Position;
     }
 
-    private static async Task WaitForCompletionSetAsync(ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
-    {
-        await textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-    }
+    private static Task WaitForCompletionSetAsync(ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)
+        => textViewWindow.TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
 }

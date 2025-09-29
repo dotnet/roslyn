@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,6 +20,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 {
     private readonly LspWorkspaceRegistrationService _workspaceRegistrationService;
     private readonly LspWorkspaceManager _workspaceManager;
+    private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     protected readonly IDiagnosticSourceManager DiagnosticSourceManager;
 
     /// <summary>
@@ -32,26 +32,29 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     /// Stores the LSP changed state on a per category basis.  This ensures that requests for different categories
     /// are 'walled off' from each other and only reset state for their own category.
     /// </summary>
-    private readonly Dictionary<string, bool> _categoryToLspChanged = new();
+    private readonly Dictionary<string, bool> _categoryToLspChanged = [];
 
     protected AbstractWorkspacePullDiagnosticsHandler(
         LspWorkspaceManager workspaceManager,
         LspWorkspaceRegistrationService registrationService,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IDiagnosticSourceManager diagnosticSourceManager,
         IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
+        IGlobalOptionService globalOptions)
+        : base(diagnosticRefresher, globalOptions)
     {
         DiagnosticSourceManager = diagnosticSourceManager;
         _workspaceManager = workspaceManager;
         _workspaceRegistrationService = registrationService;
+        _diagnosticsRefresher = diagnosticRefresher;
 
         _workspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
         _workspaceManager.LspTextChanged += OnLspTextChanged;
+        _diagnosticsRefresher.WorkspaceRefreshRequested += OnWorkspaceRefreshRequested;
     }
 
     public void Dispose()
     {
+        _diagnosticsRefresher.WorkspaceRefreshRequested -= OnWorkspaceRefreshRequested;
         _workspaceManager.LspTextChanged -= OnLspTextChanged;
         _workspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
     }
@@ -75,6 +78,11 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     }
 
     private void OnLspTextChanged(object? sender, EventArgs e)
+    {
+        UpdateLspChanged();
+    }
+
+    private void OnWorkspaceRefreshRequested()
     {
         UpdateLspChanged();
     }
@@ -106,7 +114,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         }
 
         // We've hit a change, so we close the current request to allow the client to open a new one.
-        context.TraceInformation($"Closing workspace/diagnostics request for {category}");
+        context.TraceDebug($"Closing workspace/diagnostics request for {category}");
         return;
 
         bool HasChanged()

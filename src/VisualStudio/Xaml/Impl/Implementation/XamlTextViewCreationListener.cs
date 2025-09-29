@@ -14,50 +14,49 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml
+namespace Microsoft.VisualStudio.LanguageServices.Xaml;
+
+[Export(typeof(IWpfTextViewCreationListener))]
+[ContentType(ContentTypeNames.XamlContentType)]
+[TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
+[TextViewRole(PredefinedTextViewRoles.Document)]
+internal sealed partial class XamlTextViewCreationListener : IWpfTextViewCreationListener
 {
-    [Export(typeof(IWpfTextViewCreationListener))]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed partial class XamlTextViewCreationListener : IWpfTextViewCreationListener
+    // Temporary UIConext GUID owned by the XAML language service until we can get a KnownUIContext
+    private static readonly Guid s_serverUIContextGuid = new("39F55746-6E65-4FCF-BEC5-EC0B466EAC0F");
+
+    private readonly IServiceProvider _serviceProvider;
+    private readonly XamlProjectService _projectService;
+    private readonly UIContext _serverUIContext;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public XamlTextViewCreationListener(
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        XamlProjectService projectService)
     {
-        // Temporary UIConext GUID owned by the XAML language service until we can get a KnownUIContext
-        private static readonly Guid s_serverUIContextGuid = new Guid("39F55746-6E65-4FCF-BEC5-EC0B466EAC0F");
+        _serviceProvider = serviceProvider;
+        _projectService = projectService;
+        _serverUIContext = UIContext.FromUIContextGuid(s_serverUIContextGuid);
+    }
 
-        private readonly IServiceProvider _serviceProvider;
-        private readonly XamlProjectService _projectService;
-        private readonly UIContext _serverUIContext;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlTextViewCreationListener(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            XamlProjectService projectService)
+    public void TextViewCreated(IWpfTextView textView)
+    {
+        if (_serverUIContext.IsActive)
         {
-            _serviceProvider = serviceProvider;
-            _projectService = projectService;
-            _serverUIContext = UIContext.FromUIContextGuid(s_serverUIContextGuid);
+            return;
         }
 
-        public void TextViewCreated(IWpfTextView textView)
+        if (textView == null)
         {
-            if (_serverUIContext.IsActive)
-            {
-                return;
-            }
-
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            var filePath = textView.GetFilePath();
-
-            _projectService.TrackOpenDocument(filePath);
-
-            var target = new XamlOleCommandTarget(textView, (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel)));
-            target.AttachToVsTextView();
+            throw new ArgumentNullException(nameof(textView));
         }
+
+        var filePath = textView.GetFilePath();
+
+        _projectService.TrackOpenDocument(filePath);
+
+        var target = new XamlOleCommandTarget(textView, (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel)));
+        target.AttachToVsTextView();
     }
 }

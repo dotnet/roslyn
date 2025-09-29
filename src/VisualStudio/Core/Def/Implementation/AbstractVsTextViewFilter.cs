@@ -7,6 +7,8 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor;
@@ -24,31 +26,28 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
-internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVsTextViewFilter
+internal abstract class AbstractVsTextViewFilter(
+    IWpfTextView wpfTextView,
+    IComponentModel componentModel) : AbstractOleCommandTarget(wpfTextView, componentModel), IVsTextViewFilter
 {
-    public AbstractVsTextViewFilter(
-        IWpfTextView wpfTextView,
-        IComponentModel componentModel)
-        : base(wpfTextView, componentModel)
+    int IVsTextViewFilter.GetDataTipText(TextSpan[] pSpan, out string pbstrText)
     {
+        (pbstrText, var result) = this.ThreadingContext.JoinableTaskFactory.Run(() => GetDataTipTextAsync(pSpan));
+        return result;
     }
 
-    int IVsTextViewFilter.GetDataTipText(TextSpan[] pSpan, out string pbstrText)
+    private async Task<(string pbstrText, int result)> GetDataTipTextAsync(TextSpan[] pSpan)
     {
         try
         {
             if (pSpan == null || pSpan.Length != 1)
-            {
-                pbstrText = null;
-                return VSConstants.E_INVALIDARG;
-            }
+                return (null, VSConstants.E_INVALIDARG);
 
-            return GetDataTipTextImpl(pSpan, out pbstrText);
+            return await GetDataTipTextImplAsync(pSpan).ConfigureAwait(true);
         }
         catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
         {
@@ -56,114 +55,96 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
         }
     }
 
-    protected virtual int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
+    protected virtual async Task<(string pbstrText, int result)> GetDataTipTextImplAsync(TextSpan[] pSpan)
     {
         var subjectBuffer = WpfTextView.GetBufferContainingCaret();
         if (subjectBuffer == null)
-        {
-            pbstrText = null;
-            return VSConstants.E_FAIL;
-        }
+            return (null, VSConstants.E_FAIL);
 
-        return GetDataTipTextImpl(subjectBuffer, pSpan, out pbstrText);
+        return await GetDataTipTextImplAsync(subjectBuffer, pSpan).ConfigureAwait(true);
     }
 
-    protected int GetDataTipTextImpl(ITextBuffer subjectBuffer, TextSpan[] pSpan, out string pbstrText)
+    protected async Task<(string pbstrText, int result)> GetDataTipTextImplAsync(ITextBuffer subjectBuffer, TextSpan[] pSpan)
     {
-        pbstrText = null;
-
         var vsBuffer = EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
 
         // TODO: broken in REPL
         if (vsBuffer == null)
-        {
-            return VSConstants.E_FAIL;
-        }
+            return (null, VSConstants.E_FAIL);
 
         using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetDataTipText, CancellationToken.None))
         {
-            pbstrText = null;
             if (pSpan == null || pSpan.Length != 1)
-            {
-                return VSConstants.E_INVALIDARG;
-            }
+                return (null, VSConstants.E_INVALIDARG);
 
             var result = VSConstants.E_FAIL;
-            string pbstrTextInternal = null;
+            string pbstrText = null;
 
             var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
-            uiThreadOperationExecutor.Execute(
+            using var context = uiThreadOperationExecutor.BeginExecute(
                 title: ServicesVSResources.Debugger,
                 defaultDescription: ServicesVSResources.Getting_DataTip_text,
                 allowCancellation: true,
-                showProgress: false,
-                action: context =>
+                showProgress: false);
+
+            IServiceProvider serviceProvider = ComponentModel.GetService<SVsServiceProvider>();
+            var debugger = (IVsDebugger)serviceProvider.GetService(typeof(SVsShellDebugger));
+            var debugMode = new DBGMODE[1];
+
+            var cancellationToken = context.UserCancellationToken;
+            if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
             {
-                IServiceProvider serviceProvider = ComponentModel.GetService<SVsServiceProvider>();
-                var debugger = (IVsDebugger)serviceProvider.GetService(typeof(SVsShellDebugger));
-                var debugMode = new DBGMODE[1];
+                var textSpan = pSpan[0];
 
-                var cancellationToken = context.UserCancellationToken;
-                if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
+                var textSnapshot = subjectBuffer.CurrentSnapshot;
+                var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                if (document != null)
                 {
-                    var textSpan = pSpan[0];
-
-                    var textSnapshot = subjectBuffer.CurrentSnapshot;
-                    var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                    if (document != null)
+                    var languageDebugInfo = document.Project.Services.GetService<ILanguageDebugInfoService>();
+                    if (languageDebugInfo != null)
                     {
-                        var languageDebugInfo = document.Project.Services.GetService<ILanguageDebugInfoService>();
-                        if (languageDebugInfo != null)
+                        var spanOpt = textSnapshot.TryGetSpan(textSpan);
+                        if (spanOpt.HasValue)
                         {
-                            var spanOpt = textSnapshot.TryGetSpan(textSpan);
-                            if (spanOpt.HasValue)
+                            // 'kind' is an lsp-only concept, so we don't want/need to include it here (especially
+                            // as it can be expensive to compute, and we don't want to block the UI thread).
+                            var dataTipInfo = await languageDebugInfo.GetDataTipInfoAsync(
+                                document, spanOpt.Value.Start, includeKind: false, cancellationToken).ConfigureAwait(true);
+                            if (!dataTipInfo.IsDefault)
                             {
-                                var dataTipInfo = languageDebugInfo.GetDataTipInfoAsync(document, spanOpt.Value.Start, cancellationToken).WaitAndGetResult(cancellationToken);
-                                if (!dataTipInfo.IsDefault)
-                                {
-                                    var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);
-                                    var textOpt = dataTipInfo.Text;
+                                var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);
+                                var textOpt = dataTipInfo.Text;
 
-                                    pSpan[0] = resultSpan.ToVsTextSpan();
-                                    result = debugger.GetDataTipValue((IVsTextLines)vsBuffer, pSpan, textOpt, out pbstrTextInternal);
-                                }
+                                pSpan[0] = resultSpan.ToVsTextSpan();
+                                result = debugger.GetDataTipValue((IVsTextLines)vsBuffer, pSpan, textOpt, out pbstrText);
                             }
                         }
                     }
                 }
-            });
+            }
 
-            pbstrText = pbstrTextInternal;
-            return result;
+            return (pbstrText, result);
         }
     }
 
     int IVsTextViewFilter.GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan)
     {
-        try
-        {
-            var result = VSConstants.S_OK;
-            ComponentModel.GetService<IUIThreadOperationExecutor>().Execute(
-                "Intellisense",
-                defaultDescription: "",
-                allowCancellation: true,
-                showProgress: false,
-                action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.UserCancellationToken));
-
-            return result;
-        }
-        catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
+        return this.ThreadingContext.JoinableTaskFactory.Run(() => GetPairExtentsAsync(iLine, iIndex, pSpan));
     }
 
-    private int GetPairExtentsWorker(int iLine, int iIndex, TextSpan[] pSpan, CancellationToken cancellationToken)
+    private async Task<int> GetPairExtentsAsync(int iLine, int iIndex, TextSpan[] pSpan)
     {
+        using var waitContext = ComponentModel.GetService<IUIThreadOperationExecutor>().BeginExecute(
+            "Intellisense",
+            defaultDescription: "",
+            allowCancellation: true,
+            showProgress: false);
+
         var braceMatcher = ComponentModel.GetService<IBraceMatchingService>();
         var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
-        return GetPairExtentsWorker(
+
+        return await GetPairExtentsAsync(
             WpfTextView,
             braceMatcher,
             globalOptions,
@@ -171,11 +152,19 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
             iIndex,
             pSpan,
             (VSConstants.VSStd2KCmdID)this.CurrentlyExecutingCommand == VSConstants.VSStd2KCmdID.GOTOBRACE_EXT,
-            cancellationToken);
+            waitContext.UserCancellationToken).ConfigureAwait(true);
     }
 
     // Internal for testing purposes
-    internal static int GetPairExtentsWorker(ITextView textView, IBraceMatchingService braceMatcher, IGlobalOptionService globalOptions, int iLine, int iIndex, TextSpan[] pSpan, bool extendSelection, CancellationToken cancellationToken)
+    internal static async Task<int> GetPairExtentsAsync(
+        ITextView textView,
+        IBraceMatchingService braceMatcher,
+        IGlobalOptionService globalOptions,
+        int iLine,
+        int iIndex,
+        TextSpan[] pSpan,
+        bool extendSelection,
+        CancellationToken cancellationToken)
     {
         pSpan[0].iStartLine = pSpan[0].iEndLine = iLine;
         pSpan[0].iStartIndex = pSpan[0].iEndIndex = iIndex;
@@ -199,7 +188,8 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
                 if (document != null)
                 {
                     var options = globalOptions.GetBraceMatchingOptions(document.Project.Language);
-                    var matchingSpan = braceMatcher.FindMatchingSpanAsync(document, position, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var matchingSpan = await braceMatcher.FindMatchingSpanAsync(
+                        document, position, options, cancellationToken).ConfigureAwait(true);
 
                     if (matchingSpan.HasValue)
                     {
@@ -233,7 +223,8 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
                                 if (extendSelection)
                                 {
                                     // case a.
-                                    var closingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.Start, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                                    var closingSpans = await braceMatcher.FindMatchingSpanAsync(
+                                        document, matchingSpan.Value.Start, options, cancellationToken).ConfigureAwait(true);
                                     var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).First().ToVsTextSpan();
                                     pSpan[0].iEndIndex = vsClosingSpans.iStartIndex;
                                 }
@@ -252,7 +243,8 @@ internal abstract class AbstractVsTextViewFilter : AbstractOleCommandTarget, IVs
                                     pSpan[0].iEndIndex = vsTextSpan.iStartIndex;
 
                                     // case b.
-                                    var openingSpans = braceMatcher.FindMatchingSpanAsync(document, matchingSpan.Value.End, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                                    var openingSpans = await braceMatcher.FindMatchingSpanAsync(
+                                        document, matchingSpan.Value.End, options, cancellationToken).ConfigureAwait(true);
                                     var vsOpeningSpans = textView.GetSpanInView(openingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).First().ToVsTextSpan();
                                     pSpan[0].iStartIndex = vsOpeningSpans.iStartIndex;
                                 }

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -54,6 +55,9 @@ public partial class ProjectDependencyGraph
     // These accumulate results on demand. They are never null, but a missing key/value pair indicates it needs to be computed.
     private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap;
     private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
+
+    // Pool of ImmutableHashSet builders used in ComputeReverseReferencesMap to avoid temporary HashSet allocations.
+    private static readonly ObjectPool<ImmutableHashSet<ProjectId>.Builder> s_reverseReferencesBuilderPool = new(static () => ImmutableHashSet.CreateBuilder<ProjectId>(), size: 256);
 
     /// <remarks>
     ///   Intentionally created with a null reverseReferencesMap. Doing so indicates _lazyReverseReferencesMap
@@ -209,17 +213,36 @@ public partial class ProjectDependencyGraph
 
     private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeReverseReferencesMap()
     {
-        var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
-
+        using var _1 = PooledDictionary<ProjectId, ImmutableHashSet<ProjectId>.Builder>.GetInstance(out var reverseReferencesMapBuilders);
         foreach (var (projectId, references) in _referencesMap)
         {
             foreach (var referencedId in references)
-                reverseReferencesMap.MultiAdd(referencedId, projectId);
+            {
+                if (!reverseReferencesMapBuilders.TryGetValue(referencedId, out var builder))
+                {
+                    builder = s_reverseReferencesBuilderPool.Allocate();
+                    reverseReferencesMapBuilders.Add(referencedId, builder);
+                }
+
+                builder.Add(projectId);
+            }
         }
 
-        return reverseReferencesMap
-            .Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableHashSet()))
-            .ToImmutableDictionary();
+        // Convert all the populated ImmutableHashSet.Builder objects to ImmutableHashSets
+        var reverseReferencesBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableHashSet<ProjectId>>();
+        foreach (var (projectId, builder) in reverseReferencesMapBuilders)
+        {
+            // Realize an ImmutableHashSet from the builder
+            var reverseReferencesForProject = builder.ToImmutableHashSet();
+
+            // Clear out the builder and release it back to the pool
+            builder.Clear();
+            s_reverseReferencesBuilderPool.Free(builder);
+
+            reverseReferencesBuilder.Add(projectId, reverseReferencesForProject);
+        }
+
+        return reverseReferencesBuilder.ToImmutable();
     }
 
     /// <summary>
@@ -543,9 +566,9 @@ public partial class ProjectDependencyGraph
         // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
         // If the information is not available, do not compute it.
         var forwardDependencies = TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
-        if (forwardDependencies is object && forwardDependencies.Contains(potentialDependency))
+        if (forwardDependencies is object)
         {
-            return true;
+            return forwardDependencies.Contains(potentialDependency);
         }
 
         // Compute the set of all projects that depend on 'potentialDependency'. This information answers the same

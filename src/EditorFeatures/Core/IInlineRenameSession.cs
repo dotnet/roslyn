@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Utilities;
 
@@ -52,5 +51,8 @@ internal interface IInlineRenameSession
     /// <summary>
     /// Dismisses the rename session, completing the rename operation across all files.
     /// </summary>
-    Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null);
+    /// <remarks>
+    /// It will only be async when InlineRenameUIOptionsStorage.CommitRenameAsynchronously is set to true.
+    /// </remarks>
+    Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext);
 }

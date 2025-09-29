@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -648,7 +650,7 @@ internal static partial class SyntaxNodeExtensions
         result.Add(currentGroup);
 
         // Now, filter out any empty groups.
-        result = result.Where(group => !group.IsEmpty()).ToList();
+        result = [.. result.Where(group => !group.IsEmpty())];
         return result;
     }
 
@@ -821,9 +823,8 @@ internal static partial class SyntaxNodeExtensions
         {
             foreach (var symbol in info.GetAllSymbols())
             {
-                if (symbol is IMethodSymbol method &&
-                    method.Parameters.Length > 0 &&
-                    expressionType.Equals(method.Parameters[0].Type?.OriginalDefinition))
+                if (symbol is IMethodSymbol { Parameters: [{ Type.OriginalDefinition: var parameterType }, ..] } &&
+                    expressionType.Equals(parameterType))
                 {
                     return true;
                 }

@@ -20,9 +20,7 @@ internal partial class ColorSchemeApplier
 
         public static ImmutableArray<RegistryItem> Convert(ColorScheme scheme)
         {
-            return scheme.Themes
-                .Select(ToRegistryItem)
-                .ToImmutableArray();
+            return [.. scheme.Themes.Select(ToRegistryItem)];
         }
 
         private static RegistryItem ToRegistryItem(ColorTheme theme)

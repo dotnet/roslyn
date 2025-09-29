@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis
         None = 0,
 
         /// <summary>
-        /// ".ctor" instead of "Goo"
+        /// - ".ctor" instead of "Goo"
+        /// - "&lt;Prop&gt;k__backingField" instead of "Prop.field" (for C# backing fields)
         /// </summary>
-        UseMetadataMethodNames = 1 << 0,
+        UseMetadataMemberNames = 1 << 0,
 
         /// <summary>
         /// "List`1" instead of "List&lt;T&gt;" ("List(of T)" in VB). Overrides GenericsOptions on

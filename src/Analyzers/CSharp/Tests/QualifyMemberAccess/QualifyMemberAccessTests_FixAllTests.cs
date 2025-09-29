@@ -6,21 +6,19 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess;
 
-public partial class QualifyMemberAccessTests
+public sealed partial class QualifyMemberAccessTests
 {
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_QualifyMemberAccess()
-    {
-        var input = """
+    public Task TestFixAllInSolution_QualifyMemberAccess()
+        => TestInRegularAndScriptAsync(
+            initialMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -55,9 +53,8 @@ public partial class QualifyMemberAccessTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """,
+            expectedMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -92,11 +89,6 @@ public partial class QualifyMemberAccessTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(
-            initialMarkup: input,
-            expectedMarkup: expected,
-            options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Suggestion));
-    }
+            """,
+            new(options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Suggestion)));
 }

@@ -121,11 +121,15 @@ internal abstract partial class AbstractMetadataAsSourceService
             return _symbol.ReduceExtensionMethod(receiverType);
         }
 
+        public IMethodSymbol AssociatedExtensionImplementation => null;
+
         public bool IsVararg => _symbol.IsVararg;
 
         public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
 
         public bool IsConditional => _symbol.IsConditional;
+
+        public bool IsIterator => _symbol.IsIterator;
 
         public SignatureCallingConvention CallingConvention => _symbol.CallingConvention;
 

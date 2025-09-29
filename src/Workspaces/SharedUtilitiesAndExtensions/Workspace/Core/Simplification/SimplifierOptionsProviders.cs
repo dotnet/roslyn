@@ -19,7 +19,7 @@ internal static class SimplifierOptionsProviders
 
     public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, ISimplification simplification, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return simplification.GetSimplifierOptions(configOptions);
     }
 

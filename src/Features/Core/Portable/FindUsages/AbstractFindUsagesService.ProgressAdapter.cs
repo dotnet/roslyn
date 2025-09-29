@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -14,6 +12,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
@@ -42,7 +41,7 @@ internal abstract partial class AbstractFindUsagesService
                 documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
 
             await _context.OnReferencesFoundAsync(
-                IAsyncEnumerableExtensions.SingletonAsync(new SourceReferenceItem(_definition, documentSpan, classifiedSpans, SymbolUsageInfo.None)), cancellationToken).ConfigureAwait(false);
+                AsyncEnumerableFactory.SingletonAsync(new SourceReferenceItem(_definition, documentSpan, classifiedSpans, SymbolUsageInfo.None)), cancellationToken).ConfigureAwait(false);
         }
     }
 

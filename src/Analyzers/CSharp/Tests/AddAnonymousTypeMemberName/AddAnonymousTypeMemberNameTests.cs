@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAnonymousTypeMemberName;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
-public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public AddAnonymousTypeMemberNameTests(ITestOutputHelper logger)
        : base(logger)
@@ -25,9 +25,8 @@ public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderB
         => (null, new CSharpAddAnonymousTypeMemberNameCodeFixProvider());
 
     [Fact]
-    public async Task Test1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task Test1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -46,12 +45,10 @@ public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExistingName()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExistingName()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -70,12 +67,10 @@ public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll1()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -94,12 +89,10 @@ public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderB
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll2()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -118,12 +111,10 @@ public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderB
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll3()
+        => TestInRegularAndScriptAsync(
         """
         class C
         {
@@ -142,5 +133,4 @@ public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderB
             }
         }
         """);
-    }
 }

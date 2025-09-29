@@ -3,19 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
-using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.BuildTasks;
-using Xunit;
-using Moq;
 using System.IO;
-using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public sealed class CscTests
+    public sealed class CscTests : TestBase
     {
         public ITestOutputHelper TestOutputHelper { get; }
 
@@ -488,14 +485,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ToolExe = "";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            // StartsWith because it can be csc.exe or csc.dll
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
 
             csc = new Csc();
             csc.ToolPath = Path.Combine("path", "to", "custom_csc");
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             Assert.Equal("", csc.GenerateCommandLineContents());
-            Assert.StartsWith(Path.Combine("path", "to", "custom_csc", "csc."), csc.GeneratePathToTool());
+            AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
         }
 
         [Fact]
@@ -651,6 +647,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
                 Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+        public void StdLib()
+        {
+            var csc = new Csc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            AssertEx.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
     }
 }

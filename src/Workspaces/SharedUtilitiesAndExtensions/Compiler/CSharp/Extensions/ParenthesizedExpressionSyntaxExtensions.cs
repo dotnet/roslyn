@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -111,11 +110,45 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         if (expression.IsKind(SyntaxKind.TupleExpression))
             return true;
 
-        // int Prop => (x); -> int Prop => x;
-        if (nodeParent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
+        // Cases:
+        //   {(x)} -> {x}
+        if (nodeParent is InitializerExpressionSyntax)
         {
+            // `{ ([]) }` can't become `{ [] }` as `[` in an initializer will be parsed as an index assignment.
+            if (tokenAfterParen.Kind() == SyntaxKind.OpenBracketToken)
+                return false;
+
+            // Assignment expressions and collection expressions are not allowed in initializers
+            // as they are not parsed as expressions, but as more complex constructs
+            if (expression is AssignmentExpressionSyntax)
+                return false;
+
             return true;
         }
+
+        // ([...]) -> [...]
+        if (expression is CollectionExpressionSyntax collectionExpression)
+        {
+            // For back compat, the language disallows a few forms of casting an collection expression.
+            // For example: `(A)[1, 2, 3]`.  This is because this form already has an interpretation as 
+            // indexing into a parenthesized expression.  Check for these cases and only allow if it is
+            // totally safe.  For example `(List<int>)[1, 2, 3]` is still safe as that was not a legal
+            // expression in the past.
+            //
+            // Note: because `(T)[]` is never legal (an empty indexer is not legal), that form is always
+            // considered a collection expression, regardless of what T is.
+            if (collectionExpression.Elements.Count == 0)
+                return true;
+
+            return parentExpression is not CastExpressionSyntax
+            {
+                Type: IdentifierNameSyntax or QualifiedNameSyntax { Right: IdentifierNameSyntax }
+            };
+        }
+
+        // int Prop => (x); -> int Prop => x;
+        if (nodeParent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
+            return true;
 
         // Easy statement-level cases:
         //   var y = (x);           -> var y = x;
@@ -177,15 +210,6 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         //   ($"{x}") -> $"{x}"
         if (expression.IsKind(SyntaxKind.InterpolatedStringExpression))
             return true;
-
-        // Cases:
-        //   {(x)} -> {x}
-        if (nodeParent is InitializerExpressionSyntax)
-        {
-            // Assignment expressions and collection expressions are not allowed in initializers
-            // as they are not parsed as expressions, but as more complex constructs
-            return expression is not AssignmentExpressionSyntax and not CollectionExpressionSyntax;
-        }
 
         // Cases:
         //   new {(x)} -> {x}
@@ -255,7 +279,17 @@ internal static class ParenthesizedExpressionSyntaxExtensions
 
         // case x when (y): -> case x when y:
         if (nodeParent.IsKind(SyntaxKind.WhenClause))
+        {
+            // Subtle case, `when (x?[] ...):`.  Can't remove the parentheses here as it can the conditional access
+            // become a conditional expression.
+            for (var current = expression; current != null; current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax)
+            {
+                if (current is ConditionalAccessExpressionSyntax)
+                    return false;
+            }
+
             return true;
+        }
 
         // #if (x)   ->   #if x
         if (nodeParent is DirectiveTriviaSyntax)
@@ -264,6 +298,13 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // Switch expression arm
         // x => (y)
         if (nodeParent is SwitchExpressionArmSyntax arm && arm.Expression == node)
+            return true;
+
+        // [.. (expr)]    ->    [.. expr]
+        //
+        // Note: There is no precedence with `..` it's always just part of the collection expr, with the expr being
+        // parsed independently of it.  That's why no parens are ever needed here.
+        if (nodeParent is SpreadElementSyntax)
             return true;
 
         // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can

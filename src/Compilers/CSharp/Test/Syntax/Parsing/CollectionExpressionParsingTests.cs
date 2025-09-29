@@ -6992,10 +6992,7 @@ class C
         UsingExpression("[...e]",
             // (1,2): error CS8635: Unexpected character sequence '...'
             // [...e]
-            Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2),
-            // (1,4): error CS1525: Invalid expression term '.'
-            // [...e]
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(1, 4));
+            Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
 
         N(SyntaxKind.CollectionExpression);
         {
@@ -7003,17 +7000,9 @@ class C
             N(SyntaxKind.SpreadElement);
             {
                 N(SyntaxKind.DotDotToken);
-                N(SyntaxKind.SimpleMemberAccessExpression);
+                N(SyntaxKind.IdentifierName);
                 {
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    N(SyntaxKind.DotToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "e");
-                    }
+                    N(SyntaxKind.IdentifierToken, "e");
                 }
             }
             N(SyntaxKind.CloseBracketToken);

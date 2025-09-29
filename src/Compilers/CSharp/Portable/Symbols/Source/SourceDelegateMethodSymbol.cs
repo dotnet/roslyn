@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -201,9 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return System.AttributeTargets.Delegate;
         }
 
-        internal sealed override int? TryGetOverloadResolutionPriority()
+        internal sealed override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
 
         private sealed class Constructor : SourceDelegateMethodSymbol
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
-                ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
+                ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
                 if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {

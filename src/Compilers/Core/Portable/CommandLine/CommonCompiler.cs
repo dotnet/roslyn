@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis
             return (path, properties) =>
             {
                 var peStream = FileSystem.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return MetadataReference.CreateFromFile(peStream, path, properties);
+                return MetadataReference.CreateFromFile(peStream, path, PEStreamOptions.PrefetchEntireImage, properties, documentation: null);
             };
         }
 
@@ -838,7 +839,11 @@ namespace Microsoft.CodeAnalysis
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
-            if (!disableCache)
+            // We only cache the generator driver if it produced any generated files. While it's possible that it was expensive
+            // to calculate that nothing needed to be generated, real world usage has found that generators are generally only
+            // expensive when actually producing source. By only caching those with results, we help to keep memory usage down
+            // when it probably wouldn't improve the performance anyway.
+            if (!disableCache && driver.GetRunResult().GeneratedTrees.Any())
             {
                 this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
             }

@@ -15,12 +15,13 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes;
 
 [UseExportProvider]
-public class ExtensionOrderingTests
+public sealed class ExtensionOrderingTests
 {
     private static ExportProvider ExportProvider => EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
 
@@ -127,14 +128,14 @@ public class ExtensionOrderingTests
 
         // ExtensionOrderer.Order() will not throw even if cycle is detected. However, it will
         // break the cycle and the resulting order will end up being unpredictable.
-        var expectedOrder = ExtensionOrderer.Order(langProviders).Select(lazy => lazy.Value).ToImmutableArray();
+        var expectedOrder = ExtensionOrderer.Order(langProviders).SelectAsArray(lazy => lazy.Value);
 
         var codeFixService = (CodeFixService)ExportProvider.GetExportedValue<ICodeFixService>();
         var codeFixPriorityMap = codeFixService.GetTestAccessor().GetFixerPriorityPerLanguageMap(services: null!)[language].Value;
 
         Assert.True(codeFixPriorityMap.Count > 0);
 
-        var actualOrder = codeFixPriorityMap.OrderBy(kvp => kvp.Value).Select(kvp => kvp.Key).ToImmutableArray();
+        var actualOrder = codeFixPriorityMap.OrderBy(kvp => kvp.Value).SelectAsArray(kvp => kvp.Key);
 
         // Ok, now go through and ensure that all the items in teh CodeFixProvider are ordered as the
         // ExtensionOrderer would order them.

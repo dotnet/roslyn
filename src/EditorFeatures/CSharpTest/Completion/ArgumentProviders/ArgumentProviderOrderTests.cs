@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
 
 [UseExportProvider]
-public class ArgumentProviderOrderTests
+public sealed class ArgumentProviderOrderTests
 {
     /// <summary>
     /// Verifies the exact order of all built-in argument providers.
@@ -24,7 +24,7 @@ public class ArgumentProviderOrderTests
     [Fact]
     public void TestArgumentProviderOrder()
     {
-        var exportProvider = EditorTestCompositions.EditorFeaturesWpf.ExportProviderFactory.CreateExportProvider();
+        var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
         var argumentProviderExports = exportProvider.GetExports<ArgumentProvider, CompletionProviderMetadata>();
         var orderedCSharpArgumentProviders = ExtensionOrderer.Order(argumentProviderExports.Where(export => export.Metadata.Language == LanguageNames.CSharp));
 

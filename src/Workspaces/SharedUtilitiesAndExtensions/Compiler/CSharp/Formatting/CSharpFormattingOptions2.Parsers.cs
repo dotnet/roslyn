@@ -89,16 +89,16 @@ internal static partial class CSharpFormattingOptions2
             _ => ToEditorConfigFlagList((int)value, static v => s_newLineOptionsEditorConfigMap[(NewLineBeforeOpenBracePlacement)v])
         };
 
-    internal static BinaryOperatorSpacingOptions ParseEditorConfigSpacingAroundBinaryOperator(string binaryOperatorSpacingValue)
-        => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue.Trim(), out var value) ? value : BinaryOperatorSpacingOptions.Single;
+    internal static BinaryOperatorSpacingOptionsInternal ParseEditorConfigSpacingAroundBinaryOperator(string binaryOperatorSpacingValue)
+        => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue.Trim(), out var value) ? value : BinaryOperatorSpacingOptionsInternal.Single;
 
-    private static string GetSpacingAroundBinaryOperatorEditorConfigString(BinaryOperatorSpacingOptions value)
+    private static string GetSpacingAroundBinaryOperatorEditorConfigString(BinaryOperatorSpacingOptionsInternal value)
         => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : "";
 
-    internal static LabelPositionOptions ParseEditorConfigLabelPositioning(string labelIndentationValue)
-        => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue.Trim(), out var value) ? value : LabelPositionOptions.NoIndent;
+    internal static LabelPositionOptionsInternal ParseEditorConfigLabelPositioning(string labelIndentationValue)
+        => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue.Trim(), out var value) ? value : LabelPositionOptionsInternal.NoIndent;
 
-    private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptions value)
+    private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptionsInternal value)
         => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : "";
 
     internal static bool DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(string value)

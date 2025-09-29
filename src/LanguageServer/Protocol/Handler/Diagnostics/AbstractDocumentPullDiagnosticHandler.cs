@@ -14,12 +14,10 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IDiagnosticsRefresher diagnosticRefresher,
     IDiagnosticSourceManager diagnosticSourceManager,
     IGlobalOptionService globalOptions)
     : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-        diagnosticAnalyzerService,
         diagnosticRefresher,
         globalOptions), ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
     where TDiagnosticsParams : IPartialResultParams<TReport>
@@ -36,16 +34,16 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
         //
         // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
         // handler treats those as separate worlds that they are responsible for.
-        var textDocument = context.TextDocument;
-        if (textDocument is null)
+        var identifier = GetTextDocumentIdentifier(diagnosticsParams);
+        if (identifier is null || context.TextDocument is null)
         {
-            context.TraceInformation("Ignoring diagnostics request because no text document was provided");
+            context.TraceDebug("Ignoring diagnostics request because no text document was provided");
             return new([]);
         }
 
-        if (!context.IsTracking(textDocument.GetURI()))
+        if (!context.IsTracking(identifier.DocumentUri))
         {
-            context.TraceWarning($"Ignoring diagnostics request for untracked document: {textDocument.GetURI()}");
+            context.TraceWarning($"Ignoring diagnostics request for untracked document: {identifier.DocumentUri}");
             return new([]);
         }
 

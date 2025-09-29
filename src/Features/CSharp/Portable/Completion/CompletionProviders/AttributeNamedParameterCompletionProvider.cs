@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(AttributeNamedParameterCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(FirstBuiltInCompletionProvider))]
 [Shared]
-internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
+internal sealed class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
 {
     private const string EqualsString = "=";
     private const string SpaceEqualsString = " =";
@@ -166,11 +166,11 @@ internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
                    displayText: p.Name.ToIdentifierToken().ToString(),
                    displayTextSuffix: displayTextSuffix,
                    insertionText: null,
-                   symbols: ImmutableArray.Create(p),
+                   symbols: [p],
                    contextPosition: token.SpanStart,
                    sortText: p.Name,
                    rules: _spaceItemFilterRule);
-        return q.ToImmutableArray();
+        return [.. q];
     }
 
     private static IEnumerable<CompletionItem> GetNameColonItems(
@@ -189,7 +189,7 @@ internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
                    displayText: p.Name.ToIdentifierToken().ToString(),
                    displayTextSuffix: displayTextSuffix,
                    insertionText: null,
-                   symbols: ImmutableArray.Create(p),
+                   symbols: [p],
                    contextPosition: token.SpanStart,
                    sortText: p.Name,
                    rules: CompletionItemRules.Default);

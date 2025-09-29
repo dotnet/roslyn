@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.RefLifetime)]
     public class RefStructInterfacesTests : CSharpTestBase
     {
         private static readonly TargetFramework s_targetFrameworkSupportingByRefLikeGenerics = TargetFramework.Net90;
@@ -11994,6 +11995,404 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80041")]
+        public void Foreach_Span_01()
+        {
+            var src = @"
+class C
+{
+    static void Test(System.ReadOnlySpan<char> collection)
+    {
+        foreach(var c in collection)
+        {
+        }
+    }
+}
+";
+
+            var core =
+@"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public class String { }
+    public class Type { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Char { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+}
+namespace System.Collections
+{
+    public interface IEnumerator
+    {
+        bool MoveNext();
+        object Current { get; }
+    }
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IEnumerator<T> : IDisposable, IEnumerator
+    {
+        new T Current { get; }
+    }
+    public interface IEnumerable<T> : IEnumerable
+    {
+        new IEnumerator<T> GetEnumerator();
+    }
+}
+
+namespace System.Runtime.InteropServices
+{
+    public class InAttribute {}
+}
+
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string name) { }
+    }
+}
+";
+
+            var expectedIL =
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (System.ReadOnlySpan<char> V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0013
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_000e:  pop
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4.1
+  IL_0011:  add
+  IL_0012:  stloc.1
+  IL_0013:  ldloc.1
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_001b:  blt.s      IL_0006
+  IL_001d:  ret
+}
+";
+
+            var span1 = @"
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private static T _t;
+        public int Length => 0;
+        public ref readonly T this[int index] => ref _t;
+
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public ref readonly T Current => ref _t;
+
+            public bool MoveNext() => false;
+        }
+    }
+}
+";
+            var span = CreateEmptyCompilation([core, span1]).EmitToImageReference();
+
+            var comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            var span2 = @"
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private static T _t;
+        public int Length => 0;
+        public ref readonly T this[int index] => ref _t;
+
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator : System.Collections.Generic.IEnumerator<T>
+        {
+            public ref readonly T Current => ref _t;
+
+            public bool MoveNext() => false;
+
+            T System.Collections.Generic.IEnumerator<T>.Current => default;
+            object System.Collections.IEnumerator.Current => default;
+            void System.IDisposable.Dispose() { }
+        }
+    }
+}
+";
+            span = CreateEmptyCompilation([core, span2]).EmitToImageReference();
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            var span3 = @"
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T> : System.Collections.Generic.IEnumerable<T>
+    {
+        private static T _t;
+        public int Length => 0;
+        public ref readonly T this[int index] => ref _t;
+
+        System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator() => default;
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => default;
+    }
+}
+";
+            span = CreateEmptyCompilation([core, span3]).EmitToImageReference();
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80041")]
+        public void Foreach_Span_02()
+        {
+            var src = @"
+class C
+{
+    static void Test(System.Span<char> collection)
+    {
+        foreach(var c in collection)
+        {
+        }
+    }
+}
+";
+
+            var core =
+@"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public class String { }
+    public class Type { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Char { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+}
+namespace System.Collections
+{
+    public interface IEnumerator
+    {
+        bool MoveNext();
+        object Current { get; }
+    }
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IEnumerator<T> : IDisposable, IEnumerator
+    {
+        new T Current { get; }
+    }
+    public interface IEnumerable<T> : IEnumerable
+    {
+        new IEnumerator<T> GetEnumerator();
+    }
+}
+
+namespace System.Runtime.InteropServices
+{
+    public class InAttribute {}
+}
+
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string name) { }
+    }
+}
+";
+
+            var expectedIL =
+        @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (System.Span<char> V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0013
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       ""ref char System.Span<char>.this[int].get""
+  IL_000e:  pop
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4.1
+  IL_0011:  add
+  IL_0012:  stloc.1
+  IL_0013:  ldloc.1
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       ""int System.Span<char>.Length.get""
+  IL_001b:  blt.s      IL_0006
+  IL_001d:  ret
+}
+";
+
+            var span1 = @"
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        private static T _t;
+        public int Length => 0;
+        public ref T this[int index] => ref _t;
+
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator
+        {
+            public ref T Current => ref _t;
+
+            public bool MoveNext() => false;
+        }
+    }
+}
+";
+            var span = CreateEmptyCompilation([core, span1]).EmitToImageReference();
+
+            var comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            var span2 = @"
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        private static T _t;
+        public int Length => 0;
+        public ref T this[int index] => ref _t;
+
+        public Enumerator GetEnumerator() => default;
+
+        public ref struct Enumerator : System.Collections.Generic.IEnumerator<T>
+        {
+            public ref readonly T Current => ref _t;
+
+            public bool MoveNext() => false;
+
+            T System.Collections.Generic.IEnumerator<T>.Current => default;
+            object System.Collections.IEnumerator.Current => default;
+            void System.IDisposable.Dispose() { }
+        }
+    }
+}
+";
+            span = CreateEmptyCompilation([core, span2]).EmitToImageReference();
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            var span3 = @"
+namespace System
+{
+    public readonly ref struct Span<T> : System.Collections.Generic.IEnumerable<T>
+    {
+        private static T _t;
+        public int Length => 0;
+        public ref T this[int index] => ref _t;
+
+        System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator() => default;
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => default;
+    }
+}
+";
+            span = CreateEmptyCompilation([core, span3]).EmitToImageReference();
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateEmptyCompilation(src, references: [span], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular11);
+            CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics().VerifyIL("C.Test", expectedIL);
+        }
+
+        [Fact]
         public void AwaitUsing_01()
         {
             var src1 = @"
@@ -22072,8 +22471,6 @@ namespace System.Runtime.CompilerServices
         public void AsyncParameter()
         {
             var src = @"
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously.
-
 public class Helper
 {
     static async void Test1<T>(T x)
@@ -22093,12 +22490,12 @@ ref struct S
 
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyDiagnostics(
-                // (6,34): error CS4012: Parameters of type 'T' cannot be declared in async methods or async lambda expressions.
+                // (4,34): error CS4012: Parameters of type 'T' cannot be declared in async methods or async lambda expressions.
                 //     static async void Test1<T>(T x)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "x").WithArguments("T").WithLocation(6, 34),
-                // (11,31): error CS4012: Parameters of type 'S' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "x").WithArguments("T").WithLocation(4, 34),
+                // (9,31): error CS4012: Parameters of type 'S' cannot be declared in async methods or async lambda expressions.
                 //     static async void Test2(S y)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "y").WithArguments("S").WithLocation(11, 31)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "y").WithArguments("S").WithLocation(9, 31)
                 );
         }
 
@@ -26477,6 +26874,40 @@ class Program<S> where S : allows ref struct
 
             var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyEmitDiagnostics(
+                // (12,26): error CS8350: This combination of arguments to 'Program<S>.F1(ref S)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
+                //         ref var y2 = ref F1(ref x2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2)").WithArguments("Program<S>.F1(ref S)", "x1").WithLocation(12, 26),
+                // (12,33): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
+                //         ref var y2 = ref F1(ref x2);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(12, 33),
+                // (13,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y2; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(13, 20)
+                );
+        }
+
+        [Fact]
+        public void ReturnRefToByValueParameter_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program<S> where S : allows ref struct
+{
+    static ref S F1(ref S x1)
+    {
+        return ref x1;
+    }
+    static ref S F2(S x2)
+    {
+        ref var y2 = ref F1(ref x2);
+        return ref y2; // 1
+    }
+}";
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
                 // (13,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref y2; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(13, 20)
@@ -26917,7 +27348,7 @@ class Program<S> where S : allows ref struct
 ";
             var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyEmitDiagnostics(
-                // (11,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                // (11,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escape scopes than 'r1'.
                 //         r2 = ref r1; // 1
                 Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(11, 9)
                 );
@@ -28991,6 +29422,199 @@ struct TestStruct<T>
                 //         return directBuffer.Data;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "directBuffer").WithLocation(2000, 16)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_01()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    public static IEnumerable<ReadOnlySpan<char>> Lines(string data)
+    {
+        yield break;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (7,51): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     public static IEnumerable<ReadOnlySpan<char>> Lines(string data)
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "Lines").WithLocation(7, 51)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_02()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static IEnumerable<A> B()
+    {
+        yield break; 
+    }
+
+    ref struct A;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (6,27): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static IEnumerable<A> B()
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_03()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static IEnumerator<A> B
+    {
+        get
+        {
+            yield break; 
+        }
+    }
+
+    ref struct A;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (8,9): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //         get
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "get").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_04()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static async IAsyncEnumerable<RefStructA> B()
+    {
+        yield return default;
+        yield break; 
+    }
+
+    ref struct RefStructA;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (6,47): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static async IAsyncEnumerable<RefStructA> B()
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(6, 47)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_05()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static async IAsyncEnumerator<RefStructA> B()
+    {
+        yield return default;
+        yield break; 
+    }
+
+    ref struct RefStructA;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (6,47): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static async IAsyncEnumerator<RefStructA> B()
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(6, 47)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_06()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static async IAsyncEnumerator<T> B<T>() where T : allows ref struct
+    {
+        yield return default;
+        yield break; 
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (6,38): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static async IAsyncEnumerator<T> B<T>() where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(6, 38)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78430")]
+        public void Issue78430()
+        {
+            var source =
+@"
+public ref struct TestStruct
+{
+    public int Prop1 {get; set;}
+}
+
+public static class TestClass
+{
+    public static void TestExtensionMethod<T>(this T value)
+        where T : allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            var testStruct = comp.GetTypeByMetadataName("TestStruct");
+            var extensionMethodSymbol = comp.GetMember<MethodSymbol>("TestClass.TestExtensionMethod");
+
+            AssertEx.Equal("void TestStruct.TestExtensionMethod<TestStruct>()", extensionMethodSymbol.ReduceExtensionMethod(testStruct, null).ToTestDisplayString());
         }
     }
 }

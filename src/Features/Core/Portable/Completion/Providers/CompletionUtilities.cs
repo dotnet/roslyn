@@ -38,13 +38,13 @@ internal static class CompletionUtilities
         foreach (var project in projects)
         {
             projectIds.Add(project.Id);
-            if (solution is null || project.Solution.WorkspaceVersion > solution.WorkspaceVersion)
+            if (solution is null || project.Solution.SolutionStateContentVersion > solution.SolutionStateContentVersion)
             {
                 solution = project.Solution;
             }
         }
 
         Contract.ThrowIfNull(solution);
-        return projectIds.Select(solution.GetProject).WhereNotNull().ToImmutableArray();
+        return [.. projectIds.Select(solution.GetProject).WhereNotNull()];
     }
 }

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -31,7 +30,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-public class SolutionServiceTests
+public sealed class SolutionServiceTests
 {
     private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
     private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
@@ -245,9 +244,10 @@ public class SolutionServiceTests
     [Fact]
     public async Task ProjectProperties()
     {
+        var dir = Path.GetDirectoryName(typeof(SolutionServiceTests).Assembly.Location);
         using var workspace = TestWorkspace.CreateCSharp("");
 
-        static Solution SetProjectProperties(Solution solution, int version)
+        Solution SetProjectProperties(Solution solution, int version)
         {
             var projectId = solution.ProjectIds.Single();
             return solution
@@ -256,14 +256,14 @@ public class SolutionServiceTests
                 .WithProjectFilePath(projectId, "FilePath" + version)
                 .WithProjectOutputFilePath(projectId, "OutputFilePath" + version)
                 .WithProjectOutputRefFilePath(projectId, "OutputRefFilePath" + version)
-                .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo("AssemblyPath" + version))
+                .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo("AssemblyPath" + version, dir + version))
                 .WithProjectDefaultNamespace(projectId, "DefaultNamespace" + version)
                 .WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1 + version)
                 .WithHasAllInformation(projectId, (version % 2) != 0)
                 .WithRunAnalyzers(projectId, (version % 2) != 0);
         }
 
-        static void ValidateProperties(Solution solution, int version)
+        void ValidateProperties(Solution solution, int version)
         {
             var project = solution.Projects.Single();
             Assert.Equal("Name" + version, project.Name);
@@ -271,6 +271,7 @@ public class SolutionServiceTests
             Assert.Equal("FilePath" + version, project.FilePath);
             Assert.Equal("OutputFilePath" + version, project.OutputFilePath);
             Assert.Equal("OutputRefFilePath" + version, project.OutputRefFilePath);
+            Assert.Equal(dir + version, project.CompilationOutputInfo.GeneratedFilesOutputDirectory);
             Assert.Equal("AssemblyPath" + version, project.CompilationOutputInfo.AssemblyPath);
             Assert.Equal("DefaultNamespace" + version, project.DefaultNamespace);
             Assert.Equal(SourceHashAlgorithm.Sha1 + version, project.State.ChecksumAlgorithm);
@@ -287,19 +288,12 @@ public class SolutionServiceTests
     }
 
     [Fact]
-    public async Task TestUpdateDocumentInfo()
-    {
-        var code = @"class Test { void Method() { } }";
-
-        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
-    }
+    public Task TestUpdateDocumentInfo()
+        => VerifySolutionUpdate(@"class Test { void Method() { } }", s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
 
     [Fact]
-    public async Task TestAddUpdateRemoveProjects()
-    {
-        var code = @"class Test { void Method() { } }";
-
-        await VerifySolutionUpdate(code, s =>
+    public Task TestAddUpdateRemoveProjects()
+        => VerifySolutionUpdate(@"class Test { void Method() { } }", s =>
         {
             var existingProjectId = s.ProjectIds.First();
 
@@ -318,7 +312,6 @@ public class SolutionServiceTests
 
             return document.Project.Solution;
         });
-    }
 
     [Fact]
     public async Task TestAdditionalDocument()
@@ -367,7 +360,7 @@ public class SolutionServiceTests
 
         await VerifySolutionUpdate(workspace, s =>
         {
-            return s.AddAnalyzerConfigDocuments(ImmutableArray.Create(analyzerConfigDocumentInfo));
+            return s.AddAnalyzerConfigDocuments([analyzerConfigDocumentInfo]);
         });
 
         workspace.OnAnalyzerConfigDocumentAdded(analyzerConfigDocumentInfo);
@@ -1044,6 +1037,48 @@ public class SolutionServiceTests
 
         objectReference1.AssertHeld();
         objectReference2.AssertReleased();
+    }
+
+    [Fact]
+    public void TestActiveAndRelatedDocumentSemanticModelCached()
+    {
+        using var workspace = TestWorkspace.Create("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+                        class Program1
+                        {
+                        }
+                    </Document>
+                    <Document FilePath="File2.cs">
+                        class Program2
+                        {
+                        }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document IsLinkFile="true" LinkAssemblyName="Assembly1" LinkFilePath="File1.cs" />
+                </Project>
+            </Workspace>
+            """, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single(p => p.AssemblyName == "Assembly1");
+        var project2 = solution.Projects.Single(p => p.AssemblyName == "Assembly2");
+        var document1 = project1.Documents.First();
+        var document2 = project1.Documents.Last();
+        var document3 = project2.Documents.Single();
+
+        // Only the semantic model for the active document should be cached.
+        var objectReference1 = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
+        var objectReference2 = ObjectReference.CreateFromFactory(() => document2.GetSemanticModelAsync().GetAwaiter().GetResult());
+        var objectReference3 = ObjectReference.CreateFromFactory(() => document3.GetSemanticModelAsync().GetAwaiter().GetResult());
+
+        objectReference1.AssertHeld();
+        objectReference2.AssertReleased();
+        objectReference3.AssertHeld();
     }
 
     [Fact]

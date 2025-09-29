@@ -2,14 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
     Public MustInherit Class AbstractVisualBasicCodeActionTest_NoEditor
-        Inherits AbstractCodeActionTest_NoEditor
+        Inherits AbstractCodeActionTest_NoEditor(Of
+            TestHostDocument,
+            TestHostProject,
+            TestHostSolution,
+            TestWorkspace)
 
         Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))
@@ -26,17 +28,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Return input.Replace("\n", vbCrLf)
         End Function
 
-        Protected Overloads Async Function TestAsync(initialMarkup As XElement, expected As XElement, Optional index As Integer = 0, Optional parseOptions As ParseOptions = Nothing) As Threading.Tasks.Task
+        Protected Overloads Async Function TestAsync(initialMarkup As XElement, expected As XElement, Optional index As Integer = 0, Optional parseOptions As ParseOptions = Nothing) As Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
             If parseOptions Is Nothing Then
-                Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions, index:=index)
+                Await MyBase.TestAsync(initialMarkupStr, expectedStr, New TestParameters(parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions, index:=index))
             Else
-                Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=parseOptions, compilationOptions:=_compilationOptions, index:=index)
+                Await MyBase.TestAsync(initialMarkupStr, expectedStr, New TestParameters(parseOptions:=parseOptions, compilationOptions:=_compilationOptions, index:=index))
             End If
         End Function
 
-        Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task
+        Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
 
             Await MyBase.TestMissingAsync(initialMarkupStr,

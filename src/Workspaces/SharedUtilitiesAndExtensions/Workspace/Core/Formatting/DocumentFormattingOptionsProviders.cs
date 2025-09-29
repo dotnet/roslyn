@@ -21,7 +21,7 @@ internal static class DocumentFormattingOptionsProviders
 
     public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return configOptions.GetDocumentFormattingOptions();
     }
 }

@@ -96,7 +96,7 @@ internal abstract class OptionDefinition : IEquatable<OptionDefinition?>
            type == typeof(long?) ||
            type.IsEnum ||
            Nullable.GetUnderlyingType(type)?.IsEnum == true ||
-#if !CODE_STYLE
+#if WORKSPACE
            typeof(ICodeStyleOption).IsAssignableFrom(type) ||
 #endif
            typeof(ICodeStyleOption2).IsAssignableFrom(type) ||
@@ -116,7 +116,7 @@ internal sealed class OptionDefinition<T>(
     bool isEditorConfigOption) : OptionDefinition(group, configName, defaultValue, storageMapping, isEditorConfigOption)
 {
     public new T DefaultValue { get; } = defaultValue;
-    public new EditorConfigValueSerializer<T> Serializer { get; } = serializer ?? EditorConfigValueSerializer.Default<T>();
+    public new EditorConfigValueSerializer<T> Serializer { get; } = serializer ?? EditorConfigValueSerializer.GetDefault<T>(isEditorConfigOption);
 
     public override Type Type
         => typeof(T);

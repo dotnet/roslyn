@@ -73,15 +73,12 @@ internal sealed partial class InvokeDelegateWithConditionalAccessCodeFixProvider
         Diagnostic diagnostic,
         CancellationToken cancellationToken)
     {
-        var root = editor.OriginalRoot;
-
-        var ifStatementLocation = diagnostic.AdditionalLocations[0];
-        var expressionStatementLocation = diagnostic.AdditionalLocations[1];
-
-        var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into global statement.
+        var ifStatement = (IfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
+        // Always under another statement.block.  So getInnermostNodeForTie: true` is not necessary, but keeps things consistent.
+        var expressionStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
@@ -116,23 +113,19 @@ internal sealed partial class InvokeDelegateWithConditionalAccessCodeFixProvider
     private static void HandleVariableAndIfStatementForm(
         SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
-        var root = editor.OriginalRoot;
-
-        var localDeclarationLocation = diagnostic.AdditionalLocations[0];
-        var ifStatementLocation = diagnostic.AdditionalLocations[1];
-        var expressionStatementLocation = diagnostic.AdditionalLocations[2];
-
-        var localDeclarationStatement = (LocalDeclarationStatementSyntax)root.FindNode(localDeclarationLocation.SourceSpan);
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into global statement.
+        var localDeclarationStatement = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into global statement.
+        var ifStatement = (IfStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
+        // Always under another statement.block.  So getInnermostNodeForTie: true` is not necessary, but keeps things consistent.
+        var expressionStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
-        var parentBlock = (BlockSyntax)localDeclarationStatement.GetRequiredParent();
 
         var invokeName =
             invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression

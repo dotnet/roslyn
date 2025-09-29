@@ -22,7 +22,7 @@ internal static class OrganizeImportsOptionsProviders
 
     public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return configOptions.GetOrganizeImportsOptions(document.Project.Language);
     }
 }

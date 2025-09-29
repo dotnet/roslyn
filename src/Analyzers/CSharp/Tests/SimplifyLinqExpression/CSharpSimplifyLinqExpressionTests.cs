@@ -5,20 +5,22 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpression;
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
-    CSharpSimplifyLinqExpressionCodeFixProvider>;
+    SimplifyLinqExpressionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-public partial class CSharpSimplifyLinqExpressionTests
+public sealed partial class CSharpSimplifyLinqExpressionTests
 {
     [Theory, CombinatorialData]
-    public static async Task TestAllowedMethodTypes(
+    public static Task TestAllowedMethodTypes(
         [CombinatorialValues(
             "x => x==1",
             "(x) => x==1",
@@ -35,8 +37,7 @@ public partial class CSharpSimplifyLinqExpressionTests
             "FirstOrDefault",
             "LastOrDefault")]
         string methodName)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -77,10 +78,9 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData]
-    public static async Task TestWhereWithIndexMethodTypes(
+    public static Task TestWhereWithIndexMethodTypes(
         [CombinatorialValues(
             "(x, index) => x==index",
             "(x, index) => { return x==index; }")]
@@ -95,8 +95,7 @@ public partial class CSharpSimplifyLinqExpressionTests
             "FirstOrDefault",
             "LastOrDefault")]
         string methodName)
-    {
-        var testCode = $$"""
+        => VerifyCS.VerifyAnalyzerAsync($$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -114,12 +113,10 @@ public partial class CSharpSimplifyLinqExpressionTests
                     var test = Data().Where({{lambda}}).{{methodName}}();
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(testCode);
-    }
+            """);
 
     [Theory, CombinatorialData]
-    public async Task TestQueryComprehensionSyntax(
+    public Task TestQueryComprehensionSyntax(
         [CombinatorialValues(
             "x => x==1",
             "x => { return x==1; }")]
@@ -134,8 +131,7 @@ public partial class CSharpSimplifyLinqExpressionTests
             "FirstOrDefault",
             "LastOrDefault")]
         string methodName)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System.Linq;
@@ -160,7 +156,6 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("First")]
@@ -171,9 +166,8 @@ public partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault")]
     [InlineData("FirstOrDefault")]
     [InlineData("LastOrDefault")]
-    public async Task TestMultiLineLambda(string methodName)
-    {
-        await new VerifyCS.Test
+    public Task TestMultiLineLambda(string methodName)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -222,7 +216,6 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("First", "string")]
@@ -233,9 +226,8 @@ public partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault", "string")]
     [InlineData("FirstOrDefault", "string")]
     [InlineData("LastOrDefault", "string")]
-    public async Task TestOutsideFunctionCallLambda(string methodName, string returnType)
-    {
-        await new VerifyCS.Test
+    public Task TestOutsideFunctionCallLambda(string methodName, string returnType)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -270,7 +262,6 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("First")]
@@ -281,9 +272,8 @@ public partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault")]
     [InlineData("FirstOrDefault")]
     [InlineData("LastOrDefault")]
-    public async Task TestQueryableIsNotConsidered(string methodName)
-    {
-        var source = $$"""
+    public Task TestQueryableIsNotConsidered(string methodName)
+        => VerifyCS.VerifyAnalyzerAsync($$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -299,12 +289,10 @@ public partial class CSharpSimplifyLinqExpressionTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Theory, CombinatorialData]
-    public async Task TestNestedLambda(
+    public Task TestNestedLambda(
         [CombinatorialValues(
             "First",
             "Last",
@@ -325,8 +313,8 @@ public partial class CSharpSimplifyLinqExpressionTests
             "FirstOrDefault",
             "LastOrDefault")]
         string secondMethod)
-    {
-        var testCode = $$"""
+        => VerifyCS.VerifyCodeFixAsync(
+            $$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -339,8 +327,8 @@ public partial class CSharpSimplifyLinqExpressionTests
                     var test5 = [|test.Where(a => [|a.Where(s => s.Equals("hello")).{{secondMethod}}()|].Equals("hello")).{{firstMethod}}()|];
                 }
             }
-            """;
-        var fixedCode = $$"""
+            """,
+            $$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -353,11 +341,7 @@ public partial class CSharpSimplifyLinqExpressionTests
                     var test5 = test.{{firstMethod}}(a => a.{{secondMethod}}(s => s.Equals("hello")).Equals("hello"));
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(
-            testCode,
-            fixedCode);
-    }
+            """);
 
     [Theory]
     [InlineData("First")]
@@ -368,9 +352,8 @@ public partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault")]
     [InlineData("FirstOrDefault")]
     [InlineData("LastOrDefault")]
-    public async Task TestExplicitEnumerableCall(string methodName)
-    {
-        await new VerifyCS.Test
+    public Task TestExplicitEnumerableCall(string methodName)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -403,12 +386,10 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUserDefinedWhere()
-    {
-        var source = """
+    public Task TestUserDefinedWhere()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -438,9 +419,7 @@ public partial class CSharpSimplifyLinqExpressionTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Theory]
     [InlineData("First")]
@@ -451,9 +430,8 @@ public partial class CSharpSimplifyLinqExpressionTests
     [InlineData("SingleOrDefault")]
     [InlineData("FirstOrDefault")]
     [InlineData("LastOrDefault")]
-    public async Task TestArgumentsInSecondCall(string methodName)
-    {
-        var source = $$"""
+    public Task TestArgumentsInSecondCall(string methodName)
+        => VerifyCS.VerifyAnalyzerAsync($$"""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -466,33 +444,32 @@ public partial class CSharpSimplifyLinqExpressionTests
                     var test2 = test1.Where(x => x == "!").{{methodName}}(x => x.Length == 1);
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task TestUnsupportedFunction()
-    {
-        var source = """
+    public Task TestUnsupportedMethod()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Linq;
+            using System.Collections;
             using System.Collections.Generic;
-            namespace demo
+
+            class Test : IEnumerable<int>
             {
-                class Test
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                public int Count() => 0;
+
+                void M()
                 {
-                    static List<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
-                    int test2 = test1.Where(x => x > 0).Count();
+                    int test2 = new Test().Where(x => x > 0).Count();
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
 
     [Fact]
-    public async Task TestExpressionTreeInput()
-    {
-        var source = """
+    public Task TestExpressionTreeInput()
+        => VerifyCS.VerifyAnalyzerAsync("""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -522,7 +499,139 @@ public partial class CSharpSimplifyLinqExpressionTests
                     string result = queryableData.Where(Expression.Lambda<Func<string, bool>>(predicateBody, new ParameterExpression[] { pe })).First();
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(source);
-    }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52283")]
+    public static Task TestTrivia1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = [|args.Skip(1)
+                            .Where(a => a.Length == 1).Count()|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = args.Skip(1)
+                            .Count(a => a.Length == 1);
+                    }
+                }
+                """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71293")]
+    public static Task TestOffOfObjectCreation()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test()
+                    {
+                        int cnt2 = [|new List<string>().Where(x => x.Equals("hello")).Count()|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    public void Test()
+                    {
+                        int cnt2 = new List<string>().Count(x => x.Equals("hello"));
+                    }
+                }
+                """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71293")]
+    public static Task TestOffOfFieldReference()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test()
+                    {
+                        int cnt3 = [|s_wordsField.Where(x => x.Equals("hello")).Count()|];
+                    }
+
+                    private static readonly List<string> s_wordsField;
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    public void Test()
+                    {
+                        int cnt3 = s_wordsField.Count(x => x.Equals("hello"));
+                    }
+                
+                    private static readonly List<string> s_wordsField;
+                }
+                """
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75845")]
+    public static Task TestSelectSum()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test(int[] numbers)
+                    {
+                        var sumOfSquares = [|numbers.Select(n => n * n).Sum()|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    public void Test(int[] numbers)
+                    {
+                        var sumOfSquares = numbers.Sum(n => n * n);
+                    }
+                }
+                """
+        }.RunAsync();
 }

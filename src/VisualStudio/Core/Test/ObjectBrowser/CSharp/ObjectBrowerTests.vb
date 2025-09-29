@@ -1192,10 +1192,10 @@ class C
 vbTab & "where TResult : class" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Summary_colon & vbCrLf &
+FeaturesResources.Summary_colon & vbCrLf &
 "The M method." & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Returns_colon & vbCrLf &
+FeaturesResources.Returns_colon & vbCrLf &
 "Returns a TResult.")
             End Using
         End Sub
@@ -1229,10 +1229,10 @@ class C
 "public int M()" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Summary_colon & vbCrLf &
+FeaturesResources.Summary_colon & vbCrLf &
 "Describes the method." & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Returns_colon & vbCrLf &
+FeaturesResources.Returns_colon & vbCrLf &
 "Returns a value.")
             End Using
         End Sub
@@ -1263,10 +1263,10 @@ class C
 "public int M { get; }" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Summary_colon & vbCrLf &
+FeaturesResources.Summary_colon & vbCrLf &
 "Gets a value." & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Returns_colon & vbCrLf &
+FeaturesResources.Returns_colon & vbCrLf &
 "Returns a value.")
             End Using
         End Sub
@@ -1297,10 +1297,10 @@ class C
 "public int M { get; }" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Summary_colon & vbCrLf &
+FeaturesResources.Summary_colon & vbCrLf &
 "Gets a value." & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Value_colon & vbCrLf &
+FeaturesResources.Value_colon & vbCrLf &
 "An integer value.")
             End Using
         End Sub

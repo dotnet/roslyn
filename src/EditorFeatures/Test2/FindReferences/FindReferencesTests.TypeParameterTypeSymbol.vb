@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/62744")>
-        Public Async Function TestTypeParameter_NewConstraint_CSharp(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestTypeParameter_NewConstraint_CSharp1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -40,6 +40,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             void Goo()
             {
                 new [|T|]();
+            }
+        }]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/62744")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78649")>
+        Public Async Function TestTypeParameter_NewConstraint_CSharp2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+        class C<{|Definition:T|}> where [|T|] : new()
+        {
+            void Goo()
+            {
+                new [|$$T|]();
             }
         }]]></Document>
     </Project>

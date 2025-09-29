@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Roslyn.Utilities;
 using ExportProvider = Microsoft.VisualStudio.Composition.ExportProvider;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
@@ -26,29 +25,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 /// </remarks>
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [Export]
-internal class ServiceBrokerFactory
+internal sealed class ServiceBrokerFactory
 {
     private BrokeredServiceContainer? _container;
     private readonly ExportProvider _exportProvider;
+    private readonly WrappedServiceBroker _wrappedServiceBroker;
     private Task _bridgeCompletionTask;
-    private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly ImmutableArray<IOnServiceBrokerInitialized> _onServiceBrokerInitialized;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ServiceBrokerFactory([ImportMany] IEnumerable<IOnServiceBrokerInitialized> onServiceBrokerInitialized,
-        ExportProvider exportProvider)
+        ExportProvider exportProvider,
+        WrappedServiceBroker wrappedServiceBroker)
     {
         _exportProvider = exportProvider;
         _bridgeCompletionTask = Task.CompletedTask;
-        _onServiceBrokerInitialized = onServiceBrokerInitialized.ToImmutableArray();
+        _onServiceBrokerInitialized = [.. onServiceBrokerInitialized];
+        _wrappedServiceBroker = wrappedServiceBroker;
     }
-
-    /// <summary>
-    /// Returns a full-access service broker, but will throw if we haven't yet connected to the Dev Kit broker.
-    /// </summary>
-    [Export(typeof(SVsFullAccessServiceBroker))]
-    public IServiceBroker FullAccessServiceBroker => this.GetRequiredServiceBrokerContainer().GetFullAccessServiceBroker();
 
     /// <summary>
     /// Returns a full-access service broker, but will return null if we haven't yet connected to the Dev Kit broker.
@@ -69,6 +65,7 @@ internal class ServiceBrokerFactory
         Contract.ThrowIfFalse(_container == null, "We should only create one container.");
 
         _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
+        _wrappedServiceBroker.SetServiceBroker(_container.GetFullAccessServiceBroker());
 
         foreach (var onInitialized in _onServiceBrokerInitialized)
         {
@@ -99,4 +96,3 @@ internal class ServiceBrokerFactory
         return _bridgeCompletionTask;
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

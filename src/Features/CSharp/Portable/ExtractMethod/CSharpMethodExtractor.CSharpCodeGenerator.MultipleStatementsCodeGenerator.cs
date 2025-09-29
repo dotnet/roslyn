@@ -9,83 +9,85 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal sealed partial class CSharpMethodExtractor
+internal sealed partial class CSharpExtractMethodService
 {
-    private abstract partial class CSharpCodeGenerator
+    internal sealed partial class CSharpMethodExtractor
     {
-        public sealed class MultipleStatementsCodeGenerator(
-            CSharpSelectionResult selectionResult,
-            AnalyzerResult analyzerResult,
-            CSharpCodeGenerationOptions options,
-            bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
+        private abstract partial class CSharpCodeGenerator
         {
-            protected override SyntaxToken CreateMethodName()
-                => GenerateMethodNameForStatementGenerators();
-
-            protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
+            public sealed class MultipleStatementsCodeGenerator(
+                SelectionResult selectionResult,
+                AnalyzerResult analyzerResult,
+                ExtractMethodGenerationOptions options,
+                bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
             {
-                var firstSeen = false;
-                var firstStatementUnderContainer = this.SelectionResult.GetFirstStatementUnderContainer();
-                var lastStatementUnderContainer = this.SelectionResult.GetLastStatementUnderContainer();
+                protected override SyntaxToken CreateMethodName()
+                    => GenerateMethodNameForStatementGenerators();
 
-                using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var list);
-                foreach (var statement in GetStatementsFromContainer(firstStatementUnderContainer.Parent))
+                protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    // reset first seen
-                    if (!firstSeen)
+                    var firstSeen = false;
+                    var firstStatementUnderContainer = this.SelectionResult.GetFirstStatementUnderContainer();
+                    var lastStatementUnderContainer = this.SelectionResult.GetLastStatementUnderContainer();
+
+                    using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var list);
+                    foreach (var statement in GetStatementsFromContainer(firstStatementUnderContainer.Parent))
                     {
-                        firstSeen = statement == firstStatementUnderContainer;
+                        // reset first seen
+                        if (!firstSeen)
+                        {
+                            firstSeen = statement == firstStatementUnderContainer;
+                        }
+
+                        // continue until we see the first statement
+                        if (!firstSeen)
+                        {
+                            continue;
+                        }
+
+                        list.Add(statement);
+
+                        // exit if we see last statement
+                        if (statement == lastStatementUnderContainer)
+                        {
+                            break;
+                        }
                     }
 
-                    // continue until we see the first statement
-                    if (!firstSeen)
-                    {
-                        continue;
-                    }
-
-                    list.Add(statement);
-
-                    // exit if we see last statement
-                    if (statement == lastStatementUnderContainer)
-                    {
-                        break;
-                    }
+                    return list.ToImmutableAndClear();
                 }
 
-                return list.ToImmutableAndClear();
-            }
-
-            private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
-            {
-                Contract.ThrowIfNull(node);
-                Contract.ThrowIfFalse(node.IsStatementContainerNode());
-
-                return node switch
+                private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
                 {
-                    BlockSyntax blockNode => blockNode.Statements,
-                    SwitchSectionSyntax switchSectionNode => switchSectionNode.Statements,
-                    GlobalStatementSyntax globalStatement => ((CompilationUnitSyntax)globalStatement.Parent).Members.OfType<GlobalStatementSyntax>().Select(globalStatement => globalStatement.Statement),
-                    _ => throw ExceptionUtilities.UnexpectedValue(node),
-                };
-            }
+                    Contract.ThrowIfNull(node);
+                    Contract.ThrowIfFalse(node.IsStatementContainerNode());
 
-            protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                => this.SelectionResult.GetFirstStatementUnderContainer();
+                    return node switch
+                    {
+                        BlockSyntax blockNode => blockNode.Statements,
+                        SwitchSectionSyntax switchSectionNode => switchSectionNode.Statements,
+                        GlobalStatementSyntax globalStatement => ((CompilationUnitSyntax)globalStatement.Parent).Members.OfType<GlobalStatementSyntax>().Select(globalStatement => globalStatement.Statement),
+                        _ => throw ExceptionUtilities.UnexpectedValue(node),
+                    };
+                }
 
-            protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
-                => this.SelectionResult.GetLastStatementUnderContainer();
+                protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
+                    => this.SelectionResult.GetFirstStatementUnderContainer();
 
-            protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
-            {
-                var statement = GetStatementContainingInvocationToExtractedMethodWorker();
-                return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
+                protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
+                    => this.SelectionResult.GetLastStatementUnderContainer();
+
+                protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
+                {
+                    var statement = GetStatementContainingInvocationToExtractedMethodWorker();
+                    return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
+                }
             }
         }
     }

@@ -23,5 +23,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 SetBooleanOption(FadingOptions.FadeOutUnusedImports, value)
             End Set
         End Property
+
+        Public Property Fading_FadeOutUnusedMembers As Boolean
+            Get
+                Return GetBooleanOption(FadingOptions.FadeOutUnusedMembers)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(FadingOptions.FadeOutUnusedMembers, value)
+            End Set
+        End Property
     End Class
 End Namespace

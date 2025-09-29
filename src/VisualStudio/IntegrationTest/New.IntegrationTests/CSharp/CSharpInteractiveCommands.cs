@@ -17,7 +17,9 @@ public class CSharpInteractiveCommands : AbstractInteractiveWindowTest
     {
         await TestServices.InteractiveWindow.SubmitTextAsync("1 + 2", HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.SubmitTextAsync("1.ToString()", HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\"1\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("""
+            "1"
+            """, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync((VirtualKeyCode.UP, VirtualKeyCode.MENU), HangMitigatingCancellationToken);
         Assert.Equal("1.ToString()", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
@@ -26,7 +28,9 @@ public class CSharpInteractiveCommands : AbstractInteractiveWindowTest
         // check the previous result
         await TestServices.InteractiveWindow.WaitForLastReplInputAsync("", HangMitigatingCancellationToken);
 
-        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\"1\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("""
+            "1"
+            """, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync((VirtualKeyCode.UP, VirtualKeyCode.MENU), HangMitigatingCancellationToken);
         Assert.Equal("1.ToString()", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
         await TestServices.Input.SendWithoutActivateAsync((VirtualKeyCode.UP, VirtualKeyCode.MENU), HangMitigatingCancellationToken);
@@ -36,7 +40,9 @@ public class CSharpInteractiveCommands : AbstractInteractiveWindowTest
         await TestServices.Input.SendWithoutActivateAsync((VirtualKeyCode.DOWN, VirtualKeyCode.MENU), HangMitigatingCancellationToken);
         Assert.Equal("1.ToString()", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
-        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\"1\"", HangMitigatingCancellationToken);
+        await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("""
+            "1"
+            """, HangMitigatingCancellationToken);
     }
 
     [IdeFact]

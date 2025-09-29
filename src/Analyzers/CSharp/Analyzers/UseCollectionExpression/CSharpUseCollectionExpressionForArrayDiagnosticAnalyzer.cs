@@ -196,7 +196,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 initializer.OpenBraceToken.GetLocation(),
                 option.Notification,
                 context.Options,
-                additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
+                additionalLocations: [initializer.GetLocation()],
                 properties: changesSemantics ? ChangesSemantics : null));
         }
     }

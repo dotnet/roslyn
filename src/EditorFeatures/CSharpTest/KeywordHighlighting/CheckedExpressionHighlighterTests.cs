@@ -13,15 +13,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(CheckedExpressionHighlighter);
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -43,12 +42,10 @@ public class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHighlighte
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample2_1()
-    {
-        await TestAsync(
+    public Task TestExample2_1()
+        => TestAsync(
             """
             class C
             {
@@ -61,5 +58,4 @@ public class CheckedExpressionHighlighterTests : AbstractCSharpKeywordHighlighte
                 }
             }
             """);
-    }
 }

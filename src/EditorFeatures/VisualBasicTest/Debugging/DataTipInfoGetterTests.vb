@@ -2,57 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Debugging
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities.Debugging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
-
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
-    Public Class DataTipInfoGetterTests
+    Public NotInheritable Class DataTipInfoGetterTests
+        Inherits AbstractDataTipInfoGetterTests
 
-        Private Shared Async Function TestNoDataTipAsync(input As XElement) As Task
-            Dim parsedInput As String = Nothing
-            Dim expectedPosition As Integer
-            MarkupTestFile.GetPosition(input.NormalizedValue, parsedInput, expectedPosition)
-
-            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
-                                      Async Function(document, position)
-                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None)
-                                          Assert.True(result.IsDefault)
-                                      End Function)
-        End Function
-
-        Private Shared Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing) As Task
-            Dim parsedInput As String = Nothing
-            Dim expectedPosition As Integer
-            Dim textSpan As TextSpan
-            MarkupTestFile.GetPositionAndSpan(input.NormalizedValue, parsedInput, expectedPosition, textSpan)
-
-            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
-                                      Async Function(document, position)
-                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None)
-                                          Assert.False(result.IsDefault)
-                                          Assert.Equal(textSpan, result.Span)
-                                          If Not String.IsNullOrEmpty(expectedText) Then
-                                              Assert.Equal(expectedText, result.Text)
-                                          End If
-                                      End Function)
-        End Function
-
-        Private Shared Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(parsedInput)
-                Dim debugInfo = New VisualBasicLanguageDebugInfoService()
-                Await continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)
-            End Using
+        Protected Overrides Function CreateWorkspace(markup As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(markup)
         End Function
 
         <Fact>
@@ -437,6 +396,61 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.row.$$Item(""Test Row"")|].Length") %></text>)
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me.row?.It$$em(""Test Row"")|].Length") %></text>)
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.row?.It$$em(""Test Row"")|].Length") %></text>)
+        End Function
+
+        <Fact>
+        Public Async Function TestLinq1() As Task
+            Await TestAsync(<text>
+imports System.Linq
+class C
+  sub Goo(args as integer())
+    dim x = $$[|args|].Select(function(a) a.ToString())
+  end sub
+end class</text>)
+        End Function
+
+        <Fact>
+        Public Async Function TestLinq2() As Task
+            Await TestAsync(<text>
+imports System.Linq
+class C
+  sub Goo(args as integer())
+    dim x = {|LinqExpression:[|args.$$Select(function(a) a.ToString())|]|}
+  end sub
+end class</text>)
+        End Function
+
+        <Fact>
+        Public Async Function TestLinq3() As Task
+            Await TestAsync(<text>
+imports System.Linq
+class C
+  sub Goo(args as integer())
+    dim x = [|$$args|].Select(function(a) a.ToString()).Where(function(a) a.Length >= 0)
+  end sub
+end class</text>)
+        End Function
+
+        <Fact>
+        Public Async Function TestLinq4() As Task
+            Await TestAsync(<text>
+imports System.Linq
+class C
+  sub Goo(args as integer())
+    dim x = {|LinqExpression:[|args.$$Select(function(a) a.ToString())|]|}.Where(function(a) a.Length >= 0)
+  end sub
+end class</text>)
+        End Function
+
+        <Fact>
+        Public Async Function TestLinq5() As Task
+            Await TestAsync(<text>
+imports System.Linq
+class C
+  sub Goo(args as integer())
+    dim x = {|LinqExpression:[|args.Select(function(a) a.ToString()).$$Where(function(a) a.Length >= 0)|]|}
+  end sub
+end class</text>)
         End Function
     End Class
 End Namespace

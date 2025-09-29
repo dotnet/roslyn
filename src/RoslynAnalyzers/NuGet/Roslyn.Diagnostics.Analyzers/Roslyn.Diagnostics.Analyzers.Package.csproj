@@ -1,0 +1,61 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Roslyn.Diagnostics.Analyzers</NuspecPackageId>
+    <Description>Private analyzers specific to Roslyn repo. These analyzers are not intended for public consumptions outside of the Roslyn repo.</Description>
+    <Summary>Roslyn.Diagnostics Analyzers</Summary>
+    <ReleaseNotes>Roslyn.Diagnostics Analyzers</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+    <IsShippingPackage>true</IsShippingPackage>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+        <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+        <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+        <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+        <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+        <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup>
+    <AnalyzerNupkgAssembly Include="Roslyn.Diagnostics.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Roslyn.Diagnostics.CSharp.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Roslyn.Diagnostics.VisualBasic.Analyzers.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Roslyn.Diagnostics.Analyzers\Core\Roslyn.Diagnostics.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Roslyn.Diagnostics.Analyzers\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Roslyn.Diagnostics.Analyzers\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj" />
+  </ItemGroup>
+
+  <!-- TODO: Can we figure out the AnalyzerNupkgAssembly and AnalyzerRulesetAssembly items from the referenced projects instead of hardcoding them as AnalyzerRulesetAssembly items here? -->
+  <ItemGroup>
+    <AnalyzerNupkgDependency Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" />
+    <AnalyzerNupkgDependency Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" />
+  </ItemGroup>
+  <ItemGroup>
+    <AnalyzerRulesetAssembly Include="Roslyn.Diagnostics.Analyzers.dll" />
+    <AnalyzerRulesetAssembly Include="Roslyn.Diagnostics.CSharp.Analyzers.dll" />
+    <AnalyzerRulesetAssembly Include="Roslyn.Diagnostics.VisualBasic.Analyzers.dll" />
+  </ItemGroup>
+</Project>

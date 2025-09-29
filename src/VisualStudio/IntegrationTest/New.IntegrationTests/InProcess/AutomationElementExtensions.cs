@@ -109,7 +109,6 @@ public static class AutomationElementExtensions
     /// Given an <see cref="IUIAutomationElement"/>, returns all descendants with the given <paramref name="className"/>.
     /// If none are found, the resulting collection will be empty.
     /// </summary>
-    /// <returns></returns>
     public static IUIAutomationElementArray FindDescendantsByClass(this IUIAutomationElement parent, string className)
     {
         if (parent == null)
@@ -310,7 +309,6 @@ public static class AutomationElementExtensions
     /// support the <see cref="IUIAutomationTogglePattern"/>.
     /// </summary>
     /// <param name="element"></param>
-    /// <returns></returns>
     public static bool IsToggledOn(this IUIAutomationElement element)
     {
         var togglePattern = element.GetCurrentPattern<IUIAutomationTogglePattern>(UIA_PatternIds.UIA_TogglePatternId);

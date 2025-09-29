@@ -2,12 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
     Partial Friend Class EndConstructStatementVisitor
-
         Public Overrides Function VisitIfStatement(node As IfStatementSyntax) As AbstractEndConstructResult
             Dim needsEnd = node.GetAncestorsOrThis(Of MultiLineIfBlockSyntax)().Any(Function(block) block.EndIfStatement.IsMissing)
 

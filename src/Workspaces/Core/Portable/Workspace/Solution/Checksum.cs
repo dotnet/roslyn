@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis;
 [DataContract, StructLayout(LayoutKind.Explicit, Size = HashSize)]
 internal readonly partial record struct Checksum(
     [field: FieldOffset(0)][property: DataMember(Order = 0)] long Data1,
-    [field: FieldOffset(8)][property: DataMember(Order = 1)] long Data2)
+    [field: FieldOffset(8)][property: DataMember(Order = 1)] long Data2) : IComparable<Checksum>
 {
     /// <summary>
     /// The intended size of the <see cref="Checksum"/> structure. 
@@ -115,6 +115,12 @@ internal readonly partial record struct Checksum(
     {
         // The checksum is already a hash. Just read a 4-byte value to get a well-distributed hash code.
         return (int)Data1;
+    }
+
+    public int CompareTo(Checksum other)
+    {
+        var result = Data1.CompareTo(other.Data1);
+        return result != 0 ? result : Data2.CompareTo(other.Data2);
     }
 }
 

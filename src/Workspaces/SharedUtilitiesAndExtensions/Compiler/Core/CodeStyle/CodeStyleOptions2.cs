@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
@@ -170,8 +170,8 @@ internal static class CodeStyleOptions2
     private static readonly BidirectionalMap<string, UnusedParametersPreference> s_unusedParametersPreferenceMap =
         new(
         [
-            KeyValuePairUtil.Create("non_public", UnusedParametersPreference.NonPublicMethods),
-            KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
+            KeyValuePair.Create("non_public", UnusedParametersPreference.NonPublicMethods),
+            KeyValuePair.Create("all", UnusedParametersPreference.AllMethods),
         ]);
 
     internal static readonly PerLanguageOption2<CodeStyleOption2<UnusedParametersPreference>> UnusedParameters = CreatePerLanguageOption(
@@ -198,10 +198,10 @@ internal static class CodeStyleOptions2
     private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
         new(
         [
-            KeyValuePairUtil.Create("never", CodeStyle.AccessibilityModifiersRequired.Never),
-            KeyValuePairUtil.Create("always", CodeStyle.AccessibilityModifiersRequired.Always),
-            KeyValuePairUtil.Create("for_non_interface_members", CodeStyle.AccessibilityModifiersRequired.ForNonInterfaceMembers),
-            KeyValuePairUtil.Create("omit_if_default", CodeStyle.AccessibilityModifiersRequired.OmitIfDefault),
+            KeyValuePair.Create("never", CodeStyle.AccessibilityModifiersRequired.Never),
+            KeyValuePair.Create("always", CodeStyle.AccessibilityModifiersRequired.Always),
+            KeyValuePair.Create("for_non_interface_members", CodeStyle.AccessibilityModifiersRequired.ForNonInterfaceMembers),
+            KeyValuePair.Create("omit_if_default", CodeStyle.AccessibilityModifiersRequired.OmitIfDefault),
         ]);
 
     internal static readonly PerLanguageOption2<CodeStyleOption2<AccessibilityModifiersRequired>> AccessibilityModifiersRequired = CreatePerLanguageOption(
@@ -244,8 +244,8 @@ internal static class CodeStyleOptions2
     private static readonly BidirectionalMap<string, ParenthesesPreference> s_parenthesesPreferenceMap =
         new(
         [
-            KeyValuePairUtil.Create("always_for_clarity", ParenthesesPreference.AlwaysForClarity),
-            KeyValuePairUtil.Create("never_if_unnecessary", ParenthesesPreference.NeverIfUnnecessary),
+            KeyValuePair.Create("always_for_clarity", ParenthesesPreference.AlwaysForClarity),
+            KeyValuePair.Create("never_if_unnecessary", ParenthesesPreference.NeverIfUnnecessary),
         ]);
 
     private static PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> CreateParenthesesOption(CodeStyleOption2<ParenthesesPreference> defaultValue, string name)
@@ -297,8 +297,8 @@ internal static class CodeStyleOptions2
     private static readonly BidirectionalMap<string, ForEachExplicitCastInSourcePreference> s_forEachExplicitCastInSourcePreferencePreferenceMap =
         new(
         [
-            KeyValuePairUtil.Create("always", ForEachExplicitCastInSourcePreference.Always),
-            KeyValuePairUtil.Create("when_strongly_typed", ForEachExplicitCastInSourcePreference.WhenStronglyTyped),
+            KeyValuePair.Create("always", ForEachExplicitCastInSourcePreference.Always),
+            KeyValuePair.Create("when_strongly_typed", ForEachExplicitCastInSourcePreference.WhenStronglyTyped),
         ]);
 
     internal static readonly Option2<CodeStyleOption2<ForEachExplicitCastInSourcePreference>> ForEachExplicitCastInSource = CreateOption(

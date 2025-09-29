@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -350,12 +349,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(decl.Ancestors().OfType<VariableDeclaratorSyntax>().First().ArgumentList.Contains(decl));
         }
 
+        protected static void AssertNotContainedInDeclaratorArguments(SingleVariableDesignationSyntax decl)
+            => Assert.Empty(decl.Ancestors().OfType<VariableDeclaratorSyntax>());
+
         protected static void AssertContainedInDeclaratorArguments(params SingleVariableDesignationSyntax[] decls)
         {
             foreach (var decl in decls)
             {
                 AssertContainedInDeclaratorArguments(decl);
             }
+        }
+
+        protected static void AssertNotContainedInDeclaratorArguments(params SingleVariableDesignationSyntax[] decls)
+        {
+            foreach (var decl in decls)
+                AssertNotContainedInDeclaratorArguments(decl);
         }
 
         protected static void VerifyModelNotSupported(

@@ -175,13 +175,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitNamedType(NamedTypeSymbol symbol, StringBuilder builder)
             {
-                if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
+                Symbol containingSymbol = symbol.ContainingSymbol;
+                if ((object)containingSymbol != null && (containingSymbol.Name.Length != 0 || containingSymbol is NamedTypeSymbol { IsExtension: true }))
                 {
-                    Visit(symbol.ContainingSymbol, builder);
+                    Visit(containingSymbol, builder);
                     builder.Append('.');
                 }
 
-                builder.Append(symbol.Name);
+                builder.Append(symbol.IsExtension ? symbol.ExtensionGroupingName : symbol.Name);
 
                 if (symbol.Arity != 0)
                 {

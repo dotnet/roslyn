@@ -13,15 +13,14 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(TryStatementHighlighter);
 
     [Fact]
-    public async Task TestExample1_1()
-    {
-        await TestAsync(
+    public Task TestExample1_1()
+        => TestAsync(
             """
             class C
             {
@@ -42,12 +41,10 @@ public class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_2()
-    {
-        await TestAsync(
+    public Task TestExample1_2()
+        => TestAsync(
             """
             class C
             {
@@ -68,12 +65,10 @@ public class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_3()
-    {
-        await TestAsync(
+    public Task TestExample1_3()
+        => TestAsync(
             """
             class C
             {
@@ -94,12 +89,10 @@ public class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExample1_4()
-    {
-        await TestAsync(
+    public Task TestExample1_4()
+        => TestAsync(
             """
             class C
             {
@@ -120,12 +113,10 @@ public class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExceptionFilter1()
-    {
-        await TestAsync(
+    public Task TestExceptionFilter1()
+        => TestAsync(
             """
             class C
             {
@@ -146,12 +137,10 @@ public class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExceptionFilter2()
-    {
-        await TestAsync(
+    public Task TestExceptionFilter2()
+        => TestAsync(
             """
             class C
             {
@@ -172,12 +161,10 @@ public class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTest
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExceptionFilter3()
-    {
-        await TestAsync(
+    public Task TestExceptionFilter3()
+        => TestAsync(
             """
             class C
             {
@@ -198,5 +185,4 @@ public class TryStatementHighlighterTests : AbstractCSharpKeywordHighlighterTest
                 }
             }
             """);
-    }
 }

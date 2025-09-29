@@ -13,7 +13,8 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Roslyn.LanguageServer.Protocol;
-internal class SumConverter : JsonConverterFactory
+
+internal sealed class SumConverter : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert)
     {
@@ -26,7 +27,7 @@ internal class SumConverter : JsonConverterFactory
         return (JsonConverter)Activator.CreateInstance(converterType)!;
     }
 
-    internal class SumTypeInfoCache
+    internal sealed class SumTypeInfoCache
     {
         // netstandard1.0 doesn't support Array.Empty
 #pragma warning disable CA1825 // Avoid zero-length array allocations.
@@ -65,20 +66,21 @@ internal class SumConverter : JsonConverterFactory
 
                 if (parameterTypeInfo.IsPrimitive ||
                     parameterTypeInfo == typeof(string) ||
+                    parameterTypeInfo == typeof(DocumentUri) ||
                     parameterTypeInfo == typeof(Uri) ||
                     typeof(IStringEnum).IsAssignableFrom(parameterTypeInfo))
                 {
-                    primitiveUnionTypeInfosSet ??= new List<UnionTypeInfo>();
+                    primitiveUnionTypeInfosSet ??= [];
                     primitiveUnionTypeInfosSet.Add(unionTypeInfo);
                 }
                 else if (parameterTypeInfo.IsArray)
                 {
-                    arrayUnionTypeInfosSet ??= new List<UnionTypeInfo>();
+                    arrayUnionTypeInfosSet ??= [];
                     arrayUnionTypeInfosSet.Add(unionTypeInfo);
                 }
                 else
                 {
-                    objectUnionTypeInfosSet ??= new List<UnionTypeInfo>();
+                    objectUnionTypeInfosSet ??= [];
                     objectUnionTypeInfosSet.Add(unionTypeInfo);
                 }
             }
@@ -120,7 +122,7 @@ internal class SumConverter : JsonConverterFactory
             return Nullable.GetUnderlyingType(sumTypeType) ?? sumTypeType;
         }
 
-        public class UnionTypeInfo
+        public sealed class UnionTypeInfo
         {
             // System.Text.Json can pre-compile the generic SumType<> constructor call so we don't need to do it through reflection every time.
             internal delegate T StjReader<T>(ref Utf8JsonReader reader, JsonSerializerOptions options);
@@ -177,10 +179,10 @@ internal class SumConverter : JsonConverterFactory
     }
 }
 
-internal class SumConverter<T> : JsonConverter<T>
+internal sealed class SumConverter<T> : JsonConverter<T>
     where T : struct, ISumType
 {
-    private static readonly ConcurrentDictionary<Type, SumConverter.SumTypeInfoCache> SumTypeCache = new ConcurrentDictionary<Type, SumConverter.SumTypeInfoCache>();
+    private static readonly ConcurrentDictionary<Type, SumConverter.SumTypeInfoCache> SumTypeCache = new();
 
     /// <inheritdoc/>
     public override T Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions options)
@@ -261,7 +263,12 @@ internal class SumConverter<T> : JsonConverter<T>
         var sumValue = value.Value;
 
         // behavior from DocumentUriConverter
-        if (sumValue is Uri)
+        if (sumValue is DocumentUri documentUri)
+        {
+            writer.WriteStringValue(documentUri.UriString);
+            return;
+        }
+        else if (sumValue is Uri)
         {
             writer.WriteStringValue(sumValue.ToString());
             return;
@@ -297,6 +304,7 @@ internal class SumConverter<T> : JsonConverter<T>
             case JsonTokenType.String:
                 isCompatible = unionTypeInfo.Type == typeof(string) ||
                                unionTypeInfo.Type == typeof(Uri) ||
+                               unionTypeInfo.Type == typeof(DocumentUri) ||
                                typeof(IStringEnum).IsAssignableFrom(unionTypeInfo.Type);
                 break;
         }

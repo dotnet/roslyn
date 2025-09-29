@@ -8,7 +8,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpUseImplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
+internal sealed class CSharpUseImplicitTypeDiagnosticAnalyzer()
+    : CSharpTypeStyleDiagnosticAnalyzerBase(
+        diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+        enforceOnBuild: EnforceOnBuildValues.UseImplicitType,
+        title: s_Title,
+        message: s_Message)
 {
     private static readonly LocalizableString s_Title =
         new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_implicit_type), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
@@ -17,12 +22,4 @@ internal sealed class CSharpUseImplicitTypeDiagnosticAnalyzer : CSharpTypeStyleD
         new LocalizableResourceString(nameof(CSharpAnalyzersResources.use_var_instead_of_explicit_type), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
     protected override CSharpTypeStyleHelper Helper => CSharpUseImplicitTypeHelper.Instance;
-
-    public CSharpUseImplicitTypeDiagnosticAnalyzer()
-        : base(diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
-               enforceOnBuild: EnforceOnBuildValues.UseImplicitType,
-               title: s_Title,
-               message: s_Message)
-    {
-    }
 }

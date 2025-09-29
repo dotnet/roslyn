@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
 internal sealed partial class RenameTrackingTaggerProvider
@@ -11,7 +9,7 @@ internal sealed partial class RenameTrackingTaggerProvider
     /// <summary>
     /// Tracks the solution before and after rename.
     /// </summary>
-    private class RenameTrackingSolutionSet(
+    private sealed class RenameTrackingSolutionSet(
         ISymbol symbolToRename,
         Solution originalSolution,
         Solution renamedSolution)

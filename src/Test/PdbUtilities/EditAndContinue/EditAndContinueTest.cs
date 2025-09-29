@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             output?.WriteLine($"Emitting baseline");
 
-            verifier.Emit(
+            verifier.EmitAndVerify(
                 expectedOutput: null,
                 trimOutput: false,
                 expectedReturnCode: null,
@@ -70,16 +70,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return This;
         }
 
-        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator)
-            => AddGeneration(source, _ => edits, validator);
+        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator, EmitDifferenceOptions? options = null)
+            => AddGeneration(source, _ => edits, validator, options);
 
-        internal TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator)
-            => AddGeneration(source, edits, validator, expectedErrors: []);
+        internal TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, EmitDifferenceOptions? options = null)
+            => AddGeneration(source, edits, validator, expectedErrors: [], options);
 
-        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, DiagnosticDescription[] expectedErrors)
-            => AddGeneration(source, _ => edits, validator: static _ => { }, expectedErrors);
+        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, DiagnosticDescription[] expectedErrors, EmitDifferenceOptions? options = null)
+            => AddGeneration(source, _ => edits, validator: static _ => { }, expectedErrors, options);
 
-        private TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, DiagnosticDescription[] expectedErrors)
+        private TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, DiagnosticDescription[] expectedErrors, EmitDifferenceOptions? options = null)
         {
             _hasVerified = false;
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             output?.WriteLine($"Emitting generation #{_generations.Count}");
 
-            CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
+            CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits, options: options);
 
             diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify(expectedErrors);
             if (expectedErrors is not [])
@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation, readers.ToImmutableArray());
+                var verifier = new GenerationVerifier(index, generation, [.. readers]);
                 generation.Verifier(verifier);
 
-                exceptions.Add(verifier.Exceptions.ToImmutableArray());
+                exceptions.Add([.. verifier.Exceptions]);
 
                 index++;
             }
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var syntaxMapFromMarkers = oldSource.MarkedSpans.IsEmpty ? null : SourceWithMarkedNodes.GetSyntaxMap(oldSource, newSource, unmappedNodes);
 
-            return ImmutableArray.CreateRange(edits.Select(e =>
+            return [.. edits.Select(e =>
             {
                 var oldSymbol = e.Kind is SemanticEditKind.Update or SemanticEditKind.Delete ? e.SymbolProvider(oldCompilation) : null;
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap, e.RudeEdits);
-            }));
+            })];
         }
 
         public void Dispose()

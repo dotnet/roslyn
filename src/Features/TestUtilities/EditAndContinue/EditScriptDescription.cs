@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -29,7 +30,39 @@ internal readonly struct EditScriptDescription(string oldMarkedSource, string ne
         => VerifyEdits(Array.Empty<string>());
 
     public void VerifyEdits(params string[] expected)
-        => AssertEx.Equal(expected, Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+        => AssertEx.Equal(expected, Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: static s =>
+        {
+            var maxQuoteRun = 0;
+            var currentRun = 0;
+            foreach (var c in s)
+            {
+                if (c == '"')
+                {
+                    currentRun++;
+                    maxQuoteRun = Math.Max(maxQuoteRun, currentRun);
+                }
+                else
+                {
+                    currentRun = 0;
+                }
+            }
+
+            if (maxQuoteRun >= 1 || s.ContainsLineBreak())
+            {
+                var quoteBlock = new string('"', Math.Max(maxQuoteRun + 1, 3));
+                return $"""
+                    {quoteBlock}
+                    {s}
+                    {quoteBlock}
+                    """;
+            }
+            else
+            {
+                return $"""
+                    "{s}"
+                    """;
+            }
+        });
 
     public void VerifyEdits(params EditKind[] expected)
         => AssertEx.Equal(expected, Edits.Select(e => e.Kind));

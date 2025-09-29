@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -51,7 +52,7 @@ internal abstract class AbstractAddAwaitCodeRefactoringProvider<TExpressionSynta
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         title,
-                        c => AddAwaitAsync(document, expression, withConfigureAwait: false, c),
+                        cancellationToken => AddAwaitAsync(document, expression, withConfigureAwait: false, cancellationToken),
                         title),
                     expression.Span);
 
@@ -59,7 +60,7 @@ internal abstract class AbstractAddAwaitCodeRefactoringProvider<TExpressionSynta
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         titleWithConfigureAwait,
-                        c => AddAwaitAsync(document, expression, withConfigureAwait: true, c),
+                        cancellationToken => AddAwaitAsync(document, expression, withConfigureAwait: true, cancellationToken),
                         titleWithConfigureAwait),
                     expression.Span);
             }
@@ -79,6 +80,20 @@ internal abstract class AbstractAddAwaitCodeRefactoringProvider<TExpressionSynta
 
         if (syntaxFacts.IsExpressionOfAwaitExpression(node))
             return false;
+
+        for (var current = node; current != null;)
+        {
+            if (syntaxFacts.IsMemberBindingExpression(current) ||
+                syntaxFacts.IsElementBindingExpression(current))
+            {
+                // Can't add 'await' to the `.X` in `a?.X`.  Nor would we want to.  Those could return null, which
+                // `await` would blow up on.  Note: this could be reconsidered if we end up adding `await?` support to
+                // the language.
+                return false;
+            }
+
+            current = current.ChildNodesAndTokens().FirstOrDefault().AsNode() as TExpressionSyntax;
+        }
 
         // if we're on an actual type symbol itself (like literally `Task`) we don't want to offer to add await.
         // we only want to add for actual expressions whose type is awaitable, not on the awaitable type itself.

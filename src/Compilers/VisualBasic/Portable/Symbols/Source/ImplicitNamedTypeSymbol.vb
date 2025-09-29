@@ -10,6 +10,7 @@ Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -148,6 +149,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
             Get
                 Return False
             End Get

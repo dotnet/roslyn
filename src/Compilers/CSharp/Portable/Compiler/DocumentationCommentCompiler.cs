@@ -16,7 +16,6 @@ using System.Resources;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
                         processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
-                    compiler.Visit(compilation.SourceAssembly.GlobalNamespace);
+                    compiler.Visit(compilation.SourceAssembly.SourceModule.GlobalNamespace);
                     Debug.Assert(compiler._indentDepth == 0);
                     writer?.Flush();
                 }
@@ -224,19 +223,159 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            DefaultVisit(symbol);
+            // 1. visit the type
+            if (symbol.IsExtension && (SourceNamedTypeSymbol)symbol.ContainingType is { } containingType)
+            {
+                // We've been asked to generate the docs for a given extension block. We'll produce the merged docs for the merged blocks.
+                ImmutableArray<SourceNamedTypeSymbol> extensions = containingType.GetExtensionGroupingInfo().GetMergedExtensions((SourceNamedTypeSymbol)symbol);
+                appendMergedExtensionBlocks(extensions);
+            }
+            else
+            {
+                DefaultVisit(symbol);
+            }
 
+            // 2. visit its members
             if (!_isForSingleSymbol)
             {
+                bool sawExtension = false;
                 foreach (Symbol member in symbol.GetMembers())
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
-                    member.Accept(this);
+                    if (member is NamedTypeSymbol { IsExtension: true })
+                    {
+                        sawExtension = true;
+                    }
+                    else
+                    {
+                        member.Accept(this);
+                    }
                 }
+
+                if (sawExtension)
+                {
+                    appendContainedExtensions((SourceNamedTypeSymbol)symbol);
+                }
+            }
+
+            return;
+
+            void appendContainedExtensions(SourceNamedTypeSymbol containingType)
+            {
+                Debug.Assert(!_isForSingleSymbol);
+                ExtensionGroupingInfo extensionGroupingInfo = containingType.GetExtensionGroupingInfo();
+
+                foreach (ImmutableArray<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
+                {
+                    appendMergedExtensionBlocks(extensions);
+
+                    foreach (var extension in extensions)
+                    {
+                        foreach (Symbol member in extension.GetMembers())
+                        {
+                            _cancellationToken.ThrowIfCancellationRequested();
+                            member.Accept(this);
+                        }
+                    }
+                }
+            }
+
+            void appendMergedExtensionBlocks(IEnumerable<SourceNamedTypeSymbol> extensions)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+                var docCommentNodesBuilder = ArrayBuilder<DocumentationCommentTriviaSyntax>.GetInstance();
+                if (!collectDocCommentNodes(extensions, docCommentNodesBuilder, out SourceNamedTypeSymbol firstExtension))
+                {
+                    docCommentNodesBuilder.Free();
+                    return;
+                }
+
+                if (docCommentNodesBuilder.IsEmpty)
+                {
+                    docCommentNodesBuilder.Free();
+                    return;
+                }
+
+                Debug.Assert(firstExtension is not null);
+                ProcessDocumentationCommentTriviaNodes(firstExtension, shouldSkipPartialDefinitionComments: false, docCommentNodesBuilder.ToImmutableAndFree());
+            }
+
+            bool collectDocCommentNodes(IEnumerable<SourceNamedTypeSymbol> extensions, ArrayBuilder<DocumentationCommentTriviaSyntax> docCommentNodesBuilder, out SourceNamedTypeSymbol firstExtension)
+            {
+                firstExtension = null;
+                foreach (var extension in extensions)
+                {
+                    Debug.Assert(extension.IsExtension);
+                    if (firstExtension is null)
+                    {
+                        firstExtension = extension;
+                    }
+                    else
+                    {
+                        Debug.Assert(firstExtension.GetEscapedDocumentationCommentId() == extension.GetEscapedDocumentationCommentId());
+                    }
+
+                    if (!TryGetDocumentationCommentNodes(extension, out DocumentationMode maxDocumentationMode, out ImmutableArray<DocumentationCommentTriviaSyntax> foundDocCommentNodes))
+                    {
+                        // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
+                        // just write a comment saying that info was lost for this symbol.
+                        string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
+                        WriteLine(string.Format(CultureInfo.CurrentUICulture, message, firstExtension.GetEscapedDocumentationCommentId()));
+                        return false;
+                    }
+
+                    if (!foundDocCommentNodes.IsDefaultOrEmpty)
+                    {
+                        docCommentNodesBuilder.AddRange(foundDocCommentNodes);
+                    }
+                }
+
+                return true;
             }
         }
 
 #nullable enable
+        public override void VisitMethod(MethodSymbol symbol)
+        {
+            if (symbol is SourceExtensionImplementationMethodSymbol implementation)
+            {
+                MethodSymbol underlyingMethod = implementation.UnderlyingMethod;
+                Symbol symbolForDocComment = underlyingMethod.IsAccessor()
+                    ? underlyingMethod.AssociatedSymbol
+                    : underlyingMethod;
+
+                if (!hasDocumentationTrivia(symbolForDocComment))
+                {
+                    return;
+                }
+
+                WriteLine("<member name=\"{0}\">", symbol.GetEscapedDocumentationCommentId());
+                Indent();
+                WriteLine("<inheritdoc cref=\"{0}\"/>", symbolForDocComment.GetEscapedDocumentationCommentId());
+                Unindent();
+                WriteLine("</member>");
+                return;
+            }
+
+            base.VisitMethod(symbol);
+            return;
+
+            static bool hasDocumentationTrivia(Symbol symbol)
+            {
+                foreach (SyntaxReference reference in symbol.DeclaringSyntaxReferences)
+                {
+                    foreach (var trivia in reference.GetSyntax().GetLeadingTrivia())
+                    {
+                        if (trivia.IsDocumentationCommentTrivia)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// Compile documentation comments on the symbol and write them to the stream if one is provided.
@@ -258,13 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool shouldSkipPartialDefinitionComments = false;
             if (symbol.IsPartialDefinition())
             {
-                Symbol? implementationPart = symbol switch
-                {
-                    MethodSymbol method => method.PartialImplementationPart,
-                    SourcePropertySymbol property => property.PartialImplementationPart,
-                    _ => null
-                };
-
+                Symbol? implementationPart = symbol.GetPartialImplementationPart();
                 if (implementationPart is not null)
                 {
                     Visit(implementationPart);
@@ -296,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
                 string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
-                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetDocumentationCommentId()));
+                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetEscapedDocumentationCommentId()));
                 return;
             }
 
@@ -323,20 +456,89 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _cancellationToken.ThrowIfCancellationRequested();
 
-            string withUnprocessedIncludes;
+            ProcessDocumentationCommentTriviaNodes(symbol, shouldSkipPartialDefinitionComments, docCommentNodes);
+        }
+
+        private static bool ShouldSkip(Symbol symbol)
+        {
+            return symbol.IsImplicitlyDeclared ||
+                symbol.IsAccessor() ||
+                symbol is SynthesizedSimpleProgramEntryPointSymbol;
+        }
+
+        private bool TryProcessRecordPropertyDocumentation(
+            SynthesizedRecordPropertySymbol recordPropertySymbol,
+            ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
+            [NotNullWhen(true)] out string? withUnprocessedIncludes,
+            out ImmutableArray<CSharpSyntaxNode> includeElementNodes)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
+
+            if (getMatchingParamTags(recordPropertySymbol.Name, docCommentNodes) is not { } paramTags)
+            {
+                withUnprocessedIncludes = null;
+                includeElementNodes = default;
+                return false;
+            }
+
+            Debug.Assert(paramTags.Count > 0);
+
+            BeginTemporaryString();
+            WriteLine("<member name=\"{0}\">", recordPropertySymbol.GetEscapedDocumentationCommentId());
+            Indent();
+            var substitutedTextBuilder = PooledStringBuilder.GetInstance();
+            var includeElementNodesBuilder = _processIncludes ? ArrayBuilder<CSharpSyntaxNode>.GetInstance() : null;
+            DocumentationCommentWalker.GetSubstitutedText(_compilation, recordPropertySymbol, paramTags, includeElementNodesBuilder, substitutedTextBuilder.Builder);
+            string substitutedText = substitutedTextBuilder.ToStringAndFree();
+            string formattedXml = FormatComment(substitutedText);
+            Write(formattedXml);
+            Unindent();
+            WriteLine("</member>");
+
+            withUnprocessedIncludes = GetAndEndTemporaryString();
+            includeElementNodes = includeElementNodesBuilder?.ToImmutableAndFree() ?? default;
+
+            paramTags.Free();
+            return true;
+
+            static ArrayBuilder<XmlElementSyntax>? getMatchingParamTags(string propertyName, ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes)
+            {
+                ArrayBuilder<XmlElementSyntax>? result = null;
+                foreach (var trivia in docCommentNodes)
+                {
+                    foreach (var contentItem in trivia.Content)
+                    {
+                        if (contentItem is XmlElementSyntax elementSyntax)
+                        {
+                            foreach (var attribute in elementSyntax.StartTag.Attributes)
+                            {
+                                if (attribute is XmlNameAttributeSyntax nameAttribute
+                                    && nameAttribute.GetElementKind() == XmlNameAttributeElementKind.Parameter
+                                    && string.Equals(nameAttribute.Identifier.Identifier.ValueText, propertyName, StringComparison.Ordinal))
+                                {
+                                    result ??= ArrayBuilder<XmlElementSyntax>.GetInstance();
+                                    result.Add(elementSyntax);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+
+        private void ProcessDocumentationCommentTriviaNodes(
+            Symbol symbol,
+            bool shouldSkipPartialDefinitionComments,
+            ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes)
+        {
+            string? withUnprocessedIncludes;
             bool haveParseError;
-            HashSet<TypeParameterSymbol> documentedTypeParameters;
-            HashSet<ParameterSymbol> documentedParameters;
+            HashSet<TypeParameterSymbol>? documentedTypeParameters;
+            HashSet<ParameterSymbol>? documentedParameters;
             ImmutableArray<CSharpSyntaxNode> includeElementNodes;
-            if (!TryProcessDocumentationCommentTriviaNodes(
-                    symbol,
-                    shouldSkipPartialDefinitionComments,
-                    docCommentNodes,
-                    out withUnprocessedIncludes,
-                    out haveParseError,
-                    out documentedTypeParameters,
-                    out documentedParameters,
-                    out includeElementNodes))
+            if (!tryProcessDocumentationCommentTriviaNodes(symbol, shouldSkipPartialDefinitionComments, docCommentNodes, out withUnprocessedIncludes, out haveParseError, out documentedTypeParameters, out documentedParameters, out includeElementNodes))
             {
                 return;
             }
@@ -346,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
                 string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
-                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetDocumentationCommentId()));
+                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetEscapedDocumentationCommentId()));
                 return;
             }
 
@@ -393,9 +595,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (documentedTypeParameters != null)
                 {
+                    PooledHashSet<string> documentedTypeParameterNames = PooledHashSet<string>.GetInstance();
+                    foreach (var documentedTypeParameter in documentedTypeParameters)
+                    {
+                        documentedTypeParameterNames.Add(documentedTypeParameter.Name);
+                    }
+
                     foreach (TypeParameterSymbol typeParameter in GetTypeParameters(symbol))
                     {
-                        if (!documentedTypeParameters.Contains(typeParameter))
+                        if (!documentedTypeParameterNames.Contains(typeParameter.Name))
                         {
                             Location location = typeParameter.GetFirstLocation();
                             Debug.Assert(location.SourceTree!.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
@@ -403,198 +611,128 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _diagnostics.Add(ErrorCode.WRN_MissingTypeParamTag, location, typeParameter, symbol);
                         }
                     }
+
+                    documentedTypeParameterNames.Free();
                 }
             }
-        }
+            return;
 
-        private static bool ShouldSkip(Symbol symbol)
-        {
-            return symbol.IsImplicitlyDeclared ||
-                symbol.IsAccessor() ||
-                symbol is SynthesizedSimpleProgramEntryPointSymbol;
-        }
-
-        private bool TryProcessRecordPropertyDocumentation(
-            SynthesizedRecordPropertySymbol recordPropertySymbol,
-            ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
-            [NotNullWhen(true)] out string? withUnprocessedIncludes,
-            out ImmutableArray<CSharpSyntaxNode> includeElementNodes)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            if (getMatchingParamTags(recordPropertySymbol.Name, docCommentNodes) is not { } paramTags)
+            // Loop over the DocumentationCommentTriviaSyntaxes.  Gather
+            //   1) concatenated XML, as a string;
+            //   2) whether or not the XML is valid;
+            //   3) set of type parameters covered by <typeparam> elements;
+            //   4) set of parameters covered by <param> elements;
+            //   5) list of <include> elements, as SyntaxNodes.
+            // Return true if at least one documentation comment was processed; false, otherwise.
+            bool tryProcessDocumentationCommentTriviaNodes(
+                Symbol symbol,
+                bool shouldSkipPartialDefinitionComments,
+                ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
+                [NotNullWhen(true)] out string? withUnprocessedIncludes,
+                out bool haveParseError,
+                out HashSet<TypeParameterSymbol>? documentedTypeParameters,
+                out HashSet<ParameterSymbol>? documentedParameters,
+                out ImmutableArray<CSharpSyntaxNode> includeElementNodes)
             {
-                withUnprocessedIncludes = null;
-                includeElementNodes = default;
-                return false;
-            }
+                Debug.Assert(!docCommentNodes.IsDefaultOrEmpty);
 
-            Debug.Assert(paramTags.Count > 0);
+                bool processedDocComment = false; // Even if there are DocumentationCommentTriviaSyntax, we may not need to process any of them.
 
-            BeginTemporaryString();
-            WriteLine("<member name=\"{0}\">", recordPropertySymbol.GetDocumentationCommentId());
-            Indent();
-            var substitutedTextBuilder = PooledStringBuilder.GetInstance();
-            var includeElementNodesBuilder = _processIncludes ? ArrayBuilder<CSharpSyntaxNode>.GetInstance() : null;
-            DocumentationCommentWalker.GetSubstitutedText(_compilation, recordPropertySymbol, paramTags, includeElementNodesBuilder, substitutedTextBuilder.Builder);
-            string substitutedText = substitutedTextBuilder.ToStringAndFree();
-            string formattedXml = FormatComment(substitutedText);
-            Write(formattedXml);
-            Unindent();
-            WriteLine("</member>");
+                ArrayBuilder<CSharpSyntaxNode>? includeElementNodesBuilder = null;
 
-            withUnprocessedIncludes = GetAndEndTemporaryString();
-            includeElementNodes = includeElementNodesBuilder?.ToImmutableAndFree() ?? default;
+                documentedParameters = null;
+                documentedTypeParameters = null;
 
-            paramTags.Free();
-            return true;
+                // Saw an XmlException while parsing one of the DocumentationCommentTriviaSyntax nodes.
+                haveParseError = false;
 
-            static ArrayBuilder<XmlElementSyntax>? getMatchingParamTags(string propertyName, ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes)
-            {
-                ArrayBuilder<XmlElementSyntax>? result = null;
-                foreach (var trivia in docCommentNodes)
+                if (symbol is SynthesizedRecordPropertySymbol recordProperty)
                 {
-                    foreach (var contentItem in trivia.Content)
+                    return TryProcessRecordPropertyDocumentation(recordProperty, docCommentNodes, out withUnprocessedIncludes, out includeElementNodes);
+                }
+
+                // We're doing substitution and formatting per-trivia, rather than per-symbol,
+                // because a single symbol can have both single-line and multi-line style
+                // doc comments.
+                foreach (DocumentationCommentTriviaSyntax trivia in docCommentNodes)
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
+
+                    bool reportDiagnosticsForCurrentTrivia = trivia.SyntaxTree.ReportDocumentationCommentDiagnostics();
+
+                    if (!processedDocComment)
                     {
-                        if (contentItem is XmlElementSyntax elementSyntax)
+                        // Since we have to throw away all the parts if any part is bad, we need to write to an intermediate temp.
+                        BeginTemporaryString();
+
+                        if (_processIncludes)
                         {
-                            foreach (var attribute in elementSyntax.StartTag.Attributes)
-                            {
-                                if (attribute is XmlNameAttributeSyntax nameAttribute
-                                    && nameAttribute.GetElementKind() == XmlNameAttributeElementKind.Parameter
-                                    && string.Equals(nameAttribute.Identifier.Identifier.ValueText, propertyName, StringComparison.Ordinal))
-                                {
-                                    result ??= ArrayBuilder<XmlElementSyntax>.GetInstance();
-                                    result.Add(elementSyntax);
-                                    break;
-                                }
-                            }
+                            includeElementNodesBuilder = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
+                        }
+
+                        // We DO want to write out partial method definition parts if we're processing includes
+                        // because we need to have XML to process.
+                        if (!shouldSkipPartialDefinitionComments || _processIncludes)
+                        {
+                            WriteLine("<member name=\"{0}\">", symbol.GetEscapedDocumentationCommentId());
+                            Indent();
+                        }
+
+                        processedDocComment = true;
+                    }
+
+                    // Will respect the DocumentationMode.
+                    string substitutedText = DocumentationCommentWalker.GetSubstitutedText(_compilation, _diagnostics, symbol, trivia,
+                        includeElementNodesBuilder, ref documentedParameters, ref documentedTypeParameters);
+
+                    string formattedXml = FormatComment(substitutedText);
+
+                    // It would be preferable to just parse the concatenated XML at the end of the loop (we wouldn't have
+                    // to wrap it in a root element and we wouldn't have to reparse in the IncludeElementExpander), but
+                    // then we wouldn't know whether or where to report a diagnostic.
+                    XmlException e = XmlDocumentationCommentTextReader.ParseAndGetException(formattedXml);
+                    if (e != null)
+                    {
+                        haveParseError = true;
+                        if (reportDiagnosticsForCurrentTrivia)
+                        {
+                            Location location = new SourceLocation(trivia.SyntaxTree, new TextSpan(trivia.SpanStart, 0));
+                            _diagnostics.Add(ErrorCode.WRN_XMLParseError, location, GetDescription(e));
                         }
                     }
+
+                    // For partial methods, all parts are validated, but only the implementation part is written to the XML stream.
+                    if (!shouldSkipPartialDefinitionComments || _processIncludes)
+                    {
+                        // This string already has indentation and line breaks, so don't call WriteLine - just write the text directly.
+                        Write(formattedXml);
+                    }
                 }
-                return result;
-            }
-        }
-
-#nullable disable
-
-        /// <summary>
-        /// Loop over the DocumentationCommentTriviaSyntaxes.  Gather
-        ///   1) concatenated XML, as a string;
-        ///   2) whether or not the XML is valid;
-        ///   3) set of type parameters covered by &lt;typeparam&gt; elements;
-        ///   4) set of parameters covered by &lt;param&gt; elements;
-        ///   5) list of &lt;include&gt; elements, as SyntaxNodes.
-        /// </summary>
-        /// <returns>True, if at least one documentation comment was processed; false, otherwise.</returns>
-        /// <remarks>This was factored out for clarity, not because it's reusable.</remarks>
-        private bool TryProcessDocumentationCommentTriviaNodes(
-            Symbol symbol,
-            bool shouldSkipPartialDefinitionComments,
-            ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
-            out string withUnprocessedIncludes,
-            out bool haveParseError,
-            out HashSet<TypeParameterSymbol> documentedTypeParameters,
-            out HashSet<ParameterSymbol> documentedParameters,
-            out ImmutableArray<CSharpSyntaxNode> includeElementNodes)
-        {
-            Debug.Assert(!docCommentNodes.IsDefaultOrEmpty);
-
-            bool processedDocComment = false; // Even if there are DocumentationCommentTriviaSyntax, we may not need to process any of them.
-
-            ArrayBuilder<CSharpSyntaxNode> includeElementNodesBuilder = null;
-
-            documentedParameters = null;
-            documentedTypeParameters = null;
-
-            // Saw an XmlException while parsing one of the DocumentationCommentTriviaSyntax nodes.
-            haveParseError = false;
-
-            if (symbol is SynthesizedRecordPropertySymbol recordProperty)
-            {
-                return TryProcessRecordPropertyDocumentation(recordProperty, docCommentNodes, out withUnprocessedIncludes, out includeElementNodes);
-            }
-
-            // We're doing substitution and formatting per-trivia, rather than per-symbol,
-            // because a single symbol can have both single-line and multi-line style
-            // doc comments.
-            foreach (DocumentationCommentTriviaSyntax trivia in docCommentNodes)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                bool reportDiagnosticsForCurrentTrivia = trivia.SyntaxTree.ReportDocumentationCommentDiagnostics();
 
                 if (!processedDocComment)
                 {
-                    // Since we have to throw away all the parts if any part is bad, we need to write to an intermediate temp.
-                    BeginTemporaryString();
+                    withUnprocessedIncludes = null;
+                    includeElementNodes = default(ImmutableArray<CSharpSyntaxNode>);
 
-                    if (_processIncludes)
-                    {
-                        includeElementNodesBuilder = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
-                    }
-
-                    // We DO want to write out partial method definition parts if we're processing includes
-                    // because we need to have XML to process.
-                    if (!shouldSkipPartialDefinitionComments || _processIncludes)
-                    {
-                        WriteLine("<member name=\"{0}\">", symbol.GetDocumentationCommentId());
-                        Indent();
-                    }
-
-                    processedDocComment = true;
+                    return false;
                 }
 
-                // Will respect the DocumentationMode.
-                string substitutedText = DocumentationCommentWalker.GetSubstitutedText(_compilation, _diagnostics, symbol, trivia,
-                    includeElementNodesBuilder, ref documentedParameters, ref documentedTypeParameters);
-
-                string formattedXml = FormatComment(substitutedText);
-
-                // It would be preferable to just parse the concatenated XML at the end of the loop (we wouldn't have
-                // to wrap it in a root element and we wouldn't have to reparse in the IncludeElementExpander), but
-                // then we wouldn't know whether or where to report a diagnostic.
-                XmlException e = XmlDocumentationCommentTextReader.ParseAndGetException(formattedXml);
-                if (e != null)
-                {
-                    haveParseError = true;
-                    if (reportDiagnosticsForCurrentTrivia)
-                    {
-                        Location location = new SourceLocation(trivia.SyntaxTree, new TextSpan(trivia.SpanStart, 0));
-                        _diagnostics.Add(ErrorCode.WRN_XMLParseError, location, GetDescription(e));
-                    }
-                }
-
-                // For partial methods, all parts are validated, but only the implementation part is written to the XML stream.
                 if (!shouldSkipPartialDefinitionComments || _processIncludes)
                 {
-                    // This string already has indentation and line breaks, so don't call WriteLine - just write the text directly.
-                    Write(formattedXml);
+                    Unindent();
+                    WriteLine("</member>");
                 }
+
+                // Free the temp.
+                withUnprocessedIncludes = GetAndEndTemporaryString();
+
+                // Free the builder, even if there was an error.
+                includeElementNodes = _processIncludes ? includeElementNodesBuilder!.ToImmutableAndFree() : default(ImmutableArray<CSharpSyntaxNode>);
+
+                return true;
             }
-
-            if (!processedDocComment)
-            {
-                withUnprocessedIncludes = null;
-                includeElementNodes = default(ImmutableArray<CSharpSyntaxNode>);
-
-                return false;
-            }
-
-            if (!shouldSkipPartialDefinitionComments || _processIncludes)
-            {
-                Unindent();
-                WriteLine("</member>");
-            }
-
-            // Free the temp.
-            withUnprocessedIncludes = GetAndEndTemporaryString();
-
-            // Free the builder, even if there was an error.
-            includeElementNodes = _processIncludes ? includeElementNodesBuilder.ToImmutableAndFree() : default(ImmutableArray<CSharpSyntaxNode>);
-
-            return true;
         }
+#nullable disable
 
         private static Location GetLocationInTreeReportingDocumentationCommentDiagnostics(Symbol symbol)
         {
@@ -1061,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Does not respect DocumentationMode, so use a temporary bag if diagnostics are not desired.
         /// </remarks>
-        private static string GetDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, BindingDiagnosticBag diagnostics)
+        private static string GetEscapedDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, BindingDiagnosticBag diagnostics)
         {
             if (crefSyntax.ContainsDiagnostics)
             {
@@ -1100,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.AddDependencies(symbol as TypeSymbol ?? symbol.ContainingType);
             }
 
-            return symbol.OriginalDefinition.GetDocumentationCommentId();
+            return symbol.OriginalDefinition.GetEscapedDocumentationCommentId();
         }
 
         /// <summary>

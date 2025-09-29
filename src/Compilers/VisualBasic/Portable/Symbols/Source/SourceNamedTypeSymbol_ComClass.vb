@@ -4,6 +4,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -763,7 +765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As Threading.CancellationToken)
+                Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
                     Throw ExceptionUtilities.Unreachable
                 End Sub
 
@@ -798,6 +800,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Property
 
                 Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+                    Get
+                        Throw ExceptionUtilities.Unreachable
+                    End Get
+                End Property
+
+                Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
                     Get
                         Throw ExceptionUtilities.Unreachable
                     End Get
@@ -981,7 +989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ImmutableArray(Of VisualBasicAttributeData).Empty
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
                     MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                     Dim compilation As VisualBasicCompilation = _comClass.DeclaringCompilation
@@ -1166,6 +1174,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides Function GetOverloadResolutionPriority() As Integer
+                    Return 0 ' This symbol is used to produce a metadata artifact, it cannot be accessed by a user  
+                End Function
+
                 Public Overrides ReadOnly Property IsOverridable As Boolean
                     Get
                         Return False
@@ -1347,7 +1359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return attributes.ToImmutableAndFree()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
                     MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then
@@ -1629,14 +1641,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
                     MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                     If IsComEventParameter Then
                         Return
                     End If
 
-                    Dim toClone As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
+                    Dim toClone As ArrayBuilder(Of VisualBasicAttributeData) = Nothing
                     _clonedFrom.AddSynthesizedAttributes(moduleBuilder, toClone)
 
                     Dim compilation = Me.DeclaringCompilation
@@ -1779,6 +1791,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides Function GetOverloadResolutionPriority() As Integer
+                    Return 0 ' This symbol is used to produce a metadata artifact, it cannot be accessed by a user 
+                End Function
+
                 Public Overrides ReadOnly Property IsOverridable As Boolean
                     Get
                         Return False
@@ -1849,7 +1865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
                     MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then

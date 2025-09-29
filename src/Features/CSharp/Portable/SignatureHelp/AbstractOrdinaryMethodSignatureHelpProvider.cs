@@ -40,7 +40,7 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
             GetMethodGroupPreambleParts(method, semanticModel, position),
             GetSeparatorParts(),
             GetMethodGroupPostambleParts(),
-            method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList(),
+            [.. method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))],
             descriptionParts: descriptionParts);
     }
 

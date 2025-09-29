@@ -8,17 +8,17 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 using Xunit;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class MessageBoxInProcess
+internal sealed partial class MessageBoxInProcess
 {
     private static bool s_initializedMessageBoxService;
 #pragma warning disable IDE0052 // Remove unread private members
@@ -26,8 +26,8 @@ internal partial class MessageBoxInProcess
     private static uint s_hotReloadUIServiceCookie;
 #pragma warning restore IDE0052 // Remove unread private members
 
-    private static ImmutableList<MessageBoxHandler> s_handlers = ImmutableList<MessageBoxHandler>.Empty;
-    private static ImmutableList<HotReloadHandler> s_hotReloadHandlers = ImmutableList<HotReloadHandler>.Empty;
+    private static ImmutableList<MessageBoxHandler> s_handlers = [];
+    private static ImmutableList<HotReloadHandler> s_hotReloadHandlers = [];
 
     protected override async Task InitializeCoreAsync()
     {

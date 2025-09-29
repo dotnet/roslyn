@@ -7,9 +7,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\Portable\InternalUtilities\IsExternalInit.cs" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />

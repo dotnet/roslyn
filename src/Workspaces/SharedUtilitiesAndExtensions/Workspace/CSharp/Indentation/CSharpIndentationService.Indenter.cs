@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,8 +26,8 @@ internal partial class CSharpIndentationService
         CompilationUnitSyntax root, SourceText text, TextLine lineToBeIndented,
         IndentationOptions options, AbstractFormattingRule baseIndentationRule)
     {
-        var rules = ImmutableArray.Create(baseIndentationRule).AddRange(CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules());
-        return new CSharpSmartTokenFormatter(options, rules, root, text);
+        return new CSharpSmartTokenFormatter(
+            options, [baseIndentationRule, .. CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules()], root, text);
     }
 
     protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)
@@ -220,8 +217,7 @@ internal partial class CSharpIndentationService
             token.IsCloseBraceOfEmbeddedBlock())
         {
             RoslynDebug.Assert(
-                token.Parent != null &&
-                (token.Parent.Parent is StatementSyntax || token.Parent.Parent is ElseClauseSyntax));
+                token.Parent?.Parent is StatementSyntax or ElseClauseSyntax);
 
             var embeddedStatementOwner = token.Parent.Parent;
             while (embeddedStatementOwner.IsEmbeddedStatement())

@@ -22,19 +22,19 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 
 [UseExportProvider]
-public class CompletionServiceTests
+public sealed class CompletionServiceTests
 {
     [Fact]
     public async Task TestNuGetCompletionProvider()
     {
-        var code = @"
-using System.Diagnostics;
-class Test {
-    void Method() {
-        Debug.Assert(true, ""$$"");
-    }
-}
-";
+        var code = """
+            using System.Diagnostics;
+            class Test {
+                void Method() {
+                    Debug.Assert(true, "$$");
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(code, openDocuments: true);
 
@@ -58,7 +58,7 @@ class Test {
 
         Assert.NotEmpty(completions.ItemsList);
 
-        var item = Assert.Single(completions.ItemsList.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
+        var item = Assert.Single(completions.ItemsList, item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName);
         Assert.Equal(nameof(DebugAssertTestCompletionProvider), item.DisplayText);
 
         var expectedDescriptionText = nameof(DebugAssertTestCompletionProvider);
@@ -70,7 +70,7 @@ class Test {
         Assert.Equal(expectedChange, actualChange);
     }
 
-    private class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory
+    private sealed class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory
     {
         private readonly CompletionProvider _completionProvider;
 
@@ -83,13 +83,13 @@ class Test {
         public override object Id => nameof(MockAnalyzerReference);
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public ImmutableArray<CompletionProvider> GetCompletionProviders()
-            => ImmutableArray.Create(_completionProvider);
+            => [_completionProvider];
     }
 
     private sealed class DebugAssertTestCompletionProvider : CompletionProvider

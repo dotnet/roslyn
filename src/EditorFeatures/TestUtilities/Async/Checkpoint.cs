@@ -6,14 +6,13 @@
 
 using System.Threading.Tasks;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public class Checkpoint
 {
-    public class Checkpoint
-    {
-        private readonly TaskCompletionSource<object> _tcs = new TaskCompletionSource<object>();
+    private readonly TaskCompletionSource<object> _tcs = new();
 
-        public Task Task => _tcs.Task;
+    public Task Task => _tcs.Task;
 
-        public void Release() => _tcs.SetResult(null);
-    }
+    public void Release() => _tcs.SetResult(null);
 }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal partial class AutomaticLineEnderCommandHandler
+internal sealed partial class AutomaticLineEnderCommandHandler
 {
     #region NodeReplacementHelpers
 
@@ -835,9 +835,6 @@ internal partial class AutomaticLineEnderCommandHandler
 
     #region AddBrace
 
-    private static AccessorListSyntax GetAccessorListNode(SyntaxFormattingOptions formattingOptions)
-        => AccessorList().WithOpenBraceToken(GetOpenBrace(formattingOptions)).WithCloseBraceToken(GetCloseBrace(formattingOptions));
-
     private static InitializerExpressionSyntax GetInitializerExpressionNode(SyntaxFormattingOptions formattingOptions)
         => InitializerExpression(SyntaxKind.ObjectInitializerExpression)
             .WithOpenBraceToken(GetOpenBrace(formattingOptions));
@@ -942,7 +939,7 @@ internal partial class AutomaticLineEnderCommandHandler
         return embeddedStatementOwner switch
         {
             DoStatementSyntax doStatementNode => doStatementNode.WithStatement(block),
-            ForEachStatementSyntax forEachStatementNode => forEachStatementNode.WithStatement(block),
+            CommonForEachStatementSyntax forEachStatementNode => forEachStatementNode.WithStatement(block),
             ForStatementSyntax forStatementNode => forStatementNode.WithStatement(block),
             IfStatementSyntax ifStatementNode => ifStatementNode.WithStatement(block),
             ElseClauseSyntax elseClauseNode => elseClauseNode.WithStatement(block),

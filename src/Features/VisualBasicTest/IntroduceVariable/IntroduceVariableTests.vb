@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.UnitTests
 
@@ -293,7 +292,7 @@ End Class"
 Class C
     Sub M()
         Dim {|Rename:tickCount|} As Integer = Environment.TickCount
-        Dim a As New With {tickCount}
+        Dim a As New With {.TickCount = tickCount}
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
@@ -1070,8 +1069,8 @@ Friend Class GooAttribute
     Sub New(x As Integer)
     End Sub
 End Class",
-index:=1,
-parseOptions:=Nothing)
+New TestParameters(index:=1,
+parseOptions:=Nothing))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542783")>
@@ -1248,8 +1247,8 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer) Dim {|Rename:value|} As Integer = x + 1
-                    Console.WriteLine(value)
-                End Sub ' Introduce local 
+                    Console.WriteLine(value) ' Introduce local 
+                End Sub
     End Sub
 End Module")
         End Function
@@ -1922,7 +1921,7 @@ End Module",
         End With
     End Sub
 End Module",
-parseOptions:=Nothing)
+New TestParameters(parseOptions:=Nothing))
 
             Await TestAsync(
 "Module Program
@@ -1940,7 +1939,7 @@ End Module",
         End With
     End Sub
 End Module",
-parseOptions:=GetScriptOptions())
+New TestParameters(parseOptions:=GetScriptOptions()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545702")>
@@ -2151,8 +2150,8 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main()
-        Dim {|Rename:x1|} As IEnumerable(Of Char) = From x In """"
-        [Take](x1)
+        Dim {|Rename:x1|} As IEnumerable(Of Char) = (From x In """")
+        Take(x1)
     End Sub
     Sub Take(x)
     End Sub
@@ -2723,7 +2722,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>
@@ -2747,7 +2746,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>
@@ -2773,8 +2772,8 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, index:=1,
-                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(index:=1,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>
@@ -2792,7 +2791,7 @@ Class C
     Shared Dim y As Integer = 2
     Sub M()
         Dim {|Rename:y1|} As Integer = C.y
-        Dim t = (y1, y1)
+        Dim t = (y:=y1, y:=y1)
     End Sub
 End Class
 "
@@ -2816,11 +2815,11 @@ Class C
     Sub M()
         Dim a As Integer = 1
         Dim {|Rename:rest1|} As Integer = C.rest
-        Dim t = (a, rest1)
+        Dim t = (a, rest:=rest1)
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)))
         End Function
 
         <Fact>

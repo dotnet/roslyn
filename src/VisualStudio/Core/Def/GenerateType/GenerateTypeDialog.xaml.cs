@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType;
@@ -31,7 +30,7 @@ internal partial class GenerateTypeDialog : DialogWindow
     public string CreateNewFile { get { return ServicesVSResources.Create_new_file; } }
     public string AddToExistingFile { get { return ServicesVSResources.Add_to_existing_file; } }
     public string OK { get { return ServicesVSResources.OK; } }
-    public string Cancel { get { return ServicesVSResources.Cancel; } }
+    public string Cancel { get { return EditorFeaturesResources.Cancel; } }
 
     public GenerateTypeDialog(GenerateTypeDialogViewModel viewModel)
         : base("vsl.GenerateFromUsage")

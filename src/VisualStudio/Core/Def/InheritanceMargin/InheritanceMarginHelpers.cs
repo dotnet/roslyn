@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
 internal static class InheritanceMarginHelpers
 {
-    private static readonly ObjectPool<MultiDictionary<string, InheritanceTargetItem>> s_pool = new(() => new());
+    private static readonly ObjectPool<MultiDictionary<string, InheritanceTargetItem>> s_pool = new(() => []);
 
     private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
         =
@@ -107,10 +107,9 @@ internal static class InheritanceMarginHelpers
             foreach (var target in targets)
                 nameToTargets.Add(target.DisplayName, target);
 
-            return item.TargetItems
+            return [.. item.TargetItems
                 .GroupBy(t => t.RelationToMember)
-                .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))
-                .ToImmutableArray();
+                .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))];
         }
         finally
         {

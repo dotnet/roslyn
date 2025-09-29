@@ -2,6 +2,7 @@
 trigger:
 - main
 - main-vs-deps
+- community
 - release/*
 - features/*
 - demos/*
@@ -12,19 +13,27 @@ pr:
     include:
     - main
     - main-vs-deps
+    - community
     - release/*
     - features/*
     - demos/*
   paths:
     exclude:
       - docs/*
+      - eng/config/OptProf.json
       - eng/config/PublishData.json
+      - eng/setup-pr-validation.ps1
       - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
       - .vscode/*
       - .github/*
       - .devcontainer/*
       - .git-blame-ignore-revs
       - .vsconfig
+      - azure-pipelines-compliance.yml
+      - azure-pipelines-integration-dartlab.yml
+      - azure-pipelines-integration-scouting.yml
+      - azure-pipelines-official.yml
+      - azure-pipelines-pr-validation.yml
       - CODE-OF-CONDUCT.md
       - CONTRIBUTING.md
       - README.md
@@ -48,16 +57,24 @@ variables:
       value: NetCore1ESPool-Internal
 
   - name: Vs2022PreviewQueueName
+    # As of 2025-06-12, the non-scouting queue does not have a new enough of an MSBuild to build Roslyn; use the scouting
+    # queue which is on 17.14. This likely can be removed by 2025-06-18 when the upgrade to 17.14 Preview 4 is scheduled to complete.
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022preview.amd64.open
+      value: windows.vs2022preview.scout.amd64.open
     ${{ else }}:
-      value: windows.vs2022preview.amd64
+      value: windows.vs2022preview.scout.amd64
+
+  - name: Vs2022RegularQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2022.amd64.open
+    ${{ else }}:
+      value: windows.vs2022.amd64
 
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Build.Ubuntu.2004.Amd64.Open
+      value: Build.Ubuntu.2204.Amd64.Open
     ${{ else }}:
-      value: Build.Ubuntu.2004.Amd64
+      value: Build.Ubuntu.2204.Amd64
 
   - name: WindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -71,6 +88,12 @@ variables:
     ${{ else }}:
       value: Windows.10.Amd64
 
+  - name: HelixWindowsVsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.amd64.vs2022.pre.open
+    ${{ else }}:
+      value: windows.amd64.vs2022.pre
+
   - name: HelixWindowsSpanishQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Windows.10.Amd64.Server2022.ES.Open
@@ -79,15 +102,15 @@ variables:
 
   - name: HelixUbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Ubuntu.2004.Amd64.Open
+      value: Ubuntu.2204.Amd64.Open
     ${{ else }}:
-      value: Ubuntu.2004.Amd64
+      value: Ubuntu.2204.Amd64
 
   - name: HelixMacOsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: OSX.13.Amd64.Open
+      value: OSX.15.Amd64.Open
     ${{ else }}:
-      value: OSX.13.Amd64
+      value: OSX.15.Amd64
 
 parameters:
   # These pools allow us to configure the pools once for multiple jobs.
@@ -102,11 +125,20 @@ parameters:
     default:
       name: $(PoolName)
       demands: ImageOverride -equals $(WindowsQueueName)
+  - name: macOSPool
+    type: object
+    default:
+      vmImage: macOS-15
   - name: vs2022PreviewPool
     type: object
     default:
       name: $(PoolName)
       demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+  - name: vs2022RegularPool
+    type: object
+    default:
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022RegularQueueName)
 
 stages:
 - stage: Windows_Debug_Build
@@ -141,6 +173,16 @@ stages:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       poolParameters: ${{ parameters.ubuntuPool }}
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - stage: MacOS_Build
+    dependsOn: []
+    jobs:
+    - template: eng/pipelines/build-unix-job.yml
+      parameters:
+        jobName: Build_macOS_Debug
+        testArtifactName: Transport_Artifacts_macOS_Debug
+        poolParameters: ${{ parameters.macOSPool }}
 
 - stage: Source_Build
   dependsOn: []
@@ -180,7 +222,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
-        helixQueueName: $(HelixWindowsQueueName)
+        helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
 
@@ -191,7 +233,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
-      helixQueueName: $(HelixWindowsQueueName)
+      helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
@@ -208,7 +250,7 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
-      helixQueueName: $(HelixWindowsQueueName)
+      helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
@@ -220,7 +262,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
-        helixQueueName: $(HelixWindowsQueueName)
+        helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
 
@@ -271,7 +313,7 @@ stages:
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
-        poolParameters: ${{ parameters.vs2022PreviewPool }}
+        poolParameters: ${{ parameters.vs2022RegularPool }}
         testArguments: -testCoreClr
 
   - template: eng/pipelines/test-windows-job.yml
@@ -342,14 +384,19 @@ stages:
         testArguments: --testCoreClr
         poolParameters: ${{ parameters.ubuntuPool }}
 
-  # https://github.com/dotnet/runtime/issues/97186
-  # Disabled until runtime can track down the crash
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - stage: MacOS_Debug_CoreClr
+    dependsOn: MacOS_Build
+    variables:
+    - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      - group: DotNet-HelixApi-Access
+    jobs:
+    # https://github.com/dotnet/runtime/issues/97186
     - template: eng/pipelines/test-unix-job.yml
       parameters:
         testRunName: 'Test macOS Debug'
         jobName: Test_macOS_Debug
-        testArtifactName: Transport_Artifacts_Unix_Debug
+        testArtifactName: Transport_Artifacts_macOS_Debug
         configuration: Debug
         testArguments: --testCoreClr 
         helixQueueName: $(HelixMacOsQueueName)
@@ -382,13 +429,19 @@ stages:
           configuration: Release
       - name: compilerChange
         value: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      # Set NUGET_PACKAGES to fix issues with package Restore when building with `-ci`.
+      # Workaround for https://github.com/dotnet/arcade/issues/15970
+      - name: NUGET_PACKAGES
+        value: $(Build.SourcesDirectory)\.packages
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
 
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true
+      # We additionally restore during the build because the Microsoft.DotNet.Build.Tasks.Feed package only restores when we pass `-publish`. See https://github.com/dotnet/arcade/blob/37ccfd66358af6a37a0ec385ec31d1d71bdd8723/src/Microsoft.DotNet.Arcade.Sdk/tools/Tools.proj#L61-L66
+      # Passing `-publish` during the restore step above fails due to no items needing published.
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
 
       # While this task is not executed in the official build, this serves as a PR check for whether symbol exclusions
@@ -412,8 +465,12 @@ stages:
       - powershell: eng/validate-rules-missing-documentation.ps1 -ci
         displayName: Validate rules missing documentation
 
-      - powershell: eng/generate-compiler-code.ps1 -test -configuration Release
+      - task: DotNetCoreCLI@2
         displayName: Generate Syntax Files
+        inputs:
+          command: 'custom'
+          custom: 'run'
+          arguments: '--file $(Build.SourcesDirectory)/eng/generate-compiler-code.cs -- -test -configuration Release'
 
       - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
         displayName: Validate Generated Syntax Files

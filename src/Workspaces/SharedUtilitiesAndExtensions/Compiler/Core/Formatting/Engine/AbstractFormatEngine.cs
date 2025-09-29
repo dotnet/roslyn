@@ -223,6 +223,11 @@ internal abstract partial class AbstractFormatEngine
 
         using (Logger.LogBlock(FunctionId.Formatting_CollectTokenOperation, cancellationToken))
         {
+            // Grow the SegmentedList in a single allocation if the resultant list is going to be
+            // significantly larger than it's existing Capacity.
+            if (tokenStream.TokenCount > 2 * list.Capacity)
+                list.EnsureCapacity(tokenStream.TokenCount);
+
             foreach (var (index, currentToken, nextToken) in tokenStream.TokenIterator)
             {
                 cancellationToken.ThrowIfCancellationRequested();

@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region OverloadResolutionPriorityAttribute
-        private int? _overloadResolutionPriority = null;
+        private int _overloadResolutionPriority = 0;
         [DisallowNull]
-        public int? OverloadResolutionPriority
+        public int OverloadResolutionPriority
         {
             get
             {
@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis
             set
             {
                 VerifySealed(expected: false);
-                Debug.Assert(value != null);
                 _overloadResolutionPriority = value;
                 SetDataStored();
             }

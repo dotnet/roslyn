@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             ElseIf token.TrailingTrivia.Contains(trivia) Then
                 Return CreateCommentsRegions(token.TrailingTrivia)
             Else
-                Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+                Throw ExceptionUtilities.Unreachable
             End If
         End Function
 

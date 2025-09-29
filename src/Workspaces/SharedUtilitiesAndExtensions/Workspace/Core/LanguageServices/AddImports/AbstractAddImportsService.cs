@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -68,7 +67,7 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
         contextLocation ??= root;
 
         var applicableContainer = GetFirstApplicableContainer(contextLocation);
-        return applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
+        return [.. applicableContainer.GetAncestorsOrThis<SyntaxNode>()];
     }
 
     private bool HasExistingImport(

@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -147,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
                                       .OrderBy(Function(recommendation) recommendation) _
                                       .ToArray()
 
-            Assert.Equal(0, recommendedKeywords.Length)
+            Assert.Empty(recommendedKeywords)
         End Sub
 
         Private Function GetSourceCodeKind(testSource As XElement) As SourceCodeKind

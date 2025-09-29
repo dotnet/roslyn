@@ -215,6 +215,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
             return compilationAnalysisValueProvider.TryGetValue(key, out value);
         }
+
+        public AnalyzerCompilationStartAnalysisContext WithOptions(AnalyzerOptions options)
+            => this.Options == options
+                ? this
+                : new(_scope, this.Compilation, options, _compilationAnalysisValueProviderFactory, this.CancellationToken);
     }
 
     /// <summary>
@@ -279,6 +284,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
             _scope.RegisterOperationAction(action, operationKinds);
         }
+
+        public AnalyzerSymbolStartAnalysisContext WithOptions(AnalyzerOptions analyzerOptions)
+            => this.Options == analyzerOptions
+                ? this
+                : new(_scope, this.Symbol, this.Compilation, analyzerOptions, this.IsGeneratedCode, this.FilterTree, this.FilterSpan, this.CancellationToken);
     }
 
     /// <summary>
@@ -549,8 +559,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 break;
                             case SymbolKind.NamedType:
                                 var namedType = (INamedTypeSymbol)context.Symbol;
-                                var delegateInvokeMethod = namedType.DelegateInvokeMethod;
-                                parameters = delegateInvokeMethod?.Parameters ?? ImmutableArray.Create<IParameterSymbol>();
+                                if (namedType.IsExtension)
+                                {
+                                    parameters = namedType.ExtensionParameter is { } extensionParameter ? [extensionParameter] : [];
+                                }
+                                else
+                                {
+                                    var delegateInvokeMethod = namedType.DelegateInvokeMethod;
+                                    parameters = delegateInvokeMethod?.Parameters ?? ImmutableArray.Create<IParameterSymbol>();
+                                }
                                 break;
                             default:
                                 throw new ArgumentException($"{context.Symbol.Kind} is not supported.", nameof(context));
@@ -820,14 +837,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
         }
 
-        internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
+        internal readonly void AddSyntaxNodeActions<TLanguageKindEnum>(
+            ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> builder) where TLanguageKindEnum : struct
         {
-            return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
+            foreach (var action in _syntaxNodeActions)
+            {
+                if (action is SyntaxNodeAnalyzerAction<TLanguageKindEnum> stronglyTypedAction)
+                    builder.Add(stronglyTypedAction);
+            }
         }
 
-        internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>(DiagnosticAnalyzer analyzer) where TLanguageKindEnum : struct
+        internal readonly void AddSyntaxNodeActions<TLanguageKindEnum>(
+            DiagnosticAnalyzer analyzer,
+            ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> builder) where TLanguageKindEnum : struct
         {
-            var builder = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
             foreach (var action in _syntaxNodeActions)
             {
                 if (action.Analyzer == analyzer &&
@@ -836,8 +859,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     builder.Add(syntaxNodeAction);
                 }
             }
-
-            return builder.ToImmutableAndFree();
         }
 
         internal readonly ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions

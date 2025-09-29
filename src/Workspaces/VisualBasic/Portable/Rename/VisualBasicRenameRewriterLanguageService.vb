@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -18,8 +19,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
-
-    Friend Class VisualBasicRenameRewriterLanguageService
+    Friend NotInheritable Class VisualBasicRenameRewriterLanguageService
         Inherits AbstractRenameRewriterLanguageService
 
         Public Shared ReadOnly Instance As New VisualBasicRenameRewriterLanguageService()
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return newToken
             End Function
 
-            Private Async Function RenameAndAnnotateAsync(token As SyntaxToken, newToken As SyntaxToken, isRenameLocation As Boolean, isOldText As Boolean) As Task(Of SyntaxToken)
+            Private Function RenameAndAnnotate(token As SyntaxToken, newToken As SyntaxToken, isRenameLocation As Boolean, isOldText As Boolean) As SyntaxToken
                 If newToken.IsKind(SyntaxKind.NewKeyword) Then
                     ' The constructor definition cannot be renamed in Visual Basic
                     Return newToken
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
 
                 Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
-                   Await ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).ConfigureAwait(False)
+                   ConflictResolver.CreateDeclarationLocationAnnotations(_solution, symbols, _cancellationToken)
 
                 Dim isNamespaceDeclarationReference = False
                 If isRenameLocation AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
@@ -444,7 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     IsPossibleNameConflict(_possibleNameConflicts, oldToken.ValueText)
 
                 If tokenNeedsConflictCheck Then
-                    newToken = RenameAndAnnotateAsync(oldToken, newToken, isRenameLocation, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
+                    newToken = RenameAndAnnotate(oldToken, newToken, isRenameLocation, isOldText)
 
                     If Not Me._isProcessingComplexifiedSpans Then
                         _invocationExpressionsNeedingConflictChecks.AddRange(oldToken.GetAncestors(Of InvocationExpressionSyntax)())
@@ -487,8 +487,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         symbols = SpecializedCollections.SingletonEnumerable(symbolInfo.Symbol)
                     End If
 
-                    Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
-                        ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
+                    Dim renameDeclarationLocations = ConflictResolver.CreateDeclarationLocationAnnotations(
+                        _solution, symbols, _cancellationToken)
 
                     Dim renameAnnotation = New RenameActionAnnotation(
                                             identifierToken.Span,
@@ -679,16 +679,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Return False
         End Function
 
-        Public Overrides Function ComputeDeclarationConflictsAsync(
-            replacementText As String,
-            renamedSymbol As ISymbol,
-            renameSymbol As ISymbol,
-            referencedSymbols As IEnumerable(Of ISymbol),
-            baseSolution As Solution,
-            newSolution As Solution,
-            reverseMappedLocations As IDictionary(Of Location, Location),
-            cancellationToken As CancellationToken
-        ) As Task(Of ImmutableArray(Of Location))
+        Public Overrides Async Function ComputeDeclarationConflictsAsync(
+                replacementText As String,
+                renamedSymbol As ISymbol,
+                renameSymbol As ISymbol,
+                referencedSymbols As IEnumerable(Of ISymbol),
+                baseSolution As Solution,
+                newSolution As Solution,
+                reverseMappedLocations As IDictionary(Of Location, Location),
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of Location))
 
             Dim conflicts = ArrayBuilder(Of Location).GetInstance()
 
@@ -700,14 +699,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 ' Find the method block or field declaration that we're in. Note the LastOrDefault
                 ' so we find the uppermost one, since VariableDeclarators live in methods too.
-                Dim methodBase = token.Parent.AncestorsAndSelf.Where(Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse TypeOf s Is VariableDeclaratorSyntax) _
-                                                              .LastOrDefault()
+                Dim methodBase = token.Parent.
+                    AncestorsAndSelf().
+                    Where(Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse TypeOf s Is VariableDeclaratorSyntax).
+                    LastOrDefault()
 
-                Dim visitor As New LocalConflictVisitor(token, newSolution, cancellationToken)
-                visitor.Visit(methodBase)
-
-                conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
-                               .Select(Function(loc) reverseMappedLocations(loc)))
+                If methodBase IsNot Nothing Then
+                    Dim semanticModel = Await newSolution.
+                        GetRequiredDocument(methodBase.SyntaxTree).
+                        GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                    Dim visitor As New LocalConflictVisitor(token, semanticModel, cancellationToken)
+                    visitor.Visit(methodBase)
+                    conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()).Select(Function(loc) reverseMappedLocations(loc)))
+                End If
 
                 ' If this is a parameter symbol for a partial method definition, be sure we visited 
                 ' the implementation part's body.
@@ -719,11 +723,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                         token = matchingParameterSymbol.Locations.Single().FindToken(cancellationToken)
                         methodBase = token.GetAncestor(Of MethodBlockSyntax)
-                        visitor = New LocalConflictVisitor(token, newSolution, cancellationToken)
-                        visitor.Visit(methodBase)
 
-                        conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
-                                       .Select(Function(loc) reverseMappedLocations(loc)))
+                        If methodBase IsNot Nothing Then
+                            Dim semanticModel = Await newSolution.
+                                GetRequiredDocument(methodBase.SyntaxTree).
+                                GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                            Dim visitor = New LocalConflictVisitor(token, semanticModel, cancellationToken)
+                            visitor.Visit(methodBase)
+
+                            conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()).Select(Function(loc) reverseMappedLocations(loc)))
+                        End If
                     End If
                 End If
 
@@ -792,7 +801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Next
             End If
 
-            Return Task.FromResult(conflicts.ToImmutableAndFree())
+            Return conflicts.ToImmutableAndFree()
         End Function
 
         Public Overrides Async Function ComputeImplicitReferenceConflictsAsync(

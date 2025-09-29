@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
 
@@ -259,7 +258,14 @@ internal readonly struct SerializableClassifiedSpansAndHighlightSpan(
     public readonly TextSpan HighlightSpan = highlightSpan;
 
     public static SerializableClassifiedSpansAndHighlightSpan Dehydrate(ClassifiedSpansAndHighlightSpan classifiedSpansAndHighlightSpan)
-        => new(SerializableClassifiedSpans.Dehydrate(classifiedSpansAndHighlightSpan.ClassifiedSpans), classifiedSpansAndHighlightSpan.HighlightSpan);
+    {
+        using var _ = Classifier.GetPooledList(out var temp);
+
+        foreach (var span in classifiedSpansAndHighlightSpan.ClassifiedSpans)
+            temp.Add(span);
+
+        return new(SerializableClassifiedSpans.Dehydrate(temp), classifiedSpansAndHighlightSpan.HighlightSpan);
+    }
 
     public ClassifiedSpansAndHighlightSpan Rehydrate()
         => new(this.ClassifiedSpans.Rehydrate(), this.HighlightSpan);

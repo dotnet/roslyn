@@ -4,13 +4,14 @@
 
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal partial class VisualStudioWorkspaceImpl
 {
-    private class RenameDocumentUndoUnit : IOleUndoUnit
+    private sealed class RenameDocumentUndoUnit : IOleUndoUnit
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly string _fromName;
@@ -38,7 +39,7 @@ internal partial class VisualStudioWorkspaceImpl
         }
 
         public void GetDescription(out string pBstr)
-            => pBstr = string.Format(ServicesVSResources.Rename_0_to_1, _fromName, _toName);
+            => pBstr = string.Format(WorkspacesResources.Rename_0_to_1, _fromName, _toName);
 
         public void GetUnitType(out Guid pClsid, out int plID)
             => throw new NotImplementedException();

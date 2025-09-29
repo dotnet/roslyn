@@ -2,13 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -2947,12 +2947,12 @@ End Class")
                                    Single(Function(n) n.Identifier.ValueText = name)
                                    Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
                                End Function
-            ' VB does not have a concept of a managed type
-            Assert.False(getLocalType("s1").IsUnmanagedType)
-            Assert.False(getLocalType("s2").IsUnmanagedType)
+
+            Assert.True(getLocalType("s1").IsUnmanagedType)
+            Assert.True(getLocalType("s2").IsUnmanagedType)
             Assert.False(getLocalType("s3").IsUnmanagedType)
-            Assert.False(getLocalType("s4").IsUnmanagedType)
-            Assert.False(getLocalType("e1").IsUnmanagedType)
+            Assert.True(getLocalType("s4").IsUnmanagedType)
+            Assert.True(getLocalType("e1").IsUnmanagedType)
         End Sub
 
         <Fact>
@@ -4895,6 +4895,25 @@ BC30990: Member 'Key' cannot be initialized in an object initializer expression 
             .Key = 1
              ~~~
 </expected>)
+        End Sub
+
+        <Fact()>
+        Public Sub CommonPreprocessingSymbolProperties()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+#If NET5_0_OR_GREATER
+#End If
+    </file>
+</compilation>)
+
+            Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetCompilationUnitRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax).First()
+            Dim symbol = semanticModel.GetPreprocessingSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("NET5_0_OR_GREATER", symbol.Name)
+            Assert.True(symbol.CanBeReferencedByName)
         End Sub
 
     End Class

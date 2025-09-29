@@ -52,6 +52,11 @@ internal static class ReferenceLocationExtensions
     {
         foreach (var reference in references)
         {
+            // Filter out name-only references (e.g. nameof expressions, typeof expressions)
+            // This fixes the most common Call Hierarchy false positives
+            if (reference.SymbolUsageInfo.ValueUsageInfoOpt?.IsNameOnly() == true)
+                continue;
+
             var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
             if (containingSymbol != null)
             {
@@ -84,9 +89,8 @@ internal static class ReferenceLocationExtensions
                 return current;
             }
 
-            if (current.Kind == SymbolKind.Method)
+            if (current is IMethodSymbol method)
             {
-                var method = (IMethodSymbol)current;
                 if (method.IsAccessor())
                 {
                     return method.AssociatedSymbol;

@@ -1626,6 +1626,37 @@ typeName:="Bar",
 isMissing:=True)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WorkItem(63280, "https://github.com/dotnet/roslyn/issues/63280")>
+        Public Async Function GenerateType_GenericBaseList() As Task
+            Await TestWithMockedGenerateTypeDialog(
+initial:=<Text>
+Imports System.Collections.Generic
+
+Structure S
+    Implements IEnumerable(Of [|$$NewType|])
+
+End Structure
+</Text>.NormalizedValue,
+languageName:=LanguageNames.VisualBasic,
+typeName:="NewType",
+expected:=<Text>
+Imports System.Collections.Generic
+
+Structure S
+    Implements IEnumerable(Of NewType)
+
+End Structure
+
+Public Class NewType
+End Class
+</Text>.NormalizedValue,
+isNewFile:=False,
+accessibility:=Accessibility.Public,
+typeKind:=TypeKind.Class,
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions, False))
+        End Function
+
 #End Region
 #Region "Delegates"
         <Fact>

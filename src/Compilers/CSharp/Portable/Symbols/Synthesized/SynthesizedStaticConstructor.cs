@@ -367,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             return ImmutableArray<string>.Empty;
@@ -441,9 +443,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override int? TryGetOverloadResolutionPriority()
+        internal sealed override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
     }
 }

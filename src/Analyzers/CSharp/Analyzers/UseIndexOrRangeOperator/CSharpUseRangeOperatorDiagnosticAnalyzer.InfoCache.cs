@@ -18,7 +18,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
     /// <summary>
     /// Helper type to cache information about types while analyzing the compilation.
     /// </summary>
-    public class InfoCache
+    public sealed class InfoCache
     {
         /// <summary>
         /// The <see cref="T:System.Range"/> type.  Needed so that we only fixup code if we see the type
@@ -35,20 +35,30 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
             RangeType = rangeType;
             ExpressionOfTType = expressionOfTType;
 
-            // Always allow using System.Range indexers with System.String.Substring.  The
-            // compiler has hard-coded knowledge on how to use this type, even if there is no
-            // this[Range] indexer declared on it directly.
+            // Always allow using System.Range indexers with System.String.Substring.  The compiler has hard-coded
+            // knowledge on how to use this type, even if there is no this[Range] indexer declared on it directly.
             //
             // Ensure that we can actually get the 'string' type. We may fail if there is no
             // proper mscorlib reference (for example, while a project is loading).
             if (!stringType.IsErrorType())
             {
-                var substringMethod = stringType.GetMembers(nameof(string.Substring))
-                                                .OfType<IMethodSymbol>()
-                                                .FirstOrDefault(m => IsTwoArgumentSliceLikeMethod(m));
+                var substringMethod = stringType
+                    .GetMembers(nameof(string.Substring))
+                    .OfType<IMethodSymbol>()
+                    .FirstOrDefault(IsTwoArgumentSliceLikeMethod);
 
                 if (substringMethod is not null)
                     _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
+
+                // We also support translating certain calls to .Remove to calls to the range member, if the user is
+                // trimming off the start or end of a string.
+                var removeMethod = stringType
+                    .GetMembers(nameof(string.Remove))
+                    .OfType<IMethodSymbol>()
+                    .FirstOrDefault(IsTwoArgumentSliceLikeMethod);
+
+                if (removeMethod is not null)
+                    _methodToMemberInfo[removeMethod] = ComputeMemberInfo(removeMethod, requireRangeMember: false);
             }
         }
 
@@ -69,7 +79,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
         private static IMethodSymbol? GetSliceLikeMethod(INamedTypeSymbol namedType)
             => namedType.GetMembers()
                         .OfType<IMethodSymbol>()
-                        .Where(m => IsTwoArgumentSliceLikeMethod(m))
+                        .Where(IsTwoArgumentSliceLikeMethod)
                         .FirstOrDefault();
 
         public bool TryGetMemberInfo(IMethodSymbol method, out MemberInfo memberInfo)
@@ -94,23 +104,21 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
 
             if (!_methodToMemberInfo.TryGetValue(method, out memberInfo))
             {
-                // Find overload of our method that is a slice-like method with two arguments.
-                // Computing member info for this method will also check that the containing type
-                // has an int32 'Length' or 'Count' property, and has a suitable indexer,
-                // so we don't have to.
+                // Find overload of our method that is a slice-like method with two arguments. Computing member info for
+                // this method will also check that the containing type has an int32 'Length' or 'Count' property, and
+                // has a suitable indexer, so we don't have to.
                 var overloadWithTwoArguments = method.ContainingType
                     .GetMembers(method.Name)
                     .OfType<IMethodSymbol>()
-                    .FirstOrDefault(s => IsTwoArgumentSliceLikeMethod(s));
+                    .FirstOrDefault(IsTwoArgumentSliceLikeMethod);
                 if (overloadWithTwoArguments is null)
                 {
                     memberInfo = default;
                     return false;
                 }
 
-                // Since the search is expensive, we keep both the original one-argument and
-                // two-arguments overload as keys in the cache, pointing to the same
-                // member information object.
+                // Since the search is expensive, we keep both the original one-argument and two-arguments overload as
+                // keys in the cache, pointing to the same member information object.
                 var newMemberInfo = _methodToMemberInfo.GetOrAdd(overloadWithTwoArguments, _ => ComputeMemberInfo(overloadWithTwoArguments, requireRangeMember: true));
                 _methodToMemberInfo.GetOrAdd(method, _ => newMemberInfo);
                 memberInfo = newMemberInfo;
@@ -121,21 +129,17 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
 
         private MemberInfo ComputeMemberInfo(IMethodSymbol sliceLikeMethod, bool requireRangeMember)
         {
-            Debug.Assert(IsTwoArgumentSliceLikeMethod(sliceLikeMethod));
+            Debug.Assert(IsTwoArgumentSliceLikeMethod(sliceLikeMethod) || IsOneArgumentSliceLikeMethod(sliceLikeMethod));
 
             // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
             // consider it something indexable.
             var containingType = sliceLikeMethod.ContainingType;
             var lengthLikeProperty = TryGetLengthOrCountProperty(containingType);
             if (lengthLikeProperty == null)
-            {
                 return default;
-            }
 
             if (!requireRangeMember)
-            {
-                return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
-            }
+                return new MemberInfo(lengthLikeProperty, overloadedMethod: null);
 
             // A Slice method can either be paired with an Range-taking indexer on the type, or
             // an Range-taking overload, or an explicit method called .Slice that takes two ints:
@@ -148,18 +152,18 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
                 var indexer = GetIndexer(containingType, RangeType, containingType);
                 if (indexer != null)
                 {
-                    return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
+                    return new MemberInfo(lengthLikeProperty, overloadedMethod: null);
                 }
 
                 // Also, look to see if the type has a `.Slice(int start, int length)` method.
                 // This is also a method the compiler knows to look for when a user writes `x[a..b]`
                 var actualSliceMethod =
-                    sliceLikeMethod.ContainingType.GetMembers(nameof(Span<int>.Slice))
+                    sliceLikeMethod.ContainingType.GetMembers(nameof(Span<>.Slice))
                                                   .OfType<IMethodSymbol>()
                                                   .FirstOrDefault(s => IsTwoArgumentSliceLikeMethod(s));
                 if (actualSliceMethod != null)
                 {
-                    return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
+                    return new MemberInfo(lengthLikeProperty, overloadedMethod: null);
                 }
             }
 
@@ -167,9 +171,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
             // for an overload like: `SomeType MyType.Get(Range)`
             var overloadedRangeMethod = GetOverload(sliceLikeMethod, RangeType);
             if (overloadedRangeMethod != null)
-            {
                 return new MemberInfo(lengthLikeProperty, overloadedRangeMethod);
-            }
 
             // A slice-like method that we can't convert.
             return default;

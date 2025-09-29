@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(ExternAliasCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(SnippetCompletionProvider))]
 [Shared]
-internal class ExternAliasCompletionProvider : LSPCompletionProvider
+internal sealed class ExternAliasCompletionProvider : LSPCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

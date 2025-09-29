@@ -1878,7 +1878,7 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x112"" />
+          <slot startOffset=""0xe"" endOffset=""0xe2"" />
           <slot startOffset=""0x29"" endOffset=""0x33"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>

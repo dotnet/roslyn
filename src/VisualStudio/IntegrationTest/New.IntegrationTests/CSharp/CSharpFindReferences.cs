@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,7 +10,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
@@ -32,23 +30,27 @@ public class CSharpFindReferences : AbstractEditorTest
     [IdeFact]
     public async Task FindReferencesToCtor()
     {
-        await SetUpEditorAsync(@"
-class Program
-{
-}$$
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            class Program
+            {
+            }$$
+
+            """, HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "File2.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "File2.cs", HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"
-class SomeOtherClass
-{
-    void M()
-    {
-        Program p = new Progr$$am();
-    }
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            class SomeOtherClass
+            {
+                void M()
+                {
+                    Program p = new Progr$$am();
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
@@ -83,16 +85,18 @@ class SomeOtherClass
     public async Task FindReferencesToLocals()
     {
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
-        await SetUpEditorAsync(@"
-class Program
-{
-    static void Main()
-    {
-        int local = 1;
-        Console.WriteLine(local$$);
-    }
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            class Program
+            {
+                static void Main()
+                {
+                    int local = 1;
+                    Console.WriteLine(local$$);
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
@@ -121,15 +125,17 @@ class Program
     [IdeFact]
     public async Task FindReferencesToString()
     {
-        await SetUpEditorAsync(@"
-class Program
-{
-    static void Main()
-    {
-         string local = ""1""$$;
-    }
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+
+            class Program
+            {
+                static void Main()
+                {
+                     string local = "1"$$;
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-public class LanguageServerFatalError
+public static class LanguageServerFatalError
 {
     /// <summary>
     /// Use in an exception filter to report an error without catching the exception.

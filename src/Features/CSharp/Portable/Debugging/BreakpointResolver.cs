@@ -11,13 +11,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Debugging;
 
-internal class BreakpointResolver(Solution solution, string text) : AbstractBreakpointResolver(solution, text, LanguageNames.CSharp, EqualityComparer<string>.Default)
+internal sealed class BreakpointResolver(Solution solution, string text) : AbstractBreakpointResolver(solution, text, LanguageNames.CSharp, EqualityComparer<string>.Default)
 {
     protected override IEnumerable<ISymbol> GetMembers(INamedTypeSymbol type, string name)
     {
@@ -88,7 +88,7 @@ internal class BreakpointResolver(Solution solution, string text) : AbstractBrea
         if (!foundIncompleteParameterList && (lengthOfParsedText == text.Length) &&
             !parts.Any(p => p.IsKind(SyntaxKind.AliasQualifiedName)))
         {
-            nameParts = parts.Cast<SimpleNameSyntax>().Select(p => new NameAndArity(p.Identifier.ValueText, p.Arity)).ToList();
+            nameParts = [.. parts.Cast<SimpleNameSyntax>().Select(p => new NameAndArity(p.Identifier.ValueText, p.Arity))];
         }
         else
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -25,29 +22,27 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
 internal interface IMoveToNamespaceService : ILanguageService
 {
-    Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+    Task<ImmutableArray<MoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
     Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
     MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
     IMoveToNamespaceOptionsService OptionsService { get; }
 }
 
-internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
+internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>(
+    IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
     : IMoveToNamespaceService
     where TCompilationUnitSyntax : SyntaxNode
     where TNamespaceDeclarationSyntax : SyntaxNode
     where TNamedTypeDeclarationSyntax : SyntaxNode
-
 {
     protected abstract string GetNamespaceName(SyntaxNode namespaceSyntax);
     protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
+    protected abstract TNamedTypeDeclarationSyntax? GetNamedTypeDeclarationSyntax(SyntaxNode node);
 
-    public IMoveToNamespaceOptionsService OptionsService { get; }
+    public IMoveToNamespaceOptionsService OptionsService { get; } = moveToNamespaceOptionsService;
 
-    protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
-        => OptionsService = moveToNamespaceOptionsService;
-
-    public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
+    public async Task<ImmutableArray<MoveToNamespaceCodeAction>> GetCodeActionsAsync(
         Document document,
         TextSpan span,
         CancellationToken cancellationToken)
@@ -59,9 +54,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
 
             if (typeAnalysisResult.CanPerform)
-            {
-                return [AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult)];
-            }
+                return [MoveToNamespaceCodeAction.Generate(this, typeAnalysisResult)];
         }
 
         return [];
@@ -72,10 +65,14 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         int position,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var token = root.FindToken(position);
         var node = token.Parent;
+        if (node is null)
+        {
+            return MoveToNamespaceAnalysisResult.Invalid;
+        }
 
         var moveToNamespaceAnalysisResult = await TryAnalyzeNamespaceAsync(document, node, position, cancellationToken).ConfigureAwait(false);
 
@@ -87,8 +84,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         moveToNamespaceAnalysisResult = await TryAnalyzeNamedTypeAsync(document, node, cancellationToken).ConfigureAwait(false);
         return moveToNamespaceAnalysisResult ?? MoveToNamespaceAnalysisResult.Invalid;
     }
-
-    private async Task<MoveToNamespaceAnalysisResult> TryAnalyzeNamespaceAsync(
+    private async Task<MoveToNamespaceAnalysisResult?> TryAnalyzeNamespaceAsync(
         Document document, SyntaxNode node, int position, CancellationToken cancellationToken)
     {
         var declarationSyntax = node.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
@@ -100,13 +96,13 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         // The underlying ChangeNamespace service doesn't support nested namespace declaration.
         if (GetNamespaceInSpineCount(declarationSyntax) == 1)
         {
-            var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+            var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
             if (await changeNamespaceService.CanChangeNamespaceAsync(document, declarationSyntax, cancellationToken).ConfigureAwait(false))
             {
                 var namespaceName = GetNamespaceName(declarationSyntax);
                 var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
 
-                return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.Namespace);
+                return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, [.. namespaces], MoveToNamespaceAnalysisResult.ContainerType.Namespace);
             }
         }
 
@@ -124,14 +120,14 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             return MoveToNamespaceAnalysisResult.Invalid;
         }
 
-        SyntaxNode container = null;
+        SyntaxNode? container = null;
 
         // Moving one of the many members declared in global namespace is not currently supported,
         // but if it's the only member declared, then that's fine.
         if (namespaceInSpineCount == 0)
         {
-            container = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            container = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             if (syntaxFacts.GetMembersOfCompilationUnit(container).Count > 1)
             {
@@ -139,23 +135,30 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             }
         }
 
-        if (node is TNamedTypeDeclarationSyntax namedTypeDeclarationSyntax)
+        var namedTypeDeclarationSyntax = GetNamedTypeDeclarationSyntax(node);
+        if (namedTypeDeclarationSyntax is null)
         {
-            // If we are inside a namespace declaration, then find it as the container.
-            container ??= GetContainingNamespace(namedTypeDeclarationSyntax);
-            var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+            return MoveToNamespaceAnalysisResult.Invalid;
+        }
 
-            if (await changeNamespaceService.CanChangeNamespaceAsync(document, container, cancellationToken).ConfigureAwait(false))
-            {
-                var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
-                return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, GetNamespaceName(container), namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
-            }
+        // If we are inside a namespace declaration, then find it as the container.
+        container ??= GetContainingNamespace(namedTypeDeclarationSyntax);
+        if (container is null)
+        {
+            return MoveToNamespaceAnalysisResult.Invalid;
+        }
+
+        var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
+        if (await changeNamespaceService.CanChangeNamespaceAsync(document, container, cancellationToken).ConfigureAwait(false))
+        {
+            var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+            return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, GetNamespaceName(container), [.. namespaces], MoveToNamespaceAnalysisResult.ContainerType.NamedType);
         }
 
         return MoveToNamespaceAnalysisResult.Invalid;
     }
 
-    private static TNamespaceDeclarationSyntax GetContainingNamespace(TNamedTypeDeclarationSyntax namedTypeSyntax)
+    private static TNamespaceDeclarationSyntax? GetContainingNamespace(TNamedTypeDeclarationSyntax namedTypeSyntax)
         => namedTypeSyntax.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
 
     private static int GetNamespaceInSpineCount(SyntaxNode node)
@@ -170,9 +173,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         CancellationToken cancellationToken)
     {
         if (!analysisResult.CanPerform)
-        {
             return Task.FromResult(MoveToNamespaceResult.Failed);
-        }
 
         return analysisResult.Container switch
         {
@@ -184,20 +185,26 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
 
     private static async Task<ImmutableArray<ISymbol>> GetMemberSymbolsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         switch (container)
         {
             case TNamespaceDeclarationSyntax namespaceNode:
                 var namespaceMembers = syntaxFacts.GetMembersOfBaseNamespaceDeclaration(namespaceNode);
-                return namespaceMembers.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member, cancellationToken));
+                return namespaceMembers
+                    .Select(member => semanticModel.GetDeclaredSymbol(member, cancellationToken))
+                    .WhereNotNull()
+                    .ToImmutableArray();
             case TCompilationUnitSyntax compilationUnit:
                 var compilationUnitMembers = syntaxFacts.GetMembersOfCompilationUnit(compilationUnit);
                 // We are trying to move a selected type from global namespace to the target namespace.
                 // This is supported if the selected type is the only member declared in the global namespace in this document.
                 // (See `TryAnalyzeNamedTypeAsync`)
                 Debug.Assert(compilationUnitMembers.Count == 1);
-                return compilationUnitMembers.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member, cancellationToken));
+                return compilationUnitMembers
+                    .Select(member => semanticModel.GetDeclaredSymbol(member, cancellationToken))
+                    .WhereNotNull()
+                    .ToImmutableArray();
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(container);
@@ -214,11 +221,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         var newNameOriginalSymbolMapping = memberSymbols
             .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace), symbol => symbol);
 
-        var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
-        if (changeNamespaceService == null)
-        {
-            return MoveToNamespaceResult.Failed;
-        }
+        var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
 
         var originalSolution = document.Project.Solution;
 
@@ -237,11 +240,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         string targetNamespace,
         CancellationToken cancellationToken)
     {
-        var moveTypeService = document.GetLanguageService<IMoveTypeService>();
-        if (moveTypeService == null)
-        {
-            return MoveToNamespaceResult.Failed;
-        }
+        var moveTypeService = document.GetRequiredLanguageService<IMoveTypeService>();
 
         // The move service expects a single position, not a full selection
         // See https://github.com/dotnet/roslyn/issues/34643
@@ -252,15 +251,15 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             moveSpan,
             MoveTypeOperationKind.MoveTypeNamespaceScope,
             cancellationToken).ConfigureAwait(false);
-        var modifiedDocument = modifiedSolution.GetDocument(document.Id);
+        var modifiedDocument = modifiedSolution.GetRequiredDocument(document.Id);
 
         // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
         // otherwise, we will end up with multiple linked documents with different content.
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var mergedSolution = await PropagateChangeToLinkedDocumentsAsync(modifiedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
-        var mergedDocument = mergedSolution.GetDocument(document.Id);
+        var mergedDocument = mergedSolution.GetRequiredDocument(document.Id);
 
-        var syntaxRoot = await mergedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxRoot = await mergedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
 
         // The type might be declared in global namespace
@@ -305,7 +304,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
 
     private static async Task<IEnumerable<string>> GetNamespacesAsync(Document document, CancellationToken cancellationToken)
     {
-        var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
         return compilation.GlobalNamespace.GetAllNamespaces(cancellationToken)
             .Where(n => n.NamespaceKind == NamespaceKind.Module && n.ContainingAssembly == compilation.Assembly)
@@ -317,7 +316,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         string defaultNamespace,
         ImmutableArray<string> namespaces)
     {
-        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+        var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         return OptionsService.GetChangeNamespaceOptions(
             defaultNamespace,

@@ -5,12 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -21,11 +27,16 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
+public sealed partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
 {
+    private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
+
+    public List<string> ChangedSourceGeneratedDocumentFileNames { get; } = [];
+
     private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = [];
 
     internal EditorTestWorkspace(
@@ -34,15 +45,13 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         Guid solutionTelemetryId = default,
         bool disablePartialSolutions = true,
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
-        WorkspaceConfigurationOptions? configurationOptions = null,
-        bool supportsLspMutation = false)
+        WorkspaceConfigurationOptions? configurationOptions = null)
         : base(composition ?? EditorTestCompositions.EditorFeatures,
                workspaceKind,
                solutionTelemetryId,
                disablePartialSolutions,
                ignoreUnchangeableDocumentsWhenApplyingChanges,
-               configurationOptions,
-               supportsLspMutation)
+               configurationOptions)
     {
     }
 
@@ -193,6 +202,27 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         testDocument.GetOpenTextContainer();
     }
 
+    public TServiceInterface GetService<TServiceInterface>(string contentType)
+    {
+        var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
+        return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
+    }
+
+    public TServiceInterface GetService<TServiceInterface>(string contentType, string name)
+    {
+        var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
+        return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
+    }
+
+    internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+    {
+        // VisualStudioWorkspace asserts the main thread for this call, so do the same thing here to catch tests
+        // that fail to account for this possibility.
+        var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
+        Contract.ThrowIfFalse(threadingContext.HasMainThread && threadingContext.JoinableTaskContext.IsOnMainThread);
+        return true;
+    }
+
     /// <summary>
     /// Creates a TestHostDocument backed by a projection buffer. The surface buffer is 
     /// described by a markup string with {|name:|} style pointers to annotated spans that can
@@ -243,7 +273,6 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
     /// preserved. The markup may also contain the caret indicator.</param>
     /// <param name="baseDocuments">The set of documents from which the projection buffer 
     /// document will be composed.</param>
-    /// <returns></returns>
     public EditorTestHostDocument CreateProjectionBufferDocument(
         string markup,
         IList<EditorTestHostDocument> baseDocuments,
@@ -262,7 +291,7 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         {
             mappedSpans[string.Empty] = mappedSpans.TryGetValue(string.Empty, out var emptyTextSpans)
                 ? emptyTextSpans
-                : ImmutableArray<TextSpan>.Empty;
+                : [];
             foreach (var span in document.SelectedSpans)
             {
                 var snapshotSpan = span.ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot);
@@ -272,11 +301,11 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
 
             // Order unnamed spans as they would be ordered by the normal span finding 
             // algorithm in MarkupTestFile
-            mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToImmutableArray();
+            mappedSpans[string.Empty] = [.. mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start)];
 
             foreach (var (key, spans) in document.AnnotatedSpans)
             {
-                mappedSpans[key] = mappedSpans.TryGetValue(key, out var textSpans) ? textSpans : ImmutableArray<TextSpan>.Empty;
+                mappedSpans[key] = mappedSpans.TryGetValue(key, out var textSpans) ? textSpans : [];
 
                 foreach (var span in spans)
                 {
@@ -313,7 +342,7 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         out IList<object> projectionBufferSpans,
         out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
     {
-        projectionBufferSpans = new List<object>();
+        projectionBufferSpans = [];
         var projectionBufferSpanStartingPositions = new List<int>();
         mappedCaretLocation = null;
 
@@ -481,5 +510,30 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
 
             return textBuffer;
         });
+    }
+
+    protected override (MetadataReference reference, ImmutableArray<byte> peImage) CreateMetadataReferenceFromSource(XElement projectElement, XElement referencedSource)
+    {
+        var (reference, image) = base.CreateMetadataReferenceFromSource(projectElement, referencedSource);
+
+        var referencesOnDisk = projectElement.Attribute(ReferencesOnDiskAttributeName) is { } onDiskAttribute
+            && ((bool?)onDiskAttribute).GetValueOrDefault();
+
+        if (referencesOnDisk)
+        {
+            AssemblyResolver.TestAccessor.AddInMemoryImage(reference, "unknown", image);
+        }
+
+        return (reference, image);
+    }
+
+    internal override void ApplyMappedFileChanges(SolutionChanges solutionChanges)
+    {
+        foreach (var (docId, _) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+        {
+            var document = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+            Assert.NotNull(document.FilePath);
+            ChangedSourceGeneratedDocumentFileNames.Add(Path.GetFileName(document.FilePath));
+        }
     }
 }

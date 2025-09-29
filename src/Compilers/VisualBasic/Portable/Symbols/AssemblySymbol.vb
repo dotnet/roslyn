@@ -349,6 +349,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me.RuntimeSupportsInlineArrayTypes
                 Case RuntimeCapability.ByRefLikeGenerics
                     Return Me.RuntimeSupportsByRefLikeGenerics
+                Case RuntimeCapability.RuntimeAsyncMethods
+                    Return Me.RuntimeSupportsAsyncMethods
             End Select
 
             Return False
@@ -418,6 +420,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Tracked by https://github.com/dotnet/roslyn/issues/61262
                 Return CorLibrary IsNot Nothing AndAlso
                        RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics)
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsAsyncMethods As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsAsyncMethods
+                Dim asyncHelpers = GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers)
+                Return asyncHelpers IsNot Nothing AndAlso
+                       asyncHelpers.IsClassType() AndAlso
+                       asyncHelpers.IsMetadataAbstract AndAlso
+                       asyncHelpers.IsMetadataSealed
             End Get
         End Property
 
@@ -750,8 +763,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
+            ' Avoid using the identity to obtain the public key if possible to avoid the allocations associated
+            ' with identity creation
+            Dim assemblyWantingAccessAssemblySymbol As AssemblySymbol = TryCast(assemblyWantingAccess, AssemblySymbol)
+            Dim publicKey = If(assemblyWantingAccessAssemblySymbol IsNot Nothing, assemblyWantingAccessAssemblySymbol.PublicKey.NullToEmpty(), assemblyWantingAccess.Identity.PublicKey)
+
             For Each key In myKeys
-                Dim conclusion As IVTConclusion = Me.Identity.PerformIVTCheck(assemblyWantingAccess.Identity.PublicKey, key)
+                Dim conclusion As IVTConclusion = Me.Identity.PerformIVTCheck(publicKey, key)
                 Debug.Assert(conclusion <> IVTConclusion.NoRelationshipClaimed)
                 If conclusion = IVTConclusion.Match Then
                     ' Note that C# includes  OrElse conclusion = IVTConclusion.OneSignedOneNot

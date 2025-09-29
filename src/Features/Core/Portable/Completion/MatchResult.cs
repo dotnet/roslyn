@@ -80,4 +80,7 @@ internal readonly struct MatchResult(
             return x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder;
         }
     }
+
+    public override string ToString()
+        => this.CompletionItem.ToString();
 }

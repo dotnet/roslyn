@@ -1516,5 +1516,714 @@ Block[B6] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_11()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int[] a, int? x, int y, int? b, int c)
+    /*<bind>*/{
+        a[x ?? y] += b ?? c;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    CaptureIds: [3] [5]
+    .locals {R2}
+    {
+        CaptureIds: [0] [2]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a')
+            Next (Regular) Block[B2]
+                Entering: {R3}
+        .locals {R3}
+        {
+            CaptureIds: [1]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value:
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+                Jump if True (Regular) to Block[B4]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
+                    Leaving: {R3}
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value:
+                        IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
+                          Arguments(0)
+                Next (Regular) Block[B5]
+                    Leaving: {R3}
+        }
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                  Value:
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a[x ?? y]')
+                  Value:
+                    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'a[x ?? y]')
+                      Array reference:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32[], IsImplicit) (Syntax: 'a')
+                      Indices(1):
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x ?? y')
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+                Entering: {R4}
+    }
+    .locals {R4}
+    {
+        CaptureIds: [4]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (1)
+                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value:
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'b')
+            Jump if True (Regular) to Block[B8]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+                Leaving: {R4}
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B6]
+            Statements (1)
+                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value:
+                    IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+                      Arguments(0)
+            Next (Regular) Block[B9]
+                Leaving: {R4}
+    }
+    Block[B8] - Block
+        Predecessors: [B6]
+        Statements (1)
+            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+              Value:
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+        Next (Regular) Block[B9]
+    Block[B9] - Block
+        Predecessors: [B7] [B8]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a[x ?? y] += b ?? c;')
+              Expression:
+                ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a[x ?? y] += b ?? c')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Left:
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a[x ?? y]')
+                  Right:
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ?? c')
+        Next (Regular) Block[B10]
+            Leaving: {R1}
+}
+Block[B10] - Exit
+    Predecessors: [B9]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_12()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(S1[] a, int? x, int y, int? b, int c)
+    /*<bind>*/{
+        a[x ?? y] += b ?? c;
+    }/*</bind>*/
+}
+
+struct S1
+{
+    public void operator +=(int i) {}
+}
+" + CompilerFeatureRequiredAttribute;
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    CaptureIds: [3] [5]
+    .locals {R2}
+    {
+        CaptureIds: [0] [2]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S1[]) (Syntax: 'a')
+            Next (Regular) Block[B2]
+                Entering: {R3}
+        .locals {R3}
+        {
+            CaptureIds: [1]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value:
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+                Jump if True (Regular) to Block[B4]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
+                    Leaving: {R3}
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value:
+                        IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
+                          Arguments(0)
+                Next (Regular) Block[B5]
+                    Leaving: {R3}
+        }
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                  Value:
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a[x ?? y]')
+                  Value:
+                    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: S1) (Syntax: 'a[x ?? y]')
+                      Array reference:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1[], IsImplicit) (Syntax: 'a')
+                      Indices(1):
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x ?? y')
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+                Entering: {R4}
+    }
+    .locals {R4}
+    {
+        CaptureIds: [4]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (1)
+                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value:
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'b')
+            Jump if True (Regular) to Block[B8]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+                Leaving: {R4}
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B6]
+            Statements (1)
+                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value:
+                    IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+                      Arguments(0)
+            Next (Regular) Block[B9]
+                Leaving: {R4}
+    }
+    Block[B8] - Block
+        Predecessors: [B6]
+        Statements (1)
+            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+              Value:
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+        Next (Regular) Block[B9]
+    Block[B9] - Block
+        Predecessors: [B7] [B8]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a[x ?? y] += b ?? c;')
+              Expression:
+                ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void S1.op_AdditionAssignment(System.Int32 i)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'a[x ?? y] += b ?? c')
+                  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Left:
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'a[x ?? y]')
+                  Right:
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ?? c')
+        Next (Regular) Block[B10]
+            Leaving: {R1}
+}
+Block[B10] - Exit
+    Predecessors: [B9]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Extensions_01()
+        {
+            string source = @"
+class A
+{
+    CustomType Method(CustomType x)
+    {
+        return /*<bind>*/x += 1/*</bind>*/;
+    }
+}
+public struct CustomType
+{
+}
+
+static class Extensions
+{
+    extension(CustomType)
+    {
+        public static CustomType operator +(CustomType x, int y)
+        {
+            return x;
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: CustomType Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_Addition(CustomType x, System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: CustomType) (Syntax: 'x')
+  Right:
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            VerifyOperationTreeForTest<AssignmentExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Extensions_02()
+        {
+            string source = @"
+class A
+{
+    CustomType Method(CustomType x)
+    {
+        return /*<bind>*/x += 1/*</bind>*/;
+    }
+}
+public struct CustomType
+{
+}
+
+static class Extensions
+{
+    extension(ref CustomType x)
+    {
+        public void operator +=(int y)
+        {
+            return x;
+        }
+    }
+}
+
+" + CompilerFeatureRequiredAttribute;
+
+            string expectedOperationTree = @"
+ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_AdditionAssignment(System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
+  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: CustomType) (Syntax: 'x')
+  Right:
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            VerifyOperationTreeForTest<AssignmentExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Extensions_03()
+        {
+            string source = @"
+class A
+{
+    CustomType Method(CustomType x)
+    {
+        return /*<bind>*/x += 1/*</bind>*/;
+    }
+}
+public class CustomType
+{
+}
+
+static class Extensions
+{
+    extension(object)
+    {
+        public void operator +=(int y)
+        {
+            return x;
+        }
+    }
+}
+
+" + CompilerFeatureRequiredAttribute;
+
+            string expectedOperationTree = @"
+ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.op_AdditionAssignment(System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
+  InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: CustomType) (Syntax: 'x')
+  Right:
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            VerifyOperationTreeForTest<AssignmentExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Extensions_04_Flow()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(S1[] a, int? x, int y, int? b, int c)
+    /*<bind>*/{
+        a[x ?? y] += b ?? c;
+    }/*</bind>*/
+}
+
+struct S1
+{
+}
+
+static class Extensions
+{
+    extension(S1)
+    {
+        public static S1 operator +(S1 x, int i) => throw null;
+    }
+}
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    CaptureIds: [3] [5]
+    .locals {R2}
+    {
+        CaptureIds: [0] [2]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S1[]) (Syntax: 'a')
+            Next (Regular) Block[B2]
+                Entering: {R3}
+        .locals {R3}
+        {
+            CaptureIds: [1]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value:
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+                Jump if True (Regular) to Block[B4]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
+                    Leaving: {R3}
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value:
+                        IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
+                          Arguments(0)
+                Next (Regular) Block[B5]
+                    Leaving: {R3}
+        }
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                  Value:
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a[x ?? y]')
+                  Value:
+                    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: S1) (Syntax: 'a[x ?? y]')
+                      Array reference:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1[], IsImplicit) (Syntax: 'a')
+                      Indices(1):
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x ?? y')
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+                Entering: {R4}
+    }
+    .locals {R4}
+    {
+        CaptureIds: [4]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (1)
+                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value:
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'b')
+            Jump if True (Regular) to Block[B8]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+                Leaving: {R4}
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B6]
+            Statements (1)
+                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value:
+                    IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+                      Arguments(0)
+            Next (Regular) Block[B9]
+                Leaving: {R4}
+    }
+    Block[B8] - Block
+        Predecessors: [B6]
+        Statements (1)
+            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+              Value:
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+        Next (Regular) Block[B9]
+    Block[B9] - Block
+        Predecessors: [B7] [B8]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a[x ?? y] += b ?? c;')
+              Expression:
+                ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: S1 Extensions.<G>$78CFE6F93D970DBBE44B05C24FFEB91E.op_Addition(S1 x, System.Int32 i)) (OperationKind.CompoundAssignment, Type: S1) (Syntax: 'a[x ?? y] += b ?? c')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Left:
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'a[x ?? y]')
+                  Right:
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ?? c')
+        Next (Regular) Block[B10]
+            Leaving: {R1}
+}
+Block[B10] - Exit
+    Predecessors: [B9]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Extensions_05_Flow()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(S1[] a, int? x, int y, int? b, int c)
+    /*<bind>*/{
+        a[x ?? y] += b ?? c;
+    }/*</bind>*/
+}
+
+struct S1
+{
+}
+
+static class Extensions
+{
+    extension(ref S1 x)
+    {
+        public void operator +=(int i) {}
+    }
+}
+" + CompilerFeatureRequiredAttribute;
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    CaptureIds: [3] [5]
+    .locals {R2}
+    {
+        CaptureIds: [0] [2]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S1[]) (Syntax: 'a')
+            Next (Regular) Block[B2]
+                Entering: {R3}
+        .locals {R3}
+        {
+            CaptureIds: [1]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value:
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+                Jump if True (Regular) to Block[B4]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
+                    Leaving: {R3}
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value:
+                        IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
+                          Arguments(0)
+                Next (Regular) Block[B5]
+                    Leaving: {R3}
+        }
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                  Value:
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a[x ?? y]')
+                  Value:
+                    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: S1) (Syntax: 'a[x ?? y]')
+                      Array reference:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1[], IsImplicit) (Syntax: 'a')
+                      Indices(1):
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x ?? y')
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+                Entering: {R4}
+    }
+    .locals {R4}
+    {
+        CaptureIds: [4]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (1)
+                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value:
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'b')
+            Jump if True (Regular) to Block[B8]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+                Leaving: {R4}
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B6]
+            Statements (1)
+                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                  Value:
+                    IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+                      Arguments(0)
+            Next (Regular) Block[B9]
+                Leaving: {R4}
+    }
+    Block[B8] - Block
+        Predecessors: [B6]
+        Statements (1)
+            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+              Value:
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+        Next (Regular) Block[B9]
+    Block[B9] - Block
+        Predecessors: [B7] [B8]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a[x ?? y] += b ?? c;')
+              Expression:
+                ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<G>$78CFE6F93D970DBBE44B05C24FFEB91E.op_AdditionAssignment(System.Int32 i)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'a[x ?? y] += b ?? c')
+                  InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Left:
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'a[x ?? y]')
+                  Right:
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ?? c')
+        Next (Regular) Block[B10]
+            Leaving: {R1}
+}
+Block[B10] - Exit
+    Predecessors: [B9]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

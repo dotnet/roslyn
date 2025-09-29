@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -22,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 internal class CSharpVirtualCharService : AbstractVirtualCharService
 {
     public static readonly IVirtualCharService Instance = new CSharpVirtualCharService();
+
+    private static readonly ObjectPool<ImmutableSegmentedList<VirtualChar>.Builder> s_pooledBuilders = new(() => ImmutableSegmentedList.CreateBuilder<VirtualChar>());
 
     protected CSharpVirtualCharService()
     {
@@ -177,7 +178,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         // they start right after some `{...}` interpolation
         var isFirstChunk =
             parentExpression is LiteralExpressionSyntax ||
-            (parentExpression is InterpolatedStringExpressionSyntax { Contents: var contents } && contents.First() == token.GetRequiredParent());
+            (parentExpression is InterpolatedStringExpressionSyntax { Contents: [var firstContent, ..] } && firstContent == token.GetRequiredParent());
 
         if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return default;
@@ -244,6 +245,14 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
 
         var startIndexInclusive = startDelimiter.Length;
         var endIndexExclusive = tokenText.Length - endDelimiter.Length;
+        var offset = token.SpanStart;
+
+        // Avoid creating and processsing the runes if there are no escapes or surrogates in the string.
+        if (!ContainsEscapeOrSurrogate(tokenText.AsSpan(startIndexInclusive, endIndexExclusive - startIndexInclusive), escapeBraces))
+        {
+            var sequence = VirtualCharSequence.Create(offset, tokenText);
+            return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
+        }
 
         // Do things in two passes.  First, convert everything in the string to a 16-bit-char+span.  Then walk
         // again, trying to create Runes from the 16-bit-chars. We do this to simplify complex cases where we may
@@ -252,7 +261,6 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         using var _ = ArrayBuilder<(char ch, TextSpan span)>.GetInstance(out var charResults);
 
         // First pass, just convert everything in the string (i.e. escapes) to plain 16-bit characters.
-        var offset = token.SpanStart;
         for (var index = startIndexInclusive; index < endIndexExclusive;)
         {
             var ch = tokenText[index];
@@ -281,15 +289,39 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, charResults);
     }
 
+    private static bool ContainsEscapeOrSurrogate(ReadOnlySpan<char> tokenText, bool escapeBraces)
+    {
+        foreach (var ch in tokenText)
+        {
+            if (ch == '\\')
+                return true;
+            else if (escapeBraces && IsOpenOrCloseBrace(ch))
+                return true;
+            else if (char.IsSurrogate(ch))
+                return true;
+        }
+
+        return false;
+    }
+
     private static VirtualCharSequence CreateVirtualCharSequence(
         string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<(char ch, TextSpan span)> charResults)
     {
         // Second pass.  Convert those characters to Runes.
-        var runeResults = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+        using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
+        var runeResults = pooledRuneResults.Object;
 
-        ConvertCharactersToRunes(charResults, runeResults);
+        try
+        {
+            ConvertCharactersToRunes(charResults, runeResults);
 
-        return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
+            return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
+        }
+        finally
+        {
+            // Ensure the builder is cleared out before releasing back to the pool.
+            runeResults.Clear();
+        }
     }
 
     private static void ConvertCharactersToRunes(ArrayBuilder<(char ch, TextSpan span)> charResults, ImmutableSegmentedList<VirtualChar>.Builder runeResults)

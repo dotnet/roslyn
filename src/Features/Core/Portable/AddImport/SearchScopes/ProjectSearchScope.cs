@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
@@ -25,7 +23,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         public override SymbolReference CreateReference<T>(SymbolResult<T> symbol)
         {
             return new ProjectSymbolReference(
-                provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project);
+                Provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project);
         }
     }
 }

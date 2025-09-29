@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 [ExportBraceCompletionService(LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ParenthesisBraceCompletionService() : AbstractCSharpBraceCompletionService
+internal sealed class ParenthesisBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
     protected override char OpeningBrace => Parenthesis.OpenCharacter;
     protected override char ClosingBrace => Parenthesis.CloseCharacter;

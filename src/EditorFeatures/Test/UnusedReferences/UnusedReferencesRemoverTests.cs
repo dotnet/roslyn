@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences;
 
 [Trait(Traits.Feature, Traits.Features.UnusedReferences)]
-public class UnusedReferencesRemoverTests
+public sealed class UnusedReferencesRemoverTests
 {
     private static readonly string[] Empty = [];
 
@@ -111,8 +111,8 @@ public class UnusedReferencesRemoverTests
             ReferenceType.Package,
             itemSpecification: "Analyzer",
             treatAsUsed: false,
-            compilationAssemblies: ImmutableArray<string>.Empty,
-            dependencies: ImmutableArray<ReferenceInfo>.Empty);
+            compilationAssemblies: [],
+            dependencies: []);
 
         var unusedReferences = GetUnusedReferences(usedAssemblies, usedProjectAssemblyNames: Empty, analyzerReference);
 
@@ -161,7 +161,7 @@ public class UnusedReferencesRemoverTests
     }
 
     private static ImmutableArray<ReferenceInfo> GetUnusedReferences(string[] usedCompilationAssemblies, string[] usedProjectAssemblyNames, params ReferenceInfo[] references)
-        => UnusedReferencesRemover.GetUnusedReferences(new(usedCompilationAssemblies), new(usedProjectAssemblyNames), references.ToImmutableArray());
+        => UnusedReferencesRemover.GetUnusedReferences([.. usedCompilationAssemblies], [.. usedProjectAssemblyNames], [.. references]);
 
     private static async Task<ImmutableArray<ReferenceUpdate>> ApplyReferenceUpdatesAsync(params ReferenceUpdate[] referenceUpdates)
     {
@@ -170,10 +170,10 @@ public class UnusedReferencesRemoverTests
         await UnusedReferencesRemover.ApplyReferenceUpdatesAsync(
             referenceCleanupService,
             string.Empty,
-            referenceUpdates.ToImmutableArray(),
+            [.. referenceUpdates],
             CancellationToken.None).ConfigureAwait(false);
 
-        return referenceCleanupService.AppliedUpdates.ToImmutableArray();
+        return [.. referenceCleanupService.AppliedUpdates];
     }
 
     private static ReferenceInfo ProjectReference(string assemblyPath, params ReferenceInfo[] dependencies)
@@ -182,8 +182,8 @@ public class UnusedReferencesRemoverTests
         => new(ReferenceType.Project,
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
-            compilationAssemblies: ImmutableArray.Create(assemblyPath),
-            dependencies.ToImmutableArray());
+            compilationAssemblies: [assemblyPath],
+            [.. dependencies]);
 
     private static ReferenceInfo PackageReference(string assemblyPath, params ReferenceInfo[] dependencies)
         => PackageReference(assemblyPath, treatAsUsed: false, dependencies);
@@ -191,8 +191,8 @@ public class UnusedReferencesRemoverTests
         => new(ReferenceType.Package,
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
-            compilationAssemblies: ImmutableArray.Create(assemblyPath),
-            dependencies.ToImmutableArray());
+            compilationAssemblies: [assemblyPath],
+            [.. dependencies]);
 
     private static ReferenceInfo AssemblyReference(string assemblyPath)
         => AssemblyReference(assemblyPath, treatAsUsed: false);
@@ -200,10 +200,10 @@ public class UnusedReferencesRemoverTests
         => new(ReferenceType.Assembly,
             itemSpecification: Path.GetFileName(assemblyPath),
             treatAsUsed,
-            compilationAssemblies: ImmutableArray.Create(assemblyPath),
-            dependencies: ImmutableArray<ReferenceInfo>.Empty);
+            compilationAssemblies: [assemblyPath],
+            dependencies: []);
 
-    private class TestReferenceCleanupService : IReferenceCleanupService
+    private sealed class TestReferenceCleanupService : IReferenceCleanupService
     {
         private readonly List<ReferenceUpdate> _appliedUpdates = [];
         public IReadOnlyList<ReferenceUpdate> AppliedUpdates => _appliedUpdates;

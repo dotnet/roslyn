@@ -22,10 +22,10 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeDefinitionWindow;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow;
 [Export(typeof(DefinitionContextTracker))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
-internal class DefinitionContextTracker : ITextViewConnectionListener
+internal sealed class DefinitionContextTracker : ITextViewConnectionListener
 {
     private readonly HashSet<ITextView> _subscribedViews = [];
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -185,7 +185,7 @@ internal class DefinitionContextTracker : ITextViewConnectionListener
                     var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     locations.Add(new CodeDefinitionWindowLocation(
-                        symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
+                        symbol.ToDisplayString(), declarationFile.FilePath!, identifierSpan.Start));
                 }
             }
         }

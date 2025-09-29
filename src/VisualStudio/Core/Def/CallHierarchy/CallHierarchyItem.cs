@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -19,12 +20,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
-internal class CallHierarchyItem : ICallHierarchyMemberItem
+internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
 {
     private readonly Workspace _workspace;
     private readonly INavigableLocation _navigableLocation;
-    private readonly IEnumerable<CallHierarchyDetail> _callsites;
-    private readonly IEnumerable<AbstractCallFinder> _finders;
+    private readonly ImmutableArray<CallHierarchyDetail> _callsites;
+    private readonly ImmutableArray<AbstractCallFinder> _finders;
     private readonly Func<ImageSource> _glyphCreator;
     private readonly CallHierarchyProvider _provider;
 
@@ -32,7 +33,7 @@ internal class CallHierarchyItem : ICallHierarchyMemberItem
         CallHierarchyProvider provider,
         ISymbol symbol,
         INavigableLocation navigableLocation,
-        IEnumerable<AbstractCallFinder> finders,
+        ImmutableArray<AbstractCallFinder> finders,
         Func<ImageSource> glyphCreator,
         ImmutableArray<Location> callsites,
         Project project)
@@ -138,7 +139,7 @@ internal class CallHierarchyItem : ICallHierarchyMemberItem
     private async Task NavigateToAsync()
     {
         using var context = _provider.ThreadOperationExecutor.BeginExecute(
-            ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
+            EditorFeaturesResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
         await _navigableLocation.NavigateToAsync(
             NavigationOptions.Default with { PreferProvisionalTab = true }, context.UserCancellationToken).ConfigureAwait(false);
     }

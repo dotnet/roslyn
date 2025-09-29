@@ -6,12 +6,12 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 
-internal class RenameFieldBackgroundAndBorderTag : TextMarkerTag
+internal sealed class RenameFieldBackgroundAndBorderTag : TextMarkerTag
 {
     // Only used for theming, does not need localized
     internal const string TagId = "RoslynRenameFieldBackgroundAndBorderTag";
 
-    public static readonly RenameFieldBackgroundAndBorderTag Instance = new RenameFieldBackgroundAndBorderTag();
+    public static readonly RenameFieldBackgroundAndBorderTag Instance = new();
 
     private RenameFieldBackgroundAndBorderTag()
         : base(TagId)
@@ -21,7 +21,7 @@ internal class RenameFieldBackgroundAndBorderTag : TextMarkerTag
 
 // Only used to keep the closed repository building. This will be removed once the
 // closed repository is updated to use RenameFieldBackgroundAndBorderTag.
-internal class ValidTag
+internal sealed class ValidTag
 {
     internal const string TagId = "";
 }

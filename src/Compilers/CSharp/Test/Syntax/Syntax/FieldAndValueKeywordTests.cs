@@ -16,10 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FieldKeywordTests : CSharpTestBase
     {
+        private sealed class CSharp13_CSharp14_Preview()
+            : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersion.CSharp14, LanguageVersion.Preview);
+
         [Theory]
         [CombinatorialData]
         public void Field_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -43,16 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (4,28): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     // class C1 : A { object P => field; }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 28),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(4, 28),
                     // (5,34): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     // class C2 : A { object P { get => field; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(5, 34),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(5, 34),
                     // (6,40): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     // class C3 : A { object P { get { return field; } } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(6, 40),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(6, 40),
                     // (7,33): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     // class C4 : A { object P { set { field = 0; } } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(7, 33));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(7, 33));
             }
             else
             {
@@ -60,8 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
-        public void Parameter_01()
+        [Theory]
+        [CombinatorialData]
+        public void Parameter_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 class A
@@ -81,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             // No diagnostics expected for field in indexers.
             comp.VerifyEmitDiagnostics();
         }
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Event_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 #pragma warning disable 649
@@ -111,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -135,10 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (10,25): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object I.P { get => field; set { _ = field; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(10, 25),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(10, 25),
                     // (10,42): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object I.P { get => field; set { _ = field; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(10, 42));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(10, 42));
             }
             else
             {
@@ -149,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -174,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_04(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -202,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_IdentifierNameSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8981
@@ -220,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_GenericNameSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8981
@@ -238,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_Invocation(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -256,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (6,33): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     Func<object> P1 { get { _ = field(); return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(6, 33));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(6, 33));
             }
             else
             {
@@ -267,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_Index(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -284,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (5,29): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object[] P1 { get { _ = field[0]; return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(5, 29));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(5, 29));
             }
             else
             {
@@ -295,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_TupleElementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 219
@@ -312,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_FromClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -326,9 +331,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,27): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { _ = from field in new int[0] select field; return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "from field in new int[0]").WithArguments("14.0").WithLocation(4, 27),
                     // (4,59): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from field in new int[0] select field; return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 59));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(4, 59));
             }
             else
             {
@@ -339,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LetClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -353,9 +361,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,48): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "let field = i").WithArguments("14.0").WithLocation(4, 48),
                     // (4,69): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 69));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(4, 69));
             }
             else
             {
@@ -366,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_JoinClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -380,9 +391,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,48): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "join field in new int[0] on x equals field").WithArguments("14.0").WithLocation(4, 48),
                     // (4,85): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 85));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(4, 85));
             }
             else
             {
@@ -393,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_JoinIntoClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -407,9 +421,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,83): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "into field").WithArguments("14.0").WithLocation(4, 83),
                     // (4,101): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 101));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(4, 101));
             }
             else
             {
@@ -420,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_QueryContinuationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -434,9 +451,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,57): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "into field select field").WithArguments("14.0").WithLocation(4, 57),
                     // (4,75): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 75));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(4, 75));
             }
             else
             {
@@ -447,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LocalFunctionStatementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321
@@ -458,13 +478,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,23): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { object field() => null; return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "object field() => null;").WithArguments("14.0").WithLocation(4, 23));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_VariableDeclaratorSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 219
@@ -475,13 +505,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,27): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { int field = 0; return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field = 0").WithArguments("14.0").WithLocation(4, 27));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_SingleVariableDesignationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -492,13 +532,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,33): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { F(out var field); return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field").WithArguments("14.0").WithLocation(4, 33));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LabeledStatementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 164
@@ -515,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ForEachStatementSyntax_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -525,13 +575,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,23): error CS9273: In language version 14.0, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { foreach (var field in new int[0]) { } return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "foreach (var field in new int[0]) { }").WithArguments("14.0").WithLocation(3, 23));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ForEachStatementSyntax_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -541,19 +601,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (3,44): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(3, 44),
-                // (4,45): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //     object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(4, 45));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,37): error CS9273: In language version 14.0, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field").WithArguments("14.0").WithLocation(3, 37),
+                    // (3,44): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(3, 44),
+                    // (4,45): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(4, 45));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,44): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P1 { set { foreach (var (field, @value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(3, 44),
+                    // (4,45): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P2 { set { foreach (var (@field, value) in new (int, int)[0]) { } } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(4, 45));
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_CatchDeclarationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 168
@@ -565,13 +641,79 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,37): error CS9273: In language version 14.0, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { try { } catch (Exception field) { } return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "(Exception field)").WithArguments("14.0").WithLocation(5, 37));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IdentifierToken_UsingDeclarationSyntax_01(
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    object P1 { set { using (var field = GetDisposable()) { } } }
+                    object P2 { set { using (var @field = GetDisposable()) { } } }
+                    static IDisposable GetDisposable() => null;
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,34): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { set { using (var field = GetDisposable()) { } } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field = GetDisposable()").WithArguments("14.0").WithLocation(4, 34));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IdentifierToken_UsingDeclarationSyntax_02(
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    object P1 { set { using var field = GetDisposable(); } }
+                    object P2 { set { using var @field = GetDisposable(); } }
+                    static IDisposable GetDisposable() => null;
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,33): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { set { using var field = GetDisposable(); } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field = GetDisposable()").WithArguments("14.0").WithLocation(4, 33));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_TypeParameterSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321, 8981
@@ -582,13 +724,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,33): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { object F1<field>() { return default(@field); } return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field").WithArguments("14.0").WithLocation(4, 33));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ParameterSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321
@@ -602,9 +754,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (4,33): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { get { object F1(object field) => field; return null; } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "object field").WithArguments("14.0").WithLocation(4, 33),
                     // (4,50): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { object F1(object field) => field; return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 50));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(4, 50));
             }
             else
             {
@@ -615,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_AttributeTargetSpecifierSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 #pragma warning disable 657
@@ -639,8 +794,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Deconstruction(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        public void Deconstruction_01(
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 168 // variable is declared but never used
@@ -654,6 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             object @field;
                             object @value;
                             (field, @value) = new C();
+                            (@field, value) = new C();
                         }
                     }
                 }
@@ -667,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(10, 20),
                     // (11,14): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             (field, @value) = new C();
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(11, 14));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(11, 14));
             }
             else
             {
@@ -680,19 +836,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void Deconstruction_02(
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
+        {
+            string source = """
+                #pragma warning disable 168 // variable is declared but never used
+                class C
+                {
+                    void Deconstruct(out object x, out object y) => throw null;
+                    object P1 { set { var (field, @value) = new C(); } }
+                    object P2 { set { var (@field, value) = new C(); } }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,28): error CS9273: In language version 14.0, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { set { var (field, @value) = new C(); } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field").WithArguments("14.0").WithLocation(5, 28),
+                    // (5,35): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P1 { set { var (field, @value) = new C(); } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(5, 35),
+                    // (6,36): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P2 { set { var (@field, value) = new C(); } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(6, 36));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,35): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P1 { set { var (field, @value) = new C(); } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(5, 35),
+                    // (6,36): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //     object P2 { set { var (@field, value) = new C(); } }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(6, 36));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Local(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 class C
                 {
                     object P
                     {
-                        set
+                        get
                         {
                             object field = 1;
+                            return @field;
+                        }
+                        set
+                        {
+                            object @field = 2;
                             _ = field;
-                            _ = @field;
                         }
                     }
                 }
@@ -701,9 +901,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (8,17): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    // (5,9): warning CS9266: The 'get' accessor of property 'C.P' should use 'field' because the other accessor is using it.
+                    //         get
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P").WithLocation(5, 9),
+                    // (7,20): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             object field = 1;
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field = 1").WithArguments("14.0").WithLocation(7, 20),
+                    // (13,17): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             _ = field;
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(8, 17));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(13, 17));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DeclarationExpression(
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
+        {
+            string source = """
+                #pragma warning disable 219
+                class C
+                {
+                    object P1
+                    {
+                        get
+                        {
+                            var (field, value) = (1, 2);
+                            return field;
+                        }
+                    }
+                    object P2
+                    {
+                        get
+                        {
+                            var (@field, @value) = (3, 4);
+                            return @field;
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (8,18): error CS9273: In language version 14.0, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             var (field, value) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field").WithArguments("14.0").WithLocation(8, 18),
+                    // (9,20): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //             return field;
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(9, 20));
             }
             else
             {
@@ -714,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Lambda_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -741,7 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (11,23): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             f = () => field;
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(11, 23));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(11, 23));
             }
             else
             {
@@ -752,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void LocalFunction_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649, 8321
@@ -777,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (9,28): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             object F1() => field;
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(9, 28));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(9, 28));
             }
             else
             {
@@ -788,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Lambda_Local(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -811,9 +1061,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (10,32): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             f = () => { object field = 1; return field; };
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field = 1").WithArguments("14.0").WithLocation(10, 32),
                     // (10,50): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             f = () => { object field = 1; return field; };
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(10, 50));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(10, 50));
             }
             else
             {
@@ -824,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Lambda_Parameter_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -847,9 +1100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (10,17): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             f = field => @field;
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field").WithArguments("14.0").WithLocation(10, 17),
                     // (11,27): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             f = @field => field;
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(11, 27));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(11, 27));
             }
             else
             {
@@ -857,8 +1113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
-        public void Lambda_Parameter_02()
+        [Theory]
+        [CombinatorialData]
+        public void Lambda_Parameter_02(
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -876,12 +1134,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,18): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             a = (field, @value) => { };
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field").WithArguments("14.0").WithLocation(10, 18));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
-        [Fact]
-        public void Lambda_Parameter_03()
+        [Theory]
+        [CombinatorialData]
+        public void Lambda_Parameter_03(
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -899,14 +1169,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,27): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             a = delegate (object field, object @value) { };
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "object field").WithArguments("14.0").WithLocation(10, 27));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
         [CombinatorialData]
         public void LocalFunction_Local(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649, 8321
@@ -927,9 +1207,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (8,34): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             object F1() { object field = 1; return field; };
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field = 1").WithArguments("14.0").WithLocation(8, 34),
                     // (8,52): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             object F1() { object field = 1; return field; };
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(8, 52));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(8, 52));
             }
             else
             {
@@ -940,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void LocalFunction_Parameter(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649, 8321
@@ -961,9 +1244,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
+                    // (8,23): error CS9273: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             object F1(object field) => @field;
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "object field").WithArguments("14.0").WithLocation(8, 23),
                     // (9,41): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             object F2(object @field) => field;
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(9, 41));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(9, 41));
             }
             else
             {
@@ -974,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void TypeParameter(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.CSharp14)] LanguageVersion languageVersion)
         {
             string source = """
                 class C1<field>
@@ -996,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ParameterDefaultValue(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649, 8321
@@ -1019,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (9,36): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             static void F1(int v = field) { }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(9, 36),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(9, 36),
                     // (9,36): error CS1736: Default parameter value for 'v' must be a compile-time constant
                     //             static void F1(int v = field) { }
                     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "field").WithArguments("v").WithLocation(9, 36));
@@ -1033,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Attribute_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion, bool escapeIdentifier)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
             string source = $$"""
@@ -1063,15 +1349,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (12,19): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    // (12,19): warning CS9258: In language version 14.0, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //         [A(nameof(field))] get { return null; }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(12, 19),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(12, 19),
                     // (12,19): error CS8081: Expression does not have a name.
                     //         [A(nameof(field))] get { return null; }
                     Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(12, 19),
-                    // (13,19): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    // (13,19): warning CS9258: In language version 14.0, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //         [A(nameof(field))] set { }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(13, 19),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(13, 19),
                     // (13,19): error CS8081: Expression does not have a name.
                     //         [A(nameof(field))] set { }
                     Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 19));
@@ -1085,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Attribute_LocalFunction(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion, bool escapeIdentifier)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
             string source = $$"""
@@ -1101,7 +1387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         get
                         {
-                            [A(nameof({{identifier}}))] void F1(int {{identifier}}) { }
+                            [A(nameof({{identifier}}))]
+                            void F1(int {{identifier}}) { }
                             return null;
                         }
                     }
@@ -1116,11 +1403,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics(
                     // (13,23): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
-                    //             [A(nameof(field))] void F1(int field) { }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(13, 23),
+                    //             [A(nameof(field))]
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(13, 23),
                     // (13,23): error CS8081: Expression does not have a name.
-                    //             [A(nameof(field))] void F1(int field) { }
-                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23));
+                    //             [A(nameof(field))]
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23),
+                    // (14,21): error CS9273: In language version 14.0, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //             void F1(int field) { }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "int field").WithArguments("14.0").WithLocation(14, 21));
             }
             else
             {
@@ -1163,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NameOf_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -1181,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C.field").WithLocation(3, 16),
                     // (4,24): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P => nameof(field);
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 24),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(4, 24),
                     // (4,24): error CS8081: Expression does not have a name.
                     //     object P => nameof(field);
                     Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(4, 24));
@@ -1198,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void BaseClassMember(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion)
         {
             string sourceA = """
                 public class Base
@@ -1221,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (3,17): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     string P => field;
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(3, 17));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(3, 17));
             }
             else
             {
@@ -1289,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Conditional(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CSharp13_CSharp14_Preview] LanguageVersion languageVersion,
             bool useDEBUG)
         {
             string source = """
@@ -1314,10 +1604,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 comp.VerifyEmitDiagnostics(
                     // (5,25): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { M(field); return null; } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(5, 25),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(5, 25),
                     // (6,25): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P2 { set { M(field); } }
-                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(6, 25));
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments(languageVersion.ToDisplayString()).WithLocation(6, 25));
             }
             else
             {

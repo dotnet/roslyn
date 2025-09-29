@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -11,15 +13,23 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class ParseOptionChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
+    private sealed class ParseOptionChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
+        private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
         protected override void ConnectToWorkspace(Workspace workspace)
-            => workspace.WorkspaceChanged += OnWorkspaceChanged;
+        {
+            Debug.Assert(_workspaceChangedDisposer == null);
+            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+        }
 
         protected override void DisconnectFromWorkspace(Workspace workspace)
-            => workspace.WorkspaceChanged -= OnWorkspaceChanged;
+        {
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
+        }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
         {
             if (e.Kind == WorkspaceChangeKind.ProjectChanged)
             {

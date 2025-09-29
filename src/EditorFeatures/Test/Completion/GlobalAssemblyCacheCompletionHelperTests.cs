@@ -17,21 +17,15 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class GlobalAssemblyCacheCompletionHelperTests
+public sealed class GlobalAssemblyCacheCompletionHelperTests
 {
     [ConditionalFact(typeof(WindowsOnly))]
     public void ExistingReference()
-    {
-        var code = "System.Windows";
-        VerifyPresence(code, "System.Windows.Forms");
-    }
+        => VerifyPresence("System.Windows", "System.Windows.Forms");
 
     [ConditionalFact(typeof(WindowsOnly))]
     public void FullReferenceIdentity()
-    {
-        var code = "System,";
-        VerifyPresence(code, typeof(System.Diagnostics.Process).Assembly.FullName);
-    }
+        => VerifyPresence("System,", typeof(System.Diagnostics.Process).Assembly.FullName);
 
     private static void VerifyPresence(string pathSoFar, string completionItem)
     {

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
@@ -11,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletio
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -22,7 +24,6 @@ Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
@@ -34,11 +35,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
-        Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
         Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
-        Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeaturesWpf.
+        Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeatures.
             AddExcludedPartTypes(
                 GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
                 GetType(FormatCommandHandler)).
@@ -73,7 +73,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
-            Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
             Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
@@ -171,23 +170,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Overloads Sub SendEscape()
-            MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() Me.CurrentSignatureHelpPresenterSession?.Dismiss(), c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendDownKey()
             MyBase.SendDownKey(
-                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
-                Sub()
-                    EditorOperations.MoveLineDown(extendSelection:=False)
-                End Sub)
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() EditorOperations.MoveLineDown(extendSelection:=False), c),
+                Sub() EditorOperations.MoveLineDown(extendSelection:=False))
         End Sub
 
         Public Overloads Sub SendUpKey()
             MyBase.SendUpKey(
-                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c),
-                Sub()
-                    EditorOperations.MoveLineUp(extendSelection:=False)
-                End Sub)
+                Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() EditorOperations.MoveLineUp(extendSelection:=False), c),
+                Sub() EditorOperations.MoveLineUp(extendSelection:=False))
         End Sub
 
         Public Overloads Sub SendPageUp()
@@ -521,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
-            If Not session Is Nothing Then
+            If session IsNot Nothing Then
                 Await AssertCompletionItemsDoNotContainAny(text)
             End If
         End Function

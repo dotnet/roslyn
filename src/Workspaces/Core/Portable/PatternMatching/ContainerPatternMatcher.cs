@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
@@ -25,9 +26,7 @@ internal abstract partial class PatternMatcher
         {
             _containerSplitCharacters = containerSplitCharacters;
 
-            _patternSegments = patternParts
-                .Select(text => new PatternSegment(text.Trim(), allowFuzzyMatching: allowFuzzyMatching))
-                .ToArray();
+            _patternSegments = [.. patternParts.Select(text => new PatternSegment(text.Trim(), allowFuzzyMatching: allowFuzzyMatching))];
 
             _invalidPattern = _patternSegments.Length == 0 || _patternSegments.Any(s => s.IsInvalid);
         }

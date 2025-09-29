@@ -11,52 +11,51 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims;
+
+internal class LiveShareInitializeHandler : ILspRequestHandler<InitializeParams, InitializeResult, Solution>
 {
-    internal class LiveShareInitializeHandler : ILspRequestHandler<InitializeParams, InitializeResult, Solution>
+    private static readonly InitializeResult s_initializeResult = new()
     {
-        private static readonly InitializeResult s_initializeResult = new InitializeResult
+        Capabilities = new ServerCapabilities
         {
-            Capabilities = new ServerCapabilities
-            {
-                CodeActionProvider = false,
-                ReferencesProvider = true,
-                RenameProvider = false,
-            }
-        };
-
-        public Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => Task.FromResult(s_initializeResult);
-    }
-
-    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.InitializeName)]
-    [Obsolete("Used for backwards compatibility with old liveshare clients.")]
-    internal class RoslynInitializeHandlerShim : LiveShareInitializeHandler
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RoslynInitializeHandlerShim()
-        {
+            CodeActionProvider = false,
+            ReferencesProvider = true,
+            RenameProvider = false,
         }
-    }
+    };
 
-    [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.InitializeName)]
-    internal class CSharpInitializeHandlerShim : LiveShareInitializeHandler
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInitializeHandlerShim()
-        {
-        }
-    }
+    public Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        => Task.FromResult(s_initializeResult);
+}
 
-    [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.InitializeName)]
-    internal class VisualBasicInitializeHandlerShim : LiveShareInitializeHandler
+[ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.InitializeName)]
+[Obsolete("Used for backwards compatibility with old liveshare clients.")]
+internal sealed class RoslynInitializeHandlerShim : LiveShareInitializeHandler
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RoslynInitializeHandlerShim()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualBasicInitializeHandlerShim()
-        {
-        }
+    }
+}
+
+[ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.InitializeName)]
+internal sealed class CSharpInitializeHandlerShim : LiveShareInitializeHandler
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpInitializeHandlerShim()
+    {
+    }
+}
+
+[ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.InitializeName)]
+internal sealed class VisualBasicInitializeHandlerShim : LiveShareInitializeHandler
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualBasicInitializeHandlerShim()
+    {
     }
 }

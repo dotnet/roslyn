@@ -46,7 +46,7 @@ internal static class CaseCorrector
             throw new NotSupportedException(WorkspaceExtensionsResources.Document_does_not_support_syntax_trees);
         }
 
-        return await CaseCorrectAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+        return await CaseCorrectAsync(document, [.. root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span)], cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -24,7 +22,7 @@ internal partial struct SymbolKey
             var isError = symbol.TupleUnderlyingType!.TypeKind == TypeKind.Error;
 
             using var _1 = ArrayBuilder<string?>.GetInstance(out var friendlyNames);
-            using var _2 = ArrayBuilder<Location>.GetInstance(out var locations);
+            using var _2 = ArrayBuilder<Location?>.GetInstance(out var locations);
 
             foreach (var element in symbol.TupleElements)
             {

@@ -6,9 +6,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 
-internal readonly struct CanConvertParams(CodeActionPriority priority, bool canBeSingleLine, bool canBeMultiLineWithoutLeadingWhiteSpaces)
+internal readonly struct CanConvertParams(
+    CodeActionPriority priority,
+    bool canBeSingleLine,
+    bool canBeMultiLineWithoutLeadingWhiteSpaces,
+    bool containsEscapedEndOfLineCharacter)
 {
     public CodeActionPriority Priority { get; } = priority;
     public bool CanBeSingleLine { get; } = canBeSingleLine;
     public bool CanBeMultiLineWithoutLeadingWhiteSpaces { get; } = canBeMultiLineWithoutLeadingWhiteSpaces;
+    public bool ContainsEscapedEndOfLineCharacter { get; } = containsEscapedEndOfLineCharacter;
 }

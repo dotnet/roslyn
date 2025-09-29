@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Xml.Linq
 Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -14655,7 +14655,7 @@ BC32081: 'New' constraint cannot be specified multiple times for the same type p
             Dim expectedErrors1 = <errors><![CDATA[
 BC32082: Type argument 'Derived' is declared 'MustInherit' and does not satisfy the 'New' constraint for type parameter 'S'.
                 Dim x As New C2(Of Base).C2Inner(Of Derived)
-                                                    ~~~~~~~
+                    ~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub

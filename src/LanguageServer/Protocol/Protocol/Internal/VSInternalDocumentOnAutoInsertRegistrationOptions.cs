@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Class representing the registration options for on auto insert support.
 /// </summary>
-internal class VSInternalDocumentOnAutoInsertRegistrationOptions : VSInternalDocumentOnAutoInsertOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+internal sealed class VSInternalDocumentOnAutoInsertRegistrationOptions : VSInternalDocumentOnAutoInsertOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// Gets or sets the document filters for this registration option.

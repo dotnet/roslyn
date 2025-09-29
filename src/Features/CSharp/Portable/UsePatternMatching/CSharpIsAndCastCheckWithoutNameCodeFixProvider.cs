@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -15,20 +13,17 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternMatchingIsAndCastCheckWithoutName), Shared]
-internal sealed partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider()
+    : SyntaxEditorBasedCodeFixProvider(supportsFixAll: false)
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpIsAndCastCheckWithoutNameCodeFixProvider()
-        : base(supportsFixAll: false)
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId];
 
@@ -53,11 +48,14 @@ internal sealed partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider : S
         var isExpression = (BinaryExpressionSyntax)location.FindNode(
             getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var expressionType = semanticModel.Compilation.ExpressionOfTType();
 
-        var (matches, localName) = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.AnalyzeExpression(
-            semanticModel, isExpression, expressionTypeOpt, cancellationToken);
+        using var _ = PooledHashSet<CastExpressionSyntax>.GetInstance(out var matches);
+        var localName = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.AnalyzeExpression(
+            semanticModel, isExpression, expressionType, matches, cancellationToken);
+        if (localName is null || matches.Count == 0)
+            return;
 
         var updatedSemanticModel = CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer.ReplaceMatches(
             semanticModel, isExpression, localName, matches, cancellationToken);

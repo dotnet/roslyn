@@ -27,24 +27,9 @@
         <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Snippet">
-        <source>Insert Snippet</source>
-        <target state="translated">Vložit fragment</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">Automatické _vkládání členů Interface a MustOverride</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nikdy</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -62,49 +47,14 @@
         <target state="translated">Upřednostňovat zjednodušené vytváření objektů</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_imports">
-        <source>Remove unnecessary imports</source>
-        <target state="translated">Odebrat nepotřebné importy</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
         <target state="translated">Zobrazit nápovědy pro výrazy New</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces</source>
-        <target state="translated">Zobrazit položky z neimportovaných oborů názvů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">Zob_razit oddělovače řádků procedur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Don_t_put_ByRef_on_custom_structure">
-        <source>_Don't put ByRef on custom structure</source>
-        <target state="translated">_Nevkládat ByRef do vlastní struktury</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Help">
-        <source>Editor Help</source>
-        <target state="translated">Nápověda k editoru</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
         <target state="translated">A_utomatické vkládání koncových konstruktorů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">Zvýrazňovat související _klíčová slova pod kurzorem</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">Z_výrazňovat odkazy na symbol pod kurzorem</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
@@ -117,64 +67,14 @@
         <target state="translated">P_o otevření souborů přejít do režimu osnovy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Extrahovat metodu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
         <target state="translated">_Generovat komentáře dokumentace XML pro '''</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Highlighting">
-        <source>Highlighting</source>
-        <target state="translated">Zvýraznění</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">Optimalizovat pro velikost řešení</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">Velké</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">Normální</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_remarks_in_Quick_Info">
-        <source>Show remarks in Quick Info</source>
-        <target state="translated">Zobrazit poznámky v Rychlých informacích</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">Malé</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">Výkon</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Zobrazit náhled pro sledování _rename</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
         <target state="translated">_Přejít do Prohlížeče objektů pro symboly definované v metadatech</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_to_Definition">
-        <source>Go to Definition</source>
-        <target state="translated">Přejít k definici</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -237,59 +137,9 @@
         <target state="translated">Předdefinované předvolby typů:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="translated">_Zvýraznit odpovídající části položek seznamu dokončení</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
-        <source>Show completion item _filters</source>
-        <target state="translated">Zobrazit _filtry položek dokončení</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
         <target state="translated">Seznamy dokončení</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_key_behavior_colon">
-        <source>Enter key behavior:</source>
-        <target state="translated">Chování klávesy Enter:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">_Při stisku Enter přidat nový řádek jenom po dopsání celého slova</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_add_new_line_on_enter">
-        <source>_Always add new line on enter</source>
-        <target state="translated">_Při stisku Enter vždy přidat nový řádek</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_add_new_line_on_enter">
-        <source>_Never add new line on enter</source>
-        <target state="translated">_Při stisku Enter nikdy nepřidávat nový řádek</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Snippets_behavior">
-        <source>Snippets behavior</source>
-        <target state="translated">Chování fragmentů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
-        <source>Show completion list after a character is _deleted</source>
-        <target state="translated">_Zobrazit seznam dokončení po odstranění znaku</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="translated">_Zobrazovat seznam dokončení po zadání znaku</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">Nepoužitá místní</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -648,7 +649,7 @@ internal partial class ItemManager
             // model (and all the previously filtered items), but switch over to soft
             // selection.
             return new FilteredCompletionModel(
-                items: ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex,
+                items: [], selectedItemIndex,
                 filters: _snapshotData.SelectedFilters, selectionHint: UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
         }
 
@@ -754,9 +755,7 @@ internal partial class ItemManager
             return false;
         }
 
-        private bool IsHardSelection(
-            RoslynCompletionItem item,
-            bool matchedFilterText)
+        private bool IsHardSelection(RoslynCompletionItem item, bool matchedFilterText)
         {
             if (_hasSuggestedItemOptions)
             {
@@ -779,7 +778,7 @@ internal partial class ItemManager
             // It's possible the user is just typing language punctuation and selecting
             // anything in the list will interfere.  We only allow this if the filter text
             // exactly matches something in the list already. 
-            if (_filterText.Length > 0 && IsAllPunctuation(_filterText) && _filterText != item.DisplayText)
+            if (_filterText.Length > 0 && CompletionService.IsAllPunctuation(_filterText) && _filterText != item.DisplayText)
             {
                 return false;
             }
@@ -816,19 +815,6 @@ internal partial class ItemManager
 
             // There was either filter text, or this was a preselect match.  In either case, we
             // can hard select this.
-            return true;
-        }
-
-        private static bool IsAllPunctuation(string filterText)
-        {
-            foreach (var ch in filterText)
-            {
-                if (!char.IsPunctuation(ch))
-                {
-                    return false;
-                }
-            }
-
             return true;
         }
 

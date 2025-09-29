@@ -62,16 +62,15 @@ internal abstract partial class AbstractChainedExpressionWrapper<
         /// The indent trivia to insert if we are trying to simply smart-indent all wrapped
         /// chunks.
         /// </summary>
-        private readonly SyntaxTriviaList _smartIndentTrivia;
+        private readonly AsyncLazy<SyntaxTriviaList> _smartIndentTrivia;
 
         public CallExpressionCodeActionComputer(
             AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax> service,
             Document document,
             SourceText originalSourceText,
             SyntaxWrappingOptions options,
-            ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> chunks,
-            CancellationToken cancellationToken)
-            : base(service, document, originalSourceText, options, cancellationToken)
+            ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> chunks)
+            : base(service, document, originalSourceText, options)
         {
             _chunks = chunks;
 
@@ -85,41 +84,49 @@ internal abstract partial class AbstractChainedExpressionWrapper<
             _firstPeriodIndentationTrivia = new SyntaxTriviaList(generator.Whitespace(
                 OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize)));
 
-            _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                GetSmartIndentationAfter(firstPeriod)));
+            _smartIndentTrivia = AsyncLazy.Create(async cancellationToken => new SyntaxTriviaList(generator.Whitespace(
+                await GetSmartIndentationAfterAsync(firstPeriod, cancellationToken).ConfigureAwait(false))));
 
             _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
         }
 
-        protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
+        protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var actions);
 
-            await AddWrapCodeActionAsync(actions).ConfigureAwait(false);
-            await AddUnwrapCodeActionAsync(actions).ConfigureAwait(false);
-            await AddWrapLongCodeActionAsync(actions).ConfigureAwait(false);
+            await AddWrapCodeActionAsync(actions, cancellationToken).ConfigureAwait(false);
+            await AddUnwrapCodeActionAsync(actions, cancellationToken).ConfigureAwait(false);
+            await AddWrapLongCodeActionAsync(actions, cancellationToken).ConfigureAwait(false);
 
             return [new WrappingGroup(isInlinable: true, actions.ToImmutable())];
         }
 
         // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
         // Not just when the chunk would go past the wrapping column.
-        private async Task AddWrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
+        private async Task AddWrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions, CancellationToken cancellationToken)
         {
-            actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_call_chain).ConfigureAwait(false));
-            actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_call_chain).ConfigureAwait(false));
+            actions.Add(await TryCreateCodeActionAsync(
+                await GetWrapEditsAsync(wrappingColumn: 0, align: false, cancellationToken).ConfigureAwait(false),
+                FeaturesResources.Wrapping, FeaturesResources.Wrap_call_chain, cancellationToken).ConfigureAwait(false));
+            actions.Add(await TryCreateCodeActionAsync(
+                await GetWrapEditsAsync(wrappingColumn: 0, align: true, cancellationToken).ConfigureAwait(false),
+                FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_call_chain, cancellationToken).ConfigureAwait(false));
         }
 
-        private async Task AddUnwrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
-            => actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain).ConfigureAwait(false));
+        private async Task AddUnwrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions, CancellationToken cancellationToken)
+            => actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain, cancellationToken).ConfigureAwait(false));
 
-        private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
+        private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions, CancellationToken cancellationToken)
         {
-            actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(Options.WrappingColumn, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain).ConfigureAwait(false));
-            actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(Options.WrappingColumn, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain).ConfigureAwait(false));
+            actions.Add(await TryCreateCodeActionAsync(
+                await GetWrapEditsAsync(Options.WrappingColumn, align: false, cancellationToken).ConfigureAwait(false),
+                FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain, cancellationToken).ConfigureAwait(false));
+            actions.Add(await TryCreateCodeActionAsync(
+                await GetWrapEditsAsync(Options.WrappingColumn, align: true, cancellationToken).ConfigureAwait(false),
+                FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain, cancellationToken).ConfigureAwait(false));
         }
 
-        private ImmutableArray<Edit> GetWrapEdits(int wrappingColumn, bool align)
+        private async Task<ImmutableArray<Edit>> GetWrapEditsAsync(int wrappingColumn, bool align, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
@@ -127,7 +134,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
             var firstChunk = _chunks[0];
             DeleteAllSpacesInChunk(result, firstChunk);
 
-            var indentationTrivia = align ? _firstPeriodIndentationTrivia : _smartIndentTrivia;
+            var indentationTrivia = align ? _firstPeriodIndentationTrivia : await _smartIndentTrivia.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
             // Our starting position is at the end of the first chunk.  That position
             // is effectively the start of the first period, plus the length of the 

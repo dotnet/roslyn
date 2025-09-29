@@ -69,7 +69,7 @@ internal sealed class AnalyzersFolderItemSourceProvider(
         }
         else
         {
-            return ImmutableArray<string>.Empty;
+            return [];
         }
     }
 

@@ -181,6 +181,10 @@ internal partial class DocumentState
             // is the same.
             bool CanReuseSiblingRoot(bool forceEvenIfTreesWouldDiffer)
             {
+                // We can never reuse trees across languages.
+                if (siblingRoot.Language != languageServices.Language)
+                    return false;
+
                 // If we're forcing reuse of a sibling tree, then this always succeeds.
                 if (forceEvenIfTreesWouldDiffer)
                     return true;
