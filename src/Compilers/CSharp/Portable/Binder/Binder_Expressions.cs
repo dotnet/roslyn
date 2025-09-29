@@ -5266,6 +5266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
+                if (element is WithElementSyntax withElementSyntax && builder.Any())
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
+
                 builder.Add(bindElement(element, diagnostics, this, nestingLevel));
             }
             return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
