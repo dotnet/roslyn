@@ -36,6 +36,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionMemberCrefSyntax.WithTypeArgumentL
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExtensionBlockDeclaration = 9079 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExtensionKeyword = 8451 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExtensionMemberCref = 8607 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithElement = 9081 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExtensionBlockDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExtensionMemberCref(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionMemberCrefSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
