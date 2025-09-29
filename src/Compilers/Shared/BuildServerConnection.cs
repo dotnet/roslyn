@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Creates an environment block for Windows CreateProcess API.
         /// </summary>
         /// <param name="environmentVariables">Dictionary of environment variables to include</param>
-        /// <returns>Pointer to environment block that must be freed with Marshal.FreeHGlobal</returns>
+        /// <returns>Pointer to environment block that must be freed with <see cref="Marshal.FreeHGlobal"/></returns>
         private static IntPtr CreateEnvironmentBlock(Dictionary<string, string> environmentVariables)
         {
             if (environmentVariables.Count == 0)
@@ -476,8 +476,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Gets the environment variables that should be passed to the server process.
         /// </summary>
+        /// <param name="currentEnvironment">Current environment variables to use as a base</param>
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
-        internal static Dictionary<string, string>? GetServerEnvironmentVariables()
+        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment)
         {
             if (RuntimeHostInfo.GetToolDotNetRoot() is not { } dotNetRoot)
             {
@@ -486,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Start with current environment
             var environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
+            foreach (System.Collections.DictionaryEntry entry in currentEnvironment)
             {
                 var key = (string)entry.Key;
                 var value = (string?)entry.Value;
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            var environmentVariables = GetServerEnvironmentVariables();
+            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables());
             if (environmentVariables != null && environmentVariables.ContainsKey(RuntimeHostInfo.DotNetRootEnvironmentName))
             {
                 logger.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName]);
