@@ -321,12 +321,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     triviaWidth += node.FullWidth;
                 }
 
-                //relative to leading trivia of eod
-                //could be negative if part of the error text comes from the trailing trivia of the keyword token
-                int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
+                // Relative to Start (not FullStart) of eod. Can be negative if part of the error text comes from the
+                // trailing trivia of the keyword token.
+                var triviaOffset = -triviaWidth;
 
                 string errorText = triviaBuilder.ToString();
-                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
+                eod = this.AddError(eod, offset: triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
 
                 if (isError)
                 {

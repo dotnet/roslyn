@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private StrongBox<byte?>? lazyNullableContext;
 
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
-            : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters), propagateTypeParameterAttributes: true)
+            : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
             Debug.Assert(sourceMethod.GetIsNewExtensionMember());
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
