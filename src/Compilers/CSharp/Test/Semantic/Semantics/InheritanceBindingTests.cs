@@ -7913,7 +7913,7 @@ class Test
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-// (20,27): warning CS0473: Explicit interface implementation 'Explicit.I1<int, int>.Method<V>(int, Func<int, int, V>, int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+// (20,27): warning CS0473: Explicit interface implementation 'Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
 //     void I1<Int32, Int32>.Method<V>(int x, Func<int, int, V> v, int z) { }
 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Explicit.I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)").WithLocation(20, 27),
 // (29,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1<int, int>.Method<V>(int, System.Func<int, int, V>, int)' and 'I1<int, int>.Method<Z>(int, System.Func<int, int, Z>, int)'
@@ -8010,7 +8010,7 @@ class Test
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-// (25,16): warning CS0108: 'ImplicitInBase.Method(int, Func<int, int>, params int[])' hides inherited member 'Base.Method(int, Func<int, int>, int[])'. Use the new keyword if hiding was intended.
+// (25,16): warning CS0108: 'ImplicitInBase.Method(int, System.Func<int, int>, params int[])' hides inherited member 'Base.Method(int, System.Func<int, int>, int[])'. Use the new keyword if hiding was intended.
 //     public int Method(int x, Func<int, int> v, params int[] y) { Console.WriteLine("int Method(int x, Func<int, int> v, params int[] y)"); return 0; }
 Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("ImplicitInBase.Method(int, System.Func<int, int>, params int[])", "Base.Method(int, System.Func<int, int>, int[])").WithLocation(25, 16),
 // (34,11): error CS0121: The call is ambiguous between the following methods or properties: 'I1<int, int>.Method(int, int[])' and 'I1<int, int>.Method(int, params int[])'
