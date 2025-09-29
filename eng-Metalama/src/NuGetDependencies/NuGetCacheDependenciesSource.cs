@@ -8,7 +8,7 @@ using System.IO;
 using System.Text.Json;
 using PostSharp.Engineering.BuildTools.Build;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 // This source confusingly doesn't contain all the packages referenced in a project,
 // but it contains packages referenced via PackageDownload MsBuild item.

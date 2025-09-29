@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text.Json;
 using PostSharp.Engineering.BuildTools.Build;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal class ProjectAssetsJsonDependenciesSource : NuGetDependenciesSourceBase
 {

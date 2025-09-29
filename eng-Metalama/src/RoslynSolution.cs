@@ -6,15 +6,16 @@ using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Runtime.InteropServices;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.ContinuousIntegration;
+using PostSharp.Engineering.BuildTools.Tools.TeamCity;
 using PostSharp.Engineering.BuildTools.Utilities;
 
-namespace Build
+namespace BuildMetalamaCompiler
 {
     internal class RoslynSolution : Solution
     {
@@ -142,8 +143,7 @@ namespace Build
             }
 
             var resultsRelativeDirectory =
-                context.Product.TestResultsDirectory.ToString(new BuildInfo(null, settings.BuildConfiguration,
-                    context.Product, null));
+                context.Product.TestResultsDirectory.ToString(BuildArguments.Read(context, settings.BuildConfiguration));
 
             var resultsDirectory = Path.Combine(context.RepoDirectory, resultsRelativeDirectory);
 
@@ -156,7 +156,7 @@ namespace Build
                 success &= DotNetHelper.Run(context, settings, testFile, "test", args);
             }
 
-            if (TeamCityHelper.IsTeamCityBuild(settings))
+            if (context.IsContinuousIntegrationBuild)
             {
                 // Export test result files to TeamCity.
                 TeamCityHelper.SendImportDataMessage(

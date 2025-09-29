@@ -4,7 +4,7 @@
 
 using System.Text.Json;
 
-namespace Build.NuGetDependencies;
+namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal static class NuGetJsonSerializerOptions
 {
