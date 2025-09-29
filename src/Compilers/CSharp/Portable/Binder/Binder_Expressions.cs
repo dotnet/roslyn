@@ -5349,7 +5349,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression bindWithElement(WithElementSyntax syntax, BindingDiagnosticBag diagnostics)
             {
-                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, syntax, );
+                // Currently bail out on everything.
+                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, syntax, "<all types>");
                 return new BoundBadExpression(
                     syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: Compilation.GetSpecialType(SpecialType.System_Object));
             }
