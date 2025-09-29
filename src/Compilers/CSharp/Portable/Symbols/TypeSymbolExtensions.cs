@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool useDefaultType = false,
             bool visitCustomModifiers = false)
         {
-            var matchigSymbols = VisitType(
+            var matchingSymbols = VisitType(
                 typeWithAnnotationsOpt: typeWithAnnotationsOpt,
                 type: type,
                 typeWithAnnotationsPredicate: typeWithAnnotationsPredicate,
