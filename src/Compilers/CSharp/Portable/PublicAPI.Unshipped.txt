@@ -102,7 +102,9 @@ Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithArgumentList(Microsof
 Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithWithKeyword(Microsoft.CodeAnalysis.SyntaxToken withKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax? argumentList = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax? argumentList = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax! argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> TResult?
