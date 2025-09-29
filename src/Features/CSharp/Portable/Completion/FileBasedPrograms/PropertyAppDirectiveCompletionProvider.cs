@@ -8,21 +8,19 @@ using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
 [ExportCompletionProvider(nameof(PropertyAppDirectiveCompletionProvider), LanguageNames.CSharp)]
 [Shared]
 [method: ImportingConstructor]
-//ImportingConstructorMessage
-// [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-[method: Obsolete("TODO2 properly share constant message", error: true)]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class PropertyAppDirectiveCompletionProvider() : LSPCompletionProvider
 {
     private const string DirectiveKind = "property";
@@ -39,11 +37,11 @@ internal class PropertyAppDirectiveCompletionProvider() : LSPCompletionProvider
 
     public override async Task ProvideCompletionsAsync(CompletionContext context)
     {
-        var tree = await context.Document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
-        if (tree is null || !tree.Options.Features.ContainsKey("FileBasedProgram"))
+        var tree = await context.Document.GetRequiredSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
+        if (!tree.Options.Features.ContainsKey("FileBasedProgram"))
             return;
 
-        var token = tree.GetRoot().FindTokenOnLeftOfPosition(context.Position, includeDirectives: true);
+        var token = tree.GetRoot(context.CancellationToken).FindTokenOnLeftOfPosition(context.Position, includeDirectives: true);
         if (token.Parent is not IgnoredDirectiveTriviaSyntax ignoredDirective)
             return;
 

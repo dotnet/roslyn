@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-public class PropertyAppDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class PropertyAppDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(PropertyAppDirectiveCompletionProvider);
@@ -25,17 +25,14 @@ public class PropertyAppDirectiveCompletionProviderTests : AbstractCSharpComplet
     private static string GetMarkup(string code) => $$"""
         <Workspace>
             <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
-            <Document><![CDATA[
-                {{code}}
-            ]]></Document>
+            <Document><![CDATA[{{code}}]]></Document>
             </Project>
         </Workspace>
         """;
 
     [Fact(Skip = "TODO2 workspace markup doesn't seem to be respected from this helper")]
-    public async Task VerifyCommitCharacters()
-    {
-        await VerifyCommonCommitCharactersAsync(GetMarkup("""
+    public Task VerifyCommitCharacters()
+        => VerifyCommonCommitCharactersAsync(GetMarkup("""
             // comment
 
             #:$$
@@ -44,38 +41,29 @@ public class PropertyAppDirectiveCompletionProviderTests : AbstractCSharpComplet
 
             public class C { }
             """), "p");
-    }
 
     [Fact]
-    public async Task AfterHashColon()
-    {
-        await VerifyItemExistsAsync(GetMarkup("""
+    public Task AfterHashColon()
+        => VerifyItemExistsAsync(GetMarkup("""
             #:$$
             """), expectedItem: "property");
-    }
 
     [Fact]
-    public async Task NotAfterHashOnly()
-    {
-        await VerifyItemIsAbsentAsync(GetMarkup("""
+    public Task NotAfterHashOnly()
+        => VerifyItemIsAbsentAsync(GetMarkup("""
             #$$
             """), expectedItem: "property");
-    }
 
     [Fact]
-    public async Task NotAfterColonOnly()
-    {
-        await VerifyItemIsAbsentAsync(GetMarkup("""
+    public Task NotAfterColonOnly()
+        => VerifyItemIsAbsentAsync(GetMarkup("""
             :$$
             """), expectedItem: "property");
-    }
 
     [Fact]
-    public async Task NotAfterStatement()
-    {
-        await VerifyItemIsAbsentAsync(GetMarkup("""
+    public Task NotAfterStatement()
+        => VerifyItemIsAbsentAsync(GetMarkup("""
             Console.WriteLine();
             $$
             """), expectedItem: "property");
-    }
 }
