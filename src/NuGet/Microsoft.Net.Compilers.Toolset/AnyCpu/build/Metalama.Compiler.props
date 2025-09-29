@@ -19,6 +19,7 @@
     
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &lt; '9'">net8.0</_RoslynTargetDirectoryName>
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &gt;= '9'">net9.0</_RoslynTargetDirectoryName>
+     <RoslynCompilerType>Metalama</RoslynCompilerType>
     <!-- </Metalama> -->
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_RoslynTargetDirectoryName>
     <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>
