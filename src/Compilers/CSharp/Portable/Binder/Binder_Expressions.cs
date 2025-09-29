@@ -5347,12 +5347,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors: false);
             }
 
-            BoundExpression bindWithElement(WithElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            static BoundExpression bindWithElement(WithElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
             {
                 // Currently bail out on everything.
                 diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, syntax, "<all types>");
                 return new BoundBadExpression(
-                    syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: Compilation.GetSpecialType(SpecialType.System_Object));
+                    syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: @this.Compilation.GetSpecialType(SpecialType.System_Object));
             }
         }
 #nullable disable
