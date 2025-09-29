@@ -3755,7 +3755,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Method:
                 case SymbolKind.Field:
                 case SymbolKind.Property:
-                    if (containingMember.IsStatic)
+                    if (containingMember.GetIsNewExtensionMember())
+                    {
+                        resultKind = LookupResultKind.NotReferencable;
+                        thisParam = new ThisParameterSymbol(null, containingType);
+                    }
+                    else if (containingMember.IsStatic)
                     {
                         // in a static member
                         resultKind = LookupResultKind.StaticInstanceMismatch;
