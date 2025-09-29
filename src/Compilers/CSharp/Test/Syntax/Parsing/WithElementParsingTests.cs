@@ -28,8 +28,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         }
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement1(LanguageVersion languageVersion)
     {
         UsingExpression("[with]",
@@ -50,8 +49,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement2(LanguageVersion languageVersion)
     {
         UsingExpression("[with: with]",
@@ -60,8 +58,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement3(LanguageVersion languageVersion)
     {
         UsingExpression("[.. with]",
@@ -83,8 +80,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement4(LanguageVersion languageVersion)
     {
         UsingExpression("[with + with]",
@@ -113,8 +109,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement5(LanguageVersion languageVersion)
     {
         UsingExpression("[with.X]",
@@ -143,8 +138,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement6(LanguageVersion languageVersion)
     {
         UsingExpression("[with[X]]",
@@ -180,8 +174,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement7(LanguageVersion languageVersion)
     {
         UsingExpression("[with ? with : with]",
@@ -215,8 +208,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement8(LanguageVersion languageVersion)
     {
         UsingExpression("[with?.with]",
@@ -249,8 +241,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement9(LanguageVersion languageVersion)
     {
         UsingExpression("[with++]",
@@ -275,8 +266,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement10(LanguageVersion languageVersion)
     {
         UsingExpression("[with)]",
@@ -300,8 +290,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement11(LanguageVersion languageVersion)
     {
         UsingExpression("[with..with]",
@@ -330,8 +319,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement12(LanguageVersion languageVersion)
     {
         UsingExpression("[with..with()]",
@@ -368,8 +356,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement13(LanguageVersion languageVersion)
     {
         UsingExpression("[@with()]",
@@ -398,8 +385,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement14(LanguageVersion languageVersion)
     {
         UsingExpression("with()",
@@ -420,8 +406,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement15(LanguageVersion languageVersion)
     {
         UsingExpression("a with()",
@@ -437,8 +422,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement16(LanguageVersion languageVersion)
     {
         UsingExpression("[with()] a => b",
@@ -476,8 +460,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement17(LanguageVersion languageVersion)
     {
         UsingExpression("[with()] async a => b",
@@ -516,8 +499,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement18(LanguageVersion languageVersion)
     {
         UsingExpression("[with()] (a) => b",
@@ -560,8 +542,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement1(LanguageVersion languageVersion)
     {
         UsingExpression("[with(]",
@@ -587,8 +568,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement2(LanguageVersion languageVersion)
     {
         UsingExpression("[with()]",
@@ -608,8 +588,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement3(LanguageVersion languageVersion)
     {
         UsingExpression("[with(,)]",
@@ -650,8 +629,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement4(LanguageVersion languageVersion)
     {
         UsingExpression("[with(a)]",
@@ -678,8 +656,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement5(LanguageVersion languageVersion)
     {
         UsingExpression("[with(ref a)]",
@@ -707,8 +684,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement6(LanguageVersion languageVersion)
     {
         UsingExpression("[with(out a)]",
@@ -736,8 +712,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement7(LanguageVersion languageVersion)
     {
         UsingExpression("[with(out var a)]",
@@ -772,8 +747,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement8(LanguageVersion languageVersion)
     {
         UsingExpression("[with(name: value)]",
@@ -808,8 +782,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement9(LanguageVersion languageVersion)
     {
         UsingExpression("[with(a, b)]",
@@ -844,8 +817,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement10(LanguageVersion languageVersion)
     {
         UsingExpression("[with(), with()]",
@@ -872,8 +844,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement11(LanguageVersion languageVersion)
     {
         UsingExpression("[a, with()]",
@@ -901,8 +872,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement12(LanguageVersion languageVersion)
     {
         UsingExpression("[a:b, with()]",
@@ -911,8 +881,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement13(LanguageVersion languageVersion)
     {
         UsingExpression("[..a, with()]",
@@ -941,8 +910,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement14(LanguageVersion languageVersion)
     {
         UsingExpression("[with(), a]",
@@ -970,8 +938,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement15(LanguageVersion languageVersion)
     {
         UsingExpression("[with(), a:b]",
@@ -980,8 +947,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement16(LanguageVersion languageVersion)
     {
         UsingExpression("[with(), ..a]",
@@ -1010,8 +976,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement17(LanguageVersion languageVersion)
     {
         UsingExpression("[with([])]",
@@ -1039,8 +1004,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement18(LanguageVersion languageVersion)
     {
         UsingExpression("[with(() => {})]",
@@ -1077,8 +1041,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement19(LanguageVersion languageVersion)
     {
         UsingExpression("[with(async () => {})]",
@@ -1116,8 +1079,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement20(LanguageVersion languageVersion)
     {
         UsingExpression("[with(from x in y select x)]",
@@ -1164,8 +1126,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement21(LanguageVersion languageVersion)
     {
         UsingExpression("[with([with()])]",
@@ -1199,8 +1160,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement22(LanguageVersion languageVersion)
     {
         UsingExpression("[with(with: with)]",
@@ -1235,8 +1195,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement23(LanguageVersion languageVersion)
     {
         UsingExpression("[with(out _)]",
@@ -1264,8 +1223,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement24(LanguageVersion languageVersion)
     {
         UsingExpression("[with(in a)]",
@@ -1293,8 +1251,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement25(LanguageVersion languageVersion)
     {
         UsingExpression("[with(name: ref a)]",
@@ -1330,8 +1287,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement26(LanguageVersion languageVersion)
     {
         UsingExpression("[with(ref int () => { })]",
@@ -1376,8 +1332,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement27(LanguageVersion languageVersion)
     {
         var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
@@ -1453,8 +1408,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         }
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement28(LanguageVersion languageVersion)
     {
         var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
@@ -1532,8 +1486,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         }
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement29(LanguageVersion languageVersion)
     {
         UsingExpression("[with()",
@@ -1556,8 +1509,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement30(LanguageVersion languageVersion)
     {
         UsingExpression("[with(),",
@@ -1581,8 +1533,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement31(LanguageVersion languageVersion)
     {
         UsingExpression("[with(_)]",
@@ -1609,8 +1560,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement32(LanguageVersion languageVersion)
     {
         UsingExpression("[with(a,)]",
@@ -1648,8 +1598,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement33(LanguageVersion languageVersion)
     {
         UsingExpression("[with(,a)]",
@@ -1687,8 +1636,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement34(LanguageVersion languageVersion)
     {
         var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
@@ -1716,8 +1664,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         }
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement35(LanguageVersion languageVersion)
     {
         UsingExpression("[x:with()]",
@@ -1726,8 +1673,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement36(LanguageVersion languageVersion)
     {
         UsingExpression("[..with()]",
@@ -1757,8 +1703,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement37(LanguageVersion languageVersion)
     {
         var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
@@ -1836,8 +1781,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         }
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement38(LanguageVersion languageVersion)
     {
         var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
@@ -1927,8 +1871,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         }
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement39(LanguageVersion languageVersion)
     {
         UsingTree("""
@@ -2008,8 +1951,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         EOF();
     }
 
-    [Theory]
-    [MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement40(LanguageVersion languageVersion)
     {
         UsingTree("""
