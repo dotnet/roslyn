@@ -1180,12 +1180,12 @@ class M
                 // CONSIDER: Dev10 reports CS1957, even though the runtime has no trouble distinguishing the potentially
                 // overridden methods.
 
-                // (15,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EGI', so they cannot be overridden
-                //     public override void F(int c)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EGI").WithLocation(15, 26),
                 // (6,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EG<T>', so they cannot be overridden
                 //     public override void F(T c)
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EG<T>").WithLocation(6, 26),
+                // (15,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EGI', so they cannot be overridden
+                //     public override void F(int c)
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EGI").WithLocation(15, 26),
 
                 // NOTE: Dev10 doesn't report these cascading errors.
 
