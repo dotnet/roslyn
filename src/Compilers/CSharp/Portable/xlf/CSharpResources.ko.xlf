@@ -2268,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">'Microsoft.CodeAnalysis.EmbeddedAttribute' 형식은 제네릭이 아니고, 내부, sealed, static이 아니어야 하고, 매개 변수가 없는 생성자를 포함하고, System.Attribute에서 상속하며, 모든 형식에 적용할 수 있어야 합니다.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">'Microsoft.CodeAnalysis.EmbeddedAttribute' 형식은 제네릭이 아니고, 내부, sealed, static이 아니어야 하고, 매개 변수가 없는 생성자를 포함하고, System.Attribute에서 상속하며, 모든 형식에 적용할 수 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -11140,7 +11140,7 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <target state="translated">await' 연산자는 초기 'from' 절의 첫 번째 Collection 식이나 'join' 절의 Collection 식 내의 쿼리 식에서만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">이 호출이 대기되지 않으므로 호출이 완료되기 전에 현재 메서드가 계속 실행됩니다. 호출 결과에 'await' 연산자를 적용해 보세요.</target>
         <note />
