@@ -447,6 +447,64 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         /// <summary>
+        /// Creates an environment block for Windows CreateProcess API.
+        /// </summary>
+        /// <param name="environmentVariables">Dictionary of environment variables to include</param>
+        /// <returns>Pointer to environment block that must be freed with Marshal.FreeHGlobal</returns>
+        private static IntPtr CreateEnvironmentBlock(Dictionary<string, string> environmentVariables)
+        {
+            if (environmentVariables.Count == 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            // Build the environment block as a single string
+            var envBlock = new StringBuilder();
+            foreach (var kvp in environmentVariables.OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                envBlock.Append(kvp.Key);
+                envBlock.Append('=');
+                envBlock.Append(kvp.Value);
+                envBlock.Append('\0');
+            }
+            envBlock.Append('\0'); // Double null terminator
+
+            // Convert to Unicode and allocate unmanaged memory
+            return Marshal.StringToHGlobalUni(envBlock.ToString());
+        }
+
+        /// <summary>
+        /// Gets the environment variables that should be passed to the server process.
+        /// </summary>
+        /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
+        internal static Dictionary<string, string>? GetServerEnvironmentVariables()
+        {
+            if (RuntimeHostInfo.GetToolDotNetRoot() is not { } dotNetRoot)
+            {
+                return null;
+            }
+
+            // Start with current environment
+            var environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
+            {
+                var key = (string)entry.Key;
+                var value = (string?)entry.Value;
+
+                // Skip DOTNET_ROOT* variables as we want to set our own
+                if (!key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                {
+                    environmentVariables[key] = value ?? string.Empty;
+                }
+            }
+
+            // Set our DOTNET_ROOT
+            environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
+
+            return environmentVariables;
+        }
+
+        /// <summary>
         /// This will attempt to start a compiler server process using the executable inside the 
         /// directory <paramref name="clientDirectory"/>. This returns "true" if starting the 
         /// compiler server process was successful, it does not state whether the server successfully
@@ -464,43 +522,37 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            // Set DOTNET_ROOT so that the apphost executable launches properly.
-            System.Collections.DictionaryEntry[] dotnetRootEnvVars = [];
-            if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
+            var environmentVariables = GetServerEnvironmentVariables();
+            if (environmentVariables != null && environmentVariables.ContainsKey(RuntimeHostInfo.DotNetRootEnvironmentName))
             {
-                // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
-                dotnetRootEnvVars = Environment.GetEnvironmentVariables()
-                    .Cast<System.Collections.DictionaryEntry>()
-                    .Where(static e => ((string)e.Key).StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
-                    .ToArray();
-                foreach (var envVar in dotnetRootEnvVars)
-                {
-                    Environment.SetEnvironmentVariable((string)envVar.Key, string.Empty);
-                }
-
-                logger.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
-                Environment.SetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+                logger.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName]);
             }
 
-            try
+            if (PlatformInformation.IsWindows)
             {
-                if (PlatformInformation.IsWindows)
+                // As far as I can tell, there isn't a way to use the Process class to
+                // create a process with no stdin/stdout/stderr, so we use P/Invoke.
+                // This code was taken from MSBuild task starting code.
+
+                STARTUPINFO startInfo = new STARTUPINFO();
+                startInfo.cb = Marshal.SizeOf(startInfo);
+                startInfo.hStdError = InvalidIntPtr;
+                startInfo.hStdInput = InvalidIntPtr;
+                startInfo.hStdOutput = InvalidIntPtr;
+                startInfo.dwFlags = STARTF_USESTDHANDLES;
+                uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
+
+                PROCESS_INFORMATION processInfo;
+
+                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
+
+                IntPtr environmentBlockPtr = IntPtr.Zero;
+                try
                 {
-                    // As far as I can tell, there isn't a way to use the Process class to
-                    // create a process with no stdin/stdout/stderr, so we use P/Invoke.
-                    // This code was taken from MSBuild task starting code.
-
-                    STARTUPINFO startInfo = new STARTUPINFO();
-                    startInfo.cb = Marshal.SizeOf(startInfo);
-                    startInfo.hStdError = InvalidIntPtr;
-                    startInfo.hStdInput = InvalidIntPtr;
-                    startInfo.hStdOutput = InvalidIntPtr;
-                    startInfo.dwFlags = STARTF_USESTDHANDLES;
-                    uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
-
-                    PROCESS_INFORMATION processInfo;
-
-                    var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
+                    if (environmentVariables != null)
+                    {
+                        environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
+                    }
 
                     bool success = CreateProcess(
                         lpApplicationName: null,
@@ -509,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         lpThreadAttributes: NullPtr,
                         bInheritHandles: false,
                         dwCreationFlags: dwCreationFlags,
-                        lpEnvironment: NullPtr, // Inherit environment
+                        lpEnvironment: environmentBlockPtr,
                         lpCurrentDirectory: clientDirectory,
                         lpStartupInfo: ref startInfo,
                         lpProcessInformation: out processInfo);
@@ -527,44 +579,53 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                     return success;
                 }
-                else
+                finally
                 {
-                    try
+                    if (environmentBlockPtr != IntPtr.Zero)
                     {
-                        var startInfo = new ProcessStartInfo()
-                        {
-                            FileName = serverInfo.processFilePath,
-                            Arguments = serverInfo.commandLineArguments,
-                            UseShellExecute = false,
-                            WorkingDirectory = clientDirectory,
-                            RedirectStandardInput = true,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            CreateNoWindow = true
-                        };
+                        Marshal.FreeHGlobal(environmentBlockPtr);
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = serverInfo.processFilePath,
+                        Arguments = serverInfo.commandLineArguments,
+                        UseShellExecute = false,
+                        WorkingDirectory = clientDirectory,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
 
-                        if (Process.Start(startInfo) is { } process)
+                    // Set environment variables directly on ProcessStartInfo
+                    if (environmentVariables != null)
+                    {
+                        foreach (var kvp in environmentVariables)
                         {
-                            processId = process.Id;
-                            logger.Log("Successfully created process with process id {0}", processId);
-                            return true;
-                        }
-                        else
-                        {
-                            return false;
+                            startInfo.EnvironmentVariables[kvp.Key] = kvp.Value;
                         }
                     }
-                    catch
+
+                    if (Process.Start(startInfo) is { } process)
+                    {
+                        processId = process.Id;
+                        logger.Log("Successfully created process with process id {0}", processId);
+                        return true;
+                    }
+                    else
                     {
                         return false;
                     }
                 }
-            }
-            finally
-            {
-                foreach (var envVar in dotnetRootEnvVars)
+                catch
                 {
-                    Environment.SetEnvironmentVariable((string)envVar.Key, (string?)envVar.Value);
+                    return false;
                 }
             }
         }
