@@ -2,25 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing;
 
-public class CollectionArgumentsParsingTests : ParsingTests
+public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    public CollectionArgumentsParsingTests(ITestOutputHelper output) : base(output)
-    {
-    }
-
-    public static readonly TheoryData<LanguageVersion> CollectionArgumentsLanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
+    public static readonly TheoryData<LanguageVersion> CollectionArgumentsLanguageVersions = new([LanguageVersion.CSharp14, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
     private void CollectionArgumentsOrInvocation(LanguageVersion languageVersion)
     {
-        if (languageVersion > LanguageVersion.CSharp13)
+        if (languageVersion > LanguageVersion.CSharp14)
         {
             N(SyntaxKind.WithElement);
             N(SyntaxKind.WithKeyword);
@@ -1386,7 +1380,7 @@ public class CollectionArgumentsParsingTests : ParsingTests
     [MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement27(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp13) ?
+        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
             [] :
             new[]
             {
@@ -1398,7 +1392,7 @@ public class CollectionArgumentsParsingTests : ParsingTests
             TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedDiagnostics);
 
-        if (languageVersion == LanguageVersion.CSharp13)
+        if (languageVersion == LanguageVersion.CSharp14)
         {
             N(SyntaxKind.CollectionExpression);
             {
@@ -1463,7 +1457,7 @@ public class CollectionArgumentsParsingTests : ParsingTests
     [MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement28(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp13) ?
+        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
             [] :
             new[]
             {
@@ -1478,7 +1472,7 @@ public class CollectionArgumentsParsingTests : ParsingTests
             TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedDiagnostics);
 
-        if (languageVersion == LanguageVersion.CSharp13)
+        if (languageVersion == LanguageVersion.CSharp14)
         {
             N(SyntaxKind.CollectionExpression);
             {
@@ -1767,7 +1761,7 @@ public class CollectionArgumentsParsingTests : ParsingTests
     [MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement37(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp13) ?
+        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
             [] :
             new[]
             {
@@ -1782,7 +1776,7 @@ public class CollectionArgumentsParsingTests : ParsingTests
             TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedDiagnostics);
 
-        if (languageVersion == LanguageVersion.CSharp13)
+        if (languageVersion == LanguageVersion.CSharp14)
         {
             N(SyntaxKind.CollectionExpression);
             {
@@ -1846,7 +1840,7 @@ public class CollectionArgumentsParsingTests : ParsingTests
     [MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement38(LanguageVersion languageVersion)
     {
-        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp13) ?
+        var expectedDiagnostics = (languageVersion == LanguageVersion.CSharp14) ?
             [] :
             new[]
             {
@@ -1858,7 +1852,7 @@ public class CollectionArgumentsParsingTests : ParsingTests
             TestOptions.Regular.WithLanguageVersion(languageVersion),
             expectedDiagnostics);
 
-        if (languageVersion == LanguageVersion.CSharp13)
+        if (languageVersion == LanguageVersion.CSharp14)
         {
             N(SyntaxKind.CollectionExpression);
             {
