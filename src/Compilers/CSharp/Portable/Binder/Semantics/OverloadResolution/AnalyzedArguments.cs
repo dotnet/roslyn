@@ -126,6 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public BoundUnconvertedArguments ToBoundUnconvertedArguments()
+            => new BoundUnconvertedArguments(
+                expressions: this.Arguments.ToImmutable(),
+                namesOpt: this.Names.ToImmutableOrNull(),
+                refKindsOpt: this.RefKinds.ToImmutableOrNull());
+
         #region "Poolable"
 
         public static AnalyzedArguments GetInstance()

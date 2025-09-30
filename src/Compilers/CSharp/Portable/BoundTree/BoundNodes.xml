@@ -30,8 +30,8 @@
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
   <ValueType Name="RefKind"/>
-  <ValueType Name="BoundUnconvertedArguments"/>
   <ValueType Name="BoundTypeOrValueData"/>
+  <ValueType Name="BoundUnconvertedArguments"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
