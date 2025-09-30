@@ -467,7 +467,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 envBlock.Append(kvp.Value);
                 envBlock.Append('\0');
             }
-            envBlock.Append('\0'); // Double null terminator
+            // Windows environment block format requires an additional null terminator after the last variable to mark the end of the block
+            envBlock.Append('\0');
 
             // Convert to Unicode and allocate unmanaged memory
             return Marshal.StringToHGlobalUni(envBlock.ToString());
