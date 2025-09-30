@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);
             }
 
-            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType);
+            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out _, out _);
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
             {
@@ -1115,15 +1115,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool HasCollectionExpressionApplicableConstructor(
             SyntaxNode syntax,
             TypeSymbol targetType,
+            out MethodSymbol? constructor,
+            out bool isExpanded,
             BindingDiagnosticBag diagnostics,
-            out MethodSymbol? constructorForParamsValidation,
             bool isParamsModifierValidation = false)
         {
             Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax || diagnostics == BindingDiagnosticBag.Discarded);
 
             // This is what BindClassCreationExpression is doing in terms of reporting diagnostics
 
-            constructorForParamsValidation = null;
+            constructor = null;
+            isExpanded = false;
 
             if (targetType is NamedTypeSymbol namedType)
             {
@@ -1188,7 +1190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (overloadResolutionSucceeded)
                 {
                     bindClassCreationExpressionContinued(binder, syntax, memberResolutionResult, in overloadResolutionUseSiteInfo, isParamsModifierValidation, diagnostics);
-                    constructorForParamsValidation = memberResolutionResult.Member;
+                    constructor = memberResolutionResult.Member;
+                    isExpanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 }
                 else
                 {
@@ -1810,7 +1813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
-                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, diagnostics, out _))
+                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, out _, out _, diagnostics))
                     {
                         reportedErrors = true;
                     }

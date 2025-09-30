@@ -1351,8 +1351,7 @@ outerDefault:
 
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
-                            if (!binder.HasCollectionExpressionApplicableConstructor(
-                                    syntax, type, BindingDiagnosticBag.Discarded, out _, isParamsModifierValidation: true))
+                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, out _, out _, BindingDiagnosticBag.Discarded, isParamsModifierValidation: true))
                             {
                                 return false;
                             }
@@ -3044,8 +3043,8 @@ outerDefault:
             TypeSymbol t2, Conversion conv2,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1);
-            var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2);
+            var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1, out _, out _);
+            var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2, out _, out _);
 
             if (Compilation.LanguageVersion < LanguageVersion.CSharp13)
             {
