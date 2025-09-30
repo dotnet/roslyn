@@ -181,7 +181,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 testEnvironment[entry.Key] = entry.Value;
             }
-            
             // Add test DOTNET_ROOT* variants
             foreach (var testEnvVar in testEnvVars)
             {
