@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+                if (!_binder.HasCollectionExpressionApplicableConstructor(
+                        hasWithElement: node.WithElement != null, syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }

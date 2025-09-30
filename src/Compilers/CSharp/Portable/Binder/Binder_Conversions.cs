@@ -1122,6 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal bool HasCollectionExpressionApplicableConstructor(
+            bool hasWithElement,
             SyntaxNode syntax,
             TypeSymbol targetType,
             out MethodSymbol? constructor,
@@ -1129,7 +1130,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool isParamsModifierValidation = false)
         {
-            Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax || diagnostics == BindingDiagnosticBag.Discarded);
+#if DEBUG
+            Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax);
+            if (hasWithElement)
+                Debug.Assert(!isParamsModifierValidation);
+
+            if (isParamsModifierValidation)
+                Debug.Assert(!hasWithElement);
+#endif
 
             // This is what BindClassCreationExpression is doing in terms of reporting diagnostics
 
@@ -1158,10 +1166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // (not exactly the same the same as a no-params constructor).  If not, there is no collection conversion
                 // and params is not allowed.
                 //
-                // However, for collection expressions, we defer any checking to the actual point where we try to
-                // convert an UnconvertedCollectionExpression to the target type.  This is because we may have a
-                // 'with(...)' element that we then need to do actual overload resolution with.
-                if (!isParamsModifierValidation)
+                // For collection expressions, except in the case where it has a with() element.  In that case, it's ok
+                // to not have a no-arg constructor.  It just needs *some* constructor that would be accessible to the
+                // caller.  They can then potentially instantiate the type through one of those constructors.
+                if (hasWithElement)
                 {
                     var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     var candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
@@ -1825,7 +1833,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
-                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
+                    if (!HasCollectionExpressionApplicableConstructor(
+                            hasWithElement: node.WithElement != null, node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }
