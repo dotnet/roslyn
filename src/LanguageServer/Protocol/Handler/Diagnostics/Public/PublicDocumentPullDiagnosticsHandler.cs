@@ -63,12 +63,17 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler(
         var progressValues = progress.GetValues();
         if (progressValues != null && progressValues.Length > 0)
         {
-            if (progressValues.Single().TryGetFirst(out var value))
-            {
-                return value;
-            }
+            // The first report will always be the full report (either changed or unchanged).
+            var firstReport = progressValues[0];
 
-            return progressValues.Single().Second;
+            if (firstReport.TryGetFirst(out var changedReport))
+                return changedReport;
+
+            if (firstReport.TryGetSecond(out var unchangedReport))
+                return unchangedReport;
+
+            // It is unexpected to have the first report be a partial result.
+            throw ExceptionUtilities.UnexpectedValue(firstReport.Third);
         }
 
         return null;
