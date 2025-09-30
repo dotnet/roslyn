@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 /// provider does not provide any completions.
 /// </summary>
 [ExportCompletionProvider(nameof(LastBuiltInCompletionProvider), LanguageNames.CSharp)]
-[ExtensionOrder(After = nameof(ReferenceDirectiveCompletionProvider))]
+[ExtensionOrder(After = nameof(PropertyAppDirectiveCompletionProvider))]
 [Shared]
 internal sealed class LastBuiltInCompletionProvider : CompletionProvider
 {
