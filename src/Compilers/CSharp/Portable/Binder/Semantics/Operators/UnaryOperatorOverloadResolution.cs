@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void getDeclaredUserDefinedUnaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
             {
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType.ExtensionParameter is not null));
                 var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
                 NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
                 GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
@@ -802,6 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (MethodSymbol op in typeOperators)
             {
+                Debug.Assert(op.IsStatic);
                 if (op.Name != name)
                 {
                     continue;

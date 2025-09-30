@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
-        internal override void GetCandidateExtensionMethods(
+        internal override void GetCandidateExtensionMethodsInSingleBinder(
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetCandidateExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
+        internal override void GetCandidateExtensionMembersInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
             Debug.Assert(members.Count == 0);
 

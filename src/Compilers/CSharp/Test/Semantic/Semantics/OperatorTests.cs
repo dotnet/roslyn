@@ -12212,5 +12212,74 @@ public readonly ref struct S1
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "y > x").WithArguments(">", "int?", "S1").WithLocation(4, 2)
             );
         }
+
+        [Fact]
+        public void NotAnOperator_01()
+        {
+            // op_Addition is instance method
+            var ilSrc = """
+.class public auto ansi beforefieldinit C
+    extends System.Object
+{
+    .method public hidebysig specialname instance class C op_Addition ( class C c1, class C c2 ) cil managed 
+    {
+        ldarg.0
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void System.Object::.ctor()
+        nop
+        ret
+    }
+}
+""";
+            var src = """
+_ = new C() + new C();
+""";
+
+            var comp = CreateCompilationWithIL(src, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (1,5): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
+                // _ = new C() + new C();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(1, 5));
+        }
+
+        [Fact]
+        public void NotAnOperator_02()
+        {
+            //  op_UnaryPlus is instance method
+            var ilSrc = """
+.class public auto ansi beforefieldinit C
+    extends System.Object
+{
+    .method public hidebysig specialname instance class C op_UnaryPlus ( class C c1 ) cil managed 
+    {
+        ldarg.0
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void System.Object::.ctor()
+        nop
+        ret
+    }
+}
+""";
+            var src = """
+C c = new C();
+_ = +c;
+""";
+
+            var comp = CreateCompilationWithIL(src, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS0023: Operator '+' cannot be applied to operand of type 'C'
+                // _ = +c;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+c").WithArguments("+", "C").WithLocation(2, 5));
+        }
     }
 }

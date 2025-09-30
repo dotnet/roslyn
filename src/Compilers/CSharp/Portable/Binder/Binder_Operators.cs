@@ -580,15 +580,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var scope in new ExtensionScopes(this))
                 {
-                    extensionCandidatesInSingleScope.Clear();
-                    scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
-                        ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
-                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
-
                     // Try an in-place user-defined operator
                     if (tryInstance)
                     {
                         Debug.Assert(ordinaryInstanceOperatorName is not null);
+
+                        extensionCandidatesInSingleScope.Clear();
+                        scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                            ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
+                            LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustBeInstance, this);
 
                         inPlaceResult = tryApplyUserDefinedInstanceExtensionOperatorInSingleScope(
                             node, extensionCandidatesInSingleScope, kind, checkOverflowAtRuntime,
@@ -601,9 +601,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     extensionCandidatesInSingleScope.Clear();
-                    scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
+                    scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
                         staticOperatorName1, staticOperatorName2Opt, arity: 0,
-                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
+                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
                     if (this.OverloadResolution.BinaryOperatorExtensionOverloadResolutionInSingleScope(
                         extensionCandidatesInSingleScope, kind, checkOverflowAtRuntime,
@@ -1846,7 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string nameTrue = OperatorFacts.UnaryOperatorNameFromOperatorKind(UnaryOperatorKind.True, isChecked: false);
                 signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionMembers(extensionCandidates,
                     nameTrue, alternativeName: null, arity: 0,
-                    LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember);
+                    LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember | LookupOptions.MustNotBeInstance);
 
                 UnaryOperatorAnalysisResult? bestTrue = unaryOperatorOverloadResolution(syntax, extensionCandidates, result, nameTrue, UnaryOperatorKind.True, leftPlaceholder, ref useSiteInfo);
                 UnaryOperatorAnalysisResult? bestFalse = null;
@@ -1857,7 +1857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     extensionCandidates.Clear();
                     signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionMembers(extensionCandidates,
                         nameFalse, alternativeName: null, arity: 0,
-                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember);
+                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember | LookupOptions.MustNotBeInstance);
 
                     bestFalse = unaryOperatorOverloadResolution(syntax, extensionCandidates, result, nameFalse, UnaryOperatorKind.False, leftPlaceholder, ref useSiteInfo);
                 }
@@ -2042,9 +2042,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionScopes(this))
             {
                 extensionCandidatesInSingleScope.Clear();
-                scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
+                scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
                     name1, name2Opt, arity: 0,
-                    LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
+                    LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
                 if (this.OverloadResolution.BinaryOperatorExtensionOverloadResolutionInSingleScope(extensionCandidatesInSingleScope, kind, isChecked, name1, name2Opt, left, right, result, ref useSiteInfo))
                 {
@@ -2332,9 +2332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionScopes(this))
             {
                 extensionCandidatesInSingleScope.Clear();
-                scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
+                scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
                     name1, name2Opt, arity: 0,
-                    LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
+                    LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
                 if (this.OverloadResolution.UnaryOperatorExtensionOverloadResolutionInSingleScope(extensionCandidatesInSingleScope, kind, isChecked, name1, name2Opt, operand, result, ref useSiteInfo))
                 {
@@ -3559,15 +3559,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var scope in new ExtensionScopes(this))
                 {
-                    extensionCandidatesInSingleScope.Clear();
-                    scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
-                        ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
-                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
-
                     // Try an in-place user-defined operator
                     if (mode != InstanceUserDefinedIncrementUsageMode.None)
                     {
                         Debug.Assert(ordinaryInstanceOperatorName is not null);
+
+                        extensionCandidatesInSingleScope.Clear();
+                        scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
+                            ordinaryInstanceOperatorName, checkedInstanceOperatorName, arity: 0,
+                            LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustBeInstance, this);
 
                         inPlaceResult = tryApplyUserDefinedInstanceExtensionOperatorInSingleScope(
                             node, operatorToken, extensionCandidatesInSingleScope, kind, mode, isChecked,
@@ -3580,9 +3580,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     extensionCandidatesInSingleScope.Clear();
-                    scope.Binder.GetCandidateExtensionMembers(extensionCandidatesInSingleScope,
+                    scope.Binder.GetCandidateExtensionMembersInSingleBinder(extensionCandidatesInSingleScope,
                         staticOperatorName1, staticOperatorName2Opt, arity: 0,
-                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember, this);
+                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance, this);
 
                     if (this.OverloadResolution.UnaryOperatorExtensionOverloadResolutionInSingleScope(
                         extensionCandidatesInSingleScope, kind, isChecked,
@@ -3761,13 +3761,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (MethodSymbol op in typeOperators)
                 {
+                    var extensionParameter = op.ContainingType.ExtensionParameter;
+                    Debug.Assert(extensionParameter is not null);
+                    if (!((extensionParameter.Type.IsValueType && extensionParameter.RefKind == RefKind.Ref) ||
+                        (extensionParameter.Type.IsReferenceType && extensionParameter.RefKind == RefKind.None)))
+                    {
+                        continue;
+                    }
+
                     if (op.Name != name)
                     {
                         continue;
                     }
 
+                    Debug.Assert(!op.IsStatic);
                     // If we're in error recovery, we might have bad operators. Just ignore them.
-                    if (op.IsStatic || !IsViableInstanceOperator(op, parameterCount))
+                    if (!IsViableInstanceOperator(op, parameterCount))
                     {
                         continue;
                     }

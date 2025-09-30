@@ -32311,6 +32311,76 @@ namespace N2
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
     }
 
+    [Fact]
+    public void Using_21()
+    {
+        // tracking unnecessary imports, value receiver
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object)
+        {
+            public static int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_22()
+    {
+        // tracking unnecessary imports, type receiver
+        var src = """
+using N1;
+using N2;
+
+_ = object.M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object)
+        {
+            public static int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
     [Theory, CombinatorialData]
     public void PropagateAttributes_01(bool useCompilationReference, bool withPreserve)
     {

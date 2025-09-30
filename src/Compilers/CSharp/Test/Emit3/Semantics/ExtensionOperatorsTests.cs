@@ -28670,7 +28670,7 @@ namespace N2
         public void Using_Increment_05()
         {
             // IL has class C and an extension property `N2.E2.op_Increment`
-            // Because the property is not invocable, the namespace N2 is not considered used
+            // Because the property is not an operator, the namespace N2 is not considered used
             var ilSrc = """
 .class public auto ansi beforefieldinit C
     extends System.Object
@@ -29251,6 +29251,81 @@ namespace N2
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using static N2.E2;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static N2.E2;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void Using_Increment_18()
+        {
+            //public struct S { }
+            //
+            //namespace N1
+            //{
+            //    static class E1
+            //    {
+            //        extension(S s)
+            //        {
+            //            public void operator ++() => throw null;
+            //        }
+            //    }
+            //}
+            var ilSrc = """
+.class public sequential ansi sealed beforefieldinit S
+    extends System.ValueType
+{
+    .pack 0
+    .size 1
+}
+
+.class private auto ansi abstract sealed beforefieldinit N1.E1
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$3B24C9A1A6673CA92CA71905DDEE0A6C'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$B97DBA9601C1D9D405F877E292405C09'
+            extends System.Object
+        {
+            .method public hidebysig specialname static void '<Extension>$' ( valuetype S s ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+
+        .method public hidebysig specialname instance void op_IncrementAssignment () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 42 39 37 44 42 41 39 36 30
+                31 43 31 44 39 44 34 30 35 46 38 37 37 45 32 39
+                32 34 30 35 43 30 39 00 00
+            )
+
+            ldnull
+            throw
+        }
+    }
+
+    .method public hidebysig static void op_IncrementAssignment ( valuetype S s ) cil managed 
+    {
+        ldnull
+        throw
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+            var src = """
+using N1;
+
+S s = new S();
+_ = ++s;
+""";
+            var comp = CreateCompilationWithIL(src, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS0023: Operator '++' cannot be applied to operand of type 'S'
+                // _ = ++s;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s").WithArguments("++", "S").WithLocation(4, 5));
         }
     }
 }

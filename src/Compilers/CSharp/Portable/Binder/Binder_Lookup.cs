@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // 1. Collect new extension members
             var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
-            this.GetCandidateExtensionMembers(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
+            this.GetCandidateExtensionMembersInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
 
             foreach (var candidate in extensionCandidates)
             {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            this.GetCandidateExtensionMethods(extensionMethods, name, arity, options, originalBinder: originalBinder);
+            this.GetCandidateExtensionMethodsInSingleBinder(extensionMethods, name, arity, options, originalBinder: originalBinder);
 
             foreach (var method in extensionMethods)
             {
@@ -790,11 +790,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return the extension methods from this specific binding scope that match the name and optional
         /// arity. Since the lookup of extension methods is iterative, proceeding one binding scope at a time,
-        /// GetCandidateExtensionMethods should not defer to the next binding scope. Instead, the caller is
+        /// <see cref="GetCandidateExtensionMethodsInSingleBinder"/> should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
-        internal virtual void GetCandidateExtensionMethods(
+        internal virtual void GetCandidateExtensionMethodsInSingleBinder(
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,
@@ -807,12 +807,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return the extension members from this specific binding scope
         /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
-        /// GetCandiateExtensionMembers should not defer to the next binding scope. Instead, the caller is
+        /// <see cref="GetCandidateExtensionMembersInSingleBinder"/> should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
-        /// An alternativeName should only provided if a name is provided.
+        /// An alternativeName should only be provided if a name is provided.
         /// </summary>
-        internal virtual void GetCandidateExtensionMembers(
+        internal virtual void GetCandidateExtensionMembersInSingleBinder(
             ArrayBuilder<Symbol> members,
             string? name,
             string? alternativeName,

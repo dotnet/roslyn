@@ -215,7 +215,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddOperators(operators, candidates);
         }
 
-        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, IEnumerable<Symbol> candidates)
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        {
+            foreach (var candidate in candidates)
+            {
+                if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
+                {
+                    operators.Add(method);
+                }
+            }
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ArrayBuilder<Symbol> candidates)
         {
             foreach (var candidate in candidates)
             {
@@ -359,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
                         var thisParam = method.Parameters.First();
-                        if (IsInvalidExtensionReceiverParameter(thisParam))
+                        if (!IsValidExtensionReceiverParameter(thisParam))
                         {
                             continue;
                         }
@@ -372,17 +383,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal static bool IsInvalidExtensionReceiverParameter(ParameterSymbol thisParam)
+        private static bool IsValidExtensionReceiverParameter(ParameterSymbol thisParam)
         {
             Debug.Assert(thisParam is not null);
 
             // For ref and ref-readonly extension members and classic extension methods, receivers need to be of the correct types to be considered in lookup
-            return (thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct);
+            if (thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType)
+            {
+                return false;
+            }
+
+            if (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options)
         {
+            Debug.Assert((options & ~(LookupOptions.IncludeExtensionMembers | LookupOptions.AllMethodsOnArityZero
+                | LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance | LookupOptions.MustBeInvocableIfMember
+                | LookupOptions.MustBeOperator)) == 0);
+
             Debug.Assert(name is not null || alternativeName is null);
 
             if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
@@ -390,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (NamedTypeSymbol nestedType in GetTypeMembersUnordered())
             {
                 if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
-                    || IsInvalidExtensionReceiverParameter(extensionParameter))
+                    || !IsValidExtensionReceiverParameter(extensionParameter))
                 {
                     continue;
                 }
@@ -412,6 +436,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool extensionMemberMatches(Symbol member, string? name, string? alternativeName, int arity, LookupOptions options)
             {
+                if ((options & LookupOptions.MustBeInstance) != 0 && member.IsStatic)
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.MustNotBeInstance) != 0 && !member.IsStatic)
+                {
+                    return false;
+                }
+
+                if ((options & LookupOptions.MustBeOperator) != 0 && member is not MethodSymbol { MethodKind: MethodKind.UserDefinedOperator })
+                {
+                    return false;
+                }
+
                 if ((options & LookupOptions.AllMethodsOnArityZero) == 0
                     && arity != member.GetMemberArityIncludingExtension())
                 {

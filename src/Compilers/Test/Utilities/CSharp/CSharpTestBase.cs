@@ -890,7 +890,7 @@ namespace System.Runtime.CompilerServices
 }
 """;
 
-        internal string ExtensionMarkerAttributeIL = """
+        internal static readonly string ExtensionMarkerAttributeIL = """
 
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
     extends [mscorlib]System.Attribute

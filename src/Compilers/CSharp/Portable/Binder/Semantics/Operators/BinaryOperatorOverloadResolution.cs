@@ -998,6 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (MethodSymbol op in typeOperators)
             {
+                Debug.Assert(op.IsStatic);
                 if (op.Name != name)
                 {
                     continue;
@@ -1502,6 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void getDeclaredUserDefinedBinaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
             {
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType.ExtensionParameter is not null));
                 var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
                 NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
                 GetDeclaredUserDefinedBinaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
