@@ -1615,6 +1615,9 @@ internal class TestAttribute : Attribute
             var diagnosticAnalyzer = new CSharpCompilerDiagnosticAnalyzer();
             var suppressor = new DiagnosticSuppressorForCS0657();
 
+            // Create options with our own getAnalyzerConfigOptionsProvider.  That way we do initialize the map from
+            // analyzer to options within the AnalyzerDriver.  This map needs to contain all analyzers and suppressors,
+            // not just the one we're calling into with GetAnalysisResultAsync.
             var options = new CompilationWithAnalyzersOptions(
                 AnalyzerOptions.Empty,
                 onAnalyzerException: null,
