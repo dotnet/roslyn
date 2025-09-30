@@ -1171,8 +1171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // As long as we have an available instance constructor, this is a type we consider applicable
                     // to collection expressions.  It may be the case that a `with(...)` element is required.  But
                     // that will be reported later when doing the actual conversion to a BoundCollectionExpression.
-                    if (candidateConstructors.Length > 0)
+                    if (candidateConstructors is [var firstConstructor, ..])
+                    {
+                        constructor = firstConstructor;
                         return true;
+                    }
 
                     // Otherwise, fall through.  If we don't have any available instance constructors, we definitely
                     // don't have the no-arg one, and should report the below message saying there is a problem.
