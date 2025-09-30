@@ -1351,7 +1351,10 @@ outerDefault:
 
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
+                            // This is the params case.  So pass in forParams:true as we must find a no-arg-taking
+                            // constructor that would be suitable to call.
+                            if (!binder.HasCollectionExpressionApplicableConstructor(
+                                   forParams: true, syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }

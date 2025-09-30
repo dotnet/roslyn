@@ -928,6 +928,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // PROTOTYPE: Add support for interfaces and Create methods.  Keep diagnostic for arrays/spans.
+                if (node.WithElement != null)
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
+                        node.WithElement.Syntax.GetFirstToken().GetLocation(),
+                        targetType);
+                }
+
                 if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
                     node.HasSpreadElements(out _, out _))
                 {
@@ -1104,7 +1113,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionCreation;
         }
 
-        internal bool HasCollectionExpressionApplicableConstructor(SyntaxNode syntax, TypeSymbol targetType, out MethodSymbol? constructor, out bool isExpanded, BindingDiagnosticBag diagnostics, bool isParamsModifierValidation = false)
+        /// <param name="forParams">Whether or not this is determining if an appropriate constructor exists for the
+        /// params-collection case, or the regular collection-expression case.</param>
+        /// <param name="constructor">The constructor we found.  Only applicable if forParams</param>
+        /// <returns></returns>
+        internal bool HasCollectionExpressionApplicableConstructor(
+            bool forParams,
+            SyntaxNode syntax,
+            TypeSymbol targetType,
+            out MethodSymbol? constructor,
+            out bool isExpanded,
+            BindingDiagnosticBag diagnostics,
+            bool isParamsModifierValidation = false)
         {
             Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax);
 
@@ -1130,21 +1150,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                // For params, we want to see, up front, if this type is suitable as a params collection. To do that, we
+                // explicitly go look to see if there is a suitable constructor that we can find that takes no arguments
+                // (not exactly the same the same as a no-params constructor).  If not, there is no collection conversion
+                // and params is not allowed.
+                //
+                // However, for collection expressions, we defer any checking to the actual point where we try to
+                // convert an UnconvertedCollectionExpression to the target type.  This is because we may have a
+                // 'with(...)' element that we then need to do actual overload resolution with.
+                if (!forParams)
+                {
+                    var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    var candidateConstructors = GetAccessibleConstructorsForOverloadResolution(
+                        namedType, allowProtectedConstructorsOfBaseType: false,
+                        out var allInstanceConstructors, ref useSiteInfo);
+
+                    // As long as we have an available instance constructor, this is a type we consider applicable
+                    // to collection expressions.  It may be the case that a `with(...)` element is required.  But
+                    // that will be reported later when doing the actual conversion to a BoundCollectionExpression.
+                    if (allInstanceConstructors.Length > 0)
+                        return true;
+
+                    // Otherwise, fall through.  If we don't have any available instance constructors, we definitely
+                    // don't have the no-arg one, and should report the below message saying there is a problem.
+                }
+
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 var binder = new ParamsCollectionTypeInProgressBinder(namedType, this);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
-                        namedType,
-                        analyzedArguments,
-                        namedType.Name,
-                        syntax.Location,
-                        suppressResultDiagnostics: false,
-                        diagnostics,
-                        out MemberResolutionResult<MethodSymbol> memberResolutionResult,
-                        candidateConstructors: out _,
-                        allowProtectedConstructorsOfBaseType: false,
-                        out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
-                        isParamsModifierValidation: isParamsModifierValidation);
+                    namedType,
+                    analyzedArguments,
+                    namedType.Name,
+                    syntax.Location,
+                    suppressResultDiagnostics: false,
+                    diagnostics,
+                    out MemberResolutionResult<MethodSymbol> memberResolutionResult,
+                    candidateConstructors: out _,
+                    allowProtectedConstructorsOfBaseType: false,
+                    out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
+                    isParamsModifierValidation: isParamsModifierValidation);
 
                 analyzedArguments.Free();
 
@@ -1774,7 +1819,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
-                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
+                    if (!HasCollectionExpressionApplicableConstructor(
+                            forParams: false, node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }
