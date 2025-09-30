@@ -986,6 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderInvocationPlaceholder,
                 collectionBuilderInvocationConversion,
                 wasTargetTyped: true,
+                hasWithElement: node.WithElement != null,
                 node,
                 builder.ToImmutableAndFree(),
                 targetType)
@@ -1794,6 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderInvocationPlaceholder: null,
                 collectionBuilderInvocationConversion: null,
                 wasTargetTyped: inConversion,
+                hasWithElement: node.WithElement != null,
                 node,
                 elements: builder.ToImmutableAndFree(),
                 targetType,

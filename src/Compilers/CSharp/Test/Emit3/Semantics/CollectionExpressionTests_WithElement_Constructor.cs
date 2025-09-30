@@ -119,7 +119,28 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("10")).VerifyIL(
+            "C.Main",
+            """
+            {
+              // Code size       39 (0x27)
+              .maxstack  3
+              IL_0000:  ldc.i4.s   10
+              IL_0002:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0007:  dup
+              IL_0008:  ldc.i4.1
+              IL_0009:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_000e:  dup
+              IL_000f:  ldc.i4.2
+              IL_0010:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0015:  dup
+              IL_0016:  ldc.i4.3
+              IL_0017:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_001c:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_0021:  call       "void System.Console.WriteLine(int)"
+              IL_0026:  ret
+            }
+            """);
     }
 
     #endregion
@@ -645,6 +666,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         var source = """
             using System;
             using System.Collections.Generic;
+            using System.Linq;
             
             class MyList<T> : List<T>
             {
@@ -799,7 +821,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ArgList constructor called\n1"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("ArgList constructor called\r\n1"));
     }
 
     #endregion
