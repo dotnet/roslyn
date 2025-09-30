@@ -477,8 +477,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Gets the environment variables that should be passed to the server process.
         /// </summary>
         /// <param name="currentEnvironment">Current environment variables to use as a base</param>
+        /// <param name="logger">Optional logger for logging environment variable setup</param>
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
-        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment)
+        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
         {
             if (RuntimeHostInfo.GetToolDotNetRoot() is not { } dotNetRoot)
             {
@@ -502,6 +503,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // Set our DOTNET_ROOT
             environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
 
+            logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+
             return environmentVariables;
         }
 
@@ -523,11 +526,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables());
-            if (environmentVariables != null && environmentVariables.ContainsKey(RuntimeHostInfo.DotNetRootEnvironmentName))
-            {
-                logger.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName]);
-            }
+            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables(), logger);
 
             if (PlatformInformation.IsWindows)
             {
