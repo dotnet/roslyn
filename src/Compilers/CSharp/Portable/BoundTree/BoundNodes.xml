@@ -1936,7 +1936,7 @@
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     
     <!-- With-arguments support for collection expression with(...) syntax -->
-    <Field Name="WithArguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="WithArguments" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
     <Field Name="WithArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
     <Field Name="WithArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
   </Node>

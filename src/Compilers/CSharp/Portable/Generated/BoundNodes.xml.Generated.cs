@@ -6411,7 +6411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(BoundKind.UnconvertedCollectionExpression, syntax, elements, null, hasErrors || withArguments.HasErrors() || elements.HasErrors())
         {
 
-            RoslynDebug.Assert(!withArguments.IsDefault, "Field 'withArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.WithArguments = withArguments;
@@ -16651,7 +16650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node, object? arg) => new TreeDumperNode("unconvertedCollectionExpression", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("withArguments", null, from x in node.WithArguments select Visit(x, null)),
+            new TreeDumperNode("withArguments", null, node.WithArguments.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.WithArguments select Visit(x, null)),
             new TreeDumperNode("withArgumentNamesOpt", node.WithArgumentNamesOpt, null),
             new TreeDumperNode("withArgumentRefKindsOpt", node.WithArgumentRefKindsOpt, null),
             new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
