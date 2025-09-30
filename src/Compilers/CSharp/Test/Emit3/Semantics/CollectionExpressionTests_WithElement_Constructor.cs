@@ -468,11 +468,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        // PROTOTYPE: This is not correct.  'x' is used.  Need to find out why this is being reported.
-        CreateCompilation(source).VerifyDiagnostics(
-            // (12,13): warning CS0219: The variable 'x' is assigned but its value is never used
-            //         int x = 10;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(12, 13));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -725,8 +721,8 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
         CompileAndVerify(
             source,
-            expectedOutput: IncludeExpectedOutput("42"),
-            targetFramework: TargetFramework.Net80);
+            references: [CSharpRef],
+            expectedOutput: IncludeExpectedOutput("42"));
     }
 
     [Fact]
@@ -892,11 +888,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        // PROTOTYPE: This  is not correct.  's' is used.  Need to find out why this is being reported.
-        CreateCompilation(source).VerifyDiagnostics(
-            // (13,15): warning CS0219: The variable 's' is assigned but its value is never used
-            //         short s = 10;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(13, 15));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
