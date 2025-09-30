@@ -998,14 +998,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (MethodSymbol op in typeOperators)
             {
-                Debug.Assert(op.IsStatic);
                 if (op.Name != name)
                 {
                     continue;
                 }
 
                 // If we're in error recovery, we might have bad operators. Just ignore it.
-                if (op.ParameterCount != 2 || op.ReturnsVoid)
+                if (!op.IsStatic || op.ParameterCount != 2 || op.ReturnsVoid)
                 {
                     continue;
                 }

@@ -12214,9 +12214,9 @@ public readonly ref struct S1
         }
 
         [Fact]
-        public void NotAnOperator_01()
+        public void BadOperator_01()
         {
-            // op_Addition is instance method
+            // op_Addition is instance method from metadata
             var ilSrc = """
 .class public auto ansi beforefieldinit C
     extends System.Object
@@ -12248,9 +12248,9 @@ _ = new C() + new C();
         }
 
         [Fact]
-        public void NotAnOperator_02()
+        public void BadOperator_02()
         {
-            //  op_UnaryPlus is instance method
+            // op_UnaryPlus is instance method from metadata
             var ilSrc = """
 .class public auto ansi beforefieldinit C
     extends System.Object
@@ -12280,6 +12280,34 @@ _ = +c;
                 // (2,5): error CS0023: Operator '+' cannot be applied to operand of type 'C'
                 // _ = +c;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "+c").WithArguments("+", "C").WithLocation(2, 5));
+        }
+
+        [Fact]
+        public void BadOperator_03()
+        {
+            // instance operator from compilation reference
+            var source1 = @"
+public class C1
+{
+    public C1 operator +(C1 c1, C1 c2) => throw null;
+}
+";
+            var source2 = @"
+var x = new C1();
+_ = x + x;
+";
+
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (4,24): error CS0558: User-defined operator 'C1.operator +(C1, C1)' must be declared static and public
+                //     public C1 operator +(C1 c1, C1 c2) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "+").WithArguments("C1.operator +(C1, C1)").WithLocation(4, 24));
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics(
+                // (3,5): error CS0019: Operator '+' cannot be applied to operands of type 'C1' and 'C1'
+                // _ = x + x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + x").WithArguments("+", "C1", "C1").WithLocation(3, 5));
         }
     }
 }
