@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);
             }
 
-            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out var constructor, out _);
+            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out MethodSymbol? constructor, out _);
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
             {
