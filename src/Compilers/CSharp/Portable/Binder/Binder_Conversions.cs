@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);
             }
 
-            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out _, out _);
+            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out var constructor, out _);
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
             {
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, node.WithElement, diagnostics);
+                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
                 Debug.Assert(collectionCreation is BoundNewT or BoundObjectCreationExpression);
 
                 if (collectionCreation.HasErrors)
@@ -1085,6 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression BindCollectionExpressionConstructor(
             SyntaxNode syntax,
             TypeSymbol targetType,
+            MethodSymbol? constructor,
             BoundUnconvertedWithElement? withElement,
             BindingDiagnosticBag diagnostics)
         {
@@ -1099,12 +1100,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? AnalyzedArguments.GetInstance()
                 : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
-            var collectionCreation = targetType switch
+            BoundExpression collectionCreation;
+            if (targetType is NamedTypeSymbol namedType)
             {
-                NamedTypeSymbol namedType => BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics, wasTargetTyped: true),
-                TypeParameterSymbol typeParameter => BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics),
-                _ => throw ExceptionUtilities.UnexpectedValue(targetType),
-            };
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor);
+                collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
+            }
+            else if (targetType is TypeParameterSymbol typeParameter)
+            {
+                collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(targetType);
+            }
 
             analyzedArguments.Free();
 
