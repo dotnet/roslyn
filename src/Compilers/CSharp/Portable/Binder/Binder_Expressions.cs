@@ -5273,8 +5273,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (element is WithElementSyntax withElement)
                 {
-                    if (builder.Any())
-                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElement.WithKeyword);
+                    // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
+                    // we still bind the arguments in those later with elements.  However, we only validate those
+                    // arguments against the final arguments against the destination target type if the with element
+                    // was in the proper position.
 
                     var arguments = AnalyzedArguments.GetInstance();
 
@@ -5283,9 +5285,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // allow it.  If it requires substantial work beyond this, disallow it for this feature.
                     BindArgumentsAndNames(withElement.ArgumentList, diagnostics, arguments, allowArglist: true);
 
-                    withArguments = arguments.Arguments.ToImmutable();
-                    withArgumentNamesOpt = arguments.Names.ToImmutableOrNull();
-                    withArgumentRefKindsOpt = arguments.RefKinds.ToImmutableOrNull();
+                    if (withElement != syntax.Elements.First())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElement.WithKeyword);
+                    }
+                    else
+                    {
+                        withArguments = arguments.Arguments.ToImmutable();
+                        withArgumentNamesOpt = arguments.Names.ToImmutableOrNull();
+                        withArgumentRefKindsOpt = arguments.RefKinds.ToImmutableOrNull();
+                    }
+
+                    arguments.Free();
                 }
                 else
                 {
