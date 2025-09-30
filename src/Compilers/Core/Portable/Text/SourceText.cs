@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 while (buffer.Length > 0)
                 {
-                    int copyLength = Math.Min(buffer.Length, length);
+                    int copyLength = Math.Min(tempBuffer.Length, length);
                     sourceText.CopyTo(position, tempBuffer, 0, copyLength);
                     tempBuffer.AsSpan(0, copyLength).CopyTo(buffer);
 
