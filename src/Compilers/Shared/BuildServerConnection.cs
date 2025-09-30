@@ -552,6 +552,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     if (environmentVariables != null)
                     {
                         environmentBlockPtr = CreateEnvironmentBlock(environmentVariables);
+                        // When passing a Unicode environment block, we must set the CREATE_UNICODE_ENVIRONMENT flag
+                        dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
                     }
 
                     bool success = CreateProcess(
