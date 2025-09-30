@@ -1351,10 +1351,8 @@ outerDefault:
 
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
-                            // This is the params case.  So pass in forParams:true as we must find a no-arg-taking
-                            // constructor that would be suitable to call.
                             if (!binder.HasCollectionExpressionApplicableConstructor(
-                                   forParams: true, syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
+                                    syntax, type, BindingDiagnosticBag.Discarded, out _, isParamsModifierValidation: true))
                             {
                                 return false;
                             }
@@ -3046,8 +3044,8 @@ outerDefault:
             TypeSymbol t2, Conversion conv2,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1, out _, out _);
-            var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2, out _, out _);
+            var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1);
+            var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2);
 
             if (Compilation.LanguageVersion < LanguageVersion.CSharp13)
             {

@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var operandType = operand.Type;
 
                 if (node.Conversion.IsCollectionExpression
-                    && node.Conversion.GetCollectionExpressionTypeKind(out _, out _, out _) == CollectionExpressionTypeKind.Array)
+                    && node.Conversion.GetCollectionExpressionTypeKind(out _) == CollectionExpressionTypeKind.Array)
                 {
                     Debug.Assert(type.IsSZArray());
                     return VisitArrayCollectionExpression(type, (BoundCollectionExpression)operand, diagnostics, ref attrHasErrors, curArgumentHasErrors);

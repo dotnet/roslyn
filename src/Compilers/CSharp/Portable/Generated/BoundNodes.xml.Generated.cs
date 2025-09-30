@@ -6437,29 +6437,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedWithElement : BoundNode
     {
-        public BoundUnconvertedWithElement(SyntaxNode syntax, ImmutableArray<BoundExpression> withArguments, ImmutableArray<(string Name, Location Location)?> withArgumentNamesOpt, ImmutableArray<RefKind> withArgumentRefKindsOpt, bool hasErrors = false)
-            : base(BoundKind.UnconvertedWithElement, syntax, hasErrors || withArguments.HasErrors())
+        public BoundUnconvertedWithElement(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool hasErrors = false)
+            : base(BoundKind.UnconvertedWithElement, syntax, hasErrors || arguments.HasErrors())
         {
 
-            RoslynDebug.Assert(!withArguments.IsDefault, "Field 'withArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.WithArguments = withArguments;
-            this.WithArgumentNamesOpt = withArgumentNamesOpt;
-            this.WithArgumentRefKindsOpt = withArgumentRefKindsOpt;
+            this.Arguments = arguments;
+            this.ArgumentNamesOpt = argumentNamesOpt;
+            this.ArgumentRefKindsOpt = argumentRefKindsOpt;
         }
 
-        public ImmutableArray<BoundExpression> WithArguments { get; }
-        public ImmutableArray<(string Name, Location Location)?> WithArgumentNamesOpt { get; }
-        public ImmutableArray<RefKind> WithArgumentRefKindsOpt { get; }
+        public ImmutableArray<BoundExpression> Arguments { get; }
+        public ImmutableArray<(string Name, Location Location)?> ArgumentNamesOpt { get; }
+        public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedWithElement(this);
 
-        public BoundUnconvertedWithElement Update(ImmutableArray<BoundExpression> withArguments, ImmutableArray<(string Name, Location Location)?> withArgumentNamesOpt, ImmutableArray<RefKind> withArgumentRefKindsOpt)
+        public BoundUnconvertedWithElement Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt)
         {
-            if (withArguments != this.WithArguments || withArgumentNamesOpt != this.WithArgumentNamesOpt || withArgumentRefKindsOpt != this.WithArgumentRefKindsOpt)
+            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt)
             {
-                var result = new BoundUnconvertedWithElement(this.Syntax, withArguments, withArgumentNamesOpt, withArgumentRefKindsOpt, this.HasErrors);
+                var result = new BoundUnconvertedWithElement(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10573,7 +10573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitUnconvertedWithElement(BoundUnconvertedWithElement node)
         {
-            this.VisitList(node.WithArguments);
+            this.VisitList(node.Arguments);
             return null;
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
@@ -11982,8 +11982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitUnconvertedWithElement(BoundUnconvertedWithElement node)
         {
-            ImmutableArray<BoundExpression> withArguments = this.VisitList(node.WithArguments);
-            return node.Update(withArguments, node.WithArgumentNamesOpt, node.WithArgumentRefKindsOpt);
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
+            return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
@@ -16702,9 +16702,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitUnconvertedWithElement(BoundUnconvertedWithElement node, object? arg) => new TreeDumperNode("unconvertedWithElement", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("withArguments", null, from x in node.WithArguments select Visit(x, null)),
-            new TreeDumperNode("withArgumentNamesOpt", node.WithArgumentNamesOpt, null),
-            new TreeDumperNode("withArgumentRefKindsOpt", node.WithArgumentRefKindsOpt, null),
+            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+            new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
+            new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

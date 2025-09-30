@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = node.Syntax;
             try
             {
-                var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out _, out _);
+                var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType);
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
