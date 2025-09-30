@@ -48,6 +48,7 @@ object DebugBuild : BuildType({
 
     vcs {
         root(AbsoluteId("Metalama_Metalama20251_MetalamaCompiler"))
+     checkoutMode = CheckoutMode.ON_AGENT
     }
 
     steps {
@@ -132,6 +133,7 @@ object ReleaseBuild : BuildType({
 
     vcs {
         root(AbsoluteId("Metalama_Metalama20251_MetalamaCompiler"))
+     checkoutMode = CheckoutMode.ON_AGENT
     }
 
     steps {
@@ -207,6 +209,7 @@ object PublicBuild : BuildType({
 
     vcs {
         root(AbsoluteId("Metalama_Metalama20251_MetalamaCompiler"))
+     checkoutMode = CheckoutMode.ON_AGENT
     }
 
     steps {
@@ -277,6 +280,7 @@ object PublicDeployment : BuildType({
 
     vcs {
         root(AbsoluteId("Metalama_Metalama20251_MetalamaCompiler"))
+     checkoutMode = CheckoutMode.ON_AGENT
     }
 
     steps {
@@ -337,6 +341,7 @@ object DownstreamMerge : BuildType({
 
     vcs {
         root(AbsoluteId("Metalama_Metalama20251_MetalamaCompiler"))
+     checkoutMode = CheckoutMode.ON_AGENT
     }
 
     steps {
