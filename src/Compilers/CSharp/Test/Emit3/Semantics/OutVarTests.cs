@@ -36558,6 +36558,26 @@ class C
             Assert.Equal("System.String M2(out System.Int32 x, [System.String y = null])", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Same(symbolInfo.Symbol, speculativeModel.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Where(l => l.Identifier.ValueText == "M2").Single()));
         }
+
+        [Fact]
+        public void TestUsedInImplicitObjectCreation()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out int x) { x = 0; }
+
+                    public void M()
+                    {
+                        Goo(new(out var x), x);
+                    }
+
+                    void Foo(C c, int x) { }
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
     }
 
     internal static class OutVarTestsExtensions
