@@ -139,7 +139,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (7,27): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            //         Span<int> span = [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(7, 27));
     }
 
     [Fact]
@@ -157,7 +160,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (7,27): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            //         Span<int> span = [with(capacity: 10), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(7, 27));
     }
 
     [Fact]
@@ -175,7 +181,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (7,27): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            //         Span<int> span = [with()];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(7, 27));
     }
 
     [Fact]
@@ -320,7 +329,13 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (8,14): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'List<T>'
+            //         List<Span<int>> list = [[with(), 1, 2, 3]];
+            Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Span<int>").WithArguments("System.Collections.Generic.List<T>", "T", "System.Span<int>").WithLocation(8, 14),
+            // (8,34): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            //         List<Span<int>> list = [[with(), 1, 2, 3]];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(8, 34));
     }
 
     [Fact]
@@ -386,7 +401,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (9,17): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            //         Method([with(capacity: 10), 1, 2, 3]);
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(9, 17));
     }
 
     [Fact]
@@ -446,7 +464,13 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (7,16): error CS9203: A collection expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the current scope.
+            //         return [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), 1, 2, 3]").WithArguments("System.Span<int>").WithLocation(7, 16),
+            // (7,17): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            //         return [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(7, 17));
     }
 
     [Fact]
@@ -509,7 +533,13 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (7,13): warning CS0219: The variable 'x' is assigned but its value is never used
+            //         int x = 10;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(7, 13),
+            // (8,27): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            //         Span<int> span = [with(in x), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(8, 27));
     }
 
     [Fact]
@@ -585,7 +615,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (8,27): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            //         Span<int> span = [with(capacity: d), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(8, 27));
     }
 
     [Fact]
@@ -622,7 +655,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (7,20): error CS9176: There is no target type for the collection expression.
+            //         var span = [with(), 1, 2, 3] as Span<int>;
+            Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[with(), 1, 2, 3]").WithLocation(7, 20));
     }
 
     [Fact]
@@ -680,7 +716,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             }
             """;
 
-        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (7,25): error CS9336: Collection arguments are not supported for type 'Span<T>'.
+            //         Span<T> span = [with()];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<T>").WithLocation(7, 25));
     }
 
     [Fact]
