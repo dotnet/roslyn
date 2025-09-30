@@ -10208,7 +10208,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PropertyDelete()
+        Public Sub MemberInitializer_Delete_Property()
             Dim src1 = "Class C : Private Property a As Integer = 1 : End Class"
             Dim src2 = "Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -10223,6 +10223,60 @@ End Class
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.a"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+                })
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79320")>
+        Public Sub MemberInitializer_Delete_Property_Partial()
+            Dim srcA1 As String = "
+Partial Class C
+    Sub New()
+        ' comment
+        Dim temp = New System.Action(Sub()
+                                     End Sub)
+    End Sub
+End Class
+"
+
+            Dim srcB1 As String = "
+Partial Class C
+    Property P As Object = New Object()
+End Class
+"
+
+            ' The updated comment is not changing the positions of any active statements and hence
+            ' we do not consider the constructor body changed.
+            ' However, since the initializer changed in the other document,
+            ' the syntax mapping for the constructor still needs to find the matching lambda expression.
+            Dim srcA2 As String = "
+Partial Class C
+    Sub New()
+        ' updated comment
+        Dim temp = New System.Action(Sub()
+                                     End Sub)
+    End Sub
+End Class
+"
+
+            Dim srcB2 As String = "
+Partial Class C
+End Class
+"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(semanticEdits:=
+                    {
+                    }),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True),
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C"))
+                    })
                 })
         End Sub
 
