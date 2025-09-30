@@ -27,6 +27,8 @@ $EnvironmentVariables = 'AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AZ_IDENTITY_USE
 $ErrorActionPreference = "Stop"
 $dockerContextDirectory = "$EngPath/docker-context"
 
+Set-Location $PSScriptRoot
+
 # Function to create secrets JSON file
 function New-EnvJson
 {
