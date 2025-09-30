@@ -150,21 +150,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return instance;
         }
 
-        public static AnalyzedArguments GetInstance(
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<(string, Location)?> argumentNamesOpt)
+        public static AnalyzedArguments GetInstance(BoundUnconvertedArguments original)
         {
             var instance = GetInstance();
-            instance.Arguments.AddRange(arguments);
-            if (!argumentRefKindsOpt.IsDefault)
+
+            instance.Arguments.AddRange(original.Expressions);
+            if (!original.RefKindsOpt.IsDefault)
             {
-                instance.RefKinds.AddRange(argumentRefKindsOpt);
+                instance.RefKinds.AddRange(original.RefKindsOpt);
             }
 
-            if (!argumentNamesOpt.IsDefault)
+            if (!original.NamesOpt.IsDefault)
             {
-                instance.Names.AddRange(argumentNamesOpt);
+                instance.Names.AddRange(original.NamesOpt);
             }
 
             return instance;

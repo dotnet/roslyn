@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, Conversion conversion, bool isCast, TypeSymbol destination,
             ConversionGroup? conversionGroupOpt, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
         {
-            var arguments = AnalyzedArguments.GetInstance(node.Arguments.Expressions, node.Arguments.RefKindsOpt, node.Arguments.NamesOpt);
+            var arguments = AnalyzedArguments.GetInstance(node.Arguments);
             BoundExpression expr = bindObjectCreationExpression(node.Syntax, node.InitializerOpt, node.Binder, destination.StrippedType(), arguments, diagnostics);
             arguments.Free();
 

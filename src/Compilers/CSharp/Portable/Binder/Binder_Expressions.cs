@@ -5588,7 +5588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression BindObjectCreationForErrorRecovery(BoundUnconvertedObjectCreationExpression node, BindingDiagnosticBag diagnostics)
         {
-            var arguments = AnalyzedArguments.GetInstance(node.Arguments.Expressions, node.Arguments.RefKindsOpt, node.Arguments.NamesOpt);
+            var arguments = AnalyzedArguments.GetInstance(node.Arguments);
             var result = MakeBadExpressionForObjectCreation(node.Syntax, CreateErrorType(), arguments, node.InitializerOpt, typeSyntax: node.Syntax, diagnostics);
             arguments.Free();
             return result;
