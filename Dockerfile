@@ -101,5 +101,5 @@ RUN if ($env:GITDIRS) { `
             } `
         } `
     }
-RUN git config --global user.name $env:GIT_USER_NAME; `
-    git config --global user.email $env:GIT_USER_EMAIL;
+RUN if ( $env:GIT_USER_NAME ) { git config --global user.name $env:GIT_USER_NAME } `
+    if ( $env:GIT_USER_EMAIL ) { git config --global user.email $env:GIT_USER_EMAIL }
