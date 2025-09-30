@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public sealed partial class CompilationVerifier
     {
         /// <summary>
-        /// When non-null this will dump assemblies to disk in the given path when verification fails or there are emit errors writing
-        /// the compilation to bytes
+        /// When non-null this will dump assemblies to disk in the given path
         /// </summary>
         internal static string? DumpAssemblyLocation { get; set; } = Environment.GetEnvironmentVariable("ROSLYN_TEST_DUMP_PATH");
 
