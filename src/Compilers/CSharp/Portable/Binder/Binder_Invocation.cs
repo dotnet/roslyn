@@ -1871,7 +1871,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, node);
                 }
 
-                var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+                // params collections have no way to pass `with(...)` arguments along.  So just pass 'default' for them
+                // as they will never exist.
+                var unconvertedCollection = new BoundUnconvertedCollectionExpression(
+                    node,
+                    withArguments: default,
+                    withArgumentNamesOpt: default,
+                    withArgumentRefKindsOpt: default,
+                    elements: ImmutableArray<BoundNode>.CastUp(collectionArgs))
+                {
+                    WasCompilerGenerated = true,
+                    IsParamsArrayOrCollection = true
+                };
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 Conversion conversion = Conversions.ClassifyImplicitConversionFromExpression(unconvertedCollection, collectionType, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);

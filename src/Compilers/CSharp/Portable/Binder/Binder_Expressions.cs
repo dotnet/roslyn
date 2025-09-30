@@ -5303,7 +5303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
                     ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
                     SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
-                    WithElementSyntax withElementSyntax => bindWithElement(withElementSyntax, diagnostics, @this),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
             }
@@ -5368,14 +5367,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementPlaceholder: null,
                     iteratorBody: null,
                     hasErrors: false);
-            }
-
-            static BoundExpression bindWithElement(WithElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
-            {
-                // Currently bail out on everything.
-                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, syntax, "<all types>");
-                return new BoundBadExpression(
-                    syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: @this.Compilation.GetSpecialType(SpecialType.System_Object));
             }
         }
 #nullable disable
