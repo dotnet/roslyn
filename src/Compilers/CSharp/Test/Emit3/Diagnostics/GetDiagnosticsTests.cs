@@ -1633,7 +1633,7 @@ internal class TestAttribute : Attribute
             var analysisResult2 = await compilationWithAnalyzers.GetAnalysisResultAsync([diagnosticAnalyzer, suppressor], CancellationToken.None);
 
             var diagnostic1 = analysisResult1.SemanticDiagnostics.Single().Value.Single().Value.Single();
-            var diagnostic2 = analysisResult1.SemanticDiagnostics.Single().Value.Single().Value.Single();
+            var diagnostic2 = analysisResult2.SemanticDiagnostics.Single().Value.Single().Value.Single();
 
             Assert.True(diagnostic1.IsSuppressed);
             Assert.True(diagnostic2.IsSuppressed);
