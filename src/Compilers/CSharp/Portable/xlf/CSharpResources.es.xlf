@@ -2268,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">El tipo "Microsoft.CodeAnalysis.EmbeddedAttribute" debe ser no genérico, interno, sellado, no estático, tener un constructor sin parámetros, heredar de System.Attribute y poder aplicarse a cualquier tipo.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">El tipo "Microsoft.CodeAnalysis.EmbeddedAttribute" debe ser no genérico, interno, sellado, no estático, tener un constructor sin parámetros, heredar de System.Attribute y poder aplicarse a cualquier tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -11140,7 +11140,7 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
         <target state="translated">El operador 'await' solo se puede usar en una expresión de consulta dentro de la primera expresión de colección de la cláusula 'from' inicial o de la expresión de colección de una cláusula 'join'</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Como esta llamada no es 'awaited', la ejecución del método actual continuará antes de que se complete la llamada. Puede aplicar el operador 'await' al resultado de la llamada.</target>
         <note />

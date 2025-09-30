@@ -2268,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">Typ "Microsoft.CodeAnalysis.EmbeddedAttribute" nie może być rodzajowy, wewnętrzny, zapieczętowany, niestatyczny, mieć konstruktor bez parametrów, dziedziczyć z elementu System.Attribute i można go zastosować do dowolnego typu.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">Typ "Microsoft.CodeAnalysis.EmbeddedAttribute" nie może być rodzajowy, wewnętrzny, zapieczętowany, niestatyczny, mieć konstruktor bez parametrów, dziedziczyć z elementu System.Attribute i można go zastosować do dowolnego typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -11140,7 +11140,7 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <target state="translated">Operatora „await” można użyć tylko w wyrażeniu zapytania w pierwszym wyrażeniu kolekcji początkowej klauzuli „from” albo w wyrażeniu kolekcji klauzuli „join”.</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Ponieważ to wywołanie nie jest oczekiwane, wykonywanie bieżącej metody będzie kontynuowane bez oczekiwania na ukończenie wywołania. Rozważ możliwość zastosowania operatora „await” do wyniku wywołania.</target>
         <note />
