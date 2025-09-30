@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                collectionCreation = BindCollectionExpressionConstructor(syntax, elementType, node.WithElement, diagnostics);
+                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, node.WithElement, diagnostics);
                 Debug.Assert(collectionCreation is BoundNewT or BoundObjectCreationExpression);
 
                 if (collectionCreation.HasErrors)

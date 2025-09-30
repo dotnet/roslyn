@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal CollectionExpressionUncommonData(
                 CollectionExpressionTypeKind collectionExpressionTypeKind, TypeSymbol elementType,
+                MethodSymbol? constructor, bool constructorUsedInExpandedForm,
                 ImmutableArray<Conversion> elementConversions) :
                 base(elementConversions)
             {
@@ -115,20 +116,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(elementType is { });
                 CollectionExpressionTypeKind = collectionExpressionTypeKind;
                 ElementType = elementType;
+                Constructor = constructor;
+                ConstructorUsedInExpandedForm = constructorUsedInExpandedForm;
             }
 
             internal readonly CollectionExpressionTypeKind CollectionExpressionTypeKind;
             internal readonly TypeSymbol ElementType;
+            internal readonly MethodSymbol? Constructor;
+            internal readonly bool ConstructorUsedInExpandedForm;
         }
 
         internal static Conversion CreateCollectionExpressionConversion(
-            CollectionExpressionTypeKind collectionExpressionTypeKind,
-            TypeSymbol elementType,
+            CollectionExpressionTypeKind collectionExpressionTypeKind, TypeSymbol elementType,
+            MethodSymbol? constructor, bool constructorUsedInExpandedForm,
             ImmutableArray<Conversion> elementConversions)
         {
             return new Conversion(
                 ConversionKind.CollectionExpression,
-                new CollectionExpressionUncommonData(collectionExpressionTypeKind, elementType, elementConversions));
+                new CollectionExpressionUncommonData(collectionExpressionTypeKind, elementType, constructor, constructorUsedInExpandedForm, elementConversions));
         }
 
         private Conversion(
@@ -539,15 +544,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal CollectionExpressionTypeKind GetCollectionExpressionTypeKind(out TypeSymbol? elementType)
+        internal CollectionExpressionTypeKind GetCollectionExpressionTypeKind(out TypeSymbol? elementType, out MethodSymbol? constructor, out bool isExpanded)
         {
             if (_uncommonData is CollectionExpressionUncommonData collectionExpressionData)
             {
                 elementType = collectionExpressionData.ElementType;
+                constructor = collectionExpressionData.Constructor;
+                isExpanded = collectionExpressionData.ConstructorUsedInExpandedForm;
                 return collectionExpressionData.CollectionExpressionTypeKind;
             }
 
             elementType = null;
+            constructor = null;
+            isExpanded = false;
             return CollectionExpressionTypeKind.None;
         }
 
