@@ -6287,7 +6287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(BoundKind.UnconvertedObjectCreationExpression, syntax, null, hasErrors)
         {
 
-            RoslynDebug.Assert(arguments is object, "Field 'arguments' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;
@@ -6299,7 +6298,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(BoundKind.UnconvertedObjectCreationExpression, syntax, null)
         {
 
-            RoslynDebug.Assert(arguments is object, "Field 'arguments' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;

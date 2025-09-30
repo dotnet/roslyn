@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// constructed can be found, which determines which actual constructors to bind the arguments against.
 /// </summary>
 internal readonly struct BoundUnconvertedArguments(
-    ImmutableArray<BoundExpression> arguments,
+    ImmutableArray<BoundExpression> expressions,
     ImmutableArray<(string Name, Location Location)?> argumentNamesOpt,
     ImmutableArray<RefKind> argumentRefKindsOpt)
 {
     /// <summary>
     /// The expressions as they exist in the source, left to right.
     /// </summary>
-    public readonly ImmutableArray<BoundExpression> Arguments = arguments;
+    public readonly ImmutableArray<BoundExpression> Expressions = expressions;
 
     /// <summary>
     /// Optional names provided with the arguments, or <see langword="default"/> if no names were provided.
