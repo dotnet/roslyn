@@ -187,7 +187,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 testEnvironment[testEnvVar] = "test_value";
             }
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
-            
             if (envVars != null)
             {
                 // Should not contain any of the DOTNET_ROOT* variants we set
