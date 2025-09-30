@@ -1095,26 +1095,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this function should be kept in sync with HasCollectionExpressionApplicableConstructor.
             //
 
-            BoundExpression collectionCreation;
             var analyzedArguments = withElement is null
                 ? AnalyzedArguments.GetInstance()
                 : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
-            if (targetType is NamedTypeSymbol namedType)
+            var collectionCreation = targetType switch
             {
-                collectionCreation = this.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics, wasTargetTyped: true);
-                collectionCreation.WasCompilerGenerated = true;
-            }
-            else if (targetType is TypeParameterSymbol typeParameter)
-            {
-                collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
-                collectionCreation.WasCompilerGenerated = true;
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(targetType);
-            }
+                NamedTypeSymbol namedType => BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics, wasTargetTyped: true),
+                TypeParameterSymbol typeParameter => BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics),
+                _ => throw ExceptionUtilities.UnexpectedValue(targetType),
+            };
+
             analyzedArguments.Free();
+
+            collectionCreation.WasCompilerGenerated = true;
             return collectionCreation;
         }
 
