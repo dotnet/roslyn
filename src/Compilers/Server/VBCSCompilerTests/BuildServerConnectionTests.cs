@@ -186,7 +186,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 testEnvironment[testEnvVar] = "test_value";
             }
-            
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
             
             if (envVars != null)
