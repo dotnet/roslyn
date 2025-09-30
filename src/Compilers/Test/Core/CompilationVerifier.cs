@@ -8,12 +8,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -1034,11 +1032,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 emitOptions ??= EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
 
-                using var executableStream = new MemoryStream();
+                using var executableStream = getStream(compilation.AssemblyName, "dll");
 
                 var pdb = default(ImmutableArray<byte>);
                 var assembly = default(ImmutableArray<byte>);
-                var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
+                var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? getStream(compilation.AssemblyName, "pdb") : null;
 
                 // Note: don't forget to name the source inputs to get them embedded for debugging
                 var embeddedTexts = compilation.SyntaxTrees
@@ -1069,13 +1067,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     if (pdbStream != null)
                     {
-                        pdb = pdbStream.ToImmutable();
+                        pdb = getBytes(pdbStream);
                         pdbStream.Dispose();
                     }
                 }
 
                 diagnostics.AddRange(result.Diagnostics);
-                assembly = executableStream.ToImmutable();
+                assembly = getBytes(executableStream);
 
                 if (result.Success)
                 {
@@ -1083,8 +1081,40 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 return null;
+
+                Stream getStream(string? assemblyName, string ext)
+                {
+                    if (Environment.GetEnvironmentVariable("ROSLYN_TEST_EMIT_PATH") is string { Length: > 0 } basePath)
+                    {
+                        if (!Directory.Exists(basePath))
+                        {
+                            throw new InvalidOperationException($"The test emit directory '{basePath}' does not exist.");
+                        }
+
+                        var path = Path.Combine(basePath, $"{assemblyName ?? Guid.NewGuid().ToString()}.{ext}");
+                        if (File.Exists(path))
+                        {
+                            path = Path.Combine(basePath, $"{assemblyName}{Guid.NewGuid()}.{ext}");
+                        }
+
+                        return new FileStream(path, FileMode.CreateNew);
+                    }
+
+                    return new MemoryStream();
+                }
+
+                ImmutableArray<byte> getBytes(Stream stream)
+                {
+                    if (stream is MemoryStream ms)
+                    {
+                        return ms.ToImmutable();
+                    }
+
+                    stream.Flush();
+                    stream.Position = 0;
+                    return [.. stream.ReadAllBytes()];
+                }
             }
         }
-
     }
 }
