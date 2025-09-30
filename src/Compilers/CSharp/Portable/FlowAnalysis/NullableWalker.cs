@@ -8583,14 +8583,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // inference is done, the final target type will be used to bind and determine what 'with(...)'
                     // and 'new(...)' mean.
                     //
-                    // So in this case, just pass 'default' for this as they do not contribute to inference and it's 
+                    // So in this case, just pass 'null' for this as they do not contribute to inference and it's 
                     // the same as if the user did not provide any.
                     return new BoundUnconvertedCollectionExpression(
-                        collection.Syntax,
-                        withArguments: default,
-                        withArgumentNamesOpt: default,
-                        withArgumentRefKindsOpt: default,
-                        elements: elementsBuilder.ToImmutableAndFree())
+                        collection.Syntax, withElement: null, elements: elementsBuilder.ToImmutableAndFree())
                     {
                         WasCompilerGenerated = true
                     };

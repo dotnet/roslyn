@@ -1871,14 +1871,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, node);
                 }
 
-                // params collections have no way to pass `with(...)` arguments along.  So just pass 'default' for them
+                // params collections have no way to pass `with(...)` arguments along.  So just pass 'null' for them
                 // as they will never exist.
                 var unconvertedCollection = new BoundUnconvertedCollectionExpression(
-                    node,
-                    withArguments: default,
-                    withArgumentNamesOpt: default,
-                    withArgumentRefKindsOpt: default,
-                    elements: ImmutableArray<BoundNode>.CastUp(collectionArgs))
+                    node, withElement: null, ImmutableArray<BoundNode>.CastUp(collectionArgs))
                 {
                     WasCompilerGenerated = true,
                     IsParamsArrayOrCollection = true

@@ -5264,14 +5264,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
-            ImmutableArray<BoundExpression> withArguments = default;
-            ImmutableArray<(string Name, Location Location)?> withArgumentNamesOpt = default;
-            ImmutableArray<RefKind> withArgumentRefKindsOpt = default;
+            BoundUnconvertedWithElement? withElement = null;
 
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-                if (element is WithElementSyntax withElement)
+                if (element is WithElementSyntax withElementSyntax)
                 {
                     // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
                     // we still bind the arguments in those later with elements.  However, we only validate those
@@ -5283,17 +5281,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
                     // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
                     // allow it.  If it requires substantial work beyond this, disallow it for this feature.
-                    BindArgumentsAndNames(withElement.ArgumentList, diagnostics, arguments, allowArglist: true);
+                    BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, arguments, allowArglist: true);
 
-                    if (withElement != syntax.Elements.First())
+                    if (withElementSyntax != syntax.Elements.First())
                     {
-                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElement.WithKeyword);
+                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
                     }
                     else
                     {
-                        withArguments = arguments.Arguments.ToImmutable();
-                        withArgumentNamesOpt = arguments.Names.ToImmutableOrNull();
-                        withArgumentRefKindsOpt = arguments.RefKinds.ToImmutableOrNull();
+                        withElement = new BoundUnconvertedWithElement(
+                            withElementSyntax,
+                            arguments.Arguments.ToImmutable(),
+                            arguments.Names.ToImmutableOrNull(),
+                            arguments.RefKinds.ToImmutableOrNull());
                     }
 
                     arguments.Free();
@@ -5304,8 +5304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundUnconvertedCollectionExpression(
-                syntax, withArguments, withArgumentNamesOpt, withArgumentRefKindsOpt, builder.ToImmutableAndFree());
+            return new BoundUnconvertedCollectionExpression(syntax, withElement, builder.ToImmutableAndFree());
 
             static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {

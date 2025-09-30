@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         UnconvertedObjectCreationExpression,
         ObjectCreationExpression,
         UnconvertedCollectionExpression,
+        UnconvertedWithElement,
         CollectionExpression,
         CollectionExpressionSpreadExpressionPlaceholder,
         CollectionExpressionSpreadElement,
@@ -6407,30 +6408,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedCollectionExpression : BoundCollectionExpressionBase
     {
-        public BoundUnconvertedCollectionExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> withArguments, ImmutableArray<(string Name, Location Location)?> withArgumentNamesOpt, ImmutableArray<RefKind> withArgumentRefKindsOpt, ImmutableArray<BoundNode> elements, bool hasErrors = false)
-            : base(BoundKind.UnconvertedCollectionExpression, syntax, elements, null, hasErrors || withArguments.HasErrors() || elements.HasErrors())
+        public BoundUnconvertedCollectionExpression(SyntaxNode syntax, BoundUnconvertedWithElement? withElement, ImmutableArray<BoundNode> elements, bool hasErrors = false)
+            : base(BoundKind.UnconvertedCollectionExpression, syntax, elements, null, hasErrors || withElement.HasErrors() || elements.HasErrors())
         {
 
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.WithElement = withElement;
+        }
+
+        public new TypeSymbol? Type => base.Type;
+        public BoundUnconvertedWithElement? WithElement { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedCollectionExpression(this);
+
+        public BoundUnconvertedCollectionExpression Update(BoundUnconvertedWithElement? withElement, ImmutableArray<BoundNode> elements)
+        {
+            if (withElement != this.WithElement || elements != this.Elements)
+            {
+                var result = new BoundUnconvertedCollectionExpression(this.Syntax, withElement, elements, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundUnconvertedWithElement : BoundNode
+    {
+        public BoundUnconvertedWithElement(SyntaxNode syntax, ImmutableArray<BoundExpression> withArguments, ImmutableArray<(string Name, Location Location)?> withArgumentNamesOpt, ImmutableArray<RefKind> withArgumentRefKindsOpt, bool hasErrors = false)
+            : base(BoundKind.UnconvertedWithElement, syntax, hasErrors || withArguments.HasErrors())
+        {
+
+            RoslynDebug.Assert(!withArguments.IsDefault, "Field 'withArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.WithArguments = withArguments;
             this.WithArgumentNamesOpt = withArgumentNamesOpt;
             this.WithArgumentRefKindsOpt = withArgumentRefKindsOpt;
         }
 
-        public new TypeSymbol? Type => base.Type;
         public ImmutableArray<BoundExpression> WithArguments { get; }
         public ImmutableArray<(string Name, Location Location)?> WithArgumentNamesOpt { get; }
         public ImmutableArray<RefKind> WithArgumentRefKindsOpt { get; }
 
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedCollectionExpression(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedWithElement(this);
 
-        public BoundUnconvertedCollectionExpression Update(ImmutableArray<BoundExpression> withArguments, ImmutableArray<(string Name, Location Location)?> withArgumentNamesOpt, ImmutableArray<RefKind> withArgumentRefKindsOpt, ImmutableArray<BoundNode> elements)
+        public BoundUnconvertedWithElement Update(ImmutableArray<BoundExpression> withArguments, ImmutableArray<(string Name, Location Location)?> withArgumentNamesOpt, ImmutableArray<RefKind> withArgumentRefKindsOpt)
         {
-            if (withArguments != this.WithArguments || withArgumentNamesOpt != this.WithArgumentNamesOpt || withArgumentRefKindsOpt != this.WithArgumentRefKindsOpt || elements != this.Elements)
+            if (withArguments != this.WithArguments || withArgumentNamesOpt != this.WithArgumentNamesOpt || withArgumentRefKindsOpt != this.WithArgumentRefKindsOpt)
             {
-                var result = new BoundUnconvertedCollectionExpression(this.Syntax, withArguments, withArgumentNamesOpt, withArgumentRefKindsOpt, elements, this.HasErrors);
+                var result = new BoundUnconvertedWithElement(this.Syntax, withArguments, withArgumentNamesOpt, withArgumentRefKindsOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9211,6 +9240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitObjectCreationExpression((BoundObjectCreationExpression)node, arg);
                 case BoundKind.UnconvertedCollectionExpression:
                     return VisitUnconvertedCollectionExpression((BoundUnconvertedCollectionExpression)node, arg);
+                case BoundKind.UnconvertedWithElement:
+                    return VisitUnconvertedWithElement((BoundUnconvertedWithElement)node, arg);
                 case BoundKind.CollectionExpression:
                     return VisitCollectionExpression((BoundCollectionExpression)node, arg);
                 case BoundKind.CollectionExpressionSpreadExpressionPlaceholder:
@@ -9515,6 +9546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitObjectCreationExpression(BoundObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUnconvertedWithElement(BoundUnconvertedWithElement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpression(BoundCollectionExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, A arg) => this.DefaultVisit(node, arg);
@@ -9751,6 +9783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUnconvertedWithElement(BoundUnconvertedWithElement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpression(BoundCollectionExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node) => this.DefaultVisit(node);
@@ -10534,8 +10567,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
-            this.VisitList(node.WithArguments);
+            this.Visit(node.WithElement);
             this.VisitList(node.Elements);
+            return null;
+        }
+        public override BoundNode? VisitUnconvertedWithElement(BoundUnconvertedWithElement node)
+        {
+            this.VisitList(node.WithArguments);
             return null;
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
@@ -11937,10 +11975,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
-            ImmutableArray<BoundExpression> withArguments = this.VisitList(node.WithArguments);
+            BoundUnconvertedWithElement? withElement = (BoundUnconvertedWithElement?)this.Visit(node.WithElement);
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(withArguments, node.WithArgumentNamesOpt, node.WithArgumentRefKindsOpt, elements);
+            return node.Update(withElement, elements);
+        }
+        public override BoundNode? VisitUnconvertedWithElement(BoundUnconvertedWithElement node)
+        {
+            ImmutableArray<BoundExpression> withArguments = this.VisitList(node.WithArguments);
+            return node.Update(withArguments, node.WithArgumentNamesOpt, node.WithArgumentRefKindsOpt);
         }
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
@@ -14209,18 +14252,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
         {
-            ImmutableArray<BoundExpression> withArguments = this.VisitList(node.WithArguments);
+            BoundUnconvertedWithElement? withElement = (BoundUnconvertedWithElement?)this.Visit(node.WithElement);
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             BoundUnconvertedCollectionExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(withArguments, node.WithArgumentNamesOpt, node.WithArgumentRefKindsOpt, elements);
+                updatedNode = node.Update(withElement, elements);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(withArguments, node.WithArgumentNamesOpt, node.WithArgumentRefKindsOpt, elements);
+                updatedNode = node.Update(withElement, elements);
             }
             return updatedNode;
         }
@@ -16650,12 +16693,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node, object? arg) => new TreeDumperNode("unconvertedCollectionExpression", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("withArguments", null, node.WithArguments.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.WithArguments select Visit(x, null)),
-            new TreeDumperNode("withArgumentNamesOpt", node.WithArgumentNamesOpt, null),
-            new TreeDumperNode("withArgumentRefKindsOpt", node.WithArgumentRefKindsOpt, null),
+            new TreeDumperNode("withElement", null, new TreeDumperNode[] { Visit(node.WithElement, null) }),
             new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitUnconvertedWithElement(BoundUnconvertedWithElement node, object? arg) => new TreeDumperNode("unconvertedWithElement", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("withArguments", null, from x in node.WithArguments select Visit(x, null)),
+            new TreeDumperNode("withArgumentNamesOpt", node.WithArgumentNamesOpt, null),
+            new TreeDumperNode("withArgumentRefKindsOpt", node.WithArgumentRefKindsOpt, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
