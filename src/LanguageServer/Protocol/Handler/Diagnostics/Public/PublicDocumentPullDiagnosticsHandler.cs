@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
@@ -63,12 +65,25 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler(
         var progressValues = progress.GetValues();
         if (progressValues != null && progressValues.Length > 0)
         {
-            if (progressValues.Single().TryGetFirst(out var value))
+            // The first report will always be the full report (either changed or unchanged).
+            DocumentDiagnosticPartialReport firstReport;
+            try
             {
-                return value;
+                firstReport = progressValues.Single();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+                firstReport = progressValues[0];
             }
 
-            return progressValues.Single().Second;
+            if (firstReport.TryGetFirst(out var changedReport))
+                return changedReport;
+
+            if (firstReport.TryGetSecond(out var unchangedReport))
+                return unchangedReport;
+
+            // It is unexpected to have the first report be a partial result.
+            throw ExceptionUtilities.UnexpectedValue(firstReport.Third);
         }
 
         return null;
