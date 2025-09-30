@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (memberOpt?.GetIsNewExtensionMember() == true)
+            if (memberOpt is { ContainingSymbol: NamedTypeSymbol { IsExtension: true } })
             {
                 return false;
             }
