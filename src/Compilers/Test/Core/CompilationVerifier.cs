@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public sealed partial class CompilationVerifier
     {
         /// <summary>
-        /// When true this will dump assemblies to disk when verification fails or there are emit errors writing
+        /// When non-null this will dump assemblies to disk in the given path when verification fails or there are emit errors writing
         /// the compilation to bytes
         /// </summary>
-        internal static bool DumpAssembliesOnFailure { get; set; }
+        internal static string? DumpAssemblyLocation { get; set; } = Environment.GetEnvironmentVariable("ROSLYN_TEST_DUMP_PATH");
 
         private static int s_dumpCount;
 
@@ -89,72 +89,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public string Dump(string? methodName = null)
-        {
-            var emitData = Emit(manifestResources: null, EmitOptions.Default);
-            var dumpDir = DumpAssemblyData(emitData.Modules);
-            string extension = emitData.EmittedModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
-            string modulePath = Path.Combine(dumpDir, emitData.EmittedModule.SimpleName + extension);
-
-            var decompiler = new ICSharpCode.Decompiler.CSharp.CSharpDecompiler(modulePath,
-                new ICSharpCode.Decompiler.DecompilerSettings() { AsyncAwait = false });
-
-            if (methodName != null)
-            {
-                var map = new Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod>();
-                listMethods(decompiler.TypeSystem.MainModule.RootNamespace, map);
-
-                if (map.TryGetValue(methodName, out var method))
-                {
-                    return decompiler.DecompileAsString(method.MetadataToken);
-                }
-                else
-                {
-                    throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: {Environment.NewLine}{string.Join(Environment.NewLine, map.Keys)}");
-                }
-            }
-
-            return decompiler.DecompileWholeModuleAsString();
-
-            void listMethods(ICSharpCode.Decompiler.TypeSystem.INamespace @namespace, Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod> result)
-            {
-                foreach (var nestedNS in @namespace.ChildNamespaces)
-                {
-                    if (nestedNS.FullName != "System" &&
-                        nestedNS.FullName != "Microsoft")
-                    {
-                        listMethods(nestedNS, result);
-                    }
-                }
-
-                foreach (var type in @namespace.Types)
-                {
-                    listMethodsInType(type, result);
-                }
-            }
-
-            void listMethodsInType(ICSharpCode.Decompiler.TypeSystem.ITypeDefinition type, Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod> result)
-            {
-                foreach (var nestedType in type.NestedTypes)
-                {
-                    listMethodsInType(nestedType, result);
-                }
-
-                foreach (var method in type.Methods)
-                {
-                    if (result.ContainsKey(method.FullName))
-                    {
-                        // There is a bug with FullName on methods in generic types
-                        result.Remove(method.FullName);
-                    }
-                    else
-                    {
-                        result.Add(method.FullName, method);
-                    }
-                }
-            }
-        }
-
         public string DumpIL()
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput();
@@ -166,10 +100,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return output.ToString();
         }
 
-        public static string DumpAssemblyData(IEnumerable<ModuleData> modules)
+        public static string DumpAssemblyData(IEnumerable<ModuleData> modules, string dumpBasePath)
         {
             var dumpCount = Interlocked.Increment(ref s_dumpCount);
-            var dumpDirectory = Path.Combine(TempRoot.Root, "dumps", dumpCount.ToString());
+            var dumpDirectory = Path.Combine(dumpBasePath is "" ? TempRoot.Root : dumpBasePath, "dumps", dumpCount.ToString());
             _ = Directory.CreateDirectory(dumpDirectory);
 
             // Limit the number of dumps to 10. After 10 we're likely in a bad state and are 
@@ -346,9 +280,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             catch (Exception)
             {
-                if (DumpAssembliesOnFailure)
+                if (DumpAssemblyLocation is string dumpPath)
                 {
-                    DumpAssemblyData(emitData.Modules);
+                    DumpAssemblyData(emitData.Modules, dumpPath);
                 }
 
                 if (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
@@ -605,6 +539,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // can't be loaded as a dependency (via Assembly.ReflectionOnlyLoad) in the same domain.
                 dependencyList.Insert(0, moduleData);
 
+                if (DumpAssemblyLocation is string dumpAssemblyLocation)
+                {
+                    DumpAssemblyData(dependencyList, dumpAssemblyLocation);
+                }
+
                 _emitData = new EmitData(
                     moduleData,
                     dependencyList.ToImmutableArray(),
@@ -614,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                var dumpDir = DumpAssembliesOnFailure ? DumpAssemblyData(dependencyList) : null;
+                var dumpDir = DumpAssemblyLocation is string dumpAssemblyLocation ? DumpAssemblyData(dependencyList, dumpAssemblyLocation) : null;
                 throw new EmitException(diagnostics.ToReadOnlyAndFree(), dumpDir);
             }
         }
@@ -1032,11 +971,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 emitOptions ??= EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
 
-                using var executableStream = getStream(compilation.AssemblyName, "dll");
+                using var executableStream = new MemoryStream();
 
                 var pdb = default(ImmutableArray<byte>);
                 var assembly = default(ImmutableArray<byte>);
-                var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? getStream(compilation.AssemblyName, "pdb") : null;
+                var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
 
                 // Note: don't forget to name the source inputs to get them embedded for debugging
                 var embeddedTexts = compilation.SyntaxTrees
@@ -1067,13 +1006,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     if (pdbStream != null)
                     {
-                        pdb = getBytes(pdbStream);
+                        pdb = pdbStream.ToImmutable();
                         pdbStream.Dispose();
                     }
                 }
 
                 diagnostics.AddRange(result.Diagnostics);
-                assembly = getBytes(executableStream);
+                assembly = executableStream.ToImmutable();
 
                 if (result.Success)
                 {
@@ -1081,39 +1020,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 return null;
-
-                Stream getStream(string? assemblyName, string ext)
-                {
-                    if (Environment.GetEnvironmentVariable("ROSLYN_TEST_EMIT_PATH") is string { Length: > 0 } basePath)
-                    {
-                        if (!Directory.Exists(basePath))
-                        {
-                            throw new InvalidOperationException($"The test emit directory '{basePath}' does not exist.");
-                        }
-
-                        var path = Path.Combine(basePath, $"{assemblyName ?? Guid.NewGuid().ToString()}.{ext}");
-                        if (File.Exists(path))
-                        {
-                            path = Path.Combine(basePath, $"{assemblyName}{Guid.NewGuid()}.{ext}");
-                        }
-
-                        return new FileStream(path, FileMode.CreateNew);
-                    }
-
-                    return new MemoryStream();
-                }
-
-                ImmutableArray<byte> getBytes(Stream stream)
-                {
-                    if (stream is MemoryStream ms)
-                    {
-                        return ms.ToImmutable();
-                    }
-
-                    stream.Flush();
-                    stream.Position = 0;
-                    return [.. stream.ReadAllBytes()];
-                }
             }
         }
     }
