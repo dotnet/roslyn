@@ -1351,7 +1351,7 @@ outerDefault:
 
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, out _, out _, BindingDiagnosticBag.Discarded, isParamsModifierValidation: true))
+                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }
