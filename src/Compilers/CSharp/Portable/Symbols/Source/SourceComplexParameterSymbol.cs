@@ -1637,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, Type, out MethodSymbol? constructor, out _, diagnostics, isParamsModifierValidation: true))
+                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
                             {
                                 return;
                             }
