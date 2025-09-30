@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
                 collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
-                Debug.Assert(collectionCreation is BoundNewT or BoundObjectCreationExpression or BoundBadExpression);
+                Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
                 {

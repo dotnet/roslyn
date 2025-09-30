@@ -723,7 +723,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
+        CompileAndVerify(
+            source,
+            expectedOutput: IncludeExpectedOutput("42"),
+            targetFramework: TargetFramework.Net80);
     }
 
     [Fact]
@@ -766,7 +769,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics();
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,20): error CS9176: There is no target type for the collection expression.
+            //         var list = [with(capacity: 10)] as dynamic;
+            Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[with(capacity: 10)]").WithLocation(8, 20));
     }
 
     #endregion
