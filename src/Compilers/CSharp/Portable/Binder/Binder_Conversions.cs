@@ -1105,6 +1105,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor);
                 collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
+
+                // PROTOTYPE: If this failed to bind a suitable constructor, and the user had no with() element and
+                // there was no constructor that could be called with no args, report a special diagnostic that a 
+                // 'with()' element is required here.
             }
             else if (targetType is TypeParameterSymbol typeParameter)
             {
