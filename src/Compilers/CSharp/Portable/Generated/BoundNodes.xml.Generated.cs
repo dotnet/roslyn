@@ -6283,35 +6283,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedObjectCreationExpression : BoundExpression
     {
-        public BoundUnconvertedObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, Binder binder, bool hasErrors = false)
-            : base(BoundKind.UnconvertedObjectCreationExpression, syntax, null, hasErrors || arguments.HasErrors())
+        public BoundUnconvertedObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedArguments arguments, InitializerExpressionSyntax? initializerOpt, Binder binder, bool hasErrors)
+            : base(BoundKind.UnconvertedObjectCreationExpression, syntax, null, hasErrors)
         {
 
-            RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(arguments is object, "Field 'arguments' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;
-            this.ArgumentNamesOpt = argumentNamesOpt;
-            this.ArgumentRefKindsOpt = argumentRefKindsOpt;
+            this.InitializerOpt = initializerOpt;
+            this.Binder = binder;
+        }
+
+        public BoundUnconvertedObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedArguments arguments, InitializerExpressionSyntax? initializerOpt, Binder binder)
+            : base(BoundKind.UnconvertedObjectCreationExpression, syntax, null)
+        {
+
+            RoslynDebug.Assert(arguments is object, "Field 'arguments' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Arguments = arguments;
             this.InitializerOpt = initializerOpt;
             this.Binder = binder;
         }
 
         public new TypeSymbol? Type => base.Type;
-        public ImmutableArray<BoundExpression> Arguments { get; }
-        public ImmutableArray<(string Name, Location Location)?> ArgumentNamesOpt { get; }
-        public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
+        public BoundUnconvertedArguments Arguments { get; }
         public InitializerExpressionSyntax? InitializerOpt { get; }
         public Binder Binder { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedObjectCreationExpression(this);
 
-        public BoundUnconvertedObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, Binder binder)
+        public BoundUnconvertedObjectCreationExpression Update(BoundUnconvertedArguments arguments, InitializerExpressionSyntax? initializerOpt, Binder binder)
         {
-            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerOpt != this.InitializerOpt || binder != this.Binder)
+            if (arguments != this.Arguments || initializerOpt != this.InitializerOpt || binder != this.Binder)
             {
-                var result = new BoundUnconvertedObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerOpt, binder, this.HasErrors);
+                var result = new BoundUnconvertedObjectCreationExpression(this.Syntax, arguments, initializerOpt, binder, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10515,11 +10523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.NamedArguments);
             return null;
         }
-        public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
-        {
-            this.VisitList(node.Arguments);
-            return null;
-        }
+        public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node) => null;
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             this.VisitList(node.Arguments);
@@ -11915,9 +11919,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt, node.Binder);
+            return node.Update(node.Arguments, node.InitializerOpt, node.Binder);
         }
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
@@ -14164,18 +14167,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            BoundUnconvertedObjectCreationExpression updatedNode;
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
 
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt, node.Binder);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt, node.Binder);
-            }
+            BoundUnconvertedObjectCreationExpression updatedNode = node.Update(node.Arguments, node.InitializerOpt, node.Binder);
+            updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
 
@@ -16611,9 +16609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, object? arg) => new TreeDumperNode("unconvertedObjectCreationExpression", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
-            new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
-            new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
+            new TreeDumperNode("arguments", node.Arguments, null),
             new TreeDumperNode("initializerOpt", node.InitializerOpt, null),
             new TreeDumperNode("binder", node.Binder, null),
             new TreeDumperNode("type", node.Type, null),
