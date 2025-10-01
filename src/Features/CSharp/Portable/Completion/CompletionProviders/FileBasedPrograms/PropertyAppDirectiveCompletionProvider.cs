@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.FileBasedPrograms;
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
 [ExportCompletionProvider(nameof(PropertyAppDirectiveCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(ReferenceDirectiveCompletionProvider))]
@@ -46,13 +46,20 @@ internal class PropertyAppDirectiveCompletionProvider() : LSPCompletionProvider
         if (token.Parent is not IgnoredDirectiveTriviaSyntax ignoredDirective)
             return;
 
-        if (token.IsKind(SyntaxKind.ColonToken))
+        // Note that in the `#: $$` case, the whitespace is trailing trivia on the colon-token.
+        if (token == ignoredDirective.ColonToken)
         {
             addDirectiveKindCompletion();
         }
-        else if (token.IsKind(SyntaxKind.StringLiteralToken))
+        else if (token == ignoredDirective.Content)
         {
-            var textLeftOfCaret = token.ValueText.AsSpan(start: 0, length: context.Position - token.SpanStart);
+            // For a test case like '#: pro$$ Name=Value', then:
+            // We know that 'token.Text == "pro Name=Value"', and, the below expressions correspond to text positions as shown:
+            // #: pro Name=Value
+            //    │  │
+            //    │  └─context.Position
+            //    └────token.SpanStart
+            var textLeftOfCaret = token.Text.AsSpan(start: 0, length: context.Position - token.SpanStart);
             if (DirectiveKind.StartsWith(textLeftOfCaret))
             {
                 addDirectiveKindCompletion();
@@ -62,11 +69,10 @@ internal class PropertyAppDirectiveCompletionProvider() : LSPCompletionProvider
         void addDirectiveKindCompletion()
         {
             context.AddItem(CommonCompletionItem.Create(DirectiveKind, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.Keyword,
-                // TODO2 localizable
                 description: [
-                    new(SymbolDisplayPartKind.Text, symbol: null, "#:property Name=Value"),
+                    new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Hash_colon_property__Name_equals_Value),
                     new(SymbolDisplayPartKind.LineBreak, symbol: null, ""),
-                    new(SymbolDisplayPartKind.Text, symbol: null, "Defines a build property."),
+                    new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Defines_a_build_property),
                     ]));
         }
     }

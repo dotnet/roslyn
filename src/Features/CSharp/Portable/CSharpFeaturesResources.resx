@@ -587,4 +587,11 @@
   <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
     <value>Convert all extension methods in '{0}' to extension</value>
   </data>
+  <data name="Hash_colon_property__Name_equals_Value" xml:space="preserve">
+    <value>#:property Name=Value</value>
+    <comment>'Name' and 'Value' are placeholders that user will substitute out with an actual property name and value.</comment>
+  </data>
+  <data name="Defines_a_build_property" xml:space="preserve">
+    <value>Defines a build property.</value>
+  </data>
 </root>

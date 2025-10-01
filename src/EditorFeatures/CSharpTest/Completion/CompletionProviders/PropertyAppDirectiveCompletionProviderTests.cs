@@ -8,8 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
-using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -22,30 +22,60 @@ public sealed class PropertyAppDirectiveCompletionProviderTests : AbstractCSharp
     internal override Type GetCompletionProviderType()
         => typeof(PropertyAppDirectiveCompletionProvider);
 
-    private static string GetMarkup(string code) => $$"""
+    private static string GetMarkup(string code, string features = "FileBasedProgram=true") => $$"""
         <Workspace>
-            <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="FileBasedProgram=true">
+            <Project Language="C#" CommonReferences="true" AssemblyName="Test1" Features="{{features}}">
             <Document><![CDATA[{{code}}]]></Document>
             </Project>
         </Workspace>
         """;
 
-    [Fact(Skip = "TODO2 workspace markup doesn't seem to be respected from this helper")]
-    public Task VerifyCommitCharacters()
-        => VerifyCommonCommitCharactersAsync(GetMarkup("""
-            // comment
-
-            #:$$
-
-            using NS;
-
-            public class C { }
-            """), "p");
-
     [Fact]
     public Task AfterHashColon()
         => VerifyItemExistsAsync(GetMarkup("""
             #:$$
+            """), expectedItem: "property");
+
+    [Fact]
+    public Task AfterHashColonQuote()
+        => VerifyItemIsAbsentAsync(GetMarkup("""
+            #:"$$
+            """), expectedItem: "property");
+
+    [Fact]
+    public Task NotWhenFileBasedProgramIsDisabled()
+        => VerifyItemIsAbsentAsync(GetMarkup("""
+            #:$$
+            """, features: ""), expectedItem: "property");
+
+    [Fact]
+    public Task AfterHashColonSpace()
+        => VerifyItemExistsAsync(GetMarkup("""
+            #: $$
+            """), expectedItem: "property");
+
+    [Fact]
+    public Task NotAfterHashColonSpaceColon()
+        => VerifyItemIsAbsentAsync(GetMarkup("""
+            #: :$$
+            """), expectedItem: "property");
+
+    [Fact]
+    public Task NotAfterHashColonWord()
+        => VerifyItemIsAbsentAsync(GetMarkup("""
+            #:word$$
+            """), expectedItem: "property");
+
+    [Fact]
+    public Task AfterHashColonBeforeWord()
+        => VerifyItemExistsAsync(GetMarkup("""
+            #:$$word
+            """), expectedItem: "property");
+
+    [Fact]
+    public Task AfterHashColonBeforeNameEqualsValue()
+        => VerifyItemExistsAsync(GetMarkup("""
+            #:$$ Name=Value
             """), expectedItem: "property");
 
     [Fact]

@@ -192,6 +192,11 @@
         <target state="translated">Converti in stringa verbatim</target>
         <note />
       </trans-unit>
+      <trans-unit id="Defines_a_build_property">
+        <source>Defines a build property.</source>
+        <target state="new">Defines a build property.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">Abilita tipi riferimento nullable nel progetto</target>
@@ -206,6 +211,11 @@
         <source>Global 'using' directives</source>
         <target state="translated">Direttive globali 'using'</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Hash_colon_property__Name_equals_Value">
+        <source>#:property Name=Value</source>
+        <target state="new">#:property Name=Value</target>
+        <note>'Name' and 'Value' are placeholders that user will substitute out with an actual property name and value.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
