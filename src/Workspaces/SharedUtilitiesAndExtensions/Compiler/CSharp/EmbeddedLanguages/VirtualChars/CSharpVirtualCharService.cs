@@ -478,6 +478,10 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 var highSurrogate = ((uintChar - 0x00010000) / 0x0400) + 0xD800;
 
                 // Encode this as a surrogate pair.
+                //
+                // Note: a width of 0 on this first char is fine.  The caller will be combining the two widths here to
+                // create the final width.  So there's no concern about making a VirtualCharGreen with an illegal width
+                // of 0.
                 result.Add(((char)highSurrogate, offset: startIndex, width: 0));
                 result.Add(((char)lowSurrogate, offset: startIndex, width: 2 + 8));
                 return true;
