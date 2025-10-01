@@ -366,7 +366,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
     private protected abstract ValueTask<Document> AddDocumentAsync(TestLspServer testLspServer, string filePath, string content);
     private protected abstract Workspace GetHostWorkspace(TestLspServer testLspServer);
 
-    private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
+    private protected static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
     {
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None).ConfigureAwait(false);
         return (workspace, document as Document);

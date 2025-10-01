@@ -70,4 +70,65 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
         return workspaceFactory.HostWorkspace;
     }
+
+    [Theory, CombinatorialData]
+    public async Task TestLspTransfersFromFileBaedProgramToHostWorkspaceDocumentOrderingAsync(bool mutatingLspWorkspace)
+    {
+        var markup = "Console.WriteLine();";
+
+        // Create a server that includes the LSP misc files workspace so we can test transfers to and from it.
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        // Include some Unicode characters to test URL handling.
+        using var tempRoot = new TempRoot();
+        var newDocumentFilePath = Path.Combine(tempRoot.CreateDirectory().Path, "Program.cs");
+        File.WriteAllText(newDocumentFilePath, markup);
+
+        var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(newDocumentFilePath);
+
+        // Ensure LSP has the text
+        await testLspServer.OpenDocumentAsync(newDocumentUri, "Console.WriteLine();");
+
+        // The first call should return a document in the misc files workspace.
+        var (_, miscDocument) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
+        Assert.NotNull(miscDocument);
+        Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(miscDocument));
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscDocument.Project.Solution.Workspace.Kind);
+
+        // Wait for the project system to load the file as a FBP
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // The second call should return an FBP document in the host workspace.
+        var (documentWorkspace, document) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
+        Assert.NotNull(document);
+        Assert.NotNull(documentWorkspace);
+        Assert.Equal(WorkspaceKind.Host, documentWorkspace.Kind);
+        // FBP project path is just the document file path.
+        Assert.Equal(newDocumentFilePath, document.Project.FilePath);
+
+        // Now, upadate the host workspace to also include the document (simulating it getting added by the project system later on).
+        var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
+        var projectName = "MainSolutionProject";
+        var project = await workspaceFactory.HostProjectFactory.CreateAndAddToWorkspaceAsync(
+            Guid.NewGuid().ToString(),
+            LanguageNames.CSharp,
+            new ProjectSystemProjectCreationInfo { AssemblyName = projectName },
+            workspaceFactory.ProjectSystemHostInfo);
+
+        project.AddSourceFile(newDocumentFilePath);
+
+        // Wait for the project system to load the host project
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // LSP should return the document from the main solution instead of the FBP.
+        var (hostWorkspace, documentInHostProject) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
+        Assert.NotNull(documentInHostProject);
+        Assert.NotNull(hostWorkspace);
+        Assert.Equal(WorkspaceKind.Host, hostWorkspace.Kind);
+        Assert.Equal(documentInHostProject.Project.AssemblyName, projectName);
+
+        // ISSUE - LSP request context will have the main sln document, but GetTextDocumentAsync will return the FBP document (as the order is in the sln state).
+        var documentFromAPI = document.Project.Solution.GetTextDocumentAsync(CreateTextDocumentIdentifier(newDocumentUri), CancellationToken.None);
+        Assert.Equal(documentInHostProject, await documentFromAPI);
+    }
 }
