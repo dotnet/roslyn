@@ -3867,6 +3867,9 @@ int.M();
             // (1,5): error CS0570: 'E.extension(int).M<T>()' is not supported by the language
             // int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M<T>()").WithLocation(1, 5));
+
+        var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.AssociatedExtensionImplementation);
     }
 
     [Fact]
@@ -33081,8 +33084,7 @@ public static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
         var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, add support for constructed symbols
-        Assert.Null(method.AssociatedExtensionImplementation);
+        AssertEx.Equal("void E.M<System.Int32>(this System.Int32 t)", method.AssociatedExtensionImplementation.ToTestDisplayString());
         Assert.Equal("void E.M<T>(this T t)", method.OriginalDefinition.AssociatedExtensionImplementation.ToTestDisplayString());
     }
 
@@ -33186,6 +33188,151 @@ public class E
         var comp = CreateCompilationWithIL("", ilSrc);
         var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
         Assert.Null(method.AssociatedExtensionImplementation);
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_06()
+    {
+        // not a definition, generic extension and method
+        var src = """
+42.M(43L, "");
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U, V>(U u, V v) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.M<System.Int32, System.Int64, System.String>(this System.Int32 t, System.Int64 u, System.String v)",
+            method.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_07()
+    {
+        // generic definition
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U, V>(U u, V v)
+        {
+            t.M(u, v);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        Assert.True(method.IsDefinition);
+        var associated = method.AssociatedExtensionImplementation;
+        AssertEx.Equal("void E.M<T, U, V>(this T t, U u, V v)", associated.ToTestDisplayString());
+        Assert.False(associated.IsDefinition);
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_08()
+    {
+        // not a definition, generic extension and method, partially constructed with type parameters
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U, V>(U u, V v)
+        {
+            t.M(42L, "");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.M<T, System.Int64, System.String>(this T t, System.Int64 u, System.String v)",
+            method.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_09()
+    {
+        // generic enclosing class, generic implementation method
+        var src = """
+public static class E<T0>
+{
+    extension<T1>(T1 t1)
+    {
+        public void M<T2>(T2 t2)
+        {
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T1>(T1 t1)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var method = extension.GetMethod("M").GetPublicSymbol();
+        Assert.True(method.IsDefinition);
+        var associated = method.AssociatedExtensionImplementation;
+        AssertEx.Equal("void E<T0>.M<T1, T2>(this T1 t1, T2 t2)", associated.ToTestDisplayString());
+        Assert.False(associated.IsDefinition);
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        var constructedE = e.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+        var constructedMethod = constructedE.GetTypeMembers("").Single().GetMethod("M").GetPublicSymbol();
+        AssertEx.Equal("void E<System.Int32>.<G>$8048A6C8BE30A622530249B904B537EB<T1>.M<T2>(T2 t2)", constructedMethod.ToTestDisplayString());
+        AssertEx.Equal("void E<System.Int32>.M<T1, T2>(this T1 t1, T2 t2)", constructedMethod.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_10()
+    {
+        // generic enclosing class, non-generic implementation method
+        var src = """
+public static class E<T0>
+{
+    extension(int i)
+    {
+        public void M()
+        {
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T1>(T1 t1)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        var constructedE = e.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+        var constructedMethod = constructedE.GetTypeMembers("").Single().GetMethod("M").GetPublicSymbol();
+        AssertEx.Equal("void E<System.Int32>.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", constructedMethod.ToTestDisplayString());
+        AssertEx.Equal("void E<System.Int32>.M(this System.Int32 i)", constructedMethod.AssociatedExtensionImplementation.ToTestDisplayString());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
