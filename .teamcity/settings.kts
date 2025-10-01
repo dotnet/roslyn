@@ -17,15 +17,6 @@ project {
     buildType(PublicDeployment)
     buildType(DownstreamMerge)
 
-    features {
-         untrustedBuildsSettings {
-             id = "UNTRUSTED_BUILD_SETTINGS_EXT"
-             defaultAction = UntrustedBuildsSettings.DefaultAction.APPROVE
-             enableLog = true
-             approvalRules = "group:UNTRUSTED_BUILD_APPROVERS:1"
-         }
-     }
-
     buildTypesOrder = arrayListOf(DebugBuild,ReleaseBuild,PublicBuild,PublicDeployment,DownstreamMerge)
 
 }
@@ -108,6 +99,8 @@ pullRequests {
         vcs {
             watchChangesInDependencies = true
             branchFilter = "+:develop/2025.1"
+             quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
+             quietPeriod = 7200
             // Build will not trigger automatically if the commit message contains comment value.
             triggerRules = "-:comment=<<VERSION_BUMP>>|<<DEPENDENCIES_UPDATED>>:**"
         }
@@ -373,15 +366,6 @@ object DownstreamMerge : BuildType({
         swabra {
             lockingProcesses = Swabra.LockingProcessPolicy.KILL
             verbose = true
-        }
-    }
-
-    triggers {
-        vcs {
-            watchChangesInDependencies = true
-            branchFilter = "+:develop/2025.1"
-            // Build will not trigger automatically if the commit message contains comment value.
-            triggerRules = "-:comment=<<VERSION_BUMP>>|<<DEPENDENCIES_UPDATED>>:**"
         }
     }
 
