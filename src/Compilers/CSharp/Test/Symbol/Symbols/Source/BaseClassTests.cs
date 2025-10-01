@@ -2438,7 +2438,7 @@ public class C : B<A> { }";
         }
 
         [Fact]
-        public void TestBadNestedInnerClassVisibility()
+        public void TestBadContainedTypeVisibility()
         {
             var source = @"
 public class A { internal class B { } }
@@ -2452,7 +2452,7 @@ public class C : A.B { }";
         }
 
         [Fact]
-        public void TestBadNestedOuterClassVisibility()
+        public void TestBadContainingTypeVisibility()
         {
             var source = @"
 class A { public class B { } }
@@ -2463,6 +2463,26 @@ public class C : A.B { }";
                 // (3,14): error CS9335: Inconsistent accessibility: type 'A' is less accessible than class 'C'
                 //     public class C : A.B { }
                 Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A").WithLocation(3, 14));
+        }
+
+        [Fact]
+        public void TestBadContainingTypeVisibilityWithoutExplicitReference()
+        {
+            var source = @"
+using static A;
+
+static class A
+{
+    public class B { }
+}
+
+public class C : B { }";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS9335: Inconsistent accessibility: type 'A' is less accessible than class 'C' 
+                //     public class C : B { }
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A").WithLocation(9, 14));
         }
     }
 }
