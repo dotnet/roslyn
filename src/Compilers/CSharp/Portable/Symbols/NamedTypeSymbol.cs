@@ -347,6 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public abstract bool MightContainExtensionMethods { get; }
 
+        /// <remarks>Does not perform a full viability check</remarks>
         internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             if (this.MightContainExtensionMethods)
@@ -355,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <remarks>Does not perform a full viability check</remarks>
         internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             var members = nameOpt == null
@@ -401,7 +403,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options)
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert((options & ~(LookupOptions.IncludeExtensionMembers | LookupOptions.AllMethodsOnArityZero
                 | LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance | LookupOptions.MustBeInvocableIfMember
@@ -425,7 +428,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var candidate in candidates)
                 {
-                    if (extensionMemberMatches(candidate, name, alternativeName, arity, options))
+                    if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                    {
+                        // Not supported yet
+                        continue;
+                    }
+
+                    if (extensionMemberMatches(candidate, name, alternativeName, arity, options, fieldsBeingBound))
                     {
                         members.Add(candidate);
                     }
@@ -434,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            static bool extensionMemberMatches(Symbol member, string? name, string? alternativeName, int arity, LookupOptions options)
+            static bool extensionMemberMatches(Symbol member, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
             {
                 if ((options & LookupOptions.MustBeInstance) != 0 && member.IsStatic)
                 {
@@ -468,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 if ((options & LookupOptions.MustBeInvocableIfMember) != 0
-                    && !Binder.IsInvocableMember(member, fieldsBeingBound: ConsList<FieldSymbol>.Empty))
+                    && !Binder.IsInvocableMember(member, fieldsBeingBound))
                 {
                     return false;
                 }

@@ -2508,7 +2508,7 @@ public static class Extensions
 {
     extension(C)
     {
-        class Nested { }
+        public class Nested { }
     }
 }
 class C { }
@@ -2518,9 +2518,9 @@ class C { }
             // (1,3): error CS0426: The type name 'Nested' does not exist in the type 'C'
             // C.Nested x = null;
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C").WithLocation(1, 3),
-            // (7,15): error CS9282: This member is not allowed in an extension block
-            //         class Nested { }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 15));
+            // (7,22): error CS9282: This member is not allowed in an extension block
+            //         public class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);

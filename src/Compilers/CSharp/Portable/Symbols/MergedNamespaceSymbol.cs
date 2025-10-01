@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -300,13 +301,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         // Overridden to avoid NamespaceSymbol.GetExtensionContainers call to GetTypeMembersUnordered. The combination of the
         // CreateRange and OfType Linq calls in MergedNamespaceSymbol.GetTypeMembersUnordered causes a full array allocation.
-        internal sealed override void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options)
+        internal sealed override void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             foreach (var member in GetMembersUnordered())
             {
                 if (member is NamedTypeSymbol type)
                 {
-                    type.GetExtensionMembers(members, name, alternativeName, arity, options);
+                    type.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
                 }
             }
         }

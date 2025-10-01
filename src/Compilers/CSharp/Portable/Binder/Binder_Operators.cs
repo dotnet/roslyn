@@ -1846,7 +1846,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string nameTrue = OperatorFacts.UnaryOperatorNameFromOperatorKind(UnaryOperatorKind.True, isChecked: false);
                 signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionMembers(extensionCandidates,
                     nameTrue, alternativeName: null, arity: 0,
-                    LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember | LookupOptions.MustNotBeInstance);
+                    LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance,
+                    FieldsBeingBound);
 
                 UnaryOperatorAnalysisResult? bestTrue = unaryOperatorOverloadResolution(syntax, extensionCandidates, result, nameTrue, UnaryOperatorKind.True, leftPlaceholder, ref useSiteInfo);
                 UnaryOperatorAnalysisResult? bestFalse = null;
@@ -1857,7 +1858,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     extensionCandidates.Clear();
                     signature.Method.OriginalDefinition.ContainingType.ContainingType.GetExtensionMembers(extensionCandidates,
                         nameFalse, alternativeName: null, arity: 0,
-                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInvocableIfMember | LookupOptions.MustNotBeInstance);
+                        LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeOperator | LookupOptions.MustNotBeInstance,
+                        FieldsBeingBound);
 
                     bestFalse = unaryOperatorOverloadResolution(syntax, extensionCandidates, result, nameFalse, UnaryOperatorKind.False, leftPlaceholder, ref useSiteInfo);
                 }

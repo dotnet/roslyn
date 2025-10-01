@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_container is NamespaceSymbol ns)
             {
-                ns.GetExtensionMembers(members, name, alternativeName, arity, options);
+                ns.GetExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
             }
         }
 #nullable disable

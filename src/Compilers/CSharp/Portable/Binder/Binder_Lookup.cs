@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -794,6 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
+        /// <remarks>Does not perform a full viability check</remarks>
         internal virtual void GetCandidateExtensionMethodsInSingleBinder(
             ArrayBuilder<MethodSymbol> methods,
             string name,
@@ -812,6 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// An alternativeName should only be provided if a name is provided.
         /// </summary>
+        /// <remarks>Does not perform a full viability check</remarks>
         internal virtual void GetCandidateExtensionMembersInSingleBinder(
             ArrayBuilder<Symbol> members,
             string? name,
