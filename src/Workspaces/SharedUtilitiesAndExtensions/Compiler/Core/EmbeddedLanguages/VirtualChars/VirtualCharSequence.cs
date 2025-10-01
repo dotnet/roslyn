@@ -92,9 +92,6 @@ internal partial struct VirtualCharGreenSequence
     public Enumerator GetEnumerator()
         => new(this);
 
-    public VirtualCharGreen First() => this[0];
-    public VirtualCharGreen Last() => this[^1];
-
     /// <summary>
     /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
     /// in the span of this sequence.
@@ -104,18 +101,6 @@ internal partial struct VirtualCharGreenSequence
 
     public VirtualCharGreenSequence Skip(int count)
         => this.GetSubSequence(TextSpan.FromBounds(count, this.Length));
-
-    /// <summary>
-    /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
-    /// </summary>
-    public string CreateString()
-    {
-        using var _ = PooledStringBuilder.GetInstance(out var builder);
-        foreach (var ch in this)
-            ch.AppendTo(builder);
-
-        return builder.ToString();
-    }
 
     [Conditional("DEBUG")]
     public void AssertAdjacentTo(VirtualCharGreenSequence virtualChars)
@@ -201,9 +186,17 @@ internal readonly struct VirtualCharSequence
     public bool Contains(VirtualChar @char)
         => IndexOf(@char) >= 0;
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.CreateString"/>
+    /// <summary>
+    /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
+    /// </summary>
     public string CreateString()
-        => _sequence.CreateString();
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        foreach (var ch in this)
+            ch.AppendTo(builder);
+
+        return builder.ToString();
+    }
 
     /// <inheritdoc cref="VirtualCharGreenSequence.IsDefault"/>
     public bool IsDefault => _sequence.IsDefault;
