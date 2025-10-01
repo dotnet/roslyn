@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 /// and the same as "\\\u007a".  However, as these all have wildly different presentations for the user, there needs
 /// to be a way to map back the characters it sees ( '\' and 'z' ) back to the  ranges of characters the user wrote.
 /// </remarks>
-internal readonly record struct VirtualChar /*: IComparable<VirtualChar>, IComparable<char>*/
+internal readonly record struct VirtualChar
 {
     public VirtualChar(VirtualCharGreen green, int tokenStart)
     {
@@ -84,24 +84,6 @@ internal readonly record struct VirtualChar /*: IComparable<VirtualChar>, ICompa
 
     #region comparable
 
-    //public int CompareTo(VirtualChar other)
-    //    => Green.CompareTo(other.Green);
-
-    //public static bool operator <(VirtualChar ch1, VirtualChar ch2)
-    //    => ch1.Green < ch2.Green;
-
-    //public static bool operator <=(VirtualChar ch1, VirtualChar ch2)
-    //    => ch1.Green <= ch2.Green;
-
-    //public static bool operator >(VirtualChar ch1, VirtualChar ch2)
-    //    => ch1.Green > ch2.Green;
-
-    //public static bool operator >=(VirtualChar ch1, VirtualChar ch2)
-    //    => ch1.Green >= ch2.Green;
-
-    //public int CompareTo(char other)
-    //    => Green.CompareTo(other);
-
     public static bool operator <(VirtualChar ch1, char ch2)
         => ch1.Green < ch2;
 
@@ -125,7 +107,7 @@ internal readonly record struct VirtualChar /*: IComparable<VirtualChar>, ICompa
 /// <c>t</c>).  <see cref="VirtualCharGreen"/> will represent both, providing the raw <see cref="char"/> value of
 /// <c>9</c> as well as what offset and width within original <see cref="SyntaxToken"/> the character was found at.
 /// </summary>
-internal readonly record struct VirtualCharGreen/* : IComparable<VirtualCharGreen>, IComparable<char>*/
+internal readonly record struct VirtualCharGreen
 {
     /// <summary>
     /// The value of this <see cref="VirtualCharGreen"/> as a <see cref="Rune"/> if such a representation is possible.
@@ -251,23 +233,8 @@ internal readonly record struct VirtualCharGreen/* : IComparable<VirtualCharGree
 
     #region comparable
 
-    //public int CompareTo(VirtualCharGreen other)
-    //    => this.Value - other.Value;
-
-    //public static bool operator <(VirtualChar ch1, VirtualChar ch2)
-    //    => ch1.Value < ch2.Value;
-
-    //public static bool operator <=(VirtualChar ch1, VirtualChar ch2)
-    //    => ch1.Value <= ch2.Value;
-
-    //public static bool operator >(VirtualChar ch1, VirtualChar ch2)
-    //    => ch1.Value > ch2.Value;
-
-    //public static bool operator >=(VirtualChar ch1, VirtualChar ch2)
-    //    => ch1.Value >= ch2.Value;
-
-    //public int CompareTo(char other)
-    //    => this.Value - other;
+    public int CompareTo(char other)
+        => this.Value - other;
 
     public static bool operator <(VirtualCharGreen ch1, char ch2)
         => ch1.Value < ch2;
