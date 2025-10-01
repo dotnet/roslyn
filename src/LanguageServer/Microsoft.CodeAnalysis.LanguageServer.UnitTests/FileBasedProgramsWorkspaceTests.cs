@@ -72,14 +72,13 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     }
 
     [Theory, CombinatorialData]
-    public async Task TestLspTransfersFromFileBaedProgramToHostWorkspaceDocumentOrderingAsync(bool mutatingLspWorkspace)
+    public async Task TestLspTransfersFromFileBasedProgramToHostWorkspaceDocumentOrderingAsync(bool mutatingLspWorkspace)
     {
         var markup = "Console.WriteLine();";
 
         // Create a server that includes the LSP misc files workspace so we can test transfers to and from it.
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-        // Include some Unicode characters to test URL handling.
         using var tempRoot = new TempRoot();
         var newDocumentFilePath = Path.Combine(tempRoot.CreateDirectory().Path, "Program.cs");
         File.WriteAllText(newDocumentFilePath, markup);
@@ -106,7 +105,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // FBP project path is just the document file path.
         Assert.Equal(newDocumentFilePath, document.Project.FilePath);
 
-        // Now, upadate the host workspace to also include the document (simulating it getting added by the project system later on).
+        // Now, update the host workspace to also include the document (simulating it getting added by the project system later on).
         var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
         var projectName = "MainSolutionProject";
         var project = await workspaceFactory.HostProjectFactory.CreateAndAddToWorkspaceAsync(
@@ -125,7 +124,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.NotNull(document);
         Assert.NotNull(documentWorkspace);
         Assert.Equal(WorkspaceKind.Host, documentWorkspace.Kind);
-        Assert.Equal(document.Project.AssemblyName, projectName);
+        Assert.Equal(projectName, document.Project.AssemblyName);
 
         // LSP request context will have the main sln document, GetTextDocumentAsync should also return the FBP document (as the order is in the sln state).
         var documentFromAPI = document.Project.Solution.GetTextDocumentAsync(CreateTextDocumentIdentifier(newDocumentUri), CancellationToken.None);

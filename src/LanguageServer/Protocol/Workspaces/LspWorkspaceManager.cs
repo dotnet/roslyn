@@ -253,7 +253,10 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var documents = await lspSolution.GetTextDocumentsAsync(textDocumentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
             if (documents.Length > 0)
             {
-                // We have at least one document, so find the one in the right project context
+                // We have at least one document, so find the one in the right project context.
+
+                // If we need to modify which document is found, that should be handled centrally in FindDocumentInProjectContext to ensure
+                // callers always get a consistent document from here, or from calling FindDocumentInProjectContext directly.
                 var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
 
                 if (_lspMiscellaneousFilesWorkspaceProvider is not null)

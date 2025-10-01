@@ -57,13 +57,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
 
-    public async ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
+    public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
     {
         // There are two cases here: if it's a primordial document, it'll be in the MiscellaneousFilesWorkspace and thus we definitely know it's
         // a miscellaneous file. Otherwise, it might be a file-based program that we loaded in the main workspace; in this case, the project's path
         // is also the source file path, and that's what we consider the 'project' path that is loaded.
-        return document.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace ||
-            document.IsMiscDocumentInHostWorkspace();
+        return ValueTask.FromResult(document.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace ||
+            document.IsMiscDocumentInHostWorkspace());
     }
 
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)

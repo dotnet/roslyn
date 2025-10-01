@@ -181,9 +181,8 @@ internal static partial class Extensions
 
             var document = documentGetter(solution, documentIdInCurrentContext);
 
-            // When a misc document is loaded into the host workspace, it's project file path is the same as the document file path.
-            // We always want to prefer the non-misc document.
-            if (IsMiscDocumentInHostWorkspace(document))
+            // Always want to prefer the non-misc document when we have multiple docs.
+            if (documents.Length > 1 && IsMiscDocumentInHostWorkspace(document))
             {
                 var nonMisc = documents.First(d => d.Id != document.Id);
                 return nonMisc;
@@ -195,6 +194,7 @@ internal static partial class Extensions
 
     public static bool IsMiscDocumentInHostWorkspace(this TextDocument document)
     {
+        // When a misc document is loaded into the host workspace, it's project file path is the same as the document file path.
         return document.Project.Solution.WorkspaceKind == WorkspaceKind.Host && document.Project.FilePath != null && document.Project.FilePath == document.FilePath;
     }
 
