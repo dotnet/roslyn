@@ -83,16 +83,29 @@ internal static class ConvertToRawStringHelpers
         if (characters.IsDefault)
             return false;
 
-        foreach (var ch in characters)
+        for (var i = 0; i < characters.Length; i++)
         {
-            if (!CanConvert(ch))
-                return false;
+            var ch = characters[i];
 
             // Look for *explicit* usages of sequences like \r or \n.  These are multi character representations of
             // newlines.  If we see these, we only want to fix these up in a fix-all if the original string contained
             // those as well.
-            if (ch.Span.Length > 1 && SyntaxFacts.IsNewLine((char)ch.Value))
+            if (ch.Span.Length > 1 && SyntaxFacts.IsNewLine(ch.Value))
                 containsEscapedEndOfLineCharacter = true;
+
+            if (!CanConvert(ch))
+                return false;
+
+            if (i + 1 < characters.Length &&
+                char.IsHighSurrogate(ch) &&
+                char.IsLowSurrogate(characters[i + 1]))
+            {
+                if (IsFormatOrControl(Rune.GetUnicodeCategory(new Rune(ch, characters[i + 1]))))
+                    return false;
+
+                // Increase by one more to account for the low surrogate we just looked at.
+                i++;
+            }
         }
 
         return true;
@@ -100,11 +113,6 @@ internal static class ConvertToRawStringHelpers
 
     private static bool CanConvert(VirtualChar ch)
     {
-        // Don't bother with unpaired surrogates.  This is just a legacy language corner case that we don't care to
-        // even try having support for.
-        if (char.IsSurrogate(ch))
-            return false;
-
         // Can't ever encode a null value directly in a c# file as our lexer/parser/text apis will stop righ there.
         if (ch.Value == 0)
             return false;
@@ -118,13 +126,15 @@ internal static class ConvertToRawStringHelpers
 
             // Control/formatting unicode escapes should stay as escapes.  The user code will just be enormously
             // difficult to read/reason about if we convert those to the actual corresponding non-escaped chars.
-            var category = char.GetUnicodeCategory(ch);
-            if (category is UnicodeCategory.Format or UnicodeCategory.Control)
+            if (IsFormatOrControl(char.GetUnicodeCategory(ch)))
                 return false;
         }
 
         return true;
     }
+
+    private static bool IsFormatOrControl(UnicodeCategory category)
+        => category is UnicodeCategory.Format or UnicodeCategory.Control;
 
     public static int GetLongestQuoteSequence(VirtualCharSequence characters)
         => GetLongestCharacterSequence(characters, '"');
