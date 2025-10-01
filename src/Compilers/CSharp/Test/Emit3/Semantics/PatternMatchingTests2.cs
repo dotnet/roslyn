@@ -161,13 +161,13 @@ class Program
                 // 0.cs(11,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
                 //         Check(false, p is (3, 4) { x: 1 });
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 4) { x: 1 }").WithArguments("(int x, int y)").WithLocation(11, 22),
-                // 0.cs(12,38): hidden CS9271: The pattern is redundant.
+                // 0.cs(12,38): hidden CS9335: The pattern is redundant.
                 //         Check(true, p is (3, 4) { x: 3 } q2 && Check(p, q2));
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(12, 38),
                 // 0.cs(13,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
                 //         Check(false, p is (1, 4) { x: 3 });
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (1, 4) { x: 3 }").WithArguments("(int x, int y)").WithLocation(13, 22),
-                // 0.cs(14,39): hidden CS9271: The pattern is redundant.
+                // 0.cs(14,39): hidden CS9335: The pattern is redundant.
                 //         Check(false, p is (3, 1) { x: 3 });
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(14, 39),
                 // 0.cs(15,22): error CS8518: An expression of type '(int x, int y)' can never match the provided pattern.
@@ -199,10 +199,10 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // 0.cs(9,38): hidden CS9271: The pattern is redundant.
+                // 0.cs(9,38): hidden CS9335: The pattern is redundant.
                 //         Check(true, p is (3, 4) { x: 3 } q2 && Check(p, q2));
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(9, 38),
-                // 0.cs(10,39): hidden CS9271: The pattern is redundant.
+                // 0.cs(10,39): hidden CS9335: The pattern is redundant.
                 //         Check(false, p is (3, 1) { x: 3 });
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "3").WithLocation(10, 39)
                 );
@@ -297,7 +297,7 @@ class Program
             testErrorCase(c3, c2, c1);
             testErrorCase(c2, c1, c3);
             testGoodCase(c1, c2,
-                // 0.cs(10,19): hidden CS9271: The pattern is redundant.
+                // 0.cs(10,19): hidden CS9335: The pattern is redundant.
                 //             case (false, false):
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 19));
             testGoodCase(c1, c3);
@@ -305,7 +305,7 @@ class Program
             testGoodCase(c2, c1);
             testGoodCase(c3, c1);
             testGoodCase(c3, c2,
-                // 0.cs(10,26): hidden CS9271: The pattern is redundant.
+                // 0.cs(10,26): hidden CS9335: The pattern is redundant.
                 //             case (false, false):
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 26));
         }

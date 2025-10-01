@@ -28530,16 +28530,16 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,40): hidden CS9271: The pattern is redundant.
+                // (10,40): hidden CS9335: The pattern is redundant.
                 //             (message: null, isColInit: false) => 43,
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 40),
-                // (11,23): hidden CS9271: The pattern is redundant.
+                // (11,23): hidden CS9335: The pattern is redundant.
                 //             (message: { }, isColInit: true) => 44,
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(11, 23),
-                // (12,23): hidden CS9271: The pattern is redundant.
+                // (12,23): hidden CS9335: The pattern is redundant.
                 //             (message: { }, isColInit: false) => 45,
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(12, 23),
-                // (12,39): hidden CS9271: The pattern is redundant.
+                // (12,39): hidden CS9335: The pattern is redundant.
                 //             (message: { }, isColInit: false) => 45,
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(12, 39));
         }
