@@ -387,16 +387,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var lessVisibleType = baseType.FindTypeLessVisibleThan(this, ref useSiteInfo);
-                if (Equals(baseType, lessVisibleType, TypeCompareKind.ConsiderEverything))
+                if (Equals(lessVisibleType, null))
                 {
-                    // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, lessVisibleType);
-                }
-                else
-                {
-                    // Inconsistent accessibility: type '{1}' is less accessible than class '{0}'
-                    var lessVisibleTypeLocation = lessVisibleType.GetFirstLocation();
-                    diagnostics.Add(ErrorCode.ERR_BadVisBaseType, baseTypeLocation, this, lessVisibleType);
+                    if (Equals(baseType, lessVisibleType, TypeCompareKind.ConsiderEverything))
+                    {
+                        // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, lessVisibleType);
+                    }
+                    else
+                    {
+                        // Inconsistent accessibility: type '{1}' is less accessible than class '{0}'
+                        var lessVisibleTypeLocation = lessVisibleType.GetFirstLocation();
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseType, baseTypeLocation, this, lessVisibleType);
+                    }
                 }
 
                 if (baseType.HasFileLocalTypes() && !this.HasFileLocalTypes())
