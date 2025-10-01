@@ -63,7 +63,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // a miscellaneous file. Otherwise, it might be a file-based program that we loaded in the main workspace; in this case, the project's path
         // is also the source file path, and that's what we consider the 'project' path that is loaded.
         return document.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace ||
-            document.Project.FilePath is not null && await IsProjectLoadedAsync(document.Project.FilePath, cancellationToken);
+            document.IsMiscDocumentInHostWorkspace();
     }
 
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)

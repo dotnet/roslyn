@@ -121,14 +121,14 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         // LSP should return the document from the main solution instead of the FBP.
-        var (hostWorkspace, documentInHostProject) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
-        Assert.NotNull(documentInHostProject);
-        Assert.NotNull(hostWorkspace);
-        Assert.Equal(WorkspaceKind.Host, hostWorkspace.Kind);
-        Assert.Equal(documentInHostProject.Project.AssemblyName, projectName);
+        (documentWorkspace, document) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
+        Assert.NotNull(document);
+        Assert.NotNull(documentWorkspace);
+        Assert.Equal(WorkspaceKind.Host, documentWorkspace.Kind);
+        Assert.Equal(document.Project.AssemblyName, projectName);
 
-        // ISSUE - LSP request context will have the main sln document, but GetTextDocumentAsync will return the FBP document (as the order is in the sln state).
+        // LSP request context will have the main sln document, GetTextDocumentAsync should also return the FBP document (as the order is in the sln state).
         var documentFromAPI = document.Project.Solution.GetTextDocumentAsync(CreateTextDocumentIdentifier(newDocumentUri), CancellationToken.None);
-        Assert.Equal(documentInHostProject, await documentFromAPI);
+        Assert.Equal(document, await documentFromAPI);
     }
 }
