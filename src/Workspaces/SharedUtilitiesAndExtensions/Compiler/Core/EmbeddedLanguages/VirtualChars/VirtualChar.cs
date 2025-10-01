@@ -41,42 +41,51 @@ internal readonly record struct VirtualChar : IComparable<VirtualChar>, ICompara
     public readonly char SurrogateChar;
 
     /// <summary>
-    /// The span of characters in the original <see cref="SourceText"/> that represent this <see
-    /// cref="VirtualChar"/>.
+    /// Offset in the original token that this character was found at.
     /// </summary>
-    public readonly TextSpan Span;
+    public readonly int Offset;
+
+    /// <summary>
+    /// The width of characters in the original <see cref="SourceText"/> that represent this <see cref="VirtualChar"/>.
+    /// This can be as low as 1 (for normal characters) or up to 10 (for escape sequences like \UXXXXXXXX).
+    /// </summary>
+    public readonly int Width;
 
     /// <summary>
     /// Creates a new <see cref="VirtualChar"/> from the provided <paramref name="rune"/>.  This operation cannot
     /// fail.
     /// </summary>
-    public static VirtualChar Create(Rune rune, TextSpan span)
-        => new(rune, surrogateChar: default, span);
+    public static VirtualChar Create(Rune rune, int offset, int width)
+        => new(rune, surrogateChar: default, offset, width);
 
     /// <summary>
     /// Creates a new <see cref="VirtualChar"/> from an unpaired high or low surrogate character.  This will throw
     /// if <paramref name="surrogateChar"/> is not actually a surrogate character. The resultant <see cref="Rune"/>
     /// value will be <see cref="Rune.ReplacementChar"/>.
     /// </summary>
-    public static VirtualChar Create(char surrogateChar, TextSpan span)
+    public static VirtualChar Create(char surrogateChar, int offset, int width)
     {
         if (!char.IsSurrogate(surrogateChar))
             throw new ArgumentException(nameof(surrogateChar));
 
-        return new VirtualChar(rune: Rune.ReplacementChar, surrogateChar, span);
+        return new VirtualChar(rune: Rune.ReplacementChar, surrogateChar, offset, width);
     }
 
-    private VirtualChar(Rune rune, char surrogateChar, TextSpan span)
+    private VirtualChar(Rune rune, char surrogateChar, int offset, int width)
     {
         Contract.ThrowIfFalse(surrogateChar == 0 || rune == Rune.ReplacementChar,
             "If surrogateChar is provided then rune must be Rune.ReplacementChar");
 
-        if (span.IsEmpty)
-            throw new ArgumentException("Span should not be empty.", nameof(span));
+        if (offset < 0)
+            throw new ArgumentException("Offset cannot be negative", nameof(offset));
+
+        if (width <= 0)
+            throw new ArgumentException("Width must be greater than zero.", nameof(width));
 
         Rune = rune;
         SurrogateChar = surrogateChar;
-        Span = span;
+        Offset = offset;
+        Width = width;
     }
 
     /// <summary>
