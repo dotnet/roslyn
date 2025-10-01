@@ -176,7 +176,7 @@ internal abstract class AbstractConvertBetweenRegularAndVerbatimStringCodeRefact
             // look for two-character escapes that start with  \  .  i.e.  \n  . Note:  \0
             // cannot be encoded into a verbatim string, so don't offer to convert if we have
             // that.
-            if (ch.Span.Length == 2 && ch.Char != 0)
+            if (ch.Span.Length == 2 && ch.Value != 0)
                 return true;
         }
 

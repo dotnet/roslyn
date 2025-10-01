@@ -131,7 +131,7 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
                 // the user may be invoking this on lots of strings that they have no interest in converting.
                 if (priority == CodeActionPriority.Low &&
                     AllEscapesAre(characters,
-                        static c => c.Char is '"' or '{' or '}'))
+                        static c => c.Value is '"' or '{' or '}'))
                 {
                     priority = CodeActionPriority.Default;
                 }
