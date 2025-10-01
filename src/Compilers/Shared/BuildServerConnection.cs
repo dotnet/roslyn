@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             // Build the environment block as a single string
-            // Environment variable names are case-insensitive on Windows, so we sort using OrdinalIgnoreCase for consistency
+            // Windows API requires environment variables to be sorted alphabetically by name (case-insensitive, Unicode order)
             var envBlock = new StringBuilder();
             foreach (var kvp in environmentVariables.OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase))
             {
