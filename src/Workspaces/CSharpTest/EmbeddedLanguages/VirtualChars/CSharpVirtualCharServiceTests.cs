@@ -91,12 +91,12 @@ public sealed class CSharpVirtualCharServiceTests
 
     private static string ConvertRuneToString(VirtualChar c)
         => PrintAsUnicodeEscape(c)
-            ? c <= char.MaxValue ? $"'\\u{c.Value:X4}'" : $"'\\U{c.Value:X8}'"
-            : $"'{(char)c.Value}'";
+            ? c <= char.MaxValue ? $"'\\u{(int)c.Value:X4}'" : $"'\\U{(int)c.Value:X8}'"
+            : $"'{c.Value}'";
 
     private static bool PrintAsUnicodeEscape(VirtualChar c)
     {
-        if (c < (char)127 && char.IsLetterOrDigit((char)c.Value))
+        if (c < (char)127 && char.IsLetterOrDigit(c.Value))
             return false;
 
         if (c.Value is '{' or '}' or ' ')
