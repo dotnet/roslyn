@@ -44,14 +44,16 @@ internal interface ICopilotProposalAdjusterService : ILanguageService
 {
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+        ImmutableHashSet<string>? allowableAdjustments, Document document,
+        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 internal interface IRemoteCopilotProposalAdjusterService
 {
     /// <inheritdoc cref="ICopilotProposalAdjusterService.TryAdjustProposalAsync"/>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+        ImmutableHashSet<string>? allowableAdjustments, Checksum solutionChecksum,
+        DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
@@ -73,8 +75,30 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     protected abstract Task<Document> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken);
 
+    private ImmutableHashSet<string>? _allowableAdjustments = null;
+
+    private ImmutableHashSet<string> GetAllowableAdjustmentsFromOptions()
+    {
+        if (_allowableAdjustments is not null)
+            return _allowableAdjustments;
+
+        // NOTE: This must be run in the VS process. If run in the OOP process
+        // the options will receive their default values.
+        var builder = ImmutableHashSet.CreateBuilder<string>();
+        if (globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
+            builder.Add(ProposalAdjusterKinds.AddMissingTokens);
+        if (globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
+            builder.Add(ProposalAdjusterKinds.AddMissingImports);
+        if (globalOptions.GetOption(CopilotOptions.FixCodeFormat))
+            builder.Add(ProposalAdjusterKinds.FormatCode);
+        _allowableAdjustments = builder.ToImmutableHashSet();
+
+        return _allowableAdjustments;
+    }
+
     public async ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
+        ImmutableHashSet<string>? allowableAdjustments, Document document,
+        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
@@ -82,20 +106,29 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
+            if (allowableAdjustments is null)
+                allowableAdjustments = this.GetAllowableAdjustmentsFromOptions();
+
             var result = await client.TryInvokeAsync<IRemoteCopilotProposalAdjusterService, ProposalAdjustmentResult>(
                 document.Project,
-                (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(checksum, document.Id, normalizedChanges, cancellationToken),
+                (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(
+                    allowableAdjustments, checksum, document.Id, normalizedChanges, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
+
             return result.HasValue ? result.Value : default;
         }
 
         return await TryAdjustProposalInCurrentProcessAsync(
-            document, normalizedChanges, cancellationToken).ConfigureAwait(false);
+            allowableAdjustments, document, normalizedChanges, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ProposalAdjustmentResult> TryAdjustProposalInCurrentProcessAsync(
-        Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
+        ImmutableHashSet<string>? allowableAdjustments, Document originalDocument,
+        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
+        if (allowableAdjustments is null || allowableAdjustments.IsEmpty)
+            return default;
+
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
 
@@ -114,6 +147,9 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         foreach (var (adjusterName, adjuster) in _adjusters)
         {
+            if (allowableAdjustments is null || !allowableAdjustments.Contains(adjusterName))
+                continue;
+
             var timer = SharedStopwatch.StartNew();
             var adjustedDocument = await adjuster(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
             if (forkedDocument != adjustedDocument)
@@ -140,9 +176,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     private async Task<Document> TryGetAddImportTextChangesAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
-        if (!globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
-            return forkedDocument;
-
         var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
         // Find the span of changes made to the forked document.
@@ -161,9 +194,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     private async Task<Document> TryGetFormattingTextChangesAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
-        if (!globalOptions.GetOption(CopilotOptions.FixCodeFormat))
-            return forkedDocument;
-
         var syntaxFormattingService = originalDocument.GetRequiredLanguageService<ISyntaxFormattingService>();
 
         var formattingOptions = await originalDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
