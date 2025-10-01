@@ -442,7 +442,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 result.Add(new VirtualCharGreen((char)lowSurrogate, offset: startIndex + prefix.Length, width: 4));
             }
 
-            return @"\UAAAABBBBB".Length;
+            return @"\UAAAABBBB".Length;
         }
         else if (character == 'u')
         {
