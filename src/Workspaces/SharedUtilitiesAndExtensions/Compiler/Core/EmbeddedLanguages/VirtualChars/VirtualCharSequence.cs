@@ -89,9 +89,6 @@ internal partial struct VirtualCharGreenSequence
     public VirtualCharGreenSequence GetSubSequence(TextSpan span)
        => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
-    public Enumerator GetEnumerator()
-        => new(this);
-
     /// <summary>
     /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
     /// in the span of this sequence.
@@ -186,6 +183,20 @@ internal readonly struct VirtualCharSequence
     public bool Contains(VirtualChar @char)
         => IndexOf(@char) >= 0;
 
+    public int IndexOf(VirtualChar @char)
+    {
+        var index = 0;
+        foreach (var ch in this)
+        {
+            if (ch == @char)
+                return index;
+
+            index++;
+        }
+
+        return -1;
+    }
+
     /// <summary>
     /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
     /// </summary>
@@ -215,26 +226,11 @@ internal readonly struct VirtualCharSequence
     public VirtualCharSequence Skip(int count)
         => new(_tokenStart, _sequence.Skip(count));
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.GetEnumerator"/>
     public Enumerator GetEnumerator()
         => new(this);
 
     public VirtualChar First() => this[0];
     public VirtualChar Last() => this[^1];
-
-    public int IndexOf(VirtualChar @char)
-    {
-        var index = 0;
-        foreach (var ch in this)
-        {
-            if (ch == @char)
-                return index;
-
-            index++;
-        }
-
-        return -1;
-    }
 
     public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
     {
