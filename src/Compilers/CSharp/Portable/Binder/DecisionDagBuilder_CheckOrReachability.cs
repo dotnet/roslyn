@@ -353,7 +353,7 @@ start:
                 context.Logger.AppendLine($"Normalized pattern: {normalizedPattern.DumpSource()}");
 #endif
 
-                analyze(normalizedPattern, context);
+                analyze(normalizedPattern, in context);
 
                 // The set of redundancies in pattern `A` is identical to the set of redundancies in pattern `not A`
                 // but our method for detecting redundancies only detects those in `or` cases (which we bring to the top after normalization).
@@ -366,7 +366,7 @@ start:
                 context.Logger.AppendLine($"Normalized negated pattern: {normalizedNegatedPattern.DumpSource()}");
 #endif
 
-                analyze(normalizedNegatedPattern, context);
+                analyze(normalizedNegatedPattern, in context);
 
 #if ROSLYN_TEST_REDUNDANT_PATTERN
                 string log = context.Logger.ToString();
@@ -513,7 +513,7 @@ start:
 
                 using var casesBuilder = TemporaryArray<StateForCase>.GetInstance(orCases.Count);
                 var labelsToIgnore = PooledHashSet<LabelSymbol>.GetInstance();
-                populateStateForCases(orCases, labelsToIgnore, ref casesBuilder.AsRef(), context);
+                populateStateForCases(orCases, labelsToIgnore, ref casesBuilder.AsRef(), in context);
                 BoundDecisionDag dag = context.Builder.MakeBoundDecisionDag(context.Syntax, ref casesBuilder.AsRef());
 
                 for (int i = 0; i < casesBuilder.Count; i++)
