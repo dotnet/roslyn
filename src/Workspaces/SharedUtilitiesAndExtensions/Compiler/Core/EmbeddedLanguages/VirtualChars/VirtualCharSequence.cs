@@ -67,12 +67,14 @@ internal partial struct VirtualCharGreenSequence
     public VirtualChar this[int index]
         => new(_sequence[index], _tokenStart);
 
+    /// <inheritdoc cref="VirtualCharGreenSequence.Find"/>
     public VirtualChar? Find(int position)
         => _sequence.Find(_tokenStart, position);
 
     public bool Contains(VirtualChar @char)
         => IndexOf(@char) >= 0;
 
+    /// <inheritdoc cref="VirtualCharGreenSequence.CreateString"/>
     public string CreateString()
         => _sequence.CreateString();
 
