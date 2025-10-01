@@ -100,45 +100,6 @@ internal readonly record struct VirtualCharGreen
 
     public VirtualCharGreen WithOffset(int offset)
         => new(this.Rune, this.SurrogateChar, offset, this.Width);
-
-    public bool IsDigit
-        => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);
-
-    public bool IsLetter
-        => SurrogateChar != 0 ? char.IsLetter(SurrogateChar) : Rune.IsLetter(Rune);
-
-    public bool IsLetterOrDigit
-        => SurrogateChar != 0 ? char.IsLetterOrDigit(SurrogateChar) : Rune.IsLetterOrDigit(Rune);
-
-    public bool IsWhiteSpace
-        => SurrogateChar != 0 ? char.IsWhiteSpace(SurrogateChar) : Rune.IsWhiteSpace(Rune);
-
-    /// <inheritdoc cref="Rune.Utf16SequenceLength" />
-    public int Utf16SequenceLength => SurrogateChar != 0 ? 1 : Rune.Utf16SequenceLength;
-
-    #region string operations
-
-    /// <inheritdoc/>
-    public override string ToString()
-        => SurrogateChar != 0 ? SurrogateChar.ToString() : Rune.ToString();
-
-    public void AppendTo(StringBuilder builder)
-    {
-        if (SurrogateChar != 0)
-        {
-            builder.Append(SurrogateChar);
-            return;
-        }
-
-        Span<char> chars = stackalloc char[2];
-
-        var length = Rune.EncodeToUtf16(chars);
-        builder.Append(chars[0]);
-        if (length == 2)
-            builder.Append(chars[1]);
-    }
-
-    #endregion
 }
 
 /// <summary>
@@ -180,20 +141,45 @@ internal readonly record struct VirtualChar
     /// <inheritdoc cref="VirtualCharGreen.Value"/>
     public int Value => Green.Value;
 
-    /// <inheritdoc cref="VirtualCharGreen.IsDigit"/>
-    public bool IsDigit => Green.IsDigit;
+    public bool IsDigit
+        => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);
 
-    /// <inheritdoc cref="VirtualCharGreen.IsLetter"/>
-    public bool IsLetter => Green.IsLetter;
+    public bool IsLetter
+        => SurrogateChar != 0 ? char.IsLetter(SurrogateChar) : Rune.IsLetter(Rune);
 
-    /// <inheritdoc cref="VirtualCharGreen.IsLetterOrDigit"/>
-    public bool IsLetterOrDigit => Green.IsLetterOrDigit;
+    public bool IsLetterOrDigit
+        => SurrogateChar != 0 ? char.IsLetterOrDigit(SurrogateChar) : Rune.IsLetterOrDigit(Rune);
 
-    /// <inheritdoc cref="VirtualCharGreen.IsWhiteSpace"/>
-    public bool IsWhiteSpace => Green.IsWhiteSpace;
+    public bool IsWhiteSpace
+        => SurrogateChar != 0 ? char.IsWhiteSpace(SurrogateChar) : Rune.IsWhiteSpace(Rune);
 
-    /// <inheritdoc cref="VirtualCharGreen.Utf16SequenceLength"/>
-    public int Utf16SequenceLength => Green.Utf16SequenceLength;
+    /// <inheritdoc cref="Rune.Utf16SequenceLength" />
+    public int Utf16SequenceLength
+        => SurrogateChar != 0 ? 1 : Rune.Utf16SequenceLength;
+
+    #region string operations
+
+    /// <inheritdoc/>
+    public override string ToString()
+        => SurrogateChar != 0 ? SurrogateChar.ToString() : Rune.ToString();
+
+    public void AppendTo(StringBuilder builder)
+    {
+        if (SurrogateChar != 0)
+        {
+            builder.Append(SurrogateChar);
+            return;
+        }
+
+        Span<char> chars = stackalloc char[2];
+
+        var length = Rune.EncodeToUtf16(chars);
+        builder.Append(chars[0]);
+        if (length == 2)
+            builder.Append(chars[1]);
+    }
+
+    #endregion
 
     #region equality
 
@@ -217,16 +203,6 @@ internal readonly record struct VirtualChar
 
     public static bool operator >=(VirtualChar ch1, char ch2)
         => ch1.CompareTo(ch2) >= 0;
-
-    #endregion
-
-    #region string operations
-
-    /// <inheritdoc cref="VirtualCharGreen.ToString"/>
-    public override string ToString() => Green.ToString();
-
-    /// <inheritdoc cref="VirtualCharGreen.AppendTo"/>
-    public void AppendTo(StringBuilder builder) => Green.AppendTo(builder);
 
     #endregion
 }
