@@ -115,12 +115,12 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
                         canBeSingleLine = false;
                     }
                     else if (interpolatedStringText == firstContent &&
-                        characters.First().Value == '"')
+                        characters.First() == '"')
                     {
                         canBeSingleLine = false;
                     }
                     else if (interpolatedStringText == lastContent &&
-                        characters.Last().Value == '"')
+                        characters.Last() == '"')
                     {
                         canBeSingleLine = false;
                     }

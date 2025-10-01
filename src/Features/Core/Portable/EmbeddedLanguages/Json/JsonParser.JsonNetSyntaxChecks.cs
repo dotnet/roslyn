@@ -123,7 +123,7 @@ internal partial struct JsonParser
                 if (c.Value is not (>= '0' and <= '7'))
                     return false;
 
-                var charValue = c.Value - '0';
+                var charValue = c - '0';
                 if (currentValue > MaxValue)
                     return false;
 

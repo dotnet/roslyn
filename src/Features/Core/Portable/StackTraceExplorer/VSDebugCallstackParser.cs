@@ -22,7 +22,7 @@ internal sealed class VSDebugCallstackParser : IStackFrameParser
         var startPoint = -1;
         for (var i = 0; i < line.Length; i++)
         {
-            if (line[i].Value == '!')
+            if (line[i] == '!')
             {
                 // +1 here because we always want to skip the '!' character
                 startPoint = i + 1;

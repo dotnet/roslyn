@@ -35,8 +35,8 @@ internal static class ConvertToRawStringHelpers
     public static bool IsCarriageReturnNewLine(VirtualCharSequence characters, int index)
     {
         return index + 1 < characters.Length &&
-            characters[index].Value is '\r' &&
-            characters[index + 1].Value is '\n';
+            characters[index] == '\r' &&
+            characters[index + 1] == '\n';
     }
 
     public static bool AllEscapesAreQuotes(VirtualCharSequence sequence)
@@ -90,7 +90,7 @@ internal static class ConvertToRawStringHelpers
             // Look for *explicit* usages of sequences like \r or \n.  These are multi character representations of
             // newlines.  If we see these, we only want to fix these up in a fix-all if the original string contained
             // those as well.
-            if (ch.Span.Length > 1 && SyntaxFacts.IsNewLine(ch.Value))
+            if (ch.Span.Length > 1 && SyntaxFacts.IsNewLine(ch))
                 containsEscapedEndOfLineCharacter = true;
 
             if (!CanConvert(ch))

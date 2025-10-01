@@ -1416,15 +1416,15 @@ internal partial struct RegexParser
         Debug.Assert(RegexLexer.IsHexChar(ch));
         unchecked
         {
-            var temp = ch.Value - '0';
+            var temp = ch - '0';
             if (temp is >= 0 and <= 9)
                 return temp;
 
-            temp = ch.Value - 'a';
+            temp = ch - 'a';
             if (temp is >= 0 and <= 5)
                 return temp + 10;
 
-            temp = ch.Value - 'A';
+            temp = ch - 'A';
             if (temp is >= 0 and <= 5)
                 return temp + 10;
         }
@@ -1671,7 +1671,7 @@ internal partial struct RegexParser
             unchecked
             {
                 capVal *= 10;
-                capVal += (ch.Value - '0');
+                capVal += (ch - '0');
             }
 
             _lexer.Position++;

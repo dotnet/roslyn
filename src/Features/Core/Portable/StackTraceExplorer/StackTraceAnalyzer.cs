@@ -74,7 +74,7 @@ internal static class StackTraceAnalyzer
 
         for (var i = 0; i < callstack.Length; i++)
         {
-            if (callstack[i].Value == '\n')
+            if (callstack[i] == '\n')
             {
                 yield return callstack.GetSubSequence(TextSpan.FromBounds(position, i));
 
