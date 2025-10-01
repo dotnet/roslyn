@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
@@ -105,6 +106,11 @@ internal static class ConvertToRawStringHelpers
 
                 // Increase by one more to account for the low surrogate we just looked at.
                 i++;
+            }
+            else if (char.IsSurrogate(ch))
+            {
+                // Unpaired surrogates aren't things we want to convert from an escape to a random character.
+                return false;
             }
         }
 
