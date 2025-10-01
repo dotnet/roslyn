@@ -50,7 +50,7 @@ internal readonly record struct VirtualCharGreen
 
     /// <summary>
     /// The width of characters in the original <see cref="SourceText"/> that represent this <see cref="VirtualCharGreen"/>.
-    /// This can be as low as 1 (for normal characters) or up to 12 (for escape sequences like \u1234\uABCD).
+    /// This can be as low as 1 (for normal characters) or up to 12 (for escape sequences like <c>\u1234\uABCD</c>).
     /// </summary>
     public int Width => _offsetAndWidth & WidthMask;
 
