@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((options & ~(LookupOptions.IncludeExtensionMembers | LookupOptions.AllMethodsOnArityZero
                 | LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance | LookupOptions.MustBeInvocableIfMember
-                | LookupOptions.MustBeOperator)) == 0);
+                | LookupOptions.MustBeOperator | LookupOptions.MustNotBeMethodTypeParameter)) == 0);
 
             Debug.Assert(name is not null || alternativeName is null);
 

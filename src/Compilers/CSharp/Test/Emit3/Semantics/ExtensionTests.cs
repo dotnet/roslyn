@@ -38121,6 +38121,35 @@ public static class E
     }
 
     [Fact]
+    public void LookupSymbols_InField()
+    {
+        var src = """
+class C
+{
+    object field = null;
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        int position = GetSyntax<LiteralExpressionSyntax>(tree, "null").EndPosition - 1;
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        Assert.Empty(model.LookupSymbols(position, o, name: "M"));
+        Assert.Empty(model.LookupNamespacesAndTypes(position, o, name: "M"));
+    }
+
+    [Fact]
     public void GetMemberGroup_01()
     {
         var src = """
