@@ -67,6 +67,9 @@ internal partial struct VirtualCharGreenSequence
     public VirtualChar this[int index]
         => new(_sequence[index], _tokenStart);
 
+    public VirtualChar? Find(int position)
+        => _sequence.Find(_tokenStart, position);
+
     public bool Contains(VirtualChar @char)
         => IndexOf(@char) >= 0;
 
