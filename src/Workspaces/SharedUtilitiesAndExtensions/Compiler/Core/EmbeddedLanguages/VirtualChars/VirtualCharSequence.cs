@@ -52,11 +52,6 @@ internal partial struct VirtualCharGreenSequence
     private VirtualCharGreenSequence(Chunk sequence)
         : this(sequence, new TextSpan(0, sequence.Length))
     {
-        if (tokenStart < 0)
-            throw new ArgumentException("tokenStart cannot be negative", nameof(tokenStart));
-
-        _tokenStart = tokenStart;
-        _sequence = sequence;
     }
 
     private VirtualCharGreenSequence(Chunk sequence, TextSpan span)
@@ -64,19 +59,17 @@ internal partial struct VirtualCharGreenSequence
         if (span.Start > sequence.Length)
             throw new ArgumentException();
 
-    public VirtualChar this[int index]
-        => new(_sequence[index], _tokenStart);
+        if (span.End > sequence.Length)
+            throw new ArgumentException();
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.Find"/>
-    public VirtualChar? Find(int position)
-        => _sequence.Find(_tokenStart, position);
+        _leafCharacters = sequence;
+        _span = span;
+    }
 
-    public bool Contains(VirtualChar @char)
-        => IndexOf(@char) >= 0;
-
-    /// <inheritdoc cref="VirtualCharGreenSequence.CreateString"/>
-    public string CreateString()
-        => _sequence.CreateString();
+    /// <summary>
+    /// Gets the number of elements contained in the <see cref="VirtualCharSequence"/>.
+    /// </summary>
+    public int Length => _span.Length;
 
     /// <summary>
     /// Gets the <see cref="VirtualChar"/> at the specified index.
@@ -299,7 +292,7 @@ internal readonly struct VirtualCharSequence
     }
 
     [Conditional("DEBUG")]
-    public void AssertAdjacentTo(VirtualCharGreenSequence virtualChars)
+    public void AssertAdjacentTo(VirtualCharSequence virtualChars)
     {
         _sequence.AssertAdjacentTo(virtualChars._sequence);
     }
@@ -308,8 +301,8 @@ internal readonly struct VirtualCharSequence
     /// Combines two <see cref="VirtualCharSequence"/>s, producing a final sequence that points at the same underlying
     /// data, but spans from the start of <paramref name="chars1"/> to the end of <paramref name="chars2"/>.
     /// </summary>  
-    public static VirtualCharGreenSequence FromBounds(
-        VirtualCharGreenSequence chars1, VirtualCharGreenSequence chars2)
+    public static VirtualCharSequence FromBounds(
+        VirtualCharSequence chars1, VirtualCharSequence chars2)
     {
         Debug.Assert(chars1._tokenStart == chars2._tokenStart);
         return new VirtualCharSequence(
