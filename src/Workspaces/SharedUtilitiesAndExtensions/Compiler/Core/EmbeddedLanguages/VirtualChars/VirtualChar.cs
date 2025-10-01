@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 /// </summary>
 internal readonly record struct VirtualCharGreen
 {
+    private const int MaxWidth = 10;
+    private const int WidthMask = 0b1111; // 4 bits for width (max 10)
+    private const int OffsetShift = 4;    // remaining bits for offset
+
     /// <summary>
     /// The value of this <see cref="VirtualCharGreen"/> as a <see cref="Rune"/> if such a representation is possible.
     /// <see cref="Rune"/>s can represent Unicode codepoints that can appear in a <see cref="string"/> except for
@@ -34,15 +38,21 @@ internal readonly record struct VirtualCharGreen
     public readonly char SurrogateChar;
 
     /// <summary>
+    /// The offset and width combined into a single integer.  Because the width of a VirtualChar can't be more than
+    /// 10 (for <c>\UXXXXXXX</c>), we can store the width in the lower 4 bits, and the offset in the upper 28.
+    /// </summary>
+    private readonly int _offsetAndWidth;
+
+    /// <summary>
     /// Offset in the original token that this character was found at.
     /// </summary>
-    public readonly int Offset;
+    public int Offset => _offsetAndWidth >> OffsetShift;
 
     /// <summary>
     /// The width of characters in the original <see cref="SourceText"/> that represent this <see cref="VirtualCharGreen"/>.
     /// This can be as low as 1 (for normal characters) or up to 10 (for escape sequences like \UXXXXXXXX).
     /// </summary>
-    public readonly int Width;
+    public int Width => _offsetAndWidth & WidthMask;
 
     /// <summary>
     /// Creates a new <see cref="VirtualCharGreen"/> from the provided <paramref name="rune"/>.  This operation cannot
@@ -68,6 +78,7 @@ internal readonly record struct VirtualCharGreen
     {
         Contract.ThrowIfFalse(surrogateChar == 0 || rune == Rune.ReplacementChar,
             "If surrogateChar is provided then rune must be Rune.ReplacementChar");
+        Contract.ThrowIfTrue(width > MaxWidth);
 
         if (offset < 0)
             throw new ArgumentException("Offset cannot be negative", nameof(offset));
@@ -77,8 +88,7 @@ internal readonly record struct VirtualCharGreen
 
         Rune = rune;
         SurrogateChar = surrogateChar;
-        Offset = offset;
-        Width = width;
+        _offsetAndWidth = (offset << OffsetShift) | width;
     }
 
     /// <summary>
@@ -105,9 +115,6 @@ internal readonly record struct VirtualCharGreen
 
     /// <inheritdoc cref="Rune.Utf16SequenceLength" />
     public int Utf16SequenceLength => SurrogateChar != 0 ? 1 : Rune.Utf16SequenceLength;
-
-    public int CompareTo(char other)
-        => this.Value - other;
 
     #region string operations
 
@@ -196,17 +203,20 @@ internal readonly record struct VirtualChar
     public static bool operator !=(VirtualChar ch1, char ch2)
         => !(ch1 == ch2);
 
+    private int CompareTo(char other)
+        => this.Value - other;
+
     public static bool operator <(VirtualChar ch1, char ch2)
-        => ch1.Green.CompareTo(ch2) < 0;
+        => ch1.CompareTo(ch2) < 0;
 
     public static bool operator <=(VirtualChar ch1, char ch2)
-        => ch1.Green.CompareTo(ch2) <= 0;
+        => ch1.CompareTo(ch2) <= 0;
 
     public static bool operator >(VirtualChar ch1, char ch2)
-        => ch1.Green.CompareTo(ch2) > 0;
+        => ch1.CompareTo(ch2) > 0;
 
     public static bool operator >=(VirtualChar ch1, char ch2)
-        => ch1.Green.CompareTo(ch2) >= 0;
+        => ch1.CompareTo(ch2) >= 0;
 
     #endregion
 
