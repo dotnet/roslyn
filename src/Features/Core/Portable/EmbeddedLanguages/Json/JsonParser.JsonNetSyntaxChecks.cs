@@ -199,6 +199,6 @@ internal partial struct JsonParser
         }
 
         private static bool IsLegalPropertyNameChar(VirtualChar ch)
-            => char.IsLetterOrDigit(ch) || ch.Char is '_' or '$';
+            => char.IsLetterOrDigit(ch) || ch.Value is '_' or '$';
     }
 }

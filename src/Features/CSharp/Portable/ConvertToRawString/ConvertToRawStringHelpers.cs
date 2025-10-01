@@ -35,8 +35,8 @@ internal static class ConvertToRawStringHelpers
     public static bool IsCarriageReturnNewLine(VirtualCharSequence characters, int index)
     {
         return index + 1 < characters.Length &&
-            characters[index].Char is '\r' &&
-            characters[index + 1].Char is '\n';
+            characters[index].Value is '\r' &&
+            characters[index + 1].Value is '\n';
     }
 
     public static bool AllEscapesAreQuotes(VirtualCharSequence sequence)
@@ -106,7 +106,7 @@ internal static class ConvertToRawStringHelpers
             return false;
 
         // Can't ever encode a null value directly in a c# file as our lexer/parser/text apis will stop righ there.
-        if (ch.Char == 0)
+        if (ch.Value == 0)
             return false;
 
         // Check if we have an escaped character in the original string.

@@ -87,13 +87,11 @@ internal readonly record struct VirtualChar
     internal VirtualCharGreen Green { get; }
     internal int TokenStart { get; }
 
-    /// <inheritdoc cref="VirtualCharGreen.Char"/>
-    public char Char => Green.Char;
-
     public static implicit operator char(VirtualChar ch)
-        => ch.Char;
+        => ch.Value;
 
-    public char Value => Char;
+    /// <inheritdoc cref="VirtualCharGreen.Char"/>
+    public char Value => Green.Char;
 
     public TextSpan Span => new(TokenStart + Green.Offset, Green.Width);
 
@@ -101,10 +99,10 @@ internal readonly record struct VirtualChar
 
     /// <inheritdoc/>
     public override string ToString()
-        => Char.ToString();
+        => Value.ToString();
 
     public void AppendTo(StringBuilder builder)
-        => builder.Append(Char);
+        => builder.Append(Value);
 
     #endregion
 
@@ -117,7 +115,7 @@ internal readonly record struct VirtualChar
         => !(ch1 == ch2);
 
     private int CompareTo(char other)
-        => this.Char - other;
+        => this.Value - other;
 
     public static bool operator <(VirtualChar ch1, char ch2)
         => ch1.CompareTo(ch2) < 0;
