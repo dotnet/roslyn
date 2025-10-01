@@ -34340,5 +34340,93 @@ public static class E
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "str").WithArguments("values", "void extension(string).Extension(params string[] values)").WithLocation(7, 18)
                 );
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80512")]
+    public void Params_01()
+    {
+        var src = """
+var c = new C();
+c.Add(1);
+
+interface I<T1> { }
+class C : I<int> { }
+
+static class E
+{
+    extension<T1>(I<T1> node)
+    {
+        public void Add(T1 value) { }
+        public void Add(params T1[] values) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        src = """
+var c = new C();
+c.Add(1);
+
+interface I<T1> { }
+class C : I<int> { }
+
+static class E
+{
+    public static void Add<T1>(this I<T1> node, T1 value) { }
+    public static void Add<T1>(this I<T1> node, params T1[] values) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Params_02()
+    {
+        var src = """
+var c = new C();
+c.Add(x: 1, y: 2);
+
+interface I<T> { }
+class C : I<int> { }
+
+static class E
+{
+    extension<T>(I<T> node) where T : struct
+    {
+        public void Add(T x, params T[] y) { }
+        public void Add(T y, params System.Span<T> x) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension<T>(I<T>).Add(T, params T[])' and 'E.extension<T>(I<T>).Add(T, params Span<T>)'
+            // c.Add(x: 1, y: 2);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Add").WithArguments("E.extension<T>(I<T>).Add(T, params T[])", "E.extension<T>(I<T>).Add(T, params System.Span<T>)").WithLocation(2, 3));
+    }
+
+    [Fact]
+    public void Params_03()
+    {
+        var src = """
+var c = new C();
+c.Add(1, 2);
+
+interface I<T> { }
+class C : I<int> { }
+
+static class E
+{
+    extension<T>(I<T> node) where T : struct
+    {
+        public void Add(T x, params T[] y) { }
+        public void Add(T y, params System.Span<T> x) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+    }
 }
 
