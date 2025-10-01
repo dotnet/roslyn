@@ -114,20 +114,5 @@ internal readonly record struct VirtualChar
     public static bool operator !=(VirtualChar ch1, char ch2)
         => !(ch1 == ch2);
 
-    private int CompareTo(char other)
-        => this.Value - other;
-
-    public static bool operator <(VirtualChar ch1, char ch2)
-        => ch1.CompareTo(ch2) < 0;
-
-    public static bool operator <=(VirtualChar ch1, char ch2)
-        => ch1.CompareTo(ch2) <= 0;
-
-    public static bool operator >(VirtualChar ch1, char ch2)
-        => ch1.CompareTo(ch2) > 0;
-
-    public static bool operator >=(VirtualChar ch1, char ch2)
-        => ch1.CompareTo(ch2) >= 0;
-
     #endregion
 }
