@@ -161,7 +161,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         {
             if (tokenText[index] == '"' && tokenText[index + 1] == '"')
             {
-                result.Add(VirtualCharGreen.Create(new Rune('"'), offset: index, width: 2));
+                result.Add(new VirtualCharGreen('"', offset: index, width: 2));
                 index += 2;
                 continue;
             }
@@ -170,12 +170,12 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
                 if (!IsLegalBraceEscape(tokenText, index, out var width))
                     return default;
 
-                result.Add(VirtualCharGreen.Create(new Rune(tokenText[index]), offset: index, width: width));
+                result.Add(new VirtualCharGreen(tokenText[index], offset: index, width: width));
                 index += width;
                 continue;
             }
 
-            index += ConvertTextAtIndexToRune(tokenText, index, result);
+            index += ConvertTextAtIndexToVirtualChar(tokenText, index, result);
         }
 
         return CreateVirtualCharSequence(
@@ -185,38 +185,19 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
     /// <summary>
     /// Returns the number of characters to jump forward (either 1 or 2);
     /// </summary>
-    protected static int ConvertTextAtIndexToRune(string tokenText, int index, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
-        => ConvertTextAtIndexToRune(tokenText, index, new StringTextInfo(), result);
+    protected static int ConvertTextAtIndexToVirtualChar(string tokenText, int index, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
+        => ConvertTextAtIndexToVirtualChar(tokenText, index, new StringTextInfo(), result);
 
-    protected static int ConvertTextAtIndexToRune(SourceText tokenText, int index, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
-        => ConvertTextAtIndexToRune(tokenText, index, new SourceTextTextInfo(), result);
+    protected static int ConvertTextAtIndexToVirtualChar(SourceText tokenText, int index, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
+        => ConvertTextAtIndexToVirtualChar(tokenText, index, new SourceTextTextInfo(), result);
 
-    private static int ConvertTextAtIndexToRune<T, TTextInfo>(
+    private static int ConvertTextAtIndexToVirtualChar<T, TTextInfo>(
         T tokenText, int index, TTextInfo info, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
         where TTextInfo : struct, ITextInfo<T>
     {
         var ch = info.Get(tokenText, index);
-
-        if (Rune.TryCreate(ch, out var rune))
-        {
-            // First, see if this was a single char that can become a rune (the common case).
-            result.Add(VirtualCharGreen.Create(rune, offset: index, width: 1));
-            return 1;
-        }
-        else if (index + 1 < info.Length(tokenText) &&
-                 Rune.TryCreate(ch, info.Get(tokenText, index + 1), out rune))
-        {
-            // Otherwise, see if we have a surrogate pair (less common, but possible).
-            result.Add(VirtualCharGreen.Create(rune, offset: index, width: 2));
-            return 2;
-        }
-        else
-        {
-            // Something that couldn't be encoded as runes.
-            Debug.Assert(char.IsSurrogate(ch));
-            result.Add(VirtualCharGreen.Create(ch, offset: index, width: 1));
-            return 1;
-        }
+        result.Add(new VirtualCharGreen(ch, offset: index, width: 1));
+        return 1;
     }
 
     protected static bool IsOpenOrCloseBrace(char ch)

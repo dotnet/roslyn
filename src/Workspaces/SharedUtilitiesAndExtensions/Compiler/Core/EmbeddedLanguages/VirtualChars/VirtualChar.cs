@@ -22,20 +22,7 @@ internal readonly record struct VirtualCharGreen
     private const int WidthMask = 0b1111; // 4 bits for width (max 10)
     private const int OffsetShift = 4;    // remaining bits for offset
 
-    /// <summary>
-    /// The value of this <see cref="VirtualCharGreen"/> as a <see cref="Rune"/> if such a representation is possible.
-    /// <see cref="Rune"/>s can represent Unicode codepoints that can appear in a <see cref="string"/> except for
-    /// unpaired surrogates.  If an unpaired high or low surrogate character is present, this value will be <see
-    /// cref="Rune.ReplacementChar"/>.  The value of this character can be retrieved from
-    /// <see cref="SurrogateChar"/>.
-    /// </summary>
-    public readonly Rune Rune;
-
-    /// <summary>
-    /// The unpaired high or low surrogate character that was encountered that could not be represented in <see
-    /// cref="Rune"/>.  If <see cref="Rune"/> is not <see cref="Rune.ReplacementChar"/>, this will be <c>0</c>.
-    /// </summary>
-    public readonly char SurrogateChar;
+    public readonly char Char;
 
     /// <summary>
     /// The offset and width combined into a single integer.  Because the width of a VirtualChar can't be more than
@@ -54,30 +41,8 @@ internal readonly record struct VirtualCharGreen
     /// </summary>
     public int Width => _offsetAndWidth & WidthMask;
 
-    /// <summary>
-    /// Creates a new <see cref="VirtualCharGreen"/> from the provided <paramref name="rune"/>.  This operation cannot
-    /// fail.
-    /// </summary>
-    public static VirtualCharGreen Create(Rune rune, int offset, int width)
-        => new(rune, surrogateChar: default, offset, width);
-
-    /// <summary>
-    /// Creates a new <see cref="VirtualCharGreen"/> from an unpaired high or low surrogate character.  This will throw
-    /// if <paramref name="surrogateChar"/> is not actually a surrogate character. The resultant <see cref="Rune"/>
-    /// value will be <see cref="Rune.ReplacementChar"/>.
-    /// </summary>
-    public static VirtualCharGreen Create(char surrogateChar, int offset, int width)
+    public VirtualCharGreen(char ch, int offset, int width)
     {
-        if (!char.IsSurrogate(surrogateChar))
-            throw new ArgumentException("surrogateChar must be a surrogate code unit", nameof(surrogateChar));
-
-        return new VirtualCharGreen(rune: Rune.ReplacementChar, surrogateChar, offset, width);
-    }
-
-    private VirtualCharGreen(Rune rune, char surrogateChar, int offset, int width)
-    {
-        Contract.ThrowIfFalse(surrogateChar == 0 || rune == Rune.ReplacementChar,
-            "If surrogateChar is provided then rune must be Rune.ReplacementChar");
         Contract.ThrowIfTrue(width > MaxWidth);
 
         if (offset < 0)
@@ -86,20 +51,12 @@ internal readonly record struct VirtualCharGreen
         if (width <= 0)
             throw new ArgumentException("Width must be greater than zero.", nameof(width));
 
-        Rune = rune;
-        SurrogateChar = surrogateChar;
+        Char = ch;
         _offsetAndWidth = (offset << OffsetShift) | width;
     }
 
-    /// <summary>
-    /// Retrieves the scaler value of this character as an <see cref="int"/>.  If this is an unpaired surrogate
-    /// character, this will be the value of that surrogate.  Otherwise, this will be the value of our <see
-    /// cref="Rune"/>.
-    /// </summary>
-    public int Value => SurrogateChar != 0 ? SurrogateChar : Rune.Value;
-
     public VirtualCharGreen WithOffset(int offset)
-        => new(this.Rune, this.SurrogateChar, offset, this.Width);
+        => new(this.Char, offset, this.Width);
 }
 
 /// <summary>
@@ -130,67 +87,32 @@ internal readonly record struct VirtualChar
     internal VirtualCharGreen Green { get; }
     internal int TokenStart { get; }
 
-    /// <inheritdoc cref="VirtualCharGreen.Rune"/>
-    public Rune Rune => Green.Rune;
-
-    /// <inheritdoc cref="VirtualCharGreen.SurrogateChar"/>
-    public char SurrogateChar => Green.SurrogateChar;
+    /// <inheritdoc cref="VirtualCharGreen.Char"/>
+    public char Char => Green.Char;
 
     public TextSpan Span => new(TokenStart + Green.Offset, Green.Width);
-
-    /// <inheritdoc cref="VirtualCharGreen.Value"/>
-    public int Value => Green.Value;
-
-    public bool IsDigit
-        => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);
-
-    public bool IsLetter
-        => SurrogateChar != 0 ? char.IsLetter(SurrogateChar) : Rune.IsLetter(Rune);
-
-    public bool IsLetterOrDigit
-        => SurrogateChar != 0 ? char.IsLetterOrDigit(SurrogateChar) : Rune.IsLetterOrDigit(Rune);
-
-    public bool IsWhiteSpace
-        => SurrogateChar != 0 ? char.IsWhiteSpace(SurrogateChar) : Rune.IsWhiteSpace(Rune);
-
-    /// <inheritdoc cref="Rune.Utf16SequenceLength" />
-    public int Utf16SequenceLength
-        => SurrogateChar != 0 ? 1 : Rune.Utf16SequenceLength;
 
     #region string operations
 
     /// <inheritdoc/>
     public override string ToString()
-        => SurrogateChar != 0 ? SurrogateChar.ToString() : Rune.ToString();
+        => Char.ToString();
 
     public void AppendTo(StringBuilder builder)
-    {
-        if (SurrogateChar != 0)
-        {
-            builder.Append(SurrogateChar);
-            return;
-        }
-
-        Span<char> chars = stackalloc char[2];
-
-        var length = Rune.EncodeToUtf16(chars);
-        builder.Append(chars[0]);
-        if (length == 2)
-            builder.Append(chars[1]);
-    }
+        => builder.Append(Char);
 
     #endregion
 
     #region equality
 
     public static bool operator ==(VirtualChar ch1, char ch2)
-        => ch1.Green.Value == ch2;
+        => ch1.Green.Char == ch2;
 
     public static bool operator !=(VirtualChar ch1, char ch2)
         => !(ch1 == ch2);
 
     private int CompareTo(char other)
-        => this.Value - other;
+        => this.Char - other;
 
     public static bool operator <(VirtualChar ch1, char ch2)
         => ch1.CompareTo(ch2) < 0;
