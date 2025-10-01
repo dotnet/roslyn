@@ -10,15 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 internal static class Extensions
 {
     public static bool TryGetEscapeCharacter(this VirtualChar ch, out char escapedChar)
-        => TryGetEscapeCharacter(ch.Value, out escapedChar);
+        => TryGetEscapeCharacter(ch.Char, out escapedChar);
 
-    public static bool TryGetEscapeCharacter(this Rune rune, out char escapedChar)
-        => TryGetEscapeCharacter(rune.Value, out escapedChar);
-
-    private static bool TryGetEscapeCharacter(int value, out char escapedChar)
+    private static bool TryGetEscapeCharacter(char ch, out char escapedChar)
     {
         // Keep in sync with CSharpVirtualCharService.TryAddSingleCharacterEscape
-        switch (value)
+        switch (ch)
         {
             // Note: we don't care about single quote as that doesn't need to be escaped when
             // producing a normal C# string literal.
