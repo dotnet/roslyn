@@ -9,6 +9,132 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 /// <summary>
+/// <see cref="VirtualCharGreen"/> provides a uniform view of a language's string token characters regardless if they
+/// were written raw in source, or are the production of a language escape sequence.  For example, in C#, in a normal
+/// <c>""</c> string a <c>Tab</c> character can be written either as the raw tab character (value <c>9</c> in ASCII),
+/// or as <c>\t</c>.  The format is a single character in the source, while the latter is two characters (<c>\</c> and
+/// <c>t</c>).  <see cref="VirtualCharGreen"/> will represent both, providing the raw <see cref="char"/> value of
+/// <c>9</c> as well as what offset and width within original <see cref="SyntaxToken"/> the character was found at.
+/// </summary>
+internal readonly record struct VirtualCharGreen
+{
+    /// <summary>
+    /// The value of this <see cref="VirtualCharGreen"/> as a <see cref="Rune"/> if such a representation is possible.
+    /// <see cref="Rune"/>s can represent Unicode codepoints that can appear in a <see cref="string"/> except for
+    /// unpaired surrogates.  If an unpaired high or low surrogate character is present, this value will be <see
+    /// cref="Rune.ReplacementChar"/>.  The value of this character can be retrieved from
+    /// <see cref="SurrogateChar"/>.
+    /// </summary>
+    public readonly Rune Rune;
+
+    /// <summary>
+    /// The unpaired high or low surrogate character that was encountered that could not be represented in <see
+    /// cref="Rune"/>.  If <see cref="Rune"/> is not <see cref="Rune.ReplacementChar"/>, this will be <c>0</c>.
+    /// </summary>
+    public readonly char SurrogateChar;
+
+    /// <summary>
+    /// Offset in the original token that this character was found at.
+    /// </summary>
+    public readonly int Offset;
+
+    /// <summary>
+    /// The width of characters in the original <see cref="SourceText"/> that represent this <see cref="VirtualCharGreen"/>.
+    /// This can be as low as 1 (for normal characters) or up to 10 (for escape sequences like \UXXXXXXXX).
+    /// </summary>
+    public readonly int Width;
+
+    /// <summary>
+    /// Creates a new <see cref="VirtualCharGreen"/> from the provided <paramref name="rune"/>.  This operation cannot
+    /// fail.
+    /// </summary>
+    public static VirtualCharGreen Create(Rune rune, int offset, int width)
+        => new(rune, surrogateChar: default, offset, width);
+
+    /// <summary>
+    /// Creates a new <see cref="VirtualCharGreen"/> from an unpaired high or low surrogate character.  This will throw
+    /// if <paramref name="surrogateChar"/> is not actually a surrogate character. The resultant <see cref="Rune"/>
+    /// value will be <see cref="Rune.ReplacementChar"/>.
+    /// </summary>
+    public static VirtualCharGreen Create(char surrogateChar, int offset, int width)
+    {
+        if (!char.IsSurrogate(surrogateChar))
+            throw new ArgumentException(nameof(surrogateChar));
+
+        return new VirtualCharGreen(rune: Rune.ReplacementChar, surrogateChar, offset, width);
+    }
+
+    private VirtualCharGreen(Rune rune, char surrogateChar, int offset, int width)
+    {
+        Contract.ThrowIfFalse(surrogateChar == 0 || rune == Rune.ReplacementChar,
+            "If surrogateChar is provided then rune must be Rune.ReplacementChar");
+
+        if (offset < 0)
+            throw new ArgumentException("Offset cannot be negative", nameof(offset));
+
+        if (width <= 0)
+            throw new ArgumentException("Width must be greater than zero.", nameof(width));
+
+        Rune = rune;
+        SurrogateChar = surrogateChar;
+        Offset = offset;
+        Width = width;
+    }
+
+    /// <summary>
+    /// Retrieves the scaler value of this character as an <see cref="int"/>.  If this is an unpaired surrogate
+    /// character, this will be the value of that surrogate.  Otherwise, this will be the value of our <see
+    /// cref="Rune"/>.
+    /// </summary>
+    public int Value => SurrogateChar != 0 ? SurrogateChar : Rune.Value;
+
+    public VirtualCharGreen WithOffset(int offset)
+        => new(this.Rune, this.SurrogateChar, offset, this.Width);
+
+    public bool IsDigit
+        => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);
+
+    public bool IsLetter
+        => SurrogateChar != 0 ? char.IsLetter(SurrogateChar) : Rune.IsLetter(Rune);
+
+    public bool IsLetterOrDigit
+        => SurrogateChar != 0 ? char.IsLetterOrDigit(SurrogateChar) : Rune.IsLetterOrDigit(Rune);
+
+    public bool IsWhiteSpace
+        => SurrogateChar != 0 ? char.IsWhiteSpace(SurrogateChar) : Rune.IsWhiteSpace(Rune);
+
+    /// <inheritdoc cref="Rune.Utf16SequenceLength" />
+    public int Utf16SequenceLength => SurrogateChar != 0 ? 1 : Rune.Utf16SequenceLength;
+
+    public int CompareTo(char other)
+        => this.Value - other;
+
+    #region string operations
+
+    /// <inheritdoc/>
+    public override string ToString()
+        => SurrogateChar != 0 ? SurrogateChar.ToString() : Rune.ToString();
+
+    public void AppendTo(StringBuilder builder)
+    {
+        if (SurrogateChar != 0)
+        {
+            builder.Append(SurrogateChar);
+            return;
+        }
+
+        Span<char> chars = stackalloc char[2];
+
+        var length = Rune.EncodeToUtf16(chars);
+        builder.Append(chars[0]);
+        if (length == 2)
+            builder.Append(chars[1]);
+    }
+
+    #endregion
+}
+
+/// <summary>
 /// <see cref="VirtualChar"/> provides a uniform view of a language's string token characters regardless if they
 /// were written raw in source, or are the production of a language escape sequence.  For example, in C#, in a
 /// normal <c>""</c> string a <c>Tab</c> character can be written either as the raw tab character (value <c>9</c> in
