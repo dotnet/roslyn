@@ -194,7 +194,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualChar.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharGreenSequence.Chunks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)embeddedlanguages\virtualchars\VirtualCharGreenSequence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AnalysisContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticAnalyzerExtensions.cs" />
