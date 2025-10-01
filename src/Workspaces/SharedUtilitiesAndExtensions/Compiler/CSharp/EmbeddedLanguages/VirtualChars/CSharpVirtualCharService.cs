@@ -253,15 +253,9 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         }
         else
         {
-            // Do things in two passes.  First, convert everything in the string to a 16-bit-char+span.  Then walk
-            // again, trying to create Runes from the 16-bit-chars. We do this to simplify complex cases where we may
-            // have escapes and non-escapes mixed together.
-
-            // Second pass.  Convert those characters to Runes.
             using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
             var charResults = pooledRuneResults.Object;
 
-            // First pass, just convert everything in the string (i.e. escapes) to plain 16-bit characters.
             for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
                 var ch = tokenText[index];
