@@ -1806,44 +1806,26 @@ class c
                 // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
-                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async void F1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
                 // (5,27): warning CS8321: The local function 'F1' is declared but never used
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
                 // (6,15): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15),
-                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
                 // (6,27): warning CS8321: The local function 'F2' is declared but never used
                 //         async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async void F1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
                 // (5,27): warning CS8321: The local function 'F1' is declared but never used
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
-                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
                 // (6,27): warning CS8321: The local function 'F2' is declared but never used
                 //         async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async void F1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
                 // (5,27): warning CS8321: The local function 'F1' is declared but never used
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
-                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
                 // (6,27): warning CS8321: The local function 'F2' is declared but never used
                 //         async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
@@ -1964,9 +1946,6 @@ class c
                 // (6,22): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22),
-                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
                 // (6,34): warning CS8321: The local function 'F2' is declared but never used
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
@@ -1986,9 +1965,6 @@ class c
                 // (6,22): error CS1004: Duplicate 'static' modifier
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
-                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
                 // (6,34): warning CS8321: The local function 'F2' is declared but never used
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
@@ -2008,9 +1984,6 @@ class c
                 // (6,22): error CS1004: Duplicate 'static' modifier
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
-                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
                 // (6,34): warning CS8321: The local function 'F2' is declared but never used
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
@@ -2118,7 +2091,7 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async void F() { }
                     }
                 }
@@ -2195,7 +2168,7 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async void F() { }
                     }
                 }
@@ -2279,7 +2252,7 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async async void F() { }
                     }
                 }
@@ -2370,7 +2343,7 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async async async void F() { }
                     }
                 }

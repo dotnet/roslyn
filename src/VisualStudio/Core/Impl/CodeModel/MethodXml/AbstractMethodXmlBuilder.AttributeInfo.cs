@@ -10,7 +10,7 @@ internal abstract partial class AbstractMethodXmlBuilder
 {
     private readonly struct AttributeInfo
     {
-        public static readonly AttributeInfo Empty = new AttributeInfo();
+        public static readonly AttributeInfo Empty = new();
 
         public readonly string Name;
         public readonly string Value;

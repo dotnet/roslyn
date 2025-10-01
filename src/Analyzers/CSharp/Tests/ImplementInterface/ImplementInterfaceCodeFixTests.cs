@@ -4553,9 +4553,6 @@ index: 1);
             }
             """,
             Options = { AllOptionsOff },
-
-            // 🐛 one value is generated with 100L instead of 100
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]
@@ -5043,9 +5040,6 @@ class B : IGoo
             }
             """,
             Options = { AllOptionsOff },
-
-            // 🐛 one value is generated with 0U instead of 0
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -5565,8 +5559,6 @@ class B : IGoo
                 }
             }
             """,
-            // 🐛 the DateTimeConstant attribute is generated with 100L instead of 100
-            CodeActionValidationMode = CodeActionValidationMode.None,
         };
 
         test.Options.AddRange(AllOptionsOff);
@@ -5978,9 +5970,6 @@ class B : IGoo
             }
             """,
             CodeActionIndex = 3,
-
-            // 🐛 generated QualifiedName where SimpleMemberAccessExpression was expected
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -6193,8 +6182,6 @@ class B : IGoo
                 }
             }
             """,
-            // 🐛 generated QualifiedName where SimpleMemberAccessExpression was expected
-            CodeActionValidationMode = CodeActionValidationMode.None,
         };
 
         test.Options.AddRange(AllOptionsOff);
@@ -6371,8 +6358,6 @@ class B : IGoo
                 }
             }
             """,
-            // 🐛 generated QualifiedName where SimpleMemberAccessExpression was expected
-            CodeActionValidationMode = CodeActionValidationMode.None,
         };
 
         test.Options.AddRange(AllOptionsOff);

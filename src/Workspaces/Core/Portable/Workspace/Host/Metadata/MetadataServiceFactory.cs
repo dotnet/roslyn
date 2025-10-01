@@ -24,7 +24,7 @@ internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
 
     private sealed class DefaultMetadataService(IDocumentationProviderService documentationService) : IMetadataService
     {
-        private readonly MetadataReferenceCache _metadataCache = new MetadataReferenceCache((path, properties) =>
+        private readonly MetadataReferenceCache _metadataCache = new((path, properties) =>
                 MetadataReference.CreateFromFile(path, properties, documentationService.GetDocumentationProvider(path)));
 
         public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)

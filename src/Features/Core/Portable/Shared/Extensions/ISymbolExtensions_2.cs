@@ -231,7 +231,7 @@ internal static partial class ISymbolExtensions2
 
     public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
         this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter)
-        => c => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken: c);
+        => cancellationToken => symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
 
     public static readonly SymbolDisplayFormat CrefFormat =
         new(

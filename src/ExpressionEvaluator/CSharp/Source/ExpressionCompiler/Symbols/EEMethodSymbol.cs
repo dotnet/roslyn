@@ -290,11 +290,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+#nullable enable
+
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = null;
             return true;
         }
+
+#nullable disable
 
         public override bool HidesBaseMethodsByName
         {

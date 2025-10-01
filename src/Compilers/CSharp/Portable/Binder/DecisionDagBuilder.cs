@@ -685,7 +685,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder = ArrayBuilder<Tests>.GetInstance(2);
                         builder.Add(result);
-                        output = @this.MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
+                        var evaluation = new BoundDagTypeEvaluation(bin.Syntax, bin.NarrowedType, input);
+                        output = new BoundDagTemp(bin.Syntax, bin.NarrowedType, evaluation);
+                        builder.Add(new Tests.One(evaluation));
                         return Tests.AndSequence.Create(builder);
                     }
                 }

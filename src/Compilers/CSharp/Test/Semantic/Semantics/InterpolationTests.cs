@@ -6643,6 +6643,137 @@ literal:Literal");
 ");
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79888")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("in")]
+        public void PassAsRefWithoutKeyword_05_WithReorder(string refKind)
+        {
+            var code = $$"""
+                BadFunc(
+                    message: $"abc",
+                    value2: 0,
+                    value1: 1);
+ 
+                static void BadFunc(
+                    {{refKind}} InterpolatedStringHandler message,
+                    in int? value1,
+                    int? value2)
+                {
+                    System.Console.Write(value1);
+                    System.Console.Write(value2);
+                }
+ 
+                [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                public ref struct InterpolatedStringHandler
+                {
+                    public InterpolatedStringHandler(
+                        int literalLength,
+                        int formattedCount)
+                    {
+                    }
+ 
+                    public void AppendLiteral(string value)
+                    {
+                        System.Console.Write(value);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null, verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  3
+                  .locals init (int? V_0,
+                                InterpolatedStringHandler V_1,
+                                int? V_2)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  ldc.i4.0
+                  IL_0004:  call       "InterpolatedStringHandler..ctor(int, int)"
+                  IL_0009:  ldloca.s   V_1
+                  IL_000b:  ldstr      "abc"
+                  IL_0010:  call       "void InterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0015:  ldloca.s   V_1
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldc.i4.0
+                  IL_001a:  call       "int?..ctor(int)"
+                  IL_001f:  ldc.i4.1
+                  IL_0020:  newobj     "int?..ctor(int)"
+                  IL_0025:  stloc.2
+                  IL_0026:  ldloca.s   V_2
+                  IL_0028:  ldloc.0
+                  IL_0029:  call       "void Program.<<Main>$>g__BadFunc|0_0({{refKind}} InterpolatedStringHandler, in int?, int?)"
+                  IL_002e:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/79888")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("in")]
+        public void PassAsRefWithoutKeyword_05_WithoutReorder(string refKind)
+        {
+            var code = $$"""
+                BadFunc(
+                    message: $"abc",
+                    value1: 1,
+                    value2: 0);
+ 
+                static void BadFunc(
+                    {{refKind}} InterpolatedStringHandler message,
+                    in int? value1,
+                    int? value2)
+                {
+                    System.Console.Write(value1);
+                    System.Console.Write(value2);
+                }
+ 
+                [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                public ref struct InterpolatedStringHandler
+                {
+                    public InterpolatedStringHandler(
+                        int literalLength,
+                        int formattedCount)
+                    {
+                    }
+ 
+                    public void AppendLiteral(string value)
+                    {
+                        System.Console.Write(value);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.Net90, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "abc10" : null, verify: Verification.FailsPEVerify);
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  3
+                  .locals init (InterpolatedStringHandler V_0,
+                                  int? V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  ldc.i4.0
+                  IL_0004:  call       "InterpolatedStringHandler..ctor(int, int)"
+                  IL_0009:  ldloca.s   V_0
+                  IL_000b:  ldstr      "abc"
+                  IL_0010:  call       "void InterpolatedStringHandler.AppendLiteral(string)"
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  newobj     "int?..ctor(int)"
+                  IL_001d:  stloc.1
+                  IL_001e:  ldloca.s   V_1
+                  IL_0020:  ldc.i4.0
+                  IL_0021:  newobj     "int?..ctor(int)"
+                  IL_0026:  call       "void Program.<<Main>$>g__BadFunc|0_0({{refKind}} InterpolatedStringHandler, in int?, int?)"
+                  IL_002b:  ret
+                }
+                """);
+        }
+
         [Theory]
         [CombinatorialData]
         public void RefOverloadResolution_Struct([CombinatorialValues("in", "ref")] string refKind, [CombinatorialValues(@"$""{1,2:f}Literal""", @"$""{1,2:f}"" + $""Literal""")] string expression)
@@ -17581,7 +17712,7 @@ format:
   IL_0053:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
   IL_0058:  ldloc.0
   IL_0059:  stelem     ""CustomHandler""
-  IL_005e:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler[])""
+  IL_005e:  call       ""void Program.<<Main>$>g__M|0_0(params CustomHandler[])""
   IL_0063:  ret
 }
 ");

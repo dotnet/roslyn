@@ -18,8 +18,7 @@ public sealed partial class NavigateToTestAggregator
     {
         private readonly List<NavigateToItem> _itemsReceived = [];
 
-        private readonly TaskCompletionSource<IEnumerable<NavigateToItem>> _taskCompletionSource =
-            new TaskCompletionSource<IEnumerable<NavigateToItem>>();
+        private readonly TaskCompletionSource<IEnumerable<NavigateToItem>> _taskCompletionSource = new();
 
         public Callback(INavigateToOptions options)
         {

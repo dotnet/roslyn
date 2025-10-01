@@ -103,6 +103,9 @@ internal abstract class VisualStudioOptionStorage
     public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
         {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
+        {"dotnet_copilot_fix_code_format", new FeatureFlagStorage(@"Roslyn.Copilot.FixCodeFormat")},
+        {"dotnet_copilot_fix_add_missing_tokens", new FeatureFlagStorage(@"Roslyn.Copilot.FixAddMissingTokens")},
+        {"dotnet_copilot_fix_add_missing_imports", new FeatureFlagStorage(@"Roslyn.Copilot.FixAddMissingImports")},
         {"dotnet_collapse_empty_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened")},
         {"dotnet_collapse_imports_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened")},
         {"dotnet_collapse_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened")},
@@ -233,7 +236,6 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_using_directive_placement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferredUsingDirectivePlacement")},
         {"dotnet_provide_date_and_time_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
         {"dotnet_log_telemetry_for_background_analyzer_execution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
-        {"dotnet_lightbulb_skip_executing_deprioritized_analyzers", new FeatureFlagStorage(@"Roslyn.LightbulbSkipExecutingDeprioritizedAnalyzers")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
@@ -362,6 +364,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_smart_indenter", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Smart Indenter")},
         {"dotnet_enable_snippets", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Snippets2")},
         {"dotnet_enable_syntactic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Syntactic Colorizer")},
+        {"dotnet_enable_solution_crawler", new LocalUserProfileStorage(@"Roslyn\Internal\SolutionCrawler", "Solution Crawler")},
         {"dotnet_colorize_json_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeJsonPatterns")},
         {"dotnet_unsupported_detect_and_offer_editor_features_for_probable_json_strings", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.DetectAndOfferEditorFeaturesForProbableJsonStrings")},
         {"dotnet_highlight_related_json_components", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedJsonComponentsUnderCursor")},

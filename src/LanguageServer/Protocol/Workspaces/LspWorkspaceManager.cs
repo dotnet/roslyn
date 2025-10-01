@@ -285,7 +285,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}");
+                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}; project {document.Project.Name}");
 
                 return (workspace, document.Project.Solution, document);
             }

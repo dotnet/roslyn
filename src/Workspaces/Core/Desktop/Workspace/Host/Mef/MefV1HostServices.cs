@@ -106,7 +106,7 @@ public class MefV1HostServices : HostServices, IMefHostExportProvider
     }
 
     internal TestAccessor GetTestAccessor()
-        => new TestAccessor(this);
+        => new(this);
 
     private readonly struct ExportKey : IEquatable<ExportKey>
     {

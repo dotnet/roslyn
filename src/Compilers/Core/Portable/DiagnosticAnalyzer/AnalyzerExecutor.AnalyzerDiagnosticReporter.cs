@@ -29,10 +29,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 TextSpan? span,
                 Compilation compilation,
                 DiagnosticAnalyzer analyzer,
+                AnalyzerOptions analyzerOptions,
                 bool isSyntaxDiagnostic,
-                Action<Diagnostic, CancellationToken>? addNonCategorizedDiagnostic,
-                Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
-                Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
+                Action<Diagnostic, AnalyzerOptions, CancellationToken>? addNonCategorizedDiagnostic,
+                Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, bool, CancellationToken>? addCategorizedLocalDiagnostic,
+                Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, CancellationToken>? addCategorizedNonLocalDiagnostic,
                 Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
                 CancellationToken cancellationToken)
             {
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 item.FilterSpanForLocalDiagnostics = span;
                 item._compilation = compilation;
                 item._analyzer = analyzer;
+                item._analyzerOptions = analyzerOptions;
                 item._isSyntaxDiagnostic = isSyntaxDiagnostic;
                 item._addNonCategorizedDiagnostic = addNonCategorizedDiagnostic;
                 item._addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 FilterSpanForLocalDiagnostics = null;
                 _compilation = null!;
                 _analyzer = null!;
+                _analyzerOptions = null!;
                 _isSyntaxDiagnostic = default;
                 _addNonCategorizedDiagnostic = null!;
                 _addCategorizedLocalDiagnostic = null!;
@@ -68,10 +71,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private SourceOrAdditionalFile? _contextFile;
             private Compilation _compilation;
             private DiagnosticAnalyzer _analyzer;
+            private AnalyzerOptions _analyzerOptions;
             private bool _isSyntaxDiagnostic;
-            private Action<Diagnostic, CancellationToken>? _addNonCategorizedDiagnostic;
-            private Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? _addCategorizedLocalDiagnostic;
-            private Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? _addCategorizedNonLocalDiagnostic;
+            private Action<Diagnostic, AnalyzerOptions, CancellationToken>? _addNonCategorizedDiagnostic;
+            private Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, bool, CancellationToken>? _addCategorizedLocalDiagnostic;
+            private Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, CancellationToken>? _addCategorizedNonLocalDiagnostic;
             private Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
             private CancellationToken _cancellationToken;
 
@@ -102,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_addCategorizedLocalDiagnostic == null)
                 {
                     Debug.Assert(_addNonCategorizedDiagnostic != null);
-                    _addNonCategorizedDiagnostic(diagnostic, _cancellationToken);
+                    _addNonCategorizedDiagnostic(diagnostic, _analyzerOptions, _cancellationToken);
                     return;
                 }
 
@@ -112,11 +116,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (isLocalDiagnostic(diagnostic) &&
                     (!FilterSpanForLocalDiagnostics.HasValue || FilterSpanForLocalDiagnostics.Value.IntersectsWith(diagnostic.Location.SourceSpan)))
                 {
-                    _addCategorizedLocalDiagnostic(diagnostic, _analyzer, _isSyntaxDiagnostic, _cancellationToken);
+                    _addCategorizedLocalDiagnostic(diagnostic, _analyzer, _analyzerOptions, _isSyntaxDiagnostic, _cancellationToken);
                 }
                 else
                 {
-                    _addCategorizedNonLocalDiagnostic(diagnostic, _analyzer, _cancellationToken);
+                    _addCategorizedNonLocalDiagnostic(diagnostic, _analyzer, _analyzerOptions, _cancellationToken);
                 }
 
                 return;

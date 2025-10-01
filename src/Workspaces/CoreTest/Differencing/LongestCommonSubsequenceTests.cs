@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests;
 
 public sealed class LongestCommonSubsequenceTests
 {
-    private readonly LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
+    private readonly LongestCommonSubsequenceString lcs = new();
 
     private sealed class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
     {

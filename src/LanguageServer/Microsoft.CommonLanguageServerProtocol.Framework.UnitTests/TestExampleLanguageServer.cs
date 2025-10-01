@@ -73,8 +73,8 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
         }
     }
 
-    private readonly TaskCompletionSource<int> _shuttingDown = new TaskCompletionSource<int>();
-    private readonly TaskCompletionSource<int> _exiting = new TaskCompletionSource<int>();
+    private readonly TaskCompletionSource<int> _shuttingDown = new();
+    private readonly TaskCompletionSource<int> _exiting = new();
 
     protected override ILspServices ConstructLspServices()
     {

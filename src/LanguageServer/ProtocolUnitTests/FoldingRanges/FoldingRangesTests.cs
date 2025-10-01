@@ -90,7 +90,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
     }
 
     private static LSP.FoldingRange CreateFoldingRange(string kind, LSP.Range range, string collapsedText)
-        => new LSP.FoldingRange()
+        => new()
         {
             Kind = kind switch
             {

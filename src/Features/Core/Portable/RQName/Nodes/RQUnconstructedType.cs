@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
 internal sealed class RQUnconstructedType(IList<string> namespaceNames, IList<RQUnconstructedTypeInfo> typeInfos) : RQTypeOrNamespace(namespaceNames)
 {
-    public readonly ReadOnlyCollection<RQUnconstructedTypeInfo> TypeInfos = new ReadOnlyCollection<RQUnconstructedTypeInfo>(typeInfos);
+    public readonly ReadOnlyCollection<RQUnconstructedTypeInfo> TypeInfos = new(typeInfos);
 
     protected override string RQKeyword
     {

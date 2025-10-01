@@ -62,12 +62,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
     internal sealed class TestSpanMapper : ISpanMappingService
     {
-        private static readonly LinePositionSpan s_mappedLinePosition = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 5));
+        private static readonly LinePositionSpan s_mappedLinePosition = new(new LinePosition(0, 0), new LinePosition(0, 5));
         private static readonly string s_mappedFilePath = "c:\\MappedFile_\ue25b\ud86d\udeac.cs";
 
         internal static readonly string GeneratedFileName = "GeneratedFile_\ue25b\ud86d\udeac.cs";
 
-        internal static readonly LSP.Location MappedFileLocation = new LSP.Location
+        internal static readonly LSP.Location MappedFileLocation = new()
         {
             Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
             DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_mappedFilePath)
@@ -208,14 +208,14 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     private protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
-        => new LSP.TextDocumentPositionParams()
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri, projectContext),
             Position = caret.Range.Start
         };
 
     private protected static LSP.MarkupContent CreateMarkupContent(LSP.MarkupKind kind, string value)
-        => new LSP.MarkupContent()
+        => new()
         {
             Kind = kind,
             Value = value
@@ -226,7 +226,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         LSP.VSInternalCompletionInvokeKind invokeKind,
         string triggerCharacter,
         LSP.CompletionTriggerKind triggerKind)
-        => new LSP.CompletionParams()
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
@@ -284,7 +284,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     private protected static LSP.TextEdit GenerateTextEdit(string newText, int startLine, int startChar, int endLine, int endChar)
-        => new LSP.TextEdit
+        => new()
         {
             NewText = newText,
             Range = new LSP.Range
@@ -545,7 +545,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(DocumentUri uri, string source, string languageId = "", int version = 0)
-        => new LSP.DidOpenTextDocumentParams
+        => new()
         {
             TextDocument = new LSP.TextDocumentItem
             {
@@ -557,7 +557,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         };
 
     private static LSP.DidCloseTextDocumentParams CreateDidCloseTextDocumentParams(DocumentUri uri)
-       => new LSP.DidCloseTextDocumentParams()
+       => new()
        {
            TextDocument = new LSP.TextDocumentIdentifier
            {

@@ -160,12 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If containingType IsNot Nothing Then
                     visitedParents = True
                     containingType.Accept(Me.NotFirstVisitor())
-
-                    If Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
-                        AddOperator(SyntaxKind.PlusToken)
-                    Else
-                        AddOperator(SyntaxKind.DotToken)
-                    End If
+                    AddNestedTypeSeparator()
                 End If
             End If
 
@@ -191,6 +186,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         invokeMethod.ReturnType.Accept(Me.NotFirstVisitor())
                     End If
                 End If
+            End If
+        End Sub
+
+        Private Sub AddNestedTypeSeparator()
+            If Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
+                AddOperator(SyntaxKind.PlusToken)
+            Else
+                AddOperator(SyntaxKind.DotToken)
             End If
         End Sub
 
@@ -239,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If symbolName Is Nothing Then
-                symbolName = If(symbol.IsExtension, symbol.MetadataName, symbol.Name)
+                symbolName = If(symbol.IsExtension, symbol.ExtensionGroupingName, symbol.Name)
             End If
 
             If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
@@ -578,5 +581,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Friend Sub AddExtensionMarkerName(extension As INamedTypeSymbol)
+            Debug.Assert(extension.IsExtension)
+            AddNestedTypeSeparator()
+            Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, extension, extension.ExtensionMarkerName, False))
+        End Sub
     End Class
 End Namespace

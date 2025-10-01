@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
                         processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
-                    compiler.Visit(compilation.SourceAssembly.GlobalNamespace);
+                    compiler.Visit(compilation.SourceAssembly.SourceModule.GlobalNamespace);
                     Debug.Assert(compiler._indentDepth == 0);
                     writer?.Flush();
                 }
@@ -254,16 +254,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (sawExtension)
                 {
-                    appendContainedExtensions(symbol);
+                    appendContainedExtensions((SourceNamedTypeSymbol)symbol);
                 }
             }
 
             return;
 
-            void appendContainedExtensions(NamedTypeSymbol containingType)
+            void appendContainedExtensions(SourceNamedTypeSymbol containingType)
             {
                 Debug.Assert(!_isForSingleSymbol);
-                ExtensionGroupingInfo extensionGroupingInfo = ((SourceMemberContainerTypeSymbol)containingType).GetExtensionGroupingInfo();
+                ExtensionGroupingInfo extensionGroupingInfo = containingType.GetExtensionGroupingInfo();
 
                 foreach (ImmutableArray<SourceNamedTypeSymbol> extensions in extensionGroupingInfo.EnumerateMergedExtensionBlocks())
                 {

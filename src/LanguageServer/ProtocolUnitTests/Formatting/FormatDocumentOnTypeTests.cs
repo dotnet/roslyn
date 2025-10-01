@@ -185,7 +185,7 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
         LSP.Location locationTyped,
         bool insertSpaces,
         int tabSize)
-        => new LSP.DocumentOnTypeFormattingParams()
+        => new()
         {
             Position = locationTyped.Range.Start,
             Character = characterTyped,

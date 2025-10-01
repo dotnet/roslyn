@@ -372,7 +372,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     }
 
     private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)
-        => new LSP.RenameParams()
+        => new()
         {
             NewName = newName,
             Position = location.Range.Start,

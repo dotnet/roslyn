@@ -41,7 +41,7 @@ internal class FSharpUnusedDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAn
     private const string DescriptorId = IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
 
     private readonly DiagnosticDescriptor _descriptor =
-        new DiagnosticDescriptor(
+        new(
                 DescriptorId,
                 ExternalAccessFSharpResources.TheValueIsUnused,
                 ExternalAccessFSharpResources.TheValueIsUnused,

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RewrittenMethodSymbol _containingMethod;
 
         public RewrittenLambdaOrLocalFunctionSymbol(MethodSymbol lambdaOrLocalFunctionSymbol, RewrittenMethodSymbol containingMethod)
-            : base(lambdaOrLocalFunctionSymbol, containingMethod.TypeMap, lambdaOrLocalFunctionSymbol.TypeParameters, propagateTypeParameterAttributes: false)
+            : base(lambdaOrLocalFunctionSymbol, containingMethod.TypeMap, lambdaOrLocalFunctionSymbol.TypeParameters)
         {
             Debug.Assert(lambdaOrLocalFunctionSymbol.AssociatedSymbol is null);
             Debug.Assert(lambdaOrLocalFunctionSymbol.TryGetThisParameter(out var thisParameter) && thisParameter is null);

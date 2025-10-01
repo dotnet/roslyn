@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,7 +23,21 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
 public sealed class UseExpressionBodyForMethodsAnalyzerTests
 {
-    private static Task TestWithUseExpressionBody(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
+    private static Task TestMissingWithUseExpressionBody(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        LanguageVersion version = LanguageVersion.CSharp8)
+        => new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = version,
+            Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ExpressionBodyPreference.WhenPossible } }
+        }.RunAsync();
+
+    private static Task TestWithUseExpressionBody(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
+        LanguageVersion version = LanguageVersion.CSharp8)
         => new VerifyCS.Test
         {
             TestCode = code,
@@ -31,7 +46,10 @@ public sealed class UseExpressionBodyForMethodsAnalyzerTests
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ExpressionBodyPreference.WhenPossible } }
         }.RunAsync();
 
-    private static Task TestWithUseBlockBody(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
+    private static Task TestWithUseBlockBody(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
+        ReferenceAssemblies? referenceAssemblies = null)
         => new VerifyCS.Test
         {
             TestCode = code,
@@ -387,32 +405,22 @@ public sealed class UseExpressionBodyForMethodsAnalyzerTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/17120")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80400")]
     public Task TestDirectives1()
-        => TestWithUseExpressionBody("""
+        => TestMissingWithUseExpressionBody("""
             #define DEBUG
             using System;
 
             class Program
             {
-                {|IDE0022:void Method()
+                void Method()
                 {
             #if DEBUG
                     Console.WriteLine();
             #endif
-                }|}
-            }
-            """, """
-            #define DEBUG
-            using System;
-
-            class Program
-            {
-                void Method() =>
-            #if DEBUG
-                    Console.WriteLine();
-            #endif
-
+                }
             }
             """);
 

@@ -783,13 +783,15 @@ Done:
             Return Me
         End Function
 
-        Public ReadOnly Property IsExtension As Boolean Implements ITypeSymbol.IsExtension
+        <Obsolete>
+        Private ReadOnly Property ITypeSymbol_IsExtension As Boolean Implements ITypeSymbol.IsExtension
             Get
                 Return False
             End Get
         End Property
 
-        Public ReadOnly Property ExtensionParameter As IParameterSymbol Implements ITypeSymbol.ExtensionParameter
+        <Obsolete>
+        Private ReadOnly Property ITypeSymbol_ExtensionParameter As IParameterSymbol Implements ITypeSymbol.ExtensionParameter
             Get
                 Return Nothing
             End Get

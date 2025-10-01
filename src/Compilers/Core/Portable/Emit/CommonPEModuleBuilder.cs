@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
         /// followed by types forwarded to another assembly.
         /// </summary>
-        public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
+        public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(EmitContext context);
 
         /// <summary>
         /// Used to distinguish which style to pick while writing native PDB information.

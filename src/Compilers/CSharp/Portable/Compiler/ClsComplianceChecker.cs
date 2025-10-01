@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 NamedTypeSymbol baseType = symbol.EnumUnderlyingType ?? symbol.BaseTypeNoUseSiteDiagnostics; // null for interfaces
-                System.Diagnostics.Debug.Assert((object)baseType != null || symbol.SpecialType == SpecialType.System_Object, "Only object has no base.");
+                System.Diagnostics.Debug.Assert((object)baseType != null || symbol.SpecialType == SpecialType.System_Object || symbol.IsExtension, "Only object or extension has no base.");
                 if ((object)baseType != null && !IsCompliantType(baseType, symbol))
                 {
                     // TODO: it would be nice to report this on the base type clause.

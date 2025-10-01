@@ -470,7 +470,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     }
 
     internal static TextSpan GetSpan(string str, string substr)
-        => new TextSpan(str.IndexOf(substr), substr.Length);
+        => new(str.IndexOf(substr), substr.Length);
 
     internal static void VerifyReadersDisposed(IEnumerable<IDisposable> readers)
     {

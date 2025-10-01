@@ -110,21 +110,15 @@ internal sealed partial class AutomaticLineEnderCommandHandler(
     private static TextSpan? GetFormattedTextSpan(SyntaxNode root, SyntaxToken endToken)
     {
         if (endToken.IsMissing)
-        {
             return null;
-        }
 
         var ranges = FormattingRangeHelper.FindAppropriateRange(endToken, useDefaultRange: false);
         if (ranges == null)
-        {
             return null;
-        }
 
         var startToken = ranges.Value.Item1;
         if (startToken.IsMissing || startToken.Kind() == SyntaxKind.None)
-        {
             return null;
-        }
 
         return CommonFormattingHelpers.GetFormattingSpan(root, TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End));
     }

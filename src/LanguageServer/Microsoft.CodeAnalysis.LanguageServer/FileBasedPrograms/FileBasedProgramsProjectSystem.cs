@@ -127,7 +127,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         foreach (var diagnostic in diagnostics)
         {
-            // https://github.com/dotnet/roslyn/issues/78688: Surface diagnostics in editor
             _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
         }
 

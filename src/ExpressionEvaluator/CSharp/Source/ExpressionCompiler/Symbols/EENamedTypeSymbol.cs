@@ -324,12 +324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal sealed override string ExtensionGroupingName
-            => throw ExceptionUtilities.Unreachable();
-
-        internal sealed override string ExtensionMarkerName
-            => throw ExceptionUtilities.Unreachable();
-
         public sealed override bool IsReadOnly
         {
             get { return false; }
@@ -363,7 +357,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool HasPossibleWellKnownCloneMethod() => false;
         internal override bool IsInterpolatedStringHandlerType => false;
 
-        internal sealed override ParameterSymbol ExtensionParameter => null;
+#nullable enable
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
+#nullable disable
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

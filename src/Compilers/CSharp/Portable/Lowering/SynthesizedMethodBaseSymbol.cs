@@ -129,7 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.ExplicitDefaultConstantValue,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
-                    baseParameterForAttributes: inheritAttributes ? p : null));
+                    baseParameterForAttributes: inheritAttributes ? p : null,
+                    isParams: this is SynthesizedClosureMethod && p.IsParams));
             }
 
             var extraSynthed = ExtraSynthesizedRefParameters;
