@@ -333,7 +333,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestValidLongEscape2_NotInCharRange()
         => Test("""
             "\U0002A6A5𪚥"
-            """, @"['\U0002A6A5',[1,11]]['\U0002A6A5',[11,13]]");
+            """, @"['\uD869',[1,7]]['\uDEA5',[7,11]]['\uD869',[11,12]]['\uDEA5',[12,13]]");
 
     [Fact]
     public void TestSurrogate1()
