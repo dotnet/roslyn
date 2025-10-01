@@ -90,6 +90,9 @@ internal readonly record struct VirtualChar
     /// <inheritdoc cref="VirtualCharGreen.Char"/>
     public char Char => Green.Char;
 
+    public static implicit operator char(VirtualChar ch)
+        => ch.Char;
+
     public char Value => Char;
 
     public TextSpan Span => new(TokenStart + Green.Offset, Green.Width);

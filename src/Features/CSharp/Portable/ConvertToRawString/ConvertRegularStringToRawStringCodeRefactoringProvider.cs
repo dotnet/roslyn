@@ -322,7 +322,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         var length = Math.Min(leadingWhitespace1.Length, leadingWhitespace2.Length);
 
         var current = 0;
-        while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Rune == leadingWhitespace2[current].Rune)
+        while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Char == leadingWhitespace2[current].Char)
             current++;
 
         return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));

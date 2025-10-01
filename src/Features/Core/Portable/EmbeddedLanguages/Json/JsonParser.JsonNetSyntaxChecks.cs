@@ -67,7 +67,7 @@ internal partial struct JsonParser
             var chars = numberToken.VirtualChars;
             var firstChar = chars[0];
 
-            var singleDigit = firstChar.IsDigit && chars.Length == 1;
+            var singleDigit = char.IsDigit(firstChar) && chars.Length == 1;
             if (singleDigit)
                 return null;
 
@@ -149,7 +149,7 @@ internal partial struct JsonParser
         {
             foreach (var vc in nameToken.VirtualChars)
             {
-                if (!vc.IsLetterOrDigit)
+                if (!char.IsLetterOrDigit(vc))
                     return false;
             }
 
@@ -199,6 +199,6 @@ internal partial struct JsonParser
         }
 
         private static bool IsLegalPropertyNameChar(VirtualChar ch)
-            => ch.IsLetterOrDigit || ch == '_' || ch == '$';
+            => char.IsLetterOrDigit(ch) || ch.Char is '_' or '$';
     }
 }

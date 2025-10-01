@@ -12,6 +12,12 @@ internal static class Extensions
     public static bool TryGetEscapeCharacter(this VirtualChar ch, out char escapedChar)
         => TryGetEscapeCharacter(ch.Char, out escapedChar);
 
+    public static bool TryGetEscapeCharacter(this Rune rune, out char escapedChar)
+    {
+        escapedChar = '\0';
+        return rune.Utf16SequenceLength == 1 && TryGetEscapeCharacter((char)rune.Value, out escapedChar);
+    }
+
     private static bool TryGetEscapeCharacter(char ch, out char escapedChar)
     {
         // Keep in sync with CSharpVirtualCharService.TryAddSingleCharacterEscape
