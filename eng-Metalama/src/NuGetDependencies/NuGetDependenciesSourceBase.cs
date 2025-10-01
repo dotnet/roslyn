@@ -17,6 +17,6 @@ internal abstract class NuGetDependenciesSourceBase
         return Environment.ExpandEnvironmentVariables(Path.Combine("%UserProfile%", ".nuget",
             "packages", lowerName, version, $"{lowerName}.{version}.nupkg"));
     }
-    
+
     public abstract bool GetDependencies(BuildContext context, out IEnumerable<string> dependencies);
 }

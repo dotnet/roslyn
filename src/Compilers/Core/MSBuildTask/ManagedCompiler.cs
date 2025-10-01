@@ -178,6 +178,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             set { _store[nameof(TransformerOrder)] = value; }
             get { return (string?)_store[nameof(TransformerOrder)]; }
         }
+
+        // Forward compatibility with .NET 10 SDK.
+        public string? CompilerType { get; set; }
         // </Metalama>
 
         public bool EmitDebugInformation

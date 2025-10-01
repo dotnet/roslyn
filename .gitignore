@@ -205,3 +205,5 @@ Metalama.Compiler.Import.props
 *.g.json
 *.g.ps1
 /dependencies/
+*.g.json
+*.g.ps1

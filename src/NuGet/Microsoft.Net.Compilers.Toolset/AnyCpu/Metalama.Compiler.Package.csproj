@@ -65,8 +65,8 @@
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
-
-    <Exec Command="dotnet run -c CFG$([System.IO.Path]::GetRandomFileName()) $(RoslynVersion)" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true">
+    <!-- <Metalama> -->
+    <Exec Command="dotnet run  -c CFG$([System.IO.Path]::GetRandomFileName()) $(RoslynVersion)" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="NetSdkAnalyzersPath" />
     </Exec>
     <ItemGroup>

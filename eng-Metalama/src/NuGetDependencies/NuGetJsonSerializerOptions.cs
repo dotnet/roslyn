@@ -8,8 +8,5 @@ namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal static class NuGetJsonSerializerOptions
 {
-    public static readonly JsonSerializerOptions Instance = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+    public static readonly JsonSerializerOptions Instance = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 }

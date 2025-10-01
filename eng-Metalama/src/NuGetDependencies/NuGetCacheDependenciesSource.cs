@@ -14,9 +14,6 @@ namespace BuildMetalamaCompiler.NuGetDependencies;
 // but it contains packages referenced via PackageDownload MsBuild item.
 internal class NuGetCacheDependenciesSource : NuGetDependenciesSourceBase
 {
-    // This record represents data from project.nuget.cache files.
-    private record ProjectNuGetCache(string[] ExpectedPackageFiles);
-
     public override bool GetDependencies(BuildContext context, out IEnumerable<string> dependencies)
     {
         List<string> dependenciesList = new();
@@ -55,4 +52,7 @@ internal class NuGetCacheDependenciesSource : NuGetDependenciesSourceBase
 
         return success;
     }
+
+    // This record represents data from project.nuget.cache files.
+    private record ProjectNuGetCache(string[] ExpectedPackageFiles);
 }

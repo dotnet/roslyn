@@ -21,9 +21,6 @@ namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
 {
-    // This record represents data from .nupkg.metadata files.
-    private record NuGetPackageMetadata(string Source);
-
     protected override bool ExecuteCore(BuildContext context, PublishSettings settings)
     {
         context.Console.WriteHeading("Pushing packages");
@@ -39,7 +36,7 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
         var cancellationToken = ConsoleHelper.CancellationToken;
         var packagePathsToUpload = new ConcurrentBag<string>();
 
-        context.Console.WriteImportantMessage($"Listing packages.");
+        context.Console.WriteImportantMessage("Listing packages.");
         using (var httpClient = new HttpClient())
         {
             // Don't push packages, that are available at nuget.org.
@@ -107,10 +104,8 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
 
             var dependencySources = new NuGetDependenciesSourceBase[]
             {
-                new ProjectAssetsJsonDependenciesSource(),
-                new DotNetToolDependenciesSource(),
-                new SdkDependenciesSource(),
-                new NuGetCacheDependenciesSource()
+                new ProjectAssetsJsonDependenciesSource(), new DotNetToolDependenciesSource(),
+                new SdkDependenciesSource(), new NuGetCacheDependenciesSource()
             };
 
             foreach (var source in dependencySources)
@@ -118,11 +113,12 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
                 success &= source.GetDependencies(context, out var dependencies);
                 packagePathsToCheck.AddRange(dependencies);
             }
-           
+
             // Collect dependencies recursively.
-            success &= new NuspecDependenciesSource(packagePathsToCheck).GetDependencies(context, out var nuspecDependencies);
+            success &= new NuspecDependenciesSource(packagePathsToCheck).GetDependencies(context,
+                out var nuspecDependencies);
             packagePathsToCheck.AddRange(nuspecDependencies);
-            
+
             // Filter out packages that are present at nuget.org.
             foreach (var packagePath in packagePathsToCheck)
             {
@@ -174,4 +170,7 @@ internal class PushNuGetDependenciesCommand : BaseCommand<PublishSettings>
 
         return true;
     }
+
+    // This record represents data from .nupkg.metadata files.
+    private record NuGetPackageMetadata(string Source);
 }

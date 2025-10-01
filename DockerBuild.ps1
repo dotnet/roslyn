@@ -8,21 +8,29 @@ param(
     [switch]$NoBuildImage, # Does not build the image.
     [switch]$NoClean, # Does not clean up.
     [switch]$NoNuGetCache, # Does not mount the host nuget cache in the container.
-    [switch]$KeepSecrets, # Does not override the env.g.json file.
+    [switch]$KeepEnv, # Does not override the env.g.json file.
     [string]$ImageName, # Image name (defaults to a name based on the directory).
     [string]$BuildAgentPath = 'C:\BuildAgent',
+    [switch]$LoadEnvFromKeyVault, # Forces loading environment variables form the key vault.
+    [switch]$StartVsmon, # Enable the remote debugger.
+    [string]$Script = 'Build.ps1', # The build script to be executed inside Docker.
     [Parameter(ValueFromRemainingArguments)]
     [string[]]$BuildArgs   # Arguments passed to `Build.ps1` within the container.
 )
 
-# This setting is replaced by the generate-scripts command.
+####
+# These settings are replaced by the generate-scripts command.
 $EngPath = 'eng-Metalama'
-$EnvironmentVariables = 'AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AZ_IDENTITY_USERNAME,AZURE_CLIENT_ID,AZURE_CLIENT_SECRET,AZURE_DEVOPS_TOKEN,AZURE_DEVOPS_USER,AZURE_TENANT_ID,DOC_API_KEY,DOWNLOADS_API_KEY,ENG_USERNAME,GITHUB_AUTHOR_EMAIL,GITHUB_REVIEWER_TOKEN,GITHUB_TOKEN,IS_POSTSHARP_OWNED,IS_TEAMCITY_AGENT,NUGET_ORG_API_KEY,SIGNSERVER_SECRET,TEAMCITY_CLOUD_TOKEN,TYPESENSE_API_KEY,VS_MARKETPLACE_ACCESS_TOKEN,VSS_NUGET_EXTERNAL_FEED_ENDPOINTS'
+$EnvironmentVariables = 'AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AZ_IDENTITY_USERNAME,AZURE_CLIENT_ID,AZURE_CLIENT_SECRET,AZURE_DEVOPS_TOKEN,AZURE_DEVOPS_USER,AZURE_TENANT_ID,DOC_API_KEY,DOWNLOADS_API_KEY,ENG_USERNAME,GIT_USER_EMAIL,GIT_USER_NAME,GITHUB_AUTHOR_EMAIL,GITHUB_REVIEWER_TOKEN,GITHUB_TOKEN,IS_POSTSHARP_OWNED,IS_TEAMCITY_AGENT,MetalamaLicense,NUGET_ORG_API_KEY,PostSharpLicense,SIGNSERVER_SECRET,TEAMCITY_CLOUD_TOKEN,TYPESENSE_API_KEY,VS_MARKETPLACE_ACCESS_TOKEN,VSS_NUGET_EXTERNAL_FEED_ENDPOINTS'
+####
 
+$ErrorActionPreference = "Stop"
 $dockerContextDirectory = "$EngPath/docker-context"
 
+Set-Location $PSScriptRoot
+
 # Function to create secrets JSON file
-function New-SecretsJson
+function New-EnvJson
 {
     param(
         [string]$EnvironmentVariableList
@@ -32,13 +40,35 @@ function New-SecretsJson
     $envVarNames = $EnvironmentVariableList -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
 
     # Build hashtable with environment variable values
-    $secrets = @{ }
+    $envVariables = @{ }
     foreach ($envVarName in $envVarNames)
     {
         $value = [Environment]::GetEnvironmentVariable($envVarName)
         if (-not [string]::IsNullOrEmpty($value))
         {
-            $secrets[$envVarName] = $value
+            $envVariables[$envVarName] = $value
+        }
+    }
+
+    # Add secrets from the PostSharpBuildEnv key vault, on our development machines.
+    # On CI agents, these environment variables are supposed to be set by the host.
+    if ($LoadEnvFromKeyVault -or ($env:IS_POSTSHARP_OWNED -and -not $env:IS_TEAMCITY_AGENT))
+    {
+        $moduleName = "Az.KeyVault"
+
+        if (-not (Get-Module -ListAvailable -Name $moduleName))
+        {
+            Write-Error "The required module '$moduleName' is not installed. Please install it with: Install-Module -Name $moduleName"
+            exit 1
+        }
+
+        Import-Module $moduleName
+        foreach ($secret in Get-AzKeyVaultSecret -VaultName "PostSharpBuildEnv")
+        {
+            $secretWithValue = Get-AzKeyVaultSecret -VaultName "PostSharpBuildEnv" -Name $secret.Name
+            $envName = $secretWithValue.Name -Replace "-", "_"
+            $envValue = (ConvertFrom-SecureString $secretWithValue.SecretValue -AsPlainText)
+            $envVariables[$envName] = $envValue
         }
     }
 
@@ -56,11 +86,17 @@ function New-SecretsJson
         exit 1
     }
 
-    $secrets | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonPath -Encoding UTF8
+    $envVariables | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonPath -Encoding UTF8
     Write-Host "Created secrets file: $jsonPath" -ForegroundColor Cyan
 
 
     return $jsonPath
+}
+
+if ($env:RUNNING_IN_DOCKER)
+{
+    Write-Error "Already running in Docker."
+    exit 1
 }
 
 # Generate ImageName from script directory if not provided
@@ -69,13 +105,21 @@ if ( [string]::IsNullOrEmpty($ImageName))
     # Get full path without drive name (e.g., "C:\src\Metalama.Compiler" becomes "src\Metalama.Compiler")
     $fullPath = $PSScriptRoot -replace '^[A-Za-z]:\\', ''
     # Sanitize path to valid Docker image name (lowercase alphanumeric and hyphens only)
-    $ImageName = $fullPath.ToLower() -replace '[^a-z0-9\-]', '-' -replace '-+', '-' -replace '^-|-$', ''
+    $ImageTag = $fullPath.ToLower() -replace '[^a-z0-9\-]', '-' -replace '-+', '-' -replace '^-|-$', ''
     # Ensure it doesn't start with a hyphen and has at least one character
-    if ([string]::IsNullOrEmpty($ImageName) -or $ImageName -match '^-')
+    if ([string]::IsNullOrEmpty($ImageTag) -or $ImageTag -match '^-')
     {
-        $ImageName = "docker-build-image"
+        $ImageTag = "docker-build-image"
     }
-    Write-Host "Generated image name from directory: $ImageName" -ForegroundColor Cyan
+    Write-Host "Generated image name from directory: $ImageTag" -ForegroundColor Cyan
+}
+else
+{
+    # Generate a hash of the repo directory tagging (4 bytes, 8 hex chars)
+    $hashBytes = (New-Object -TypeName System.Security.Cryptography.SHA256Managed).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($PSScriptRoot))
+    $directoryHash = [System.BitConverter]::ToString($hashBytes, 0, 4).Replace("-", "").ToLower()
+    $ImageTag = "$ImageName`:$directoryHash"
+    Write-Host "Image will be tagged as: $ImageTag" -ForegroundColor Cyan
 }
 
 # When building locally (as opposed as on the build agent), we must do a complete cleanup because 
@@ -85,15 +129,38 @@ if (-not $env:IS_TEAMCITY_AGENT -and -not $NoClean)
     Write-Host "Cleaning up." -ForegroundColor Green
     if (Test-Path "artifacts")
     {
-        Remove-Item artifacts -Force -Recurse -ProgressAction SilentlyContinue
+        Remove-Item artifacts -Force -Recurse  -ErrorAction SilentlyContinue
     }
-    Get-ChildItem @("bin", "obj") -Recurse | Remove-Item -Force -Recurse -ProgressAction SilentlyContinue
+    Get-ChildItem "bin" -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+    Get-ChildItem "obj" -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
 }
 
+Write-Host "Preparing context and mounts." -ForegroundColor Green
 # Create secrets JSON file.
-if (-not $KeepSecrets)
+if (-not $KeepEnv)
 {
-    New-SecretsJson -EnvironmentVariableList $EnvironmentVariables
+    if (-not $env:ENG_USERNAME)
+    {
+        $env:ENG_USERNAME = $env:USERNAME
+    }
+
+    # Add git identity to environment
+    $env:GIT_USER_EMAIL = git config --global user.email
+    $env:GIT_USER_NAME = git config --global user.name
+
+    if ($env:IS_TEAMCITY_AGENT)
+    {
+        if (-not $env:GIT_USER_EMAIL)
+        {
+            $env:GIT_USER_EMAIL = 'teamcity@postsharp.net'
+        }
+        if (-not $env:GIT_USER_NAME)
+        {
+            $env:GIT_USER_NAME = 'teamcity'
+        }
+    }
+
+    New-EnvJson -EnvironmentVariableList $EnvironmentVariables
 }
 
 # Get the source directory name from $PSScriptRoot
@@ -111,15 +178,16 @@ if (-not (Test-Path $dockerContextDirectory))
 
 
 # Prepare volume mappings
-$volumeMappings = @("-v", "${SourceDirName}:${SourceDirName}")
-$MountPoints = @($SourceDirName)
+$VolumeMappings = @("-v", "${SourceDirName}:${SourceDirName}")
+$MountPoints = @($SourceDirName, "c:\packages")
+$GitDirectories = @($SourceDirName)
 
-# Define static Git system directory for mapping
+# Define static Git system directory for mapping. This used by Teamcity as an LFS parent repo.
 $gitSystemDir = "$BuildAgentPath\system\git"
 
 if (Test-Path $gitSystemDir)
 {
-    $volumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
+    $VolumeMappings += @("-v", "${gitSystemDir}:${gitSystemDir}:ro")
     $MountPoints += $gitSystemDir
 }
 
@@ -134,12 +202,59 @@ if (-not $NoNuGetCache)
         New-Item -ItemType Directory -Force -Path $nugetCacheDir | Out-Null
     }
 
-    $volumeMappings += @("-v", "${nugetCacheDir}:c:\packages")
+    $VolumeMappings += @("-v", "${nugetCacheDir}:c:\packages")
 }
 
-# We must add a MountPoint anyway so the directory is created in the container.
-$MountPoints += "c:\packages"
+# Mount VS Remote Debugger
+if ($StartVsmon)
+{
+    if (-not $env:DevEnvDir)
+    {
+        Write-Host "Environment variable 'DevEnvDir' is not defined." -ForegroundColor Red
+        exit 1
+    }
 
+    $remoteDebuggerHostDir = "$( $env:DevEnvDir )Remote Debugger\x64"
+    if (-not (Test-Path $remoteDebuggerHostDir))
+    {
+        Write-Host "Directory '$remoteDebuggerHostDir' does not exist." -ForegroundColor Red
+        exit 1
+    }
+
+    $remoteDebuggerContainerDir = "C:\msvsmon"
+    $VolumeMappings += @("-v", "${remoteDebuggerHostDir}:${remoteDebuggerContainerDir}:ro")
+    $MountPoints += $remoteDebuggerContainerDir
+
+}
+
+# Discover symbolic links in source-dependencies and add their targets to mount points
+$sourceDependenciesDir = Join-Path $SourceDirName "source-dependencies"
+if (Test-Path $sourceDependenciesDir)
+{
+    $symbolicLinks = Get-ChildItem -Path $sourceDependenciesDir -Force | Where-Object { $_.LinkType -eq 'SymbolicLink' }
+
+    foreach ($link in $symbolicLinks)
+    {
+        $targetPath = $link.Target
+        if (-not [string]::IsNullOrEmpty($targetPath) -and (Test-Path $targetPath))
+        {
+            Write-Host "Found symbolic link '$( $link.Name )' -> '$targetPath'" -ForegroundColor Cyan
+            $VolumeMappings += @("-v", "${targetPath}:${targetPath}:ro")
+            $MountPoints += $targetPath
+            $GitDirectories += $targetPath
+        }
+        else
+        {
+            Write-Host "Warning: Symbolic link '$( $link.Name )' target '$targetPath' does not exist or is invalid" -ForegroundColor Yellow
+        }
+    }
+
+    $sourceDirectories = Get-ChildItem -Path $sourceDependenciesDir -Force | Where-Object { $_.LinkType -eq $null }
+    foreach ($sourceDirectory in $sourceDirectories)
+    {
+        $GitDirectories += $sourceDirectory
+    }
+}
 
 # Execute auto-generated DockerMounts.g.ps1 script to add more directory mounts.
 $dockerMountsScript = Join-Path $EngPath 'DockerMounts.g.ps1'
@@ -149,16 +264,24 @@ if (Test-Path $dockerMountsScript)
     . $dockerMountsScript
 }
 
-$mountPointsArg = $MountPoints -Join ";"
+$mountPointsAsString = $MountPoints -Join ";"
+$gitDirectoriesAsString = $GitDirectories -Join ";"
 
-Write-Host "Volume mappings: " @volumeMappings -ForegroundColor Gray
-Write-Host "Mount points: " $mountPointsArg -ForegroundColor Gray
+Write-Host "Volume mappings: " @VolumeMappings -ForegroundColor Gray
+Write-Host "Mount points: " $mountPointsAsString -ForegroundColor Gray
+Write-Host "Git directories: " $gitDirectoriesAsString -ForegroundColor Gray
+
+# Kill all containers
+docker ps -q --filter "ancestor=$ImageTag" | ForEach-Object {
+    Write-Host "Killing container $_"
+    docker kill $_
+}
 
 # Building the image.
 if (-not $NoBuildImage)
 {
-    Write-Host "Building the image." -ForegroundColor Green
-    Get-Content -Raw Dockerfile | docker build -t $ImageName  --build-arg SRC_DIR="$SourceDirName"  --build-arg MOUNTPOINTS="$mountPointsArg"  -f - $dockerContextDirectory
+    Write-Host "Building the image with tag: $ImageTag" -ForegroundColor Green
+    Get-Content -Raw Dockerfile | docker build -t $ImageTag  --build-arg GITDIRS="$gitDirectoriesAsString"  --build-arg MOUNTPOINTS="$mountPointsAsString"  -f - $dockerContextDirectory
     if ($LASTEXITCODE -ne 0)
     {
         Write-Host "Docker build failed with exit code $LASTEXITCODE" -ForegroundColor Red
@@ -174,33 +297,44 @@ else
 # Run the build within the container
 if (-not $BuildImage)
 {
+
+    # Delete now and not in the container because it's much faster and lock error messages are more relevant.
+    Write-Host "Building the product in the container." -ForegroundColor Green
+
+    # Prepare Build.ps1 arguments
+    if ($StartVsmon)
+    {
+        $BuildArgs = @("-StartVsmon") + $BuildArgs
+    }
+
     if ($Interactive)
     {
-        docker run --rm -it --memory=12g @volumeMappings -w $SourceDirName $ImageName pwsh
-        if ($LASTEXITCODE -ne 0)
-        {
-            Write-Host "Docker run (interactive) failed with exit code $LASTEXITCODE" -ForegroundColor Red
-            exit $LASTEXITCODE
-        }
+        $pwshArgs = "-NoExit"
+        $BuildArgs = @("-Interactive") + $BuildArgs
+        $dockerArgs = @("-it")
+        $pwshExitCommand = ""
     }
     else
     {
-        # Delete now and not in the container because it's much faster and lock error messages are more relevant.
-        Write-Host "Building the product in the container." -ForegroundColor Green
-
-        # Prepare Build.ps1 arguments
-        $buildCommand = "$SourceDirName\Build.ps1"
-        $buildArgsString = $BuildArgs -join " "
-        $buildCommand += " $buildArgsString"
-        Write-Host "Passing arguments to Build.ps1: `"$buildArgsString`"." -ForegroundColor Cyan
-
-        docker run --rm --memory=12g @volumeMappings -w $SourceDirName $ImageName pwsh -NonInteractive -Command $buildCommand
-        if ($LASTEXITCODE -ne 0)
-        {
-            Write-Host "Docker run (build) failed with exit code $LASTEXITCODE" -ForegroundColor Red
-            exit $LASTEXITCODE
-        }
+        $pwshArgs = "-NonInteractive"
+        $dockerArgs = @()
+        $pwshExitCommand = "exit `$LASTEXITCODE`;"
     }
+
+    $buildArgsString = $BuildArgs -join " "
+    $VolumeMappingsAsString = $VolumeMappings -join " "
+    $dockerArgsAsString = $dockerArgs -join " "
+
+
+    Write-Host "Executing: ``docker run --rm --memory=12g $dockerArgsAsString $VolumeMappingsAsString -w $SourceDirName $ImageTag pwsh $pwshArgs -Command `"& .\$Script $buildArgsString`; $pwshExitCommand`"" -ForegroundColor Cyan
+
+    docker run --rm --memory=12g $dockerArgs @VolumeMappings -w $SourceDirName @dockerArgs $ImageTag pwsh $pwshArgs -Command "& .\$Script $buildArgsString`; $pwshExitCommand; "
+    if ($LASTEXITCODE -ne 0)
+    {
+        Write-Host "Docker run (build) failed with exit code $LASTEXITCODE" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
 }
 else
 {

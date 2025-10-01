@@ -31,7 +31,7 @@ internal class NuspecDependenciesSource : NuGetDependenciesSourceBase
         while (nextPackagesToListDependencies.Count > 0)
         {
             var currentPackagesToListDependencies = nextPackagesToListDependencies;
-            nextPackagesToListDependencies = new();
+            nextPackagesToListDependencies = new HashSet<string>();
 
             foreach (var packagePath in currentPackagesToListDependencies)
             {

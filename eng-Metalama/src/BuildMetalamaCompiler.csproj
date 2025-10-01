@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="../../eng/Versions.props"/>
     <Import Project="../../Directory.Packages.props" />
 
     <PropertyGroup>
@@ -12,7 +11,7 @@
         <Nullable>enable</Nullable>
         <NoWarn>SA0001;CS8002</NoWarn>
         <!-- Disable warnings about vulnerabilities in transitive dependencies. -->
-        <!-- This is generally okay, since this code does not interact with users. -->
+        <!-- This is generally okay, since this code does not flow to users. -->
         <NoWarn>$(NoWarn);NU1903;NU1904</NoWarn>
         <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     </PropertyGroup>

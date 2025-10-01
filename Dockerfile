@@ -9,7 +9,7 @@ SHELL ["powershell", "-Command"]
 
 # Prepare environment
 ENV PSExecutionPolicyPreference=Bypass
-ENV POWERSHELL_UPDATECHECK=FALSE
+ENV POWERSHELL_UPDATECHECK=Off
 ENV TEMP=C:\Temp
 ENV TMP=C:\Temp
 ENV RUNNING_IN_DOCKER=TRUE
@@ -45,19 +45,15 @@ RUN Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet
     [Environment]::SetEnvironmentVariable('PATH', $newPath, 'Machine'); 
 
 
-# Install .NET Sdk 9.0.305
-RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 9.0.305 -InstallDir 'C:\Program Files\dotnet'; 
-
-
-# Install .NET Sdk 10.0.100-preview.6.25358.103
-RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 10.0.100-preview.6.25358.103 -InstallDir 'C:\Program Files\dotnet'; 
+# Install .NET Sdk 9.0.201
+RUN powershell -ExecutionPolicy Bypass -File dotnet-install.ps1 -Version 9.0.201 -InstallDir 'C:\Program Files\dotnet'; 
 
 
 # Install VS Build Tools
-COPY VisualStudio.17.Release.chman /VisualStudio.17.Release.chman
+COPY VisualStudio.17.14.15.Release.chman /VisualStudio.17.14.15.Release.chman
 RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe; `
     $process = Start-Process .\vs_buildtools.exe -NoNewWindow -Wait -PassThru `
-        -ArgumentList  "--quiet", "--wait", "--norestart", "--nocache",  "--installPath", "C:\BuildTools", "--installChannelUri", "c:\VisualStudio.17.Release.chman", "--installCatalogUri", "https://download.visualstudio.microsoft.com/download/pr/eb5f7427-d28f-4e06-95cc-093f6c2070c8/3480d7a528bad877857c92843bb1e9ce8ebd48a2bffcee366a98a7343f4d32fb/VisualStudio.vsman", "--productId", "Microsoft.VisualStudio.Product.BuildTools", "--add", "Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools", "--add", "Microsoft.VisualStudio.Workload.NetCoreBuildTools", "--add", "Microsoft.VisualStudio.Workload.MSBuildTools", "--add", "Microsoft.Net.Component.4.7.2.TargetingPack", "--add", "Microsoft.Net.Component.4.7.2.SDK", "--add", "Microsoft.NetCore.Component.SDK"; `        
+        -ArgumentList  "--quiet", "--wait", "--norestart", "--nocache",  "--installPath", "C:\BuildTools", "--installChannelUri", "c:\VisualStudio.17.14.15.Release.chman", "--installCatalogUri", "https://download.visualstudio.microsoft.com/download/pr/eb5f7427-d28f-4e06-95cc-093f6c2070c8/3480d7a528bad877857c92843bb1e9ce8ebd48a2bffcee366a98a7343f4d32fb/VisualStudio.vsman", "--productId", "Microsoft.VisualStudio.Product.BuildTools", "--add", "Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools", "--add", "Microsoft.VisualStudio.Workload.NetCoreBuildTools", "--add", "Microsoft.VisualStudio.Workload.MSBuildTools", "--add", "Microsoft.Net.Component.4.7.2.TargetingPack", "--add", "Microsoft.Net.Component.4.7.2.SDK", "--add", "Microsoft.NetCore.Component.SDK"; `        
     if ($process.ExitCode -ne 0) { `
      Get-ChildItem "$env:TEMP\dd_*.log" -ErrorAction SilentlyContinue | ForEach-Object { `
         Write-Host "=== Contents of $($_.Name) ==="; `
@@ -67,6 +63,8 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
      exit $process.ExitCode; `
      }; `
     Remove-Item C:\\vs_buildtools.exe;
+RUN New-Item -ItemType Directory -Path 'C:\Program Files (x86)\Microsoft Visual Studio\Shared\NuGetPackages' -Force | Out-Null"; `
+    New-Item -ItemType Directory -Path 'C:\Program Files\dotnet\sdk\NuGetFallbackFolder' -Force | Out-Null
 
 
 # Epilogue
@@ -90,8 +88,18 @@ RUN c:\ReadEnvironmentVariables.ps1 c:\env.g.json
 # Configure NuGet
 ENV NUGET_PACKAGES=c:\packages
 
-# Configure git
-ARG SRC_DIR
-RUN echo $env:PATH
-RUN git config --global --add safe.directory $env:SRC_DIR/
+# Configure .NET SDK
+ENV DOTNET_NOLOGO=1
 
+# Configure git
+ARG GITDIRS
+RUN if ($env:GITDIRS) { `
+        $gitdirs = $env:GITDIRS -split ';'; `
+        foreach ($dir in $gitdirs) { `
+            if ($dir) { `
+                git config --global --add safe.directory $dir/; `
+            } `
+        } `
+    }
+RUN if ( $env:GIT_USER_NAME ) { git config --global user.name $env:GIT_USER_NAME } `
+    if ( $env:GIT_USER_EMAIL ) { git config --global user.email $env:GIT_USER_EMAIL }

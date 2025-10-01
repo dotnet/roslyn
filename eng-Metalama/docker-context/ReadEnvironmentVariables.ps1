@@ -4,19 +4,19 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string]$SecretsPath
+    [string]$envFilePath
 )
 
-if (-not (Test-Path $SecretsPath))
+if (-not (Test-Path $envFilePath))
 {
-    Write-Error "Secrets file not found: $SecretsPath"
+    Write-Error "Environment file not found: $envFilePath"
     exit 1
 }
 
 try
 {
-    Write-Host "Reading secrets from: $SecretsPath" -ForegroundColor Cyan
-    $secrets = Get-Content -Path $SecretsPath -Raw | ConvertFrom-Json
+    Write-Host "Reading environment variables from: $envFilePath" -ForegroundColor Cyan
+    $secrets = Get-Content -Path $envFilePath -Raw | ConvertFrom-Json
 
     foreach ($property in $secrets.PSObject.Properties)
     {

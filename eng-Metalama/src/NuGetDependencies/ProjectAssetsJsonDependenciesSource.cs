@@ -13,12 +13,6 @@ namespace BuildMetalamaCompiler.NuGetDependencies;
 
 internal class ProjectAssetsJsonDependenciesSource : NuGetDependenciesSourceBase
 {
-    // This record represents data from project.assets.json files.
-    private record ProjectAssetsPackage(string Type, Dictionary<string, string>? Dependencies);
-
-    // This record represents data from project.assets.json files.
-    private record ProjectAssets(Dictionary<string, Dictionary<string, ProjectAssetsPackage>> Targets);
-
     public override bool GetDependencies(BuildContext context, out IEnumerable<string> dependencies)
     {
         List<string> dependenciesList = new();
@@ -81,4 +75,10 @@ internal class ProjectAssetsJsonDependenciesSource : NuGetDependenciesSourceBase
 
         return success;
     }
+
+    // This record represents data from project.assets.json files.
+    private record ProjectAssetsPackage(string Type, Dictionary<string, string>? Dependencies);
+
+    // This record represents data from project.assets.json files.
+    private record ProjectAssets(Dictionary<string, Dictionary<string, ProjectAssetsPackage>> Targets);
 }
