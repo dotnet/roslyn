@@ -41,7 +41,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         return false;
     }
 
-    protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
+    protected override VirtualCharGreenSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
     {
         // C# preprocessor directives can contain string literals.  However, these string literals do not behave
         // like normal literals.  Because they are used for paths (i.e. in a #line directive), the language does not
