@@ -36,6 +36,9 @@ internal readonly struct VirtualCharSequence
     public VirtualChar this[int index]
         => new(_sequence[index], _tokenStart);
 
+    public VirtualChar? Find(int position)
+        => _sequence.Find(_tokenStart, position);
+
     public bool Contains(VirtualChar @char)
         => IndexOf(@char) >= 0;
 
@@ -254,8 +257,8 @@ internal partial struct VirtualCharGreenSequence
     /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
     /// in the span of this sequence.
     /// </summary>
-    //public VirtualChar? Find(int position)
-    //    => _leafCharacters?.Find(position);
+    public VirtualChar? Find(int tokenStart, int position)
+        => _leafCharacters?.Find(tokenStart, position);
 
     public VirtualCharGreenSequence Skip(int count)
         => this.GetSubSequence(TextSpan.FromBounds(count, this.Length));
