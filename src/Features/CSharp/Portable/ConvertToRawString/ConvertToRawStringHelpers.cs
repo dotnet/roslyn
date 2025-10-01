@@ -91,19 +91,33 @@ internal static class ConvertToRawStringHelpers
             // Look for *explicit* usages of sequences like \r or \n.  These are multi character representations of
             // newlines.  If we see these, we only want to fix these up in a fix-all if the original string contained
             // those as well.
-            if (ch.Span.Length > 1 && SyntaxFacts.IsNewLine(ch))
-                containsEscapedEndOfLineCharacter = true;
+            //
+            // Also, Check if we have an escaped character in the original string. An escaped newline is fine to convert
+            // (to a multi-line raw string). Whereas Control/formatting unicode escapes should stay as escapes.  The
+            // user code will just be enormously difficult to read/reason about if we convert those to the actual
+            // corresponding non-escaped chars.
+            if (ch.Span.Length > 1)
+            {
+                if (SyntaxFacts.IsNewLine(ch))
+                {
+                    containsEscapedEndOfLineCharacter = true;
+                }
+                else if (IsFormatOrControl(char.GetUnicodeCategory(ch)))
+                {
+                    return false;
+                }
+            }
 
-            if (!CanConvert(ch))
+            // Can't ever encode a null value directly in a c# file as our lexer/parser/text apis will stop right there.
+            if (ch.Value == 0)
                 return false;
 
+            // A paired surrogate is fine to convert.
             if (i + 1 < characters.Length &&
                 char.IsHighSurrogate(ch) &&
-                char.IsLowSurrogate(characters[i + 1]))
+                char.IsLowSurrogate(characters[i + 1]) &&
+                !IsFormatOrControl(Rune.GetUnicodeCategory(new Rune(ch, characters[i + 1]))))
             {
-                if (IsFormatOrControl(Rune.GetUnicodeCategory(new Rune(ch, characters[i + 1]))))
-                    return false;
-
                 // Increase by one more to account for the low surrogate we just looked at.
                 i++;
             }
@@ -112,28 +126,6 @@ internal static class ConvertToRawStringHelpers
                 // Unpaired surrogates aren't things we want to convert from an escape to a random character.
                 return false;
             }
-        }
-
-        return true;
-    }
-
-    private static bool CanConvert(VirtualChar ch)
-    {
-        // Can't ever encode a null value directly in a c# file as our lexer/parser/text apis will stop righ there.
-        if (ch.Value == 0)
-            return false;
-
-        // Check if we have an escaped character in the original string.
-        if (ch.Span.Length > 1)
-        {
-            // An escaped newline is fine to convert (to a multi-line raw string).
-            if (IsCSharpNewLine(ch))
-                return true;
-
-            // Control/formatting unicode escapes should stay as escapes.  The user code will just be enormously
-            // difficult to read/reason about if we convert those to the actual corresponding non-escaped chars.
-            if (IsFormatOrControl(char.GetUnicodeCategory(ch)))
-                return false;
         }
 
         return true;
