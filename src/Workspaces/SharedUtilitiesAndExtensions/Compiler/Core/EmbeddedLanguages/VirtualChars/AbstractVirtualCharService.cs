@@ -128,7 +128,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
     /// how normal VB literals and c# verbatim string literals work.
     /// </summary>
     /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
-    protected static VirtualCharSequence TryConvertSimpleDoubleQuoteString(
+    protected static VirtualCharGreenSequence TryConvertSimpleDoubleQuoteString(
         SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
     {
         Debug.Assert(!token.ContainsDiagnostics);
@@ -156,14 +156,13 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         var startIndexInclusive = startDelimiter.Length;
         var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-        var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-        var offset = token.SpanStart;
+        var result = ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>();
 
         for (var index = startIndexInclusive; index < endIndexExclusive;)
         {
             if (tokenText[index] == '"' && tokenText[index + 1] == '"')
             {
-                result.Add(VirtualChar.Create(new Rune('"'), offset: index, width: 2));
+                result.Add(VirtualCharGreen.Create(new Rune('"'), offset: index, width: 2));
                 index += 2;
                 continue;
             }
@@ -172,7 +171,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
                 if (!IsLegalBraceEscape(tokenText, index, out var width))
                     return default;
 
-                result.Add(VirtualChar.Create(new Rune(tokenText[index]), offset: index, width: width));
+                result.Add(VirtualCharGreen.Create(new Rune(tokenText[index]), offset: index, width: width));
                 index += width;
                 continue;
             }
@@ -181,20 +180,20 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         }
 
         return CreateVirtualCharSequence(
-            tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+            tokenText, startIndexInclusive, endIndexExclusive, result);
     }
 
     /// <summary>
     /// Returns the number of characters to jump forward (either 1 or 2);
     /// </summary>
-    protected static int ConvertTextAtIndexToRune(string tokenText, int index, ImmutableSegmentedList<VirtualChar>.Builder result)
+    protected static int ConvertTextAtIndexToRune(string tokenText, int index, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
         => ConvertTextAtIndexToRune(tokenText, index, new StringTextInfo(), result);
 
-    protected static int ConvertTextAtIndexToRune(SourceText tokenText, int index, ImmutableSegmentedList<VirtualChar>.Builder result)
+    protected static int ConvertTextAtIndexToRune(SourceText tokenText, int index, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
         => ConvertTextAtIndexToRune(tokenText, index, new SourceTextTextInfo(), result);
 
     private static int ConvertTextAtIndexToRune<T, TTextInfo>(
-        T tokenText, int index, TTextInfo info, ImmutableSegmentedList<VirtualChar>.Builder result)
+        T tokenText, int index, TTextInfo info, ImmutableSegmentedList<VirtualCharGreen>.Builder result)
         where TTextInfo : struct, ITextInfo<T>
     {
         var ch = info.Get(tokenText, index);
@@ -202,21 +201,21 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         if (Rune.TryCreate(ch, out var rune))
         {
             // First, see if this was a single char that can become a rune (the common case).
-            result.Add(VirtualChar.Create(rune, offset: index, width: 1));
+            result.Add(VirtualCharGreen.Create(rune, offset: index, width: 1));
             return 1;
         }
         else if (index + 1 < info.Length(tokenText) &&
                  Rune.TryCreate(ch, info.Get(tokenText, index + 1), out rune))
         {
             // Otherwise, see if we have a surrogate pair (less common, but possible).
-            result.Add(VirtualChar.Create(rune, offset: index, width: 2));
+            result.Add(VirtualCharGreen.Create(rune, offset: index, width: 2));
             return 2;
         }
         else
         {
             // Something that couldn't be encoded as runes.
             Debug.Assert(char.IsSurrogate(ch));
-            result.Add(VirtualChar.Create(ch, offset: index, width: 1));
+            result.Add(VirtualCharGreen.Create(ch, offset: index, width: 1));
             return 1;
         }
     }
@@ -224,10 +223,11 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
     protected static bool IsOpenOrCloseBrace(char ch)
         => ch is '{' or '}';
 
-    protected static VirtualCharSequence CreateVirtualCharSequence(
-        string tokenText, int offset,
-        int startIndexInclusive, int endIndexExclusive,
-        ImmutableSegmentedList<VirtualChar>.Builder result)
+    protected static VirtualCharGreenSequence CreateVirtualCharSequence(
+        string tokenText,
+        int startIndexInclusive,
+        int endIndexExclusive,
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result)
     {
         // Check if we actually needed to create any special virtual chars.
         // if not, we can avoid the entire array allocation and just wrap
@@ -236,10 +236,10 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         var textLength = endIndexExclusive - startIndexInclusive;
         if (textLength == result.Count)
         {
-            var sequence = VirtualCharSequence.Create(offset, tokenText);
+            var sequence = VirtualCharGreenSequence.Create(tokenText);
             return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
         }
 
-        return VirtualCharSequence.Create(result.ToImmutable());
+        return VirtualCharGreenSequence.Create(result.ToImmutable());
     }
 }
