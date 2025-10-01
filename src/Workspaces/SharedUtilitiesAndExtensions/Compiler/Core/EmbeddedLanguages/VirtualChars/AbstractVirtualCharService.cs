@@ -17,7 +17,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
 
     protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-    protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
+    protected abstract VirtualCharGreenSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
     protected abstract bool IsMultiLineRawStringToken(SyntaxToken token);
 
     /// <summary>
@@ -49,11 +49,10 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         // trust that all the string's contents (most importantly, the escape sequences) are well
         // formed.
         if (token.ContainsDiagnostics)
-        {
             return default;
-        }
 
-        var result = TryConvertToVirtualCharsWorker(token);
+        var greenSequence = TryConvertToVirtualCharsWorker(token);
+        var result = new VirtualCharSequence(token.SpanStart, greenSequence);
         CheckInvariants(token, result);
 
         return result;
