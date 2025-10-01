@@ -495,8 +495,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var key = (string)entry.Key;
                 var value = (string?)entry.Value;
 
-                // Skip DOTNET_ROOT* variables such as DOTNET_ROOT_X64 as we want to set our own
-                if (!key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                // Clear DOTNET_ROOT* variables such as DOTNET_ROOT_X64 by setting them to empty,
+                // as we want to set our own DOTNET_ROOT and avoid conflicts
+                if (key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                {
+                    environmentVariables[key] = string.Empty;
+                }
+                else
                 {
                     environmentVariables[key] = value ?? string.Empty;
                 }

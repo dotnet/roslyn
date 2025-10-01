@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public void GetServerEnvironmentVariables_ExcludesDotNetRootVariants()
         {
-            // This test verifies that DOTNET_ROOT* variables are properly excluded and replaced
+            // This test verifies that DOTNET_ROOT* variables are properly cleared and replaced
             var testEnvVars = new[] { "DOTNET_ROOT_X64", "DOTNET_ROOT_X86", "DOTNET_ROOT_ARM64", "DOTNET_ROOT(x86)" };
 
             // Create a test environment with DOTNET_ROOT* variants
@@ -193,10 +193,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             if (envVars != null)
             {
 
-                // Should not contain any of the DOTNET_ROOT* variants we set
+                // Should set DOTNET_ROOT* variants to empty string to prevent inheritance
                 foreach (var testEnvVar in testEnvVars)
                 {
-                    Assert.False(envVars.ContainsKey(testEnvVar), $"Environment variables should not contain {testEnvVar}");
+                    Assert.True(envVars.ContainsKey(testEnvVar), $"Environment variables should contain {testEnvVar}");
+                    Assert.Equal(string.Empty, envVars[testEnvVar]);
                 }
             }
         }
