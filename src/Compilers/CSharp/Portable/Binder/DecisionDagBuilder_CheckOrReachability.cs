@@ -98,32 +98,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             BindingDiagnosticBag diagnostics)
         {
-            LabelSymbol defaultLabel = new GeneratedLabelSymbol("defaultLabel");
-            var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
-            BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
-
             var existingCases = ArrayBuilder<StateForCase>.GetInstance(switchArms.Length);
-            int index = 0;
-            foreach (var switchArm in switchArms)
-            {
-                if (switchArm.Pattern.HasErrors)
-                {
-                    return;
-                }
 
-                existingCases.Add(builder.MakeTestsForPattern(++index, switchArm.Syntax, rootIdentifier, switchArm.Pattern, whenClause: switchArm.WhenClause, label: switchArm.Label));
-            }
-
-            for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
-            {
-                CheckOrAndAndReachability(existingCases, patternIndex, switchArms[patternIndex].Pattern, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
-            }
-
-            ReportRedundant(redundantNodes, diagnostics);
+            checkRedundantPatternsForSwitchExpression(compilation, syntax, inputExpression, switchArms, diagnostics, redundantNodes, existingCases);
 
             existingCases.Free();
             redundantNodes.Free();
+
+            static void checkRedundantPatternsForSwitchExpression(
+                CSharpCompilation compilation,
+                SyntaxNode syntax,
+                BoundExpression inputExpression,
+                ImmutableArray<BoundSwitchExpressionArm> switchArms,
+                BindingDiagnosticBag diagnostics,
+                PooledHashSet<SyntaxNode> redundantNodes,
+                ArrayBuilder<StateForCase> existingCases)
+            {
+                LabelSymbol defaultLabel = new GeneratedLabelSymbol("defaultLabel");
+                var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
+                BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
+                int index = 0;
+                foreach (var switchArm in switchArms)
+                {
+                    if (switchArm.Pattern.HasErrors)
+                    {
+                        return;
+                    }
+
+                    existingCases.Add(builder.MakeTestsForPattern(++index, switchArm.Syntax, rootIdentifier, switchArm.Pattern, whenClause: switchArm.WhenClause, label: switchArm.Label));
+                }
+
+                for (int patternIndex = 0; patternIndex < switchArms.Length; patternIndex++)
+                {
+                    CheckOrAndAndReachability(existingCases, patternIndex, switchArms[patternIndex].Pattern, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                }
+
+                ReportRedundant(redundantNodes, diagnostics);
+            }
         }
 
         /// <summary>
@@ -136,46 +148,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchSection> switchSections,
             BindingDiagnosticBag diagnostics)
         {
-            LabelSymbol defaultLabel = new GeneratedLabelSymbol("defaultLabel");
-            var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
-            BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
             var redundantNodes = PooledHashSet<SyntaxNode>.GetInstance();
-
             var existingCases = ArrayBuilder<StateForCase>.GetInstance();
-            int index = 0;
-            foreach (BoundSwitchSection section in switchSections)
-            {
-                foreach (BoundSwitchLabel label in section.SwitchLabels)
-                {
-                    if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
-                    {
-                        if (label.Pattern.HasErrors)
-                        {
-                            return;
-                        }
 
-                        existingCases.Add(builder.MakeTestsForPattern(++index, label.Syntax, rootIdentifier, label.Pattern, label.WhenClause, label.Label));
-                    }
-                }
-            }
-
-            int patternIndex = 0;
-            foreach (BoundSwitchSection section in switchSections)
-            {
-                foreach (BoundSwitchLabel label in section.SwitchLabels)
-                {
-                    if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
-                    {
-                        CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
-                        patternIndex++;
-                    }
-                }
-            }
-
-            ReportRedundant(redundantNodes, diagnostics);
+            checkRedundantPatternsForSwitchStatement(compilation, syntax, inputExpression, switchSections, diagnostics, redundantNodes, existingCases);
 
             existingCases.Free();
             redundantNodes.Free();
+
+            static void checkRedundantPatternsForSwitchStatement(
+                CSharpCompilation compilation,
+                SyntaxNode syntax,
+                BoundExpression inputExpression,
+                ImmutableArray<BoundSwitchSection> switchSections,
+                BindingDiagnosticBag diagnostics,
+                PooledHashSet<SyntaxNode> redundantNodes,
+                ArrayBuilder<StateForCase> existingCases)
+            {
+                LabelSymbol defaultLabel = new GeneratedLabelSymbol("defaultLabel");
+                var builder = new DecisionDagBuilder(compilation, defaultLabel: defaultLabel, forLowering: false, BindingDiagnosticBag.Discarded);
+                BoundDagTemp rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
+                int index = 0;
+                foreach (BoundSwitchSection section in switchSections)
+                {
+                    foreach (BoundSwitchLabel label in section.SwitchLabels)
+                    {
+                        if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                        {
+                            if (label.Pattern.HasErrors)
+                            {
+                                return;
+                            }
+
+                            existingCases.Add(builder.MakeTestsForPattern(++index, label.Syntax, rootIdentifier, label.Pattern, label.WhenClause, label.Label));
+                        }
+                    }
+                }
+
+                int patternIndex = 0;
+                foreach (BoundSwitchSection section in switchSections)
+                {
+                    foreach (BoundSwitchLabel label in section.SwitchLabels)
+                    {
+                        if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                        {
+                            CheckOrAndAndReachability(existingCases, patternIndex, label.Pattern, builder, rootIdentifier, syntax, diagnostics, redundantNodes);
+                            patternIndex++;
+                        }
+                    }
+                }
+
+                ReportRedundant(redundantNodes, diagnostics);
+            }
         }
 
         private static void ReportRedundant(PooledHashSet<SyntaxNode> redundantNodes, BindingDiagnosticBag diagnostics)
@@ -259,10 +283,12 @@ start:
             }
         }
 
-        // This type provides all the context needed to perform a reachability analysis
-        // on a binary OR pattern we're visiting inside a normalized pattern,
-        // and collect the redundant nodes that are identified.
-        private struct ReachabilityAnalysisContext
+        /// <summary>
+        /// This type provides all the context needed to perform a reachability analysis
+        /// on a binary OR pattern we're visiting inside a normalized pattern,
+        /// and collect the redundant nodes that are identified.
+        /// </summary>
+        private readonly struct ReachabilityAnalysisContext
         {
             public readonly ArrayBuilder<StateForCase> PreviousCases;
             public readonly int PatternIndex;
@@ -356,7 +382,7 @@ start:
             return;
 
             static void populateStateForCases(ArrayBuilder<BoundPattern> set, PooledHashSet<LabelSymbol> labelsToIgnore,
-                ref TemporaryArray<StateForCase> casesBuilder, ReachabilityAnalysisContext context)
+                ref TemporaryArray<StateForCase> casesBuilder, ref readonly ReachabilityAnalysisContext context)
             {
                 int patternIndex = context.PatternIndex;
                 var previousCases = context.PreviousCases;
@@ -384,7 +410,7 @@ start:
             // Given a normalized pattern (so there are only `and` and `or` patterns at the root of the tree)
             // we traverse the binary patterns building a set of cases and reporting reachability issues
             // on that set of cases when applicable.
-            static void analyze(BoundPattern pattern, ReachabilityAnalysisContext context)
+            static void analyze(BoundPattern pattern, ref readonly ReachabilityAnalysisContext context)
             {
                 if (pattern is BoundBinaryPattern binaryPattern)
                 {
@@ -419,8 +445,9 @@ start:
                     // we'll be able to check reachability on: `case A1:`, ... `case Ai:`, `case B1:`, ... `case Bn:`
                     for (int i = 0; i < patterns.Count; i++)
                     {
-                        analyzePattern(currentCases, patterns[i], wrapIntoParentAndPattern, in context);
-                        var wrappedPattern = wrapIntoParentAndPattern?.Invoke(patterns[i]) ?? patterns[i];
+                        BoundPattern pattern = patterns[i];
+                        analyzePattern(currentCases, pattern, wrapIntoParentAndPattern, in context);
+                        BoundPattern wrappedPattern = wrapIntoParentAndPattern?.Invoke(pattern) ?? pattern;
                         currentCases.Add(wrappedPattern);
                     }
 
