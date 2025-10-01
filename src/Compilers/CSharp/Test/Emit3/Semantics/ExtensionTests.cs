@@ -25303,11 +25303,10 @@ interface I<T>
 interface I2 : I<int>, I<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider improving the symbols in this error message
         comp.VerifyEmitDiagnostics(
-            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M()' and 'I<T>.M()'
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<int>.M()' and 'I<string>.M()'
             // I2.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I<T>.M()", "I<T>.M()").WithLocation(1, 4));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I<int>.M()", "I<string>.M()").WithLocation(1, 4));
     }
 
     [Fact]
@@ -25325,9 +25324,9 @@ interface I2 : I<int>, I<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M<U>()' and 'I<T>.M<U>()'
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<int>.M<U>()' and 'I<string>.M<U>()'
             // I2.M<int>();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("I<T>.M<U>()", "I<T>.M<U>()").WithLocation(1, 4));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("I<int>.M<U>()", "I<string>.M<U>()").WithLocation(1, 4));
     }
 
     [Fact]
@@ -35063,9 +35062,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M<T>(T)' and 'E2.extension<T>(T).M(int)'
+            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M<T>(T)' and 'E2.extension<int>(int).M(int)'
             // int.M(42);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M<T>(T)", "E2.extension<T>(T).M(int)").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M<T>(T)", "E2.extension<int>(int).M(int)").WithLocation(1, 5));
     }
 
     [Fact]
@@ -38399,9 +38398,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<T>(T).M()' and 'E2.extension<T>(T).M()'
+            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<string>(string).M()' and 'E2.extension<string>(string).M()'
             // string.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension<T>(T).M()", "E2.extension<T>(T).M()").WithLocation(1, 8));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension<string>(string).M()", "E2.extension<string>(string).M()").WithLocation(1, 8));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -40741,9 +40740,9 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,17): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<T>(T).M()' and 'E2.extension<T>(T).M()'
+            // (5,17): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<Color>(Color).M()' and 'E2.extension<Color>(Color).M()'
             //         var x = Color.M;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Color.M").WithArguments("E1.extension<T>(T).M()", "E2.extension<T>(T).M()").WithLocation(5, 17));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Color.M").WithArguments("E1.extension<Color>(Color).M()", "E2.extension<Color>(Color).M()").WithLocation(5, 17));
     }
 
     [Fact]
