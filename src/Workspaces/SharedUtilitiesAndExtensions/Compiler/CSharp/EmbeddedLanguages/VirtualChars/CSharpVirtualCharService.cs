@@ -155,7 +155,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         }
 
         for (var index = startIndexInclusive; index < endIndexExclusive;)
-            index += ConvertTextAtIndexToRune(tokenText, index, result);
+            index += ConvertTextAtIndexToVirtualChar(tokenText, index, result);
 
         return CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, result);
     }
@@ -220,7 +220,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             // Now that we've found the start and end portions of that line, convert all the characters within to
             // virtual chars and return.
             for (var i = lineStart; i < lineEnd;)
-                i += ConvertTextAtIndexToRune(tokenSourceText, i, result);
+                i += ConvertTextAtIndexToVirtualChar(tokenSourceText, i, result);
         }
 
         return VirtualCharGreenSequence.Create(result.ToImmutable());
@@ -246,48 +246,55 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
         // Avoid creating and processsing the runes if there are no escapes or surrogates in the string.
-        if (!ContainsEscapeOrSurrogate(tokenText.AsSpan(startIndexInclusive, endIndexExclusive - startIndexInclusive), escapeBraces))
+        if (!ContainsEscape(tokenText.AsSpan(startIndexInclusive, endIndexExclusive - startIndexInclusive), escapeBraces))
         {
             var sequence = VirtualCharGreenSequence.Create(tokenText);
             return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
         }
-
-        // Do things in two passes.  First, convert everything in the string to a 16-bit-char+span.  Then walk
-        // again, trying to create Runes from the 16-bit-chars. We do this to simplify complex cases where we may
-        // have escapes and non-escapes mixed together.
-
-        using var _ = ArrayBuilder<(char ch, int offset, int width)>.GetInstance(out var charResults);
-
-        // First pass, just convert everything in the string (i.e. escapes) to plain 16-bit characters.
-        for (var index = startIndexInclusive; index < endIndexExclusive;)
+        else
         {
-            var ch = tokenText[index];
-            if (ch == '\\')
-            {
-                if (!TryAddEscape(charResults, tokenText, index))
-                    return default;
+            // Do things in two passes.  First, convert everything in the string to a 16-bit-char+span.  Then walk
+            // again, trying to create Runes from the 16-bit-chars. We do this to simplify complex cases where we may
+            // have escapes and non-escapes mixed together.
 
-                index += charResults.Last().width;
-            }
-            else if (escapeBraces && IsOpenOrCloseBrace(ch))
-            {
-                if (!IsLegalBraceEscape(tokenText, index, out var braceWidth))
-                    return default;
+            // Second pass.  Convert those characters to Runes.
+            using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
+            var charResults = pooledRuneResults.Object;
 
-                charResults.Add((ch, index, braceWidth));
-                index += braceWidth;
-            }
-            else
+            // First pass, just convert everything in the string (i.e. escapes) to plain 16-bit characters.
+            for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                charResults.Add((ch, index, width: 1));
-                index++;
+                var ch = tokenText[index];
+                if (ch == '\\')
+                {
+                    if (!TryAddEscape(charResults, tokenText, index))
+                        return default;
+
+                    index += charResults.Last().Width;
+                }
+                else if (escapeBraces && IsOpenOrCloseBrace(ch))
+                {
+                    if (!IsLegalBraceEscape(tokenText, index, out var braceWidth))
+                        return default;
+
+                    charResults.Add(new VirtualCharGreen(ch, index, braceWidth));
+                    index += braceWidth;
+                }
+                else
+                {
+                    charResults.Add(new VirtualCharGreen(ch, index, width: 1));
+                    index++;
+                }
             }
+
+            var sequence = CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, charResults);
+            charResults.Clear();
+
+            return sequence;
         }
-
-        return CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, charResults);
     }
 
-    private static bool ContainsEscapeOrSurrogate(ReadOnlySpan<char> tokenText, bool escapeBraces)
+    private static bool ContainsEscape(ReadOnlySpan<char> tokenText, bool escapeBraces)
     {
         foreach (var ch in tokenText)
         {
@@ -295,71 +302,69 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 return true;
             else if (escapeBraces && IsOpenOrCloseBrace(ch))
                 return true;
-            else if (char.IsSurrogate(ch))
-                return true;
         }
 
         return false;
     }
 
-    private static VirtualCharGreenSequence CreateVirtualCharSequence(
-        string tokenText, int startIndexInclusive, int endIndexExclusive,
-        ArrayBuilder<(char ch, int offset, int width)> charResults)
-    {
-        // Second pass.  Convert those characters to Runes.
-        using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
-        var runeResults = pooledRuneResults.Object;
+    //private static VirtualCharGreenSequence CreateVirtualCharSequence(
+    //    string tokenText, int startIndexInclusive, int endIndexExclusive,
+    //    ArrayBuilder<VirtualCharGreen> charResults)
+    //{
+    //    // Second pass.  Convert those characters to Runes.
+    //    using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
+    //    var runeResults = pooledRuneResults.Object;
 
-        try
-        {
-            ConvertCharactersToRunes(charResults, runeResults);
+    //    try
+    //    {
+    //        ConvertCharactersToRunes(charResults, runeResults);
 
-            return CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, runeResults);
-        }
-        finally
-        {
-            // Ensure the builder is cleared out before releasing back to the pool.
-            runeResults.Clear();
-        }
-    }
+    //        return CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, runeResults);
+    //    }
+    //    finally
+    //    {
+    //        // Ensure the builder is cleared out before releasing back to the pool.
+    //        runeResults.Clear();
+    //    }
+    //}
 
-    private static void ConvertCharactersToRunes(
-        ArrayBuilder<(char ch, int offset, int width)> charResults,
-        ImmutableSegmentedList<VirtualCharGreen>.Builder runeResults)
-    {
-        for (var i = 0; i < charResults.Count;)
-        {
-            var (ch, offset, width) = charResults[i];
+    //private static void ConvertCharactersToRunes(
+    //    ArrayBuilder<(char ch, int offset, int width)> charResults,
+    //    ImmutableSegmentedList<VirtualCharGreen>.Builder runeResults)
+    //{
+    //    for (var i = 0; i < charResults.Count;)
+    //    {
+    //        var (ch, offset, width) = charResults[i];
 
-            // First, see if this was a valid single char that can become a Rune.
-            if (Rune.TryCreate(ch, out var rune))
-            {
-                runeResults.Add(VirtualCharGreen.Create(rune, offset, width));
-                i++;
-                continue;
-            }
+    //        // First, see if this was a valid single char that can become a Rune.
+    //        if (Rune.TryCreate(ch, out var rune))
+    //        {
+    //            runeResults.Add(VirtualCharGreen.Create(rune, offset, width));
+    //            i++;
+    //            continue;
+    //        }
 
-            // Next, see if we got at least a surrogate pair that can be converted into a Rune.
-            if (i + 1 < charResults.Count)
-            {
-                var (nextCh, _, nextWidth) = charResults[i + 1];
-                if (Rune.TryCreate(ch, nextCh, out rune))
-                {
-                    runeResults.Add(VirtualCharGreen.Create(rune, offset, width: width + nextWidth));
-                    i += 2;
-                    continue;
-                }
-            }
+    //        // Next, see if we got at least a surrogate pair that can be converted into a Rune.
+    //        if (i + 1 < charResults.Count)
+    //        {
+    //            var (nextCh, _, nextWidth) = charResults[i + 1];
+    //            if (Rune.TryCreate(ch, nextCh, out rune))
+    //            {
+    //                runeResults.Add(VirtualCharGreen.Create(rune, offset, width: width + nextWidth));
+    //                i += 2;
+    //                continue;
+    //            }
+    //        }
 
-            // Had an unpaired surrogate.
-            Debug.Assert(char.IsSurrogate(ch));
-            runeResults.Add(VirtualCharGreen.Create(ch, offset, width));
-            i++;
-        }
-    }
+    //        // Had an unpaired surrogate.
+    //        Debug.Assert(char.IsSurrogate(ch));
+    //        runeResults.Add(VirtualCharGreen.Create(ch, offset, width));
+    //        i++;
+    //    }
+    //}
 
     private static bool TryAddEscape(
-        ArrayBuilder<(char ch, int offset, int width)> result, string tokenText, int index)
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result, string tokenText, int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
@@ -372,7 +377,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         => ch.TryGetEscapeCharacter(out escapedChar);
 
     private static bool TryAddSingleCharacterEscape(
-        ArrayBuilder<(char ch, int offset, int width)> result, string tokenText, int index)
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result, string tokenText, int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
@@ -401,12 +406,12 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 return false;
         }
 
-        result.Add((ch, offset: index, width: 2));
+        result.Add(new VirtualCharGreen(ch, offset: index, width: 2));
         return true;
     }
 
     private static bool TryAddMultiCharacterEscape(
-        ArrayBuilder<(char ch, int offset, int width)> result, string tokenText, int index)
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result, string tokenText, int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
@@ -425,7 +430,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
     }
 
     private static bool TryAddMultiCharacterEscape(
-        ArrayBuilder<(char ch, int offset, int width)> result, string tokenText, int index, char character)
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result, string tokenText, int index, char character)
     {
         var startIndex = index;
         Debug.Assert(tokenText[index] == '\\');
@@ -468,7 +473,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 // something like \U0000000A
                 //
                 // Represents a single char value.
-                result.Add(((char)uintChar, offset: startIndex, width: 2 + 8));
+                result.Add(new VirtualCharGreen((char)uintChar, offset: startIndex, width: 2 + 8));
                 return true;
             }
             else
@@ -477,13 +482,11 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 var lowSurrogate = ((uintChar - 0x00010000) % 0x0400) + 0xDC00;
                 var highSurrogate = ((uintChar - 0x00010000) / 0x0400) + 0xD800;
 
-                // Encode this as a surrogate pair.
-                //
-                // Note: a width of 0 on this first char is fine.  The caller will be combining the two widths here to
-                // create the final width.  So there's no concern about making a VirtualCharGreen with an illegal width
-                // of 0.
-                result.Add(((char)highSurrogate, offset: startIndex, width: 0));
-                result.Add(((char)lowSurrogate, offset: startIndex, width: 2 + 8));
+                // Encode this as a surrogate pair.  For the purposes of mapping, we'll say the high surrogate maps to
+                // the first 6 chars (the \UAAAA in \UAAAABBBB) and the low surrogate maps to the last 4 chars (the BBBB
+                // in \UAAAABBBB).
+                result.Add(new VirtualCharGreen((char)highSurrogate, offset: startIndex, width: 6));
+                result.Add(new VirtualCharGreen((char)lowSurrogate, offset: startIndex, width: 4));
                 return true;
             }
         }
@@ -511,7 +514,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             }
 
             character = (char)intChar;
-            result.Add((character, offset: startIndex, width: 2 + 4));
+            result.Add(new VirtualCharGreen(character, offset: startIndex, width: 2 + 4));
             return true;
         }
         else
@@ -541,7 +544,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             }
 
             character = (char)intChar;
-            result.Add((character, offset: startIndex, width: endIndex - startIndex));
+            result.Add(new VirtualCharGreen(character, offset: startIndex, width: endIndex - startIndex));
             return true;
         }
     }
@@ -553,9 +556,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
     }
 
     private static bool IsHexDigit(char c)
-    {
-        return c is >= '0' and <= '9' or
-               >= 'A' and <= 'F' or
-               >= 'a' and <= 'f';
-    }
+        => c is (>= '0' and <= '9') or
+                (>= 'A' and <= 'F') or
+                (>= 'a' and <= 'f');
 }
