@@ -17,6 +17,12 @@ internal readonly struct VirtualCharSequence
     private readonly int _tokenStart;
     private readonly VirtualCharGreenSequence _sequence;
 
+    public VirtualCharSequence(int tokenStart, string text)
+        : this(tokenStart, VirtualCharGreenSequence.Create(text))
+    {
+    }
+
+
     public VirtualCharSequence(int tokenStart, VirtualCharGreenSequence sequence)
     {
         if (tokenStart < 0)
