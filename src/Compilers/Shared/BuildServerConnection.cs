@@ -459,6 +459,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             // Build the environment block as a single string
+            // Environment variable names are case-insensitive on Windows, so we sort using OrdinalIgnoreCase for consistency
             var envBlock = new StringBuilder();
             foreach (var kvp in environmentVariables.OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase))
             {
@@ -494,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var key = (string)entry.Key;
                 var value = (string?)entry.Value;
 
-                // Skip DOTNET_ROOT* variables as we want to set our own
+                // Skip DOTNET_ROOT* variables such as DOTNET_ROOT_X64 as we want to set our own
                 if (!key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
                 {
                     environmentVariables[key] = value ?? string.Empty;
