@@ -74,17 +74,15 @@ internal readonly partial struct VirtualCharGreenSequence
     }
 
     /// <summary>
-    /// Represents a <see cref="Chunk"/> on top of a normal
-    /// string.  This is the common case of the type of the sequence we would
-    /// create for a normal string token without any escapes in it.
+    /// Represents a <see cref="Chunk"/> on top of a normal string.  This is the common case of the type of the sequence
+    /// we would create for a normal string token without any escapes in it.
     /// </summary>
     /// <param name="data">
-    /// The underlying string that we're returning virtual chars from.  Note:
-    /// this will commonly include things like quote characters.  Clients who
-    /// do not want that should then ask for an appropriate <see cref="VirtualCharSequence.GetSubSequence"/>
-    /// back that does not include those characters.
+    /// The underlying string that we're returning virtual chars from.  Note: this will commonly include things like
+    /// quote characters.  Clients who do not want that should then ask for an appropriate <see
+    /// cref="VirtualCharSequence.GetSubSequence"/> back that does not include those characters.
     /// </param>
-    private sealed class StringChunk(/*int firstVirtualCharPosition, */string data) : Chunk
+    private sealed class StringChunk(string data) : Chunk
     {
         public override int Length => data.Length;
 
