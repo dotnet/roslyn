@@ -339,7 +339,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestSurrogate1()
         => Test("""
             "😊"
-            """, @"['\U0001F60A',[1,3]]");
+            """, @"['\uD83D',[1,2]]['\uDE0A',[2,3]]");
 
     [Fact]
     public void TestSurrogate2()
@@ -351,7 +351,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestSurrogate3()
         => Test("""
             "\ud83d\ude0a"
-            """, @"['\U0001F60A',[1,13]]");
+            """, @"['\uD83D',[1,7]]['\uDE0A',[7,13]]");
 
     [Fact]
     public void TestHighSurrogate()
@@ -367,11 +367,11 @@ public sealed class CSharpVirtualCharServiceTests
 
     [Fact]
     public void TestMixedSurrogate1()
-        => Test("\"\ud83d\\ude0a\"", @"['\U0001F60A',[1,8]]");
+        => Test("\"\ud83d\\ude0a\"", @"['\uD83D',[1,2]]['\uDE0A',[2,8]]");
 
     [Fact]
     public void TestMixedSurrogate2()
-        => Test("\"\\ud83d\ude0a\"", @"['\U0001F60A',[1,8]]");
+        => Test("\"\\ud83d\ude0a\"", @"['\uD83D',[1,7]]['\uDE0A',[7,8]]");
 
     [Fact]
     public void TestEscapedQuoteInVerbatimString()
