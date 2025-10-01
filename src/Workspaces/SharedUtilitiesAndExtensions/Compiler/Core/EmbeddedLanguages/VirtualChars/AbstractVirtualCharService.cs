@@ -63,61 +63,66 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
     {
         // Do some invariant checking to make sure we processed the string token the same
         // way the C# and VB compilers did.
-        if (!result.IsDefault)
+        if (result.IsDefault)
+            return;
+
+        var valueText = token.ValueText;
+        Debug.Assert(valueText.Length == result.Length);
+        for (var i = 0; i < result.Length; i++)
+            Debug.Assert(valueText[i] == result[i]);
+
+        // Ensure that we properly broke up the token into a sequence of characters that
+        // matches what the compiler did.
+        var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
+        if (token.RawKind == syntaxKinds.StringLiteralToken ||
+            token.RawKind == syntaxKinds.Utf8StringLiteralToken ||
+            token.RawKind == syntaxKinds.CharacterLiteralToken)
         {
-            // Ensure that we properly broke up the token into a sequence of characters that
-            // matches what the compiler did.
-            var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
+            var expectedValueText = token.ValueText;
+            var actualValueText = result.CreateString();
+            Debug.Assert(expectedValueText == actualValueText);
+        }
+
+        if (result.Length > 0)
+        {
+            var currentVC = result[0];
+            Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
             if (token.RawKind == syntaxKinds.StringLiteralToken ||
-                token.RawKind == syntaxKinds.Utf8StringLiteralToken ||
                 token.RawKind == syntaxKinds.CharacterLiteralToken)
             {
-                var expectedValueText = token.ValueText;
-                var actualValueText = result.CreateString();
-                Debug.Assert(expectedValueText == actualValueText);
+                Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
+                                currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
             }
 
-            if (result.Length > 0)
+            if (IsMultiLineRawStringToken(token))
             {
-                var currentVC = result[0];
-                Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
-                if (token.RawKind == syntaxKinds.StringLiteralToken ||
-                    token.RawKind == syntaxKinds.CharacterLiteralToken)
+                for (var i = 1; i < result.Length; i++)
                 {
-                    Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
-                                 currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
+                    var nextVC = result[i];
+                    Debug.Assert(currentVC.Span.End <= nextVC.Span.Start, "Virtual character spans have to be ordered.");
+                    currentVC = nextVC;
                 }
+            }
+            else
+            {
+                for (var i = 1; i < result.Length; i++)
+                {
+                    var nextVC = result[i];
+                    Debug.Assert(currentVC.Span.End == nextVC.Span.Start, "Virtual character spans have to be touching.");
+                    currentVC = nextVC;
+                }
+            }
 
-                if (IsMultiLineRawStringToken(token))
-                {
-                    for (var i = 1; i < result.Length; i++)
-                    {
-                        var nextVC = result[i];
-                        Debug.Assert(currentVC.Span.End <= nextVC.Span.Start, "Virtual character spans have to be ordered.");
-                        currentVC = nextVC;
-                    }
-                }
-                else
-                {
-                    for (var i = 1; i < result.Length; i++)
-                    {
-                        var nextVC = result[i];
-                        Debug.Assert(currentVC.Span.End == nextVC.Span.Start, "Virtual character spans have to be touching.");
-                        currentVC = nextVC;
-                    }
-                }
+            var lastVC = result.Last();
 
-                var lastVC = result.Last();
-
-                if (token.RawKind == syntaxKinds.StringLiteralToken ||
-                    token.RawKind == syntaxKinds.CharacterLiteralToken)
-                {
-                    Debug.Assert(lastVC.Span.End == token.Span.End - "\"".Length, "Last span has to end right before the end of the string token.");
-                }
-                else if (token.RawKind == syntaxKinds.Utf8StringLiteralToken)
-                {
-                    Debug.Assert(lastVC.Span.End == token.Span.End - "\"u8".Length, "Last span has to end right before the end of the string token.");
-                }
+            if (token.RawKind == syntaxKinds.StringLiteralToken ||
+                token.RawKind == syntaxKinds.CharacterLiteralToken)
+            {
+                Debug.Assert(lastVC.Span.End == token.Span.End - "\"".Length, "Last span has to end right before the end of the string token.");
+            }
+            else if (token.RawKind == syntaxKinds.Utf8StringLiteralToken)
+            {
+                Debug.Assert(lastVC.Span.End == token.Span.End - "\"u8".Length, "Last span has to end right before the end of the string token.");
             }
         }
     }
