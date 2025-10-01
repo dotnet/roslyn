@@ -498,13 +498,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ReportIVTs), false); }
         }
 
-        // Keeping this for a while to avoid failures if someone uses sdk targets that still set this.
-        public string? CompilerType
-        {
-            set { }
-            get { return null; }
-        }
-
         #endregion
 
         /// <summary>
