@@ -66,8 +66,10 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         if (result.IsDefault)
             return;
 
-        // Ensure that we properly broke up the token into a sequence of characters that
-        // matches what the compiler did.
+        // Ensure that we properly broke up the token into a sequence of characters that matches what the compiler did.
+        // Note: we don't do this for all syntaxKinds.  For example an InterpolatedStringTextToken does not do the
+        // ValueText processing that a StringLiteralToken does.  So, for example, $"{{" will have a ValueText of "{{"
+        // not "{" which might otherwise be expected.
         var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
         if (token.RawKind == syntaxKinds.StringLiteralToken ||
             token.RawKind == syntaxKinds.Utf8StringLiteralToken ||
