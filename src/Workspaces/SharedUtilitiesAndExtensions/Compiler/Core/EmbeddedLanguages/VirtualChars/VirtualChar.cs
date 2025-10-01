@@ -25,85 +25,85 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 /// </remarks>
 internal readonly record struct VirtualChar : IComparable<VirtualChar>, IComparable<char>
 {
-    private readonly VirtualCharGreen _green;
-    private readonly int _tokenStart;
-
     public VirtualChar(VirtualCharGreen green, int tokenStart)
     {
         if (tokenStart < 0)
             throw new ArgumentException("Token start must be non-negative", nameof(tokenStart));
-        _green = green;
-        _tokenStart = tokenStart;
+        Green = green;
+        TokenStart = tokenStart;
     }
 
-    public Rune Rune => _green.Rune;
+    internal VirtualCharGreen Green { get; }
+    internal int TokenStart { get; }
 
-    public char SurrogateChar => _green.SurrogateChar;
+    public Rune Rune => Green.Rune;
 
-    public TextSpan Span => new(_tokenStart + _green.Offset, _green.Width);
+    public char SurrogateChar => Green.SurrogateChar;
 
-    public int Value => _green.Value;
+    public TextSpan Span => new(TokenStart + Green.Offset, Green.Width);
 
-    public bool IsDigit => _green.IsDigit;
+    public int Value => Green.Value;
 
-    public bool IsLetter => _green.IsLetter;
+    public bool IsDigit => Green.IsDigit;
 
-    public bool IsLetterOrDigit => _green.IsLetterOrDigit;
+    public bool IsLetter => Green.IsLetter;
 
-    public bool IsWhiteSpace => _green.IsWhiteSpace;
+    public bool IsLetterOrDigit => Green.IsLetterOrDigit;
 
-    public int Utf16SequenceLength => _green.Utf16SequenceLength;
+    public bool IsWhiteSpace => Green.IsWhiteSpace;
+
+    public int Utf16SequenceLength => Green.Utf16SequenceLength;
 
     #region equality
 
     public static bool operator ==(VirtualChar ch1, char ch2)
-        => ch1._green == ch2;
+        => ch1.Green == ch2;
 
     public static bool operator !=(VirtualChar ch1, char ch2)
-        => ch1._green != ch2;
+        => ch1.Green != ch2;
 
     #endregion
 
     #region string operations
 
     /// <inheritdoc/>
-    public override string ToString() => _green.ToString();
+    public override string ToString() => Green.ToString();
 
-    public void AppendTo(StringBuilder builder) => _green.AppendTo(builder);
+    public void AppendTo(StringBuilder builder) => Green.AppendTo(builder);
 
     #endregion
 
     #region comparable
 
     public int CompareTo(VirtualChar other)
-        => _green.CompareTo(other._green);
+        => Green.CompareTo(other.Green);
 
     public static bool operator <(VirtualChar ch1, VirtualChar ch2)
-        => ch1._green < ch2._green;
+        => ch1.Green < ch2.Green;
 
     public static bool operator <=(VirtualChar ch1, VirtualChar ch2)
-        => ch1._green <= ch2._green;
+        => ch1.Green <= ch2.Green;
 
     public static bool operator >(VirtualChar ch1, VirtualChar ch2)
-        => ch1._green > ch2._green;
+        => ch1.Green > ch2.Green;
 
     public static bool operator >=(VirtualChar ch1, VirtualChar ch2)
-        => ch1._green >= ch2._green;
+        => ch1.Green >= ch2.Green;
 
     public int CompareTo(char other)
-        => _green.CompareTo(other);
+        => Green.CompareTo(other);
 
     public static bool operator <(VirtualChar ch1, char ch2)
-        => ch1._green < ch2;
+        => ch1.Green < ch2;
 
     public static bool operator <=(VirtualChar ch1, char ch2)
-        => ch1._green <= ch2;
+        => ch1.Green <= ch2;
 
     public static bool operator >(VirtualChar ch1, char ch2)
-        => ch1._green > ch2;
+        => ch1.Green > ch2;
 
     public static bool operator >=(VirtualChar ch1, char ch2)
-        => ch1._green >= ch2;
+        => ch1.Green >= ch2;
 
     #endregion
 }
@@ -187,6 +187,9 @@ internal readonly record struct VirtualCharGreen : IComparable<VirtualCharGreen>
     /// cref="Rune"/>.
     /// </summary>
     public int Value => SurrogateChar != 0 ? SurrogateChar : Rune.Value;
+
+    public VirtualCharGreen WithOffset(int offset)
+        => new(this.Rune, this.SurrogateChar, offset, this.Width);
 
     public bool IsDigit
         => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);

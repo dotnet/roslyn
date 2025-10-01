@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 internal readonly struct VirtualCharSequence
 {
+    private static readonly ObjectPool<ImmutableSegmentedList<VirtualCharGreen>.Builder> s_builderPool
+        = new(() => ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>());
+
     private readonly int _tokenStart;
     private readonly VirtualCharGreenSequence _sequence;
 
@@ -21,6 +25,33 @@ internal readonly struct VirtualCharSequence
 
     public static VirtualCharSequence Create(int tokenStart, string text)
         => new(tokenStart, VirtualCharGreenSequence.Create(text));
+
+    public static VirtualCharSequence Create(ImmutableSegmentedList<VirtualChar> virtualChars)
+    {
+        if (virtualChars.IsEmpty)
+            return Empty;
+
+        // Determine the earliest token start of all of the virtual chars.  This will be where this entire sequence
+        // starts.  Any virtual chars with the same token start will keep their same offset.  Any virtual chars with a
+        // later token start will have their offset adjusted to be relative to this new start.
+        var minimumTokenStart = virtualChars.Min(static c => c.TokenStart);
+
+        using var pooledObject = s_builderPool.GetPooledObject();
+        var builder = pooledObject.Object;
+
+        foreach (var ch in virtualChars)
+        {
+            Debug.Assert(ch.TokenStart >= minimumTokenStart);
+            var offsetDifference = ch.TokenStart - minimumTokenStart;
+            var newGreen = ch.Green.WithOffset(ch.Green.Offset + offsetDifference);
+            builder.Add(newGreen);
+        }
+
+        var result = new VirtualCharSequence(minimumTokenStart, VirtualCharGreenSequence.Create(builder.ToImmutable()));
+        builder.Clear();
+
+        return result;
+    }
 
     public VirtualCharSequence(int tokenStart, VirtualCharGreenSequence sequence)
     {
@@ -31,33 +62,41 @@ internal readonly struct VirtualCharSequence
         _sequence = sequence;
     }
 
+    /// <inheritdoc cref="VirtualCharGreenSequence.Length"/>
     public int Length => _sequence.Length;
 
     public VirtualChar this[int index]
         => new(_sequence[index], _tokenStart);
 
+    /// <inheritdoc cref="VirtualCharGreenSequence.Find"/>
     public VirtualChar? Find(int position)
         => _sequence.Find(_tokenStart, position);
 
     public bool Contains(VirtualChar @char)
         => IndexOf(@char) >= 0;
 
+    /// <inheritdoc cref="VirtualCharGreenSequence.CreateString"/>
     public string CreateString()
         => _sequence.CreateString();
 
+    /// <inheritdoc cref="VirtualCharGreenSequence.IsDefault"/>
     public bool IsDefault => _sequence.IsDefault;
+
+    /// <inheritdoc cref="VirtualCharGreenSequence.IsEmpty"/>
     public bool IsEmpty => _sequence.IsEmpty;
+
+    /// <inheritdoc cref="VirtualCharGreenSequence.IsDefaultOrEmpty"/>
     public bool IsDefaultOrEmpty => _sequence.IsDefaultOrEmpty;
 
-    /// <summary>
-    /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
-    /// </summary>
+    /// <inheritdoc cref="VirtualCharGreenSequence.GetSubSequence"/>
     public VirtualCharSequence GetSubSequence(TextSpan span)
        => new(_tokenStart, _sequence.GetSubSequence(span));
 
+    /// <inheritdoc cref="VirtualCharGreenSequence.Skip"/>
     public VirtualCharSequence Skip(int count)
         => new(_tokenStart, _sequence.Skip(count));
 
+    /// <inheritdoc cref="VirtualCharGreenSequence.GetEnumerator"/>
     public Enumerator GetEnumerator()
         => new(this);
 
