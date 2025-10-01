@@ -7,14 +7,14 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-internal partial struct VirtualCharSequence
+internal partial struct VirtualCharGreenSequence
 {
-    public struct Enumerator(VirtualCharSequence virtualCharSequence) : IEnumerator<VirtualChar>
+    public struct Enumerator(VirtualCharGreenSequence virtualCharSequence) : IEnumerator<VirtualCharGreen>
     {
         private int _position = -1;
 
         public bool MoveNext() => ++_position < virtualCharSequence.Length;
-        public readonly VirtualChar Current => virtualCharSequence[_position];
+        public readonly VirtualCharGreen Current => virtualCharSequence[_position];
 
         public void Reset()
             => _position = -1;

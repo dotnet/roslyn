@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -10,97 +12,49 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-/// <summary>
-/// Represents the individual characters that raw string token represents (i.e. with escapes collapsed).  
-/// The difference between this and the result from token.ValueText is that for each collapsed character
-/// returned the original span of text in the original token can be found.  i.e. if you had the
-/// following in C#:
-/// <para/>
-/// <c>"G\u006fo"</c>
-/// <para/>
-/// Then you'd get back:
-/// <para/>
-/// <c>'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)</c>
-/// <para/>
-/// This allows for embedded language processing that can refer back to the user's original code
-/// instead of the escaped value we're processing.
-/// </summary>
-internal partial struct VirtualCharSequence
+internal readonly struct VirtualCharSequence
 {
-    public static readonly VirtualCharSequence Empty = Create(ImmutableSegmentedList<VirtualChar>.Empty);
+    private readonly int _tokenStart;
+    private readonly VirtualCharGreenSequence _sequence;
 
-    public static VirtualCharSequence Create(ImmutableSegmentedList<VirtualChar> virtualChars)
-        => new(new ImmutableSegmentedListChunk(virtualChars));
-
-    public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData)
-        => new(new StringChunk(firstVirtualCharPosition, underlyingData));
-
-    /// <summary>
-    /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.
-    /// </summary>
-    private readonly Chunk _leafCharacters;
-
-    /// <summary>
-    /// The portion of <see cref="_leafCharacters"/> that is being exposed.  This span 
-    /// is `[inclusive, exclusive)`.
-    /// </summary>
-    private readonly TextSpan _span;
-
-    private VirtualCharSequence(Chunk sequence)
-        : this(sequence, new TextSpan(0, sequence.Length))
+    public VirtualCharSequence(int tokenStart, VirtualCharGreenSequence sequence)
     {
+        if (tokenStart < 0)
+            throw new ArgumentException("tokenStart cannot be negative", nameof(tokenStart));
+
+        _tokenStart = tokenStart;
+        _sequence = sequence;
     }
 
-    private VirtualCharSequence(Chunk sequence, TextSpan span)
-    {
-        if (span.Start > sequence.Length)
-            throw new ArgumentException();
+    public int Length => _sequence.Length;
 
-        if (span.End > sequence.Length)
-            throw new ArgumentException();
+    public VirtualChar this[int index]
+        => new(_sequence[index], _tokenStart);
 
-        _leafCharacters = sequence;
-        _span = span;
-    }
+    public bool Contains(VirtualChar @char)
+        => IndexOf(@char) >= 0;
 
-    /// <summary>
-    /// Gets the number of elements contained in the <see cref="VirtualCharSequence"/>.
-    /// </summary>
-    public int Length => _span.Length;
+    public string CreateString()
+        => _sequence.CreateString();
 
-    /// <summary>
-    /// Gets the <see cref="VirtualChar"/> at the specified index.
-    /// </summary>
-    public VirtualChar this[int index] => _leafCharacters[_span.Start + index];
-
-    /// <summary>
-    /// Gets a value indicating whether the <see cref="VirtualCharSequence"/> was declared but not initialized.
-    /// </summary>
-    public bool IsDefault => _leafCharacters == null;
-    public bool IsEmpty => Length == 0;
-    public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
+    public bool IsDefault => _sequence.IsDefault;
+    public bool IsEmpty => _sequence.IsEmpty;
+    public bool IsDefaultOrEmpty => _sequence.IsDefaultOrEmpty;
 
     /// <summary>
     /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
     /// </summary>
     public VirtualCharSequence GetSubSequence(TextSpan span)
-       => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
+       => new(_tokenStart, _sequence.GetSubSequence(span));
+
+    public VirtualCharSequence Skip(int count)
+        => new(_tokenStart, _sequence.Skip(count));
 
     public Enumerator GetEnumerator()
         => new(this);
 
     public VirtualChar First() => this[0];
     public VirtualChar Last() => this[^1];
-
-    /// <summary>
-    /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
-    /// in the span of this sequence.
-    /// </summary>
-    public VirtualChar? Find(int position)
-        => _leafCharacters?.Find(position);
-
-    public bool Contains(VirtualChar @char)
-        => IndexOf(@char) >= 0;
 
     public int IndexOf(VirtualChar @char)
     {
@@ -161,9 +115,6 @@ internal partial struct VirtualCharSequence
         return true;
     }
 
-    public VirtualCharSequence Skip(int count)
-        => this.GetSubSequence(TextSpan.FromBounds(count, this.Length));
-
     public VirtualCharSequence SkipWhile(Func<VirtualChar, bool> predicate)
     {
         var start = 0;
@@ -178,6 +129,119 @@ internal partial struct VirtualCharSequence
         return this.GetSubSequence(TextSpan.FromBounds(start, this.Length));
     }
 
+    [Conditional("DEBUG")]
+    public void AssertAdjacentTo(VirtualCharSequence virtualChars)
+    {
+        _sequence.AssertAdjacentTo(virtualChars._sequence);
+    }
+
+    public struct Enumerator(VirtualCharSequence virtualCharSequence) : IEnumerator<VirtualChar>
+    {
+        private int _position = -1;
+
+        public bool MoveNext() => ++_position < virtualCharSequence.Length;
+        public readonly VirtualChar Current => virtualCharSequence[_position];
+
+        public void Reset()
+            => _position = -1;
+
+        readonly object? IEnumerator.Current => this.Current;
+        public readonly void Dispose() { }
+    }
+}
+
+/// <summary>
+/// Represents the individual characters that raw string token represents (i.e. with escapes collapsed).  
+/// The difference between this and the result from token.ValueText is that for each collapsed character
+/// returned the original span of text in the original token can be found.  i.e. if you had the
+/// following in C#:
+/// <para/>
+/// <c>"G\u006fo"</c>
+/// <para/>
+/// Then you'd get back:
+/// <para/>
+/// <c>'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)</c>
+/// <para/>
+/// This allows for embedded language processing that can refer back to the user's original code
+/// instead of the escaped value we're processing.
+/// </summary>
+internal partial struct VirtualCharGreenSequence
+{
+    public static readonly VirtualCharGreenSequence Empty = Create(ImmutableSegmentedList<VirtualCharGreen>.Empty);
+
+    public static VirtualCharGreenSequence Create(ImmutableSegmentedList<VirtualCharGreen> virtualChars)
+        => new(new ImmutableSegmentedListChunk(virtualChars));
+
+    public static VirtualCharGreenSequence Create(string underlyingData)
+        => new(new StringChunk(underlyingData));
+
+    /// <summary>
+    /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.
+    /// </summary>
+    private readonly Chunk _leafCharacters;
+
+    /// <summary>
+    /// The portion of <see cref="_leafCharacters"/> that is being exposed.  This span 
+    /// is `[inclusive, exclusive)`.
+    /// </summary>
+    private readonly TextSpan _span;
+
+    private VirtualCharGreenSequence(Chunk sequence)
+        : this(sequence, new TextSpan(0, sequence.Length))
+    {
+    }
+
+    private VirtualCharGreenSequence(Chunk sequence, TextSpan span)
+    {
+        if (span.Start > sequence.Length)
+            throw new ArgumentException();
+
+        if (span.End > sequence.Length)
+            throw new ArgumentException();
+
+        _leafCharacters = sequence;
+        _span = span;
+    }
+
+    /// <summary>
+    /// Gets the number of elements contained in the <see cref="VirtualCharSequence"/>.
+    /// </summary>
+    public int Length => _span.Length;
+
+    /// <summary>
+    /// Gets the <see cref="VirtualChar"/> at the specified index.
+    /// </summary>
+    public VirtualCharGreen this[int index] => _leafCharacters[_span.Start + index];
+
+    /// <summary>
+    /// Gets a value indicating whether the <see cref="VirtualCharSequence"/> was declared but not initialized.
+    /// </summary>
+    public bool IsDefault => _leafCharacters == null;
+    public bool IsEmpty => Length == 0;
+    public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
+
+    /// <summary>
+    /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
+    /// </summary>
+    public VirtualCharGreenSequence GetSubSequence(TextSpan span)
+       => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
+
+    public Enumerator GetEnumerator()
+        => new(this);
+
+    public VirtualCharGreen First() => this[0];
+    public VirtualCharGreen Last() => this[^1];
+
+    /// <summary>
+    /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
+    /// in the span of this sequence.
+    /// </summary>
+    //public VirtualChar? Find(int position)
+    //    => _leafCharacters?.Find(position);
+
+    public VirtualCharGreenSequence Skip(int count)
+        => this.GetSubSequence(TextSpan.FromBounds(count, this.Length));
+
     /// <summary>
     /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
     /// </summary>
@@ -191,7 +255,7 @@ internal partial struct VirtualCharSequence
     }
 
     [Conditional("DEBUG")]
-    public void AssertAdjacentTo(VirtualCharSequence virtualChars)
+    public void AssertAdjacentTo(VirtualCharGreenSequence virtualChars)
     {
         Debug.Assert(_leafCharacters == virtualChars._leafCharacters);
         Debug.Assert(_span.End == virtualChars._span.Start);
@@ -202,11 +266,11 @@ internal partial struct VirtualCharSequence
     /// sequence that points at the same underlying data, but spans from the 
     /// start of <paramref name="chars1"/> to the end of <paramref name="chars2"/>.
     /// </summary>  
-    public static VirtualCharSequence FromBounds(
-        VirtualCharSequence chars1, VirtualCharSequence chars2)
+    public static VirtualCharGreenSequence FromBounds(
+        VirtualCharGreenSequence chars1, VirtualCharGreenSequence chars2)
     {
         Debug.Assert(chars1._leafCharacters == chars2._leafCharacters);
-        return new VirtualCharSequence(
+        return new VirtualCharGreenSequence(
             chars1._leafCharacters,
             TextSpan.FromBounds(chars1._span.Start, chars2._span.End));
     }
