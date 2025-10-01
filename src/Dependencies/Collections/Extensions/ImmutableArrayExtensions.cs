@@ -679,6 +679,7 @@ namespace Microsoft.CodeAnalysis
 
         // In DEBUG, swap the first and last elements of a read-only array, yielding a new read only array.
         // This helps to avoid depending on accidentally sorted arrays.
+        // Use more aggressive reordering with Array.Reverse(copy) for spot-checking
         internal static ImmutableArray<T> ConditionallyDeOrder<T>(this ImmutableArray<T> array)
         {
 #if DEBUG
@@ -689,7 +690,6 @@ namespace Microsoft.CodeAnalysis
                 var temp = copy[0];
                 copy[0] = copy[last];
                 copy[last] = temp;
-
                 return ImmutableCollectionsMarshal.AsImmutableArray(copy);
             }
 #endif

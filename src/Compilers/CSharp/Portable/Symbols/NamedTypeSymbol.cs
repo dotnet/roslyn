@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             var members = nameOpt == null
-                ? this.GetMembersUnordered()
+                ? this.GetMembers()
                 : this.GetSimpleNonTypeMembers(nameOpt);
 
             foreach (var member in members)
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsClassType() || !IsStatic || IsGenericType || !MightContainExtensionMethods) return;
 
-            foreach (NamedTypeSymbol nestedType in GetTypeMembersUnordered())
+            foreach (NamedTypeSymbol nestedType in GetTypeMembers())
             {
                 if (nestedType is not { IsExtension: true, ExtensionParameter: { } extensionParameter }
                     || !IsValidExtensionReceiverParameter(extensionParameter))
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var candidates = name is null || alternativeName is not null
-                    ? nestedType.GetMembersUnordered()
+                    ? nestedType.GetMembers()
                     : nestedType.GetMembers(name);
 
                 foreach (var candidate in candidates)

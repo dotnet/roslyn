@@ -34968,5 +34968,182 @@ public static class E
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "str").WithArguments("values", "void extension(string).Extension(params string[] values)").WithLocation(7, 18)
                 );
     }
+
+    [Fact]
+    public void Ordering_01()
+    {
+        var src = """
+int.M();
+
+public static class E1
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+
+public static class E2
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M()' and 'E2.extension(int).M()'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M()", "E2.extension(int).M()").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void Ordering_02()
+    {
+        var src = """
+int.M(null);
+
+public class C1 { }
+public class C2 { }
+
+public static class E
+{
+    extension(int)
+    {
+        public static void M(C1 x) { }
+    }
+
+    extension(int)
+    {
+        public static void M(C2 x) { }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(int).M(C1)' and 'E.extension(int).M(C2)'
+            // int.M(null);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(int).M(C1)", "E.extension(int).M(C2)").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void Ordering_03()
+    {
+        var src = """
+using N1;
+using N2;
+
+int.M();
+
+namespace N1
+{
+    public static class E1
+    {
+        extension(int)
+        {
+            public static void M() { }
+        }
+    }
+}
+
+namespace N2
+{
+    public static class E2
+    {
+        extension(int)
+        {
+            public static void M() { }
+        }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,5): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(int).M()' and 'N2.E2.extension(int).M()'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("N1.E1.extension(int).M()", "N2.E2.extension(int).M()").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Ordering_04()
+    {
+        var src = """
+using N1;
+
+int.M();
+
+namespace N1
+{
+    public static class E1
+    {
+        extension(int)
+        {
+            public static void M() { }
+        }
+    }
+
+    public static class E2
+    {
+        extension(int)
+        {
+            public static void M() { }
+        }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,5): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(int).M()' and 'N1.E2.extension(int).M()'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("N1.E1.extension(int).M()", "N1.E2.extension(int).M()").WithLocation(3, 5));
+    }
+
+    [Fact]
+    public void Ordering_05()
+    {
+        var src = """
+// here
+
+public static class E
+{
+    public static void M(this object o) => throw null;
+    public static void M2(this object o) => throw null;
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        Assert.Equal(["void System.Object.M()", "void System.Object.M2()"],
+            model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true)
+                .Where(m => m is IMethodSymbol { IsExtensionMethod: true }).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Ordering_06()
+    {
+        var src = """
+// here
+
+public static class E
+{
+    extension(object o)
+    {
+        public void M() => throw null;
+        public void M2() => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        Assert.Equal(["void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2()"],
+            model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true)
+                .Where(m => m is IMethodSymbol { ContainingType.IsExtension: true }).ToTestDisplayStrings());
+    }
 }
 

@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>Does not perform a full viability check</remarks>
         internal virtual void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
-            foreach (var type in this.GetTypeMembersUnordered())
+            foreach (var type in this.GetTypeMembers())
             {
                 type.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }
