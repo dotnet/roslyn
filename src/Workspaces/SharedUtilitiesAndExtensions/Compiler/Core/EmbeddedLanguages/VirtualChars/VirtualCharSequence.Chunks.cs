@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
@@ -27,7 +26,7 @@ internal readonly partial struct VirtualCharGreenSequence
 
         public abstract int Length { get; }
         public abstract VirtualCharGreen this[int index] { get; }
-        // public abstract VirtualChar? Find(int position);
+        public abstract VirtualChar? Find(int tokenStart, int position);
     }
 
     /// <summary>
@@ -40,32 +39,38 @@ internal readonly partial struct VirtualCharGreenSequence
         public override int Length => array.Count;
         public override VirtualCharGreen this[int index] => array[index];
 
-        //public override VirtualChar? Find(int position)
-        //{
-        //    if (array.IsEmpty)
-        //        return null;
+        public override VirtualChar? Find(int tokenStart, int position)
+        {
+            if (array.IsEmpty)
+                return null;
 
-        //    if (position < array[0].Span.Start || position >= array[^1].Span.End)
-        //        return null;
+            if (position < new VirtualChar(array[0], tokenStart).Span.Start ||
+                position >= new VirtualChar(array[^1], tokenStart).Span.End)
+            {
+                return null;
+            }
 
-        //    var index = array.BinarySearch(position, static (ch, position) =>
-        //    {
-        //        if (position < ch.Span.Start)
-        //            return 1;
+            var index = array.BinarySearch((tokenStart, position), static (ch, tuple) =>
+            {
+                var (tokenStart, position) = tuple;
+                var span = new VirtualChar(ch, tokenStart).Span;
 
-        //        if (position >= ch.Span.End)
-        //            return -1;
+                if (position < span.Start)
+                    return 1;
 
-        //        return 0;
-        //    });
+                if (position >= span.End)
+                    return -1;
 
-        //    // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
-        //    // position is in one of the gaps, it won't be able to find a corresponding virtual char.
-        //    if (index < 0)
-        //        return null;
+                return 0;
+            });
 
-        //    return array[index];
-        //}
+            // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
+            // position is in one of the gaps, it won't be able to find a corresponding virtual char.
+            if (index < 0)
+                return null;
+
+            return new(array[index], tokenStart);
+        }
     }
 
     /// <summary>
@@ -83,14 +88,14 @@ internal readonly partial struct VirtualCharGreenSequence
     {
         public override int Length => data.Length;
 
-        //public override VirtualChar? Find(int position)
-        //{
-        //    var stringIndex = position - firstVirtualCharPosition;
-        //    if (stringIndex < 0 || stringIndex >= data.Length)
-        //        return null;
+        public override VirtualChar? Find(int tokenStart, int position)
+        {
+            var stringIndex = position - tokenStart;
+            if (stringIndex < 0 || stringIndex >= data.Length)
+                return null;
 
-        //    return this[stringIndex];
-        //}
+            return new(this[stringIndex], tokenStart);
+        }
 
         public override VirtualCharGreen this[int index]
         {
