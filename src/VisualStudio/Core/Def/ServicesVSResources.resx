@@ -1219,15 +1219,6 @@ Additional information: {1}</value>
   <data name="Value_to_inject_at_call_sites" xml:space="preserve">
     <value>Value to inject at call sites</value>
   </data>
-  <data name="Editor_Color_Scheme" xml:space="preserve">
-    <value>Editor Color Scheme</value>
-  </data>
-  <data name="Visual_Studio_2019" xml:space="preserve">
-    <value>Visual Studio 2019</value>
-  </data>
-  <data name="Visual_Studio_2017" xml:space="preserve">
-    <value>Visual Studio 2017</value>
-  </data>
   <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
     <value>Prefer simplified boolean expressions</value>
   </data>

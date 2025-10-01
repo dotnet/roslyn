@@ -123,8 +123,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_classify_reassigned_variables", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyReassignedVariables")},
         {"dotnet_classify_obsolete_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyObsoleteSymbols")},
         {"dotnet_prefer_system_hash_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode")},
-        {"visual_studio_color_scheme_name", new RoamingProfileStorage("TextEditor.Roslyn.ColorSchemeName")},
-        {"visual_studio_color_scheme_use_legacy_enhanced_colors", new RoamingProfileStorage("WindowManagement.Options.UseEnhancedColorsForManagedLanguages")},
         {"block_for_completion_items", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems")},
         {"dotnet_enable_argument_completion_snippets", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets")},
         {"dotnet_return_key_completion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior")},
