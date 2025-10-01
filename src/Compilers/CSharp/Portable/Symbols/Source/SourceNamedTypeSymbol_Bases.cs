@@ -386,8 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
                 }
 
-                var lessVisibleType = baseType.FindTypeLessVisibleThan(this, ref useSiteInfo);
-                if (!Equals(lessVisibleType, null))
+                if (baseType.FindTypeLessVisibleThan(this, ref useSiteInfo) is { } lessVisibleType)
                 {
                     if (Equals(baseType, lessVisibleType, TypeCompareKind.ConsiderEverything))
                     {
