@@ -69,7 +69,7 @@ internal readonly record struct VirtualCharGreen
     public static VirtualCharGreen Create(char surrogateChar, int offset, int width)
     {
         if (!char.IsSurrogate(surrogateChar))
-            throw new ArgumentException(nameof(surrogateChar));
+            throw new ArgumentException("surrogateChar must be a surrogate code unit", nameof(surrogateChar));
 
         return new VirtualCharGreen(rune: Rune.ReplacementChar, surrogateChar, offset, width);
     }
