@@ -61,13 +61,13 @@ internal readonly partial struct VirtualCharGreenSequence
                 if (position >= span.End)
                     return -1;
 
-                return 0;
-            });
+        //        return 0;
+        //    });
 
-            // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
-            // position is in one of the gaps, it won't be able to find a corresponding virtual char.
-            if (index < 0)
-                return null;
+        //    // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
+        //    // position is in one of the gaps, it won't be able to find a corresponding virtual char.
+        //    if (index < 0)
+        //        return null;
 
             return new(array[index], tokenStart);
         }
