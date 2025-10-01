@@ -17,11 +17,10 @@ internal readonly struct VirtualCharSequence
     private readonly int _tokenStart;
     private readonly VirtualCharGreenSequence _sequence;
 
-    public VirtualCharSequence(int tokenStart, string text)
-        : this(tokenStart, VirtualCharGreenSequence.Create(text))
-    {
-    }
+    public static readonly VirtualCharSequence Empty = new(0, VirtualCharGreenSequence.Empty);
 
+    public static VirtualCharSequence Create(int tokenStart, string text)
+        => new(tokenStart, VirtualCharGreenSequence.Create(text));
 
     public VirtualCharSequence(int tokenStart, VirtualCharGreenSequence sequence)
     {
@@ -139,6 +138,19 @@ internal readonly struct VirtualCharSequence
     public void AssertAdjacentTo(VirtualCharSequence virtualChars)
     {
         _sequence.AssertAdjacentTo(virtualChars._sequence);
+    }
+
+    /// <summary>
+    /// Combines two <see cref="VirtualCharSequence"/>s, producing a final sequence that points at the same underlying
+    /// data, but spans from the start of <paramref name="chars1"/> to the end of <paramref name="chars2"/>.
+    /// </summary>  
+    public static VirtualCharSequence FromBounds(
+        VirtualCharSequence chars1, VirtualCharSequence chars2)
+    {
+        Debug.Assert(chars1._tokenStart == chars2._tokenStart);
+        return new VirtualCharSequence(
+            chars1._tokenStart,
+            VirtualCharGreenSequence.FromBounds(chars1._sequence, chars2._sequence));
     }
 
     public struct Enumerator(VirtualCharSequence virtualCharSequence) : IEnumerator<VirtualChar>
@@ -268,9 +280,8 @@ internal partial struct VirtualCharGreenSequence
     }
 
     /// <summary>
-    /// Combines two <see cref="VirtualCharSequence"/>s, producing a final
-    /// sequence that points at the same underlying data, but spans from the 
-    /// start of <paramref name="chars1"/> to the end of <paramref name="chars2"/>.
+    /// Combines two <see cref="VirtualCharGreenSequence"/>s, producing a final sequence that points at the same
+    /// underlying data, but spans from the start of <paramref name="chars1"/> to the end of <paramref name="chars2"/>.
     /// </summary>  
     public static VirtualCharGreenSequence FromBounds(
         VirtualCharGreenSequence chars1, VirtualCharGreenSequence chars2)
