@@ -65,10 +65,22 @@ internal readonly record struct VirtualChar
     #region equality
 
     public static bool operator ==(VirtualChar ch1, char ch2)
-        => ch1.Green == ch2;
+        => ch1.Green.Value == ch2;
 
     public static bool operator !=(VirtualChar ch1, char ch2)
-        => ch1.Green != ch2;
+        => !(ch1 == ch2);
+
+    public static bool operator <(VirtualChar ch1, char ch2)
+        => ch1.Green.CompareTo(ch2) < 0;
+
+    public static bool operator <=(VirtualChar ch1, char ch2)
+        => ch1.Green.CompareTo(ch2) <= 0;
+
+    public static bool operator >(VirtualChar ch1, char ch2)
+        => ch1.Green.CompareTo(ch2) > 0;
+
+    public static bool operator >=(VirtualChar ch1, char ch2)
+        => ch1.Green.CompareTo(ch2) >= 0;
 
     #endregion
 
@@ -79,22 +91,6 @@ internal readonly record struct VirtualChar
 
     /// <inheritdoc cref="VirtualCharGreen.AppendTo"/>
     public void AppendTo(StringBuilder builder) => Green.AppendTo(builder);
-
-    #endregion
-
-    #region comparable
-
-    public static bool operator <(VirtualChar ch1, char ch2)
-        => ch1.Green < ch2;
-
-    public static bool operator <=(VirtualChar ch1, char ch2)
-        => ch1.Green <= ch2;
-
-    public static bool operator >(VirtualChar ch1, char ch2)
-        => ch1.Green > ch2;
-
-    public static bool operator >=(VirtualChar ch1, char ch2)
-        => ch1.Green >= ch2;
 
     #endregion
 }
@@ -197,15 +193,8 @@ internal readonly record struct VirtualCharGreen
     /// <inheritdoc cref="Rune.Utf16SequenceLength" />
     public int Utf16SequenceLength => SurrogateChar != 0 ? 1 : Rune.Utf16SequenceLength;
 
-    #region equality
-
-    public static bool operator ==(VirtualCharGreen ch1, char ch2)
-        => ch1.Value == ch2;
-
-    public static bool operator !=(VirtualCharGreen ch1, char ch2)
-        => !(ch1 == ch2);
-
-    #endregion
+    public int CompareTo(char other)
+        => this.Value - other;
 
     #region string operations
 
@@ -228,25 +217,6 @@ internal readonly record struct VirtualCharGreen
         if (length == 2)
             builder.Append(chars[1]);
     }
-
-    #endregion
-
-    #region comparable
-
-    public int CompareTo(char other)
-        => this.Value - other;
-
-    public static bool operator <(VirtualCharGreen ch1, char ch2)
-        => ch1.Value < ch2;
-
-    public static bool operator <=(VirtualCharGreen ch1, char ch2)
-        => ch1.Value <= ch2;
-
-    public static bool operator >(VirtualCharGreen ch1, char ch2)
-        => ch1.Value > ch2;
-
-    public static bool operator >=(VirtualCharGreen ch1, char ch2)
-        => ch1.Value >= ch2;
 
     #endregion
 }
