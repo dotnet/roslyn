@@ -673,6 +673,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            return type.FindTypeLessVisibleThan(sym, ref useSiteInfo) is null;
+        }
+
+        public static TypeSymbol? FindTypeLessVisibleThan(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             var visitTypeData = s_visitTypeDataPool.Allocate();
 
             try
@@ -685,31 +690,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             canDigThroughNullable: true); // System.Nullable is public
 
                 useSiteInfo = visitTypeData.UseSiteInfo;
-                return result is null;
-            }
-            finally
-            {
-                visitTypeData.UseSiteInfo = default;
-                visitTypeData.Symbol = null;
-                s_visitTypeDataPool.Free(visitTypeData);
-            }
-        }
-
-        public static List<TypeSymbol> FindAllLessVisible(this TypeSymbol type, TypeSymbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            List<TypeSymbol> result = [];
-            var visitTypeData = s_visitTypeDataPool.Allocate();
-
-            try
-            {
-                visitTypeData.UseSiteInfo = useSiteInfo;
-                visitTypeData.Symbol = type;
-
-                sym.VisitType(addToResultIfLessVisibleAndContinueSearchPredicate,
-                              arg: visitTypeData,
-                              canDigThroughNullable: true); // System.Nullable is public
-
-                useSiteInfo = visitTypeData.UseSiteInfo;
                 return result;
             }
             finally
@@ -717,16 +697,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 visitTypeData.UseSiteInfo = default;
                 visitTypeData.Symbol = null;
                 s_visitTypeDataPool.Free(visitTypeData);
-            }
-
-            bool addToResultIfLessVisibleAndContinueSearchPredicate(TypeSymbol type1, VisitTypeData arg, bool unused)
-            {
-                if (IsTypeLessVisibleThan(type1, arg.Symbol!, ref arg.UseSiteInfo))
-                {
-                    result.Add(type1);
-                }
-
-                return false;
             }
         }
 
