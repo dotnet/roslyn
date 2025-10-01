@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var lessVisibleType = baseType.FindTypeLessVisibleThan(this, ref useSiteInfo);
-                if (Equals(lessVisibleType, null))
+                if (!Equals(lessVisibleType, null))
                 {
                     if (Equals(baseType, lessVisibleType, TypeCompareKind.ConsiderEverything))
                     {
