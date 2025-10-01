@@ -327,7 +327,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestValidLongEscape1_NotInCharRange()
         => Test("""
             "\U00010000"
-            """, @"['\U00010000',[1,11]]");
+            """, @"['\uD800',[1,7]]['\uDC00',[7,11]]");
 
     [Fact]
     public void TestValidLongEscape2_NotInCharRange()
@@ -345,7 +345,7 @@ public sealed class CSharpVirtualCharServiceTests
     public void TestSurrogate2()
         => Test("""
             "\U0001F60A"
-            """, @"['\U0001F60A',[1,11]]");
+            """, @"['\uD83D',[1,7]]['\uDE0A',[7,11]]");
 
     [Fact]
     public void TestSurrogate3()
