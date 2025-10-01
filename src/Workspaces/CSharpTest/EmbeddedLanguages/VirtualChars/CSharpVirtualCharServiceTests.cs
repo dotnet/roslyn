@@ -96,7 +96,7 @@ public sealed class CSharpVirtualCharServiceTests
 
     private static bool PrintAsUnicodeEscape(VirtualChar c)
     {
-        if (c < (char)127 && char.IsLetterOrDigit(c.Value))
+        if (c < (char)127 && char.IsLetterOrDigit(c))
             return false;
 
         if (c.Value is '{' or '}' or ' ')
