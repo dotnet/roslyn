@@ -1341,7 +1341,7 @@ internal partial struct RegexParser
         {
             case RegexKind.SimpleEscape:
                 var escapeNode = (RegexSimpleEscapeNode)component;
-                ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]).Value;
+                ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]);
                 return true;
 
             case RegexKind.ControlEscape:
