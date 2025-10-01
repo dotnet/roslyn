@@ -99,12 +99,12 @@ internal static class StackTraceAnalyzer
         var start = 0;
         var end = virtualChars.Length - 1;
 
-        while (virtualChars[start].IsWhiteSpace && start < end)
+        while (char.IsWhiteSpace(virtualChars[start]) && start < end)
         {
             start++;
         }
 
-        while (virtualChars[end].IsWhiteSpace && end > start)
+        while (char.IsWhiteSpace(virtualChars[end]) && end > start)
         {
             end--;
         }

@@ -180,7 +180,7 @@ internal struct JsonLexer
                 // trivia cases
                 ' ' or '\t' or '/' or '\r' or '\n' => true,
                 // more trivia
-                _ => ch.IsWhiteSpace,
+                _ => char.IsWhiteSpace(ch),
             };
     }
 
@@ -333,7 +333,7 @@ internal struct JsonLexer
     private JsonTrivia? ScanWhitespace()
     {
         var start = Position;
-        while (Position < Text.Length && this.CurrentChar.IsWhiteSpace)
+        while (Position < Text.Length && char.IsWhiteSpace(this.CurrentChar))
             Position++;
 
         if (Position > start)

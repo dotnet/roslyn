@@ -33,7 +33,6 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
         var token = context.SyntaxToken;
         var semanticModel = context.SemanticModel;
-        var compilation = semanticModel.Compilation;
 
         if (token.Kind() is not (SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken))
             return;
@@ -46,11 +45,6 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         // the token has diagnostics).
 
         cancellationToken.ThrowIfCancellationRequested();
-
-        // Simpler to only support literals where all characters/escapes map to a single utf16 character.  That way
-        // we can build a source-text as a trivial O(1) view over the virtual char sequence.
-        if (virtualCharsWithMarkup.Any(static vc => vc.Utf16SequenceLength != 1))
-            return;
 
         using var _ = ArrayBuilder<TextSpan>.GetInstance(out var markdownSpans);
 
