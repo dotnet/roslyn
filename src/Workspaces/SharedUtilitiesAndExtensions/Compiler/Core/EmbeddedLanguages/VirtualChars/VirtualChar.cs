@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 /// </summary>
 internal readonly record struct VirtualCharGreen
 {
-    private const int MaxWidth = 10;
+    private const int MaxWidth = 12;
     private const int WidthMask = 0b1111; // 4 bits for width (max 10)
     private const int OffsetShift = 4;    // remaining bits for offset
 
@@ -50,7 +50,7 @@ internal readonly record struct VirtualCharGreen
 
     /// <summary>
     /// The width of characters in the original <see cref="SourceText"/> that represent this <see cref="VirtualCharGreen"/>.
-    /// This can be as low as 1 (for normal characters) or up to 10 (for escape sequences like \UXXXXXXXX).
+    /// This can be as low as 1 (for normal characters) or up to 12 (for escape sequences like \u1234\uABCD).
     /// </summary>
     public int Width => _offsetAndWidth & WidthMask;
 
