@@ -66,11 +66,6 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         if (result.IsDefault)
             return;
 
-        var valueText = token.ValueText;
-        Debug.Assert(valueText.Length == result.Length);
-        for (var i = 0; i < result.Length; i++)
-            Debug.Assert(valueText[i] == result[i]);
-
         // Ensure that we properly broke up the token into a sequence of characters that
         // matches what the compiler did.
         var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
