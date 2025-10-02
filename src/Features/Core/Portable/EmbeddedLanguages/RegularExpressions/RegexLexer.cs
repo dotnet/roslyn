@@ -275,7 +275,7 @@ internal struct RegexLexer
 
             unchecked
             {
-                var charVal = ch.Value - '0';
+                var charVal = ch - '0';
                 if (value > MaxValueDiv10 || (value == MaxValueDiv10 && charVal > MaxValueMod10))
                 {
                     error = true;
@@ -424,7 +424,7 @@ internal struct RegexLexer
         {
             if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
             {
-                var octalVal = this.CurrentChar.Value - '0';
+                var octalVal = this.CurrentChar - '0';
                 Debug.Assert(octalVal is >= 0 and <= 7);
                 currentVal *= 8;
                 currentVal += octalVal;

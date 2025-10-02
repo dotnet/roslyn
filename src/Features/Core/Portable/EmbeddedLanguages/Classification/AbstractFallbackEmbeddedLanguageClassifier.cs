@@ -46,8 +46,7 @@ internal abstract class AbstractFallbackEmbeddedLanguageClassifier : IEmbeddedLa
 
         foreach (var vc in virtualChars)
         {
-            // utf-16 virtual char might have either one or two in text span
-            if (vc.Span.Length > vc.Rune.Utf16SequenceLength)
+            if (vc.Span.Length > 1)
                 context.AddClassification(ClassificationTypeNames.StringEscapeCharacter, vc.Span);
         }
     }

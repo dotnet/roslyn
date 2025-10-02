@@ -155,7 +155,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         }
 
         for (var index = startIndexInclusive; index < endIndexExclusive;)
-            index += ConvertTextAtIndexToRune(tokenText, index, result);
+            index += ConvertTextAtIndexToVirtualChar(tokenText, index, result);
 
         return CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, result);
     }
@@ -220,7 +220,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             // Now that we've found the start and end portions of that line, convert all the characters within to
             // virtual chars and return.
             for (var i = lineStart; i < lineEnd;)
-                i += ConvertTextAtIndexToRune(tokenSourceText, i, result);
+                i += ConvertTextAtIndexToVirtualChar(tokenSourceText, i, result);
         }
 
         return VirtualCharGreenSequence.Create(result.ToImmutable());
@@ -246,48 +246,49 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
         // Avoid creating and processsing the runes if there are no escapes or surrogates in the string.
-        if (!ContainsEscapeOrSurrogate(tokenText.AsSpan(startIndexInclusive, endIndexExclusive - startIndexInclusive), escapeBraces))
+        if (!ContainsEscape(tokenText.AsSpan(startIndexInclusive, endIndexExclusive - startIndexInclusive), escapeBraces))
         {
             var sequence = VirtualCharGreenSequence.Create(tokenText);
             return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
         }
-
-        // Do things in two passes.  First, convert everything in the string to a 16-bit-char+span.  Then walk
-        // again, trying to create Runes from the 16-bit-chars. We do this to simplify complex cases where we may
-        // have escapes and non-escapes mixed together.
-
-        using var _ = ArrayBuilder<(char ch, int offset, int width)>.GetInstance(out var charResults);
-
-        // First pass, just convert everything in the string (i.e. escapes) to plain 16-bit characters.
-        for (var index = startIndexInclusive; index < endIndexExclusive;)
+        else
         {
-            var ch = tokenText[index];
-            if (ch == '\\')
-            {
-                if (!TryAddEscape(charResults, tokenText, index))
-                    return default;
+            using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
+            var charResults = pooledRuneResults.Object;
 
-                index += charResults.Last().width;
-            }
-            else if (escapeBraces && IsOpenOrCloseBrace(ch))
+            for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                if (!IsLegalBraceEscape(tokenText, index, out var braceWidth))
-                    return default;
+                var ch = tokenText[index];
+                if (ch == '\\')
+                {
+                    if (TryAddEscape(charResults, tokenText, index) is not int escapeWidth)
+                        return default;
 
-                charResults.Add((ch, index, braceWidth));
-                index += braceWidth;
+                    index += escapeWidth;
+                }
+                else if (escapeBraces && IsOpenOrCloseBrace(ch))
+                {
+                    if (!IsLegalBraceEscape(tokenText, index, out var braceWidth))
+                        return default;
+
+                    charResults.Add(new VirtualCharGreen(ch, index, braceWidth));
+                    index += braceWidth;
+                }
+                else
+                {
+                    charResults.Add(new VirtualCharGreen(ch, index, width: 1));
+                    index++;
+                }
             }
-            else
-            {
-                charResults.Add((ch, index, width: 1));
-                index++;
-            }
+
+            var sequence = CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, charResults);
+            charResults.Clear();
+
+            return sequence;
         }
-
-        return CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, charResults);
     }
 
-    private static bool ContainsEscapeOrSurrogate(ReadOnlySpan<char> tokenText, bool escapeBraces)
+    private static bool ContainsEscape(ReadOnlySpan<char> tokenText, bool escapeBraces)
     {
         foreach (var ch in tokenText)
         {
@@ -295,84 +296,30 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 return true;
             else if (escapeBraces && IsOpenOrCloseBrace(ch))
                 return true;
-            else if (char.IsSurrogate(ch))
-                return true;
         }
 
         return false;
     }
 
-    private static VirtualCharGreenSequence CreateVirtualCharSequence(
-        string tokenText, int startIndexInclusive, int endIndexExclusive,
-        ArrayBuilder<(char ch, int offset, int width)> charResults)
-    {
-        // Second pass.  Convert those characters to Runes.
-        using var pooledRuneResults = s_pooledBuilders.GetPooledObject();
-        var runeResults = pooledRuneResults.Object;
-
-        try
-        {
-            ConvertCharactersToRunes(charResults, runeResults);
-
-            return CreateVirtualCharSequence(tokenText, startIndexInclusive, endIndexExclusive, runeResults);
-        }
-        finally
-        {
-            // Ensure the builder is cleared out before releasing back to the pool.
-            runeResults.Clear();
-        }
-    }
-
-    private static void ConvertCharactersToRunes(
-        ArrayBuilder<(char ch, int offset, int width)> charResults,
-        ImmutableSegmentedList<VirtualCharGreen>.Builder runeResults)
-    {
-        for (var i = 0; i < charResults.Count;)
-        {
-            var (ch, offset, width) = charResults[i];
-
-            // First, see if this was a valid single char that can become a Rune.
-            if (Rune.TryCreate(ch, out var rune))
-            {
-                runeResults.Add(VirtualCharGreen.Create(rune, offset, width));
-                i++;
-                continue;
-            }
-
-            // Next, see if we got at least a surrogate pair that can be converted into a Rune.
-            if (i + 1 < charResults.Count)
-            {
-                var (nextCh, _, nextWidth) = charResults[i + 1];
-                if (Rune.TryCreate(ch, nextCh, out rune))
-                {
-                    runeResults.Add(VirtualCharGreen.Create(rune, offset, width: width + nextWidth));
-                    i += 2;
-                    continue;
-                }
-            }
-
-            // Had an unpaired surrogate.
-            Debug.Assert(char.IsSurrogate(ch));
-            runeResults.Add(VirtualCharGreen.Create(ch, offset, width));
-            i++;
-        }
-    }
-
-    private static bool TryAddEscape(
-        ArrayBuilder<(char ch, int offset, int width)> result, string tokenText, int index)
+    /// <summary>Returns the number of characters consumed.</summary>
+    private static int? TryAddEscape(
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result,
+        string tokenText,
+        int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
 
-        return TryAddSingleCharacterEscape(result, tokenText, index) ||
+        return TryAddSingleCharacterEscape(result, tokenText, index) ??
                TryAddMultiCharacterEscape(result, tokenText, index);
     }
 
     public override bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar)
         => ch.TryGetEscapeCharacter(out escapedChar);
 
-    private static bool TryAddSingleCharacterEscape(
-        ArrayBuilder<(char ch, int offset, int width)> result, string tokenText, int index)
+    /// <summary>Returns the number of characters consumed.</summary>
+    private static int? TryAddSingleCharacterEscape(
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result, string tokenText, int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
@@ -398,15 +345,16 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             case 't': ch = '\t'; break;
             case 'v': ch = '\v'; break;
             default:
-                return false;
+                return null;
         }
 
-        result.Add((ch, offset: index, width: 2));
-        return true;
+        result.Add(new VirtualCharGreen(ch, offset: index, width: 2));
+        return result.Last().Width;
     }
 
-    private static bool TryAddMultiCharacterEscape(
-        ArrayBuilder<(char ch, int offset, int width)> result, string tokenText, int index)
+    /// <summary>Returns the number of characters consumed.</summary>
+    private static int? TryAddMultiCharacterEscape(
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result, string tokenText, int index)
     {
         // Copied from Lexer.ScanEscapeSequence.
         Debug.Assert(tokenText[index] == '\\');
@@ -420,12 +368,16 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 return TryAddMultiCharacterEscape(result, tokenText, index, ch);
             default:
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
         }
     }
 
-    private static bool TryAddMultiCharacterEscape(
-        ArrayBuilder<(char ch, int offset, int width)> result, string tokenText, int index, char character)
+    /// <summary>Returns the number of characters consumed.</summary>
+    private static int? TryAddMultiCharacterEscape(
+        ImmutableSegmentedList<VirtualCharGreen>.Builder result,
+        string tokenText,
+        int index,
+        char character)
     {
         var startIndex = index;
         Debug.Assert(tokenText[index] == '\\');
@@ -440,7 +392,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             if (!IsHexDigit(tokenText[index]))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
             }
 
             for (var i = 0; i < 8; i++)
@@ -449,7 +401,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 if (!IsHexDigit(character))
                 {
                     Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                    return false;
+                    return null;
                 }
 
                 uintChar = (uint)((uintChar << 4) + HexValue(character));
@@ -460,7 +412,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             if (uintChar > 0x0010FFFF)
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
             }
 
             if (uintChar < 0x00010000)
@@ -468,8 +420,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 // something like \U0000000A
                 //
                 // Represents a single char value.
-                result.Add(((char)uintChar, offset: startIndex, width: 2 + 8));
-                return true;
+                result.Add(new VirtualCharGreen((char)uintChar, offset: startIndex, width: 2 + 8));
             }
             else
             {
@@ -477,15 +428,15 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 var lowSurrogate = ((uintChar - 0x00010000) % 0x0400) + 0xDC00;
                 var highSurrogate = ((uintChar - 0x00010000) / 0x0400) + 0xD800;
 
-                // Encode this as a surrogate pair.
-                //
-                // Note: a width of 0 on this first char is fine.  The caller will be combining the two widths here to
-                // create the final width.  So there's no concern about making a VirtualCharGreen with an illegal width
-                // of 0.
-                result.Add(((char)highSurrogate, offset: startIndex, width: 0));
-                result.Add(((char)lowSurrogate, offset: startIndex, width: 2 + 8));
-                return true;
+                // Encode this as a surrogate pair.  For the purposes of mapping, we'll say the high surrogate maps to
+                // the first 6 chars (the \UAAAA in \UAAAABBBB) and the low surrogate maps to the last 4 chars (the BBBB
+                // in \UAAAABBBB).
+                const string prefix = @"\UAAAA";
+                result.Add(new VirtualCharGreen((char)highSurrogate, offset: startIndex, width: prefix.Length));
+                result.Add(new VirtualCharGreen((char)lowSurrogate, offset: startIndex + prefix.Length, width: 4));
             }
+
+            return @"\UAAAABBBB".Length;
         }
         else if (character == 'u')
         {
@@ -495,7 +446,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             if (!IsHexDigit(tokenText[index]))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
             }
 
             for (var i = 0; i < 4; i++)
@@ -504,15 +455,16 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
                 if (!IsHexDigit(ch2))
                 {
                     Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                    return false;
+                    return null;
                 }
 
                 intChar = (intChar << 4) + HexValue(ch2);
             }
 
             character = (char)intChar;
-            result.Add((character, offset: startIndex, width: 2 + 4));
-            return true;
+            var width = @"\uAAAA".Length;
+            result.Add(new VirtualCharGreen(character, offset: startIndex, width));
+            return width;
         }
         else
         {
@@ -523,7 +475,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             if (!IsHexDigit(tokenText[index]))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                return null;
             }
 
             var endIndex = index;
@@ -541,8 +493,9 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
             }
 
             character = (char)intChar;
-            result.Add((character, offset: startIndex, width: endIndex - startIndex));
-            return true;
+            var width = endIndex - startIndex;
+            result.Add(new VirtualCharGreen(character, offset: startIndex, width));
+            return width;
         }
     }
 
@@ -553,9 +506,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
     }
 
     private static bool IsHexDigit(char c)
-    {
-        return c is >= '0' and <= '9' or
-               >= 'A' and <= 'F' or
-               >= 'a' and <= 'f';
-    }
+        => c is (>= '0' and <= '9') or
+                (>= 'A' and <= 'F') or
+                (>= 'a' and <= 'f');
 }

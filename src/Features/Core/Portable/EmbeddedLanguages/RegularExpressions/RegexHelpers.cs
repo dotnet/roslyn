@@ -37,18 +37,18 @@ internal static class RegexHelpers
     /// 'a' this will map to actual '\a' char (the bell character).  However, for something like
     /// '(' this will just map to '(' as that's all that \( does in a regex.
     /// </summary>
-    public static int MapEscapeChar(VirtualChar ch)
+    public static char MapEscapeChar(VirtualChar ch)
         => ch.Value switch
         {
-            'a' => new Rune('\u0007').Value,    // bell
-            'b' => new Rune('\b').Value,        // backspace
-            'e' => new Rune('\u001B').Value,    // escape
-            'f' => new Rune('\f').Value,        // form feed
-            'n' => new Rune('\n').Value,        // new line
-            'r' => new Rune('\r').Value,        // carriage return
-            't' => new Rune('\t').Value,        // tab
-            'v' => new Rune('\u000B').Value,    // vertical tab
-            _ => ch.Value,
+            'a' => '\a', // bell
+            'b' => '\b', // backspace
+            'e' => '\e', // escape
+            'f' => '\f', // form feed
+            'n' => '\n', // new line
+            'r' => '\r', // carriage return
+            't' => '\t', // tab
+            'v' => '\v', // vertical tab
+            _ => ch,
         };
 
     public static bool IsSelfEscape(this RegexSimpleEscapeNode node)
@@ -56,7 +56,7 @@ internal static class RegexHelpers
         if (node.TypeToken.VirtualChars.Length > 0)
         {
             var ch = node.TypeToken.VirtualChars[0];
-            return MapEscapeChar(ch) == ch.Value;
+            return MapEscapeChar(ch) == ch;
         }
 
         return true;

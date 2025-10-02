@@ -193,7 +193,7 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
 
             static bool IsWordPart(VirtualChar ch)
             {
-                if (ch.IsLetter)
+                if (char.IsLetter(ch))
                     return true;
 
                 // Add more cases here as necessary.

@@ -74,7 +74,7 @@ internal static class StackTraceAnalyzer
 
         for (var i = 0; i < callstack.Length; i++)
         {
-            if (callstack[i].Value == '\n')
+            if (callstack[i] == '\n')
             {
                 yield return callstack.GetSubSequence(TextSpan.FromBounds(position, i));
 
@@ -99,12 +99,12 @@ internal static class StackTraceAnalyzer
         var start = 0;
         var end = virtualChars.Length - 1;
 
-        while (virtualChars[start].IsWhiteSpace && start < end)
+        while (char.IsWhiteSpace(virtualChars[start]) && start < end)
         {
             start++;
         }
 
-        while (virtualChars[end].IsWhiteSpace && end > start)
+        while (char.IsWhiteSpace(virtualChars[end]) && end > start)
         {
             end--;
         }
