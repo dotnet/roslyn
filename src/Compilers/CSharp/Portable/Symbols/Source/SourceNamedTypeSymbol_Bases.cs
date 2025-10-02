@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (baseType.FindTypeLessVisibleThan(this, ref useSiteInfo) is { } lessVisibleType)
                 {
-                    if (Equals(baseType, lessVisibleType, TypeCompareKind.ConsiderEverything))
+                    if (ReferenceEquals(baseType, lessVisibleType))
                     {
                         // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
                         diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, lessVisibleType);
