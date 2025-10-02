@@ -5045,5 +5045,47 @@ class A
                 Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "new()").WithArguments("MyList<A>.Add(A)", "Message").WithLocation(9, 20)
                 );
         }
+
+        [Fact]
+        public void OutVar_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M0(out var a, a);
+        M1(new(out var x), x);
+        M2(new(out var y), y);
+        M2(new(new(out var z)), z);
+    }
+
+    void M0(out int a, int x) => throw null;
+    void M2(C c, int x) { }
+
+    C(C other){}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8196: Reference to an implicitly-typed out variable 'a' is not permitted in the same argument list.
+                //         M0(out var a, a);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "a").WithArguments("a").WithLocation(8, 23),
+                // (9,9): error CS0103: The name 'M1' does not exist in the current context
+                //         M1(new(out var x), x);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(9, 9),
+                // (9,28): error CS8196: Reference to an implicitly-typed out variable 'x' is not permitted in the same argument list.
+                //         M1(new(out var x), x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x").WithArguments("x").WithLocation(9, 28),
+                // (10,28): error CS8196: Reference to an implicitly-typed out variable 'y' is not permitted in the same argument list.
+                //         M2(new(out var y), y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y").WithArguments("y").WithLocation(10, 28),
+                // (11,33): error CS8196: Reference to an implicitly-typed out variable 'z' is not permitted in the same argument list.
+                //         M2(new(new(out var z)), z);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "z").WithArguments("z").WithLocation(11, 33)
+                );
+        }
     }
 }
