@@ -118,9 +118,6 @@ internal partial struct VirtualCharGreenSequence
 /// <inheritdoc cref="VirtualCharGreenSequence"/>
 internal readonly struct VirtualCharSequence
 {
-    private static readonly ObjectPool<ImmutableSegmentedList<VirtualCharGreen>.Builder> s_builderPool
-        = new(() => ImmutableSegmentedList.CreateBuilder<VirtualCharGreen>());
-
     private readonly int _tokenStart;
     private readonly VirtualCharGreenSequence _sequence;
 
@@ -128,33 +125,6 @@ internal readonly struct VirtualCharSequence
 
     public static VirtualCharSequence Create(int tokenStart, string text)
         => new(tokenStart, VirtualCharGreenSequence.Create(text));
-
-    public static VirtualCharSequence Create(ImmutableSegmentedList<VirtualChar> virtualChars)
-    {
-        if (virtualChars.IsEmpty)
-            return Empty;
-
-        // Determine the earliest token start of all of the virtual chars.  This will be where this entire sequence
-        // starts.  Any virtual chars with the same token start will keep their same offset.  Any virtual chars with a
-        // later token start will have their offset adjusted to be relative to this new start.
-        var minimumTokenStart = virtualChars.Min(static c => c.TokenStart);
-
-        using var pooledObject = s_builderPool.GetPooledObject();
-        var builder = pooledObject.Object;
-
-        foreach (var ch in virtualChars)
-        {
-            Debug.Assert(ch.TokenStart >= minimumTokenStart);
-            var offsetDifference = ch.TokenStart - minimumTokenStart;
-            var newGreen = ch.Green.WithOffset(ch.Green.Offset + offsetDifference);
-            builder.Add(newGreen);
-        }
-
-        var result = new VirtualCharSequence(minimumTokenStart, VirtualCharGreenSequence.Create(builder.ToImmutable()));
-        builder.Clear();
-
-        return result;
-    }
 
     public VirtualCharSequence(int tokenStart, VirtualCharGreenSequence sequence)
     {
@@ -246,6 +216,15 @@ internal static class VirtualCharSequenceExtensions
     /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
     /// </summary>
     public static string CreateString(this VirtualCharSequence sequence)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        foreach (var ch in sequence)
+            builder.Append(ch);
+
+        return builder.ToString();
+    }
+
+    public static string CreateString(this ImmutableSegmentedList<VirtualChar> sequence)
     {
         using var _ = PooledStringBuilder.GetInstance(out var builder);
         foreach (var ch in sequence)
