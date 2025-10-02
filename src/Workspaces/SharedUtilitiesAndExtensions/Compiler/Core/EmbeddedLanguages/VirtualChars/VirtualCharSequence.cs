@@ -86,15 +86,8 @@ internal partial struct VirtualCharGreenSequence
     /// <summary>
     /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
     /// </summary>
-    public VirtualCharGreenSequence Slice(Range range)
-    {
-        var start = range.Start.IsFromEnd ? this.Length - range.Start.Value : range.Start.Value;
-        var end = range.End.IsFromEnd ? this.Length - range.End.Value : range.End.Value;
-
-        var finalLength = end - start;
-
-        return new(_leafCharacters, new TextSpan(_span.Start + start, finalLength));
-    }
+    public VirtualCharGreenSequence Slice(int start, int length)
+        => new(_leafCharacters, new TextSpan(_span.Start + start, length));
 
     /// <summary>
     /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
@@ -194,8 +187,8 @@ internal readonly struct VirtualCharSequence
     public bool IsDefaultOrEmpty => _sequence.IsDefaultOrEmpty;
 
     /// <inheritdoc cref="VirtualCharGreenSequence.Slice"/>
-    public VirtualCharSequence Slice(Range range)
-       => new(_tokenStart, _sequence.Slice(range));
+    public VirtualCharSequence Slice(int start, int length)
+       => new(_tokenStart, _sequence.Slice(start, length));
 
     public Enumerator GetEnumerator()
         => new(this);
@@ -324,6 +317,6 @@ internal static class VirtualCharSequenceExtensions
             start++;
         }
 
-        return sequence.Slice(start..);
+        return sequence[start..];
     }
 }

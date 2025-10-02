@@ -50,7 +50,7 @@ internal struct RegexLexer
         => GetSubPattern(start, Position);
 
     public readonly VirtualCharSequence GetSubPattern(int start, int end)
-        => Text.Slice(start..end);
+        => Text[start..end];
 
     public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
     {
@@ -63,7 +63,7 @@ internal struct RegexLexer
         var ch = this.CurrentChar;
         Position++;
 
-        return CreateToken(GetKind(ch), trivia, Text.Slice((Position - 1)..Position));
+        return CreateToken(GetKind(ch), trivia, Text[(Position - 1)..Position]);
     }
 
     private static RegexKind GetKind(VirtualChar ch)
