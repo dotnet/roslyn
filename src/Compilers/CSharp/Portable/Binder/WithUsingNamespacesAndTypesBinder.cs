@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
-        internal override void GetCandidateExtensionMethods(
+        internal override void GetCandidateExtensionMethodsInSingleBinder(
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,
@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        internal override void GetCandidateExtensionMembersInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
-            Debug.Assert(extensions.Count == 0);
+            Debug.Assert(members.Count == 0);
 
             // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, test this flag (see TestUnusedExtensionMarksImportsAsUsed)
             bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
@@ -145,11 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (nsOrType.NamespaceOrType is NamespaceSymbol ns)
                 {
-                    var count = extensions.Count;
-                    ns.GetExtensionContainers(extensions);
+                    var count = members.Count;
+                    ns.GetExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
                     // If we found any extension declarations, then consider this using as used.
-                    // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining this logic
-                    if (extensions.Count != count)
+                    if (members.Count != count)
                     {
                         MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
                         seenNamespaceWithExtensions = true;
@@ -157,11 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (nsOrType.NamespaceOrType is NamedTypeSymbol namedType)
                 {
-                    var count = extensions.Count;
-                    namedType.GetExtensionContainers(extensions);
+                    var count = members.Count;
+                    namedType.GetExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
                     // If we found any extension declarations, then consider this using as used.
-                    // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining this logic
-                    if (extensions.Count != count)
+                    if (members.Count != count)
                     {
                         MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
                         seenStaticClassWithExtensions = true;
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (seenNamespaceWithExtensions && seenStaticClassWithExtensions)
             {
-                extensions.RemoveDuplicates();
+                members.RemoveDuplicates();
             }
         }
 
