@@ -369,9 +369,12 @@ internal partial struct RegexParser
                 var firstCharIndex = text.FindIndex(startCharacter.Span.Start);
                 var lastCharIndex = text.FindIndex(lastCharacter.Span.Start);
 
+                // These cannot be null.  We're looking up in 'text' characters that came from it.  So these must be
+                // findable again.
                 Contract.ThrowIfNull(firstCharIndex);
                 Contract.ThrowIfNull(lastCharIndex);
 
+                // Now create a subsequence that spans from the original start of the first char to the end of the last char.
                 var totalText = text[firstCharIndex.Value..(lastCharIndex.Value + 1)];
                 final.Add(new RegexTextNode(CreateToken(
                     RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia, totalText)));
