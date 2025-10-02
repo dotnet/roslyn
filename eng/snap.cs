@@ -86,9 +86,10 @@ var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
 
 const string prJsonFields = "number,title,mergedAt,mergeCommit";
 
+var lastMergedSearchFilter = $"is:merged base:{sourceBranchName}";
 var lastMergedPullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
-        "--search", $"is:merged base:{sourceBranchName}",
+        "--search", lastMergedSearchFilter,
         "--json", prJsonFields,
         "--limit", "5"])
     .ExecuteBufferedAsync())
@@ -103,6 +104,7 @@ foreach (var pr in lastMergedPullRequests)
 {
     console.WriteLine($" - {pr}");
 }
+console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --search '{lastMergedSearchFilter}'[/]");
 
 var lastPrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to include")
     .DefaultValueIfNotNull(lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
@@ -118,10 +120,10 @@ var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumb
 
 // Find PRs in milestone Next.
 
-var searchFilter = $"is:merged milestone:{nextMilestoneName} base:{sourceBranchName}";
+var milestoneSearchFilter = $"is:merged milestone:{nextMilestoneName} base:{sourceBranchName}";
 var milestonePullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
-        "--search", searchFilter,
+        "--search", milestoneSearchFilter,
         "--json", prJsonFields])
     .ExecuteBufferedAsync())
     .StandardOutput
@@ -137,7 +139,7 @@ foreach (var pr in milestonePullRequests.Take(5))
 }
 if (milestonePullRequests.Length > 6)
 {
-    console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --search '{searchFilter}'[/]");
+    console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --search '{milestoneSearchFilter}'[/]");
 }
 if (milestonePullRequests.Length > 5)
 {
@@ -185,7 +187,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
             .DefaultValue(newestMilestone.Title));
 
         // TODO: Schedule to move PRs to the selected milestone.
-        console.MarkupLineInterpolated($"[blue]Added to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs to milestone [teal]{targetMilestone}[/]");
+        console.MarkupLineInterpolated($"[blue]Added to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]");
     }
 }
 
