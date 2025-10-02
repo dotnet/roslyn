@@ -18,13 +18,9 @@ internal readonly partial struct VirtualCharGreenSequence
     /// </summary>
     private abstract partial class Chunk
     {
-        protected Chunk()
-        {
-        }
-
         public abstract int Length { get; }
         public abstract VirtualCharGreen this[int index] { get; }
-        public abstract (VirtualChar virtualChar, int index)? Find(int tokenStart, int position);
+        public abstract int? FindIndex(int tokenStart, int position);
     }
 
     /// <summary>
@@ -37,7 +33,7 @@ internal readonly partial struct VirtualCharGreenSequence
         public override int Length => array.Count;
         public override VirtualCharGreen this[int index] => array[index];
 
-        public override (VirtualChar virtualChar, int index)? Find(int tokenStart, int position)
+        public override int? FindIndex(int tokenStart, int position)
         {
             if (array.IsEmpty)
                 return null;
@@ -62,12 +58,9 @@ internal readonly partial struct VirtualCharGreenSequence
                 return 0;
             });
 
-            // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
-            // position is in one of the gaps, it won't be able to find a corresponding virtual char.
-            if (index < 0)
-                return null;
-
-            return (new(array[index], tokenStart), index);
+            // Characters can be discontinuous (for example, in multi-line-raw-string literals).  So if the position is
+            // in one of the gaps, it won't be able to find a corresponding virtual char.
+            return index < 0 ? null : index;
         }
     }
 
@@ -84,13 +77,10 @@ internal readonly partial struct VirtualCharGreenSequence
     {
         public override int Length => data.Length;
 
-        public override (VirtualChar virtualChar, int index)? Find(int tokenStart, int position)
+        public override int? FindIndex(int tokenStart, int position)
         {
             var stringIndex = position - tokenStart;
-            if (stringIndex < 0 || stringIndex >= data.Length)
-                return null;
-
-            return (new(this[stringIndex], tokenStart), stringIndex);
+            return stringIndex >= 0 && stringIndex < data.Length ? stringIndex : null;
         }
 
         public override VirtualCharGreen this[int index]

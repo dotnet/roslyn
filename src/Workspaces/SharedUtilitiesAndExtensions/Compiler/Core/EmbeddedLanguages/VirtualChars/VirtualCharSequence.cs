@@ -88,14 +88,11 @@ internal partial struct VirtualCharGreenSequence
         => new(_leafCharacters, new TextSpan(_span.Start + start, length));
 
     /// <summary>
-    /// Finds the virtual char in this sequence that contains (not just intersects) the position.  Will return null if
-    /// there is no such virtual char in this sequence.
+    /// Finds the index of the virtual char in this sequence that contains (not just intersects) the position.  Will
+    /// return null if there is no such virtual char in this sequence.
     /// </summary>
-    public (VirtualChar virtualChar, int index)? Find(int tokenStart, int position)
-    {
-        var result = _leafCharacters?.Find(tokenStart, position);
-        return result is var (virtualChar, index) ? (virtualChar, index - _span.Start) : null;
-    }
+    public int? FindIndex(int tokenStart, int position)
+        => _leafCharacters?.FindIndex(tokenStart, position) - _span.Start;
 
     [Conditional("DEBUG")]
     public void AssertAdjacentTo(VirtualCharGreenSequence virtualChars)
@@ -144,16 +141,12 @@ internal readonly struct VirtualCharSequence
     public VirtualChar this[int index]
         => new(_sequence[index], _tokenStart);
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.Find"/>
-    public VirtualChar? Find(int position)
-        => _sequence.Find(_tokenStart, position)?.virtualChar;
-
     /// <summary>
     /// Returns the index of the <see cref="VirtualChar"/> in this <see cref="VirtualCharSequence"/> that contains the
     /// given position. Will return null if this position is not in the span of this sequence.
     /// </summary>
     public int? FindIndex(int position)
-        => _sequence.Find(_tokenStart, position)?.index;
+        => _sequence.FindIndex(_tokenStart, position);
 
     /// <inheritdoc cref="VirtualCharGreenSequence.IsDefault"/>
     public bool IsDefault => _sequence.IsDefault;
@@ -202,6 +195,12 @@ internal readonly struct VirtualCharSequence
 
 internal static class VirtualCharSequenceExtensions
 {
+    public static VirtualChar? Find(this VirtualCharSequence sequence, int position)
+    {
+        var index = sequence.FindIndex(position);
+        return index is null ? null : sequence[index.Value];
+    }
+
     public static bool IsEmpty(this VirtualCharSequence sequence) => sequence.Length == 0;
 
     public static bool IsDefaultOrEmpty(this VirtualCharSequence sequence) => sequence.IsDefault || sequence.IsEmpty();

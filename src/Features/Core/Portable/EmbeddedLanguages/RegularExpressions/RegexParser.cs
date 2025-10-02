@@ -374,6 +374,9 @@ internal partial struct RegexParser
                 Contract.ThrowIfNull(firstCharIndex);
                 Contract.ThrowIfNull(lastCharIndex);
 
+                Contract.ThrowIfTrue(startCharacter != text[firstCharIndex.Value]);
+                Contract.ThrowIfTrue(lastCharacter != text[lastCharIndex.Value]);
+
                 // Now create a subsequence that spans from the original start of the first char to the end of the last char.
                 var totalText = text[firstCharIndex.Value..(lastCharIndex.Value + 1)];
                 final.Add(new RegexTextNode(CreateToken(
