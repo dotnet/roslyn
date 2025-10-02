@@ -244,9 +244,6 @@ internal static class VirtualCharSequenceExtensions
         return builder.ToString();
     }
 
-    public static VirtualChar First(this VirtualCharSequence sequence) => sequence[0];
-    public static VirtualChar Last(this VirtualCharSequence sequence) => sequence[^1];
-
     public static VirtualChar? FirstOrNull(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
     {
         foreach (var ch in sequence)

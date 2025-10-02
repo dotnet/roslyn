@@ -726,7 +726,7 @@ internal partial struct RegexParser
     private readonly TextSpan GetTokenStartPositionSpan(RegexToken token)
     {
         return token.Kind == RegexKind.EndOfFile
-            ? new TextSpan(_lexer.Text.Last().Span.End, 0)
+            ? new TextSpan(_lexer.Text[^1].Span.End, 0)
             : new TextSpan(token.VirtualChars[0].Span.Start, 0);
     }
 
@@ -823,7 +823,7 @@ internal partial struct RegexParser
                 if (!HasCapture((int)capture.Value))
                 {
                     capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, capture.VirtualChars.First()),
+                        string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, capture.VirtualChars[0]),
                         capture.GetSpan()));
                 }
             }
@@ -831,7 +831,7 @@ internal partial struct RegexParser
             {
                 innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                 capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0, capture.VirtualChars.First()),
+                    string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0, capture.VirtualChars[0]),
                     capture.GetSpan()));
                 MoveBackBeforePreviousScan();
             }
@@ -2030,12 +2030,12 @@ internal partial struct RegexParser
             current.Kind == RegexKind.SimpleOptionsGrouping)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                string.Format(FeaturesResources.Quantifier_0_following_nothing, token.VirtualChars.First()), token.GetSpan()));
+                string.Format(FeaturesResources.Quantifier_0_following_nothing, token.VirtualChars[0]), token.GetSpan()));
         }
         else if (current is RegexQuantifierNode or RegexLazyQuantifierNode)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                string.Format(FeaturesResources.Nested_quantifier_0, token.VirtualChars.First()), token.GetSpan()));
+                string.Format(FeaturesResources.Nested_quantifier_0, token.VirtualChars[0]), token.GetSpan()));
         }
     }
 }
