@@ -106,18 +106,6 @@ foreach (var pr in lastMergedPullRequests)
 }
 console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --search '{lastMergedSearchFilter}'[/]");
 
-var lastPrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to include")
-    .DefaultValueIfNotNull(lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
-var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumber)
-    ?? (await Cli.Wrap("gh")
-    .WithArguments(["pr", "view", $"{lastPrNumber}",
-        "--json", prJsonFields])
-    .ExecuteBufferedAsync())
-    .StandardOutput
-    .ParseJsonList<PullRequest>()
-    ?.FirstOrDefault()
-    ?? throw new InvalidOperationException($"Cannot find PR #{lastPrNumber}");
-
 // Find PRs in milestone Next.
 
 var milestoneSearchFilter = $"is:merged milestone:{nextMilestoneName} base:{sourceBranchName}";
@@ -147,14 +135,26 @@ if (milestonePullRequests.Length > 5)
 }
 console.WriteLine();
 
+// Determine last PR to include.
+
+var lastPrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to include")
+    .DefaultValueIfNotNull(lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
+var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumber)
+    ?? (await Cli.Wrap("gh")
+    .WithArguments(["pr", "view", $"{lastPrNumber}",
+        "--json", prJsonFields])
+    .ExecuteBufferedAsync())
+    .StandardOutput
+    .ParseJsonList<PullRequest>()
+    ?.FirstOrDefault()
+    ?? throw new InvalidOperationException($"Cannot find PR #{lastPrNumber}");
+
 if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 {
-    // Determine last PR to include.
-
     var lastMilestonePr = milestonePullRequests.FirstOrDefault(pr => pr.Number == lastPr.Number);
     if (lastMilestonePr is null)
     {
-        var lastMilestonePrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to include")
+        var lastMilestonePrNumber = console.Prompt(new TextPrompt<int>($"Number of last PR to include from milestone {nextMilestoneName}")
             .DefaultValue(defaultLastMilestonePr.Number)
             .Validate(prNumber => milestonePullRequests.Any(pr => pr.Number == prNumber)
                 ? ValidationResult.Success()
