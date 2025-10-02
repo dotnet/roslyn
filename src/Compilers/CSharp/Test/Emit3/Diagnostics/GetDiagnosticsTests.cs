@@ -1590,6 +1590,61 @@ internal class TestAttribute : Attribute
             Assert.Equal(DiagnosticSuppressorForCS0657.SuppressionId, suppression.Descriptor.Id);
         }
 
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2581061")]
+        public async Task TestDiagnosticSuppressor_GetAnalysisResultAsyncCrash()
+        {
+            var source = """
+                using System;
+
+                public class SomeClass
+                {
+                    [property: Test]
+                    public string Name;
+                }
+
+                internal class TestAttribute : Attribute
+                {
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (5,6): warning CS0657: 'property' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
+                //     [property: Test]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "property").WithArguments("property", "field").WithLocation(5, 6));
+
+            // Verify that CS0657 can be suppressed with a DiagnosticSuppressor
+            var diagnosticAnalyzer = new CSharpCompilerDiagnosticAnalyzer();
+            var suppressor = new DiagnosticSuppressorForCS0657();
+
+            // Create options with our own getAnalyzerConfigOptionsProvider.  That way we do initialize the map from
+            // analyzer to options within the AnalyzerDriver.  This map needs to contain all analyzers and suppressors,
+            // not just the one we're calling into with GetAnalysisResultAsync.
+            var options = new CompilationWithAnalyzersOptions(
+                AnalyzerOptions.Empty,
+                onAnalyzerException: null,
+                concurrentAnalysis: false,
+                logAnalyzerExecutionTime: false,
+                reportSuppressedDiagnostics: true,
+                analyzerExceptionFilter: null,
+                getAnalyzerConfigOptionsProvider: _ => new CompilerAnalyzerConfigOptionsProvider(
+                    ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
+                    new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty)));
+
+            var compilationWithAnalyzers = compilation.WithAnalyzers([diagnosticAnalyzer, suppressor], options);
+
+            // Calling in with a single analyzer should still properly setup internal maps so that suppressors run properly.
+            var analysisResult1 = await compilationWithAnalyzers.GetAnalysisResultAsync([diagnosticAnalyzer], CancellationToken.None);
+            var analysisResult2 = await compilationWithAnalyzers.GetAnalysisResultAsync([diagnosticAnalyzer, suppressor], CancellationToken.None);
+
+            var diagnostic1 = analysisResult1.SemanticDiagnostics.Single().Value.Single().Value.Single();
+            var diagnostic2 = analysisResult2.SemanticDiagnostics.Single().Value.Single().Value.Single();
+
+            Assert.True(diagnostic1.IsSuppressed);
+            Assert.True(diagnostic2.IsSuppressed);
+
+            Assert.Equal("CS0657", diagnostic1.Id);
+            Assert.Equal("CS0657", diagnostic2.Id);
+        }
+
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private sealed class DiagnosticSuppressorForCS0657 : DiagnosticSuppressor
         {
