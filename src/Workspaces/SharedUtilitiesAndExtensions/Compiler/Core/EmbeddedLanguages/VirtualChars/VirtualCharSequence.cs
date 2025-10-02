@@ -204,7 +204,7 @@ internal readonly struct VirtualCharSequence
     {
         using var _ = PooledStringBuilder.GetInstance(out var builder);
         foreach (var ch in this)
-            ch.AppendTo(builder);
+            builder.Append(ch);
 
         return builder.ToString();
     }

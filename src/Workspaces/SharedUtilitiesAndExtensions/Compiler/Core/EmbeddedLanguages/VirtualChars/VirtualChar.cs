@@ -95,16 +95,9 @@ internal readonly record struct VirtualChar
 
     public TextSpan Span => new(TokenStart + Green.Offset, Green.Width);
 
-    #region string operations
-
     /// <inheritdoc/>
     public override string ToString()
         => Value.ToString();
-
-    public void AppendTo(StringBuilder builder)
-        => builder.Append(Value);
-
-    #endregion
 
     #region equality
 
