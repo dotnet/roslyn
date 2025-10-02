@@ -58,7 +58,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
 
         // TODO(cyrusn): Should we offer this on empty strings... seems undesirable as you'd end with a gigantic 
         // three line alternative over just ""
-        if (characters.IsEmpty)
+        if (characters.IsEmpty())
             return false;
 
         var canBeSingleLine = CanBeSingleLine(characters);
@@ -142,7 +142,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         CancellationToken cancellationToken)
     {
         var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-        Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
+        Contract.ThrowIfTrue(characters.IsDefaultOrEmpty());
 
         if ((kind & ConvertToRawKind.SingleLine) == ConvertToRawKind.SingleLine)
             return ConvertToSingleLineRawString();
@@ -302,7 +302,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
 
         for (var i = 1; i < lines.Count; i++)
         {
-            if (commonLeadingWhitespace.IsEmpty)
+            if (commonLeadingWhitespace.IsEmpty())
                 return 0;
 
             var currentLine = lines[i];
