@@ -50,6 +50,7 @@ public sealed class DiagnosticAnalyzerDriverTests
             SyntaxKind.CollectionExpression,
             SyntaxKind.ExpressionElement,
             SyntaxKind.SpreadElement,
+            SyntaxKind.WithElement,
         };
 
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();
