@@ -180,35 +180,6 @@ internal readonly struct VirtualCharSequence
     public VirtualChar? Find(int position)
         => _sequence.Find(_tokenStart, position);
 
-    public bool Contains(VirtualChar @char)
-        => IndexOf(@char) >= 0;
-
-    public int IndexOf(VirtualChar @char)
-    {
-        var index = 0;
-        foreach (var ch in this)
-        {
-            if (ch == @char)
-                return index;
-
-            index++;
-        }
-
-        return -1;
-    }
-
-    /// <summary>
-    /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
-    /// </summary>
-    public string CreateString()
-    {
-        using var _ = PooledStringBuilder.GetInstance(out var builder);
-        foreach (var ch in this)
-            builder.Append(ch);
-
-        return builder.ToString();
-    }
-
     /// <inheritdoc cref="VirtualCharGreenSequence.IsDefault"/>
     public bool IsDefault => _sequence.IsDefault;
 
@@ -228,68 +199,6 @@ internal readonly struct VirtualCharSequence
 
     public Enumerator GetEnumerator()
         => new(this);
-
-    public VirtualChar First() => this[0];
-    public VirtualChar Last() => this[^1];
-
-    public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
-    {
-        foreach (var ch in this)
-        {
-            if (predicate(ch))
-                return ch;
-        }
-
-        return null;
-    }
-
-    public VirtualChar? LastOrNull(Func<VirtualChar, bool> predicate)
-    {
-        for (var i = this.Length - 1; i >= 0; i--)
-        {
-            var ch = this[i];
-            if (predicate(ch))
-                return ch;
-        }
-
-        return null;
-    }
-
-    public bool Any(Func<VirtualChar, bool> predicate)
-    {
-        foreach (var ch in this)
-        {
-            if (predicate(ch))
-                return true;
-        }
-
-        return false;
-    }
-
-    public bool All(Func<VirtualChar, bool> predicate)
-    {
-        foreach (var ch in this)
-        {
-            if (!predicate(ch))
-                return false;
-        }
-
-        return true;
-    }
-
-    public VirtualCharSequence SkipWhile(Func<VirtualChar, bool> predicate)
-    {
-        var start = 0;
-        foreach (var ch in this)
-        {
-            if (!predicate(ch))
-                break;
-
-            start++;
-        }
-
-        return this.GetSubSequence(TextSpan.FromBounds(start, this.Length));
-    }
 
     [Conditional("DEBUG")]
     public void AssertAdjacentTo(VirtualCharSequence virtualChars)
@@ -322,5 +231,99 @@ internal readonly struct VirtualCharSequence
 
         readonly object? IEnumerator.Current => this.Current;
         public readonly void Dispose() { }
+    }
+}
+
+internal static class VirtualCharSequenceExtensions
+{
+    public static bool Contains(this VirtualCharSequence sequence, VirtualChar @char)
+        => sequence.IndexOf(@char) >= 0;
+
+    public static int IndexOf(this VirtualCharSequence sequence, VirtualChar @char)
+    {
+        var index = 0;
+        foreach (var ch in sequence)
+        {
+            if (ch == @char)
+                return index;
+
+            index++;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
+    /// </summary>
+    public static string CreateString(this VirtualCharSequence sequence)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        foreach (var ch in sequence)
+            builder.Append(ch);
+
+        return builder.ToString();
+    }
+
+    public static VirtualChar First(this VirtualCharSequence sequence) => sequence[0];
+    public static VirtualChar Last(this VirtualCharSequence sequence) => sequence[^1];
+
+    public static VirtualChar? FirstOrNull(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        foreach (var ch in sequence)
+        {
+            if (predicate(ch))
+                return ch;
+        }
+
+        return null;
+    }
+
+    public static VirtualChar? LastOrNull(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        for (var i = sequence.Length - 1; i >= 0; i--)
+        {
+            var ch = sequence[i];
+            if (predicate(ch))
+                return ch;
+        }
+
+        return null;
+    }
+
+    public static bool Any(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        foreach (var ch in sequence)
+        {
+            if (predicate(ch))
+                return true;
+        }
+
+        return false;
+    }
+
+    public static bool All(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        foreach (var ch in sequence)
+        {
+            if (!predicate(ch))
+                return false;
+        }
+
+        return true;
+    }
+
+    public static VirtualCharSequence SkipWhile(this VirtualCharSequence sequence, Func<VirtualChar, bool> predicate)
+    {
+        var start = 0;
+        foreach (var ch in sequence)
+        {
+            if (!predicate(ch))
+                break;
+
+            start++;
+        }
+
+        return sequence.GetSubSequence(TextSpan.FromBounds(start, sequence.Length));
     }
 }
