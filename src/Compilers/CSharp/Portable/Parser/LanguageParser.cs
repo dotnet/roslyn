@@ -12949,7 +12949,6 @@ done:
             if (this.IsAtDotDotToken())
                 return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
 
-            // TODO: Add support for parsing key:value elements here.
             return _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
         }
 
