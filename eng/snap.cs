@@ -69,8 +69,18 @@ console.MarkupLineInterpolated($"Default repo for [gray]gh[/] CLI is [teal]{defa
 var sourceBranchName = console.Prompt(new TextPrompt<string>("Source branch")
     .DefaultValue("main"));
 
+// Find the latest branch starting with release/.
+var latestReleaseBranch = (await Cli.Wrap("git")
+    .WithArguments(["for-each-ref", "--sort=-committerdate", "--format=%(refname:short)", "refs/remotes/"])
+    .ExecuteBufferedAsync())
+    .StandardOutput
+    .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+    .Select(static s => s.IndexOf('/') is var slashIndex and >= 0 ? s[(slashIndex + 1)..] : s)
+    .Where(static s => s.StartsWith("release/", StringComparison.Ordinal))
+    .FirstOrDefault();
+
 var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
-    .DefaultValue("release/insiders"));
+    .DefaultValue(latestReleaseBranch ?? "release/insiders"));
 
 // Find last 5 PRs merged to current branch.
 
