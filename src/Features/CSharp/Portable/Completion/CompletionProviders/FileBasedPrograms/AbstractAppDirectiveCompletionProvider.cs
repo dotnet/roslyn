@@ -56,7 +56,7 @@ internal abstract class AbstractAppDirectiveCompletionProvider : LSPCompletionPr
         }
         else if (token == ignoredDirective.Content)
         {
-            // For a test case like '#: pro$$ Name=Value', then:
+            // Consider a test case like '#: pro$$ Name=Value', where we may want to offer 'property' as a completion item:
             // We know that 'token.Text == "pro Name=Value"', and, the below expressions correspond to text positions as shown:
             // #: pro Name=Value
             //    │  │
