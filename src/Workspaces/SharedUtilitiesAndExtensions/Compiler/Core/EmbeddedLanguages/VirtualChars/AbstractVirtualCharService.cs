@@ -110,7 +110,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
                 }
             }
 
-            var lastVC = result.Last();
+            var lastVC = result[^1];
 
             if (token.RawKind == syntaxKinds.StringLiteralToken ||
                 token.RawKind == syntaxKinds.CharacterLiteralToken)

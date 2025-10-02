@@ -140,8 +140,8 @@ internal partial struct RegexParser
         {
             Debug.Assert(!grouping.OpenParenToken.IsMissing);
             var lastChar = grouping.CloseParenToken.IsMissing
-                ? _text.Last()
-                : grouping.CloseParenToken.VirtualChars.Last();
+                ? _text[^1]
+                : grouping.CloseParenToken.VirtualChars[^1];
 
             return GetSpan(grouping.OpenParenToken.VirtualChars[0], lastChar);
         }

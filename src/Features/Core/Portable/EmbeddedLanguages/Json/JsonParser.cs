@@ -588,6 +588,6 @@ internal partial struct JsonParser
 
     private readonly TextSpan GetTokenStartPositionSpan(JsonToken token)
         => token.Kind == JsonKind.EndOfFile
-            ? new TextSpan(_lexer.Text.Last().Span.End, 0)
+            ? new TextSpan(_lexer.Text[^1].Span.End, 0)
             : new TextSpan(token.VirtualChars[0].Span.Start, 0);
 }

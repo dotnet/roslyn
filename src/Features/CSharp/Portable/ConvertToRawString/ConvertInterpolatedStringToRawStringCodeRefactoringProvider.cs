@@ -114,13 +114,11 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
                     {
                         canBeSingleLine = false;
                     }
-                    else if (interpolatedStringText == firstContent &&
-                        characters.First() == '"')
+                    else if (interpolatedStringText == firstContent && characters[0] == '"')
                     {
                         canBeSingleLine = false;
                     }
-                    else if (interpolatedStringText == lastContent &&
-                        characters.Last() == '"')
+                    else if (interpolatedStringText == lastContent && characters[^1] == '"')
                     {
                         canBeSingleLine = false;
                     }

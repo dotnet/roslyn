@@ -17,7 +17,7 @@ internal static class ConvertToRawStringHelpers
     public static bool CanBeSingleLine(VirtualCharSequence characters)
     {
         // Single line raw strings cannot start/end with quote.
-        if (characters.First() == '"' || characters.Last() == '"')
+        if (characters[0] == '"' || characters[^1] == '"')
             return false;
 
         // a single line raw string cannot contain a newline.
