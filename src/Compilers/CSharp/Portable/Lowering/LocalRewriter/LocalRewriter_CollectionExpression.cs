@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        // Don't optimize if the node has an explicit `with(...)` in it.  The code is being explicit
-                        // about which constructor to use and we should respect that.
-                        if (!node.HasWithElement &&
-                            ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
                             if (TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
                             {

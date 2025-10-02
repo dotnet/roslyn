@@ -33029,11 +33029,11 @@ public static class E
     {
         public void M()
         {
-            local<int>(0);
+            local(0);
 
             [return: A]
             [B]
-            void local<[D] T>([C] int i2) { }
+            void local([C] int i2) { }
         }
     }
 }
@@ -33046,9 +33046,6 @@ public class BAttribute : System.Attribute { }
 
 {{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
 public class CAttribute : System.Attribute { }
-
-{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
-public class DAttribute : System.Attribute { }
 """;
 
         var verifier = CompileAndVerify([src, CompilerLoweringPreserveAttributeDefinition]).VerifyDiagnostics();
@@ -33114,11 +33111,11 @@ public class DAttribute : System.Attribute { }
         // Code size 7 (0x7)
         .maxstack 8
         IL_0000: ldc.i4.0
-        IL_0001: call void E::'<M>g__local|1_0'<int32>(int32)
+        IL_0001: call void E::'<M>g__local|1_0'(int32)
         IL_0006: ret
     } // end of method E::M
     .method assembly hidebysig static 
-        void '<M>g__local|1_0'<T> (
+        void '<M>g__local|1_0' (
             int32 i2
         ) cil managed 
     {
@@ -33128,10 +33125,6 @@ public class DAttribute : System.Attribute { }
         .custom instance void BAttribute::.ctor() = (
             01 00 00 00
         )
-        .param type T
-            .custom instance void DAttribute::.ctor() = (
-                01 00 00 00
-            )
         .param [0]
             .custom instance void AAttribute::.ctor() = (
                 01 00 00 00
@@ -33145,145 +33138,6 @@ public class DAttribute : System.Attribute { }
         .maxstack 8
         IL_0000: ret
     } // end of method E::'<M>g__local|1_0'
-} // end of class E
-""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
-    }
-
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
-    public void PropagateAttributes_21(bool withPreserve)
-    {
-        // attributes on lambdas in extension
-        var src = $$"""
-public static class E
-{
-    extension(int i1)
-    {
-        public void M()
-        {
-            var d = static void ([C] int i2) => { };
-        }
-    }
-}
-
-{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
-public class CAttribute : System.Attribute { }
-""";
-
-        var verifier = CompileAndVerify([src, CompilerLoweringPreserveAttributeDefinition]).VerifyDiagnostics();
-        verifier.VerifyTypeIL("E", """
-.class public auto ansi abstract sealed beforefieldinit E
-    extends [mscorlib]System.Object
-{
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-        01 00 00 00
-    )
-    // Nested Types
-    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
-        extends [mscorlib]System.Object
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
-        // Nested Types
-        .class nested public auto ansi abstract sealed specialname '<M>$531E7AC45D443AE2243E7FFAB9455D60'
-            extends [mscorlib]System.Object
-        {
-            // Methods
-            .method public hidebysig specialname static 
-                void '<Extension>$' (
-                    int32 i1
-                ) cil managed 
-            {
-                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                    01 00 00 00
-                )
-                // Method begins at RVA 0x20b7
-                // Code size 1 (0x1)
-                .maxstack 8
-                IL_0000: ret
-            } // end of method '<M>$531E7AC45D443AE2243E7FFAB9455D60'::'<Extension>$'
-        } // end of class <M>$531E7AC45D443AE2243E7FFAB9455D60
-        // Methods
-        .method public hidebysig 
-            instance void M () cil managed 
-        {
-            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
-                01 00 24 3c 4d 3e 24 35 33 31 45 37 41 43 34 35
-                44 34 34 33 41 45 32 32 34 33 45 37 46 46 41 42
-                39 34 35 35 44 36 30 00 00
-            )
-            // Method begins at RVA 0x209c
-            // Code size 6 (0x6)
-            .maxstack 8
-            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
-            IL_0005: throw
-        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
-    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
-    .class nested private auto ansi sealed serializable beforefieldinit '<>c'
-        extends [mscorlib]System.Object
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        // Fields
-        .field public static initonly class E/'<>c' '<>9'
-        .field public static class [mscorlib]System.Action`1<int32> '<>9__1_0'
-        // Methods
-        .method private hidebysig specialname rtspecialname static 
-            void .cctor () cil managed 
-        {
-            // Method begins at RVA 0x20a3
-            // Code size 11 (0xb)
-            .maxstack 8
-            IL_0000: newobj instance void E/'<>c'::.ctor()
-            IL_0005: stsfld class E/'<>c' E/'<>c'::'<>9'
-            IL_000a: ret
-        } // end of method '<>c'::.cctor
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor () cil managed 
-        {
-            // Method begins at RVA 0x20af
-            // Code size 7 (0x7)
-            .maxstack 8
-            IL_0000: ldarg.0
-            IL_0001: call instance void [mscorlib]System.Object::.ctor()
-            IL_0006: ret
-        } // end of method '<>c'::.ctor
-        .method assembly hidebysig 
-            instance void '<M>b__1_0' (
-                int32 i2
-            ) cil managed 
-        {
-            .param [1]
-                .custom instance void CAttribute::.ctor() = (
-                    01 00 00 00
-                )
-            // Method begins at RVA 0x20b7
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>c'::'<M>b__1_0'
-    } // end of class <>c
-    // Methods
-    .method public hidebysig static 
-        void M (
-            int32 i1
-        ) cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
-        // Method begins at RVA 0x207e
-        // Code size 29 (0x1d)
-        .maxstack 8
-        IL_0000: ldsfld class [mscorlib]System.Action`1<int32> E/'<>c'::'<>9__1_0'
-        IL_0005: brtrue.s IL_001c
-        IL_0007: ldsfld class E/'<>c' E/'<>c'::'<>9'
-        IL_000c: ldftn instance void E/'<>c'::'<M>b__1_0'(int32)
-        IL_0012: newobj instance void class [mscorlib]System.Action`1<int32>::.ctor(object, native int)
-        IL_0017: stsfld class [mscorlib]System.Action`1<int32> E/'<>c'::'<>9__1_0'
-        IL_001c: ret
-    } // end of method E::M
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }

@@ -672,8 +672,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(_useConstructorExitWarnings);
                         var thisSlot = 0;
-                        if (method.TryGetThisParameter(out var thisParameter) && thisParameter is object)
+                        if (method.RequiresInstanceReceiver)
                         {
+                            method.TryGetThisParameter(out var thisParameter);
+                            Debug.Assert(thisParameter is object);
                             thisSlot = GetOrCreateSlot(thisParameter);
                         }
                         var exitLocation = method is SynthesizedPrimaryConstructor || method.DeclaringSyntaxReferences.IsEmpty ? null : method.TryGetFirstLocation();
@@ -2256,7 +2258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enclosingMemberMethod = enclosingMemberMethod.ContainingSymbol as MethodSymbol;
                 }
 
-                if (enclosingMemberMethod?.TryGetThisParameter(out ParameterSymbol? methodThisParameter) == true &&
+                if (enclosingMemberMethod?.TryGetThisParameter(out ParameterSymbol methodThisParameter) == true &&
                     methodThisParameter?.ContainingSymbol.ContainingSymbol == (object)primaryConstructor.ContainingSymbol &&
                     GetOrCreateSlot(methodThisParameter) is >= 0 and var thisSlot)
                 {
@@ -8578,18 +8580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // Note: the 'with(...)' element in a collection expression does not contribute to method type
-                    // inference (just like 'new(...)' in an argument position does not.  Instead, once method type
-                    // inference is done, the final target type will be used to bind and determine what 'with(...)'
-                    // and 'new(...)' mean.
-                    //
-                    // So in this case, just pass 'null' for this as they do not contribute to inference and it's 
-                    // the same as if the user did not provide any.
-                    return new BoundUnconvertedCollectionExpression(
-                        collection.Syntax, withElement: null, elements: elementsBuilder.ToImmutableAndFree())
-                    {
-                        WasCompilerGenerated = true
-                    };
+                    return new BoundUnconvertedCollectionExpression(collection.Syntax, elementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
                 }
 
                 // Note: for `out` arguments, the argument result contains the declaration type (see `VisitArgumentEvaluate`)

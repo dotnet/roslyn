@@ -39592,11 +39592,6 @@ static class E
         invocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
         AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
-        var symbolInfo = model.GetSymbolInfo(GetSyntax<ThisExpressionSyntax>(tree, "this"));
-        Assert.Null(symbolInfo.Symbol);
-        Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
-        Assert.True(symbolInfo.CandidateSymbols is [IParameterSymbol { Name: "this", ContainingSymbol: INamedTypeSymbol { IsExtension: true } }]);
-
         invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2(new object())");
         AssertEx.Equal("void E.M2(this System.Object o)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
     }
@@ -39641,20 +39636,12 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
         AssertEx.Equal("void E.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-
-        CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify).VerifyDiagnostics();
-
-        void verify(ModuleSymbol m)
-        {
-            var type = m.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            var method = type.GetTypeMember("").GetMember<MethodSymbol>("M");
-            Assert.Null(method.ThisParameter);
-        }
     }
 
     [Fact]
@@ -39827,6 +39814,7 @@ static class E
 
     public partial class RegionAnalysisTests : FlowTestBase
     {
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : consider removing `this` from the region analysis tests
         [Fact]
         public void RegionAnalysis_01()
         {
@@ -39850,12 +39838,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn: i, i2
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, i2
-DefinitelyAssignedOnExit: i, i2
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
 ReadInside: i, i2
 ReadOutside:
 WrittenInside:
-WrittenOutside: i, i2
+WrittenOutside: i, this, i2
 """, analysisResults);
         }
 
@@ -39880,14 +39868,14 @@ AlwaysAssigned:
 Captured:
 CapturedInside:
 CapturedOutside:
-DataFlowsIn:
+DataFlowsIn: this
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, i2
-DefinitelyAssignedOnExit: i, i2
-ReadInside:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: this
 ReadOutside:
 WrittenInside:
-WrittenOutside: i, i2
+WrittenOutside: i, this, i2
 """, analysisResults);
         }
 
@@ -39917,12 +39905,12 @@ CapturedInside: i, i2, i3
 CapturedOutside:
 DataFlowsIn: i, i2, i3
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, i2, i3
-DefinitelyAssignedOnExit: i, i2, i3
+DefinitelyAssignedOnEntry: i, this, i2, i3
+DefinitelyAssignedOnExit: i, this, i2, i3
 ReadInside: i, i2, i3
 ReadOutside:
 WrittenInside:
-WrittenOutside: i, i2, i3
+WrittenOutside: i, this, i2, i3
 """, analysisResults);
         }
 
@@ -39949,12 +39937,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn: i, i2
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, i2
-DefinitelyAssignedOnExit: i, i2
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
 ReadInside: i, i2
 ReadOutside: i, i2
 WrittenInside:
-WrittenOutside: i, i2
+WrittenOutside: i, this, i2
 """, analysisResults);
         }
 
@@ -39981,12 +39969,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn:
 DataFlowsOut: i, i2
-DefinitelyAssignedOnEntry:
-DefinitelyAssignedOnExit: i, i2
+DefinitelyAssignedOnEntry: this
+DefinitelyAssignedOnExit: i, this, i2
 ReadInside:
 ReadOutside: i, i2
 WrittenInside: i, i2
-WrittenOutside:
+WrittenOutside: this
 """, analysisResults);
         }
 
@@ -40013,12 +40001,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn:
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, i2
-DefinitelyAssignedOnExit: i, i2
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
 ReadInside:
 ReadOutside:
 WrittenInside: i, i2
-WrittenOutside: i, i2
+WrittenOutside: i, this, i2
 """, analysisResults);
         }
 
@@ -40045,12 +40033,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn: i2
 DataFlowsOut: i, i2
-DefinitelyAssignedOnEntry: i, i2
-DefinitelyAssignedOnExit: i, i2
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
 ReadInside: i2
 ReadOutside: i, i2
 WrittenInside: i, i2
-WrittenOutside: i, i2
+WrittenOutside: i, this, i2
 """, analysisResults);
         }
 
@@ -40080,12 +40068,12 @@ CapturedInside: i, i2
 CapturedOutside:
 DataFlowsIn: i3
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, i2, i3
-DefinitelyAssignedOnExit: i, i2, i3
+DefinitelyAssignedOnEntry: i, this, i2, i3
+DefinitelyAssignedOnExit: i, this, i2, i3
 ReadInside: i, i2, i3
 ReadOutside:
 WrittenInside:
-WrittenOutside: i, i2, i3
+WrittenOutside: i, this, i2, i3
 """, analysisResults);
         }
 
@@ -40115,12 +40103,12 @@ CapturedInside: i, i2
 CapturedOutside:
 DataFlowsIn:
 DataFlowsOut: i, i2, i3
-DefinitelyAssignedOnEntry:
-DefinitelyAssignedOnExit: i, i2, i3
+DefinitelyAssignedOnEntry: this
+DefinitelyAssignedOnExit: i, this, i2, i3
 ReadInside:
 ReadOutside: i, i2, i3
 WrittenInside: i, i2, i3
-WrittenOutside:
+WrittenOutside: this
 """, analysisResults);
         }
     }

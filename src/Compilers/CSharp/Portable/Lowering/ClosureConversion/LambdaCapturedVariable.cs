@@ -184,9 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            ParameterSymbol definition = _parameter.OriginalDefinition;
-
-            if (ContainingModule == definition.ContainingModule)
+            if (_parameter.OriginalDefinition is SourceParameterSymbolBase definition &&
+                ContainingModule == definition.ContainingModule)
             {
                 foreach (CSharpAttributeData attr in definition.GetAttributes())
                 {

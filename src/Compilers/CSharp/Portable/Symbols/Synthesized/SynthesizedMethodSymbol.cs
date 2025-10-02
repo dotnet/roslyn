@@ -44,12 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override bool IsStatic { get; }
 
-#nullable enable
-
-        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            Debug.Assert(!this.GetIsNewExtensionMember());
-
             if (IsStatic)
             {
                 thisParameter = null;
@@ -64,8 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             thisParameter = _lazyThisParameter;
             return true;
         }
-
-#nullable disable
 
         /// <summary>
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.

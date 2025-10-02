@@ -4,6 +4,12 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,13 +18,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (memberOpt is { ContainingSymbol: NamedTypeSymbol { IsExtension: true } })
+            if (memberOpt?.GetIsNewExtensionMember() == true)
             {
                 return false;
             }
@@ -5264,47 +5263,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
-            BoundUnconvertedWithElement? withElement = null;
-
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-                if (element is WithElementSyntax withElementSyntax)
-                {
-                    // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
-                    // we still bind the arguments in those later with elements.  However, we only validate those
-                    // arguments against the final arguments against the destination target type if the with element
-                    // was in the proper position.
-
-                    var arguments = AnalyzedArguments.GetInstance();
-
-                    // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
-                    // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
-                    // allow it.  If it requires substantial work beyond this, disallow it for this feature.
-                    BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, arguments, allowArglist: true);
-
-                    if (withElementSyntax != syntax.Elements.First())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
-                    }
-                    else
-                    {
-                        withElement = new BoundUnconvertedWithElement(
-                            withElementSyntax,
-                            arguments.Arguments.ToImmutable(),
-                            arguments.Names.ToImmutableOrNull(),
-                            arguments.RefKinds.ToImmutableOrNull());
-                    }
-
-                    arguments.Free();
-                }
-                else
-                {
-                    builder.Add(bindElement(element, diagnostics, this, nestingLevel));
-                }
+                builder.Add(bindElement(element, diagnostics, this, nestingLevel));
             }
-
-            return new BoundUnconvertedCollectionExpression(syntax, withElement, builder.ToImmutableAndFree());
+            return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
             static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {

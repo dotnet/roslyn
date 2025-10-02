@@ -2903,7 +2903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool hasRefToRefStructThis(MethodSymbol? method)
             {
-                return method?.TryGetThisParameter(out var thisParameter) == true && thisParameter is not null &&
+                return method?.TryGetThisParameter(out var thisParameter) == true &&
                     isRefToRefStruct(thisParameter);
             }
 

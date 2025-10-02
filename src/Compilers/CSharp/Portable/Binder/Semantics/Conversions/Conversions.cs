@@ -190,8 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                if (!_binder.HasCollectionExpressionApplicableConstructor(
-                        hasWithElement: node.WithElement != null, syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+                if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
@@ -216,8 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(elementConversion);
             }
 
-            return Conversion.CreateCollectionExpressionConversion(
-                collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
+            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
 
             Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
