@@ -80,8 +80,6 @@ internal partial struct VirtualCharGreenSequence
     /// Gets a value indicating whether the <see cref="VirtualCharSequence"/> was declared but not initialized.
     /// </summary>
     public bool IsDefault => _leafCharacters == null;
-    public bool IsEmpty => Length == 0;
-    public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
     /// <summary>
     /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
@@ -223,10 +221,8 @@ internal readonly struct VirtualCharSequence
 
 internal static class VirtualCharSequenceExtensions
 {
-    /// <inheritdoc cref="VirtualCharGreenSequence.IsEmpty"/>
     public static bool IsEmpty(this VirtualCharSequence sequence) => sequence.Length == 0;
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.IsDefaultOrEmpty"/>
     public static bool IsDefaultOrEmpty(this VirtualCharSequence sequence) => sequence.IsDefault || sequence.IsEmpty();
 
     public static bool Contains(this VirtualCharSequence sequence, VirtualChar @char)
