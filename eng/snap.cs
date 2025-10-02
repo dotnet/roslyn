@@ -92,9 +92,10 @@ foreach (var pr in lastMergedPullRequests)
 
 // Find PRs in milestone Next.
 
+var searchFilter = $"is:merged milestone:Next base:{sourceBranchName}";
 var nextMilestonePullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
-        "--search", $"is:merged milestone:Next base:{sourceBranchName}",
+        "--search", searchFilter,
         "--json", "number,title,mergedAt"])
     .ExecuteBufferedAsync())
     .StandardOutput
@@ -110,7 +111,7 @@ foreach (var pr in nextMilestonePullRequests.Take(5))
 }
 if (nextMilestonePullRequests.Length > 6)
 {
-    console.MarkupLine(" - ... for more, run [gray]gh pr list --search 'is:merged milestone:Next'[/]");
+    console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --search '{searchFilter}'[/]");
 }
 if (nextMilestonePullRequests.Length > 5)
 {
