@@ -25,12 +25,23 @@ var logFilePath = Path.Join(
     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
     "snap-script", "log.txt");
 Directory.CreateDirectory(Path.GetDirectoryName(logFilePath)!);
-using var logWriter = new StreamWriter(File.Open(logFilePath, FileMode.Append, FileAccess.Write, FileShare.Read))
+// This is intentionally not disposed so it can be used in UnhandledException handler below.
+var logWriter = new StreamWriter(File.Open(logFilePath, FileMode.Append, FileAccess.Write, FileShare.Read))
 {
     AutoFlush = true
 };
 console.MarkupLineInterpolated($"Logging to [gray]{logFilePath}[/]");
 log("Starting snap script run");
+
+AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+{
+    log($"Unhandled exception: {e.ExceptionObject}");
+};
+
+TaskScheduler.UnobservedTaskException += (s, e) =>
+{
+    log($"Unobserved task exception: {e.Exception}");
+};
 
 console.Pipeline.Attach(new LoggingRenderHook(logWriter));
 
@@ -70,6 +81,26 @@ var lastCommit = (await Cli.Wrap("git")
 
 console.MarkupLineInterpolated($"[grey]{lastCommit}[/]");
 console.WriteLine();
+
+// Find last 5 PRs merged to current branch.
+
+var lastMergedPullRequests = (await Cli.Wrap("gh")
+    .WithArguments(["pr", "list",
+        "--search", $"is:merged base:{currentBranchName}",
+        "--json", "number,title,mergedAt",
+        "--limit", "5"])
+    .ExecuteBufferedAsync())
+    .StandardOutput
+    .ParseJsonList<PullRequest>()
+    ?.OrderByDescending(static pr => pr.MergedAt)
+    .ToArray()
+    ?? throw new InvalidOperationException("Null PR list");
+
+console.MarkupLineInterpolated($"Last PRs merged to [teal]{currentBranchName}[/] ([teal]{lastMergedPullRequests.Length}[/]):");
+foreach (var pr in lastMergedPullRequests)
+{
+    console.MarkupLineInterpolated($" - {pr}");
+}
 
 // Find PRs in milestone Next.
 
