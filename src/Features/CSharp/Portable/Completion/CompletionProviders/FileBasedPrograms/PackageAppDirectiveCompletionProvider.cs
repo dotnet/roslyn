@@ -30,7 +30,11 @@ internal sealed class PackageAppDirectiveCompletionProvider() : AbstractAppDirec
     {
         context.AddItem(CommonCompletionItem.Create(DirectiveKind, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.Keyword,
             description: [
-                new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Hash_colon_package__Name_at_Version),
+                new(SymbolDisplayPartKind.Keyword, symbol: null, "#:package"),
+                new(SymbolDisplayPartKind.Space, symbol: null, " "),
+                new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Build_property_name),
+                new(SymbolDisplayPartKind.StringLiteral, symbol: null, "@"),
+                new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Package_version),
                 new(SymbolDisplayPartKind.LineBreak, symbol: null, ""),
                 new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Adds_a_NuGet_package_reference),
                 ]));

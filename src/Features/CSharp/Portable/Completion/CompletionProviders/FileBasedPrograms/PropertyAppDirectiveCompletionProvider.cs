@@ -30,7 +30,11 @@ internal sealed class PropertyAppDirectiveCompletionProvider() : AbstractAppDire
     {
         context.AddItem(CommonCompletionItem.Create(DirectiveKind, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.Keyword,
             description: [
-                new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Hash_colon_property__Name_equals_Value),
+                new(SymbolDisplayPartKind.Keyword, symbol: null, "#:property"),
+                new(SymbolDisplayPartKind.Space, symbol: null, " "),
+                new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Build_property_name),
+                new(SymbolDisplayPartKind.StringLiteral, symbol: null, "="),
+                new(SymbolDisplayPartKind.StringLiteral, symbol: null, CSharpFeaturesResources.Build_property_value),
                 new(SymbolDisplayPartKind.LineBreak, symbol: null, ""),
                 new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Defines_a_build_property),
                 ]));

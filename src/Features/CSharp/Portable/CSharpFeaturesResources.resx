@@ -587,30 +587,30 @@
   <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
     <value>Convert all extension methods in '{0}' to extension</value>
   </data>
-  <data name="Hash_colon_sdk__Name_at_Version" xml:space="preserve">
-    <value>#:sdk Name@Version</value>
-    <comment>{Locked="#:sdk"} 'Name' and 'Version' are placeholders that user will substitute out with an actual SDK name and version.</comment>
+  <data name="Build_property_value" xml:space="preserve">
+    <value>Value</value>
+    <comment>'Value' is a placeholder for a build property value in a directive like '#:property Name=Value'.</comment>
+  </data>
+  <data name="Build_property_name" xml:space="preserve">
+    <value>Name</value>
+    <comment>'Name' is a placeholder for a property, package, sdk name in a directive like '#:property Name=Value'.</comment>
+  </data>
+  <data name="Package_version" xml:space="preserve">
+    <value>Version</value>
+    <comment>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</comment>
+  </data>
+  <data name="File_path" xml:space="preserve">
+    <value>path</value>
+    <comment>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</comment>
   </data>
   <data name="Adds_an_SDK_reference" xml:space="preserve">
     <value>Adds an SDK reference.</value>
   </data>
-  <data name="Hash_colon_property__Name_equals_Value" xml:space="preserve">
-    <value>#:property Name=Value</value>
-    <comment>{Locked="#:property"} 'Name' and 'Value' are placeholders that user will substitute out with an actual property name and value.</comment>
-  </data>
   <data name="Defines_a_build_property" xml:space="preserve">
     <value>Defines a build property.</value>
   </data>
-  <data name="Hash_colon_package__Name_at_Version" xml:space="preserve">
-    <value>#:package Name@Version</value>
-    <comment>{Locked="#:package"} 'Name' and 'Version' are placeholders that user will substitute out with an actual package name and version.</comment>
-  </data>
   <data name="Adds_a_NuGet_package_reference" xml:space="preserve">
     <value>Adds a NuGet package reference.</value>
-  </data>
-  <data name="Hash_colon_project__path" xml:space="preserve">
-    <value>#:project path</value>
-    <comment>{Locked="#:project"} 'path' is a placeholder that user will substitute out with an actual project path.</comment>
   </data>
   <data name="Adds_a_project_reference" xml:space="preserve">
     <value>Adds a project reference.</value>
