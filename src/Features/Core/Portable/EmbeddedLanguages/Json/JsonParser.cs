@@ -394,12 +394,12 @@ internal partial struct JsonParser
     {
         minusToken = CreateToken(
             JsonKind.MinusToken, literalToken.LeadingTrivia,
-            literalToken.VirtualChars.Slice(0..1),
+            literalToken.VirtualChars[0..1],
             []);
         newLiteralToken = CreateToken(
             literalToken.Kind,
             [],
-            literalToken.VirtualChars.Slice(1..),
+            literalToken.VirtualChars[1..],
             literalToken.TrailingTrivia,
             literalToken.Diagnostics);
     }
