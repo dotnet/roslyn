@@ -77,17 +77,15 @@ var nextMilestonePullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list", "--search", "is:merged milestone:Next", "--json", "number,title,mergedAt"])
     .ExecuteBufferedAsync())
     .StandardOutput
-    .ParseJsonList(new { Number = 0, Title = "", MergedAt = default(DateTimeOffset) })
+    .ParseJsonList<PullRequest>()
     ?.OrderByDescending(static pr => pr.MergedAt)
     .ToArray()
     ?? throw new InvalidOperationException("Null PR list in milestone Next");
 
-var formatPr = nextMilestonePullRequests.Func(pr => $"#{pr.Number}: {pr.Title} ({pr.MergedAt})");
-
 console.MarkupLineInterpolated($"Found PRs in milestone Next ([teal]{nextMilestonePullRequests.Length}[/])");
 foreach (var pr in nextMilestonePullRequests.Take(5))
 {
-    console.MarkupLineInterpolated($" - {formatPr(pr)}");
+    console.MarkupLineInterpolated($" - {pr}");
 }
 if (nextMilestonePullRequests.Length > 6)
 {
@@ -95,7 +93,7 @@ if (nextMilestonePullRequests.Length > 6)
 }
 if (nextMilestonePullRequests.Length > 5)
 {
-    console.MarkupLineInterpolated($" - {formatPr(nextMilestonePullRequests[^1])}");
+    console.MarkupLineInterpolated($" - {nextMilestonePullRequests[^1]}");
 }
 console.WriteLine();
 
@@ -117,7 +115,7 @@ if (nextMilestonePullRequests is [var defaultLastPr, ..])
         .WithArguments(["api", "repos/{owner}/{repo}/milestones", "--jq", ".[] | {number:.number,title:.title}"])
         .ExecuteBufferedAsync())
         .StandardOutput
-        .ParseJsonNewLineDelimitedList(new { Number = 0, Title = "" })
+        .ParseJsonNewLineDelimitedList<Milestone>()
         .AssertNonNullElements("Null milestone in list")
         .OrderByDescending(static m => m.Number)
         .ToArray();
@@ -169,13 +167,18 @@ void log(string message)
     logWriter.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
 }
 
+file sealed record PullRequest(int Number, string Title, DateTimeOffset MergedAt)
+{
+    public override string ToString() => $"#{Number}: {Title} ({MergedAt})";
+}
+
+file sealed record Milestone(int Number, string Title)
+{
+    public override string ToString() => Title;
+}
+
 file static class Extensions
 {
-    extension<T>(IEnumerable<T> _)
-    {
-        public Func<T, TResult> Func<TResult>(Func<T, TResult> f) => f;
-    }
-
     extension<T>(IEnumerable<T?> collection)
     {
         public IEnumerable<T> AssertNonNullElements(string message)
@@ -194,7 +197,7 @@ file static class Extensions
 
     extension(string s)
     {
-        public T[]? ParseJsonList<T>(T _)
+        public T[]? ParseJsonList<T>()
         {
             try
             {
@@ -206,7 +209,7 @@ file static class Extensions
             }
         }
 
-        public List<T?> ParseJsonNewLineDelimitedList<T>(T _)
+        public List<T?> ParseJsonNewLineDelimitedList<T>()
         {
             var result = new List<T?>();
             foreach (var line in s.EnumerateLines())
