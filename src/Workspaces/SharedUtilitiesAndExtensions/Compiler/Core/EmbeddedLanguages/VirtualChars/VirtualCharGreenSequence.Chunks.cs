@@ -96,25 +96,6 @@ internal readonly partial struct VirtualCharGreenSequence
         }
 
         public override VirtualCharGreen this[int index]
-        {
-            get
-            {
-#if DEBUG
-                // We should never have a properly paired high/low surrogate in a StringChunk. We are only created
-                // when the string has the same number of chars as there are VirtualChars.
-                if (char.IsHighSurrogate(data[index]))
-                {
-                    Debug.Assert(index + 1 >= data.Length ||
-                                 !char.IsLowSurrogate(data[index + 1]));
-                }
-#endif
-
-                // var span = new TextSpan(firstVirtualCharPosition + index, length: 1);
-                var ch = data[index];
-                return char.IsSurrogate(ch)
-                    ? VirtualCharGreen.Create(ch, offset: index, width: 1)
-                    : VirtualCharGreen.Create(new Rune(ch), offset: index, width: 1);
-            }
-        }
+            => new(data[index], offset: index, width: 1);
     }
 }

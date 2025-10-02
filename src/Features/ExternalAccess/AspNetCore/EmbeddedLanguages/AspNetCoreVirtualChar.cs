@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,11 +25,10 @@ internal readonly struct AspNetCoreVirtualChar : IEquatable<AspNetCoreVirtualCha
     {
         // Rune is an internal shim with netstandard2.0 and accessing it throws an internal access exception.
         // Expose integer value. Can be converted back to Rune by caller.
-        get => VirtualChar.Rune.Value;
+        get => char.IsSurrogate(VirtualChar) ? Rune.ReplacementChar.Value : VirtualChar;
     }
 
-    /// <inheritdoc cref="VirtualChar.SurrogateChar"/>
-    public char SurrogateChar => VirtualChar.SurrogateChar;
+    public char SurrogateChar => char.IsSurrogate(VirtualChar) ? VirtualChar : '\0';
 
     /// <inheritdoc cref="VirtualChar.Span"/>
     public TextSpan Span => VirtualChar.Span;

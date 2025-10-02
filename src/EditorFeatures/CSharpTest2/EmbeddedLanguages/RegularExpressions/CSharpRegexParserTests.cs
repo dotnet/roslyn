@@ -376,7 +376,7 @@ public sealed partial class CSharpRegexParserTests
         foreach (var (charClass, _) in RegexCharClass.EscapeCategories)
         {
             foreach (var ch in charClass)
-                Assert.True(RegexLexer.IsEscapeCategoryChar(new(VirtualCharGreen.Create(new Rune(ch), offset: 0, width: 1), tokenStart: 0)));
+                Assert.True(RegexLexer.IsEscapeCategoryChar(new(new(ch, offset: 0, width: 1), tokenStart: 0)));
         }
     }
 }

@@ -48,10 +48,8 @@ internal struct StackFrameLexer
     {
         foreach (var c in text)
         {
-            if (c.Value == '\r' || c.Value == '\n')
-            {
+            if (c == '\r' || c == '\n')
                 return null;
-            }
         }
 
         return new(text);
@@ -89,7 +87,7 @@ internal struct StackFrameLexer
 
         var startPosition = Position;
         var ch = CurrentChar;
-        if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter((char)ch.Value))
+        if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter(ch))
         {
             var ctor = TryScanConstructor();
             if (ctor.HasValue)
@@ -104,7 +102,7 @@ internal struct StackFrameLexer
             return null;
         }
 
-        while (UnicodeCharacterUtilities.IsIdentifierPartCharacter((char)ch.Value))
+        while (UnicodeCharacterUtilities.IsIdentifierPartCharacter(ch))
         {
             Position++;
             ch = CurrentChar;

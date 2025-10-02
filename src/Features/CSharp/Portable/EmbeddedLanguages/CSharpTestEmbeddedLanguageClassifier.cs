@@ -33,7 +33,6 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
         var token = context.SyntaxToken;
         var semanticModel = context.SemanticModel;
-        var compilation = semanticModel.Compilation;
 
         if (token.Kind() is not (SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken))
             return;
@@ -46,11 +45,6 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
         // the token has diagnostics).
 
         cancellationToken.ThrowIfCancellationRequested();
-
-        // Simpler to only support literals where all characters/escapes map to a single utf16 character.  That way
-        // we can build a source-text as a trivial O(1) view over the virtual char sequence.
-        if (virtualCharsWithMarkup.Any(static vc => vc.Utf16SequenceLength != 1))
-            return;
 
         using var _ = ArrayBuilder<TextSpan>.GetInstance(out var markdownSpans);
 
@@ -152,7 +146,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             // TODO: this algorithm is not actually the one used in roslyn or the roslyn-sdk for parsing a
             // markup file.  for example it will get `[|]` wrong (as that depends on knowing if we're starting
             // or ending an existing span).  Fix this up to follow the actual algorithm we use.
-            switch (((char)vc1.Value, (char)vc2.Value))
+            switch ((vc1.Value, vc2.Value))
             {
                 case ('$', '$'):
                     markdownSpans.Add(FromBounds(vc1, vc2));
@@ -178,8 +172,8 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
                 case ('[', '|'):
                     var vc3 = i + 2 < n ? virtualChars[i + 2] : default;
-                    if ((vc3.Value == ']' && nestedAnonymousSpanCount > 0) ||
-                        (vc3.Value == '}' && nestedNamedSpanCount > 0))
+                    if ((vc3 == ']' && nestedAnonymousSpanCount > 0) ||
+                        (vc3 == '}' && nestedNamedSpanCount > 0))
                     {
                         // not the start of a span, don't classify this '[' specially.
                         break;
@@ -213,7 +207,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             while (seekPoint < n)
             {
                 var colonChar = virtualChars[seekPoint];
-                if (colonChar.Value == ':')
+                if (colonChar == ':')
                 {
                     markdownSpans.Add(FromBounds(virtualChars[start], colonChar));
                     nestedNamedSpanCount++;
@@ -281,12 +275,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
 
         public override int Length => _virtualChars.Length;
 
-        public override char this[int position]
-        {
-            // This cast is safe because we disallowed virtual chars whose Value doesn't fit in a char in
-            // RegisterClassifications.
-            get => (char)_virtualChars[position].Value;
-        }
+        public override char this[int position] => _virtualChars[position];
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
