@@ -31,6 +31,7 @@ var logWriter = new StreamWriter(File.Open(logFilePath, FileMode.Append, FileAcc
     AutoFlush = true
 };
 console.MarkupLineInterpolated($"Logging to [gray]{logFilePath}[/]");
+logWriter.WriteLine();
 log("Starting snap script run");
 
 AppDomain.CurrentDomain.UnhandledException += (s, e) =>
@@ -61,32 +62,19 @@ if (string.IsNullOrEmpty(defaultRepo))
 
 console.MarkupLineInterpolated($"Default repo for [gray]gh[/] CLI is [teal]{defaultRepo}[/]");
 
-// Get current branch.
+// Ask for source and target branches.
 
-var currentBranchName = (await Cli.Wrap("git")
-    .WithArguments(["branch", "--show-current"])
-    .ExecuteBufferedAsync())
-    .StandardOutput
-    .Trim();
+var sourceBranchName = console.Prompt(new TextPrompt<string>("Source branch")
+    .DefaultValue("main"));
 
-console.MarkupLineInterpolated($"Current branch is [teal]{currentBranchName}[/], last commit:");
-
-// Get last commit.
-
-var lastCommit = (await Cli.Wrap("git")
-    .WithArguments(["log", "-1"])
-    .ExecuteBufferedAsync())
-    .StandardOutput
-    .Trim();
-
-console.MarkupLineInterpolated($"[grey]{lastCommit}[/]");
-console.WriteLine();
+var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
+    .DefaultValue("release/insiders"));
 
 // Find last 5 PRs merged to current branch.
 
 var lastMergedPullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
-        "--search", $"is:merged base:{currentBranchName}",
+        "--search", $"is:merged base:{sourceBranchName}",
         "--json", "number,title,mergedAt",
         "--limit", "5"])
     .ExecuteBufferedAsync())
@@ -96,7 +84,7 @@ var lastMergedPullRequests = (await Cli.Wrap("gh")
     .ToArray()
     ?? throw new InvalidOperationException("Null PR list");
 
-console.MarkupLineInterpolated($"Last PRs merged to [teal]{currentBranchName}[/] ([teal]{lastMergedPullRequests.Length}[/]):");
+console.MarkupLineInterpolated($"Last PRs merged to [teal]{sourceBranchName}[/] ([teal]{lastMergedPullRequests.Length}[/]):");
 foreach (var pr in lastMergedPullRequests)
 {
     console.WriteLine($" - {pr}");
@@ -105,7 +93,9 @@ foreach (var pr in lastMergedPullRequests)
 // Find PRs in milestone Next.
 
 var nextMilestonePullRequests = (await Cli.Wrap("gh")
-    .WithArguments(["pr", "list", "--search", "is:merged milestone:Next", "--json", "number,title,mergedAt"])
+    .WithArguments(["pr", "list",
+        "--search", $"is:merged milestone:Next base:{sourceBranchName}",
+        "--json", "number,title,mergedAt"])
     .ExecuteBufferedAsync())
     .StandardOutput
     .ParseJsonList<PullRequest>()
@@ -190,9 +180,6 @@ var remoteUrl = (await Cli.Wrap("git")
 
 console.MarkupLine($"Using remote [green]{remoteName}[/] with URL [gray]{remoteUrl}[/]");
 
-// var sourceBranch = console.Prompt(new TextPrompt<string>("Source branch").DefaultValue("main"));
-// var targetBranch = console.Prompt(new TextPrompt<string>("Target branch").DefaultValue("release/insiders"));
-
 void log(string message)
 {
     logWriter.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
@@ -267,14 +254,26 @@ file static class Extensions
 
 file class LoggingRenderHook(StreamWriter logWriter) : IRenderHook
 {
+    private long _lastOffset;
+
     public IEnumerable<IRenderable> Process(RenderOptions options, IEnumerable<IRenderable> renderables)
     {
+        // Timestamp will be added on each intercepted newline,
+        // but not if someone from the outside wrote to the log in the meantime.
+        if (_lastOffset != logWriter.BaseStream.Position)
+        {
+            logWriter.Write($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] ");
+        }
+
         foreach (var renderable in renderables)
         {
             var segments = renderable.Render(options, int.MaxValue).ToArray();
             var text = string.Concat(segments.Select(static s => s.Text));
-            logWriter.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {text.TrimEnd()}");
+            text = text.ReplaceLineEndings($"\n[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] ");
+            logWriter.Write(text);
         }
+
+        _lastOffset = logWriter.BaseStream.Position;
 
         return renderables;
     }
