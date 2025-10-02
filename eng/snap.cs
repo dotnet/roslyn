@@ -99,7 +99,7 @@ var lastMergedPullRequests = (await Cli.Wrap("gh")
 console.MarkupLineInterpolated($"Last PRs merged to [teal]{currentBranchName}[/] ([teal]{lastMergedPullRequests.Length}[/]):");
 foreach (var pr in lastMergedPullRequests)
 {
-    console.MarkupLineInterpolated($" - {pr}");
+    console.WriteLine($" - {pr}");
 }
 
 // Find PRs in milestone Next.
@@ -116,7 +116,7 @@ var nextMilestonePullRequests = (await Cli.Wrap("gh")
 console.MarkupLineInterpolated($"Found PRs in milestone Next ([teal]{nextMilestonePullRequests.Length}[/])");
 foreach (var pr in nextMilestonePullRequests.Take(5))
 {
-    console.MarkupLineInterpolated($" - {pr}");
+    console.WriteLine($" - {pr}");
 }
 if (nextMilestonePullRequests.Length > 6)
 {
@@ -124,7 +124,7 @@ if (nextMilestonePullRequests.Length > 6)
 }
 if (nextMilestonePullRequests.Length > 5)
 {
-    console.MarkupLineInterpolated($" - {nextMilestonePullRequests[^1]}");
+    console.WriteLine($" - {nextMilestonePullRequests[^1]}");
 }
 console.WriteLine();
 
