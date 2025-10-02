@@ -91,8 +91,14 @@ internal partial struct VirtualCharGreenSequence
     /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
     /// in the span of this sequence.
     /// </summary>
-    public VirtualChar? Find(int tokenStart, int position)
-        => _leafCharacters?.Find(tokenStart, position);
+    public (VirtualChar virtualChar, int index)? Find(int tokenStart, int position)
+    {
+        var result = _leafCharacters?.Find(tokenStart, position);
+        if (result is not var (virtualChar, index))
+            return null;
+
+        return (virtualChar, index - _span.Start);
+    }
 
     [Conditional("DEBUG")]
     public void AssertAdjacentTo(VirtualCharGreenSequence virtualChars)
@@ -143,7 +149,14 @@ internal readonly struct VirtualCharSequence
 
     /// <inheritdoc cref="VirtualCharGreenSequence.Find"/>
     public VirtualChar? Find(int position)
-        => _sequence.Find(_tokenStart, position);
+        => _sequence.Find(_tokenStart, position)?.virtualChar;
+
+    /// <summary>
+    /// Returns the index of the <see cref="VirtualChar"/> in this <see cref="VirtualCharSequence"/> that contains the
+    /// given position. Will return null if this position is not in the span of this sequence.
+    /// </summary>
+    public int? FindIndex(int position)
+        => _sequence.Find(_tokenStart, position)?.index;
 
     /// <inheritdoc cref="VirtualCharGreenSequence.IsDefault"/>
     public bool IsDefault => _sequence.IsDefault;
@@ -165,6 +178,7 @@ internal readonly struct VirtualCharSequence
     /// Combines two <see cref="VirtualCharSequence"/>s, producing a final sequence that points at the same underlying
     /// data, but spans from the start of <paramref name="chars1"/> to the end of <paramref name="chars2"/>.
     /// </summary>  
+    [Obsolete("Only around for ASP.NET compatibility. Do not use anymore.", error: false)]
     public static VirtualCharSequence FromBounds(
         VirtualCharSequence chars1, VirtualCharSequence chars2)
     {

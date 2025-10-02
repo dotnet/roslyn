@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -26,7 +24,7 @@ internal readonly partial struct VirtualCharGreenSequence
 
         public abstract int Length { get; }
         public abstract VirtualCharGreen this[int index] { get; }
-        public abstract VirtualChar? Find(int tokenStart, int position);
+        public abstract (VirtualChar virtualChar, int index)? Find(int tokenStart, int position);
     }
 
     /// <summary>
@@ -39,7 +37,7 @@ internal readonly partial struct VirtualCharGreenSequence
         public override int Length => array.Count;
         public override VirtualCharGreen this[int index] => array[index];
 
-        public override VirtualChar? Find(int tokenStart, int position)
+        public override (VirtualChar virtualChar, int index)? Find(int tokenStart, int position)
         {
             if (array.IsEmpty)
                 return null;
@@ -69,7 +67,7 @@ internal readonly partial struct VirtualCharGreenSequence
             if (index < 0)
                 return null;
 
-            return new(array[index], tokenStart);
+            return (new(array[index], tokenStart), index);
         }
     }
 
@@ -86,13 +84,13 @@ internal readonly partial struct VirtualCharGreenSequence
     {
         public override int Length => data.Length;
 
-        public override VirtualChar? Find(int tokenStart, int position)
+        public override (VirtualChar virtualChar, int index)? Find(int tokenStart, int position)
         {
             var stringIndex = position - tokenStart;
             if (stringIndex < 0 || stringIndex >= data.Length)
                 return null;
 
-            return new(this[stringIndex], tokenStart);
+            return (new(this[stringIndex], tokenStart), stringIndex);
         }
 
         public override VirtualCharGreen this[int index]

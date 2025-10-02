@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -37,10 +38,11 @@ internal readonly struct AspNetCoreVirtualCharSequence
     /// <inheritdoc cref="VirtualCharSequence.Find"/>
     public AspNetCoreVirtualChar? Find(int position) => (_virtualCharSequence.Find(position) is VirtualChar c) ? new(c) : null;
 
-    /// <inheritdoc cref="VirtualCharSequenceExtensions.CreateString"/>
+    /// <inheritdoc cref="VirtualCharSequenceExtensions.CreateString(VirtualCharSequence)"/>
     public string CreateString() => _virtualCharSequence.CreateString();
 
     /// <inheritdoc cref="VirtualCharSequence.FromBounds"/>
+    [Obsolete("Do not use anymore.", error: false)]
     public static AspNetCoreVirtualCharSequence FromBounds(
         AspNetCoreVirtualCharSequence chars1, AspNetCoreVirtualCharSequence chars2)
         => new(VirtualCharSequence.FromBounds(chars1._virtualCharSequence, chars2._virtualCharSequence));
