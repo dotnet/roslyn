@@ -80,7 +80,7 @@ internal readonly partial struct VirtualCharGreenSequence
     /// <param name="data">
     /// The underlying string that we're returning virtual chars from.  Note: this will commonly include things like
     /// quote characters.  Clients who do not want that should then ask for an appropriate <see
-    /// cref="VirtualCharSequence.GetSubSequence"/> back that does not include those characters.
+    /// cref="VirtualCharSequence.Slice"/> back that does not include those characters.
     /// </param>
     private sealed class StringChunk(string data) : Chunk
     {

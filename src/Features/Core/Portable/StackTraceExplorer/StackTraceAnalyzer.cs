@@ -76,7 +76,7 @@ internal static class StackTraceAnalyzer
         {
             if (callstack[i] == '\n')
             {
-                yield return callstack.GetSubSequence(TextSpan.FromBounds(position, i));
+                yield return callstack.Slice(position..i);
 
                 // +1 to skip over the \n character
                 position = i + 1;
@@ -85,7 +85,7 @@ internal static class StackTraceAnalyzer
 
         if (position < callstack.Length)
         {
-            yield return callstack.GetSubSequence(TextSpan.FromBounds(position, callstack.Length));
+            yield return callstack.Slice(position..);
         }
     }
 
@@ -109,6 +109,6 @@ internal static class StackTraceAnalyzer
             end--;
         }
 
-        return virtualChars.GetSubSequence(TextSpan.FromBounds(start, end + 1));
+        return virtualChars.Slice(start..(end + 1));
     }
 }
