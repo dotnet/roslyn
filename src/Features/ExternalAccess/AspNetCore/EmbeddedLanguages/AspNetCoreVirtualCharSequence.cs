@@ -35,7 +35,7 @@ internal readonly struct AspNetCoreVirtualCharSequence
     /// <inheritdoc cref="VirtualCharSequence.Slice"/>
     public AspNetCoreVirtualCharSequence GetSubSequence(TextSpan span) => new(_virtualCharSequence[span.Start..span.End]);
 
-    /// <inheritdoc cref="VirtualCharSequence.Find"/>
+    /// <inheritdoc cref="VirtualCharSequenceExtensions.Find"/>
     public AspNetCoreVirtualChar? Find(int position) => (_virtualCharSequence.Find(position) is VirtualChar c) ? new(c) : null;
 
     /// <inheritdoc cref="VirtualCharSequenceExtensions.CreateString(VirtualCharSequence)"/>
