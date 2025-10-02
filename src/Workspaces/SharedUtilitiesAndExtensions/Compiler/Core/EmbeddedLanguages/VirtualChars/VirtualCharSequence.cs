@@ -180,12 +180,6 @@ internal readonly struct VirtualCharSequence
     /// <inheritdoc cref="VirtualCharGreenSequence.IsDefault"/>
     public bool IsDefault => _sequence.IsDefault;
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.IsEmpty"/>
-    public bool IsEmpty => _sequence.IsEmpty;
-
-    /// <inheritdoc cref="VirtualCharGreenSequence.IsDefaultOrEmpty"/>
-    public bool IsDefaultOrEmpty => _sequence.IsDefaultOrEmpty;
-
     /// <inheritdoc cref="VirtualCharGreenSequence.Slice"/>
     public VirtualCharSequence Slice(int start, int length)
        => new(_tokenStart, _sequence.Slice(start, length));
@@ -229,6 +223,12 @@ internal readonly struct VirtualCharSequence
 
 internal static class VirtualCharSequenceExtensions
 {
+    /// <inheritdoc cref="VirtualCharGreenSequence.IsEmpty"/>
+    public static bool IsEmpty(this VirtualCharSequence sequence) => sequence.Length == 0;
+
+    /// <inheritdoc cref="VirtualCharGreenSequence.IsDefaultOrEmpty"/>
+    public static bool IsDefaultOrEmpty(this VirtualCharSequence sequence) => sequence.IsDefault || sequence.IsEmpty();
+
     public static bool Contains(this VirtualCharSequence sequence, VirtualChar @char)
         => sequence.IndexOf(@char) >= 0;
 

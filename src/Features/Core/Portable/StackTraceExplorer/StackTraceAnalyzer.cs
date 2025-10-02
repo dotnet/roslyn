@@ -50,7 +50,7 @@ internal static class StackTraceAnalyzer
             // Specifically if we ever want to add a copy feature to copy back contents from a frame
             var trimmedLine = Trim(line);
 
-            if (trimmedLine.IsEmpty)
+            if (trimmedLine.IsEmpty())
             {
                 continue;
             }

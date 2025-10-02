@@ -44,7 +44,7 @@ internal partial struct RegexParser
             _autoNumber = 1;
             _recursionDepth = 0;
 
-            _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
+            _captureNumberToSpan.Add(0, text.IsEmpty() ? default : GetSpan(text));
         }
 
         public static (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(

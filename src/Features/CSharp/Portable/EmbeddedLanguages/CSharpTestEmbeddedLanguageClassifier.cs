@@ -38,7 +38,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
             return;
 
         var virtualCharsWithMarkup = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-        if (virtualCharsWithMarkup.IsDefaultOrEmpty)
+        if (virtualCharsWithMarkup.IsDefaultOrEmpty())
             return;
 
         // Note: if we get here, then we know that the token is well formed (TryConvertToVirtualChars will fail if
@@ -80,7 +80,7 @@ internal sealed class CSharpTestEmbeddedLanguageClassifier() : IEmbeddedLanguage
                 }
             }
         }
-        else if (!virtualCharsWithoutMarkup.IsEmpty)
+        else if (!virtualCharsWithoutMarkup.IsEmpty())
         {
             context.AddClassification(
                 ClassificationTypeNames.TestCode,

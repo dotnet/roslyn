@@ -106,7 +106,7 @@ internal partial struct JsonParser
     {
         try
         {
-            if (text.IsDefaultOrEmpty)
+            if (text.IsDefaultOrEmpty())
                 return null;
 
             return new JsonParser(text).ParseTree(options);
