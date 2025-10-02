@@ -194,7 +194,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
                     allowableAdjustments: null, document,
                     CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup), cancellationToken).ConfigureAwait(false);
 
-            if (proposedEdits.IsDefault || adjustmentResults.IsDefaultOrEmpty)
+            if (proposedEdits.IsDefault || adjustmentResults.IsDefault)
             {
                 // No changes were made to the proposal.  Just add the original edits.
                 finalEdits.AddRange(editGroup);
