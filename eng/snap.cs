@@ -155,7 +155,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     // Find all milestones.
 
     var milestones = (await Cli.Wrap("gh")
-        .WithArguments(["api", "repos/{owner}/{repo}/milestones", "--jq", ".[] | {number:.number,title:.title}"])
+        .WithArguments(["api", "repos/{owner}/{repo}/milestones", "--paginate", "--jq", ".[] | {number:.number,title:.title}"])
         .ExecuteBufferedAsync())
         .StandardOutput
         .ParseJsonNewLineDelimitedList<Milestone>()
