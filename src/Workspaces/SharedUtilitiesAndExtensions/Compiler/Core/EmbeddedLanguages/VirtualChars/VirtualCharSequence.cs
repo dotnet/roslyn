@@ -88,16 +88,13 @@ internal partial struct VirtualCharGreenSequence
         => new(_leafCharacters, new TextSpan(_span.Start + start, length));
 
     /// <summary>
-    /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
-    /// in the span of this sequence.
+    /// Finds the virtual char in this sequence that contains (not just intersects) the position.  Will return null if
+    /// there is no such virtual char in this sequence.
     /// </summary>
     public (VirtualChar virtualChar, int index)? Find(int tokenStart, int position)
     {
         var result = _leafCharacters?.Find(tokenStart, position);
-        if (result is not var (virtualChar, index))
-            return null;
-
-        return (virtualChar, index - _span.Start);
+        return result is var (virtualChar, index) ? (virtualChar, index - _span.Start) : null;
     }
 
     [Conditional("DEBUG")]
