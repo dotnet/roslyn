@@ -18,6 +18,8 @@ using CliWrap.Buffered;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
+const string nextMilestoneName = "Next";
+
 var console = AnsiConsole.Console;
 
 // Setup audit logging.
@@ -106,7 +108,7 @@ var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumb
 
 // Find PRs in milestone Next.
 
-var searchFilter = $"is:merged milestone:Next base:{sourceBranchName}";
+var searchFilter = $"is:merged milestone:{nextMilestoneName} base:{sourceBranchName}";
 var milestonePullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
         "--search", searchFilter,
@@ -116,9 +118,9 @@ var milestonePullRequests = (await Cli.Wrap("gh")
     .ParseJsonList<PullRequest>()
     ?.OrderByDescending(static pr => pr.MergedAt)
     .ToArray()
-    ?? throw new InvalidOperationException("Null PR list in milestone Next");
+    ?? throw new InvalidOperationException($"Null PR list in milestone {nextMilestoneName}");
 
-console.MarkupLineInterpolated($"Found PRs in milestone Next ([teal]{milestonePullRequests.Length}[/])");
+console.MarkupLineInterpolated($"Found PRs in milestone {nextMilestoneName} ([teal]{milestonePullRequests.Length}[/])");
 foreach (var pr in milestonePullRequests.Take(5))
 {
     console.WriteLine($" - {pr}");
@@ -144,7 +146,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
             .DefaultValue(defaultLastMilestonePr.Number)
             .Validate(prNumber => milestonePullRequests.Any(pr => pr.Number == prNumber)
                 ? ValidationResult.Success()
-                : ValidationResult.Error($"No PR with number {prNumber} found in milestone Next")));
+                : ValidationResult.Error($"No PR with number {prNumber} found in milestone {nextMilestoneName}")));
         lastMilestonePr = milestonePullRequests.First(pr => pr.Number == lastPrNumber);
     }
     var lastMilestonePrIndex = milestonePullRequests.IndexOf(lastMilestonePr);
