@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim tuple = Await service.TryAdjustProposalAsync(
-                    Nothing, originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
+                    allowableAdjustments:=Nothing, originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
 
                 Dim adjustedChanges = tuple.TextChanges
                 Dim format = tuple.Format
