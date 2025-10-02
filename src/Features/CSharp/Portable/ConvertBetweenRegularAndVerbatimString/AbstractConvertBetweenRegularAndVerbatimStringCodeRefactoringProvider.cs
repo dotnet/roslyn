@@ -108,10 +108,10 @@ internal abstract class AbstractConvertBetweenRegularAndVerbatimStringCodeRefact
             // just build the verbatim string by concatenating all the chars in the original
             // string.  The only exceptions are double-quotes which need to be doubled up in the
             // final string, and curlies which need to be doubled in interpolations.
-            ch.AppendTo(sb);
+            sb.Append(ch);
 
             if (ShouldDouble(ch, isInterpolation))
-                ch.AppendTo(sb);
+                sb.Append(ch);
         }
 
         static bool ShouldDouble(VirtualChar ch, bool isInterpolation)
@@ -144,11 +144,11 @@ internal abstract class AbstractConvertBetweenRegularAndVerbatimStringCodeRefact
             }
             else
             {
-                ch.AppendTo(sb);
+                sb.Append(ch);
 
                 // if it's an interpolation, we need to double-up open/close braces.
                 if (isInterpolation && IsOpenOrCloseBrace(ch))
-                    ch.AppendTo(sb);
+                    sb.Append(ch);
             }
         }
     }
