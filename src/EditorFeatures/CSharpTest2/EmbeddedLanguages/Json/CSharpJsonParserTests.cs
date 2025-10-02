@@ -494,7 +494,7 @@ public partial class CSharpJsonParserTests
                 """,
                 JsonOptions.Loose, conversionFailureOk: false);
         Assert.False(token.IsMissing);
-        Assert.False(chars.IsDefaultOrEmpty);
+        Assert.False(chars.IsDefaultOrEmpty());
         Assert.Null(tree);
     }
 }
