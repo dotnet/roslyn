@@ -160,27 +160,6 @@ if (nextMilestonePullRequests is [var defaultLastPr, ..])
 
 return 0;
 
-var remoteNames = (await Cli.Wrap("git")
-    .WithArguments(["remote"])
-    .ExecuteBufferedAsync())
-    .StandardOutput
-    .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-var defaultRemoteName = remoteNames.FirstOrDefault(static n => n is "upstream")
-    ?? remoteNames.FirstOrDefault(static n => n is "origin")
-    ?? remoteNames.FirstOrDefault(static n => n is "dotnet")
-    ?? remoteNames.FirstOrDefault()
-    ?? throw new InvalidOperationException("No git remotes found");
-var remoteName = console.Prompt(new TextPrompt<string>("Remote to use")
-    .AddChoices(remoteNames)
-    .DefaultValue(defaultRemoteName));
-
-var remoteUrl = (await Cli.Wrap("git")
-    .WithArguments(["remote", "get-url", remoteName])
-    .ExecuteBufferedAsync())
-    .StandardOutput;
-
-console.MarkupLine($"Using remote [green]{remoteName}[/] with URL [gray]{remoteUrl}[/]");
-
 void log(string message)
 {
     logWriter.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
