@@ -72,7 +72,10 @@ public sealed class CompletionProviderOrderTests
             typeof(ReferenceDirectiveCompletionProvider),
 
             // File-based programs providers
+            typeof(SdkAppDirectiveCompletionProvider),
             typeof(PropertyAppDirectiveCompletionProvider),
+            typeof(PropertyAppDirectiveCompletionProvider),
+            typeof(ProjectAppDirectiveCompletionProvider),
 
             // Marker for end of built-in completion providers
             typeof(LastBuiltInCompletionProvider),
