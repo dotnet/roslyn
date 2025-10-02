@@ -26,4 +26,12 @@ internal sealed class WorkspaceServerCapabilities
     [JsonPropertyName("fileOperations")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public WorkspaceFileOperationsServerCapabilities? FileOperations { get; init; }
+
+    /// <summary>
+    /// The server is interested in workspace/textDocumentContent requests.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    [JsonPropertyName("textDocumentContent")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextDocumentContentOptions? TextDocumentContent { get; init; }
 }
