@@ -72,10 +72,12 @@ var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
 
 // Find last 5 PRs merged to current branch.
 
+const string prJsonFields = "number,title,mergedAt,mergeCommit";
+
 var lastMergedPullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
         "--search", $"is:merged base:{sourceBranchName}",
-        "--json", "number,title,mergedAt",
+        "--json", prJsonFields,
         "--limit", "5"])
     .ExecuteBufferedAsync())
     .StandardOutput
@@ -90,13 +92,25 @@ foreach (var pr in lastMergedPullRequests)
     console.WriteLine($" - {pr}");
 }
 
+var lastPrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to include")
+    .DefaultValueIfNotNull(lastMergedPullRequests is [var defaultLastPr, ..] ? defaultLastPr.Number : null));
+var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumber)
+    ?? (await Cli.Wrap("gh")
+    .WithArguments(["pr", "view", $"{lastPrNumber}",
+        "--json", prJsonFields])
+    .ExecuteBufferedAsync())
+    .StandardOutput
+    .ParseJsonList<PullRequest>()
+    ?.FirstOrDefault()
+    ?? throw new InvalidOperationException($"Cannot find PR #{lastPrNumber}");
+
 // Find PRs in milestone Next.
 
 var searchFilter = $"is:merged milestone:Next base:{sourceBranchName}";
-var nextMilestonePullRequests = (await Cli.Wrap("gh")
+var milestonePullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
         "--search", searchFilter,
-        "--json", "number,title,mergedAt"])
+        "--json", prJsonFields])
     .ExecuteBufferedAsync())
     .StandardOutput
     .ParseJsonList<PullRequest>()
@@ -104,32 +118,37 @@ var nextMilestonePullRequests = (await Cli.Wrap("gh")
     .ToArray()
     ?? throw new InvalidOperationException("Null PR list in milestone Next");
 
-console.MarkupLineInterpolated($"Found PRs in milestone Next ([teal]{nextMilestonePullRequests.Length}[/])");
-foreach (var pr in nextMilestonePullRequests.Take(5))
+console.MarkupLineInterpolated($"Found PRs in milestone Next ([teal]{milestonePullRequests.Length}[/])");
+foreach (var pr in milestonePullRequests.Take(5))
 {
     console.WriteLine($" - {pr}");
 }
-if (nextMilestonePullRequests.Length > 6)
+if (milestonePullRequests.Length > 6)
 {
     console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --search '{searchFilter}'[/]");
 }
-if (nextMilestonePullRequests.Length > 5)
+if (milestonePullRequests.Length > 5)
 {
-    console.WriteLine($" - {nextMilestonePullRequests[^1]}");
+    console.WriteLine($" - {milestonePullRequests[^1]}");
 }
 console.WriteLine();
 
-if (nextMilestonePullRequests is [var defaultLastPr, ..])
+if (milestonePullRequests is [var defaultLastMilestonePr, ..])
 {
     // Determine last PR to include.
 
-    var lastPrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to include")
-        .DefaultValue(defaultLastPr.Number)
-        .Validate(prNumber => nextMilestonePullRequests.Any(pr => pr.Number == prNumber)
-            ? ValidationResult.Success()
-            : ValidationResult.Error($"No PR with number {prNumber} found in milestone Next")));
-    var lastPrIndex = nextMilestonePullRequests.IndexOf(nextMilestonePullRequests.First(pr => pr.Number == lastPrNumber));
-    Debug.Assert(lastPrIndex >= 0);
+    var lastMilestonePr = milestonePullRequests.FirstOrDefault(pr => pr.Number == lastPr.Number);
+    if (lastMilestonePr is null)
+    {
+        var lastMilestonePrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to include")
+            .DefaultValue(defaultLastMilestonePr.Number)
+            .Validate(prNumber => milestonePullRequests.Any(pr => pr.Number == prNumber)
+                ? ValidationResult.Success()
+                : ValidationResult.Error($"No PR with number {prNumber} found in milestone Next")));
+        lastMilestonePr = milestonePullRequests.First(pr => pr.Number == lastPrNumber);
+    }
+    var lastMilestonePrIndex = milestonePullRequests.IndexOf(lastMilestonePr);
+    Debug.Assert(lastMilestonePrIndex >= 0);
 
     // Find all milestones.
 
@@ -154,7 +173,7 @@ if (nextMilestonePullRequests is [var defaultLastPr, ..])
             .DefaultValue(newestMilestone.Title));
 
         // TODO: Schedule to move PRs to the selected milestone.
-        console.MarkupLineInterpolated($"[blue]Added to plan:[/] Move [teal]{nextMilestonePullRequests.Length - lastPrIndex}[/] PRs to milestone [teal]{targetMilestone}[/]");
+        console.MarkupLineInterpolated($"[blue]Added to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs to milestone [teal]{targetMilestone}[/]");
     }
 }
 
@@ -165,9 +184,14 @@ void log(string message)
     logWriter.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
 }
 
-file sealed record PullRequest(int Number, string Title, DateTimeOffset MergedAt)
+file sealed record PullRequest(int Number, string Title, DateTimeOffset MergedAt, Commit MergeCommit)
 {
     public override string ToString() => $"#{Number}: {Title} ({MergedAt})";
+}
+
+file sealed record Commit(string Oid)
+{
+    public override string ToString() => Oid;
 }
 
 file sealed record Milestone(int Number, string Title)
@@ -228,6 +252,14 @@ file static class Extensions
             }
 
             return result;
+        }
+    }
+
+    extension<T>(TextPrompt<T> prompt) where T : struct
+    {
+        public TextPrompt<T> DefaultValueIfNotNull(T? value)
+        {
+            return value is { } v ? prompt.DefaultValue(v) : prompt;
         }
     }
 }
