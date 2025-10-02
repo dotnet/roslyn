@@ -8205,10 +8205,4 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureCollectionExpressionArguments" xml:space="preserve">
     <value>collection expression arguments</value>
   </data>
-  <data name="ERR_CollectionArgumentsMustBeFirst" xml:space="preserve">
-    <value>Collection argument element must be the first element.</value>
-  </data>
-  <data name="ERR_CollectionArgumentsNotSupportedForType" xml:space="preserve">
-    <value>Collection arguments are not supported for type '{0}'.</value>
-  </data>
 </root>

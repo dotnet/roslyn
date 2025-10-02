@@ -492,16 +492,6 @@
         <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}', '{1}' üyesini uygulayamaz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
-        <source>Collection argument element must be the first element.</source>
-        <target state="new">Collection argument element must be the first element.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
-        <source>Collection arguments are not supported for type '{0}'.</source>
-        <target state="new">Collection arguments are not supported for type '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute yöntemi adı geçersiz.</target>

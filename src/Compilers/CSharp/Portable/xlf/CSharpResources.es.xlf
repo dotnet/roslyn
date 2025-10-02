@@ -492,16 +492,6 @@
         <target state="translated">"{0}" no implementa el miembro de interfaz "{1}". "{2}" no puede implementar "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
-        <source>Collection argument element must be the first element.</source>
-        <target state="new">Collection argument element must be the first element.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
-        <source>Collection arguments are not supported for type '{0}'.</source>
-        <target state="new">Collection arguments are not supported for type '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">El nombre del método CollectionBuilderAttribute no es válido.</target>
