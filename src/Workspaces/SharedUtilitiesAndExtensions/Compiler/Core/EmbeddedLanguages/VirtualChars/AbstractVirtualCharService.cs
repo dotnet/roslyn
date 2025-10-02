@@ -219,7 +219,7 @@ internal abstract partial class AbstractVirtualCharService : IVirtualCharService
         if (textLength == result.Count)
         {
             var sequence = VirtualCharGreenSequence.Create(tokenText);
-            return sequence.Slice(startIndexInclusive..endIndexExclusive);
+            return sequence[startIndexInclusive..endIndexExclusive];
         }
 
         return VirtualCharGreenSequence.Create(result.ToImmutable());
