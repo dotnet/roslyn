@@ -187,7 +187,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
             builder.Append('"', quoteDelimiterCount);
 
             foreach (var ch in characters)
-                ch.AppendTo(builder);
+                builder.Append(ch);
 
             builder.Append('"', quoteDelimiterCount);
 
@@ -220,7 +220,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
                 var ch = characters[i];
                 if (IsCSharpNewLine(ch))
                 {
-                    ch.AppendTo(builder);
+                    builder.Append(ch);
                     atStartOfLine = true;
                     continue;
                 }
@@ -231,7 +231,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
                     atStartOfLine = false;
                 }
 
-                ch.AppendTo(builder);
+                builder.Append(ch);
             }
 
             builder.Append(formattingOptions.NewLine);
