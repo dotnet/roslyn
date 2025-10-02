@@ -279,7 +279,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
             else
             {
                 // Normal line.  Skip the common whitespace.
-                AddRange(result, line.Skip(commonWhitespacePrefix));
+                AddRange(result, line.Slice(commonWhitespacePrefix..));
             }
         }
 
@@ -325,7 +325,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         while (current < length && IsCSharpWhitespace(leadingWhitespace1[current]) && leadingWhitespace1[current].Value == leadingWhitespace2[current].Value)
             current++;
 
-        return leadingWhitespace1.GetSubSequence(TextSpan.FromBounds(0, current));
+        return leadingWhitespace1.Slice(0..current);
     }
 
     private static VirtualCharSequence GetLeadingWhitespace(VirtualCharSequence line)
@@ -334,7 +334,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         while (current < line.Length && IsCSharpWhitespace(line[current]))
             current++;
 
-        return line.GetSubSequence(TextSpan.FromBounds(0, current));
+        return line.Slice(0..current);
     }
 
     private static void BreakIntoLines(VirtualCharSequence characters, ArrayBuilder<VirtualCharSequence> lines)
@@ -356,7 +356,7 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
         if (end != characters.Length)
             end += IsCarriageReturnNewLine(characters, end) ? 2 : 1;
 
-        var result = characters.GetSubSequence(TextSpan.FromBounds(index, end));
+        var result = characters.Slice(index..end);
         index = end;
         return result;
     }

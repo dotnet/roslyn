@@ -86,8 +86,15 @@ internal partial struct VirtualCharGreenSequence
     /// <summary>
     /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
     /// </summary>
-    public VirtualCharGreenSequence GetSubSequence(TextSpan span)
-       => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
+    public VirtualCharGreenSequence Slice(Range range)
+    {
+        var start = range.Start.IsFromEnd ? this.Length - range.Start.Value : range.Start.Value;
+        var end = range.End.IsFromEnd ? this.Length - range.End.Value : range.End.Value;
+
+        var finalLength = end - start;
+
+        return new(_leafCharacters, new TextSpan(_span.Start + start, finalLength));
+    }
 
     /// <summary>
     /// Finds the virtual char in this sequence that contains the position.  Will return null if this position is not
@@ -95,9 +102,6 @@ internal partial struct VirtualCharGreenSequence
     /// </summary>
     public VirtualChar? Find(int tokenStart, int position)
         => _leafCharacters?.Find(tokenStart, position);
-
-    public VirtualCharGreenSequence Skip(int count)
-        => this.GetSubSequence(TextSpan.FromBounds(count, this.Length));
 
     [Conditional("DEBUG")]
     public void AssertAdjacentTo(VirtualCharGreenSequence virtualChars)
@@ -189,13 +193,9 @@ internal readonly struct VirtualCharSequence
     /// <inheritdoc cref="VirtualCharGreenSequence.IsDefaultOrEmpty"/>
     public bool IsDefaultOrEmpty => _sequence.IsDefaultOrEmpty;
 
-    /// <inheritdoc cref="VirtualCharGreenSequence.GetSubSequence"/>
-    public VirtualCharSequence GetSubSequence(TextSpan span)
-       => new(_tokenStart, _sequence.GetSubSequence(span));
-
-    /// <inheritdoc cref="VirtualCharGreenSequence.Skip"/>
-    public VirtualCharSequence Skip(int count)
-        => new(_tokenStart, _sequence.Skip(count));
+    /// <inheritdoc cref="VirtualCharGreenSequence.Slice"/>
+    public VirtualCharSequence Slice(Range range)
+       => new(_tokenStart, _sequence.Slice(range));
 
     public Enumerator GetEnumerator()
         => new(this);
@@ -324,6 +324,6 @@ internal static class VirtualCharSequenceExtensions
             start++;
         }
 
-        return sequence.GetSubSequence(TextSpan.FromBounds(start, sequence.Length));
+        return sequence.Slice(start..);
     }
 }

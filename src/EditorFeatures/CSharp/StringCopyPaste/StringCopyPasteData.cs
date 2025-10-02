@@ -114,7 +114,7 @@ internal sealed class StringCopyPasteData(ImmutableArray<StringCopyPasteContent>
         var lastCharIndexInclusive = virtualChars.IndexOf(lastOverlappingChar.Value);
 
         // Grab that subsequence of characters and get the final interpreted string for it.
-        var subsequence = virtualChars.GetSubSequence(TextSpan.FromBounds(firstCharIndexInclusive, lastCharIndexInclusive + 1));
+        var subsequence = virtualChars.Slice(firstCharIndexInclusive..(lastCharIndexInclusive + 1));
         normalizedText = subsequence.CreateString();
         return true;
     }
