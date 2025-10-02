@@ -587,11 +587,32 @@
   <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
     <value>Convert all extension methods in '{0}' to extension</value>
   </data>
+  <data name="Hash_colon_sdk__Name_at_Version" xml:space="preserve">
+    <value>#:sdk Name@Version</value>
+    <comment>{Locked="#:sdk"} 'Name' and 'Version' are placeholders that user will substitute out with an actual SDK name and version.</comment>
+  </data>
+  <data name="Adds_an_SDK_reference" xml:space="preserve">
+    <value>Adds an SDK reference.</value>
+  </data>
   <data name="Hash_colon_property__Name_equals_Value" xml:space="preserve">
     <value>#:property Name=Value</value>
-    <comment>'Name' and 'Value' are placeholders that user will substitute out with an actual property name and value.</comment>
+    <comment>{Locked="#:property"} 'Name' and 'Value' are placeholders that user will substitute out with an actual property name and value.</comment>
   </data>
   <data name="Defines_a_build_property" xml:space="preserve">
     <value>Defines a build property.</value>
+  </data>
+  <data name="Hash_colon_package__Name_at_Version" xml:space="preserve">
+    <value>#:package Name@Version</value>
+    <comment>{Locked="#:package"} 'Name' and 'Version' are placeholders that user will substitute out with an actual package name and version.</comment>
+  </data>
+  <data name="Adds_a_NuGet_package_reference" xml:space="preserve">
+    <value>Adds a NuGet package reference.</value>
+  </data>
+  <data name="Hash_colon_project__path" xml:space="preserve">
+    <value>#:project path</value>
+    <comment>{Locked="#:project"} 'path' is a placeholder that user will substitute out with an actual project path.</comment>
+  </data>
+  <data name="Adds_a_project_reference" xml:space="preserve">
+    <value>Adds a project reference.</value>
   </data>
 </root>

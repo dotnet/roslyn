@@ -17,6 +17,21 @@
         <target state="translated">Geschweifte Klammern für einzeilige Steuerungsanweisungen hinzufügen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_NuGet_package_reference">
+        <source>Adds a NuGet package reference.</source>
+        <target state="new">Adds a NuGet package reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_a_project_reference">
+        <source>Adds a project reference.</source>
+        <target state="new">Adds a project reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_an_SDK_reference">
+        <source>Adds an SDK reference.</source>
+        <target state="new">Adds an SDK reference.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_0">
         <source>Apply '{0}'</source>
         <target state="translated">Anwenden von "{0}"</target>
@@ -212,10 +227,25 @@
         <target state="translated">Globale "Using"-Anweisungen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Hash_colon_package__Name_at_Version">
+        <source>#:package Name@Version</source>
+        <target state="new">#:package Name@Version</target>
+        <note>{Locked="#:package"} 'Name' and 'Version' are placeholders that user will substitute out with an actual package name and version.</note>
+      </trans-unit>
+      <trans-unit id="Hash_colon_project__path">
+        <source>#:project path</source>
+        <target state="new">#:project path</target>
+        <note>{Locked="#:project"} 'path' is a placeholder that user will substitute out with an actual project path.</note>
+      </trans-unit>
       <trans-unit id="Hash_colon_property__Name_equals_Value">
         <source>#:property Name=Value</source>
         <target state="new">#:property Name=Value</target>
-        <note>'Name' and 'Value' are placeholders that user will substitute out with an actual property name and value.</note>
+        <note>{Locked="#:property"} 'Name' and 'Value' are placeholders that user will substitute out with an actual property name and value.</note>
+      </trans-unit>
+      <trans-unit id="Hash_colon_sdk__Name_at_Version">
+        <source>#:sdk Name@Version</source>
+        <target state="new">#:sdk Name@Version</target>
+        <note>{Locked="#:sdk"} 'Name' and 'Version' are placeholders that user will substitute out with an actual SDK name and version.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>

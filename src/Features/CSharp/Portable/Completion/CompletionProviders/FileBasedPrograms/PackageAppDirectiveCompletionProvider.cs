@@ -17,22 +17,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(PropertyAppDirectiveCompletionProvider), LanguageNames.CSharp)]
-[ExtensionOrder(After = nameof(SdkAppDirectiveCompletionProvider))]
+[ExportCompletionProvider(nameof(PackageAppDirectiveCompletionProvider), LanguageNames.CSharp)]
+[ExtensionOrder(After = nameof(PropertyAppDirectiveCompletionProvider))]
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class PropertyAppDirectiveCompletionProvider() : AbstractAppDirectiveCompletionProvider
+internal sealed class PackageAppDirectiveCompletionProvider() : AbstractAppDirectiveCompletionProvider
 {
-    protected override string DirectiveKind => "property";
+    protected override string DirectiveKind => "package";
 
     protected sealed override void AddDirectiveKindCompletion(CompletionContext context)
     {
         context.AddItem(CommonCompletionItem.Create(DirectiveKind, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.Keyword,
             description: [
-                new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Hash_colon_property__Name_equals_Value),
+                new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Hash_colon_package__Name_at_Version),
                 new(SymbolDisplayPartKind.LineBreak, symbol: null, ""),
-                new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Defines_a_build_property),
+                new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Adds_a_NuGet_package_reference),
                 ]));
     }
 }
