@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -44,7 +45,7 @@ internal interface ICopilotProposalAdjusterService : ILanguageService
 {
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        ImmutableHashSet<string>? allowableAdjustments, Document document,
+        ImmutableHashSet<string> allowableAdjustments, Document document,
         ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
@@ -52,7 +53,7 @@ internal interface IRemoteCopilotProposalAdjusterService
 {
     /// <inheritdoc cref="ICopilotProposalAdjusterService.TryAdjustProposalAsync"/>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        ImmutableHashSet<string>? allowableAdjustments, Checksum solutionChecksum,
+        ImmutableHashSet<string> allowableAdjustments, Checksum solutionChecksum,
         DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
@@ -75,29 +76,8 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     protected abstract Task<Document> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken);
 
-    private ImmutableHashSet<string>? _allowableAdjustments = null;
-
-    private ImmutableHashSet<string> GetAllowableAdjustmentsFromOptions()
-    {
-        if (_allowableAdjustments is not null)
-            return _allowableAdjustments;
-
-        // NOTE: This must be run in the VS process. If run in the OOP process
-        // the options will receive their default values.
-        var builder = ImmutableHashSet.CreateBuilder<string>();
-        if (globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
-            builder.Add(ProposalAdjusterKinds.AddMissingTokens);
-        if (globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
-            builder.Add(ProposalAdjusterKinds.AddMissingImports);
-        if (globalOptions.GetOption(CopilotOptions.FixCodeFormat))
-            builder.Add(ProposalAdjusterKinds.FormatCode);
-        _allowableAdjustments = builder.ToImmutableHashSet();
-
-        return _allowableAdjustments;
-    }
-
     public async ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        ImmutableHashSet<string>? allowableAdjustments, Document document,
+        ImmutableHashSet<string> allowableAdjustments, Document document,
         ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
         if (normalizedChanges.IsDefaultOrEmpty)
@@ -106,9 +86,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
-            if (allowableAdjustments is null)
-                allowableAdjustments = this.GetAllowableAdjustmentsFromOptions();
-
             var result = await client.TryInvokeAsync<IRemoteCopilotProposalAdjusterService, ProposalAdjustmentResult>(
                 document.Project,
                 (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(
@@ -123,10 +100,12 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     }
 
     private async Task<ProposalAdjustmentResult> TryAdjustProposalInCurrentProcessAsync(
-        ImmutableHashSet<string>? allowableAdjustments, Document originalDocument,
+        ImmutableHashSet<string> allowableAdjustments, Document originalDocument,
         ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
-        if (allowableAdjustments is null || allowableAdjustments.IsEmpty)
+        Debug.Assert(allowableAdjustments is not null);
+
+        if (allowableAdjustments.IsEmpty)
             return new(normalizedChanges, Format: false, AdjustmentResults: default);
 
         if (normalizedChanges.IsDefaultOrEmpty)

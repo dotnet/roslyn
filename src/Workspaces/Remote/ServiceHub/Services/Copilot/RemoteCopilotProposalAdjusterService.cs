@@ -22,7 +22,7 @@ internal sealed partial class RemoteCopilotProposalAdjusterService(
     }
 
     public ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        ImmutableHashSet<string>? allowableAdjustments,
+        ImmutableHashSet<string> allowableAdjustments,
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>

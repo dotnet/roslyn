@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,10 +30,24 @@ namespace Microsoft.CodeAnalysis.Copilot;
 [Obsolete("This is a preview api and subject to change")]
 [ContentType(ContentTypeNames.CSharpContentType)]
 [ContentType(ContentTypeNames.VisualBasicContentType)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProviderBase
+internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderBase
 {
+    private readonly ImmutableHashSet<string> _allowableAdjustments;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RoslynProposalAdjusterProvider(IGlobalOptionService globalOptions)
+    {
+        var builder = ImmutableHashSet.CreateBuilder<string>();
+        if (globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
+            builder.Add(ProposalAdjusterKinds.AddMissingTokens);
+        if (globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
+            builder.Add(ProposalAdjusterKinds.AddMissingImports);
+        if (globalOptions.GetOption(CopilotOptions.FixCodeFormat))
+            builder.Add(ProposalAdjusterKinds.FormatCode);
+        _allowableAdjustments = builder.ToImmutableHashSet();
+    }
+
     public override Task<ProposalBase> AdjustProposalBeforeDisplayAsync(ProposalBase proposal, string providerName, CancellationToken cancellationToken)
         => AdjustProposalAsync(proposal, providerName, before: true, cancellationToken);
 
@@ -191,7 +206,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
             var (proposedEdits, formatGroup, adjustmentResults) = proposalAdjusterService is null
                 ? default
                 : await proposalAdjusterService.TryAdjustProposalAsync(
-                    allowableAdjustments: null, document,
+                    this._allowableAdjustments, document,
                     CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup), cancellationToken).ConfigureAwait(false);
 
             if (proposedEdits.IsDefault || adjustmentResults.IsDefault)
