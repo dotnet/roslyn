@@ -127,7 +127,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
         if (allowableAdjustments is null || allowableAdjustments.IsEmpty)
-            return default;
+            return new(normalizedChanges, Format: false, AdjustmentResults: default);
 
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
