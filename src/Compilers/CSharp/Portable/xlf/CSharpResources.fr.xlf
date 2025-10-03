@@ -2702,6 +2702,11 @@
         <target state="translated">opérateurs définis par l’utilisateur vérifiés</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="new">collection expression arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
         <target state="translated">expressions de collection</target>
@@ -11140,7 +11145,7 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
         <target state="translated">L'opérateur 'await' peut seulement être utilisé dans une expression de requête dans la première expression de collection de la clause 'from' initiale ou dans l'expression de collection d'une clause 'join'</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Dans la mesure où cet appel n'est pas attendu, l'exécution de la méthode actuelle continue avant la fin de l'appel. Envisagez d'appliquer l'opérateur 'await' au résultat de l'appel.</target>
         <note />

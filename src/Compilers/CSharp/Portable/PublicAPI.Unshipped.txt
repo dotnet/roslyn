@@ -36,6 +36,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionMemberCrefSyntax.WithTypeArgumentL
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExtensionBlockDeclaration = 9079 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExtensionKeyword = 8451 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExtensionMemberCref = 8607 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithElement = 9081 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExtensionBlockDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExtensionMemberCref(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionMemberCrefSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionBlockDeclarationSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
@@ -90,3 +91,17 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitIgnoredDirectiveT
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitExtensionMemberCref(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionMemberCrefSyntax! node) -> TResult?
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitIgnoredDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.IgnoredDirectiveTriviaSyntax! node) -> TResult?
 static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsOverloadableCompoundAssignmentOperator(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.AddArgumentListArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax! argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithArgumentList(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax! argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithWithKeyword(Microsoft.CodeAnalysis.SyntaxToken withKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+override Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax? argumentList = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax! argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> TResult?
