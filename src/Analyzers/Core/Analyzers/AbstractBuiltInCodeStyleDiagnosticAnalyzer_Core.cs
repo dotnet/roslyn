@@ -90,6 +90,12 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
     protected bool ShouldSkipAnalysis(SemanticModelAnalysisContext context, NotificationOption2? notification)
         => ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, notification, context.CancellationToken);
 
+    protected bool ShouldSkipAnalysis(SemanticModelAnalysisContext context, NotificationOption2? notification, ImmutableArray<DiagnosticDescriptor> descriptorsToCheck)
+    {
+        RoslynDebug.Assert(_minimumReportedSeverity != null);
+        return ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, notification, _minimumReportedSeverity.Value, descriptorsToCheck, context.CancellationToken);
+    }
+
     protected bool ShouldSkipAnalysis(SyntaxNodeAnalysisContext context, NotificationOption2? notification)
         => ShouldSkipAnalysis(context.Node.SyntaxTree, context.Options, context.Compilation.Options, notification, context.CancellationToken);
 
@@ -111,7 +117,22 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         CompilationOptions compilationOptions,
         NotificationOption2? notification,
         CancellationToken cancellationToken)
-        => ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, performDescriptorsCheck: true, cancellationToken);
+    {
+        RoslynDebug.Assert(_minimumReportedSeverity != null);
+        return ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, _minimumReportedSeverity.Value, SupportedDiagnostics, cancellationToken);
+    }
+
+    protected bool ShouldSkipAnalysis(
+        SyntaxTree tree,
+        AnalyzerOptions analyzerOptions,
+        CompilationOptions compilationOptions,
+        NotificationOption2? notification,
+        ImmutableArray<DiagnosticDescriptor> descriptorsToCheck,
+        CancellationToken cancellationToken)
+    {
+        RoslynDebug.Assert(_minimumReportedSeverity != null);
+        return ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, _minimumReportedSeverity.Value, descriptorsToCheck, cancellationToken);
+    }
 
     protected bool ShouldSkipAnalysis(
         SyntaxTree tree,
@@ -127,13 +148,20 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         // Descriptors check verifies if any of the diagnostic IDs reported by this analyzer
         // have been escalated to a severity that they must be executed.
 
+        RoslynDebug.Assert(_minimumReportedSeverity != null);
+
         // PERF: Execute the descriptors check only once for the analyzer, not once per each notification option.
         var performDescriptorsCheck = true;
 
         // Check if any of the notifications are enabled, if so we need to execute analysis.
         foreach (var notification in notifications)
         {
-            if (!ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, performDescriptorsCheck, cancellationToken))
+            // When we are performing the descriptors check, pass all 'SupportedDiagnostics' through in accordance with
+            // the default check. After the descriptor check has been performed, future calls pass an empty array to
+            // indicate that no descriptors need to be checked.
+            var descriptorsToCheck = performDescriptorsCheck ? SupportedDiagnostics : [];
+
+            if (!ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, _minimumReportedSeverity.Value, descriptorsToCheck, cancellationToken))
                 return false;
 
             if (performDescriptorsCheck)
@@ -143,12 +171,13 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         return true;
     }
 
-    private bool ShouldSkipAnalysis(
+    private static bool ShouldSkipAnalysis(
         SyntaxTree tree,
         AnalyzerOptions analyzerOptions,
         CompilationOptions compilationOptions,
         NotificationOption2? notification,
-        bool performDescriptorsCheck,
+        DiagnosticSeverity minimumReportedSeverity,
+        ImmutableArray<DiagnosticDescriptor> descriptorsToCheck,
         CancellationToken cancellationToken)
     {
         // We need to check if the analyzer's severity has been escalated either via 'option_name = option_value:severity'
@@ -158,13 +187,11 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         // Descriptors check verifies if any of the diagnostic IDs reported by this analyzer
         // have been escalated to a severity that they must be executed.
 
-        Debug.Assert(_minimumReportedSeverity != null);
-
         if (notification?.Severity == ReportDiagnostic.Suppress)
             return true;
 
         // If _minimumReportedSeverity is 'Hidden', then we are reporting diagnostics with all severities.
-        if (_minimumReportedSeverity!.Value == DiagnosticSeverity.Hidden)
+        if (minimumReportedSeverity == DiagnosticSeverity.Hidden)
             return false;
 
         // If the severity is explicitly configured with `option_name = option_value:severity`,
@@ -174,10 +201,10 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
             && notification.Value.IsExplicitlySpecified
             && IsAnalysisLevelGreaterThanOrEquals(9, analyzerOptions))
         {
-            return notification.Value.Severity.ToDiagnosticSeverity() < _minimumReportedSeverity.Value;
+            return notification.Value.Severity.ToDiagnosticSeverity() < minimumReportedSeverity;
         }
 
-        if (!performDescriptorsCheck)
+        if (descriptorsToCheck.IsEmpty)
             return true;
 
         // Otherwise, we check if any of the descriptors have been configured or bulk-configured
@@ -202,7 +229,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         var hasAllBulkSeverityConfiguration = treeOptions.TryGetValue(allDiagnosticsBulkSeverityKey, out var editorConfigBulkSeverity)
             || globalOptions.TryGetValue(allDiagnosticsBulkSeverityKey, out editorConfigBulkSeverity);
 
-        foreach (var descriptor in SupportedDiagnostics)
+        foreach (var descriptor in descriptorsToCheck)
         {
             if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
                 continue;
@@ -212,7 +239,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
                 || severityOptionsProvider.TryGetGlobalDiagnosticValue(descriptor.Id, cancellationToken, out configuredReportDiagnostic))
             {
                 if (configuredReportDiagnostic.ToDiagnosticSeverity() is { } configuredSeverity
-                    && configuredSeverity >= _minimumReportedSeverity.Value)
+                    && configuredSeverity >= minimumReportedSeverity)
                 {
                     return false;
                 }
@@ -235,7 +262,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
             {
                 // No diagnostic ID or bulk configuration for the descriptor.
                 // Check if the descriptor's default severity is greater than or equals the minimum reported severiity.
-                if (descriptor.IsEnabledByDefault && descriptor.DefaultSeverity >= _minimumReportedSeverity.Value)
+                if (descriptor.IsEnabledByDefault && descriptor.DefaultSeverity >= minimumReportedSeverity)
                     return false;
 
                 // Otherwise, we can skip this descriptor as it cannot contribute a diagnostic that will be reported.
@@ -245,7 +272,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
             Debug.Assert(editorConfigSeverity != null);
             if (EditorConfigSeverityStrings.TryParse(editorConfigSeverity!, out var effectiveReportDiagnostic)
                 && effectiveReportDiagnostic.ToDiagnosticSeverity() is { } effectiveSeverity
-                && effectiveSeverity >= _minimumReportedSeverity.Value)
+                && effectiveSeverity >= minimumReportedSeverity)
             {
                 return false;
             }
