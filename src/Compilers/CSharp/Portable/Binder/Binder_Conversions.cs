@@ -1152,13 +1152,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(targetType.IsArrayInterface(out _));
 
+            var withSyntax = withElement.Syntax;
             if (targetType.IsReadOnlyArrayInterface(out _))
             {
                 // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
                 // the parameterless with-element is allows (`with()`).
                 if (withElement.Arguments.Length > 0)
                 {
-
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, withSyntax.GetFirstToken().GetLocation());
                 }
 
                 // Note: we intentionally report null here.  Even though the code has `with()` in it, we're not actually
@@ -1168,10 +1169,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(targetType.IsMutableArrayInterface(out _));
+                Debug.Assert(targetType.IsMutableArrayInterface(out var typeArgument));
 
                 // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg `with()` and
                 // single int arg for the `List(int capacity)` case.
+
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+                // Find the corresponding List<E> type for this IList<E> or ICollection<E>, as well as the corresponding
+                // List<E>() and List<E>(int) constructors.
+
+                var constructedListType =
+                    this.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, ref useSiteInfo)
+                        .Construct([typeArgument]);
+                var constructedListCtor = constructedListType.InstanceConstructors.Single(
+                    static (c, list_T__ctor) => Equals(c.OriginalDefinition, list_T__ctor), list_T__ctor);
+                var constructedListCtorInt32 = constructedListType.InstanceConstructors.Single(
+                    static (c, list_T__ctorInt32) => Equals(c.OriginalDefinition, list_T__ctorInt32), list_T__ctorInt32);
+
+                var analyzedArguments = AnalyzedArguments.GetInstance(
+                    withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
+                ImmutableArray<MethodSymbol> candidateConstructors = [constructedListCtor, constructedListCtorInt32];
+
+                // Now perform overload resolution given only those two constructors and no others.
+                if (TryPerformOverloadResolutionWithConstructorSubset(
+                        constructedListType,
+                        ref candidateConstructors,
+                        candidateConstructors,
+                        analyzedArguments,
+                        constructedListType.Name,
+                        withSyntax.GetFirstToken().GetLocation(),
+                        suppressResultDiagnostics: false,
+                        diagnostics,
+                        out var memberResolutionResult,
+                        ref useSiteInfo,
+                        isParamsModifierValidation: false))
+                {
+                    return BindClassCreationExpressionContinued(
+                        withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
+                }
+
+                return CreateBadClassCreationExpression(
+                    withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
             }
         }
 
