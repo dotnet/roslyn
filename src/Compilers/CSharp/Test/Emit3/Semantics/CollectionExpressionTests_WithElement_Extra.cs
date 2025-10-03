@@ -515,21 +515,35 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         {
             case "with(), ":
                 expectedIL = """
-
+                    {
+                      // Code size       15 (0xf)
+                      .maxstack  3
+                      .locals init (T[] V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  stloc.0
+                      IL_0002:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                      IL_0007:  dup
+                      IL_0008:  ldloc.0
+                      IL_0009:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                      IL_000e:  ret
+                    }
                     """;
                 break;
 
             case "with(3), ":
                 expectedIL = """
                         {
-                          // Code size       14 (0xe)
+                          // Code size       16 (0x10)
                           .maxstack  3
-                          IL_0000:  ldc.i4.3
-                          IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
-                          IL_0006:  dup
-                          IL_0007:  ldarg.0
-                          IL_0008:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
-                          IL_000d:  ret
+                          .locals init (T[] V_0)
+                          IL_0000:  ldarg.0
+                          IL_0001:  stloc.0
+                          IL_0002:  ldc.i4.3
+                          IL_0003:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                          IL_0008:  dup
+                          IL_0009:  ldloc.0
+                          IL_000a:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                          IL_000f:  ret
                         }
                         """;
                 break;
@@ -745,23 +759,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("Program.Create<T>", isMutable ?
             """
-                {
-                  // Code size       28 (0x1c)
-                  .maxstack  3
-                  IL_0000:  ldc.i4.3
-                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
-                  IL_0006:  dup
-                  IL_0007:  ldarg.0
-                  IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                  IL_000d:  dup
-                  IL_000e:  ldarg.1
-                  IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                  IL_0014:  dup
-                  IL_0015:  ldarg.2
-                  IL_0016:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                  IL_001b:  ret
-                }
-                """ :
+            {
+                // Code size       27 (0x1b)
+                .maxstack  3
+                IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                IL_0005:  dup
+                IL_0006:  ldarg.0
+                IL_0007:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                IL_000c:  dup
+                IL_000d:  ldarg.1
+                IL_000e:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                IL_0013:  dup
+                IL_0014:  ldarg.2
+                IL_0015:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                IL_001a:  ret
+            }
+            """ :
             """
                 {
                   // Code size       36 (0x24)
@@ -837,12 +850,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (11,16): error CS1501: No overload for method '<signature>' takes 1 arguments
+                // (11,17): error CS9338: Collection arguments must be empty
                 //         return [with(c), x, y, z];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c), x, y, z]").WithArguments("<signature>", "1").WithLocation(11, 16),
-                // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 17),
+                // (15,17): error CS9338: Collection arguments must be empty
                 //         return [with(capacity: c), x, y, z];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(15, 17));
         }
 
         string sourceC = $$"""
@@ -866,9 +879,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (6,22): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<T>' to 'int'
                 //         return [with(c), x, y, z];
                 Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "System.Collections.Generic.IEnumerable<T>", "int").WithLocation(6, 22),
-                // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                // (10,22): error CS1739: The best overload for 'List' does not have a parameter named 'collection'
                 //         return [with(collection: c), x, y, z];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("List", "collection").WithLocation(10, 22));
         }
         else
         {
@@ -919,35 +932,38 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             case "System.ReadOnlySpan<T>":
             case "System.Span<T>":
                 comp.VerifyEmitDiagnostics(
-                    // (9,14): error CS9502: Collection arguments are not supported for type 'T[]'.
-                    //         c = [with(default)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(9, 14),
-                    // (10,14): error CS9502: Collection arguments are not supported for type 'T[]'.
-                    //         c = [with(capacity)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(10, 14),
-                    // (11,14): error CS9502: Collection arguments are not supported for type 'T[]'.
-                    //         c = [with(comparer)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(11, 14),
-                    // (12,14): error CS9502: Collection arguments are not supported for type 'T[]'.
-                    //         c = [with(capacity, comparer)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(12, 14));
+                // (8,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                //         c = [with()];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(8, 14),
+                // (9,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(9, 14),
+                // (10,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                //         c = [with(capacity)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(10, 14),
+                // (11,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                //         c = [with(comparer)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(11, 14),
+                // (12,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                //         c = [with(capacity, comparer)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(12, 14));
                 break;
             case "System.Collections.Generic.IEnumerable<T>":
             case "System.Collections.Generic.IReadOnlyCollection<T>":
             case "System.Collections.Generic.IReadOnlyList<T>":
                 comp.VerifyEmitDiagnostics(
-                    // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    // (9,14): error CS9338: Collection arguments must be empty
                     //         c = [with(default)];
-                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(default)]").WithArguments("<signature>", "1").WithLocation(9, 13),
-                    // (10,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14),
+                    // (10,14): error CS9338: Collection arguments must be empty
                     //         c = [with(capacity)];
-                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity)]").WithArguments("<signature>", "1").WithLocation(10, 13),
-                    // (11,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(10, 14),
+                    // (11,14): error CS9338: Collection arguments must be empty
                     //         c = [with(comparer)];
-                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(comparer)]").WithArguments("<signature>", "1").WithLocation(11, 13),
-                    // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 14),
+                    // (12,14): error CS9338: Collection arguments must be empty
                     //         c = [with(capacity, comparer)];
-                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(12, 14));
                 break;
             case "System.Collections.Generic.ICollection<T>":
             case "System.Collections.Generic.IList<T>":
