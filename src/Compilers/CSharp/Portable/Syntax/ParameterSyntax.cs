@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (Type is null && Identifier.IsKind(SyntaxKind.None))
             {
-                throw new System.NotSupportedException(CSharpResources.ParameterRequiresTypeOrIdentifier);
+                throw new System.ArgumentException(CSharpResources.ParameterRequiresTypeOrIdentifier);
             }
         }
     }

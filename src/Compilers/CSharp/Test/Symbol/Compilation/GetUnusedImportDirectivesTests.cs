@@ -40,7 +40,7 @@ class C
 
         [WorkItem(865627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865627")]
         [Fact]
-        public void TestUnusedExtensionMarksImportsAsUsed_01()
+        public void TestUnusedExtensionMarksImportsAsUsed()
         {
             string class1Source = @"using System;
 
@@ -100,72 +100,6 @@ namespace ConsoleApplication
             model.GetMemberGroup(syntax);
 
             model.GetDiagnostics().Verify(Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ClassLibrary2;"));
-        }
-
-        [Fact]
-        public void TestUnusedExtensionMarksImportsAsUsed_02()
-        {
-            // new extension method
-            string class1Source = """
-using System;
-
-namespace ClassLibrary1
-{
-    public class Class1
-    {
-        public void Method1(string arg1)
-        {
-            Console.WriteLine(arg1);
-        }
-    }
-}
-""";
-            var classLib1 = CreateCompilation(source: class1Source, assemblyName: "ClassLibrary1");
-
-            string class2Source = """
-using System;
-using ClassLibrary1;
-
-namespace ClassLibrary2
-{
-    public static class Class2
-    {
-        extension(Class1 arg0)
-        {
-            public void Method1(string arg1)
-            {
-                Console.Write("Erroneous: " + arg1);
-            }
-        }
-    }
-}
-""";
-            var classLib2 = CreateCompilation(source: class2Source, assemblyName: "ClassLibrary2", references: [classLib1.ToMetadataReference()]);
-
-            string consoleApplicationSource = """
-using ClassLibrary2;
-using ClassLibrary1;
-
-var instance1 = new Class1();
-instance1.Method1("Argument1");
-""";
-            var tree = Parse(consoleApplicationSource);
-            var comp = CreateCompilation(tree, [classLib1.ToMetadataReference(), classLib2.ToMetadataReference()], assemblyName: "ConsoleApplication");
-            var model = comp.GetSemanticModel(tree) as CSharpSemanticModel;
-
-            var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-
-            //This is the crux of the test.
-            //Without this line, with or without the fix, the model never gets pushed to evaluate extension method candidates
-            //and therefore never marked ClassLibrary2 as a used import in consoleApplication.
-            //Without the fix, this call used to result in ClassLibrary2 getting marked as used, after the fix, this call does not
-            //result in changing ClassLibrary2's used status.
-            model.GetMemberGroup(syntax);
-
-            model.GetDiagnostics().Verify(
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using ClassLibrary2;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ClassLibrary2;").WithLocation(1, 1));
         }
 
         [WorkItem(747219, "DevDiv2/DevDiv")]

@@ -34659,6 +34659,7 @@ static class E
             AssertEx.Equal(markerName, extension.ExtensionMarkerName);
             Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}"));
             Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}+{markerName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{markerName}"));
         }
     }
 
@@ -34684,8 +34685,8 @@ static class E
         Assert.Equal("int ", withoutIdentifer.ToFullString());
 
         // Type and identifier cannot both be missing
-        Assert.Throws<NotSupportedException>(() => SyntaxFactory.Parameter(identifier: default));
-        Assert.Throws<NotSupportedException>(() => withoutType.WithIdentifier(default));
+        Assert.Throws<ArgumentException>(() => SyntaxFactory.Parameter(identifier: default));
+        Assert.Throws<ArgumentException>(() => withoutType.WithIdentifier(default));
     }
 
     [Fact]
