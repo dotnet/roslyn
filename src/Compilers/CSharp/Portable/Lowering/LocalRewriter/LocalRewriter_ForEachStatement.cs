@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return RewriteInlineArrayForEachStatementAsFor(node);
             }
-            else if (node.EnumeratorInfoOpt is { MoveNextAwaitableInfo: null } && CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
+            else if (node.EnumeratorInfoOpt?.MoveNextAwaitableInfo is null && CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
             {
                 return RewriteForEachStatementAsFor(node, indexerGet, lengthGetter);
             }

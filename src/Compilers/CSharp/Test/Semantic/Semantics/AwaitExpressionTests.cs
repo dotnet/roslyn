@@ -865,5 +865,63 @@ class C : IAsyncDisposable
                 }
             }
         }
+
+        [Fact]
+        public void SpeculativeSemanticModel_GetAwaitExpressionInfo_LocalDeclarationStatement()
+        {
+            var text = """
+                using System.Threading.Tasks;
+                class C : System.IAsyncDisposable
+                {
+                    async Task Goo()
+                    {
+                        await using var x = new C();
+                    }
+                    public ValueTask DisposeAsync() => default;
+                }
+                """;
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actualLocalDecl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var speculativeLocalDecl = SyntaxFactory.ParseStatement("await using var y = new C();");
+
+            var success = model.TryGetSpeculativeSemanticModel(actualLocalDecl.SpanStart, speculativeLocalDecl, out var specModel);
+            Assert.True(success);
+            Assert.NotNull(specModel);
+
+            var speculativeInfo = specModel.GetAwaitExpressionInfo((LocalDeclarationStatementSyntax)speculativeLocalDecl);
+            AssertEx.Equal("System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()", speculativeInfo.GetAwaiterMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_GetAwaitExpressionInfo_UsingStatementSyntax()
+        {
+            var text = """
+                using System.Threading.Tasks;
+                class C : System.IAsyncDisposable
+                {
+                    async Task Goo()
+                    {
+                        await using (var x = new C()) { }
+                    }
+                    public ValueTask DisposeAsync() => default;
+                }
+                """;
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actualUsingStmt = tree.GetRoot().DescendantNodes().OfType<UsingStatementSyntax>().First();
+            var speculativeUsingStmt = SyntaxFactory.ParseStatement("await using (var y = new C()) { }");
+
+            var success = model.TryGetSpeculativeSemanticModel(actualUsingStmt.SpanStart, speculativeUsingStmt, out var specModel);
+            Assert.True(success);
+            Assert.NotNull(specModel);
+
+            var speculativeInfo = specModel.GetAwaitExpressionInfo((UsingStatementSyntax)speculativeUsingStmt);
+            AssertEx.Equal("System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()", speculativeInfo.GetAwaiterMethod.ToTestDisplayString());
+        }
     }
 }
