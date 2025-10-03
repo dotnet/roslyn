@@ -559,11 +559,6 @@
         <target state="translated">VB にネイティブの整数型はありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Trees0">
-        <source>trees({0})</source>
-        <target state="translated">ツリー ({0})</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreesMustHaveRootNode">
         <source>trees({0}) must have root node with SyntaxKind.CompilationUnit.</source>
         <target state="translated">ツリー ({0}) には SyntaxKind.CompilationUnit とのルート ノードが必要です。</target>
@@ -814,16 +809,6 @@
         <target state="translated">入力ソースが指定されていません</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded">
-        <source>source file '{0}' specified multiple times</source>
-        <target state="translated">ソース ファイル '{0}' が複数回指定されています</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded_Title">
-        <source>Source file specified multiple times</source>
-        <target state="translated">ソース ファイルが複数回指定されました</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>can't open '{0}' for writing: {1}</source>
         <target state="translated">書き込みのために '{0}' を開くことはできません: {1}</target>
@@ -862,16 +847,6 @@
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">応答ファイルで指定されているため、/noconfig オプションを無視します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId">
-        <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">警告番号 '{0}' (オプション '{1}' ) は、構成できないか無効です</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId_Title">
-        <source>Warning number is either not configurable or not valid</source>
-        <target state="translated">警告番号は、構成できないか無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
@@ -2994,11 +2969,6 @@
       <trans-unit id="ERR_UnrecognizedEnd">
         <source>'End' statement not valid.</source>
         <target state="translated">'End' ステートメントが有効ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ArrayInitForNonArray2">
-        <source>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</source>
-        <target state="translated">配列初期化子は配列に対してのみ有効ですが、'{0}' の型は '{1}' です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionNoRegion">
@@ -6750,16 +6720,6 @@
         <target state="translated">属性 'Conditional' は 'Sub' 宣言でのみ有効です</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute">
-        <source>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</source>
-        <target state="translated">コマンド ライン オプション '{0}' を使用するか、'{1}' 以外の適切なプロジェクト設定を使用してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute_Title">
-        <source>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</source>
-        <target state="translated">AssemblyKeyFileAttribute、AssemblyKeyNameAttribute、または AssemblyDelaySignAttribute の代わりに、コマンド ライン オプション /keyfile、/keycontainer、または /delaysign を使用してください</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_RecursiveAddHandlerCall">
         <source>Statement recursively calls the containing '{0}' for event '{1}'.</source>
         <target state="translated">ステートメントはイベント '{1}' の含まれている '{0}' を再帰的に呼び出しています。</target>
@@ -7438,16 +7398,6 @@
       <trans-unit id="WRN_RelDelegatePassedToRemoveHandler_Title">
         <source>The 'AddressOf' expression has no effect in this context because the method argument to 'AddressOf' requires a relaxed conversion to the delegate type of the event</source>
         <target state="translated">AddressOf' へのメソッド引数には、イベントのデリゲート型への厳密でない変換が必要です。したがって、'AddressOf' 式はこのコンテキストでは効果がありません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</source>
-        <target state="translated">型を推論できないため、範囲変数は Object 型と見なされます。'As' 句を使って異なる型を指定してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl_Title">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred</source>
-        <target state="translated">範囲変数の型を推論できないため、Object 型であると見なされます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultilineLambdaMissingFunction">

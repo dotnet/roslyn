@@ -59,7 +59,6 @@
                      ERRID.WRN_MissingAsClauseinOperator,
                      ERRID.WRN_ConstraintsFailedForInferredArgs2,
                      ERRID.WRN_ConditionalNotValidOnFunction,
-                     ERRID.WRN_UseSwitchInsteadOfAttribute,
                      ERRID.WRN_TupleLiteralNameMismatch,
                      ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName,
                      ERRID.WRN_RecursiveAddHandlerCall,

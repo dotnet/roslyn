@@ -557,11 +557,6 @@
         <target state="translated">No hay tipos enteros nativos en VB.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Trees0">
-        <source>trees({0})</source>
-        <target state="translated">árboles({0})</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreesMustHaveRootNode">
         <source>trees({0}) must have root node with SyntaxKind.CompilationUnit.</source>
         <target state="translated">los árboles({0}) deben tener un nodo raíz con SyntaxKind.CompilationUnit.</target>
@@ -812,16 +807,6 @@
         <target state="translated">no se especificó ningún origen de entrada</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded">
-        <source>source file '{0}' specified multiple times</source>
-        <target state="translated">el archivo de código fuente '{0}' se especificó varias veces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded_Title">
-        <source>Source file specified multiple times</source>
-        <target state="translated">Se especificó el archivo de origen varias veces</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>can't open '{0}' for writing: {1}</source>
         <target state="translated">no se puede abrir '{0}' para escribir: {1}</target>
@@ -860,16 +845,6 @@
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">Omitiendo la opción /noconfig porque se especificó en un archivo de respuesta</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId">
-        <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">el número de advertencia '{0}' para la opción '{1}' no es configurable o no es válido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId_Title">
-        <source>Warning number is either not configurable or not valid</source>
-        <target state="translated">El número de advertencia no se puede configurar o no es válido</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
@@ -2992,11 +2967,6 @@
       <trans-unit id="ERR_UnrecognizedEnd">
         <source>'End' statement not valid.</source>
         <target state="translated">'Instrucción 'End' no válida.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ArrayInitForNonArray2">
-        <source>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</source>
-        <target state="translated">Los inicializadores de matrices solo son válidos para las matrices, pero el tipo de '{0}' es '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionNoRegion">
@@ -6748,16 +6718,6 @@
         <target state="translated">El atributo 'Conditional' solo es válido en declaraciones 'Sub'</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute">
-        <source>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</source>
-        <target state="translated">Use la opción de la línea de comandos '{0}' o una configuración de proyecto apropiada en lugar de '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute_Title">
-        <source>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</source>
-        <target state="translated">Use la opción de línea de comandos /keyfile, /keycontainer o /delaysign en lugar de AssemblyKeyFileAttribute, AssemblyKeyNameAttribute o AssemblyDelaySignAttribute</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_RecursiveAddHandlerCall">
         <source>Statement recursively calls the containing '{0}' for event '{1}'.</source>
         <target state="translated">La instrucción llama recursivamente al elemento contenedor '{0}' para el evento '{1}'.</target>
@@ -7436,16 +7396,6 @@
       <trans-unit id="WRN_RelDelegatePassedToRemoveHandler_Title">
         <source>The 'AddressOf' expression has no effect in this context because the method argument to 'AddressOf' requires a relaxed conversion to the delegate type of the event</source>
         <target state="translated">La expresión 'AddressOf' no tiene efecto en este contexto porque el argumento de método para 'AddressOf' necesita una conversión flexible para el tipo delegado del evento</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</source>
-        <target state="translated">Se presupone que la variable de rango es de tipo Object porque su tipo no se puede inferir. Use una cláusula 'As' para especificar otro tipo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl_Title">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred</source>
-        <target state="translated">Se asume que la variable de rango es de tipo Object porque no se puede inferir su tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultilineLambdaMissingFunction">
