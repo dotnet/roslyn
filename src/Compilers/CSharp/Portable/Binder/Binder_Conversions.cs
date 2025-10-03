@@ -930,7 +930,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MethodSymbol? list_T__ctor = null;
                 MethodSymbol? list_T__ctorInt32 = null;
-
                 if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
                     node.HasSpreadElements(out _, out _))
                 {
@@ -948,8 +947,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface)
                     {
                         Debug.Assert(constructor is null, "Only initialized in ImplementsIEnumerable case in Conversions.GetCollectionExpressionConversion.");
+                        Debug.Assert(list_T__ctor is not null); // Retrieved immediately above.
+                        Debug.Assert(list_T__ctorInt32 is not null); // Retrieved immediately above.
                         collectionCreation = BindArrayInterfaceCollectionExpressionConstructor(
-                            syntax, targetType, node.WithElement, list_T__ctor, list_T__ctorInt32, diagnostics);
+                            syntax, targetType, list_T__ctor, list_T__ctorInt32, node.WithElement, diagnostics);
                     }
                     else
                     {

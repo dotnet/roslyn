@@ -8211,4 +8211,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionArgumentsNotSupportedForType" xml:space="preserve">
     <value>Collection arguments are not supported for type '{0}'.</value>
   </data>
+  <data name="ERR_CollectionArgumentsDynamicBinding" xml:space="preserve">
+    <value>Collection arguments cannot be dynamic; compile-time binding is required.</value>
+  </data>
 </root>
