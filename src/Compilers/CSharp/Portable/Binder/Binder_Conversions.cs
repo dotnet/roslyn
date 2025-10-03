@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // PROTOTYPE: Add support for interfaces and Create methods.  Keep diagnostic for arrays/spans.
-                if (node.WithElement != null && collectionTypeKind)
+                if (node.WithElement != null)
                 {
                     diagnostics.Add(
                         ErrorCode.ERR_CollectionArgumentsNotSupportedForType,

@@ -5276,12 +5276,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // arguments against the final arguments against the destination target type if the with element
                     // was in the proper position.
 
-                    var arguments = AnalyzedArguments.GetInstance();
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
 
                     // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
                     // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
                     // allow it.  If it requires substantial work beyond this, disallow it for this feature.
-                    BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, arguments, allowArglist: true);
+                    BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+
+                    var arguments = analyzedArguments.Arguments;
+                    for (int i = 0; i < arguments.Count; i++)
+                    {
+                        var arg = arguments[i];
+                        if (arg.Type is { TypeKind: TypeKind.Dynamic })
+                        {
+                            diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
+                            arguments[i] = new BoundBadExpression(arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: Compilation.GetSpecialType(SpecialType.System_Object));
+                        }
+                    }
 
                     if (withElementSyntax != syntax.Elements.First())
                     {
@@ -5291,12 +5302,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         withElement = new BoundUnconvertedWithElement(
                             withElementSyntax,
-                            arguments.Arguments.ToImmutable(),
-                            arguments.Names.ToImmutableOrNull(),
-                            arguments.RefKinds.ToImmutableOrNull());
+                            analyzedArguments.Arguments.ToImmutable(),
+                            analyzedArguments.Names.ToImmutableOrNull(),
+                            analyzedArguments.RefKinds.ToImmutableOrNull());
                     }
 
-                    arguments.Free();
+                    analyzedArguments.Free();
                 }
                 else
                 {
