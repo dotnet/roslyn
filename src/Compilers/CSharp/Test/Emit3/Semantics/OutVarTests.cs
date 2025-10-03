@@ -17874,7 +17874,7 @@ public class Cls
 
     static void Test(out System.Collections.Generic.IEnumerable<System.Int32> x)
     {
-        x = null;
+        c = null;
     }
 }";
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
@@ -18282,7 +18282,7 @@ public class Cls
 {
     public static void Main()
     {
-        dynamic x = null;
+        dynamic c = null;
         Test2(x.Test1(out var x1), 
               x1);
     }
@@ -33460,7 +33460,7 @@ public class B : A
 }
 public static class S
 {
-    public static void M2(this A self, out B x) { x = null; }
+    public static void M2(this A self, out B x) { c = null; }
 }";
             var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { Net40.References.SystemCore });
             comp.VerifyDiagnostics(
@@ -36574,6 +36574,42 @@ class C
                     }
 
                     void Foo(C c, int x) { }
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUsedInOtherPartOfTernary()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C M(bool b)
+                    {
+                        return b ? new(out var x) : x;
+                    }
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUsedInCollectionExpression()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C[] M()
+                    {
+                        return [new(out var x), x];
+                    }
                 }
                 """;
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
