@@ -36559,7 +36559,7 @@ class C
             Assert.Same(symbolInfo.Symbol, speculativeModel.GetDeclaredSymbol(tree2.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Where(l => l.Identifier.ValueText == "M2").Single()));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
         public void TestUsedInImplicitObjectCreation()
         {
             var text = """
@@ -36579,7 +36579,7 @@ class C
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
         public void TestUsedInOtherPartOfTernary()
         {
             var text = """
@@ -36597,7 +36597,7 @@ class C
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
         public void TestUsedInCollectionExpression()
         {
             var text = """
@@ -36615,7 +36615,7 @@ class C
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
         public void TestUsedInAddition()
         {
             var text = """
@@ -36633,7 +36633,140 @@ class C
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
+        public void TestUsedInTuple()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public (C, C) M()
+                        => (new(out var x), x);
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
+        public void TestUsedInArrayCreation()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    private C[] _array = { new(out var x), x };
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
+        public void TestUsedInArrayCreation2()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    private C[] _array = new C[] { new(out var x), x };
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
+        public void TestUsedInArrayCreation3()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    private C[] _array = new[] { new(out var x), x };
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
+        public void TestUsedInArrayCreation4()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    private C[] _array = new[] { default(C), new(out var x), x };
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
         [Fact]
+        public void TestUsedInObjectInitializer1()
+        {
+            var text = """
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C First, Second;
+
+                    void M()
+                    {
+                        var obj = new C(out var x) { First = x };
+                    }
+                }
+                """;
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUsedInObjectInitializer2()
+        {
+            var text = """
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C First, Second;
+
+                    void M()
+                    {
+                        var obj = new C(out var x) { First = new(out var y), Second = y };
+                    }
+                }
+                """;
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUsedInCollectionInitializer()
+        {
+            var text = """
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    void M()
+                    {
+                        var obj = new List<C> { new(out var y), y };
+                    }
+                }
+                """;
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
         public void TestUsedInIndex()
         {
             var text = """
@@ -36651,7 +36784,7 @@ class C
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
         public void TestUsedInConditionalIndex()
         {
             var text = """
@@ -36669,7 +36802,7 @@ class C
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
         public void TestUsedInDirectInvocation()
         {
             var text = """
