@@ -847,7 +847,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine("  : base(green, parent, position)");
                 OpenBlock();
 
-                bool hasValidate = SourceWriter.HasValidate(node);
+                bool hasValidate = HasValidate(node);
                 if (hasValidate)
                 {
                     WriteLine("Validate();");
