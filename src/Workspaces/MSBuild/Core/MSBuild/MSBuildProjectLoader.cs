@@ -23,8 +23,8 @@ public partial class MSBuildProjectLoader
 
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
-    private readonly PathResolver _pathResolver;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
+    private readonly IProjectFileInfoLoaderFactory _projectFileInfoLoaderFactory;
 
     // used to protect access to the following mutable state
     private readonly NonReentrantLock _dataGuard = new();
@@ -34,13 +34,14 @@ public partial class MSBuildProjectLoader
         DiagnosticReporter diagnosticReporter,
         Microsoft.Extensions.Logging.ILoggerFactory loggerFactory,
         ProjectFileExtensionRegistry projectFileExtensionRegistry,
-        ImmutableDictionary<string, string>? properties)
+        ImmutableDictionary<string, string>? properties,
+        IProjectFileInfoLoaderFactory? projectFileInfoLoaderFactory = null)
     {
         _solutionServices = solutionServices;
         _diagnosticReporter = diagnosticReporter;
         _loggerFactory = loggerFactory;
-        _pathResolver = new PathResolver(_diagnosticReporter);
         _projectFileExtensionRegistry = projectFileExtensionRegistry;
+        _projectFileInfoLoaderFactory = projectFileInfoLoaderFactory ?? BuildHostProjectFileInfoLoaderFactory.Instance;
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -57,12 +58,20 @@ public partial class MSBuildProjectLoader
     /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
     /// These are the same properties that are passed to MSBuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
     public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
+        : this(workspace, properties, projectFileInfoLoaderFactory: null)
+    {
+    }
+
+    internal MSBuildProjectLoader(
+        Workspace workspace,
+        ImmutableDictionary<string, string>? properties,
+        IProjectFileInfoLoaderFactory? projectFileInfoLoaderFactory)
     {
         _solutionServices = workspace.Services.SolutionServices;
         _diagnosticReporter = new DiagnosticReporter(workspace);
         _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
-        _pathResolver = new PathResolver(_diagnosticReporter);
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(_solutionServices, _diagnosticReporter);
+        _projectFileInfoLoaderFactory = projectFileInfoLoaderFactory ?? BuildHostProjectFileInfoLoaderFactory.Instance;
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -172,39 +181,47 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, reportingMode, cancellationToken).ConfigureAwait(false);
-        var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
+        var pathResolver = new PathResolver(_diagnosticReporter);
+
+        var (absoluteSolutionFilePath, projects) = await SolutionFileReader
+            .ReadSolutionFileAsync(solutionFilePath, pathResolver, reportingMode, cancellationToken)
+            .ConfigureAwait(false);
+
+        var projectFilePaths = projects.SelectAsArray(p => p.ProjectFilePath);
+
+        // TryGetAbsoluteSolutionPath should not return an invalid path
+        var baseDirectory = Path.GetDirectoryName(absoluteSolutionFilePath)!;
 
         using (_dataGuard.DisposableWait(cancellationToken))
         {
-            SetSolutionProperties(absoluteSolutionPath);
+            SetSolutionProperties(absoluteSolutionFilePath);
         }
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
-        await using var _ = buildHostProcessManager.ConfigureAwait(false);
+        var operationRunner = new ProjectLoadOperationRunner(progress);
+
+        var projectFileInfoLoader = _projectFileInfoLoaderFactory.Create(
+            Properties, _projectFileExtensionRegistry, operationRunner, _diagnosticReporter, loggerFactory: _loggerFactory);
+        await using var _ = projectFileInfoLoader.ConfigureAwait(false);
 
         var worker = new Worker(
             _solutionServices,
             _diagnosticReporter,
-            _pathResolver,
             _projectFileExtensionRegistry,
-            buildHostProcessManager,
-            projectPaths,
-            // TryGetAbsoluteSolutionPath should not return an invalid path
-            baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
+            projectFileInfoLoader,
             projectMap: null,
-            progress,
-            requestedProjectOptions: reportingOptions,
+            operationRunner,
             discoveredProjectOptions: reportingOptions,
             preferMetadataForReferencesOfDiscoveredProjects: false);
 
-        var projectInfos = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+        var projectInfos = await worker
+            .LoadAsync(projectFilePaths, baseDirectory, reportingOptions, cancellationToken)
+            .ConfigureAwait(false);
 
         // construct workspace from loaded project infos
         return SolutionInfo.Create(
-            SolutionId.CreateNewId(debugName: absoluteSolutionPath),
+            SolutionId.CreateNewId(debugName: absoluteSolutionFilePath),
             version: default,
-            absoluteSolutionPath,
+            absoluteSolutionFilePath,
             projectInfos);
     }
 
@@ -233,31 +250,30 @@ public partial class MSBuildProjectLoader
             throw new ArgumentNullException(nameof(projectFilePath));
         }
 
-        var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
-
         var reportingMode = GetReportingModeForUnrecognizedProjects();
 
         var discoveredProjectOptions = new DiagnosticReportingOptions(
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
-        await using var _ = buildHostProcessManager.ConfigureAwait(false);
+        var operationRunner = new ProjectLoadOperationRunner(progress);
+
+        var projectFileInfoLoader = _projectFileInfoLoaderFactory.Create(
+            Properties, _projectFileExtensionRegistry, operationRunner, _diagnosticReporter, loggerFactory: _loggerFactory);
+        await using var _ = projectFileInfoLoader.ConfigureAwait(false);
 
         var worker = new Worker(
             _solutionServices,
             _diagnosticReporter,
-            _pathResolver,
             _projectFileExtensionRegistry,
-            buildHostProcessManager,
-            requestedProjectPaths: [projectFilePath],
-            baseDirectory: Directory.GetCurrentDirectory(),
+            projectFileInfoLoader,
             projectMap,
-            progress,
-            requestedProjectOptions,
+            operationRunner,
             discoveredProjectOptions,
             this.LoadMetadataForReferencedProjects);
 
-        return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+        return await worker
+            .LoadAsync([projectFilePath], baseDirectory: null, DiagnosticReportingOptions.ThrowForAll, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

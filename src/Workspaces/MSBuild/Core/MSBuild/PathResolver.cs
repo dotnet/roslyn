@@ -9,33 +9,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class PathResolver
+internal readonly struct PathResolver(DiagnosticReporter? reporter, string? baseDirectory = null)
 {
-    private readonly DiagnosticReporter? _diagnosticReporter;
+    private readonly DiagnosticReporter? _reporter = reporter;
+    private readonly string? _baseDirectory = baseDirectory;
 
-    public PathResolver(DiagnosticReporter? diagnosticReporter)
-    {
-        _diagnosticReporter = diagnosticReporter;
-    }
+    public PathResolver WithBaseDirectory(string baseDirectory)
+        => new(_reporter, baseDirectory);
 
-    public bool TryGetAbsoluteSolutionPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, [NotNullWhen(true)] out string? absolutePath)
+    public bool TryGetAbsoluteSolutionFilePath(string filePath, DiagnosticReportingMode reportingMode, [NotNullWhen(true)] out string? absoluteFilePath)
     {
         try
         {
-            absolutePath = GetAbsolutePath(path, baseDirectory);
+            absoluteFilePath = GetAbsoluteFilePath(filePath);
         }
         catch (Exception)
         {
-            _diagnosticReporter?.Report(reportingMode, string.Format(WorkspacesResources.Invalid_solution_file_path_colon_0, path));
-            absolutePath = null;
+            _reporter?.Report(reportingMode, string.Format(WorkspacesResources.Invalid_solution_file_path_colon_0, filePath));
+            absoluteFilePath = null;
             return false;
         }
 
-        if (!File.Exists(absolutePath))
+        if (!File.Exists(absoluteFilePath))
         {
-            _diagnosticReporter?.Report(
+            _reporter?.Report(
                 reportingMode,
-                string.Format(WorkspacesResources.Solution_file_not_found_colon_0, absolutePath),
+                string.Format(WorkspacesResources.Solution_file_not_found_colon_0, absoluteFilePath),
                 msg => new FileNotFoundException(msg));
             return false;
         }
@@ -43,24 +42,24 @@ internal sealed class PathResolver
         return true;
     }
 
-    public bool TryGetAbsoluteProjectPath(string path, string baseDirectory, DiagnosticReportingMode reportingMode, [NotNullWhen(true)] out string? absolutePath)
+    public bool TryGetAbsoluteProjectFilePath(string filePath, DiagnosticReportingMode reportingMode, [NotNullWhen(true)] out string? absoluteFilePath)
     {
         try
         {
-            absolutePath = GetAbsolutePath(path, baseDirectory);
+            absoluteFilePath = GetAbsoluteFilePath(filePath);
         }
         catch (Exception)
         {
-            _diagnosticReporter?.Report(reportingMode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
-            absolutePath = null;
+            _reporter?.Report(reportingMode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, filePath));
+            absoluteFilePath = null;
             return false;
         }
 
-        if (!File.Exists(absolutePath))
+        if (!File.Exists(absoluteFilePath))
         {
-            _diagnosticReporter?.Report(
+            _reporter?.Report(
                 reportingMode,
-                string.Format(WorkspacesResources.Project_file_not_found_colon_0, absolutePath),
+                string.Format(WorkspacesResources.Project_file_not_found_colon_0, absoluteFilePath),
                 msg => new FileNotFoundException(msg));
             return false;
         }
@@ -68,6 +67,6 @@ internal sealed class PathResolver
         return true;
     }
 
-    private static string GetAbsolutePath(string path, string baseDirectory)
-        => FileUtilities.NormalizeAbsolutePath(FileUtilities.ResolveRelativePath(path, baseDirectory) ?? path);
+    private string GetAbsoluteFilePath(string filePath)
+        => FileUtilities.NormalizeAbsolutePath(FileUtilities.ResolveRelativePath(filePath, _baseDirectory) ?? filePath);
 }
