@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.13</remarks>
-[Kind("delete")]
 internal sealed class DeleteFile : IAnnotatedChange
 {
     /// <summary>
