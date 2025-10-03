@@ -847,7 +847,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine("  : base(green, parent, position)");
                 OpenBlock();
 
-                bool hasValidate = HasValidate(node);
+                bool hasValidate = SourceWriter.HasValidate(node);
                 if (hasValidate)
                 {
                     WriteLine("Validate();");
@@ -1032,7 +1032,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private bool HasValidate(TreeType node)
+        private static bool HasValidate(TreeType node)
         {
             return node.HasValidate != null && string.Compare(node.HasValidate, "true", ignoreCase: true) == 0;
         }
