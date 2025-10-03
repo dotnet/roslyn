@@ -4,6 +4,7 @@ This document lists known breaking changes in Roslyn after .NET 10 general relea
 
 ## `with()` as a collection expression element is treated as collection construction *arguments*
 
+PROTOTYPE: Include proper version number here.
 ***Introduced in Visual Studio 2022 version TBD***
 
 `with(...)` when used as an element in a collection expression is bound as arguments passed to constructor or
