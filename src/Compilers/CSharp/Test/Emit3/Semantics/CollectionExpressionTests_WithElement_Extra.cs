@@ -1238,13 +1238,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                // (7,14): error CS9338: Collection arguments must be empty
                 //         i = [with(default), t];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "[with(default), t]").WithArguments("<signature>", "1").WithLocation(7, 13),
-                // (8,13): error CS1501: No overload for method '<signature>' takes 1 arguments
-                //         i = [t, with(default)];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "[t, with(default)]").WithArguments("<signature>", "1").WithLocation(8, 13),
-                // (8,17): error CS9501: Collection argument element must be the first element.
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(7, 14),
+                // (8,17): error CS9335: Collection argument element must be the first element
                 //         i = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
         }
