@@ -45,4 +45,7 @@
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.Hashing" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+  </ItemGroup>
 </Project>
