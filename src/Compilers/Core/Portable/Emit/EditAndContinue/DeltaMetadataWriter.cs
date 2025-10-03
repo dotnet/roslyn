@@ -1177,6 +1177,7 @@ namespace Microsoft.CodeAnalysis.Emit
             PopulateEncLogTableRows(TableIndex.GenericParam, previousSizes, deltaSizes);
             PopulateEncLogTableRows(TableIndex.InterfaceImpl, previousSizes, deltaSizes);
             PopulateEncLogTableRows(TableIndex.GenericParamConstraint, previousSizes, deltaSizes);
+            PopulateEncLogTableRows(TableIndex.ManifestResource, previousSizes, deltaSizes);
         }
 
         private void PopulateEncLogTableEventsOrProperties<T>(
@@ -1316,6 +1317,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     case TableIndex.TypeSpec:
                     case TableIndex.ImplMap:
                     case TableIndex.FieldRva:
+                    case TableIndex.ManifestResource:
                     case TableIndex.NestedClass:
                     case TableIndex.GenericParam:
                     case TableIndex.AssemblyRef:
@@ -1411,6 +1413,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 TableIndex.TypeSpec,
                 TableIndex.ImplMap,
                 TableIndex.FieldRva,
+                TableIndex.ManifestResource,
                 TableIndex.EncLog,
                 TableIndex.EncMap,
                 TableIndex.Assembly,
