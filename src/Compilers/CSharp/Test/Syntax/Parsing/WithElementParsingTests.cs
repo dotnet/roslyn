@@ -28,8 +28,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         }
     }
 
-<<<<<<< HEAD
-=======
     [Fact]
     public void TestSyntaxFacts()
     {
@@ -39,7 +37,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         Assert.Equal("with", SyntaxFacts.GetText(SyntaxKind.WithKeyword));
     }
 
->>>>>>> upstream/features/collection-expression-arguments
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement1(LanguageVersion languageVersion)
     {
@@ -581,7 +578,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
-<<<<<<< HEAD
     public void NotWithElement19(LanguageVersion languageVersion)
     {
         UsingExpression("[a.with()]",
@@ -752,8 +748,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
-=======
->>>>>>> upstream/features/collection-expression-arguments
     public void WithElement1(LanguageVersion languageVersion)
     {
         UsingExpression("[with(]",
@@ -1095,7 +1089,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
             // [a:b, with()]
             Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 4));
 
-<<<<<<< HEAD
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
@@ -1124,82 +1117,6 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
             N(SyntaxKind.CloseBracketToken);
         }
         EOF();
-=======
-        if (languageVersion == LanguageVersion.CSharp14)
-        {
-            N(SyntaxKind.CollectionExpression);
-            {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "a");
-                    }
-                }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "b");
-                    }
-                }
-                N(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.InvocationExpression);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "with");
-                        }
-                        N(SyntaxKind.ArgumentList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
-            }
-            EOF();
-        }
-        else
-        {
-            N(SyntaxKind.CollectionExpression);
-            {
-                N(SyntaxKind.OpenBracketToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "a");
-                    }
-                }
-                M(SyntaxKind.CommaToken);
-                N(SyntaxKind.ExpressionElement);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "b");
-                    }
-                }
-                N(SyntaxKind.CommaToken);
-                N(SyntaxKind.WithElement);
-                {
-                    N(SyntaxKind.WithKeyword);
-                    N(SyntaxKind.ArgumentList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                }
-                N(SyntaxKind.CloseBracketToken);
-            }
-            EOF();
-        }
->>>>>>> upstream/features/collection-expression-arguments
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
