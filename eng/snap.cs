@@ -12,6 +12,7 @@
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using CliWrap;
 using CliWrap.Buffered;
@@ -52,6 +53,9 @@ TaskScheduler.UnobservedTaskException += (s, e) =>
 };
 
 console.Pipeline.Attach(new LoggingRenderHook(logWriter));
+
+// Welcome message.
+console.MarkupLineInterpolated($"Welcome to [gray]{getFileName()}[/], an interactive script to help with snap-related infra tasks");
 
 // Get gh default repo.
 
@@ -192,7 +196,8 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
             .DefaultValue(newestMilestone.Title));
 
         // TODO: Schedule to move PRs to the selected milestone.
-        console.MarkupLineInterpolated($"[blue]Added to plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]");
+        console.MarkupLineInterpolated($"[blue]Plan:[/] Move [teal]{milestonePullRequests.Length - lastMilestonePrIndex}[/] PRs from milestone [teal]{nextMilestoneName}[/] to [teal]{targetMilestone}[/]");
+        console.Confirm("Add to plan?");
     }
 }
 
@@ -202,6 +207,8 @@ void log(string message)
 {
     logWriter.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
 }
+
+static string getFileName([CallerFilePath] string filePath = "unknownFile") => Path.GetFileName(filePath);
 
 file sealed record PullRequest(int Number, string Title, DateTimeOffset MergedAt, Commit MergeCommit)
 {
