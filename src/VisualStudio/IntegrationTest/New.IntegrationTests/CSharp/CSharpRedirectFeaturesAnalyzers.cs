@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
@@ -86,7 +89,6 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
             </Project>
             """,
             cancellationToken);
-        await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, cancellationToken);
 
         // Configure the global indentation size which would be part of the Host fallback options.
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
@@ -143,13 +145,15 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
                 FeatureAttribute.ErrorList
              ],
              cancellationToken);
-        return await TestServices.ErrorList.GetErrorsAsync(cancellationToken);
+        return await TestServices.ErrorList.GetErrorsAsync(ErrorSource.Other, __VSERRORCATEGORY.EC_WARNING, cancellationToken);
     }
 
     private async Task WaitForCodeActionListToPopulateAsync(CancellationToken cancellationToken)
     {
         await TestServices.Editor.ActivateAsync(cancellationToken);
         await TestServices.Editor.PlaceCaretAsync("void M()", charsOffset: -1, cancellationToken);
+
+        await Task.Delay(TimeSpan.FromSeconds(1));
 
         await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
 

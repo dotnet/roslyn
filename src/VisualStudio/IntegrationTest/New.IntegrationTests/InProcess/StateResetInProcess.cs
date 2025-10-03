@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.InlineRename;
@@ -63,6 +64,7 @@ internal partial class StateResetInProcess
         ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
+        ResetPerLanguageOption(globalOptions, FormattingOptions2.IndentationSize);
         ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
         ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);
         ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.TriggerInArgumentLists);
