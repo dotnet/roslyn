@@ -44,7 +44,7 @@ internal partial struct RegexParser
             _autoNumber = 1;
             _recursionDepth = 0;
 
-            _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
+            _captureNumberToSpan.Add(0, text.IsEmpty() ? default : GetSpan(text));
         }
 
         public static (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
@@ -140,8 +140,8 @@ internal partial struct RegexParser
         {
             Debug.Assert(!grouping.OpenParenToken.IsMissing);
             var lastChar = grouping.CloseParenToken.IsMissing
-                ? _text.Last()
-                : grouping.CloseParenToken.VirtualChars.Last();
+                ? _text[^1]
+                : grouping.CloseParenToken.VirtualChars[^1];
 
             return GetSpan(grouping.OpenParenToken.VirtualChars[0], lastChar);
         }

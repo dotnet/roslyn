@@ -8675,6 +8675,9 @@ struct S
                 """;
 
             var expectedDiagnostics = new[] {
+                // (10,17): error CS1061: 'S' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'S' could be found (are you missing a using directive or an assembly reference?)
+                //         await s.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("S", "M").WithLocation(10, 17),
                 // (24,22): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
                 //     extension<T>(ref T t) where T : I
                 Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "T").WithLocation(24, 22),

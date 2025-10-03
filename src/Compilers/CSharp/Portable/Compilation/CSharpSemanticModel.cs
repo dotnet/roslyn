@@ -1661,6 +1661,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 options |= LookupOptions.AllMethodsOnArityZero;
                 options &= ~LookupOptions.MustBeInstance;
+                Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
+                Debug.Assert((options & LookupOptions.NamespaceAliasesOnly) == 0);
+                Debug.Assert((options & LookupOptions.LabelsOnly) == 0);
 
                 binder.LookupAllExtensions(lookupResult, name, options);
 

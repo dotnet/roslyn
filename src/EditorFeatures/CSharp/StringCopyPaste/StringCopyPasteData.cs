@@ -93,7 +93,7 @@ internal sealed class StringCopyPasteData(ImmutableArray<StringCopyPasteContent>
 
         // First, try to convert this token to a sequence of virtual chars.
         var virtualChars = virtualCharService.TryConvertToVirtualChars(token);
-        if (virtualChars.IsDefaultOrEmpty)
+        if (virtualChars.IsDefaultOrEmpty())
             return false;
 
         // Then find the start/end of the token's characters that overlap with the selection span.
@@ -114,7 +114,7 @@ internal sealed class StringCopyPasteData(ImmutableArray<StringCopyPasteContent>
         var lastCharIndexInclusive = virtualChars.IndexOf(lastOverlappingChar.Value);
 
         // Grab that subsequence of characters and get the final interpreted string for it.
-        var subsequence = virtualChars.GetSubSequence(TextSpan.FromBounds(firstCharIndexInclusive, lastCharIndexInclusive + 1));
+        var subsequence = virtualChars[firstCharIndexInclusive..(lastCharIndexInclusive + 1)];
         normalizedText = subsequence.CreateString();
         return true;
     }
