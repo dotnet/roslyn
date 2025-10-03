@@ -3842,8 +3842,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args), ..s]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(14, 100));
     }
 
-    [Theory(Skip = "PROTOTYPE: Ref safety")]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void RefSafety_ConstructorArguments(bool scopedInParameter, bool scopedOutArgument)
     {
         string sourceA = $$"""
