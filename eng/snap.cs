@@ -77,7 +77,44 @@ if (string.IsNullOrEmpty(defaultRepo))
 
 console.MarkupLineInterpolated($"Default repo for [gray]gh[/] CLI is [teal]{defaultRepo}[/]");
 
-var sourceRepo = $"https://github.com/{defaultRepo}";
+var sourceRepoUrl = $"https://github.com/{defaultRepo}";
+
+// Check subscriptions.
+var barApiClient = new BarApiClient(
+    buildAssetRegistryPat: null,
+    managedIdentityId: null,
+    disableInteractiveAuth: false);
+var defaultChannelsTask = barApiClient.GetDefaultChannelsAsync(sourceRepoUrl);
+var printers = await Task.WhenAll([
+    listSubscriptionsAsync("https://github.com/dotnet/dotnet", "VMR"),
+    listSubscriptionsAsync("https://github.com/dotnet/sdk", "SDK"),
+    listSubscriptionsAsync("https://github.com/dotnet/runtime", "runtime"),
+]);
+foreach (var printer in printers)
+{
+    printer();
+}
+
+async Task<Action> listSubscriptionsAsync(string targetRepoUrl, string targetRepoFriendlyName)
+{
+    var subscriptionsTask = barApiClient.GetSubscriptionsAsync(sourceRepoUrl, targetRepoUrl);
+    var defaultChannels = await defaultChannelsTask;
+    var subscriptions = await subscriptionsTask;
+    var flows = (
+        from channel in defaultChannels
+        join subscription in subscriptions on channel.Channel.Id equals subscription.Channel.Id
+        where subscription.Enabled
+        select $"{channel.Branch} -> {channel.Channel.Name} -> {subscription.TargetBranch}")
+        .ToArray();
+    return () =>
+    {
+        console.MarkupLineInterpolated($"Found [teal]{flows.Length}[/] subscriptions to {targetRepoFriendlyName}:");
+        foreach (var flow in flows)
+        {
+            console.WriteLine($" - {flow}");
+        }
+    };
+}
 
 // Ask for source and target branches.
 
@@ -95,17 +132,6 @@ var latestReleaseBranch = (await Cli.Wrap("git")
 
 var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
     .DefaultValue(latestReleaseBranch ?? "release/insiders"));
-
-// Check subscriptions.
-var barApiClient = new BarApiClient(
-    buildAssetRegistryPat: null,
-    managedIdentityId: null,
-    disableInteractiveAuth: false);
-var subscriptions = await barApiClient.GetSubscriptionsAsync(sourceRepo, "https://github.com/dotnet/dotnet");
-foreach (var subscription in subscriptions)
-{
-    console.MarkupLineInterpolated($"Found subscription [teal]{subscription.Id}[/] for repo [teal]{subscription.TargetRepository}[/] to branch [teal]{subscription.TargetBranch}[/]");
-}
 
 // Find last 5 PRs merged to current branch.
 
