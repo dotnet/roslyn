@@ -513,6 +513,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         string expectedIL;
         switch (argsPrefix)
         {
+            case "with(), ":
+                expectedIL = """
+
+                    """;
+                break;
+
             case "with(3), ":
                 expectedIL = """
                         {
@@ -574,238 +580,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 break;
         }
         verifier.VerifyIL("Program.Create<T>", expectedIL);
-    }
-
-    [Theory]
-    [CombinatorialData]
-    public void InterfaceTarget_GenericMethod(
-        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
-    {
-        string source = $$"""
-                using System.Collections.Generic;
-                class Program
-                {
-                    static {{typeName}}<K, V> Create<K, V>(IEqualityComparer<K> e)
-                    {
-                        return [with(e)];
-                    }
-                    static void Main()
-                    {
-                        Create<int, string>(null).Report();
-                    }
-                }
-                """;
-        var verifier = CompileAndVerify(
-            [source, s_collectionExtensions],
-            expectedOutput: "[], ");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.Create<K, V>",
-            typeName == "IDictionary" ?
-            """
-                {
-                    // Code size        7 (0x7)
-                    .maxstack  1
-                    IL_0000:  ldarg.0
-                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
-                    IL_0006:  ret
-                }
-                """ :
-            """
-                {
-                    // Code size       12 (0xc)
-                    .maxstack  1
-                    IL_0000:  ldarg.0
-                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
-                    IL_0006:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
-                    IL_000b:  ret
-                }
-                """);
-    }
-
-    [Theory]
-    [CombinatorialData]
-    public void InterfaceTarget_FieldInitializer(
-        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
-    {
-        string source = $$"""
-                using System.Collections.Generic;
-                class C<K, V>
-                {
-                    public {{typeName}}<K, V> F =
-                        [with(GetComparer())];
-                    static IEqualityComparer<K> GetComparer() => null;
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        var c = new C<int, string>();
-                        c.F.Report();
-                    }
-                }
-                """;
-        var verifier = CompileAndVerify(
-            [source, s_collectionExtensions],
-            expectedOutput: "[], ");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C<K, V>..ctor",
-            typeName == "IDictionary" ?
-            """
-                {
-                  // Code size       23 (0x17)
-                  .maxstack  2
-                  IL_0000:  ldarg.0
-                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
-                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
-                  IL_000b:  stfld      "System.Collections.Generic.IDictionary<K, V> C<K, V>.F"
-                  IL_0010:  ldarg.0
-                  IL_0011:  call       "object..ctor()"
-                  IL_0016:  ret
-                }
-                """ :
-            """
-                {
-                  // Code size       28 (0x1c)
-                  .maxstack  2
-                  IL_0000:  ldarg.0
-                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
-                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
-                  IL_000b:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
-                  IL_0010:  stfld      "System.Collections.Generic.IReadOnlyDictionary<K, V> C<K, V>.F"
-                  IL_0015:  ldarg.0
-                  IL_0016:  call       "object..ctor()"
-                  IL_001b:  ret
-                }
-                """);
-    }
-
-    [Theory]
-    [CombinatorialData]
-    public void InterfaceTarget_Nullability(
-        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
-    {
-        string source = $$"""
-                #nullable enable
-                using System.Collections.Generic;
-                class Program
-                {
-                    static {{typeName}}<K, V> Create1<K, V>(bool b, IEqualityComparer<K>? c1)
-                    {
-                        if (b) return new Dictionary<K, V>(c1);
-                        return [with(c1)];
-                    }
-                    static {{typeName}}<K, V> Create2<K, V>(bool b, IEqualityComparer<K?> c2) where K : class
-                    {
-                        if (b) return new Dictionary<K, V>(c2);
-                        return [with(c2)];
-                    }
-                    static {{typeName}}<K?, V> Create3<K, V>(bool b, IEqualityComparer<K> c3) where K : class
-                    {
-                        if (b) return new Dictionary<K?, V>(c3);
-                        return [with(c3)];
-                    }
-                }
-                """;
-        var comp = CreateCompilation(source);
-        // PROTOTYPE: Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
-        comp.VerifyEmitDiagnostics(
-            // (17,45): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
-            //         if (b) return new Dictionary<K?, V>(c3);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c3").WithArguments("System.Collections.Generic.IEqualityComparer<K>", "System.Collections.Generic.IEqualityComparer<K?>", "comparer", "Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)").WithLocation(17, 45));
-    }
-
-    [Fact]
-    public void InterfaceTarget_ReorderedArguments()
-    {
-        string source = """
-                using System;
-                using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        Create<int, string>(EqualityComparer<int>.Default, 2, new(1, "one")).Report();
-                    }
-                    static IDictionary<K, V> Create<K, V>(IEqualityComparer<K> e, int c, KeyValuePair<K, V> x)
-                    {
-                        return [with(comparer: Identity(e), capacity: Identity(c)), Identity(x)];
-                    }
-                    static T Identity<T>(T value)
-                    {
-                        Console.WriteLine(value);
-                        return value;
-                    }
-                }
-                """;
-        var verifier = CompileAndVerify(
-            [source, s_collectionExtensions],
-                expectedOutput: """
-                        System.Collections.Generic.GenericEqualityComparer`1[System.Int32]
-                        2
-                        [1, one]
-                        [[1, one]],
-                        """);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.Create<K, V>", """
-                {
-                  // Code size       47 (0x2f)
-                  .maxstack  4
-                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
-                                System.Collections.Generic.IEqualityComparer<K> V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> Program.Identity<System.Collections.Generic.IEqualityComparer<K>>(System.Collections.Generic.IEqualityComparer<K>)"
-                  IL_0006:  stloc.1
-                  IL_0007:  ldarg.1
-                  IL_0008:  call       "int Program.Identity<int>(int)"
-                  IL_000d:  ldloc.1
-                  IL_000e:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
-                  IL_0013:  ldarg.2
-                  IL_0014:  call       "System.Collections.Generic.KeyValuePair<K, V> Program.Identity<System.Collections.Generic.KeyValuePair<K, V>>(System.Collections.Generic.KeyValuePair<K, V>)"
-                  IL_0019:  stloc.0
-                  IL_001a:  dup
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                  IL_0022:  ldloca.s   V_0
-                  IL_0024:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                  IL_0029:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
-                  IL_002e:  ret
-                }
-                """);
-    }
-
-    [Fact]
-    public void InterfaceTarget_Dynamic()
-    {
-        string source = """
-                using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        CreateReadOnlyDictionary(null, 1, "one");
-                        CreateDictionary(2, null, 2, "two");
-                    }
-                    static IReadOnlyDictionary<K, V> CreateReadOnlyDictionary<K, V>(dynamic d, K k, V v)
-                    {
-                        return [with(d), k:v];
-                    }
-                    static IDictionary<K, V> CreateDictionary<K, V>(dynamic x, dynamic y, K k, V v)
-                    {
-                        return [with(x, y), k:v];
-                    }
-                }
-                """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-        comp.VerifyEmitDiagnostics(
-            // (11,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
-            //         return [with(d), k:v];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(11, 22),
-            // (15,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
-            //         return [with(x, y), k:v];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "x").WithLocation(15, 22),
-            // (15,25): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
-            //         return [with(x, y), k:v];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "y").WithLocation(15, 25));
     }
 
     /// <summary>
@@ -883,27 +657,10 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var comp = CreateEmptyCompilation(
             [sourceA, sourceB],
             parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(),
-            options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(
-            comp,
-            emitOptions: Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("4.0.0.0"),
-            verify: Verification.Skipped);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.Create<T>", """
-                {
-                  // Code size       21 (0x15)
-                  .maxstack  3
-                  IL_0000:  ldc.i4.3
-                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
-                  IL_0006:  dup
-                  IL_0007:  ldarg.0
-                  IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                  IL_000d:  dup
-                  IL_000e:  ldarg.1
-                  IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
-                  IL_0014:  ret
-                }
-                """);
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (10,22): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         return [with(capacity: 3), x, y];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity").WithLocation(10, 22));
     }
 
     [Theory]
@@ -1198,9 +955,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     // (11,19): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEqualityComparer<T>' to 'int'
                     //         c = [with(comparer)];
                     Diagnostic(ErrorCode.ERR_BadArgType, "comparer").WithArguments("1", "System.Collections.Generic.IEqualityComparer<T>", "int").WithLocation(11, 19),
-                    // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                    // (12,14): error CS1729: 'List<T>' does not contain a constructor that takes 2 arguments
                     //         c = [with(capacity, comparer)];
-                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<T>", "2").WithLocation(12, 14));
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(typeName);
@@ -4641,6 +4398,239 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
 
 #if DICTIONARY_EXPRESSIONS
+
+    [Fact]
+    public void InterfaceTarget_ReorderedArguments()
+    {
+        string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<int, string>(EqualityComparer<int>.Default, 2, new(1, "one")).Report();
+                    }
+                    static IDictionary<K, V> Create<K, V>(IEqualityComparer<K> e, int c, KeyValuePair<K, V> x)
+                    {
+                        return [with(comparer: Identity(e), capacity: Identity(c)), Identity(x)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+        var verifier = CompileAndVerify(
+            [source, s_collectionExtensions],
+                expectedOutput: """
+                        System.Collections.Generic.GenericEqualityComparer`1[System.Int32]
+                        2
+                        [1, one]
+                        [[1, one]],
+                        """);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.Create<K, V>", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
+                                System.Collections.Generic.IEqualityComparer<K> V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> Program.Identity<System.Collections.Generic.IEqualityComparer<K>>(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  stloc.1
+                  IL_0007:  ldarg.1
+                  IL_0008:  call       "int Program.Identity<int>(int)"
+                  IL_000d:  ldloc.1
+                  IL_000e:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0013:  ldarg.2
+                  IL_0014:  call       "System.Collections.Generic.KeyValuePair<K, V> Program.Identity<System.Collections.Generic.KeyValuePair<K, V>>(System.Collections.Generic.KeyValuePair<K, V>)"
+                  IL_0019:  stloc.0
+                  IL_001a:  dup
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0029:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_002e:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void InterfaceTarget_Dynamic()
+    {
+        string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        CreateReadOnlyDictionary(null, 1, "one");
+                        CreateDictionary(2, null, 2, "two");
+                    }
+                    static IReadOnlyDictionary<K, V> CreateReadOnlyDictionary<K, V>(dynamic d, K k, V v)
+                    {
+                        return [with(d), k:v];
+                    }
+                    static IDictionary<K, V> CreateDictionary<K, V>(dynamic x, dynamic y, K k, V v)
+                    {
+                        return [with(x, y), k:v];
+                    }
+                }
+                """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+        comp.VerifyEmitDiagnostics(
+            // (11,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+            //         return [with(d), k:v];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(11, 22),
+            // (15,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+            //         return [with(x, y), k:v];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "x").WithLocation(15, 22),
+            // (15,25): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+            //         return [with(x, y), k:v];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "y").WithLocation(15, 25));
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void InterfaceTarget_FieldInitializer(
+        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+    {
+        string source = $$"""
+                using System.Collections.Generic;
+                class C<K, V>
+                {
+                    public {{typeName}}<K, V> F =
+                        [with(GetComparer())];
+                    static IEqualityComparer<K> GetComparer() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C<int, string>();
+                        c.F.Report();
+                    }
+                }
+                """;
+        var verifier = CompileAndVerify(
+            [source, s_collectionExtensions],
+            expectedOutput: "[], ");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C<K, V>..ctor",
+            typeName == "IDictionary" ?
+            """
+                {
+                  // Code size       23 (0x17)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
+                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_000b:  stfld      "System.Collections.Generic.IDictionary<K, V> C<K, V>.F"
+                  IL_0010:  ldarg.0
+                  IL_0011:  call       "object..ctor()"
+                  IL_0016:  ret
+                }
+                """ :
+            """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
+                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_000b:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0010:  stfld      "System.Collections.Generic.IReadOnlyDictionary<K, V> C<K, V>.F"
+                  IL_0015:  ldarg.0
+                  IL_0016:  call       "object..ctor()"
+                  IL_001b:  ret
+                }
+                """);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void InterfaceTarget_Nullability(
+        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+    {
+        string source = $$"""
+#nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create1<K, V>(bool b, IEqualityComparer<K>? c1)
+                    {
+                        if (b) return new Dictionary<K, V>(c1);
+                        return [with(c1)];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(bool b, IEqualityComparer<K?> c2) where K : class
+                    {
+                        if (b) return new Dictionary<K, V>(c2);
+                        return [with(c2)];
+                    }
+                    static {{typeName}}<K?, V> Create3<K, V>(bool b, IEqualityComparer<K> c3) where K : class
+                    {
+                        if (b) return new Dictionary<K?, V>(c3);
+                        return [with(c3)];
+                    }
+                }
+                """;
+        var comp = CreateCompilation(source);
+        // PROTOTYPE: Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
+        comp.VerifyEmitDiagnostics(
+            // (17,45): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
+            //         if (b) return new Dictionary<K?, V>(c3);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c3").WithArguments("System.Collections.Generic.IEqualityComparer<K>", "System.Collections.Generic.IEqualityComparer<K?>", "comparer", "Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)").WithLocation(17, 45));
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void InterfaceTarget_GenericMethod(
+        [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+    {
+        string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create<K, V>(IEqualityComparer<K> e)
+                    {
+                        return [with(e)];
+                    }
+                    static void Main()
+                    {
+                        Create<int, string>(null).Report();
+                    }
+                }
+                """;
+        var verifier = CompileAndVerify(
+            [source, s_collectionExtensions],
+            expectedOutput: "[], ");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.Create<K, V>",
+            typeName == "IDictionary" ?
+            """
+                {
+                    // Code size        7 (0x7)
+                    .maxstack  1
+                    IL_0000:  ldarg.0
+                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                    IL_0006:  ret
+                }
+                """ :
+            """
+                {
+                    // Code size       12 (0xc)
+                    .maxstack  1
+                    IL_0000:  ldarg.0
+                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                    IL_0006:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                    IL_000b:  ret
+                }
+                """);
+    }
+
     [Theory]
     [CombinatorialData]
     public void InterfaceTarget_DictionaryInterfaces(
