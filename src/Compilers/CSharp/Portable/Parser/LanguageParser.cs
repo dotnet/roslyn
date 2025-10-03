@@ -12947,7 +12947,9 @@ done:
             }
 
             if (this.IsAtDotDotToken())
+            {
                 return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
+            }
 
             return _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
         }
