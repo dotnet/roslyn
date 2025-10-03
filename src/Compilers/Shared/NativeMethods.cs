@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal const uint NORMAL_PRIORITY_CLASS = 0x0020;
         internal const uint CREATE_NO_WINDOW = 0x08000000;
+        internal const uint CREATE_UNICODE_ENVIRONMENT = 0x00000400;
         internal const Int32 STARTF_USESTDHANDLES = 0x00000100;
         internal const int ERROR_SUCCESS = 0;
 

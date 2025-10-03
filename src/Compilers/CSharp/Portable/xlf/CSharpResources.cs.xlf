@@ -2268,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">Typ Microsoft.CodeAnalysis.EmbeddedAttribute musí být neobecný, interní, zapečetěný, nestatický, musí mít konstruktor bez parametrů, dědit z System.Attribute a být možné ho použít pro libovolný typ.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">Typ Microsoft.CodeAnalysis.EmbeddedAttribute musí být neobecný, interní, zapečetěný, nestatický, musí mít konstruktor bez parametrů, dědit z System.Attribute a být možné ho použít pro libovolný typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -11140,7 +11140,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <target state="translated">Operátor await jde použít jenom ve výrazu dotazu v rámci první kolekce výrazu počáteční klauzule from nebo v rámci výrazu kolekce klauzule join.</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Protože se toto volání neočekává, vykonávání aktuální metody pokračuje před dokončením volání. Zvažte použití operátoru await na výsledek volání.</target>
         <note />

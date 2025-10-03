@@ -2268,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">Le type 'Microsoft.CodeAnalysis.EmbeddedAttribute' doit être non générique, interne, sealed, non statique, avoir un constructeur sans paramètre, hériter de System.Attribute et être appliqué à n’importe quel type.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">Le type 'Microsoft.CodeAnalysis.EmbeddedAttribute' doit être non générique, interne, sealed, non statique, avoir un constructeur sans paramètre, hériter de System.Attribute et être appliqué à n’importe quel type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -11140,7 +11140,7 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
         <target state="translated">L'opérateur 'await' peut seulement être utilisé dans une expression de requête dans la première expression de collection de la clause 'from' initiale ou dans l'expression de collection d'une clause 'join'</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Dans la mesure où cet appel n'est pas attendu, l'exécution de la méthode actuelle continue avant la fin de l'appel. Envisagez d'appliquer l'opérateur 'await' au résultat de l'appel.</target>
         <note />
