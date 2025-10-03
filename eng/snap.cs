@@ -6,8 +6,8 @@
 // Need this fix to delete the static graph disable: https://github.com/dotnet/sdk/pull/50532, 10.0.100-rc.2
 #:property RestoreUseStaticGraphEvaluation=false
 #:property PublishAot=false
-#:package Spectre.Console
 #:package CliWrap
+#:package Spectre.Console
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 
