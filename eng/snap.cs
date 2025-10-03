@@ -27,10 +27,10 @@ var logFilePath = Path.Join(
     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
     "snap-script", "log.txt");
 Directory.CreateDirectory(Path.GetDirectoryName(logFilePath)!);
-// This is intentionally not disposed so it can be used in UnhandledException handler below.
+// This is disposed inside ProcessExit event, not here in Main, so it can be also used in UnhandledException handler.
 var logWriter = new StreamWriter(File.Open(logFilePath, FileMode.Append, FileAccess.Write, FileShare.Read))
 {
-    AutoFlush = true
+    AutoFlush = true,
 };
 console.MarkupLineInterpolated($"Logging to [gray]{logFilePath}[/]");
 logWriter.WriteLine();
@@ -39,6 +39,11 @@ log("Starting snap script run");
 AppDomain.CurrentDomain.UnhandledException += (s, e) =>
 {
     log($"Unhandled exception: {e.ExceptionObject}");
+};
+
+AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+{
+    logWriter.Dispose();
 };
 
 TaskScheduler.UnobservedTaskException += (s, e) =>
