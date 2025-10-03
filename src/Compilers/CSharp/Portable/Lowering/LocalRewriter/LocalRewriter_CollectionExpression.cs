@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.NullableWalker;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
