@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type is NamedTypeSymbol);
             Debug.Assert(node.CollectionCreation is null);
             Debug.Assert(node.Placeholder is null);
-            Debug.Assert(node.Type.IsArrayInterface(out _))
+            Debug.Assert(node.Type.IsArrayInterface(out _));
 
             var syntax = node.Syntax;
             var collectionType = (NamedTypeSymbol)node.Type;
