@@ -1170,7 +1170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(targetType.IsMutableArrayInterface(out _));
 
-                // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg and 
+                // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg `with()` and
+                // single int arg for the `List(int capacity)` case.
             }
         }
 
