@@ -1406,7 +1406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementConversion: null,
                     iterationVariables,
                     deconstruction: null,
-                    awaitableInfo: null,
                     breakLabel,
                     continueLabel,
                     rewrittenBody);

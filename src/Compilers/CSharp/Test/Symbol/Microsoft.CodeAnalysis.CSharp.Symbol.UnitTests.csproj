@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <PackageReference Include="Basic.Reference.Assemblies.Net50" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

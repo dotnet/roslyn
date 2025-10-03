@@ -397,6 +397,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetEnclosingMemberModel(node).GetAwaitExpressionInfo(node);
         }
 
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(LocalDeclarationStatementSyntax node)
+        {
+            return GetEnclosingMemberModel(node).GetAwaitExpressionInfo(node);
+        }
+
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(UsingStatementSyntax node)
+        {
+            return GetEnclosingMemberModel(node).GetAwaitExpressionInfo(node);
+        }
+
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
         {
             return GetEnclosingMemberModel(node).GetForEachStatementInfo(node);

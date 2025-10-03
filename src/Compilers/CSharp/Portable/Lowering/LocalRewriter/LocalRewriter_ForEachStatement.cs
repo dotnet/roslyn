@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return RewriteInlineArrayForEachStatementAsFor(node);
             }
-            else if (node.AwaitOpt is null && CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
+            else if (node.EnumeratorInfoOpt?.MoveNextAwaitableInfo is null && CanRewriteForEachAsFor(node.Syntax, nodeExpressionType, out var indexerGet, out var lengthGetter))
             {
                 return RewriteForEachStatementAsFor(node, indexerGet, lengthGetter);
             }
@@ -132,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ElementConversion,
                 node.IterationVariables,
                 node.DeconstructionOpt,
-                node.AwaitOpt,
                 node.BreakLabel,
                 node.ContinueLabel,
                 rewrittenBody);
@@ -146,13 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            BoundAwaitableInfo? awaitableInfo,
             LabelSymbol breakLabel,
             LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
-            bool isAsync = awaitableInfo != null;
+            bool isAsync = enumeratorInfo.MoveNextAwaitableInfo != null;
 
             BoundExpression rewrittenExpression = VisitExpression(convertedCollection.Operand);
 
@@ -229,14 +227,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var disposalFinallyBlock = GetDisposalFinallyBlock(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, out var hasAsyncDisposal);
             if (isAsync)
             {
-                Debug.Assert(awaitableInfo is { GetResult: not null } or { RuntimeAsyncAwaitCall: not null });
+                var moveNextAwaitableInfo = enumeratorInfo.MoveNextAwaitableInfo;
+                Debug.Assert(moveNextAwaitableInfo is { GetResult: not null } or { RuntimeAsyncAwaitCall: not null });
 
                 // We need to be sure that when the disposal isn't async we reserve an unused state machine state number for it,
                 // so that await foreach always produces 2 state machine states: one for MoveNextAsync and the other for DisposeAsync.
                 // Otherwise, EnC wouldn't be able to map states when the disposal changes from having async dispose to not, or vice versa.
                 var debugInfo = new BoundAwaitExpressionDebugInfo(s_moveNextAsyncAwaitId, ReservedStateMachineCount: (byte)(hasAsyncDisposal ? 0 : 1));
 
-                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, awaitableInfo, (awaitableInfo.GetResult ?? awaitableInfo.RuntimeAsyncAwaitCall!.Method)!.ReturnType, debugInfo, used: true);
+                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, moveNextAwaitableInfo, (moveNextAwaitableInfo.GetResult ?? moveNextAwaitableInfo.RuntimeAsyncAwaitCall!.Method)!.ReturnType, debugInfo, used: true);
             }
 
             BoundStatement whileLoop = RewriteWhileStatement(
