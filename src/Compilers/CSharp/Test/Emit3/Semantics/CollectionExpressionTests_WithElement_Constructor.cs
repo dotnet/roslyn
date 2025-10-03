@@ -1018,7 +1018,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 internal MyList(int capacity) : base(capacity) 
                 {
-                    Console.WriteLine("Internal constructor");
+                    Console.Write("Internal constructor ");
                 }
             }
             
@@ -1032,7 +1032,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("Internal constructor\r\n10 1"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("Internal constructor 10 1"));
     }
 
     #endregion
