@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <StartupObject />
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CommonLanguageServerProtocol.Framework.UnitTests</RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
