@@ -16,7 +16,7 @@ To bind to a method named `with`, use `@with` instead.
 object x, y, z = ...;
 object[] items;
 
-items = [with(x, y), z];  // C#13: call to with() method; C#14: error args not supported for object[]
+items = [with(x, y), z];  // C#14: call to with() method; PROTOTYPE C#14: error args not supported for object[]
 items = [@with(x, y), z]; // call to with() method
 object with(object a, object b) { ... }
 ```
