@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
@@ -774,7 +775,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region ArgList Tests
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void WithElement_ArgList()
     {
         var source = """
@@ -797,7 +798,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CreateCompilation(source).VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void WithElement_ArgList_Empty()
     {
         var source = """
@@ -1018,7 +1019,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             {
                 internal MyList(int capacity) : base(capacity) 
                 {
-                    Console.WriteLine("Internal constructor");
+                    Console.Write("Internal constructor ");
                 }
             }
             
@@ -1032,7 +1033,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("Internal constructor\r\n10 1"));
+        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("Internal constructor 10 1"));
     }
 
     #endregion

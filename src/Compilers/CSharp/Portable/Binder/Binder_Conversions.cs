@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);
             }
 
-            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out MethodSymbol? constructor, out _);
+            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out MethodSymbol? constructor, out bool isExpanded);
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
             {
@@ -1122,23 +1122,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor);
                 collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
-
-                // PROTOTYPE: If this failed to bind a suitable constructor, and the user had no with() element and
-                // there was no constructor that could be called with no args, report a special diagnostic that a 
-                // 'with()' element is required here.
+                collectionCreation.WasCompilerGenerated = true;
             }
             else if (targetType is TypeParameterSymbol typeParameter)
             {
                 collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                collectionCreation.WasCompilerGenerated = true;
             }
             else
             {
                 throw ExceptionUtilities.UnexpectedValue(targetType);
             }
-
             analyzedArguments.Free();
-
-            collectionCreation.WasCompilerGenerated = true;
             return collectionCreation;
         }
 
