@@ -497,6 +497,11 @@
         <target state="new">Collection arguments cannot be dynamic</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeEmpty">
+        <source>Collection arguments must be empty</source>
+        <target state="new">Collection arguments must be empty</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
         <source>Collection argument element must be the first element</source>
         <target state="new">Collection argument element must be the first element</target>

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// #DEFINE ARRAY_INTERFACES
 // #DEFINE CREATE_METHODS
 // #DEFINE DICTIONARY_EXPRESSIONS
 
@@ -486,7 +485,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """);
     }
 
-#if ARRAY_INTERFACES
     [Theory]
     [CombinatorialData]
     public void List_KnownLength_ICollection(
@@ -687,7 +685,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
     {
         string source = $$"""
-#nullable enable
+                #nullable enable
                 using System.Collections.Generic;
                 class Program
                 {
@@ -1127,7 +1125,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         }
     }
 
-
     [Theory]
     [CombinatorialData]
     public void CollectionArguments_CapacityAndComparer_01(
@@ -1260,7 +1257,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: $"System.Collections.Generic.{interfaceType}<T>", ConversionKind.CollectionExpression);
         VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: $"System.Collections.Generic.{interfaceType}<T>", ConversionKind.CollectionExpression);
     }
-#endif
 
     [Fact]
     public void CollectionInitializer_MultipleConstructors()
