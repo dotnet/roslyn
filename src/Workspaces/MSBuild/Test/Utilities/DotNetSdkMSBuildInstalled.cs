@@ -15,7 +15,7 @@ internal sealed partial class DotNetSdkMSBuildInstalled : ExecutionCondition
     static DotNetSdkMSBuildInstalled()
     {
         // We'll use the same .NET as we use for our own build, since that's the only SDK guaranteed to be installed
-        var solution = Path.Combine(GetSolutionFolder(), "Roslyn.sln");
+        var solution = Path.Combine(GetSolutionFolder(), "Roslyn.slnx");
 
         if (!HasNetCoreSdkForSolution(solution))
         {
