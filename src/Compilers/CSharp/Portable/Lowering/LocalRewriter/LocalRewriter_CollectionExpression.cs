@@ -401,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type is NamedTypeSymbol);
             Debug.Assert(node.CollectionCreation is null);
             Debug.Assert(node.Placeholder is null);
+            Debug.Assert(node.Type.IsArrayInterface(out _))
 
             var syntax = node.Syntax;
             var collectionType = (NamedTypeSymbol)node.Type;
@@ -408,10 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elements = node.Elements;
             BoundExpression arrayOrList;
 
-            if (collectionType.OriginalDefinition.SpecialType is
-                SpecialType.System_Collections_Generic_IEnumerable_T or
-                SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
-                SpecialType.System_Collections_Generic_IReadOnlyList_T)
+            if (collectionType.IsReadOnlyArrayInterface(out _))
             {
                 int numberIncludingLastSpread;
                 bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
@@ -453,6 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Debug.Assert(collectionType.IsMutableArrayInterface(out _));
                 arrayOrList = CreateAndPopulateList(node, elementType, elements);
             }
 

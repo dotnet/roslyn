@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -891,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
+                collectionCreation = BindIEnumerableCollectionExpressionConstructor(syntax, targetType, constructor, node.WithElement, diagnostics);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
 
                 if (collectionCreation.HasErrors)
@@ -909,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var element in elements)
                 {
                     BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                        (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
+                        BindCollectionExpressionSpreadElementAddMethod(
                             (SpreadElementSyntax)spreadElement.Syntax,
                             spreadElement,
                             collectionInitializerAddMethodBinder,
@@ -927,25 +928,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE: Add support for interfaces and Create methods.  Keep diagnostic for arrays/spans.
-                if (node.WithElement != null && collectionTypeKind)
-                {
-                    diagnostics.Add(
-                        ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
-                        node.WithElement.Syntax.GetFirstToken().GetLocation(),
-                        targetType);
-                }
+                MethodSymbol? list_T__ctor = null;
+                MethodSymbol? list_T__ctorInt32 = null;
 
-                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
+                if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
                     node.HasSpreadElements(out _, out _))
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
                     // though not all will be used for any particular collection expression. Checking all
                     // gives a consistent behavior, regardless of collection expression elements.
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                    list_T__ctor = (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
+                    list_T__ctorInt32 = (MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
+                }
+
+                if (node.WithElement != null)
+                {
+                    if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface)
+                    {
+                        Debug.Assert(constructor is null, "Only initialized in ImplementsIEnumerable case in Conversions.GetCollectionExpressionConversion.");
+                        collectionCreation = BindArrayInterfaceCollectionExpressionConstructor(
+                            syntax, targetType, node.WithElement, list_T__ctor, list_T__ctorInt32, diagnostics);
+                    }
+                    else
+                    {
+                        // PROTOTYPE: Implement support for CollectionBuilder.  For now, error on it.
+
+                        // Array, Span, ReadOnlySpan, CollectionBuilder,
+                        diagnostics.Add(
+                            ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
+                            node.WithElement.Syntax.GetFirstToken().GetLocation(),
+                            targetType);
+                    }
                 }
 
                 var elementConversions = conversion.UnderlyingConversions;
@@ -1083,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionBuilderMethod;
         }
 
-        internal BoundExpression BindCollectionExpressionConstructor(
+        private BoundExpression BindIEnumerableCollectionExpressionConstructor(
             SyntaxNode syntax,
             TypeSymbol targetType,
             MethodSymbol? constructor,
@@ -1124,6 +1139,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             collectionCreation.WasCompilerGenerated = true;
             return collectionCreation;
+        }
+
+        private BoundExpression? BindArrayInterfaceCollectionExpressionConstructor(
+            SyntaxNode syntax,
+            TypeSymbol targetType,
+            MethodSymbol list_T__ctor,
+            MethodSymbol list_T__ctorInt32,
+            BoundUnconvertedWithElement withElement,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(targetType.IsArrayInterface(out _));
+
+            if (targetType.IsReadOnlyArrayInterface(out _))
+            {
+                // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
+                // the parameterless with-element is allows (`with()`).
+                if (withElement.Arguments.Length > 0)
+                {
+
+                }
+
+                // Note: we intentionally report null here.  Even though the code has `with()` in it, we're not actually
+                // going to call a particular constructor.  The lowering phase will properly handle creating a read-only
+                // interface instance.
+                return null;
+            }
+            else
+            {
+                Debug.Assert(targetType.IsMutableArrayInterface(out _));
+
+                // For the mutable array interfaces (ICollection<E>, IList<E>), we allow only the no-arg and 
+            }
         }
 
         internal bool HasCollectionExpressionApplicableConstructor(
