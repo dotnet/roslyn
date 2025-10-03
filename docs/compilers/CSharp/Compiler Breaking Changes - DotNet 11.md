@@ -4,9 +4,10 @@ This document lists known breaking changes in Roslyn after .NET 10 general relea
 
 ## `with()` as a collection expression element is treated as collection construction *arguments*
 
+PROTOTYPE: Include proper version number here.
 ***Introduced in Visual Studio 2022 version TBD***
 
-`with(...)` when used as an element in a collection expression is bound as arguments passed to constructor or
+`with(...)` when used as an element in a collection expression, and when the LangVersion is set to PROTOTYPE, is bound as arguments passed to constructor or
 factory method used to create the collection, rather than as an invocation expression of a method named `with`.
 
 To bind to a method named `with`, use `@with` instead.
@@ -15,7 +16,7 @@ To bind to a method named `with`, use `@with` instead.
 object x, y, z = ...;
 object[] items;
 
-items = [with(x, y), z];  // C#13: call to with() method; C#14: error args not supported for object[]
+items = [with(x, y), z];  // C#14: call to with() method; PROTOTYPE C#14: error args not supported for object[]
 items = [@with(x, y), z]; // call to with() method
 object with(object a, object b) { ... }
 ```
