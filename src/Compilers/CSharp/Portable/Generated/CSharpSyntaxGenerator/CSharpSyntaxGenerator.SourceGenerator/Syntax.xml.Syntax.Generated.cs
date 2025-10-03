@@ -13766,7 +13766,10 @@ public sealed partial class ParameterSyntax : BaseParameterSyntax
     internal ParameterSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
       : base(green, parent, position)
     {
+        Validate();
     }
+
+    private partial void Validate();
 
     /// <summary>Gets the attribute declaration list.</summary>
     public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));

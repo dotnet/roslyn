@@ -33898,6 +33898,11 @@ public static class E
         var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
         AssertEx.Equal("void E.M<T, System.Int64, System.String>(this T t, System.Int64 u, System.String v)",
             method.AssociatedExtensionImplementation.ToTestDisplayString());
+
+        // The T in associated implementation is from the extension definition
+        var t = method.AssociatedExtensionImplementation.TypeArguments[0];
+        Assert.Equal("T", t.ToTestDisplayString());
+        Assert.True(t.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
     }
 
     [Fact]
@@ -33961,6 +33966,45 @@ public static class E<T0>
         var constructedMethod = constructedE.GetTypeMembers("").Single().GetMethod("M").GetPublicSymbol();
         AssertEx.Equal("void E<System.Int32>.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", constructedMethod.ToTestDisplayString());
         AssertEx.Equal("void E<System.Int32>.M(this System.Int32 i)", constructedMethod.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_11()
+    {
+        // not a definition, generic extension and method, partially constructed with type parameters
+        var src = """
+public static class E
+{
+    extension<T1, T2>(T1 t1)
+    {
+        public void M<U1, U2>(T2 t2, U1 u1, U2 u2)
+        {
+            t1.M(42, u1, "");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t1.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.M<T1, System.Int32, U1, System.String>(this T1 t1, System.Int32 t2, U1 u1, System.String u2)",
+            method.AssociatedExtensionImplementation.ToTestDisplayString());
+
+        // The T1 in associated implementation is from the extension definition 
+        var t1 = method.AssociatedExtensionImplementation.TypeArguments[0];
+        Assert.Equal("T1", t1.ToTestDisplayString());
+        Assert.True(t1.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
+
+        // The U1 in associated implementation is from the extension member definition 
+        var u1 = method.AssociatedExtensionImplementation.TypeArguments[2];
+        Assert.Equal("U1", u1.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$B7F0343159FB3A22D67EC9801612841A<T1, T2>.M<U1, U2>(T2 t2, U1 u1, U2 u2)",
+            u1.ContainingSymbol.ToTestDisplayString());
+        Assert.True(u1.ContainingSymbol.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
@@ -34967,6 +35011,79 @@ public static class E
                 // string.Extension(str); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "str").WithArguments("values", "void extension(string).Extension(params string[] values)").WithLocation(7, 18)
                 );
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_01()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public static void Main() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+        validate(comp);
+
+        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics();
+        validate(comp2);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var groupingName = "<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69";
+            var markerName = "<M>$F4B4FFE41AB49E80A4ECF390CF6EB372";
+
+            var extension = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            AssertEx.Equal(groupingName, extension.ExtensionGroupingName);
+            AssertEx.Equal(markerName, extension.ExtensionMarkerName);
+            Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}+{markerName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{markerName}"));
+        }
+    }
+
+    [Fact]
+    public void ParameterSyntax_01()
+    {
+        string src = """
+static class E
+{
+    extension(int i)
+    {
+    }
+}
+""";
+        var tree = CSharpSyntaxTree.ParseText(src);
+        var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        Assert.Equal("int i", parameter.ToFullString());
+
+        var withoutType = parameter.WithType(null);
+        Assert.Equal("i", withoutType.ToFullString());
+
+        var withoutIdentifer = parameter.WithIdentifier(default);
+        Assert.Equal("int ", withoutIdentifer.ToFullString());
+
+        // Type and identifier cannot both be missing
+        Assert.Throws<ArgumentException>(() => SyntaxFactory.Parameter(identifier: default));
+        Assert.Throws<ArgumentException>(() => withoutType.WithIdentifier(default));
+    }
+
+    [Fact]
+    public void SyntaxFacts_01()
+    {
+        Assert.Equal(SyntaxKind.ExtensionBlockDeclaration, SyntaxFacts.GetTypeDeclarationKind(SyntaxKind.ExtensionKeyword));
+        Assert.Equal(SyntaxKind.ExtensionBlockDeclaration, SyntaxFacts.GetBaseTypeDeclarationKind(SyntaxKind.ExtensionKeyword));
+        Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.ExtensionBlockDeclaration));
+        Assert.Equal(SyntaxKind.ExtensionKeyword, SyntaxFacts.GetContextualKeywordKind("extension"));
+        Assert.Equal(SyntaxKind.None, SyntaxFacts.GetKeywordKind("extension"));
+        Assert.True(SyntaxFacts.IsContextualKeyword(SyntaxKind.ExtensionKeyword));
+
+        Assert.Equal("extension", SyntaxFacts.GetText(SyntaxKind.ExtensionKeyword));
     }
 }
 

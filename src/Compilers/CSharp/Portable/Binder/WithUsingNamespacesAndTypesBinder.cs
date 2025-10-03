@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(members.Count == 0);
 
-            // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, test this flag (see TestUnusedExtensionMarksImportsAsUsed)
             bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
 
             // We need to avoid collecting multiple candidates for an extension declaration imported both through a namespace and a static class
