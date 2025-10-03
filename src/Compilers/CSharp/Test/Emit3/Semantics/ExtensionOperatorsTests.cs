@@ -7718,7 +7718,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
                 );
 #else
-            // https://github.com/dotnet/roslyn/issues/78968: Understand what is causing DEBUG/RELEASE behavior difference
+            // Ordering difference is acceptable and doesn't affect determinism. It is caused by ConditionallyDeOrder
             comp.VerifyEmitDiagnostics(
                 // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator --()' and 'Extensions2.extension(C1).operator --()'
                 //         _ = --c1;
@@ -23800,7 +23800,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions1.extension(C1).operator checked -=(C1)", "Extensions2.extension(C1).operator -=(C1)").WithLocation(39, 20)
                 );
 #else
-            // https://github.com/dotnet/roslyn/issues/78968: Understand what is causing DEBUG/RELEASE behavior difference
+            // Ordering difference is acceptable and doesn't affect determinism. It is caused by ConditionallyDeOrder
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator -=(C1)' and 'Extensions2.extension(C1).operator -=(C1)'
                 //         _ = c1 -= c1;
