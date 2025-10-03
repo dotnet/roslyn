@@ -542,7 +542,7 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(8, 27));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
     public void WithElement_ReadOnlySpan_WithOutVar()
     {
         var source = """

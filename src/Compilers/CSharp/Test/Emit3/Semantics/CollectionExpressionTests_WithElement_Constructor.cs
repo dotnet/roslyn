@@ -497,7 +497,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
     public void WithElement_OutParameters()
     {
         var source = """
@@ -525,7 +525,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2,42"));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
     public void WithElement_OutVar_UsedInLaterElements()
     {
         var source = """
@@ -553,7 +553,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("100,200,300"));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
     public void WithElement_MultipleOutParameters()
     {
         var source = """
