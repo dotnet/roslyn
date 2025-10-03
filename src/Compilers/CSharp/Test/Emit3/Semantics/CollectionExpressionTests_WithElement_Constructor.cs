@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
@@ -774,7 +775,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
     #region ArgList Tests
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void WithElement_ArgList()
     {
         var source = """
@@ -797,7 +798,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CreateCompilation(source).VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))]
     public void WithElement_ArgList_Empty()
     {
         var source = """
