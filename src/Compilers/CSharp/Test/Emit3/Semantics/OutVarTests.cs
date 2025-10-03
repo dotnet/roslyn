@@ -36632,6 +36632,58 @@ class C
                 """;
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestUsedInIndex()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C this[C c] => c;
+
+                    public C M()
+                        => new(out var x)[x];
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUsedInConditionalIndex()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C this[C c] => c;
+
+                    public C M()
+                        => new(out var x)?[x];
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUsedInDirectInvocation()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C M()
+                        => new(out var x)(x);
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
     }
 
     internal static class OutVarTestsExtensions
