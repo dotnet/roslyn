@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.NullableWalker;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -44,6 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         // Don't optimize if the node has an explicit `with(...)` in it.  The code is being explicit
                         // about which constructor to use and we should respect that.
+                        //
+                        // Note this falls out from the original collection expression specification which says:
+                        //
+                        // Known length translation:
+                        //
+                        //      Having a known length allows for efficient construction of a result with the potential
+                        //      for no copying of data and no unnecessary slack space in a result.
+                        //
+                        //      For a known length literal [e1, ..s1, etc] ...
+                        //
+                        // So once we have a `with(...)` element we no longer match the pattern for a known length literal.
                         if (!node.HasWithElement &&
                             ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {

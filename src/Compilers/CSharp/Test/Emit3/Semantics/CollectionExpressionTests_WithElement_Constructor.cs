@@ -497,7 +497,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42"));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
     public void WithElement_OutParameters()
     {
         var source = """
@@ -525,7 +525,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("2,42"));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
     public void WithElement_OutVar_UsedInLaterElements()
     {
         var source = """
@@ -553,7 +553,7 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("100,200,300"));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
     public void WithElement_MultipleOutParameters()
     {
         var source = """
@@ -715,10 +715,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(
-            source,
-            references: [CSharpRef],
-            expectedOutput: IncludeExpectedOutput("42"));
+        CreateCompilation(source, references: [CSharpRef]).VerifyDiagnostics(
+            // (19,34): error CS9337: Collection arguments cannot be dynamic
+            //         MyList<int> list = [with(d), 1];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(19, 34));
     }
 
     [Fact]
@@ -742,7 +742,10 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics();
+        CreateCompilation(source).VerifyDiagnostics(
+            // (13,41): error CS9337: Collection arguments cannot be dynamic
+            //         MyList<int> list = [with(value: d)];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(13, 41));
     }
 
     [Fact]

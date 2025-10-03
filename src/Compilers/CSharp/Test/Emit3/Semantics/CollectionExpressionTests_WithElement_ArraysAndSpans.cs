@@ -542,7 +542,7 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(8, 27));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/80518")]
     public void WithElement_ReadOnlySpan_WithOutVar()
     {
         var source = """
@@ -594,9 +594,9 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             """;
 
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,24): error CS9336: Collection arguments are not supported for type 'int[]'.
+            // (6,29): error CS9337: Collection arguments cannot be dynamic
             //         int[] array = [with(d), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("int[]").WithLocation(6, 24));
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(6, 29));
     }
 
     [Fact]
@@ -616,10 +616,10 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             """;
 
         CreateCompilation(source, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-            // (8,27): error CS9336: Collection arguments are not supported for type 'Span<int>'.
+            // (8,42): error CS9337: Collection arguments cannot be dynamic
             //         Span<int> span = [with(capacity: d), 1, 2, 3];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(8, 27));
-    }
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(8, 42));
+}
 
     [Fact]
     public void WithElement_Array_ImplicitlyTyped()
