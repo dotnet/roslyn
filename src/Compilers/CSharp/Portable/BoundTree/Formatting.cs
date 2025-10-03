@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var arguments = this.Arguments;
+                var arguments = this.Arguments.Expressions;
                 if (arguments.Length == 0)
                 {
                     return "new()";
