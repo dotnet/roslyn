@@ -619,7 +619,7 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             // (8,42): error CS9337: Collection arguments cannot be dynamic
             //         Span<int> span = [with(capacity: d), 1, 2, 3];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(8, 42));
-}
+    }
 
     [Fact]
     public void WithElement_Array_ImplicitlyTyped()
