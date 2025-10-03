@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -20,13 +18,9 @@ internal readonly partial struct VirtualCharGreenSequence
     /// </summary>
     private abstract partial class Chunk
     {
-        protected Chunk()
-        {
-        }
-
         public abstract int Length { get; }
         public abstract VirtualCharGreen this[int index] { get; }
-        public abstract VirtualChar? Find(int tokenStart, int position);
+        public abstract int? FindIndex(int tokenStart, int position);
     }
 
     /// <summary>
@@ -39,7 +33,7 @@ internal readonly partial struct VirtualCharGreenSequence
         public override int Length => array.Count;
         public override VirtualCharGreen this[int index] => array[index];
 
-        public override VirtualChar? Find(int tokenStart, int position)
+        public override int? FindIndex(int tokenStart, int position)
         {
             if (array.IsEmpty)
                 return null;
@@ -64,12 +58,9 @@ internal readonly partial struct VirtualCharGreenSequence
                 return 0;
             });
 
-            // Characters can be discontiguous (for example, in multi-line-raw-string literals).  So if the
-            // position is in one of the gaps, it won't be able to find a corresponding virtual char.
-            if (index < 0)
-                return null;
-
-            return new(array[index], tokenStart);
+            // Characters can be discontinuous (for example, in multi-line-raw-string literals).  So if the position is
+            // in one of the gaps, it won't be able to find a corresponding virtual char.
+            return index < 0 ? null : index;
         }
     }
 
@@ -80,41 +71,19 @@ internal readonly partial struct VirtualCharGreenSequence
     /// <param name="data">
     /// The underlying string that we're returning virtual chars from.  Note: this will commonly include things like
     /// quote characters.  Clients who do not want that should then ask for an appropriate <see
-    /// cref="VirtualCharSequence.GetSubSequence"/> back that does not include those characters.
+    /// cref="VirtualCharSequence.Slice"/> back that does not include those characters.
     /// </param>
     private sealed class StringChunk(string data) : Chunk
     {
         public override int Length => data.Length;
 
-        public override VirtualChar? Find(int tokenStart, int position)
+        public override int? FindIndex(int tokenStart, int position)
         {
             var stringIndex = position - tokenStart;
-            if (stringIndex < 0 || stringIndex >= data.Length)
-                return null;
-
-            return new(this[stringIndex], tokenStart);
+            return stringIndex >= 0 && stringIndex < data.Length ? stringIndex : null;
         }
 
         public override VirtualCharGreen this[int index]
-        {
-            get
-            {
-#if DEBUG
-                // We should never have a properly paired high/low surrogate in a StringChunk. We are only created
-                // when the string has the same number of chars as there are VirtualChars.
-                if (char.IsHighSurrogate(data[index]))
-                {
-                    Debug.Assert(index + 1 >= data.Length ||
-                                 !char.IsLowSurrogate(data[index + 1]));
-                }
-#endif
-
-                // var span = new TextSpan(firstVirtualCharPosition + index, length: 1);
-                var ch = data[index];
-                return char.IsSurrogate(ch)
-                    ? VirtualCharGreen.Create(ch, offset: index, width: 1)
-                    : VirtualCharGreen.Create(new Rune(ch), offset: index, width: 1);
-            }
-        }
+            => new(data[index], offset: index, width: 1);
     }
 }

@@ -32075,7 +32075,7 @@ namespace N1
 {
     static class E1
     {
-        public static void M1(this object o) { }
+        public static void M1(this object o) { System.Console.Write("ran"); }
     }
 }
 
@@ -32085,14 +32085,398 @@ namespace N2
     {
         extension(object o)
         {
-            public void M2() { }
+            public void M2() => throw null;
         }
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining used imports logic
-        comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_13()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_14()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension<T>(T t)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_15()
+    {
+        // tracking unnecessary imports, invocable
+        var src = """
+using N1;
+using N2;
+
+new object().P1();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public System.Action P1 { get { System.Console.Write("ran"); return () => { }; } }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_16()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_17()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+            public int M<T>() => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(object).M<T>()' and 'N2.E2.extension(object).M<T>()'
+            // _ = new object().M<int>();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("N1.E1.extension(object).M<T>()", "N2.E2.extension(object).M<T>()").WithLocation(4, 18));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var opNode = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<int>");
+        var symbolInfo = model.GetSymbolInfo(opNode);
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        AssertEx.SetEqual([
+            "System.Int32 N1.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()",
+            "System.Int32 N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()"
+            ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Using_18()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_19()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M<T>(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_20()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M<U>(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_21()
+    {
+        // tracking unnecessary imports, value receiver
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object)
+        {
+            public static int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_22()
+    {
+        // tracking unnecessary imports, type receiver
+        var src = """
+using N1;
+using N2;
+
+_ = object.M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object)
+        {
+            public static int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]

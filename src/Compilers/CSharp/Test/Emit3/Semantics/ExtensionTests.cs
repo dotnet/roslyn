@@ -27,32 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Extensions)]
 public partial class ExtensionTests : CompilingTestBase
 {
-    internal string ExtensionMarkerAttributeIL = """
-
-.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
-    extends [mscorlib]System.Attribute
-{
-    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
-        01 00 ff 7f 00 00 01 00 54 02 09 49 6e 68 65 72
-        69 74 65 64 00
-    )
-
-    .method public hidebysig specialname rtspecialname 
-        instance void .ctor (
-            string name
-        ) cil managed 
-    {
-        .maxstack 8
-
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
-        IL_0006: nop
-        IL_0007: nop
-        IL_0008: ret
-    }
-}
-""";
-
     private static string ExpectedOutput(string output)
     {
         return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
@@ -2534,7 +2508,7 @@ public static class Extensions
 {
     extension(C)
     {
-        class Nested { }
+        public class Nested { }
     }
 }
 class C { }
@@ -2544,9 +2518,9 @@ class C { }
             // (1,3): error CS0426: The type name 'Nested' does not exist in the type 'C'
             // C.Nested x = null;
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C").WithLocation(1, 3),
-            // (7,15): error CS9282: This member is not allowed in an extension block
-            //         class Nested { }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 15));
+            // (7,22): error CS9282: This member is not allowed in an extension block
+            //         public class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -13348,7 +13322,7 @@ static class E
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int>().M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -13409,9 +13383,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<,>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
-        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
-
-        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U, V>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(invocation));
+        Assert.Empty(model.GetMemberGroup(invocation.Expression));
     }
 
     [Fact]
@@ -14772,8 +14745,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object, object>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -18476,6 +18449,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
+            // (5,20): error CS1061: 'string' does not contain a definition for 'f' and no accessible extension method 'f' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // var x = b ? ref s1.f : ref s2.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("string", "f").WithLocation(5, 20),
+            // (5,31): error CS1061: 'string' does not contain a definition for 'f' and no accessible extension method 'f' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // var x = b ? ref s1.f : ref s2.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("string", "f").WithLocation(5, 31),
             // (10,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
             //     extension(ref string s)
             Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "string").WithLocation(10, 19),
@@ -18486,7 +18465,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s1.f");
-        AssertEx.Equal("ref System.String E.<G>$34505F560D9EACF86A87F3ED1F85E448.f { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [Fact]
@@ -29057,8 +29036,8 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -35999,6 +35978,9 @@ static class E
 ";
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
+            // (6,3): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(6, 3),
             // (7,3): error CS1061: 'C' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // c.M2();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C", "M2").WithLocation(7, 3),
@@ -37575,7 +37557,27 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
+
+        src = """
+string s = null;
+s.M<string>();
+
+static class E
+{
+    public static void M<T, U>(this T t) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // s.M<string>();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<string>").WithArguments("string", "M").WithLocation(2, 3));
+
+        tree = comp.SyntaxTrees.First();
+        model = comp.GetSemanticModel(tree);
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -37602,7 +37604,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string, string>.M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$373395272A45479DE48E8BB1CCB2C42B<System.String, System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -38115,6 +38117,35 @@ public static class E
         position = extension.OpenBraceToken.Position;
         Assert.Empty(model.LookupSymbols(position, null, name: "o"));
         Assert.Empty(model.LookupSymbols(position, null, name: null).OfType<IParameterSymbol>());
+    }
+
+    [Fact]
+    public void LookupSymbols_InField()
+    {
+        var src = """
+class C
+{
+    object field = null;
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        int position = GetSyntax<LiteralExpressionSyntax>(tree, "null").EndPosition - 1;
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        Assert.Empty(model.LookupSymbols(position, o, name: "M"));
+        Assert.Empty(model.LookupNamespacesAndTypes(position, o, name: "M"));
     }
 
     [Fact]
