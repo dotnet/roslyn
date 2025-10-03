@@ -2538,6 +2538,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadSpreadInCatchFilter
                 or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                 or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
+                or ErrorCode.ERR_CollectionArgumentsMustBeFirst
+                or ErrorCode.ERR_CollectionArgumentsNotSupportedForType
+                or ErrorCode.ERR_CollectionArgumentsDynamicBinding
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
