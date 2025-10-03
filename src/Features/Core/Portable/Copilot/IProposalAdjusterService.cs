@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
@@ -32,20 +34,27 @@ internal static class ProposalAdjusterKinds
 internal readonly record struct ProposalAdjustmentResult(
     [property: DataMember(Order = 0)] ImmutableArray<TextChange> TextChanges,
     [property: DataMember(Order = 1)] bool Format,
-    [property: DataMember(Order = 2)] ImmutableArray<string> AdjustmentKinds);
+    [property: DataMember(Order = 2)] ImmutableArray<AdjustmentResult> AdjustmentResults);
+
+[DataContract]
+internal readonly record struct AdjustmentResult(
+    [property: DataMember(Order = 0)] string AdjustmentKind,
+    [property: DataMember(Order = 1)] TimeSpan AdjustmentTime);
 
 internal interface ICopilotProposalAdjusterService : ILanguageService
 {
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+        ImmutableHashSet<string> allowableAdjustments, Document document,
+        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 internal interface IRemoteCopilotProposalAdjusterService
 {
     /// <inheritdoc cref="ICopilotProposalAdjusterService.TryAdjustProposalAsync"/>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
+        ImmutableHashSet<string> allowableAdjustments, Checksum solutionChecksum,
+        DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
@@ -68,7 +77,8 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken);
 
     public async ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
-        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
+        ImmutableHashSet<string> allowableAdjustments, Document document,
+        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
@@ -78,24 +88,32 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         {
             var result = await client.TryInvokeAsync<IRemoteCopilotProposalAdjusterService, ProposalAdjustmentResult>(
                 document.Project,
-                (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(checksum, document.Id, normalizedChanges, cancellationToken),
+                (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(
+                    allowableAdjustments, checksum, document.Id, normalizedChanges, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
+
             return result.HasValue ? result.Value : default;
         }
 
         return await TryAdjustProposalInCurrentProcessAsync(
-            document, normalizedChanges, cancellationToken).ConfigureAwait(false);
+            allowableAdjustments, document, normalizedChanges, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ProposalAdjustmentResult> TryAdjustProposalInCurrentProcessAsync(
-        Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
+        ImmutableHashSet<string> allowableAdjustments, Document originalDocument,
+        ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
+        Debug.Assert(allowableAdjustments is not null);
+
+        if (allowableAdjustments.IsEmpty)
+            return new(normalizedChanges, Format: false, AdjustmentResults: default);
+
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
 
         CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
 
-        using var _ = ArrayBuilder<string>.GetInstance(out var adjustmentKinds);
+        using var _ = ArrayBuilder<AdjustmentResult>.GetInstance(out var adjustmentResults);
 
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
         // move to in the forked document, as that is what we will want to analyze.
@@ -108,17 +126,21 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         foreach (var (adjusterName, adjuster) in _adjusters)
         {
+            if (allowableAdjustments is null || !allowableAdjustments.Contains(adjusterName))
+                continue;
+
+            var timer = SharedStopwatch.StartNew();
             var adjustedDocument = await adjuster(originalDocument, forkedDocument, cancellationToken).ConfigureAwait(false);
             if (forkedDocument != adjustedDocument)
             {
-                adjustmentKinds.Add(adjusterName);
+                adjustmentResults.Add(new(adjusterName, AdjustmentTime: timer.Elapsed));
                 forkedDocument = adjustedDocument;
             }
         }
 
         // If none of the adjustments were made, then just return what we were given.
-        if (adjustmentKinds.IsEmpty)
-            return new(normalizedChanges, Format: false, AdjustmentKinds: default);
+        if (adjustmentResults.IsEmpty)
+            return new(normalizedChanges, Format: false, AdjustmentResults: default);
 
         // Keep the new root around, in case something needs it while processing.  This way we don't throw it away unnecessarily.
         GC.KeepAlive(forkedRoot);
@@ -127,15 +149,12 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         var totalChanges = allChanges.AsImmutableOrEmpty();
 
-        return new(totalChanges, Format: true, adjustmentKinds.ToImmutableAndClear());
+        return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
     }
 
     private async Task<Document> TryGetAddImportTextChangesAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
-        if (!globalOptions.GetOption(CopilotOptions.FixAddMissingImports))
-            return forkedDocument;
-
         var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
         // Find the span of changes made to the forked document.
@@ -154,9 +173,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     private async Task<Document> TryGetFormattingTextChangesAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
-        if (!globalOptions.GetOption(CopilotOptions.FixCodeFormat))
-            return forkedDocument;
-
         var syntaxFormattingService = originalDocument.GetRequiredLanguageService<ISyntaxFormattingService>();
 
         var formattingOptions = await originalDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);

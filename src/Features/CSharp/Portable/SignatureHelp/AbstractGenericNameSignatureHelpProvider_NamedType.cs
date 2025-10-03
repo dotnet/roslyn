@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 internal partial class AbstractGenericNameSignatureHelpProvider
 {
-    private static ImmutableArray<SymbolDisplayPart> GetPreambleParts(
+    private static IList<SymbolDisplayPart> GetPreambleParts(
         INamedTypeSymbol namedType,
         SemanticModel semanticModel,
         int position)
@@ -16,6 +16,6 @@ internal partial class AbstractGenericNameSignatureHelpProvider
         return [.. namedType.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutTypeParametersFormat), Punctuation(SyntaxKind.LessThanToken)];
     }
 
-    private static ImmutableArray<SymbolDisplayPart> GetPostambleParts()
+    private static IList<SymbolDisplayPart> GetPostambleParts()
         => [Punctuation(SyntaxKind.GreaterThanToken)];
 }

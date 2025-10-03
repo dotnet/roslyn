@@ -2,15 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
-    Friend MustInherit Class AbstractOrdinaryMethodSignatureHelpProvider
-        Inherits AbstractVisualBasicSignatureHelpProvider
+    friend MustInherit class AbstractOrdinaryMethodSignatureHelpProvider
+        inherits AbstractVisualBasicSignatureHelpProvider
 
         Protected Shared Function ConvertMemberGroupMember(document As Document,
                                                     member As ISymbol,
@@ -28,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetMemberGroupPreambleParts(member, semanticModel, position),
                 GetSeparatorParts(),
                 GetMemberGroupPostambleParts(member, semanticModel, position),
-                member.GetParameters().SelectAsArray(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)))
+                member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
         End Function
 
-        Private Shared Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+        Private Shared Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+            Dim result = New List(Of SymbolDisplayPart)()
 
             AddExtensionPreamble(symbol, result)
 
@@ -46,14 +44,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             result.AddRange(symbol.ToMinimalDisplayParts(semanticModel, position, format))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
-            Return result.ToImmutableAndFree()
+            Return result
         End Function
 
-        Private Shared Function GetMemberGroupPostambleParts(
-                symbol As ISymbol,
-                semanticModel As SemanticModel,
-                position As Integer) As ImmutableArray(Of SymbolDisplayPart)
-            Dim parts = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+        Private Shared Function GetMemberGroupPostambleParts(symbol As ISymbol,
+                                                      semanticModel As SemanticModel,
+                                                      position As Integer) As IList(Of SymbolDisplayPart)
+            Dim parts = New List(Of SymbolDisplayPart)
             parts.Add(Punctuation(SyntaxKind.CloseParenToken))
 
             If TypeOf symbol Is IMethodSymbol Then
@@ -73,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 parts.AddRange([property].Type.ToMinimalDisplayParts(semanticModel, position))
             End If
 
-            Return parts.ToImmutableAndFree()
+            Return parts
         End Function
     End Class
 End Namespace

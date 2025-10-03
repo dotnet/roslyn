@@ -124,7 +124,7 @@ public sealed partial class StackFrameParserTests
             sb.AppendLine();
 
             sb.Append("Actual: \t");
-            var enumeratedString = new string([.. enumeratedParsedCharacters.Select(ch => (char)ch.Value)]);
+            var enumeratedString = new string([.. enumeratedParsedCharacters.Select(ch => ch.Value)]);
             PrintString(enumeratedString, start, end, sb);
             sb.AppendLine();
 

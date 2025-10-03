@@ -3809,6 +3809,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInCatchFilter" xml:space="preserve">
     <value>Cannot await in the filter expression of a catch clause</value>
   </data>
+  <data name="ERR_BadSpreadInCatchFilter" xml:space="preserve">
+    <value>Cannot use '..' spread operator in the filter expression of a catch clause</value>
+  </data>
   <data name="ERR_BadAwaitInLock" xml:space="preserve">
     <value>Cannot await in the body of a lock statement</value>
   </data>
@@ -5877,7 +5880,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
   <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
-    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</value>
+    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</value>
   </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
@@ -8192,6 +8195,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AttributeCannotBeAppliedManually" xml:space="preserve">
     <value>'{0}' cannot be applied manually.</value>
+  </data>
+  <data name="ERR_ExplicitInterfaceMemberTypeMismatch" xml:space="preserve">
+    <value>'{0}': type must be '{1}' to match implemented member '{2}'</value>
+  </data>
+  <data name="ERR_ExplicitInterfaceMemberReturnTypeMismatch" xml:space="preserve">
+    <value>'{0}': return type must be '{1}' to match implemented member '{2}'</value>
   </data>
   <data name="NodeIsNotAwaitUsingDeclaration" xml:space="preserve">
     <value>'node' is not an 'await using' declaration</value>

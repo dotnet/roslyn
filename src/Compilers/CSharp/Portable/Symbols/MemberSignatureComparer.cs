@@ -48,6 +48,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
+        /// If this returns false, then the real explicit implementation comparer will also return false.
+        /// Skips checking whether the return type is equal.
+        /// </summary>
+        public static readonly MemberSignatureComparer ExplicitImplementationWithoutReturnTypeComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: false,
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences | RefKindCompareMode.AllowRefReadonlyVsInMismatch,
+            considerCallingConvention: true,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+        /// <summary>
         /// This instance is used when trying to determine if one member implicitly implements another,
         /// according to the C# definition.
         /// The member names, parameters, and (return) types must match. Custom modifiers are ignored.

@@ -26,6 +26,11 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     [Fact]
     public async Task TestInvocationWithoutParameters()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("BaseClass()", string.Empty, null, currentParameterIndex: 0)
+        };
+
         await TestAsync("""
             class BaseClass
             {
@@ -37,13 +42,17 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 public Derived() [|: base($$|])
                 { }
             }
-            """,
-            [new("BaseClass()", string.Empty, null, currentParameterIndex: 0)]);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithoutParametersMethodXmlComments()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("BaseClass()", "Summary for BaseClass", null, currentParameterIndex: 0)
+        };
+
         await TestAsync("""
             class BaseClass
             {
@@ -56,13 +65,17 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 public Derived() [|: base($$|])
                 { }
             }
-            """,
-            [new("BaseClass()", "Summary for BaseClass", null, currentParameterIndex: 0)]);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersOn1()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("BaseClass(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
         await TestAsync("""
             class BaseClass
             {
@@ -74,13 +87,17 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 public Derived() [|: base($$2, 3|])
                 { }
             }
-            """,
-            [new("BaseClass(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersXmlCommentsOn1()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("BaseClass(int a, int b)", "Summary for BaseClass", "Param a", currentParameterIndex: 0)
+        };
+
         await TestAsync("""
             class BaseClass
             {
@@ -95,13 +112,17 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 public Derived() [|: base($$2, 3|])
                 { }
             }
-            """,
-            [new("BaseClass(int a, int b)", "Summary for BaseClass", "Param a", currentParameterIndex: 0)]);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersOn2()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
+        };
+
         await TestAsync("""
             class BaseClass
             {
@@ -117,13 +138,17 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 public Derived() [|: base(2, $$3|])
                 { }
             }
-            """,
-            [new("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)]);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersXmlComentsOn2()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)
+        };
+
         await TestAsync("""
             class BaseClass
             {
@@ -138,65 +163,86 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 public Derived() [|: base(2, $$3|])
                 { }
             }
-            """,
-            [new("BaseClass(int a, int b)", "Summary for BaseClass", "Param b", currentParameterIndex: 1)]);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
     public async Task TestThisInvocation()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)
+        };
+
         await TestAsync("""
             class Goo
             {
                 public Goo(int a, int b) { }
                 public Goo() [|: this(2, $$3|]) { }
             }
-            """,
-            [new("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
     public async Task TestThisInvocationWithNonEmptyArgumentList()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("Foo()", string.Empty, null, currentParameterIndex: 0),
+        };
+
         await TestAsync("""
             class Foo
             {
                 public Foo(int a, int b) [|: this($$|]) { }
                 public Foo() { }
             }
-            """,
-            [new("Foo()", string.Empty, null, currentParameterIndex: 0)]);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
     public async Task TestInvocationWithoutClosingParen()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)
+        };
+
         await TestAsync("""
             class Goo
             {
                 public Goo(int a, int b) { }
                 public Goo() [|: this(2, $$
             |]}
-            """,
-            [new("Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2579")]
     public async Task TestThisInvocationWithoutClosingParenWithNonEmptyArgumentList()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("Foo()", string.Empty, null, currentParameterIndex: 0),
+        };
+
         await TestAsync("""
             class Foo
             {
                 public Foo() { }
                 public Foo(int a, int b)  [|: this($$
             |]}
-            """,
-            [new("Foo()", string.Empty, null, currentParameterIndex: 0)]);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickInt()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("D(int i)", currentParameterIndex: 0, isSelected: true),
+            new("D(string i)", currentParameterIndex: 0),
+        };
+
         await TestAsync("""
             class D
             {
@@ -206,14 +252,18 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 D(string i) => throw null;
                 D(int i) => throw null;
             }
-            """, [
-                new("D(int i)", currentParameterIndex: 0, isSelected: true),
-                new("D(string i)", currentParameterIndex: 0)]);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickString()
     {
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new("D(int i)", currentParameterIndex: 0),
+            new("D(string i)", currentParameterIndex: 0, isSelected: true),
+        };
+
         await TestAsync("""
             class D
             {
@@ -223,9 +273,7 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
                 D(string i) => throw null;
                 D(int i) => throw null;
             }
-            """, [
-                new("D(int i)", currentParameterIndex: 0),
-                new("D(string i)", currentParameterIndex: 0, isSelected: true)]);
+            """, expectedOrderedItems);
     }
 
     #endregion
