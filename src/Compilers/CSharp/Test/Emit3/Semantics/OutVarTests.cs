@@ -17874,7 +17874,7 @@ public class Cls
 
     static void Test(out System.Collections.Generic.IEnumerable<System.Int32> x)
     {
-        c = null;
+        x = null;
     }
 }";
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
@@ -18282,7 +18282,7 @@ public class Cls
 {
     public static void Main()
     {
-        dynamic c = null;
+        dynamic x = null;
         Test2(x.Test1(out var x1), 
               x1);
     }
@@ -33460,7 +33460,7 @@ public class B : A
 }
 public static class S
 {
-    public static void M2(this A self, out B x) { c = null; }
+    public static void M2(this A self, out B x) { x = null; }
 }";
             var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { Net40.References.SystemCore });
             comp.VerifyDiagnostics(
