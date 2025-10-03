@@ -36614,6 +36614,24 @@ class C
                 """;
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestUsedInAddition()
+        {
+            var text = """
+                using System;
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public static C operator +(C a, C b) => a;
+
+                    public C M()
+                        => new(out var x) + x;
+                }
+                """;
+            CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+        }
     }
 
     internal static class OutVarTestsExtensions
