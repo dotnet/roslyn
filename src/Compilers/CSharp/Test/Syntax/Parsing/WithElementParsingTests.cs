@@ -569,6 +569,176 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
     }
 
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    public void NotWithElement19(LanguageVersion languageVersion)
+    {
+        UsingExpression("[a.with()]",
+            TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "with");
+                        }
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    public void NotWithElement20(LanguageVersion languageVersion)
+    {
+        UsingExpression("[(with)()]",
+            TestOptions.Regular.WithLanguageVersion(languageVersion),
+            // (1,9): error CS1525: Invalid expression term ')'
+            // [(with)()]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 9));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.CastExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    public void NotWithElement21(LanguageVersion languageVersion)
+    {
+        UsingExpression("[(with)(with)]",
+            TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.CastExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "with");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    public void NotWithElement22(LanguageVersion languageVersion)
+    {
+        UsingExpression("[(with)]",
+            TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
+    public void NotWithElement23(LanguageVersion languageVersion)
+    {
+        UsingExpression("[(with())]",
+            TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "with");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void WithElement1(LanguageVersion languageVersion)
     {
         UsingExpression("[with(]",
