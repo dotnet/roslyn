@@ -2100,7 +2100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (arrayLength is >= 2 and <= 16)
             {
                 // In .NET 10 and up, the runtime provides InlineArrayN<T> types for N from 2 to 16.
-                var arrayWellKnownType = (WellKnownType)((int)WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2));
+                var arrayWellKnownType = WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2);
                 Debug.Assert(arrayWellKnownType is >= WellKnownType.System_Runtime_CompilerServices_InlineArray2 and <= WellKnownType.System_Runtime_CompilerServices_InlineArray16);
                 if (Compilation.GetWellKnownType(arrayWellKnownType) is not MissingMetadataTypeSymbol and { } inlineArrayType)
                 {
