@@ -80,12 +80,11 @@ var sourceBranchName = console.Prompt(new TextPrompt<string>("Source branch")
 
 // Find the latest branch starting with release/.
 var latestReleaseBranch = (await Cli.Wrap("git")
-    .WithArguments(["for-each-ref", "--sort=-committerdate", "--format=%(refname:short)", "refs/remotes/"])
+    .WithArguments(["for-each-ref", "--sort=-committerdate", "--format=%(refname:short)", "refs/remotes/*/release/*", "--count=1"])
     .ExecuteBufferedAsync())
     .StandardOutput
     .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
     .Select(static s => s.IndexOf('/') is var slashIndex and >= 0 ? s[(slashIndex + 1)..] : s)
-    .Where(static s => s.StartsWith("release/", StringComparison.Ordinal))
     .FirstOrDefault();
 
 var targetBranchName = console.Prompt(new TextPrompt<string>("Target branch")
