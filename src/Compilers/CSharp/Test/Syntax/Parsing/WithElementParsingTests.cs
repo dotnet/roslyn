@@ -28,6 +28,15 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
         }
     }
 
+    [Fact]
+    public void TestSyntaxFacts()
+    {
+        Assert.Equal(SyntaxKind.WithKeyword, SyntaxFacts.GetContextualKeywordKind("with"));
+        Assert.Equal(SyntaxKind.None, SyntaxFacts.GetKeywordKind("with"));
+        Assert.True(SyntaxFacts.IsContextualKeyword(SyntaxKind.WithKeyword));
+        Assert.Equal("with", SyntaxFacts.GetText(SyntaxKind.WithKeyword));
+    }
+
     [Theory, MemberData(nameof(CollectionArgumentsLanguageVersions))]
     public void NotWithElement1(LanguageVersion languageVersion)
     {
