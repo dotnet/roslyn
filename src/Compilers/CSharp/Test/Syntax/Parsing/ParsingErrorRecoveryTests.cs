@@ -8763,5 +8763,28 @@ class c
             }
             EOF();
         }
+
+        [Fact]
+        public void ObjectInitializerWithColonInsteadOfEqualsSign()
+        {
+            var source = @"
+class Program
+{
+    public int X { get; set; }
+    static void Main()
+    {
+        var y = new Program { X: 42 };
+    }
+}
+";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var toString = tree.GetRoot().ToFullString();
+            Assert.Equal(source, toString);
+            tree.GetDiagnostics().Verify(
+                // (7,32): error CS1003: Syntax error, '=' expected
+                //         var y = new Program { X: 42 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(7, 32));
+        }
     }
 }

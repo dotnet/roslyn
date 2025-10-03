@@ -13001,7 +13001,7 @@ done:
 
         private bool IsNamedAssignment()
         {
-            return IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
+            return IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.EqualsToken or SyntaxKind.ColonToken;
         }
 
         private bool IsDictionaryInitializer()
@@ -13199,7 +13199,9 @@ done:
             return _syntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 this.ParseIdentifierName(),
-                this.EatToken(SyntaxKind.EqualsToken),
+                this.CurrentToken.Kind == SyntaxKind.ColonToken
+                    ? this.EatTokenWithPrejudice(SyntaxKind.EqualsToken)
+                    : this.EatToken(SyntaxKind.EqualsToken),
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
                     : this.ParsePossibleRefExpression());
