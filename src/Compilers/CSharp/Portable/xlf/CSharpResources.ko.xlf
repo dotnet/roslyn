@@ -357,6 +357,11 @@
         <target state="translated">'{0}' 유형은 '정적 사용'에 유효하지 않습니다. 클래스, 구조체, 인터페이스, 열거형, 대리자 또는 네임스페이스만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">'unsafe' 블록에서 'yield return'을 사용할 수 없습니다.</target>

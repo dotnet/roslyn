@@ -357,6 +357,11 @@
         <target state="translated">Typ „{0}” jest nieprawidłowy dla „using static”. Można używać tylko klasy, struktury, interfejsu, wyliczenia, delegata lub przestrzeni nazw.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
         <target state="translated">Nie można użyć instrukcji „yield return” w bloku „unsafe”</target>
