@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -43852,6 +43851,146 @@ class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
 
             CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [InlineData(5)]
+        [InlineData(6)]
+        [InlineData(7)]
+        [InlineData(8)]
+        [InlineData(9)]
+        [InlineData(10)]
+        [InlineData(11)]
+        [InlineData(12)]
+        [InlineData(13)]
+        [InlineData(14)]
+        [InlineData(15)]
+        [InlineData(16)]
+        public void BuiltInInlineArrayTypes(int arrayLength)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    public MyCollection(List<T> list) { _list = list; }
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                public class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        return new MyCollection<T>(new List<T>(items.ToArray()));
+                    }
+                }
+                """;
+
+            var sourceB = $$"""
+                MyCollection<object> m = [{{string.Join(", ", Enumerable.Range(1, arrayLength))}}];
+                m.Report();
+                """;
+
+            var expectedOutput = $"[{string.Join(", ", Enumerable.Range(1, arrayLength))}],";
+            var ilVerifyFailure = Verification.Fails with
+            {
+                ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+            };
+            var verifier = CompileAndVerify([sourceA, sourceB, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput(expectedOutput), targetFramework: TargetFramework.Net100, verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: false, arrayLength));
+            verifier.VerifyDiagnostics();
+            if (arrayLength == 2)
+            {
+                verifier.VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       63 (0x3f)
+                      .maxstack  2
+                      .locals init (System.Runtime.CompilerServices.InlineArray2<object> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "System.Runtime.CompilerServices.InlineArray2<object>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray2<object>, object>(ref System.Runtime.CompilerServices.InlineArray2<object>, int)"
+                      IL_0010:  ldc.i4.1
+                      IL_0011:  box        "int"
+                      IL_0016:  stind.ref
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<System.Runtime.CompilerServices.InlineArray2<object>, object>(ref System.Runtime.CompilerServices.InlineArray2<object>, int)"
+                      IL_001f:  ldc.i4.2
+                      IL_0020:  box        "int"
+                      IL_0025:  stind.ref
+                      IL_0026:  ldloca.s   V_0
+                      IL_0028:  ldc.i4.2
+                      IL_0029:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<System.Runtime.CompilerServices.InlineArray2<object>, object>(in System.Runtime.CompilerServices.InlineArray2<object>, int)"
+                      IL_002e:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                      IL_0033:  box        "MyCollection<object>"
+                      IL_0038:  ldc.i4.0
+                      IL_0039:  call       "void CollectionExtensions.Report(object, bool)"
+                      IL_003e:  ret
+                    }
+                    """);
+            }
+
+            var comp = CreateCompilation([sourceA, sourceB, s_collectionExtensionsWithSpan], targetFramework: TargetFramework.Net100);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2));
+
+            verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: true, arrayLength));
+            verifier.VerifyDiagnostics();
+            if (arrayLength == 2)
+            {
+                verifier.VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       63 (0x3f)
+                      .maxstack  2
+                      .locals init (<>y__InlineArray2<object> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "<>y__InlineArray2<object>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                      IL_0010:  ldc.i4.1
+                      IL_0011:  box        "int"
+                      IL_0016:  stind.ref
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  call       "ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<object>, object>(ref <>y__InlineArray2<object>, int)"
+                      IL_001f:  ldc.i4.2
+                      IL_0020:  box        "int"
+                      IL_0025:  stind.ref
+                      IL_0026:  ldloca.s   V_0
+                      IL_0028:  ldc.i4.2
+                      IL_0029:  call       "System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<object>, object>(in <>y__InlineArray2<object>, int)"
+                      IL_002e:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                      IL_0033:  box        "MyCollection<object>"
+                      IL_0038:  ldc.i4.0
+                      IL_0039:  call       "void CollectionExtensions.Report(object, bool)"
+                      IL_003e:  ret
+                    }
+                    """);
+            }
+
+            static Action<ModuleSymbol> verifyResult(bool shouldHaveSynthesizedArrayType, int arrayLength)
+            {
+                return (moduleSymbol) =>
+                {
+                    var expectedSythesizedName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, generation: 0);
+                    if (shouldHaveSynthesizedArrayType)
+                    {
+                        Assert.True(moduleSymbol.TypeNames.Contains(expectedSythesizedName));
+                    }
+                    else
+                    {
+                        Assert.False(moduleSymbol.TypeNames.Contains(expectedSythesizedName));
+                    }
+                };
+            }
         }
     }
 }
