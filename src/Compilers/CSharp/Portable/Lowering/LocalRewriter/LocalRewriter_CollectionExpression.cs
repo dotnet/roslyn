@@ -290,7 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var spanType = (NamedTypeSymbol)collectionType;
                 var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                if (node.Elements.Length == 0)
+                var elements = node.Elements;
+
+                if (elements.Length == 0)
                 {
                     // `default(Span<T>)` is the best way to make empty Spans
                     return _factory.Default(collectionType);
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
                     Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, elementType.Type, _compilation));
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                    var rewrittenElements = node.Elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
+                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
                     return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
                 }
 
@@ -313,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateAndPopulateSpanFromInlineArray(
                         node.Syntax,
                         elementType,
-                        node.Elements,
+                        elements,
                         asReadOnlySpan: isReadOnlySpan);
                 }
 
