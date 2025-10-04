@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var arrayValue = createArray(node, arrayType, targetsReadOnlyCollection: isReadOnlySpan);
 
                 var wellKnownMember = isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__ctor_Array : WellKnownMember.System_Span_T__ctor_Array;
-                var spanConstructor = ((MethodSymbol)_factory.WellKnownMember(wellKnownMember)!).AsMember((NamedTypeSymbol)collectionType);
+                var spanConstructor = _factory.WellKnownMethod(wellKnownMember).AsMember((NamedTypeSymbol)collectionType);
                 assertTypesAreCompatible(_compilation, arrayType, spanConstructor.Parameters[0].Type);
                 return _factory.New(spanConstructor, arrayValue);
 
