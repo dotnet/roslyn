@@ -264,8 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
                 {
-                    // ReadOnlySpan<T> span = [elems];
-                    // ImmutableArray<T> array = ImmutableArray.Create(span)
+                    // ImmutableArray<T> array = ImmutableArray.Create(singleSpreadSpan)
                     return VisitCollectionBuilderCollectionExpression(node);
                 }
 
