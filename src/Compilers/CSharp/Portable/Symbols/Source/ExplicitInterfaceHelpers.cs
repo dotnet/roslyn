@@ -315,9 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!foundMatchingMember)
             {
-                // CONSIDER: we may wish to suppress these errors in the event that another error
-                // has been reported about the signature.
-
                 if (foundMatchingMemberWithoutReturnTypeComparer)
                 {
                     var errorType = implementingMember.Kind is SymbolKind.Method
