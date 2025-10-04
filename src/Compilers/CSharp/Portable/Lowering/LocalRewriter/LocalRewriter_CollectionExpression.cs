@@ -336,8 +336,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var wellKnownMember = isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__ctor_Array : WellKnownMember.System_Span_T__ctor_Array;
                 var spanConstructor = ((MethodSymbol)_factory.WellKnownMember(wellKnownMember)!).AsMember((NamedTypeSymbol)collectionType);
-                verifyTypesAreCompatible(_compilation, arrayType, spanConstructor.Parameters[0].Type);
+                assertTypesAreCompatible(_compilation, arrayType, spanConstructor.Parameters[0].Type);
                 return _factory.New(spanConstructor, arrayValue);
+
+                [Conditional("DEBUG")]
+                static void assertTypesAreCompatible(CSharpCompilation compilation, TypeSymbol arrayType, TypeSymbol constructorParameterType)
+                {
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    Debug.Assert(compilation.Conversions.ClassifyConversionFromType(arrayType, constructorParameterType, isChecked: false, ref discardedUseSiteInfo).Kind is ConversionKind.Identity or ConversionKind.ImplicitReference);
+                }
             }
 
             BoundExpression createArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType, bool targetsReadOnlyCollection)
@@ -365,14 +372,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return array;
-            }
-
-            [Conditional("DEBUG")]
-            static void verifyTypesAreCompatible(CSharpCompilation compilation, TypeSymbol? arrayType, TypeSymbol constructorParameterType)
-            {
-                Debug.Assert(arrayType is not null);
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                Debug.Assert(compilation.Conversions.ClassifyConversionFromType(arrayType, constructorParameterType, isChecked: false, ref discardedUseSiteInfo).Kind is ConversionKind.Identity or ConversionKind.ImplicitReference);
             }
         }
 
