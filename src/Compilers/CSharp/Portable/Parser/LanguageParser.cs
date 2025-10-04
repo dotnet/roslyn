@@ -13199,7 +13199,9 @@ done:
             return _syntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 this.ParseIdentifierName(),
-                this.EatTokenAsKind(SyntaxKind.EqualsToken),
+                this.CurrentToken.Kind == SyntaxKind.ColonToken
+                    ? this.EatTokenAsKind(SyntaxKind.EqualsToken)
+                    : this.EatToken(SyntaxKind.EqualsToken),
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
                     : this.ParsePossibleRefExpression());

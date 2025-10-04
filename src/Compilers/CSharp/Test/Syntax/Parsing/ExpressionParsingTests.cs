@@ -7071,121 +7071,264 @@ select t";
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
         public void ObjectInitializerWithColonInsteadOfEqualsSign()
         {
-            var source = """
-class Class1
-{
-    public int X { get; set; }
-}
+            UsingExpression("new Class1 { X: 0 }",
+                // (1,15): error CS1003: Syntax error, '=' expected
+                // new Class1 { X: 0 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 15));
 
-class Program
-{
-    static void Main()
-    {
-        new Class1 { X: 0 };
-    }
-}
-""";
-
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var toString = tree.GetRoot().ToFullString();
-            Assert.Equal(source, toString);
-            tree.GetDiagnostics().Verify(
-                // (10,23): error CS1003: Syntax error, '=' expected
-                //         new Class1 { X: 0 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(10, 23));
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Class1");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        M(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
         public void ImplicitObjectInitializerWithColonInsteadOfEqualsSign()
         {
-            var source = """
-class Class1
-{
-    public int X { get; set; }
-}
+            UsingStatement("Class1 c1 = new() { X: 0 };",
+                // (1,22): error CS1003: Syntax error, '=' expected
+                // Class1 c1 = new() { X: 0 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 22));
 
-class Program
-{
-    static void Main()
-    {
-        Class1 c1 = new() { X: 0 };
-    }
-}
-""";
-
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var toString = tree.GetRoot().ToFullString();
-            Assert.Equal(source, toString);
-            tree.GetDiagnostics().Verify(
-                // (10,30): error CS1003: Syntax error, '=' expected
-                //         Class1 c1 = new() { X: 0 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(10, 30));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Class1");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c1");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ImplicitObjectCreationExpression);
+                            {
+                                N(SyntaxKind.NewKeyword);
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.ObjectInitializerExpression);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "X");
+                                        }
+                                        M(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
         public void ObjectInitializerWithColonInsteadOfEqualsSignInNestedInitialization()
         {
-            var source = """
-class Class1
-{
-    public Class2 X { get; set; }
-}
+            UsingExpression("new Class1 { X = { Y: 0 } }",
+                // (1,21): error CS1003: Syntax error, '=' expected
+                // new Class1 { X = { Y: 0 } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 21));
 
-class Class2
-{
-    public int Y { get; set; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        new Class1 { X = { Y: 0 } };
-    }
-}
-""";
-
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var toString = tree.GetRoot().ToFullString();
-            Assert.Equal(source, toString);
-            tree.GetDiagnostics().Verify(
-                // (10,23): error CS1003: Syntax error, '=' expected
-                //         new Class1 { X: 0 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(10, 23));
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Class1");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ObjectInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Y");
+                                }
+                                M(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
         public void ObjectInitializerWithColonInsteadOfEqualsSignInCollectionInitializer()
         {
-            var source = """
-class Class1
-{
-    public Class2[] X { get; set; }
-}
+            UsingExpression("new Class1 { X = { [0] = { Y: 0 } } }",
+                // (1,29): error CS1003: Syntax error, '=' expected
+                // new Class1 { X = { [0] = { Y: 0 } } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 29));
 
-class Class2
-{
-    public int Y { get; set; }
-}
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Class1");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ObjectInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.ImplicitElementAccess);
+                                {
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.ObjectInitializerExpression);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Y");
+                                        }
+                                        M(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
 
-class Program
-{
-    static void Main()
-    {
-        new Class1 { X = { 
-            [0] = { Y: 0 }
-        } };
-    }
-}
-""";
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ObjectInitializerWithColonAndDashInsteadOfEqualsSigns()
+        {
+            UsingExpression("new Class1 { X: 0, Y - 0 }",
+                // (1,15): error CS1003: Syntax error, '=' expected
+                // new Class1 { X: 0, Y - 0 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 15));
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var toString = tree.GetRoot().ToFullString();
-            Assert.Equal(source, toString);
-            tree.GetDiagnostics().Verify(
-                // (16,22): error CS1003: Syntax error, '=' expected
-                //             [0] = { Y: 0 }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(16, 22));
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Class1");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        M(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.SubtractExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.MinusToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
     }
 }
