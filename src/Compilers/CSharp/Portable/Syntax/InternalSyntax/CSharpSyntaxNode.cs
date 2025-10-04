@@ -250,8 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Use conditional weak table so we always return same identity for structured trivia
-        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, WeakReference<SyntaxNode>>> s_structuresTable
-            = new ConditionalWeakTable<SyntaxNode, Dictionary<CodeAnalysis.SyntaxTrivia, WeakReference<SyntaxNode>>>();
+        private static readonly ConditionalWeakTable<SyntaxNode, List<(CodeAnalysis.SyntaxTrivia, SyntaxNode)>> s_structuresTable
+            = new ConditionalWeakTable<SyntaxNode, List<(CodeAnalysis.SyntaxTrivia, SyntaxNode)>>();
 
         /// <summary>
         /// Gets the syntax node represented the structure of this trivia, if any. The HasStructure property can be used to 
@@ -270,36 +270,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </remarks>
         public override SyntaxNode GetStructure(Microsoft.CodeAnalysis.SyntaxTrivia trivia)
         {
-            if (trivia.HasStructure)
+            if (!trivia.HasStructure)
             {
-                var parent = trivia.Token.Parent;
-                if (parent != null)
-                {
-                    SyntaxNode structure;
-                    var structsInParent = s_structuresTable.GetOrCreateValue(parent);
-                    lock (structsInParent)
-                    {
-                        if (!structsInParent.TryGetValue(trivia, out var weakStructure))
-                        {
-                            structure = CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
-                            structsInParent.Add(trivia, new WeakReference<SyntaxNode>(structure));
-                        }
-                        else if (!weakStructure.TryGetTarget(out structure))
-                        {
-                            structure = CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
-                            weakStructure.SetTarget(structure);
-                        }
-                    }
-
-                    return structure;
-                }
-                else
-                {
-                    return CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
-                }
+                return null;
             }
 
-            return null;
+            var parent = trivia.Token.Parent;
+            if (parent is null)
+            {
+                return CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
+            }
+
+            var structsInParent = s_structuresTable.GetValue(parent, static _ => new List<(CodeAnalysis.SyntaxTrivia, SyntaxNode)>(capacity: 1));
+            lock (structsInParent)
+            {
+                foreach (var (childTrivia, childStructure) in structsInParent)
+                {
+                    if (childTrivia.Equals(trivia))
+                    {
+                        return childStructure;
+                    }
+                }
+
+                var structure = CSharp.Syntax.StructuredTriviaSyntax.Create(trivia);
+                structsInParent.Add((trivia, structure));
+
+                return structure;
+            }
         }
     }
 }

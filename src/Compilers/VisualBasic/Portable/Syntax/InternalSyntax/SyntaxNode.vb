@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Use conditional weak table so we always return same identity for structured trivia
-        Private Shared ReadOnly s_structuresTable As New ConditionalWeakTable(Of SyntaxNode, Dictionary(Of Microsoft.CodeAnalysis.SyntaxTrivia, WeakReference(Of SyntaxNode)))
+        Private Shared ReadOnly s_structuresTable As New ConditionalWeakTable(Of SyntaxNode, List(Of (Trivia As Microsoft.CodeAnalysis.SyntaxTrivia, Node As SyntaxNode)))
 
         Public Overrides Function GetStructure(trivia As Microsoft.CodeAnalysis.SyntaxTrivia) As SyntaxNode
             If Not trivia.HasStructure Then
@@ -215,21 +215,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return VisualBasic.Syntax.StructuredTriviaSyntax.Create(trivia)
             End If
 
-            Dim [structure] As SyntaxNode = Nothing
-            Dim structsInParent = s_structuresTable.GetOrCreateValue(parent)
+            Dim structsInParent = s_structuresTable.GetValue(parent, AddressOf CreateSingleElementList)
 
             SyncLock structsInParent
-                Dim weakStructure As WeakReference(Of SyntaxNode) = Nothing
-                If Not structsInParent.TryGetValue(trivia, weakStructure) Then
-                    [structure] = VisualBasic.Syntax.StructuredTriviaSyntax.Create(trivia)
-                    structsInParent.Add(trivia, New WeakReference(Of SyntaxNode)([structure]))
-                ElseIf Not weakStructure.TryGetTarget([structure]) Then
-                    [structure] = VisualBasic.Syntax.StructuredTriviaSyntax.Create(trivia)
-                    weakStructure.SetTarget([structure])
-                End If
-            End SyncLock
+                For Each pair In structsInParent
+                    If pair.Trivia.Equals(trivia) Then
+                        Return pair.Node
+                    End If
+                Next
 
-            Return [structure]
+                Dim [structure] = VisualBasic.Syntax.StructuredTriviaSyntax.Create(trivia)
+                structsInParent.Add((trivia, [structure]))
+
+                Return [structure]
+            End SyncLock
+        End Function
+
+        Private Shared Function CreateSingleElementList(element As SyntaxNode) As List(Of (Trivia As Microsoft.CodeAnalysis.SyntaxTrivia, Node As SyntaxNode))
+            Return New List(Of (Trivia As Microsoft.CodeAnalysis.SyntaxTrivia, Node As SyntaxNode))(capacity:=1)
         End Function
 
         Public Overrides Function CreateSeparator(element As SyntaxNode) As CodeAnalysis.SyntaxToken
