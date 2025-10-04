@@ -886,6 +886,17 @@ static class Extensions
   }
 }
 
+record R(int X)
+{
+  public R CloneMe() => this with { X = 0 };
+}
+
+class CollectionExpressions
+{
+  static int[] X = [0];
+  static int[] Y = [..X];
+}
+
 #line 6
 #line 2 "test.cs"
 #line default
