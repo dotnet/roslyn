@@ -1661,6 +1661,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 options |= LookupOptions.AllMethodsOnArityZero;
                 options &= ~LookupOptions.MustBeInstance;
+                Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
+                Debug.Assert((options & LookupOptions.NamespaceAliasesOnly) == 0);
+                Debug.Assert((options & LookupOptions.LabelsOnly) == 0);
 
                 binder.LookupAllExtensions(lookupResult, name, options);
 
@@ -3755,7 +3758,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Method:
                 case SymbolKind.Field:
                 case SymbolKind.Property:
-                    if (containingMember.IsStatic)
+                    if (containingMember.GetIsNewExtensionMember())
+                    {
+                        resultKind = LookupResultKind.NotReferencable;
+                        thisParam = new ThisParameterSymbol(null, containingType);
+                    }
+                    else if (containingMember.IsStatic)
                     {
                         // in a static member
                         resultKind = LookupResultKind.StaticInstanceMismatch;

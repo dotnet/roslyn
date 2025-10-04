@@ -33,7 +33,7 @@ internal sealed partial class SolutionCompilationState
         private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
             state => string.Join(",", state.AssemblyName, state.DocumentStates.Count);
 
-        private static readonly CancellableLazy<Compilation?> s_lazyNullCompilation = new CancellableLazy<Compilation?>((Compilation?)null);
+        private static readonly CancellableLazy<Compilation?> s_lazyNullCompilation = new((Compilation?)null);
 
         public ProjectState ProjectState { get; }
 

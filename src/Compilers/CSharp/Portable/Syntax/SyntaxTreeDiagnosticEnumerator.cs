@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,136 +13,132 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// An enumerator for diagnostic lists.
     /// </summary>
-    internal struct SyntaxTreeDiagnosticEnumerator
+    internal static class SyntaxTreeDiagnosticEnumerator
     {
-        private readonly SyntaxTree? _syntaxTree;
-        private NodeIterationStack _stack;
-        private Diagnostic? _current;
-        private int _position;
         private const int DefaultStackCapacity = 8;
 
-        internal SyntaxTreeDiagnosticEnumerator(SyntaxTree syntaxTree, GreenNode? node, int position)
+        public static IEnumerable<Diagnostic> EnumerateDiagnostics(SyntaxTree syntaxTree, GreenNode root, int position)
         {
-            _syntaxTree = null;
-            _current = null;
-            _position = position;
-            if (node != null && node.ContainsDiagnostics)
-            {
-                _syntaxTree = syntaxTree;
-                _stack = new NodeIterationStack(DefaultStackCapacity);
-                _stack.PushNodeOrToken(node);
-            }
-            else
-            {
-                _stack = new NodeIterationStack();
-            }
-        }
+            // Note:during iteration, '_position' is:
+            // <list type="number">
+            // <item>The FullStart of a node when we're on a node.</item>
+            // <item>The FullStart of a trivia when we're on trivia.</item>
+            // <item>The FullStart of a list when we're on a list.</item>
+            // <item>The *Start* (not FullStart) of a token when we're on a token.</item>
+            // </list>
+            //
+            // The last is because when we hit a token, we will have processed its leading trivia, and will have moved
+            // forward.
+            //
+            // Note that the offset for a diagnostic is relative to its Start (see <see
+            // cref="SyntaxDiagnosticInfo.Offset"/>). So for tokens we don't need to do anything.  For all other
+            // constructs, we need to add the leading trivia width to the offset to get the correct location.
 
-        /// <summary>
-        /// Moves the enumerator to the next diagnostic instance in the diagnostic list.
-        /// </summary>
-        /// <returns>Returns true if enumerator moved to the next diagnostic, false if the
-        /// enumerator was at the end of the diagnostic list.</returns>
-        public bool MoveNext()
-        {
-            while (_stack.Any())
+            Debug.Assert(root.ContainsDiagnostics, "Caller should have checked that the root has diagnostics");
+
+            using var stack = new NodeIterationStack(DefaultStackCapacity);
+            stack.PushNodeOrToken(root);
+
+            var fullTreeLength = syntaxTree.GetRoot().FullSpan.Length;
+
+            while (stack.Any())
             {
-                var diagIndex = _stack.Top.DiagnosticIndex;
-                var node = _stack.Top.Node;
-                var diags = node.GetDiagnostics();
-                if (diagIndex < diags.Length - 1)
+                var node = stack.Top.Node;
+
+                if (!stack.Top.ProcessedDiagnostics)
                 {
-                    diagIndex++;
-                    var sdi = (SyntaxDiagnosticInfo)diags[diagIndex];
+                    foreach (SyntaxDiagnosticInfo sdi in node.GetDiagnostics())
+                    {
+                        // For tokens, we've already seen leading trivia on the stack.  So we don't need to adjust the
+                        // offset. For everything else, we need to add the leading trivia offset so that we are at the
+                        // right 'Start' position that offset is relative to.  See documentation of position above.
+                        int leadingWidthToAdd = node.IsToken ? 0 : node.GetLeadingTriviaWidth();
 
-                    //for tokens, we've already seen leading trivia on the stack, so we have to roll back
-                    //for nodes, we have yet to see the leading trivia
-                    int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
-
-                    // don't produce locations outside of tree span
-                    Debug.Assert(_syntaxTree is object);
-                    var length = _syntaxTree.GetRoot().FullSpan.Length;
-                    var spanStart = Math.Min(_position - leadingWidthAlreadyCounted + sdi.Offset, length);
-                    var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
-
-                    _current = new CSDiagnostic(sdi, new SourceLocation(_syntaxTree, new TextSpan(spanStart, spanWidth)));
-
-                    _stack.UpdateDiagnosticIndexForStackTop(diagIndex);
-                    return true;
+                        // don't produce locations outside of tree span
+                        var spanStart = Math.Min(position + leadingWidthToAdd + sdi.Offset, fullTreeLength);
+                        var spanEnd = Math.Min(spanStart + sdi.Width, fullTreeLength);
+                        yield return new CSDiagnostic(sdi, new SourceLocation(syntaxTree, TextSpan.FromBounds(spanStart, spanEnd)));
+                    }
+                    stack.Top.ProcessedDiagnostics = true;
                 }
 
-                var slotIndex = _stack.Top.SlotIndex;
-tryAgain:
-                if (slotIndex < node.SlotCount - 1)
+                processNode(node);
+            }
+
+            yield break;
+
+            void processNode(GreenNode node)
+            {
+                // SlotCount is 0 when we hit tokens or normal trivia. In this case, we just want to move past the
+                // normal width of the item.  Importantly, in the case of tokens, we don't want to move the full-width.
+                // That would make us double-count the widths of the leading/trailing trivia which we're walking into as
+                // normal green nodes.
+                //
+                // As this has no children and has had its diagnostics processed, pop it and process its parent.
+                if (node.SlotCount == 0)
                 {
-                    slotIndex++;
-                    var child = node.GetSlot(slotIndex);
-                    if (child == null)
-                    {
-                        goto tryAgain;
-                    }
-
-                    if (!child.ContainsDiagnostics)
-                    {
-                        _position += child.FullWidth;
-                        goto tryAgain;
-                    }
-
-                    _stack.UpdateSlotIndexForStackTop(slotIndex);
-                    _stack.PushNodeOrToken(child);
+                    position += node.Width;
                 }
                 else
                 {
-                    if (node.SlotCount == 0)
+                    for (var nextSlotIndex = stack.Top.SlotIndex + 1; nextSlotIndex < node.SlotCount; nextSlotIndex++)
                     {
-                        _position += node.Width;
+                        var child = node.GetSlot(nextSlotIndex);
+                        if (child == null)
+                            continue;
+
+                        // If the child doesn't have diagnostics anywhere in it, we can skip it entirely.
+                        if (!child.ContainsDiagnostics)
+                        {
+                            position += child.FullWidth;
+                            continue;
+                        }
+
+                        stack.Top.SlotIndex = nextSlotIndex;
+                        stack.PushNodeOrToken(child);
+
+                        // Pushed a child to process, return out to continue processing it.
+                        return;
                     }
-
-                    _stack.Pop();
                 }
-            }
 
-            return false;
-        }
-
-        /// <summary>
-        /// The current diagnostic that the enumerator is pointing at.
-        /// </summary>
-        public Diagnostic Current
-        {
-            get { Debug.Assert(_current is object); return _current; }
-        }
-
-        private struct NodeIteration
-        {
-            internal readonly GreenNode Node;
-            internal int DiagnosticIndex;
-            internal int SlotIndex;
-
-            internal NodeIteration(GreenNode node)
-            {
-                this.Node = node;
-                this.SlotIndex = -1;
-                this.DiagnosticIndex = -1;
+                // Done with this node. Pop it so we continue processing its parent.
+                stack.Pop();
             }
         }
 
-        private struct NodeIterationStack
+        private struct NodeIteration(GreenNode node)
         {
-            private NodeIteration[] _stack;
+            /// <summary>
+            /// The node we're on.
+            /// </summary>
+            public readonly GreenNode Node = node;
+
+            /// <summary>
+            /// The index of the child of <see cref="Node"/> that we're on. Initially at -1 as we're pointing at the
+            /// node itself, not any children.
+            /// </summary>
+            public int SlotIndex = -1;
+
+            /// <summary>
+            /// We'll hit nodes multiple times.  First, when we run into them, and then after processing each chiild and
+            /// popping back up to it.  This tracks whether we've processed the diagnostics already so we don't do it
+            /// twice.
+            /// </summary>
+            public bool ProcessedDiagnostics;
+        }
+
+        private struct NodeIterationStack(int capacity) : IDisposable
+        {
+            private NodeIteration[] _stack = ArrayPool<NodeIteration>.Shared.Rent(capacity);
             private int _count;
 
-            internal NodeIterationStack(int capacity)
-            {
-                Debug.Assert(capacity > 0);
-                _stack = new NodeIteration[capacity];
-                _count = 0;
-            }
+            public readonly void Dispose()
+                => ArrayPool<NodeIteration>.Shared.Return(_stack, clearArray: true);
 
-            internal void PushNodeOrToken(GreenNode node)
+            public void PushNodeOrToken(GreenNode node)
             {
-                var token = node as Syntax.InternalSyntax.SyntaxToken;
-                if (token != null)
+                if (node is Syntax.InternalSyntax.SyntaxToken token)
                 {
                     PushToken(token);
                 }
@@ -152,26 +150,22 @@ tryAgain:
 
             private void PushToken(Syntax.InternalSyntax.SyntaxToken token)
             {
-                var trailing = token.GetTrailingTrivia();
-                if (trailing != null)
-                {
-                    this.Push(trailing);
-                }
-
+                // Push in reverse order of processing.
+                this.Push(token.GetTrailingTrivia());
                 this.Push(token);
-                var leading = token.GetLeadingTrivia();
-                if (leading != null)
-                {
-                    this.Push(leading);
-                }
+                this.Push(token.GetLeadingTrivia());
             }
 
-            private void Push(GreenNode node)
+            private void Push(GreenNode? node)
             {
+                if (node is null)
+                    return;
+
                 if (_count >= _stack.Length)
                 {
-                    var tmp = new NodeIteration[_stack.Length * 2];
+                    var tmp = ArrayPool<NodeIteration>.Shared.Rent(_stack.Length * 2);
                     Array.Copy(_stack, tmp, _stack.Length);
+                    ArrayPool<NodeIteration>.Shared.Return(_stack, clearArray: true);
                     _stack = tmp;
                 }
 
@@ -179,47 +173,14 @@ tryAgain:
                 _count++;
             }
 
-            internal void Pop()
-            {
-                _count--;
-            }
+            public void Pop()
+                => _count--;
 
-            internal bool Any()
-            {
-                return _count > 0;
-            }
+            public readonly bool Any()
+                => _count > 0;
 
-            internal NodeIteration Top
-            {
-                get
-                {
-                    return this[_count - 1];
-                }
-            }
-
-            internal NodeIteration this[int index]
-            {
-                get
-                {
-                    Debug.Assert(_stack != null);
-                    Debug.Assert(index >= 0 && index < _count);
-                    return _stack[index];
-                }
-            }
-
-            internal void UpdateSlotIndexForStackTop(int slotIndex)
-            {
-                Debug.Assert(_stack != null);
-                Debug.Assert(_count > 0);
-                _stack[_count - 1].SlotIndex = slotIndex;
-            }
-
-            internal void UpdateDiagnosticIndexForStackTop(int diagnosticIndex)
-            {
-                Debug.Assert(_stack != null);
-                Debug.Assert(_count > 0);
-                _stack[_count - 1].DiagnosticIndex = diagnosticIndex;
-            }
+            public readonly ref NodeIteration Top
+                => ref _stack[_count - 1];
         }
     }
 }

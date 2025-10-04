@@ -127,6 +127,11 @@
         <target state="translated">"{0}": аргумент типа атрибута не может использовать параметры типа</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">Атрибут "{0}" запрещено использовать в методах доступа к событиям. Он допустим только для объявлений "{1}".</target>
@@ -325,6 +330,11 @@
       <trans-unit id="ERR_BadRefInUsingAlias">
         <source>Using alias cannot be a 'ref' type.</source>
         <target state="translated">Параметр использования псевдонима не может быть типом "ref".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpreadInCatchFilter">
+        <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
+        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
@@ -700,6 +710,16 @@
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Явная реализация определяемого пользователем оператора "{0}" должна быть объявлена статической</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -1525,7 +1545,7 @@
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
         <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
-        <note />
+        <note>'MethodImplAttribute.Async' and 'async' are not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
         <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
@@ -2248,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">Тип "Microsoft.CodeAnalysis.EmbeddedAttribute" должен быть неуниверсанным, внутренним, запечатанным, нестатическим, иметь конструктор без параметров, наследовать от System.Attribute и иметь возможность применяться к любому типу.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">Тип "Microsoft.CodeAnalysis.EmbeddedAttribute" должен быть неуниверсанным, внутренним, запечатанным, нестатическим, иметь конструктор без параметров, наследовать от System.Attribute и иметь возможность применяться к любому типу.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -11119,16 +11139,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       <trans-unit id="ERR_BadAwaitInQuery">
         <source>The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause</source>
         <target state="translated">Оператор await можно использовать только в выражении запроса в первом выражении коллекции начального предложения From или в выражении коллекции предложения Join.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">В данном асинхронном методе отсутствуют операторы await, поэтому метод будет выполняться синхронно. Воспользуйтесь оператором await для ожидания неблокирующих вызовов API или оператором await Task.Run(...) для выполнения связанных с ЦП заданий в фоновом потоке.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">В асинхронном методе отсутствуют операторы await, будет выполнен синхронный метод</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnobservedAwaitableExpression">

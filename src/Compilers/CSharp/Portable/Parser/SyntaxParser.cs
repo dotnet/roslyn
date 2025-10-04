@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             //slow part of EatToken(SyntaxKind kind)
-            return CreateMissingToken(kind, this.CurrentToken.Kind, reportError: true);
+            return CreateMissingToken(kind, this.CurrentToken.Kind);
         }
 
         // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
@@ -545,20 +545,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return ct;
             }
 
-            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind);
             return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
-        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
+        protected SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual)
         {
-            // should we eat the current ParseToken's leading trivia?
             var token = SyntaxFactory.MissingToken(expected);
-            if (reportError)
-            {
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(expected, actual));
-            }
-
-            return token;
+            return WithAdditionalDiagnostics(token, this.GetExpectedMissingNodeOrTokenError(token, expected, actual));
         }
 
         private SyntaxToken CreateMissingToken(SyntaxKind expected, ErrorCode code, bool reportError)
@@ -605,23 +599,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxToken EatTokenWithPrejudice(SyntaxKind kind)
+        /// <summary>
+        /// Called when we need to eat a token even if its kind is different from what we're looking for.  This will
+        /// place a diagnostic on the resultant token if the kind is not correct.  Note: the token's kind will
+        /// <em>not</em> be the same as <paramref name="kind"/>.  As such, callers should take great care here to ensure
+        /// they process the result properly in their context.  For example, adding the token as skipped syntax, or
+        /// forcibly changing its kind by some other means.
+        /// </summary>
+        protected SyntaxToken EatTokenEvenWithIncorrectKind(SyntaxKind kind)
         {
             var token = this.CurrentToken;
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
             if (token.Kind != kind)
             {
-                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind));
+                var (offset, width) = getDiagnosticSpan();
+                token = WithAdditionalDiagnostics(token, this.GetExpectedTokenError(kind, token.Kind, offset, width));
             }
 
             this.MoveToNextToken();
             return token;
+
+            (int offset, int width) getDiagnosticSpan()
+            {
+                // We got the wrong kind while forcefully eating this token.  If it's on the same line as the last
+                // token, just squiggle it as being the wrong kind. If it's on the next line, move the squiggle back to
+                // the end of the previous token and make it zero width, indicating the expected token was missed at
+                // that location (even though we're still unilaterally consuming this token).
+
+                var trivia = _prevTokenTrailingTrivia;
+                var triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
+                if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
+                    return (offset: -(trivia.FullWidth + token.GetLeadingTriviaWidth()), width: 0);
+
+                return (offset: 0, token.Width);
+            }
         }
 
         protected SyntaxToken EatTokenWithPrejudice(ErrorCode errorCode, params object[] args)
         {
             var token = this.EatToken();
-            token = WithAdditionalDiagnostics(token, MakeError(token.GetLeadingTriviaWidth(), token.Width, errorCode, args));
+            token = WithAdditionalDiagnostics(token, MakeError(offset: 0, token.Width, errorCode, args));
             return token;
         }
 
@@ -639,14 +656,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxToken EatContextualToken(SyntaxKind kind, bool reportError = true)
+        protected SyntaxToken EatContextualToken(SyntaxKind kind)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(kind));
 
             var contextualKind = this.CurrentToken.ContextualKind;
             if (contextualKind != kind)
             {
-                return CreateMissingToken(kind, contextualKind, reportError);
+                return CreateMissingToken(kind, contextualKind);
             }
             else
             {
@@ -671,11 +688,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
+        protected virtual SyntaxDiagnosticInfo GetExpectedMissingNodeOrTokenError(
+            GreenNode missingNodeOrToken, SyntaxKind expected, SyntaxKind actual)
         {
-            int offset, width;
-            this.GetDiagnosticSpanForMissingToken(out offset, out width);
+            Debug.Assert(missingNodeOrToken.IsMissing);
 
+            var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(missingNodeOrToken);
             return this.GetExpectedTokenError(expected, actual, offset, width);
         }
 
@@ -711,33 +729,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected void GetDiagnosticSpanForMissingToken(out int offset, out int width)
-        {
-            // If the previous token has a trailing EndOfLineTrivia,
-            // the missing token diagnostic position is moved to the
-            // end of line containing the previous token and
-            // its width is set to zero.
-            // Otherwise the diagnostic offset and width is set
-            // to the corresponding values of the current token
-
-            var trivia = _prevTokenTrailingTrivia;
-            if (trivia != null)
-            {
-                SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
-                bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
-                if (prevTokenHasEndOfLineTrivia)
-                {
-                    offset = -trivia.FullWidth;
-                    width = 0;
-                    return;
-                }
-            }
-
-            SyntaxToken ct = this.CurrentToken;
-            offset = ct.GetLeadingTriviaWidth();
-            width = ct.Width;
-        }
-
         protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
         {
             DiagnosticInfo[] existingDiags = node.GetDiagnostics();
@@ -766,54 +757,142 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return AddError(node, ErrorCode.WRN_ErrorOverride, MakeError(node, code, args), (int)code);
         }
 
-        protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode
+        protected TNode AddError<TNode>(TNode nodeOrToken, ErrorCode code, params object[] args) where TNode : GreenNode
         {
-            if (!node.IsMissing)
+            if (!nodeOrToken.IsMissing)
             {
-                return WithAdditionalDiagnostics(node, MakeError(node, code, args));
-            }
-
-            int offset, width;
-
-            SyntaxToken token = node as SyntaxToken;
-            if (token != null && token.ContainsSkippedText)
-            {
-                // This code exists to clean up an anti-pattern:
-                //   1) an undesirable token is parsed,
-                //   2) a desirable missing token is created and the parsed token is appended as skipped text,
-                //   3) an error is attached to the missing token describing the problem.
-                // If this occurs, then this.previousTokenTrailingTrivia is still populated with the trivia 
-                // of the undesirable token (now skipped text).  Since the trivia no longer precedes the
-                // node to which the error is to be attached, the computed offset will be incorrect.
-
-                offset = token.GetLeadingTriviaWidth(); // Should always be zero, but at least we'll do something sensible if it's not.
-                Debug.Assert(offset == 0, "Why are we producing a missing token that has both skipped text and leading trivia?");
-
-                width = 0;
-                bool seenSkipped = false;
-                foreach (var trivia in token.TrailingTrivia)
-                {
-                    if (trivia.Kind == SyntaxKind.SkippedTokensTrivia)
-                    {
-                        seenSkipped = true;
-                        width += trivia.Width;
-                    }
-                    else if (seenSkipped)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        offset += trivia.Width;
-                    }
-                }
+                // We have a normal node or token that has actual SyntaxToken.Text within it (or the EOF token). Place
+                // the diagnostic at the start (not full start) of that real node/token, with a width that encompasses
+                // the entire normal width of the node or token.
+                Debug.Assert(nodeOrToken.Width > 0 || nodeOrToken.RawKind is (int)SyntaxKind.EndOfFileToken);
+                return WithAdditionalDiagnostics(nodeOrToken, MakeError(nodeOrToken, code, args));
             }
             else
             {
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
+                var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(nodeOrToken);
+                return WithAdditionalDiagnostics(nodeOrToken, MakeError(offset, width, code, args));
+            }
+        }
+
+        /// <summary>
+        /// Given a "missing" node or token (one where <see cref="GreenNode.IsMissing"/> must be true), determines the
+        /// ideal location to place the diagnostic for it.  The intuition here is that we want to place the diagnostic
+        /// on the token that "follows" this 'missing' entity if they're on the same line.  Or, place it at the end of
+        /// the 'preceding' token if the following token is on the next line.
+        /// </summary>
+        protected (int offset, int width) GetDiagnosticSpanForMissingNodeOrToken(GreenNode missingNodeOrToken)
+        {
+            Debug.Assert(missingNodeOrToken.IsMissing);
+
+            // Note: missingNodeOrToken.IsMissing means this is either a MissingToken itself, or a node comprised
+            // (transitively) only from MissingTokens.  Missing tokens are guaranteed to have no text.  But they are
+            // allowed to have trivia.  This is a common pattern the parser will follow when it encounters unexpected
+            // tokens.  It will make a missing token of the expected kind for the current location, then attach the
+            // unexpected tokens as missed tokens to it.
+
+            // At this point, we have a node or token without real text in it.  The intuition we have here is that we
+            // want to place the diagnostic on the token that "follows" this 'missing' entity.  There is a subtlety
+            // here.  If the node or token contains skipped tokens, then we consider that skipped token the "following"
+            // token, and we will want to place the diagnostic on it.  Otherwise, we want to place it on the true 'next
+            // token' the parser is currently pointing at.
+
+            if (!missingNodeOrToken.ContainsSkippedText)
+            {
+                // Simple case this node/token does not contain any skipped text.  Place the diagnostic at the start of
+                // the token that follows.
+                return getOffsetAndWidthBasedOnPriorAndNextTokens();
+            }
+            else
+            {
+                // Complex case.  This node or token contains skipped text.  Place the diagnostic on the skipped text.
+                return getOffsetAndWidthOfSkippedToken();
             }
 
-            return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
+            (int offset, int width) getOffsetAndWidthBasedOnPriorAndNextTokens()
+            {
+                // If the previous token has a trailing EndOfLineTrivia, the missing token diagnostic position is moved
+                // to the end of line containing the previous token and its width is set to zero. Otherwise we squiggle
+                // the token following the missing token (the token we're currently pointing at).
+
+                var trivia = _prevTokenTrailingTrivia;
+                var triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
+                if (triviaList.Any((int)SyntaxKind.EndOfLineTrivia))
+                {
+                    // We have:
+                    //
+                    //   [previous token][previous token trailing trivia...][missing node leading trivia...][missing node or token]
+                    //                                                                                      ^
+                    //                                                                                      | here
+                    //
+                    // Update so we report diagnostic here:
+                    //
+                    //   [previous token][previous token trailing trivia...][missing node leading trivia...][missing node or token]
+                    //                   ^
+                    //                   | here
+                    return (offset: -missingNodeOrToken.GetLeadingTriviaWidth() - trivia.FullWidth, width: 0);
+                }
+                else
+                {
+                    // We have:
+                    //
+                    //   [missing node leading trivia...][missing node or token][missing node or token trailing trivia..][current token leading trivia ...][current token]
+                    //                                   ^
+                    //                                   | here
+                    //
+                    // Update so we report diagnostic here:
+                    //
+                    //   [missing node leading trivia...][missing node or token][missing node or token trailing trivia..][current token leading trivia ...][current token]
+                    //                                                                                                                                     ^             ^
+                    //                                                                                                                                     | --- here -- |
+                    var token = this.CurrentToken;
+                    return (missingNodeOrToken.Width + missingNodeOrToken.GetTrailingTriviaWidth() + token.GetLeadingTriviaWidth(), token.Width);
+                }
+            }
+
+            (int offset, int width) getOffsetAndWidthOfSkippedToken()
+            {
+                var offset = 0;
+
+                // Walk all the children of this nodeOrToken (including itself).  Note: this does not walk into trivia.
+                // We are looking for the first token that has skipped text.  When we find that token (which must exist,
+                // based on the check above), we will place the diagnostic on the skipped token within that token.
+                foreach (var child in missingNodeOrToken.EnumerateNodes())
+                {
+                    Debug.Assert(child.IsMissing, "All children of a missing node or token should themselves be missing.");
+                    if (!child.IsToken)
+                        continue;
+
+                    var childToken = (Syntax.InternalSyntax.SyntaxToken)child;
+                    Debug.Assert(childToken.Text == "", "All missing tokens should have no text");
+                    if (!child.ContainsSkippedText)
+                    {
+                        offset += child.FullWidth;
+                        continue;
+                    }
+
+                    // Now, walk the trivia of this token, looking for the skipped tokens trivia.
+                    var allTrivia = new SyntaxList<GreenNode>(SyntaxList.Concat(childToken.GetLeadingTrivia(), childToken.GetTrailingTrivia()));
+                    Debug.Assert(allTrivia.Count > 0, "How can a token with skipped text not have trivia at all?");
+
+                    foreach (var trivia in allTrivia)
+                    {
+                        if (!trivia.IsSkippedTokensTrivia)
+                        {
+                            offset += trivia.FullWidth;
+                            continue;
+                        }
+
+                        // Found the skipped tokens trivia.  Place the diagnostic on it.
+                        return (offset, trivia.Width);
+                    }
+
+                    Debug.Fail("This should not be reachable.  We should have hit a skipped token in the trivia of this token.");
+                    return default;
+                }
+
+                Debug.Fail("This should not be reachable.  We should have hit a child token with skipped text within this node.");
+                return default;
+            }
         }
 
         protected TNode AddError<TNode>(TNode node, int offset, int length, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
@@ -821,24 +900,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, MakeError(offset, length, code, args));
         }
 
-        protected TNode AddError<TNode>(TNode node, CSharpSyntaxNode location, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
-        {
-            // assumes non-terminals will at most appear once in sub-tree
-            int offset;
-            FindOffset(node, location, out offset);
-            return WithAdditionalDiagnostics(node, MakeError(offset, location.Width, code, args));
-        }
-
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
         {
             var firstToken = node.GetFirstToken();
-            return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code));
+            return WithAdditionalDiagnostics(node, MakeError(offset: 0, firstToken.Width, code));
         }
 
         protected TNode AddErrorToFirstToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
         {
             var firstToken = node.GetFirstToken();
-            return WithAdditionalDiagnostics(node, MakeError(firstToken.GetLeadingTriviaWidth(), firstToken.Width, code, args));
+            return WithAdditionalDiagnostics(node, MakeError(offset: 0, firstToken.Width, code, args));
         }
 
         protected TNode AddErrorToLastToken<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
@@ -849,24 +920,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, MakeError(offset, width, code));
         }
 
-        protected TNode AddErrorToLastToken<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
-        {
-            int offset;
-            int width;
-            GetOffsetAndWidthForLastToken(node, out offset, out width);
-            return WithAdditionalDiagnostics(node, MakeError(offset, width, code, args));
-        }
-
         private static void GetOffsetAndWidthForLastToken<TNode>(TNode node, out int offset, out int width) where TNode : CSharpSyntaxNode
         {
             var lastToken = node.GetLastNonmissingToken();
-            offset = node.FullWidth; //advance to end of entire node
+            offset = node.Width + node.GetTrailingTriviaWidth(); //advance to end of entire node
             width = 0;
             if (lastToken != null) //will be null if all tokens are missing
             {
                 offset -= lastToken.FullWidth; //rewind past last token
                 offset += lastToken.GetLeadingTriviaWidth(); //advance past last token leading trivia - now at start of last token
-                width += lastToken.Width;
+                width = lastToken.Width;
             }
         }
 
@@ -882,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected static SyntaxDiagnosticInfo MakeError(GreenNode node, ErrorCode code, params object[] args)
         {
-            return new SyntaxDiagnosticInfo(node.GetLeadingTriviaWidth(), node.Width, code, args);
+            return new SyntaxDiagnosticInfo(offset: 0, node.Width, code, args);
         }
 
         protected static SyntaxDiagnosticInfo MakeError(ErrorCode code, params object[] args)
@@ -906,18 +969,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected void AddTrailingSkippedSyntax(SyntaxListBuilder list, GreenNode skippedSyntax)
         {
-            list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], skippedSyntax);
+            list[^1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[^1], skippedSyntax);
         }
 
         protected void AddTrailingSkippedSyntax<TNode>(SyntaxListBuilder<TNode> list, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
-            list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], skippedSyntax);
+            list[^1] = AddTrailingSkippedSyntax(list[^1], skippedSyntax);
         }
 
         protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
-            var token = node as SyntaxToken;
-            if (token != null)
+            if (node is SyntaxToken token)
             {
                 return (TNode)(object)AddSkippedSyntax(token, skippedSyntax, trailing: true);
             }
@@ -930,167 +992,113 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Converts skippedSyntax node into tokens and adds these as trivia on the target token.
-        /// Also adds the first error (in depth-first preorder) found in the skipped syntax tree to the target token.
+        /// Converts skippedSyntax node into all its constituent tokens (and their constituent trivias) and adds these
+        /// all as trivia on the target token.  For example, given <c>token1-token2</c>, then target will have
+        /// <c>leading_trivia1-token1-trailing_trivia1-leading_trivia2-token2-trailing_trivia2-</c> added to it.
+        /// <para/>
+        /// 
+        /// Also adds the first node-based error, or error on a missing-token, in depth-first preorder, found in the
+        /// skipped syntax tree to the target token.  This ensures that we do not lose token/node errors found in
+        /// skipped syntax.
+        /// 
+        /// Note: This behavior could technically lead to buggy behavior.  Specifically, because we only take the first
+        /// diagnostic we find, we might miss a more relevant diagnostic later in the tree.  For example, we might
+        /// preserve a 'warning' while missing an error.
+        /// 
+        /// We should either:
+        /// 
+        /// 1. ensure that we copy over an error if it exists, overwriting any warnings we found along the way.
+        /// 
+        /// 2. just copy over everything.  This seems saner, as it means not losing anything. But it might be the case
+        /// that when we recover from a big error recovery scan, we might report a ton of errors.
+        ///
+        /// For now, we do neither, and just take the first error/warning we find.  This can/should be revisited later
+        /// if we discover it means we're losing important diagnostics.
         /// </summary>
         internal SyntaxToken AddSkippedSyntax(SyntaxToken target, GreenNode skippedSyntax, bool trailing)
         {
             var builder = new SyntaxListBuilder(4);
 
+            int currentOffset;
+            if (trailing)
+            {
+                // The normal offset for a node/token is its start (not full start).  So if we're placing the skipped
+                // syntax at the end of the trivia, then the offset relative to the node/token start will be adjusted
+                // forward by the width of the node/token plus the existing trailing trivia.
+                currentOffset = target.Width + target.GetTrailingTriviaWidth();
+                builder.Add(target.GetTrailingTrivia());
+            }
+            else
+            {
+                // The normal offset for a node/token is its start (not full start). So if we're placing the skipped
+                // syntax at the start of the trivia, then the offset relative to the node/token start will be adjusted
+                // backward by the width of the existing leading trivia plus the width of the skipped syntax we're
+                // tacking on at the front.
+                currentOffset = -target.GetLeadingTriviaWidth() - skippedSyntax.FullWidth;
+            }
+
             // the error in we'll attach to the node
             SyntaxDiagnosticInfo diagnostic = null;
+            int finalDiagnosticOffset = 0;
 
-            // the position of the error within the skippedSyntax node full tree
-            int diagnosticOffset = 0;
-
-            int currentOffset = 0;
             foreach (var node in skippedSyntax.EnumerateNodes())
             {
-                SyntaxToken token = node as SyntaxToken;
-                if (token != null)
+                if (node is SyntaxToken token)
                 {
+                    // Strip the leading trivia of the token, and add it to the target's final trivia list.
                     builder.Add(token.GetLeadingTrivia());
 
                     if (token.Width > 0)
                     {
-                        // separate trivia from the tokens
-                        SyntaxToken tk = token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null);
+                        // Then add the token (stripped of its own trivia) to the target's final trivia list.
 
-                        // adjust relative offsets of diagnostics attached to the token:
-                        int leadingWidth = token.GetLeadingTriviaWidth();
-                        if (leadingWidth > 0)
-                        {
-                            var tokenDiagnostics = tk.GetDiagnostics();
-                            for (int i = 0; i < tokenDiagnostics.Length; i++)
-                            {
-                                var d = (SyntaxDiagnosticInfo)tokenDiagnostics[i];
-                                tokenDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset - leadingWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                            }
-                        }
-
-                        builder.Add(SyntaxFactory.SkippedTokensTrivia(tk));
+                        builder.Add(SyntaxFactory.SkippedTokensTrivia(
+                            token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null)));
                     }
                     else
                     {
-                        // do not create zero-width structured trivia, GetStructure doesn't work well for them
+                        // Do not bother adding zero-width tokens to target's final trivia list.  Lots of code (like
+                        // GetStructure) does not like it at all. But do keep around any diagnostics that might have
+                        // been on this zero width token, and move it to the target.
                         var existing = (SyntaxDiagnosticInfo)token.GetDiagnostics().FirstOrDefault();
                         if (existing != null)
                         {
                             diagnostic = existing;
-                            diagnosticOffset = currentOffset;
+                            finalDiagnosticOffset = currentOffset + token.GetLeadingTriviaWidth() + existing.Offset;
                         }
                     }
+
+                    // Finally strip the trailing trivia of the token, and add it to the target's final list.
                     builder.Add(token.GetTrailingTrivia());
 
                     currentOffset += token.FullWidth;
                 }
                 else if (node.ContainsDiagnostics && diagnostic == null)
                 {
-                    // only propagate the first error to reduce noise:
+                    // Ensure we don't lose any diagnostics on non-token nodes that we're diving into.
+                    // Only propagate the first error to reduce noise:
                     var existing = (SyntaxDiagnosticInfo)node.GetDiagnostics().FirstOrDefault();
                     if (existing != null)
                     {
                         diagnostic = existing;
-                        diagnosticOffset = currentOffset;
+                        finalDiagnosticOffset = currentOffset + node.GetLeadingTriviaWidth() + existing.Offset;
                     }
                 }
             }
 
-            int triviaWidth = currentOffset;
-            var trivia = builder.ToListNode();
-
-            // total width of everything preceding the added trivia
-            int triviaOffset;
-            if (trailing)
-            {
-                var trailingTrivia = target.GetTrailingTrivia();
-                triviaOffset = target.FullWidth; //added trivia is full width (before addition)
-                target = target.TokenWithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
-            }
-            else
-            {
-                // Since we're adding triviaWidth before the token, we have to add that much to
-                // the offset of each of its diagnostics.
-                if (triviaWidth > 0)
-                {
-                    var targetDiagnostics = target.GetDiagnostics();
-                    for (int i = 0; i < targetDiagnostics.Length; i++)
-                    {
-                        var d = (SyntaxDiagnosticInfo)targetDiagnostics[i];
-                        targetDiagnostics[i] = new SyntaxDiagnosticInfo(d.Offset + triviaWidth, d.Width, (ErrorCode)d.Code, d.Arguments);
-                    }
-                }
-
-                var leadingTrivia = target.GetLeadingTrivia();
-                target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
-                triviaOffset = 0; //added trivia is first, so offset is zero
-            }
-
+            // If we found a diagnostic on a node (or empty-width token) in the skipped syntax, ensure it is moved
+            // over to the target.
             if (diagnostic != null)
             {
-                int newOffset = triviaOffset + diagnosticOffset + diagnostic.Offset;
-
                 target = WithAdditionalDiagnostics(target,
-                    new SyntaxDiagnosticInfo(newOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments)
-                );
+                    new SyntaxDiagnosticInfo(finalDiagnosticOffset, diagnostic.Width, (ErrorCode)diagnostic.Code, diagnostic.Arguments));
             }
 
-            return target;
-        }
-
-        /// <summary>
-        /// This function searches for the given location node within the subtree rooted at root node. 
-        /// If it finds it, the function computes the offset span of that child node within the root and returns true, 
-        /// otherwise it returns false.
-        /// </summary>
-        /// <param name="root">Root node</param>
-        /// <param name="location">Node to search in the subtree rooted at root node</param>
-        /// <param name="offset">Offset of the location node within the subtree rooted at child</param>
-        /// <returns></returns>
-        private bool FindOffset(GreenNode root, CSharpSyntaxNode location, out int offset)
-        {
-            int currentOffset = 0;
-            offset = 0;
-            if (root != null)
-            {
-                for (int i = 0, n = root.SlotCount; i < n; i++)
-                {
-                    var child = root.GetSlot(i);
-                    if (child == null)
-                    {
-                        // ignore null slots
-                        continue;
-                    }
-
-                    // check if the child node is the location node
-                    if (child == location)
-                    {
-                        // Found the location node in the subtree
-                        // Initialize offset with the offset of the location node within its parent
-                        // and walk up the stack of recursive calls adding the offset of each node
-                        // within its parent
-                        offset = currentOffset;
-                        return true;
-                    }
-
-                    // search for the location node in the subtree rooted at child node
-                    if (this.FindOffset(child, location, out offset))
-                    {
-                        // Found the location node in child's subtree
-                        // Add the offset of child node within its parent to offset
-                        // and continue walking up the stack
-                        offset += child.GetLeadingTriviaWidth() + currentOffset;
-                        return true;
-                    }
-
-                    // We didn't find the location node in the subtree rooted at child
-                    // Move on to the next child
-                    currentOffset += child.FullWidth;
-                }
-            }
-
-            // We didn't find the location node within the subtree rooted at root node
-            return false;
+            // If we were adding the skipped token as trailing trivia, then at this point we're done.  Otherwise, we
+            // were adding it as leading trivia, so we need to tack on the existing leading trivia of the target.
+            return trailing
+                ? target.TokenWithTrailingTrivia(builder.ToListNode())
+                : target.TokenWithLeadingTrivia(builder.AddRange(target.GetLeadingTrivia()).ToListNode());
         }
 
         protected static SyntaxToken ConvertToKeyword(SyntaxToken token)

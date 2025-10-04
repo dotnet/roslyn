@@ -14,35 +14,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IRemoteDiagnosticAnalyzerService
 {
-    /// <summary>
-    /// Returns the analyzers that are candidates to be de-prioritized to
-    /// <see cref="CodeActionRequestPriority.Low"/> priority for improvement in analyzer
-    /// execution performance for priority buckets above 'Low' priority.
-    /// Based on performance measurements, currently only analyzers which register SymbolStart/End actions
-    /// or SemanticModel actions are considered candidates to be de-prioritized. However, these semantics
-    /// could be changed in future based on performance measurements.
-    /// </summary>
-    ValueTask<ImmutableHashSet<string>> GetDeprioritizationCandidatesAsync(
-        Checksum solutionChecksum, ProjectId projectId, ImmutableHashSet<string> analyzerIds, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<DiagnosticData>> ForceRunCodeAnalysisDiagnosticsAsync(
+        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
-    ValueTask<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
-        Checksum solutionChecksum, DocumentId documentId, TextSpan? range,
-        ImmutableHashSet<string> allAnalyzerIds,
-        ImmutableHashSet<string> syntaxAnalyzersIds,
-        ImmutableHashSet<string> semanticSpanAnalyzersIds,
-        ImmutableHashSet<string> semanticDocumentAnalyzersIds,
-        bool incrementalAnalysis,
-        bool logPerformanceInfo,
+    ValueTask<bool> IsAnyDiagnosticIdDeprioritizedAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<string> diagnosticIds, CancellationToken cancellationToken);
+
+    ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+        Checksum solutionChecksum,
+        DocumentId documentId,
+        TextSpan? range,
+        DiagnosticIdFilter diagnosticIdFilter,
+        CodeActionRequestPriority? priority,
+        DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
-    ValueTask<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
+    ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
         Checksum solutionChecksum, ProjectId projectId,
-        ImmutableHashSet<string> analyzerIds,
-        ImmutableHashSet<string>? diagnosticIds,
         ImmutableArray<DocumentId> documentIds,
+        ImmutableHashSet<string>? diagnosticIds,
+        AnalyzerFilter analyzerFilter,
         bool includeLocalDocumentDiagnostics,
-        bool includeNonLocalDocumentDiagnostics,
-        bool includeProjectNonLocalResult,
+        CancellationToken cancellationToken);
+
+    ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
+        Checksum solutionChecksum, ProjectId projectId,
+        ImmutableHashSet<string>? diagnosticIds,
+        AnalyzerFilter analyzerFilter,
         CancellationToken cancellationToken);
 
     ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
@@ -50,11 +48,11 @@ internal interface IRemoteDiagnosticAnalyzerService
     ValueTask<ImmutableArray<DiagnosticDescriptorData>> GetDiagnosticDescriptorsAsync(
         Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, string language, CancellationToken cancellationToken);
 
-    ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
+    ValueTask<ImmutableArray<string>> GetCompilationEndDiagnosticDescriptorIdsAsync(
         Checksum solutionChecksum, CancellationToken cancellationToken);
 
     ValueTask<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptorData>>> GetDiagnosticDescriptorsPerReferenceAsync(
-        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+        Checksum solutionChecksum, ProjectId? projectId, CancellationToken cancellationToken);
 }
 
 [DataContract]

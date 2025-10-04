@@ -95,7 +95,7 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
 
             result.Add(new InlineHint(
                 span, taggedText, textChange, ranking: InlineHintsConstants.TypeRanking,
-                InlineHintHelpers.GetDescriptionFunction(spanStart, type.GetSymbolKey(cancellationToken), displayOptions)));
+                InlineHintHelpers.GetDescriptionFunction(spanStart, type, displayOptions)));
         }
 
         return result.ToImmutableAndClear();

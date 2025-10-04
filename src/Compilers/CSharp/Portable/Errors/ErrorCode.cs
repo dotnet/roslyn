@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInQuery = 1995,
         ERR_BadAwaitInLock = 1996,
         ERR_TaskRetNoObjectRequired = 1997,
-        WRN_AsyncLacksAwaits = 1998,
+        // WRN_AsyncLacksAwaits = 1998,
         ERR_FileNotFound = 2001,
         WRN_FileAlreadyIncluded = 2002,
         //ERR_DuplicateResponseFile = 2003,
@@ -2425,6 +2425,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedFeatureInRuntimeAsync = 9328,
         ERR_ExtensionBlockCollision = 9329,
         ERR_MethodImplAttributeAsyncCannotBeUsed = 9330,
+        ERR_AttributeCannotBeAppliedManually = 9331,
+        ERR_BadSpreadInCatchFilter = 9332,
+        ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
+        ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

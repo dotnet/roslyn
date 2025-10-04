@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
@@ -306,24 +305,6 @@ internal static class AdvancedOptionPageStrings
 
     public static string Option_Show_completion_list
         => ServicesVSResources.Show_completion_list;
-
-    public static string Option_Editor_Color_Scheme
-        => ServicesVSResources.Editor_Color_Scheme;
-
-    public static string Edit_color_scheme
-        => ServicesVSResources.Editor_Color_Scheme;
-
-    public static string Option_Color_Scheme_VisualStudio2019
-        => ServicesVSResources.Visual_Studio_2019;
-
-    public static string Option_Color_Scheme_VisualStudio2017
-        => ServicesVSResources.Visual_Studio_2017;
-
-    public static ColorSchemeName Color_Scheme_VisualStudio2019_Tag
-        => ColorSchemeName.VisualStudio2019;
-
-    public static ColorSchemeName Color_Scheme_VisualStudio2017_Tag
-        => ColorSchemeName.VisualStudio2017;
 
     public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer
         => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer;

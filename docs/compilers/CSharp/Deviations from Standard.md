@@ -2,9 +2,9 @@
 
 This document lists inconsistencies between Roslyn and the C# standard where they are known, organized by standard section.
 
-# Conversions
+## Conversions
 
-## Implicit enum conversions from zero
+### Implicit enum conversions from zero
 
 From [§10.2.4](http://csharpstandard/standard/conversions.md#1024-implicit-enumeration-conversions):
 
@@ -36,7 +36,7 @@ class EnumConversionTest
 
 Conversions are (correctly) *not* permitted from constant expressions which have a type of `bool`, other enumerations, or reference types.
 
-# Member lookup
+## Member lookup
 
 From [§12.5.1](https://github.com/dotnet/csharpstandard/blob/draft-v8/standard/expressions.md#125-member-lookup):
 
@@ -71,14 +71,14 @@ interface I2 { int M => 0;   }
 interface I : I1, I2 { }
 ```
 
-# Assumptions about well-known types/members
+## Assumptions about well-known types/members
 
 The compiler is free to make assumptions about the shape and behavior of well-known types/members.
 It may not check for unexpected constraints, `Obsolete` attribute, or `UnmanagedCallersOnly` attribute.
 It may perform some optimizations based on expectations that the types/members are well-behaved.
 Note: the compiler should remain resilient to missing well-known types/members.
 
-# Interface partial methods
+## Interface partial methods
 
 Interface partial methods are implicitly non-virtual,
 unlike non-partial interface methods and other interface partial member kinds,

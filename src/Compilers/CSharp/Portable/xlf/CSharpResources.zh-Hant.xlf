@@ -127,6 +127,11 @@
         <target state="translated">'{0}': 屬性型別引數不可使用型別參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeCannotBeAppliedManually">
+        <source>'{0}' cannot be applied manually.</source>
+        <target state="new">'{0}' cannot be applied manually.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">屬性 '{0}' 在事件存取子上無效。其只有在 '{1}' 宣告上才有效。</target>
@@ -325,6 +330,11 @@
       <trans-unit id="ERR_BadRefInUsingAlias">
         <source>Using alias cannot be a 'ref' type.</source>
         <target state="translated">使用別名不可以是 'ref' 類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpreadInCatchFilter">
+        <source>Cannot use '..' spread operator in the filter expression of a catch clause</source>
+        <target state="new">Cannot use '..' spread operator in the filter expression of a catch clause</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadStaticAfterUnsafe">
@@ -700,6 +710,16 @@
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">使用者定義的運算子 '{0}' 的明確實作必須宣告為靜態</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -1525,7 +1545,7 @@
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</source>
         <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods. Mark the method 'async'.</target>
-        <note />
+        <note>'MethodImplAttribute.Async' and 'async' are not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MisplacedExtension">
         <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
@@ -2248,8 +2268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">類型 'Microsoft.CodeAnalysis.EmbeddedAttribute' 必須是非泛型、內部、密封、非靜態、具有無參數建構函式、繼承自 System.Attribute，而且可以套用到任何類型。</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">類型 'Microsoft.CodeAnalysis.EmbeddedAttribute' 必須是非泛型、內部、密封、非靜態、具有無參數建構函式、繼承自 System.Attribute，而且可以套用到任何類型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -11118,16 +11138,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       <trans-unit id="ERR_BadAwaitInQuery">
         <source>The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause</source>
         <target state="translated">await' 運算子只能用在初始 'from' 子句的第一個集合運算式或 'join' 子句的集合運算式中的查詢運算式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits">
-        <source>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</source>
-        <target state="translated">這個非同步方法缺少 'await' 運算子，因此將以同步方式執行。請考慮使用 'await' 運算子等候未封鎖的應用程式開發介面呼叫，或使用 'await Task.Run(...)' 在背景執行緒上執行 CPU-bound 工作。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_AsyncLacksAwaits_Title">
-        <source>Async method lacks 'await' operators and will run synchronously</source>
-        <target state="translated">Async 方法缺乏 'await' 運算子，將同步執行</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnobservedAwaitableExpression">

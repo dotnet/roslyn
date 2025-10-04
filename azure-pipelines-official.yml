@@ -112,6 +112,8 @@ extends:
   parameters:
     featureFlags:
       autoBaseline: true
+      autoEnablePREfastWithNewRuleset: false
+      autoEnableRoslynWithNewRuleset: false
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
@@ -138,11 +140,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.14') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.0') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.14
+            MirrorBranch: release/dev18.0
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -288,13 +290,13 @@ extends:
 
         - task: MicroBuildSigningPlugin@4
           inputs:
-            signType: $(SignType)
+            signType: ${{ parameters.SignType }}
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
             # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
             ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
               ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
-          condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
+          condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 
         - download: profilingInputs
           artifact: merged mibc
@@ -322,7 +324,7 @@ extends:
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
                        /p:VSCodeOptimizationDataRoot="$(VSCodeOptimizationDataRoot)"
-                       /p:DotNetSignType=$(SignType)
+                       /p:DotNetSignType=${{ parameters.SignType }}
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
@@ -334,7 +336,7 @@ extends:
           displayName: Publish Assets
           inputs:
             filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+            arguments: '-configuration $(BuildConfiguration)'
           condition: succeeded()
 
         # Publish OptProf configuration files to the artifact service
@@ -401,7 +403,7 @@ extends:
             componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
-            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"
             publishDataAccessToken: "$(System.AccessToken)"
             dropPath: '$(Pipeline.Workspace)\VSSetup'
             cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
@@ -410,9 +412,6 @@ extends:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3
-          # Symbol validation is not entirely reliable as of yet, so should be turned off until
-          # https://github.com/dotnet/arcade/issues/2871 is resolved.
-          enableSymbolValidation: false
           enableSourceLinkValidation: false
           # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
           SDLValidationParameters:

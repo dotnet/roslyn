@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location)
             : base(owner, ordinal)
         {
-            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property) || owner is TypeSymbol { IsExtension: true });
+            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property) || owner is NamedTypeSymbol { IsExtension: true });
             _refKind = refKind;
             _scope = scope;
             _name = name;

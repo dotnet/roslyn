@@ -386,7 +386,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
     }
 
     private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
-        => new LSP.ReferenceParams()
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,

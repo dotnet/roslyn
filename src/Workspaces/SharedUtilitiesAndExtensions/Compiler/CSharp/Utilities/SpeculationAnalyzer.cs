@@ -663,7 +663,7 @@ internal sealed class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
         => node.IsKind(SyntaxKind.ParenthesizedExpression);
 
     protected override bool IsNamedArgument(ArgumentSyntax argument)
-        => argument.NameColon != null && !argument.NameColon.IsMissing;
+        => argument.NameColon is { IsMissing: false };
 
     protected override string GetNamedArgumentIdentifierValueText(ArgumentSyntax argument)
         => argument.NameColon.Name.Identifier.ValueText;

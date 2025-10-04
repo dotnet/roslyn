@@ -1104,7 +1104,7 @@ System.Console.WriteLine(async);
             CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80313")]
         public void LocalDeclarationStatement_18()
         {
             var text = @"
@@ -1133,6 +1133,50 @@ await System.Threading.Tasks.Task.Yield();
 
             comp = CreateCompilation(text, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x2f }"
+            }, sourceSymbolValidator: validator);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       48 (0x30)
+                  .maxstack  1
+                  .locals init (int V_0, //c
+                                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                                System.Runtime.CompilerServices.YieldAwaitable V_2)
+                  IL_0000:  ldc.i4.s   -100
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloca.s   V_0
+                  IL_0005:  ldind.i4
+                  IL_0006:  call       "void System.Console.Write(int)"
+                  IL_000b:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                  IL_0010:  stloc.2
+                  IL_0011:  ldloca.s   V_2
+                  IL_0013:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                  IL_0018:  stloc.1
+                  IL_0019:  ldloca.s   V_1
+                  IL_001b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                  IL_0020:  brtrue.s   IL_0028
+                  IL_0022:  ldloc.1
+                  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0028:  ldloca.s   V_1
+                  IL_002a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                  IL_002f:  ret
+                }
+                """);
+
+            static void validator(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetTypeMember("Program");
+                Assert.NotNull(program);
+
+                var main = program.GetMethod("<Main>$");
+                Assert.NotNull(main);
+                Assert.Equal(MethodImplAttributes.Async, main.ImplementationAttributes & MethodImplAttributes.Async);
+            }
         }
 
         [Fact]
@@ -1527,7 +1571,7 @@ string e() => ""1"";
             Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, model1.GetTypeInfo(reference).Nullability.FlowState);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80487")]
         public void FlowAnalysis_02()
         {
             var text = @"
@@ -1539,18 +1583,10 @@ if (args.Length == 0)
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions).VerifyDiagnostics(
                 // (2,1): error CS0161: '<top-level-statements-entry-point>': not all code paths return a value
                 // System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_ReturnExpected, @"System.Console.WriteLine();
-
-if (args.Length == 0)
-{
-    return 10;
-}
-").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1)
-                );
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "System.Console.WriteLine();").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1));
         }
 
         [Fact]
@@ -7825,7 +7861,7 @@ return;
             }
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80313")]
         public void Return_04()
         {
             var text = @"
@@ -7892,6 +7928,51 @@ return 11;
     </method>
   </methods>
 </symbols>", options: PdbValidationOptions.SkipConversionValidation);
+            }
+
+            comp = CreateRuntimeAsyncCompilation(text);
+            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[<Main>$]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }"
+            }, sourceSymbolValidator: validator);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       68 (0x44)
+                  .maxstack  3
+                  IL_0000:  ldstr      "hello "
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_000f:  ldsfld     "System.Func<int> Program.<>c.<>9__0_0"
+                  IL_0014:  dup
+                  IL_0015:  brtrue.s   IL_002e
+                  IL_0017:  pop
+                  IL_0018:  ldsfld     "Program.<>c Program.<>c.<>9"
+                  IL_001d:  ldftn      "int Program.<>c.<<Main>$>b__0_0()"
+                  IL_0023:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0028:  dup
+                  IL_0029:  stsfld     "System.Func<int> Program.<>c.<>9__0_0"
+                  IL_002e:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
+                  IL_0033:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0038:  pop
+                  IL_0039:  ldarg.0
+                  IL_003a:  ldc.i4.0
+                  IL_003b:  ldelem.ref
+                  IL_003c:  call       "void System.Console.Write(string)"
+                  IL_0041:  ldc.i4.s   11
+                  IL_0043:  ret
+                }
+                """);
+
+            static void validator(ModuleSymbol module)
+            {
+                var program = module.GlobalNamespace.GetTypeMember("Program");
+                Assert.NotNull(program);
+
+                var main = program.GetMethod("<Main>$");
+                Assert.NotNull(main);
+                Assert.Equal(MethodImplAttributes.Async, main.ImplementationAttributes & MethodImplAttributes.Async);
             }
         }
 
@@ -9790,11 +9871,10 @@ partial ext X
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
         }
 
         [Fact]

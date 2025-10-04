@@ -492,7 +492,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 var allFixes = (await fixService.GetFixesAsync(document, span, CancellationToken.None))
                     .SelectMany(fixCollection => fixCollection.Fixes);
 
-                var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219").ToArray();
+                var cs0219Fixes = allFixes.Where(fix => fix.Diagnostics.First().Id == "CS0219").ToArray();
 
                 // Ensure that there are no duplicate suppression fixes.
                 Assert.Equal(1, cs0219Fixes.Length);
@@ -502,7 +502,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 // Ensure that there *is* a fix for the other warning and that it has a *different*
                 // equivalence key so that it *doesn't* get de-duplicated
                 Assert.Equal(1, diagnostics.Where(d => d.Id == "CS0168").Count());
-                var cs0168Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0168");
+                var cs0168Fixes = allFixes.Where(fix => fix.Diagnostics.First().Id == "CS0168");
                 var cs0168EquivalenceKey = cs0168Fixes.Single().Action.EquivalenceKey;
                 Assert.NotNull(cs0168EquivalenceKey);
                 Assert.NotEqual(cs0219EquivalenceKey, cs0168EquivalenceKey);
@@ -731,7 +731,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 public static readonly DiagnosticDescriptor Decsciptor =
-                    new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                    new("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
@@ -845,7 +845,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 private readonly DiagnosticDescriptor _descriptor =
-                    new DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.Error, isEnabledByDefault: true);
+                    new("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
@@ -910,7 +910,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
             private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 private readonly DiagnosticDescriptor _descriptor =
-                    new DiagnosticDescriptor("@~DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                    new("@~DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
@@ -959,7 +959,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
         private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Decsciptor =
-                new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+                new("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {

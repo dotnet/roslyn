@@ -101,7 +101,7 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         // (X[])[1, 2, 3] is target typed.  `(X)[1, 2, 3]` is currently not (because it looks like indexing into an expr).
-        if (topMostExpression.Parent is CastExpressionSyntax castExpression && castExpression.Type is IdentifierNameSyntax)
+        if (topMostExpression.Parent is CastExpressionSyntax { Type: IdentifierNameSyntax })
             return false;
 
         // X[] = new Y[] { 1, 2, 3 }
@@ -977,13 +977,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<>) or nameof(ReadOnlySpan<>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<>) or nameof(ReadOnlySpan<>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
@@ -1021,7 +1021,7 @@ internal static class UseCollectionExpressionHelpers
         if (argExpression is ObjectCreationExpressionSyntax objectCreation)
         {
             // Can't have any arguments, as we cannot preserve them once we grab out all the elements.
-            if (objectCreation.ArgumentList != null && objectCreation.ArgumentList.Arguments.Count > 0)
+            if (objectCreation.ArgumentList is { Arguments.Count: > 0 })
                 return false;
 
             // If it's got an initializer, it has to be a collection initializer (or an empty object initializer);

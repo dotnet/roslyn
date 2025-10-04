@@ -46,25 +46,25 @@ public abstract partial class AbstractNavigateToTests
     protected INavigateToItemProvider _provider;
     protected NavigateToTestAggregator _aggregator;
 
-    internal static readonly PatternMatch s_emptyExactPatternMatch = new PatternMatch(PatternMatchKind.Exact, true, true, []);
-    internal static readonly PatternMatch s_emptyPrefixPatternMatch = new PatternMatch(PatternMatchKind.Prefix, true, true, []);
-    internal static readonly PatternMatch s_emptySubstringPatternMatch = new PatternMatch(PatternMatchKind.Substring, true, true, []);
-    internal static readonly PatternMatch s_emptyCamelCaseExactPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseExact, true, true, []);
-    internal static readonly PatternMatch s_emptyCamelCasePrefixPatternMatch = new PatternMatch(PatternMatchKind.CamelCasePrefix, true, true, []);
-    internal static readonly PatternMatch s_emptyCamelCaseNonContiguousPrefixPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousPrefix, true, true, []);
-    internal static readonly PatternMatch s_emptyCamelCaseSubstringPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseSubstring, true, true, []);
-    internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, true, []);
-    internal static readonly PatternMatch s_emptyFuzzyPatternMatch = new PatternMatch(PatternMatchKind.Fuzzy, true, true, []);
+    internal static readonly PatternMatch s_emptyExactPatternMatch = new(PatternMatchKind.Exact, true, true, []);
+    internal static readonly PatternMatch s_emptyPrefixPatternMatch = new(PatternMatchKind.Prefix, true, true, []);
+    internal static readonly PatternMatch s_emptySubstringPatternMatch = new(PatternMatchKind.Substring, true, true, []);
+    internal static readonly PatternMatch s_emptyCamelCaseExactPatternMatch = new(PatternMatchKind.CamelCaseExact, true, true, []);
+    internal static readonly PatternMatch s_emptyCamelCasePrefixPatternMatch = new(PatternMatchKind.CamelCasePrefix, true, true, []);
+    internal static readonly PatternMatch s_emptyCamelCaseNonContiguousPrefixPatternMatch = new(PatternMatchKind.CamelCaseNonContiguousPrefix, true, true, []);
+    internal static readonly PatternMatch s_emptyCamelCaseSubstringPatternMatch = new(PatternMatchKind.CamelCaseSubstring, true, true, []);
+    internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch = new(PatternMatchKind.CamelCaseNonContiguousSubstring, true, true, []);
+    internal static readonly PatternMatch s_emptyFuzzyPatternMatch = new(PatternMatchKind.Fuzzy, true, true, []);
 
-    internal static readonly PatternMatch s_emptyExactPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Exact, true, false, []);
-    internal static readonly PatternMatch s_emptyPrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Prefix, true, false, []);
-    internal static readonly PatternMatch s_emptySubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Substring, true, false, []);
-    internal static readonly PatternMatch s_emptyCamelCaseExactPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseExact, true, false, []);
-    internal static readonly PatternMatch s_emptyCamelCasePrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCasePrefix, true, false, []);
-    internal static readonly PatternMatch s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousPrefix, true, false, []);
-    internal static readonly PatternMatch s_emptyCamelCaseSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseSubstring, true, false, []);
-    internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.CamelCaseNonContiguousSubstring, true, false, []);
-    internal static readonly PatternMatch s_emptyFuzzyPatternMatch_NotCaseSensitive = new PatternMatch(PatternMatchKind.Fuzzy, true, false, []);
+    internal static readonly PatternMatch s_emptyExactPatternMatch_NotCaseSensitive = new(PatternMatchKind.Exact, true, false, []);
+    internal static readonly PatternMatch s_emptyPrefixPatternMatch_NotCaseSensitive = new(PatternMatchKind.Prefix, true, false, []);
+    internal static readonly PatternMatch s_emptySubstringPatternMatch_NotCaseSensitive = new(PatternMatchKind.Substring, true, false, []);
+    internal static readonly PatternMatch s_emptyCamelCaseExactPatternMatch_NotCaseSensitive = new(PatternMatchKind.CamelCaseExact, true, false, []);
+    internal static readonly PatternMatch s_emptyCamelCasePrefixPatternMatch_NotCaseSensitive = new(PatternMatchKind.CamelCasePrefix, true, false, []);
+    internal static readonly PatternMatch s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive = new(PatternMatchKind.CamelCaseNonContiguousPrefix, true, false, []);
+    internal static readonly PatternMatch s_emptyCamelCaseSubstringPatternMatch_NotCaseSensitive = new(PatternMatchKind.CamelCaseSubstring, true, false, []);
+    internal static readonly PatternMatch s_emptyCamelCaseNonContiguousSubstringPatternMatch_NotCaseSensitive = new(PatternMatchKind.CamelCaseNonContiguousSubstring, true, false, []);
+    internal static readonly PatternMatch s_emptyFuzzyPatternMatch_NotCaseSensitive = new(PatternMatchKind.Fuzzy, true, false, []);
 
     protected abstract EditorTestWorkspace CreateWorkspace(string content, TestComposition composition);
     protected abstract string Language { get; }

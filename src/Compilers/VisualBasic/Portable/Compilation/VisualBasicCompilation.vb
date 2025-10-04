@@ -943,7 +943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For Each tree As SyntaxTree In trees
                     If tree Is Nothing Then
-                        Throw New ArgumentNullException(String.Format(VBResources.Trees0, i))
+                        Throw New ArgumentNullException($"trees({i})")
                     End If
 
                     If Not tree.HasCompilationUnitRoot Then
@@ -955,7 +955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If declMap.ContainsKey(tree) Then
-                        Throw New ArgumentException(VBResources.SyntaxTreeAlreadyPresent, String.Format(VBResources.Trees0, i))
+                        Throw New ArgumentException(VBResources.SyntaxTreeAlreadyPresent, $"trees({i})")
                     End If
 
                     AddSyntaxTreeToDeclarationMapAndTable(tree, _options, Me.IsSubmission, declMap, declTable, referenceDirectivesChanged) ' declMap and declTable passed ByRef

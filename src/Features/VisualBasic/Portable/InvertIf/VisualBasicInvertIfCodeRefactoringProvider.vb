@@ -7,7 +7,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
     Friend MustInherit Class VisualBasicInvertIfCodeRefactoringProvider(Of TIfStatementSyntax As ExecutableStatementSyntax)
-        Inherits AbstractInvertIfCodeRefactoringProvider(Of SyntaxKind, StatementSyntax, TIfStatementSyntax, SyntaxList(Of StatementSyntax))
+        Inherits AbstractInvertIfCodeRefactoringProvider(Of
+            SyntaxKind,
+            StatementSyntax,
+            TIfStatementSyntax,
+            SyntaxList(Of StatementSyntax),
+            DirectiveTriviaSyntax,
+            IfDirectiveTriviaSyntax)
 
         Protected NotOverridable Overrides Function GetTitle() As String
             Return VBFeaturesResources.Invert_If
@@ -118,6 +124,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
 
         Protected NotOverridable Overrides Function IsSingleStatementStatementRange(statementRange As StatementRange) As Boolean
             Return Not statementRange.IsEmpty AndAlso statementRange.FirstStatement Is statementRange.LastStatement
+        End Function
+
+        Protected Overrides Function GetCondition(ifNode As IfDirectiveTriviaSyntax) As SyntaxNode
+            Return ifNode.Condition
         End Function
     End Class
 End Namespace

@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET472
-
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,10 +16,12 @@ public abstract class IntegrationTestBase : TestBase
 {
     protected static readonly string? s_msbuildDirectory;
 
+#if NET472
     static IntegrationTestBase()
     {
         s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
     }
+#endif
 
     protected readonly ITestOutputHelper _output;
     protected readonly string? _msbuildExecutable;
@@ -87,6 +86,105 @@ public abstract class IntegrationTestBase : TestBase
             arguments,
             currentDirectory.Path,
             additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
+    }
+
+    protected ProcessResult? RunMsbuild(
+        string arguments,
+        TempDirectory currentDirectory,
+        IEnumerable<KeyValuePair<string, string>> filesInDirectory,
+        IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
+    {
+        if (_msbuildExecutable != null)
+        {
+            return RunCommandLineCompiler(
+                _msbuildExecutable,
+                arguments,
+                currentDirectory,
+                filesInDirectory,
+                additionalEnvironmentVars);
+        }
+
+        if (ExecutionConditionUtil.IsDesktop)
+        {
+            _output.WriteLine("Skipping because Framework MSBuild is missing, this is a desktop test, " +
+                "and we cannot use the desktop Csc/Vbc task from 'dotnet msbuild', i.e., Core MSBuild.");
+            return null;
+        }
+
+        return RunCommandLineCompiler(
+            "dotnet",
+            $"msbuild {arguments}",
+            currentDirectory,
+            filesInDirectory,
+            additionalEnvironmentVars);
+    }
+
+    [Theory, CombinatorialData]
+    public void SdkBuild_Csc(bool useSharedCompilation)
+    {
+        var result = RunMsbuild(
+            "/v:n /m /nr:false /t:Build /restore Test.csproj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "File.cs", """
+                    class Program { static void Main() { System.Console.WriteLine("Hello from file"); } }
+                    """ },
+                { "Test.csproj", $"""
+                    <Project Sdk="Microsoft.NET.Sdk">
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
+                        <PropertyGroup>
+                            <TargetFramework>netstandard2.0</TargetFramework>
+                            <UseSharedCompilation>{useSharedCompilation}</UseSharedCompilation>
+                        </PropertyGroup>
+                    </Project>
+                    """ },
+            });
+
+        if (result == null) return;
+
+        _output.WriteLine(result.Output);
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        Assert.DoesNotContain("csc.dll", result.Output);
+        Assert.Contains(ExecutionConditionUtil.IsWindows ? "csc.exe" : "csc", result.Output);
+    }
+
+    [Theory, CombinatorialData]
+    public void SdkBuild_Vbc(bool useSharedCompilation)
+    {
+        var result = RunMsbuild(
+            "/v:n /m /nr:false /t:Build /restore Test.vbproj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "File.vb", """
+                    Public Module Program
+                        Public Sub Main()
+                            System.Console.WriteLine("Hello from file")
+                        End Sub
+                    End Module
+                    """ },
+                { "Test.vbproj", $"""
+                    <Project Sdk="Microsoft.NET.Sdk">
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
+                        <PropertyGroup>
+                            <TargetFramework>netstandard2.0</TargetFramework>
+                            <UseSharedCompilation>{useSharedCompilation}</UseSharedCompilation>
+                        </PropertyGroup>
+                    </Project>
+                    """ },
+            });
+
+        if (result == null) return;
+
+        _output.WriteLine(result.Output);
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        Assert.DoesNotContain("vbc.dll", result.Output);
+        Assert.Contains(ExecutionConditionUtil.IsWindows ? "vbc.exe" : "vbc", result.Output);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
@@ -170,5 +268,3 @@ public abstract class IntegrationTestBase : TestBase
         }
     }
 }
-
-#endif

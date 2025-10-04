@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Roslyn.Test.Utilities;
+namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public static class AsynchronousOperationListenerExtensions
+internal static class AsynchronousOperationListenerExtensions
 {
     internal static async Task WaitAllDispatcherOperationAndTasksAsync(this IAsynchronousOperationListenerProvider provider, Workspace? workspace, params string[] featureNames)
     {

@@ -52,11 +52,13 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TObjectCreationExpressionSyntax objectCreationExpression,
         CancellationToken cancellationToken)
     {
-        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
-        if (state is null)
+        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+
+        // If we didn't find something we're assigned to, then we can't continue.  
+        if (state.ValuePattern == default)
             return default;
 
-        this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression: false);
+        this.Initialize(state, objectCreationExpression);
         return this.AnalyzeWorker(cancellationToken).PostMatches;
     }
 

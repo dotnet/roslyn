@@ -8,7 +8,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.InvertIf;
 
 internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
-    TSyntaxKind, TStatementSyntax, TIfStatementSyntax, TEmbeddedStatement>
+    TSyntaxKind,
+    TStatementSyntax,
+    TIfStatementSyntax,
+    TEmbeddedStatementSyntax,
+    TDirectiveTriviaSyntax,
+    TIfDirectiveTriviaSyntax>
 {
     protected readonly struct StatementRange
     {

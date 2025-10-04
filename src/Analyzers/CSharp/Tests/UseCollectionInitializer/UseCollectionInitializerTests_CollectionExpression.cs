@@ -5709,4 +5709,47 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80471")]
+    public Task TestNeedForCast1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    private void CodeFixErrorRepro_OldEnumerables()
+                    {
+                        ArrayList arrayList = [1, 2, 3];
+
+                        List<int> stronglyTypedList = [|new|]();
+                        [|foreach (int i in |]arrayList)
+                        {
+                            stronglyTypedList.Add(i);
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Linq;
+                
+                class C
+                {
+                    private void CodeFixErrorRepro_OldEnumerables()
+                    {
+                        ArrayList arrayList = [1, 2, 3];
+                
+                        List<int> stronglyTypedList = [.. arrayList.Cast<int>()];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
 }

@@ -16,7 +16,7 @@ internal sealed class VenusMargin : IWpfTextViewMargin
     public const string MarginName = "VenusMargin";
 
     private readonly IProjectionBuffer _projectionBuffer;
-    private readonly ProjectionBufferViewModel _viewModel = new ProjectionBufferViewModel();
+    private readonly ProjectionBufferViewModel _viewModel = new();
     private readonly ProjectionBufferMargin _control;
 
     private bool _isDisposed = false;

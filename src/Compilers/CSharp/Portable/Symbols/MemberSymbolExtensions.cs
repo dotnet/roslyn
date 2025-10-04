@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool GetIsNewExtensionMember(this MethodSymbol member)
         {
-            return member is { ContainingSymbol: TypeSymbol { IsExtension: true }, OriginalDefinition: not SynthesizedExtensionMarker };
+            return member is { ContainingSymbol: NamedTypeSymbol { IsExtension: true }, OriginalDefinition: not SynthesizedExtensionMarker };
         }
 
         internal static bool GetIsNewExtensionMember(this PropertySymbol member)
         {
-            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+            return member.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
         }
 
         internal static bool TryGetInstanceExtensionParameter(this Symbol symbol, [NotNullWhen(true)] out ParameterSymbol? extensionParameter)

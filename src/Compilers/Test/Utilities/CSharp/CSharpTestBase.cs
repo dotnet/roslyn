@@ -890,6 +890,32 @@ namespace System.Runtime.CompilerServices
 }
 """;
 
+        internal static readonly string ExtensionMarkerAttributeIL = """
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 09 49 6e 68 65 72
+        69 74 65 64 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string name
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ret
+    }
+}
+""";
+
         #region A string containing expression-tree dumping utilities
         protected static readonly string ExpressionTestLibrary = """
 using System;
