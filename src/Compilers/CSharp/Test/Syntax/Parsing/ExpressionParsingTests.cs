@@ -7096,6 +7096,33 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ImplicitObjectInitializerWithColonInsteadOfEqualsSign()
+        {
+            var source = """
+class Class1
+{
+    public int X { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Class1 c1 = new() { X: 0 };
+    }
+}
+""";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var toString = tree.GetRoot().ToFullString();
+            Assert.Equal(source, toString);
+            tree.GetDiagnostics().Verify(
+                // (10,30): error CS1003: Syntax error, '=' expected
+                //         Class1 c1 = new() { X: 0 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(10, 30));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
         public void ObjectInitializerWithColonInsteadOfEqualsSignInNestedInitialization()
         {
             var source = """
