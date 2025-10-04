@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -45,7 +46,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 
     public object? SerializedRequest { get; }
 
-    private QueueItem(
+    internal QueueItem(
         string methodName,
         object? serializedRequest,
         ILspServices lspServices,
@@ -106,7 +107,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     /// <summary>
     /// Deserializes the request into the concrete type.  If the deserialization fails we will fail the request and call TrySetException on the <see cref="_completionSource"/>
     /// so that the client can observe the failure.  If this is a mutating request, we will also let the exception bubble up so that the queue can handle it.
-    /// 
+    ///
     /// The caller is expected to return immediately and stop processing the request if this returns false.
     /// </summary>
     private bool TryDeserializeRequest<TRequest>(
@@ -232,7 +233,18 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
             // Record logs and metrics on the exception.
             // It's important that this can NEVER throw, or the queue will hang.
             _requestTelemetryScope?.RecordException(ex);
-            _logger.LogException(ex);
+
+            if (ex is LocalRpcException { ErrorCode: LspErrorCodes.ContentModified })
+            {
+                // ContentModified exceptions are expected to be thrown during normal operation
+                // when the client is out of date with the server.  Log them as debug messages
+                // so we don't alarm users.
+                _logger.LogDebug(ex.ToString());
+            }
+            else
+            {
+                _logger.LogException(ex);
+            }
 
             _completionSource.TrySetException(ex);
         }

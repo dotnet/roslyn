@@ -14056,7 +14056,7 @@ done:
             set => _syntaxFactoryContext.IsInQuery = value;
         }
 
-        private bool IsInFieldKeywordContext
+        internal bool IsInFieldKeywordContext
         {
             get => _syntaxFactoryContext.IsInFieldKeywordContext;
             set => _syntaxFactoryContext.IsInFieldKeywordContext = value;
