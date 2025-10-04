@@ -13200,8 +13200,7 @@ done:
                 SyntaxKind.SimpleAssignmentExpression,
                 this.ParseIdentifierName(),
                 this.CurrentToken.Kind == SyntaxKind.ColonToken
-                    ? this.ConvertToMissingWithTrailingTrivia(
-                        this.EatTokenEvenWithIncorrectKind(SyntaxKind.EqualsToken), SyntaxKind.EqualsToken)
+                    ? this.EatTokenAsKind(SyntaxKind.EqualsToken)
                     : this.EatToken(SyntaxKind.EqualsToken),
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
