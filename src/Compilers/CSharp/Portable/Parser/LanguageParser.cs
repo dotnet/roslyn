@@ -12996,6 +12996,11 @@ done:
 
         private bool IsNamedAssignment()
         {
+            return IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.EqualsToken;
+        }
+
+        private bool IsNamedMemberInitializer()
+        {
             return IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.EqualsToken or SyntaxKind.ColonToken;
         }
 
@@ -13164,7 +13169,7 @@ done:
                 // [...] = <expr>
                 return this.ParseDictionaryInitializer();
             }
-            else if (this.IsNamedAssignment())
+            else if (this.IsNamedMemberInitializer())
             {
                 // Name = { ... }
                 // Name = ref <expr>
@@ -13195,7 +13200,8 @@ done:
                 SyntaxKind.SimpleAssignmentExpression,
                 this.ParseIdentifierName(),
                 this.CurrentToken.Kind == SyntaxKind.ColonToken
-                    ? this.EatTokenWithPrejudice(SyntaxKind.EqualsToken)
+                    ? this.ConvertToMissingWithTrailingTrivia(
+                        this.EatTokenEvenWithIncorrectKind(SyntaxKind.EqualsToken), SyntaxKind.EqualsToken)
                     : this.EatToken(SyntaxKind.EqualsToken),
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()

@@ -7067,5 +7067,98 @@ select t";
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ObjectInitializerWithColonInsteadOfEqualsSign()
+        {
+            var source = """
+class Class1
+{
+    public int X { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new Class1 { X: 0 };
+    }
+}
+""";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var toString = tree.GetRoot().ToFullString();
+            Assert.Equal(source, toString);
+            tree.GetDiagnostics().Verify(
+                // (10,23): error CS1003: Syntax error, '=' expected
+                //         new Class1 { X: 0 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(10, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ObjectInitializerWithColonInsteadOfEqualsSignInNestedInitialization()
+        {
+            var source = """
+class Class1
+{
+    public Class2 X { get; set; }
+}
+
+class Class2
+{
+    public int Y { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new Class1 { X = { Y: 0 } };
+    }
+}
+""";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var toString = tree.GetRoot().ToFullString();
+            Assert.Equal(source, toString);
+            tree.GetDiagnostics().Verify(
+                // (10,23): error CS1003: Syntax error, '=' expected
+                //         new Class1 { X: 0 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(10, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80537")]
+        public void ObjectInitializerWithColonInsteadOfEqualsSignInCollectionInitializer()
+        {
+            var source = """
+class Class1
+{
+    public Class2[] X { get; set; }
+}
+
+class Class2
+{
+    public int Y { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        new Class1 { X = { 
+            [0] = { Y: 0 }
+        } };
+    }
+}
+""";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var toString = tree.GetRoot().ToFullString();
+            Assert.Equal(source, toString);
+            tree.GetDiagnostics().Verify(
+                // (16,22): error CS1003: Syntax error, '=' expected
+                //             [0] = { Y: 0 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(16, 22));
+        }
     }
 }

@@ -29041,8 +29041,7 @@ internal partial class ContextAwareSyntax
             case SyntaxKind.LessThanLessThanEqualsToken:
             case SyntaxKind.GreaterThanGreaterThanEqualsToken:
             case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-            case SyntaxKind.QuestionQuestionEqualsToken:
-            case SyntaxKind.ColonToken: break;
+            case SyntaxKind.QuestionQuestionEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (right == null) throw new ArgumentNullException(nameof(right));
@@ -34409,8 +34408,7 @@ internal static partial class SyntaxFactory
             case SyntaxKind.LessThanLessThanEqualsToken:
             case SyntaxKind.GreaterThanGreaterThanEqualsToken:
             case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-            case SyntaxKind.QuestionQuestionEqualsToken:
-            case SyntaxKind.ColonToken: break;
+            case SyntaxKind.QuestionQuestionEqualsToken: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (right == null) throw new ArgumentNullException(nameof(right));
