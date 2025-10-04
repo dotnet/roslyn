@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var context = CreateCompilationContext();
             bool isInFieldKeywordContext = context.IsInFieldKeywordContext();
             var diagnostics = DiagnosticBag.GetInstance();
-            var syntaxNodes = expressions.SelectAsArray((expr, isInFieldKeywordContext) => Parse(expr, isInFieldKeywordContext, treatAsExpression: true, diagnostics, out var formatSpecifiers), isInFieldKeywordContext);
+            var syntaxNodes = expressions.SelectAsArray(expr => Parse(expr, isInFieldKeywordContext, treatAsExpression: true, diagnostics, out var formatSpecifiers));
             byte[]? assembly = null;
             if (!diagnostics.HasAnyErrors())
             {
