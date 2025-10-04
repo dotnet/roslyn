@@ -269,19 +269,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCollectionBuilderCollectionExpression(node);
                 }
 
-                const WellKnownMember wellKnownMember = WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T;
-                if (_compilation.GetWellKnownTypeMember(wellKnownMember) is not MethodSymbol asImmutableArray)
+                if (_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray)
                 {
-                    // ReadOnlySpan<T> span = [elems];
-                    // ImmutableArray<T> array = ImmutableArray.Create(span)
-                    return VisitCollectionBuilderCollectionExpression(node);
+                    // T[] array = [elems];
+                    // ImmutableArray<T> value = ImmutableCollectionsMarshal.AsImmutableArray(array);
+                    var arrayType = getBackingArrayType(collectionType);
+                    var arrayValue = createArray(node, arrayType, targetsReadOnlyCollection: true);
+                    return _factory.StaticCall(asImmutableArray.Construct([arrayType.ElementTypeWithAnnotations]), [arrayValue]);
                 }
 
-                // T[] array = [elems];
-                // ImmutableArray<T> value = ImmutableCollectionsMarshal.AsImmutableArray(array);
-                var arrayType = getBackingArrayType(collectionType);
-                var arrayValue = createArray(node, arrayType, targetsReadOnlyCollection: true);
-                return _factory.StaticCall(asImmutableArray.Construct([arrayType.ElementTypeWithAnnotations]), [arrayValue]);
+                // ReadOnlySpan<T> span = [elems];
+                // ImmutableArray<T> array = ImmutableArray.Create(span)
+                return VisitCollectionBuilderCollectionExpression(node);
             }
 
             BoundExpression? tryCreateNonArrayBackedSpan(BoundCollectionExpression node, TypeSymbol collectionType, bool isReadOnlySpan)
