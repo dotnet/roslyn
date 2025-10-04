@@ -2074,6 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
         {
+            Visit(node.CollectionCreation);
             VisitCollectionExpression(node.Elements);
             return null;
         }
