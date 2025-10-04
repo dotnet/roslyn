@@ -2531,15 +2531,15 @@ outerDefault:
             // Params collection better-ness
             if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm && m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
-                int m1ParamsOrdinal = m1LeastOverriddenParameters.Length - 1;
-                int m2ParamsOrdinal = m2LeastOverriddenParameters.Length - 1;
+                var m1LastParameter = m1LeastOverriddenParameters[^1];
+                var m2LastParameter = m2LeastOverriddenParameters[^1];
 
                 for (i = 0; i < arguments.Count; ++i)
                 {
                     var parameter1 = getParameterOrExtensionParameter(i, m1.Result, m1LeastOverriddenParameters, m1.LeastOverriddenMember);
                     var parameter2 = getParameterOrExtensionParameter(i, m2.Result, m2LeastOverriddenParameters, m2.LeastOverriddenMember);
 
-                    if ((parameter1.Ordinal == m1ParamsOrdinal) != (parameter2.Ordinal == m2ParamsOrdinal))
+                    if (((object)parameter1 == m1LastParameter) != ((object)parameter2 == m2LastParameter))
                     {
                         // The argument is included into params collection for one candidate, but isn't included into params collection for the other candidate
                         break;
@@ -2548,8 +2548,8 @@ outerDefault:
 
                 if (i == arguments.Count)
                 {
-                    TypeSymbol t1 = m1LeastOverriddenParameters[^1].Type;
-                    TypeSymbol t2 = m2LeastOverriddenParameters[^1].Type;
+                    TypeSymbol t1 = m1LastParameter.Type;
+                    TypeSymbol t2 = m2LastParameter.Type;
 
                     if (!Conversions.HasIdentityConversion(t1, t2))
                     {
@@ -2574,7 +2574,7 @@ outerDefault:
 
                 var type = parameter.Type;
                 if (memberResolutionResult.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                    parameter.Ordinal == parameters.Length - 1)
+                    (object)parameter == parameters[^1])
                 {
                     Debug.Assert(paramsElementTypeOpt.HasType);
                     Debug.Assert(paramsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel);
