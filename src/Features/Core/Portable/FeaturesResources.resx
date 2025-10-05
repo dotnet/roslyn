@@ -379,7 +379,7 @@
     <value>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</value>
   </data>
   <data name="default" xml:space="preserve">
-    <value>default></value>
+    <value>default&gt;</value>
   </data>
   <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the modifiers of {0} requires restarting the application.</value>
@@ -548,6 +548,7 @@ Do you want to continue?</value>
   </data>
   <data name="Change_signature" xml:space="preserve">
     <value>Change signature...</value>
+    <comment>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</comment>
   </data>
   <data name="Generate_new_type" xml:space="preserve">
     <value>Generate new type...</value>
