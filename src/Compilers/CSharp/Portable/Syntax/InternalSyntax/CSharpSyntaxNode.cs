@@ -257,7 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // 81.2% contain 1 structured trivia
         // 96.5% contain 2 or fewer structured trivia
         // 99.6% contain 4 or fewer structured trivia
-        // 99.9% contain 5 or fewer structured trivia
         // 100% contain 7 or fewer structured trivia
         private static readonly ConditionalWeakTable<SyntaxNode, SmallDictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>> s_structuresTable
             = new ConditionalWeakTable<SyntaxNode, SmallDictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode>>();

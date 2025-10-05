@@ -208,10 +208,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' mapping from trivia to StructuredTriviaSyntax. Testing against roslyn, of parents
         ' containing structured trivia:
         ' 81.2% contain 1 structured trivia
-        ' 96.5% contain 2 Or fewer structured trivia
-        ' 99.6% contain 4 Or fewer structured trivia
-        ' 99.9% contain 5 Or fewer structured trivia
-        ' 100% contain 7 Or fewer structured trivia
+        ' 96.5% contain 2 or fewer structured trivia
+        ' 99.6% contain 4 or fewer structured trivia
+        ' 100% contain 7 or fewer structured trivia
         Private Shared ReadOnly s_structuresTable As New ConditionalWeakTable(Of SyntaxNode, SmallDictionary(Of Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode))
 
         Public Overrides Function GetStructure(trivia As Microsoft.CodeAnalysis.SyntaxTrivia) As SyntaxNode
