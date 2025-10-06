@@ -1956,6 +1956,8 @@
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Construct method for collection types with [CollectionBuilder]. -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
+    <!-- Initial arguments to pass to the collection builder method (prior to the ReadOnlySpan of elements at the end) -->
+    <Field Name="CollectionBuilderPrefixArguments" Type="ImmutableArray&lt;BoundNode&gt;"/>
     <!-- Placeholder for collection builder method invocation. -->
     <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <!-- Conversion from collection builder method invocation to collection type. -->
