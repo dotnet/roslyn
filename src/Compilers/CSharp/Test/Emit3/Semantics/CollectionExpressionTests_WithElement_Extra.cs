@@ -100,9 +100,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (2,21): error CS1739: The best overload for 'List' does not have a parameter named 'x'
-                // List<int> l = [with(x: 1), with(y: 2)];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("List", "x").WithLocation(2, 21),
                 // (2,28): error CS9335: Collection argument element must be the first element.
                 // List<int> l = [with(x: 1), with(y: 2)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 28));
@@ -155,12 +152,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (1,23): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                // MyCollection<int> c = [
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, @"[
-    with(),
-    with(arg: 0),
-    with(unknown: 1)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(1, 23),
                 // (3,5): error CS9501: Collection argument element must be the first element.
                 //     with(arg: 0),
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(3, 5),
@@ -267,7 +258,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
         Assert.Equal(2, collections.Length);
         VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "T[]", ConversionKind.CollectionExpression);
-        VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "T[]", ConversionKind.CollectionExpression);
+        VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "T[]", ConversionKind.NoConversion);
     }
 
     private static void VerifyTypes(SemanticModel model, ExpressionSyntax expr, string? expectedType, string expectedConvertedType, ConversionKind expectedConversionKind)

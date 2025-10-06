@@ -5264,50 +5264,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
-            BoundUnconvertedWithElement? withElement = null;
+            BoundUnconvertedWithElement? firstWithElement = null;
 
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
                 if (element is WithElementSyntax withElementSyntax)
                 {
-                    // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
-                    // we still bind the arguments in those later with elements.  However, we only validate those
-                    // arguments against the final arguments against the destination target type if the with element
-                    // was in the proper position.
-
-                    var analyzedArguments = AnalyzedArguments.GetInstance();
-
-                    // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
-                    // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
-                    // allow it.  If it requires substantial work beyond this, disallow it for this feature.
-                    BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
-
-                    var arguments = analyzedArguments.Arguments;
-                    for (int i = 0; i < arguments.Count; i++)
-                    {
-                        var arg = arguments[i];
-                        if (arg.Type is { TypeKind: TypeKind.Dynamic })
-                        {
-                            diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
-                            arguments[i] = new BoundBadExpression(arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: Compilation.GetSpecialType(SpecialType.System_Object));
-                        }
-                    }
-
-                    if (withElementSyntax != syntax.Elements.First())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
-                    }
-                    else
-                    {
-                        withElement = new BoundUnconvertedWithElement(
-                            withElementSyntax,
-                            analyzedArguments.Arguments.ToImmutable(),
-                            analyzedArguments.Names.ToImmutableOrNull(),
-                            analyzedArguments.RefKinds.ToImmutableOrNull());
-                    }
-
-                    analyzedArguments.Free();
+                    var (withElement, badElement) = bindWithElement(withElementSyntax);
+                    firstWithElement ??= withElement;
+                    builder.AddIfNotNull(badElement);
                 }
                 else
                 {
@@ -5315,7 +5281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundUnconvertedCollectionExpression(syntax, withElement, builder.ToImmutableAndFree());
+            return new BoundUnconvertedCollectionExpression(syntax, firstWithElement, builder.ToImmutableAndFree());
 
             static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {
@@ -5388,6 +5354,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementPlaceholder: null,
                     iteratorBody: null,
                     hasErrors: false);
+            }
+
+            (BoundUnconvertedWithElement? withElement, BoundBadExpression? badExpression) bindWithElement(
+                WithElementSyntax withElementSyntax)
+            {
+                // Report a withElement that is not first. Note: for the purposes of error recovery and diagnostics
+                // we still bind the arguments in those later with elements.  However, we only validate those
+                // arguments against the final arguments against the destination target type if the with element
+                // was in the proper position.
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+
+                // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
+                // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
+                // allow it.  If it requires substantial work beyond this, disallow it for this feature.
+                BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+
+                var arguments = analyzedArguments.Arguments;
+                for (int i = 0; i < arguments.Count; i++)
+                {
+                    var arg = arguments[i];
+                    if (arg.Type is { TypeKind: TypeKind.Dynamic })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
+                        arguments[i] = new BoundBadExpression(arg.Syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [arg], type: Compilation.GetSpecialType(SpecialType.System_Object));
+                    }
+                }
+
+                BoundUnconvertedWithElement? withElement;
+                BoundBadExpression? badExpression;
+
+                if (withElementSyntax == syntax.Elements.First())
+                {
+                    // Got a with-element, and it was in the right place.  Pass it along directly in
+                    // unconverted-collection-expression so that we can construct the collectin properly.
+                    withElement = new BoundUnconvertedWithElement(
+                        withElementSyntax,
+                        analyzedArguments.Arguments.ToImmutable(),
+                        analyzedArguments.Names.ToImmutableOrNull(),
+                        analyzedArguments.RefKinds.ToImmutableOrNull());
+                    badExpression = null;
+                }
+                else
+                {
+                    // Improperly placed with-element.  Report an error and pass along the arguments so they remain
+                    // in the tree for further analysis, but replace the with-element itself with a bad node so that
+                    // it doesn't influence later transformations.
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
+
+                    withElement = null;
+                    badExpression = MakeBadExpressionForObjectCreation(
+                        withElementSyntax, this.Compilation.GetSpecialType(SpecialType.System_Object),
+                        analyzedArguments, initializerOpt: null, typeSyntax: null, diagnostics);
+                }
+
+                analyzedArguments.Free();
+                return (withElement, badExpression);
             }
         }
 #nullable disable
@@ -5649,7 +5672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="typeSyntax">Shouldn't be null if <paramref name="initializerOpt"/> is not null.</param>
-        private BoundExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt, SyntaxNode? typeSyntax, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
+        private BoundBadExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt, SyntaxNode? typeSyntax, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
