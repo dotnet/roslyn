@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
-            ImmutableArray<(MethodSymbol method, TypeSymbol elementType, Conversion returnTypeConversion)> collectionBuilderMethods = [];
+            MethodSymbol? collectionBuilderMethod = null;
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
 
@@ -855,12 +855,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var namedType = (NamedTypeSymbol)targetType;
 
-                        collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, forParams: false);
+                        var collectionBuilderMethods = GetAndValidateCollectionBuilderMethods(syntax, namedType, diagnostics, forParams: false);
                         if (collectionBuilderMethods.IsEmpty)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
+                        (collectionBuilderMethod, elementType) = ConvertColle
                         collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
                         collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
                     }
