@@ -61,7 +61,7 @@ console.Pipeline.Attach(new LoggingRenderHook(logWriter));
 // Welcome message.
 console.MarkupLineInterpolated($"Welcome to [gray]{getFileName()}[/], an interactive script to help with snap-related infra tasks");
 
-// Get gh default repo.
+// Ask for source repo.
 
 var defaultRepo = (await Cli.Wrap("gh")
     .WithArguments(["repo", "set-default", "--view"])
@@ -69,15 +69,19 @@ var defaultRepo = (await Cli.Wrap("gh")
     .StandardOutput
     .Trim();
 
-if (string.IsNullOrEmpty(defaultRepo))
-{
-    console.MarkupLine("[red]error:[/] No default repo set for [gray]gh[/] CLI, please run [gray]gh repo set-default[/]");
-    return 1;
-}
+var sourceRepoShort = console.Prompt(new TextPrompt<string>("Source repo in the format owner/repo")
+    .DefaultValueIfNotNullOrEmpty(defaultRepo)
+    .Validate(static repo =>
+    {
+        if (repo.Count(c => c == '/') != 1)
+        {
+            return ValidationResult.Error("Repo must be in the format owner/repo");
+        }
 
-console.MarkupLineInterpolated($"Default repo for [gray]gh[/] CLI is [teal]{defaultRepo}[/]");
+        return ValidationResult.Success();
+    }));
 
-var sourceRepoUrl = $"https://github.com/{defaultRepo}";
+var sourceRepoUrl = $"https://github.com/{sourceRepoShort}";
 
 // Check subscriptions.
 var barApiClient = new BarApiClient(
@@ -140,6 +144,7 @@ const string prJsonFields = "number,title,mergedAt,mergeCommit";
 var lastMergedSearchFilter = $"is:merged base:{sourceBranchName}";
 var lastMergedPullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
+        "--repo", sourceRepoShort,
         "--search", lastMergedSearchFilter,
         "--json", prJsonFields,
         "--limit", "5"])
@@ -155,13 +160,14 @@ foreach (var pr in lastMergedPullRequests)
 {
     console.WriteLine($" - {pr}");
 }
-console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --search '{lastMergedSearchFilter}'[/]");
+console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --repo {sourceRepoShort} --search '{lastMergedSearchFilter}'[/]");
 
 // Find PRs in milestone Next.
 
 var milestoneSearchFilter = $"is:merged milestone:{nextMilestoneName} base:{sourceBranchName}";
 var milestonePullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
+        "--repo", sourceRepoShort,
         "--search", milestoneSearchFilter,
         "--json", prJsonFields])
     .ExecuteBufferedAsync())
@@ -178,7 +184,7 @@ foreach (var pr in milestonePullRequests.Take(5))
 }
 if (milestonePullRequests.Length > 6)
 {
-    console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --search '{milestoneSearchFilter}'[/]");
+    console.MarkupLineInterpolated($" - ... for more, run [gray]gh pr list --repo {sourceRepoShort} --search '{milestoneSearchFilter}'[/]");
 }
 if (milestonePullRequests.Length > 5)
 {
@@ -193,6 +199,7 @@ var lastPrNumber = console.Prompt(new TextPrompt<int>("Number of last PR to incl
 var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumber)
     ?? (await Cli.Wrap("gh")
     .WithArguments(["pr", "view", $"{lastPrNumber}",
+        "--repo", sourceRepoShort,
         "--json", prJsonFields])
     .ExecuteBufferedAsync())
     .StandardOutput
@@ -218,7 +225,8 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
     // Find all milestones.
 
     var milestones = (await Cli.Wrap("gh")
-        .WithArguments(["api", "repos/{owner}/{repo}/milestones", "--paginate", "--jq", ".[] | {number:.number,title:.title}"])
+        .WithArguments(["api", $"repos/{sourceRepoShort}/milestones", "--paginate",
+            "--jq", ".[] | {number:.number,title:.title}"])
         .ExecuteBufferedAsync())
         .StandardOutput
         .ParseJsonNewLineDelimitedList<Milestone>()
@@ -328,6 +336,14 @@ file static class Extensions
         public TextPrompt<T> DefaultValueIfNotNull(T? value)
         {
             return value is { } v ? prompt.DefaultValue(v) : prompt;
+        }
+    }
+
+    extension(TextPrompt<string> prompt)
+    {
+        public TextPrompt<string> DefaultValueIfNotNullOrEmpty(string? value)
+        {
+            return !string.IsNullOrEmpty(value) ? prompt.DefaultValue(value) : prompt;
         }
     }
 }
