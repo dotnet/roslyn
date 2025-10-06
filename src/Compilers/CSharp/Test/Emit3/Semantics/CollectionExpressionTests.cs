@@ -43854,22 +43854,8 @@ class Program
         }
 
         [Theory]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(5)]
-        [InlineData(6)]
-        [InlineData(7)]
-        [InlineData(8)]
-        [InlineData(9)]
-        [InlineData(10)]
-        [InlineData(11)]
-        [InlineData(12)]
-        [InlineData(13)]
-        [InlineData(14)]
-        [InlineData(15)]
-        [InlineData(16)]
-        public void BuiltInInlineArrayTypes(int arrayLength)
+        [CombinatorialData]
+        public void BuiltInInlineArrayTypes([CombinatorialRange(1, 17)] int arrayLength)
         {
             string sourceA = """
                 using System;
@@ -43899,11 +43885,13 @@ class Program
                 """;
 
             var expectedOutput = $"[{string.Join(", ", Enumerable.Range(1, arrayLength))}],";
-            var ilVerifyFailure = Verification.Fails with
-            {
-                ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
-            };
-            var verifier = CompileAndVerify([sourceA, sourceB, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput(expectedOutput), targetFramework: TargetFramework.Net100, verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: false, arrayLength));
+            var ilVerifyFailure = arrayLength == 1
+                ? Verification.FailsPEVerify
+                : Verification.Fails with
+                {
+                    ILVerifyMessage = "[InlineArrayAsReadOnlySpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x11 }"
+                };
+            var verifier = CompileAndVerify([sourceA, sourceB, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput(expectedOutput), targetFramework: TargetFramework.Net100, verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: arrayLength == 17, arrayLength));
             verifier.VerifyDiagnostics();
             if (arrayLength == 2)
             {
@@ -43939,9 +43927,12 @@ class Program
             }
 
             var comp = CreateCompilation([sourceA, sourceB, s_collectionExtensionsWithSpan], targetFramework: TargetFramework.Net100);
-            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2));
+            if (arrayLength is not (1 or 17))
+            {
+                comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2));
+            }
 
-            verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: true, arrayLength));
+            verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput(expectedOutput), verify: ilVerifyFailure, symbolValidator: verifyResult(shouldHaveSynthesizedArrayType: arrayLength != 1, arrayLength));
             verifier.VerifyDiagnostics();
             if (arrayLength == 2)
             {
