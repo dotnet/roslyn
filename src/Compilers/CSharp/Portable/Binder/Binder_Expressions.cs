@@ -5404,9 +5404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
 
                     withElement = null;
-                    badExpression = MakeBadExpressionForObjectCreation(
-                        withElementSyntax, this.Compilation.GetSpecialType(SpecialType.System_Object),
-                        analyzedArguments, initializerOpt: null, typeSyntax: null, diagnostics);
+                    badExpression = BadExpression(withElementSyntax, BuildArgumentsForErrorRecovery(analyzedArguments));
                 }
 
                 analyzedArguments.Free();
