@@ -1954,6 +1954,7 @@
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Call to instantiate a collection with a constructor. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow" />
     <!-- Invocation of the projected collection builder method. This may be wrapped in a conversion if one was applied
          to the result of the method.  This will be lowered to the final call to the original collection builder
          with these invocation arguments followed by the actual elements as the last arg. -->

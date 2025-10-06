@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        (collectionBuilderMethod, elementType) = ConvertColle
+                        // (collectionBuilderMethod, elementType) = ConvertColle
                         collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
                         collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
                     }

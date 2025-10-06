@@ -78,8 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        // A few special cases when a collection type is an ImmutableArray<T>
-                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
+                        // A few special cases when a collection type is an ImmutableArray<T>. Only do this if there is
+                        // no with-element provided (if so, we want to defer to the user-specified collection builder
+                        // method).
+                        if (!node.HasWithElement &&
+                            ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
                             // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
                             if (node.Elements.IsEmpty &&
@@ -236,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is
                 {
-                    CollectionBuilderMethod: { } builder,
+                    CollectionBuilderMethod: { ParameterCount: 1 } builder,
                     Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }],
                 } &&
                 ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
@@ -508,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var constructMethod = node.CollectionBuilderMethod;
 
-            var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
+            var spanType = (NamedTypeSymbol)constructMethod.Parameters.Last().Type;
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
             var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
