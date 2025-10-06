@@ -506,11 +506,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.CollectionCreation is null);
             Debug.Assert(node.Placeholder is null);
             Debug.Assert(node.CollectionBuilderMethod is { });
-            Debug.Assert(node.CollectionBuilderProjectionCall is { });
             //Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
             //Debug.Assert(node.CollectionBuilderInvocationConversion is { });
 
-            Debug.Assert(node.CollectionBuilderProjectionCall is BoundCall or BoundConversion { Operand: BoundCall });
+            Debug.Assert(node.CollectionBuilderProjectionCallConversion is { });
 
             var constructMethod = node.CollectionBuilderMethod;
 
@@ -527,8 +526,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
-            var originalConversion = node.CollectionBuilderProjectionCall as BoundConversion;
-            var originalInvocation = (BoundCall)(originalConversion?.Operand ?? node.CollectionBuilderProjectionCall);
+            var originalConversion = node.CollectionBuilderProjectionCallConversion as BoundConversion;
+            var originalInvocation = (BoundCall)originalConversion.Operand;
 
             // Add the final 'span' to the arguments of the original call.
 
@@ -559,17 +558,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable,
                 type: constructMethod.ReturnType);
 
-            BoundExpression finalNode = originalConversion is null
-                ? finalInvocation
-                : originalConversion.Update(
-                    finalInvocation, originalConversion.Conversion, originalConversion.IsBaseConversion, originalConversion.Checked,
-                    originalConversion.ExplicitCastInCode, originalConversion.ConstantValueOpt, originalConversion.ConversionGroupOpt, originalConversion.Type);
+            var finalConversion = originalConversion.Update(
+                finalInvocation, originalConversion.Conversion, originalConversion.IsBaseConversion, originalConversion.Checked,
+                originalConversion.ExplicitCastInCode, originalConversion.ConstantValueOpt, originalConversion.ConversionGroupOpt, originalConversion.Type);
 
             //var invocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
             //AddPlaceholderReplacement(invocationPlaceholder, originalInvocation);
             //var result = VisitExpression(node.CollectionBuilderInvocationConversion);
             //RemovePlaceholderReplacement(invocationPlaceholder);
-            return finalNode;
+            return finalConversion;
         }
 
         internal static bool IsAllocatingRefStructCollectionExpression(BoundCollectionExpressionBase node, CollectionExpressionTypeKind collectionKind, TypeSymbol? elementType, CSharpCompilation compilation)
