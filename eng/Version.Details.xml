@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="67e97de6b08f3e5fa8e8ec49c72531406b5afeaa" BarId="284571" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="fe6b307fbb764027be9a10b978063bd742763982" BarId="285582" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="3.11.0">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>ae1fff344d46976624e68ae17164e0607ab68b10</Sha>
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="2.0.0-rc.2.25473.111">
+    <Dependency Name="System.CommandLine" Version="2.0.0-rc.1.25502.108">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>537ecf871e65b50bbe5c8d70c284caa87b69b3cd</Sha>
+      <Sha>fe6b307fbb764027be9a10b978063bd742763982</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
     <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0">
@@ -115,13 +115,13 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25501.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.25504.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>b31d1d57a46eceefe28423353bd0cf299b7f478e</Sha>
+      <Sha>db534d10fc5ab858568b2f27d9b1383099a8019c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.25501.1">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.25504.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>b31d1d57a46eceefe28423353bd0cf299b7f478e</Sha>
+      <Sha>db534d10fc5ab858568b2f27d9b1383099a8019c</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
       <Uri>https://github.com/dotnet/symreader</Uri>
@@ -131,9 +131,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25501.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.25504.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>b31d1d57a46eceefe28423353bd0cf299b7f478e</Sha>
+      <Sha>db534d10fc5ab858568b2f27d9b1383099a8019c</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.0-preview.25375.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
 
