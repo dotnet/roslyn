@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "Roslyn.sln",
+    "path": "Roslyn.slnx",
     "projects": [
       "src\\Compilers\\CSharp\\CSharpAnalyzerDriver\\CSharpAnalyzerDriver.shproj",
       "src\\Compilers\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.csproj",
